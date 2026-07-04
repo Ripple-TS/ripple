@@ -53,6 +53,7 @@ import {
 	mapping_data,
 	mapping_data_verify_only,
 	mapping_data_verify_complete,
+	mapping_data_completion_only,
 	build_line_offsets,
 	get_mapping_from_node,
 } from '../source-map-utils.js';
@@ -172,6 +173,76 @@ function visit_source_ast(ast, src_line_offsets, { regions, css_element_info }) 
 				}
 
 				css_element_info.set(`${line}:${column}`, css);
+			}
+		},
+	});
+}
+
+/**
+ * A half-typed directive (`@`, `@i`) is just plain text, and the editor only
+ * suggests completions where source maps into the generated TSX. This adds
+ * those maps for `@`-containing text, matched by exact text so a chunk we can't
+ * line up is skipped rather than mapped to a wrong (guessed) spot.
+ *
+ * @param {AST.Node} ast
+ * @param {string} source
+ * @param {ReturnType<typeof build_src_to_gen_map>[0]} src_to_gen_map
+ * @param {number[]} gen_line_offsets
+ * @param {CodeMapping[]} mappings
+ */
+function add_jsx_text_completion_mappings(ast, source, src_to_gen_map, gen_line_offsets, mappings) {
+	walk(ast, null, {
+		JSXText(node) {
+			const { loc, start, end } = /** @type {AST.NodeWithLocation} */ (
+				/** @type {unknown} */ (node)
+			);
+			if (!loc || typeof start !== 'number' || typeof end !== 'number') {
+				return;
+			}
+			const text = source.slice(start, end);
+			if (!text.includes('@')) {
+				return;
+			}
+
+			// One source spot can map to several generated spots; pick the first
+			// whose text matches every chunk (like get_generated_position_for_token)
+			const positions = src_to_gen_map.get(`${loc.start.line}:${loc.start.column}`) ?? [];
+
+			for (const position of positions) {
+				const gen_text = position.code;
+				const gen_text_start = loc_to_offset(position.line, position.column, gen_line_offsets);
+				/** @type {CodeMapping[]} */
+				const chunk_mappings = [];
+				const chunk_regex = /\S+/g;
+				let search_from = 0;
+				let matched_all = true;
+				let chunk_match;
+				while ((chunk_match = chunk_regex.exec(text)) !== null) {
+					const chunk = chunk_match[0];
+					const gen_index = gen_text.indexOf(chunk, search_from);
+					if (gen_index === -1) {
+						matched_all = false;
+						break;
+					}
+					search_from = gen_index + chunk.length;
+					if (!chunk.includes('@')) {
+						continue;
+					}
+					chunk_mappings.push({
+						sourceOffsets: [start + chunk_match.index],
+						generatedOffsets: [gen_text_start + gen_index],
+						lengths: [chunk.length],
+						generatedLengths: [chunk.length],
+						data: {
+							...mapping_data_completion_only,
+							customData: {},
+						},
+					});
+				}
+				if (matched_all && chunk_mappings.length > 0) {
+					mappings.push(...chunk_mappings);
+					return;
+				}
 			}
 		},
 	});
@@ -374,6 +445,14 @@ export function convert_source_map_to_mappings(
 		regions: css_regions,
 		css_element_info,
 	});
+
+	add_jsx_text_completion_mappings(
+		ast_from_source,
+		source,
+		src_to_gen_map,
+		gen_line_offsets,
+		mappings,
+	);
 
 	/** @type {Map<string, number>} */
 	const generated_position_indexes = new Map();
@@ -806,7 +885,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'JSXText') {
-				// Text content, no tokens to collect
+				// Text content, no tokens to collect (see add_jsx_text_completion_mappings)
 				return;
 			} else if (node.type === 'JSXCodeBlock') {
 				for (const statement of node.body) {

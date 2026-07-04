@@ -50,6 +50,11 @@ export const mapping_data_verify_complete = {
 	completion: true,
 };
 
+/** @type {Partial<VolarCodeMapping['data']>} */
+export const mapping_data_completion_only = {
+	completion: true,
+};
+
 /**
  * Convert byte offset to line/column
  * @param {number} offset

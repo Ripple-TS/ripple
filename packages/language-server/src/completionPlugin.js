@@ -209,7 +209,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'Derived reactive value',
 		documentation: 'Create a derived reactive value',
-		insertText: 'let ${1:name} = track(() => ${2:@dependency});',
+		insertText: 'let ${1:name} = track(() => ${2:dependency});',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-track-derived',
 	},
@@ -228,95 +228,113 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'Create an effect',
 		documentation: 'Run side effects when reactive dependencies change',
-		insertText: 'effect(() => {\n\t${1:console.log(@value);}\n});',
+		insertText: 'effect(() => {\n\t${1:console.log(value);}\n});',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-effect',
-	},
-	{
-		label: 'for-of',
-		kind: CompletionItemKind.Snippet,
-		detail: 'for...of loop',
-		documentation: 'Iterate over items in Ripple template',
-		insertText: '@for (const ${1:item} of ${2:items}) {\n\t<${3:li}>{${1:item}}</${3:li}>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-for-of',
-	},
-	{
-		label: 'for-index',
-		kind: CompletionItemKind.Snippet,
-		detail: 'for...of loop with index',
-		documentation: 'Iterate with index',
-		insertText:
-			'@for (const ${1:item} of ${2:items}; index ${3:i}) {\n\t<${4:li}>{${1:item}} at {${3}}</${4:li}>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-for-index',
-	},
-	{
-		label: 'for-key',
-		kind: CompletionItemKind.Snippet,
-		detail: 'for...of loop with key',
-		documentation: 'Iterate with key for identity',
-		insertText:
-			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-for-key',
-	},
-	{
-		label: 'for-empty',
-		kind: CompletionItemKind.Snippet,
-		detail: 'for...of loop with empty fallback',
-		documentation: 'Iterate over items with an empty fallback',
-		insertText:
-			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n} @empty {\n\t<${6:li}>${7:No items}</${6:li}>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-for-empty',
-	},
-	{
-		label: 'for-index-key',
-		kind: CompletionItemKind.Snippet,
-		detail: 'for...of loop with key',
-		documentation: 'Iterate with key for identity',
-		insertText:
-			'@for (const ${1:item} of ${2:items}; index ${3:i}; key ${1:item}.${4:id}) {\n\t<${5:li}>{${1:item}.${6:text}} at index {${3}}</${5:li}>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-for-key-index',
-	},
-	{
-		label: 'if-else',
-		kind: CompletionItemKind.Snippet,
-		detail: 'if...else statement',
-		documentation: 'Conditional rendering',
-		insertText: '@if (${1:condition}) {\n\t<>\n\t\t$2\n\t</>\n} else {\n\t<>\n\t\t$3\n\t</>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-if-else',
-	},
-	{
-		label: 'switch-case',
-		kind: CompletionItemKind.Snippet,
-		detail: 'switch statement',
-		documentation: 'Switch-based conditional rendering',
-		insertText:
-			"@switch (${1:value}) {\n\tcase ${2:'case1'}: {\n\t\t<>\n\t\t\t$3\n\t\t</>\n\t}\n\tcase ${4:'case2'}: {\n\t\t<>\n\t\t\t$5\n\t\t</>\n\t}\n\tdefault: {\n\t\t<>\n\t\t\t$6\n\t\t</>\n\t}\n}",
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-switch-case',
 	},
 	{
 		label: 'untrack',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Untrack reactive value',
 		documentation: 'Read reactive value without creating dependency',
-		insertText: 'untrack(() => @${1:value})',
+		insertText: 'untrack(() => ${1:value})',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-untrack',
 	},
+];
+
+/**
+ * Completions offered when the user types `@` in a template. The editor orders
+ * items by `sortText` (compared as plain text, not by label), so these are
+ * zero-padded to force the order: statement container first, then the
+ * directives (`@if`/`@for`/...), then the clause keywords (`@else`/`@case`/...).
+ */
+const AT_DIRECTIVE_SNIPPETS = [
 	{
-		label: 'try-pending',
-		kind: CompletionItemKind.Snippet,
-		detail: 'try...pending block',
-		documentation: 'Handle async content with loading fallback',
-		insertText: '@try {\n\t$1\n} @pending {\n\t<div>Loading...</div>\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-try-pending',
+		label: '@{}',
+		detail: 'Statement block',
+		documentation: 'Run TypeScript statements inside the template',
+		insertText: '@{\n\t$0\n}',
+		sortText: '0-@-00',
+		preselect: true,
+	},
+	{
+		label: '@if',
+		detail: '@if block',
+		documentation: 'Conditional rendering',
+		insertText: '@if (${1:condition}) {\n\t$0\n}',
+		sortText: '0-@-01',
+	},
+	{
+		label: '@for',
+		detail: '@for block',
+		documentation: 'Iterate over items in the template',
+		insertText: '@for (const ${1:item} of ${2:items}) {\n\t$0\n}',
+		sortText: '0-@-02',
+	},
+	{
+		label: '@switch',
+		detail: '@switch block',
+		documentation: 'Switch-based conditional rendering',
+		insertText:
+			'@switch (${1:value}) {\n\t@case ${2:match}: {\n\t\t$3\n\t}\n\t@default: {\n\t\t$0\n\t}\n}',
+		sortText: '0-@-03',
+	},
+	{
+		label: '@try',
+		detail: '@try block',
+		documentation: 'Handle async content with loading and error fallbacks',
+		insertText: '@try {\n\t$1\n} @pending {\n\t$2\n} @catch (${3:e}) {\n\t$0\n}',
+		sortText: '0-@-04',
+	},
+	{
+		label: '@else',
+		detail: '@else clause',
+		documentation: 'Fallback branch after an @if block',
+		insertText: '@else {\n\t$0\n}',
+		sortText: '0-@-10',
+	},
+	{
+		label: '@else if',
+		detail: '@else if clause',
+		documentation: 'Chained condition after an @if block',
+		insertText: '@else if (${1:condition}) {\n\t$0\n}',
+		sortText: '0-@-11',
+	},
+	{
+		label: '@empty',
+		detail: '@empty clause',
+		documentation: 'Fallback branch when an @for block has no items',
+		insertText: '@empty {\n\t$0\n}',
+		sortText: '0-@-12',
+	},
+	{
+		label: '@case',
+		detail: '@case clause',
+		documentation: 'Match branch inside an @switch block',
+		insertText: '@case ${1:match}: {\n\t$0\n}',
+		sortText: '0-@-13',
+	},
+	{
+		label: '@default',
+		detail: '@default clause',
+		documentation: 'Default branch inside an @switch block',
+		insertText: '@default: {\n\t$0\n}',
+		sortText: '0-@-14',
+	},
+	{
+		label: '@pending',
+		detail: '@pending clause',
+		documentation: 'Loading branch of an @try block',
+		insertText: '@pending {\n\t$0\n}',
+		sortText: '0-@-15',
+	},
+	{
+		label: '@catch',
+		detail: '@catch clause',
+		documentation: 'Error branch of an @try block',
+		insertText: '@catch (${1:e}) {\n\t$0\n}',
+		sortText: '0-@-16',
 	},
 ];
 
@@ -429,14 +447,33 @@ export function createCompletionPlugin() {
 						return { items, isIncomplete: false };
 					}
 
-					// @ accessor hint when typing after @
-					if (/@\w*$/.test(line)) {
-						items.push({
-							label: '@value',
-							kind: CompletionItemKind.Variable,
-							detail: 'Access tracked value',
-							documentation: 'Use @ to read/write tracked values',
-						});
+					const atMatch = line.match(/@\w*$/);
+					if (atMatch) {
+						// Anchor the edit at the '@' the user already typed so selecting
+						// '@if' replaces it, instead of inserting after it (giving '@@if')
+						const atStart = {
+							line: position.line,
+							character: position.character - atMatch[0].length,
+						};
+						for (const snippet of AT_DIRECTIVE_SNIPPETS) {
+							items.push({
+								label: snippet.label,
+								kind: CompletionItemKind.Snippet,
+								detail: snippet.detail,
+								documentation: snippet.documentation,
+								insertText: snippet.insertText,
+								insertTextFormat: InsertTextFormat.Snippet,
+								sortText: snippet.sortText,
+								preselect: snippet.preselect,
+								// filterText keeps the '@' so the editor's as-you-type filtering
+								// still matches once the user has typed it
+								filterText: snippet.label,
+								textEdit: {
+									range: { start: atStart, end: position },
+									newText: snippet.insertText,
+								},
+							});
+						}
 					}
 
 					// RippleMap/RippleSet completions when typing R, M...

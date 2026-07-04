@@ -391,6 +391,7 @@ export class TSRXVirtualCode {
 					generatedLengths: [newCode.length],
 					data: {
 						verification: true,
+						completion: true,
 						customData: {},
 					},
 				},

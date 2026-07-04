@@ -2565,15 +2565,27 @@ const visitors = {
 						}
 
 						if (isEventAttribute(attr.name.name)) {
-							const handler = visit(/** @type {AST.Expression} */ (attr.value), state);
-							const is_delegated = is_delegated_event(attr.name.name, handler, context);
+							if (attr.value === null) {
+								// A regular attribute can have no value (like `hidden`), but an
+								// event attribute like `<div onC>` has no handler to run
+								error(
+									`the \`${attr.name.name}\` event attribute must be assigned a handler expression`,
+									state.analysis.module.filename,
+									attr,
+									context.state.collect ? context.state.analysis.errors : undefined,
+									context.state.analysis.comments,
+								);
+							} else {
+								const handler = visit(/** @type {AST.Expression} */ (attr.value), state);
+								const is_delegated = is_delegated_event(attr.name.name, handler, context);
 
-							if (is_delegated) {
-								if (attr.metadata === undefined) {
-									attr.metadata = { path: [...path] };
+								if (is_delegated) {
+									if (attr.metadata === undefined) {
+										attr.metadata = { path: [...path] };
+									}
+
+									attr.metadata.delegated = is_delegated;
 								}
-
-								attr.metadata.delegated = is_delegated;
 							}
 						} else if (attr.value !== null) {
 							visit(attr.value, state);
