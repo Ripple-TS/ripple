@@ -224,6 +224,32 @@ function hasComment(node) {
 }
 
 /**
+ * Check whether a comment is a `prettier-ignore` directive.
+ * @param {AST.Comment | undefined} comment - The comment to check
+ * @returns {boolean} - True if the comment reads exactly `prettier-ignore`
+ */
+function isPrettierIgnoreComment(comment) {
+	if (!comment || (comment.type !== 'Line' && comment.type !== 'Block')) {
+		return false;
+	}
+	return comment.value.trim() === 'prettier-ignore';
+}
+
+/**
+ * Check whether a node is immediately preceded by a `prettier-ignore` directive.
+ * Only the last leading comment counts, matching Prettier core.
+ * @param {AST.Node & AST.NodeWithMaybeComments} node - The AST node to check
+ * @returns {boolean} - True if the node should be printed verbatim
+ */
+function hasPrettierIgnore(node) {
+	const comments = node.leadingComments;
+	if (!comments || comments.length === 0) {
+		return false;
+	}
+	return isPrettierIgnoreComment(comments[comments.length - 1]);
+}
+
+/**
  * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression | AST.TSDeclareFunction} node - The function node
  * @returns {Array<AST.Pattern | AST.Parameter>} - Array of parameter patterns
  */
@@ -723,6 +749,70 @@ function printKey(node, path, options, print) {
 }
 
 /**
+ * Combine already-printed leading comment parts, a node's printed body, and its
+ * trailing comments into the final Doc returned by {@link printRippleNode}.
+ * @param {AST.Node} node - The AST node
+ * @param {Doc[]} parts - Leading-comment parts already collected for the node
+ * @param {Doc[] | Doc} nodeContent - The printed body of the node
+ * @returns {Doc[] | Doc}
+ */
+function finishRippleNode(node, parts, nodeContent) {
+	// Handle trailing comments
+	if (node.trailingComments) {
+		const trailingParts = [];
+		let previousComment = null;
+
+		for (let i = 0; i < node.trailingComments.length; i++) {
+			const comment = node.trailingComments[i];
+			const isInlineComment = Boolean(
+				node.loc && comment.loc && node.loc.end.line === comment.loc.start.line,
+			);
+
+			const commentDoc =
+				comment.type === 'Line' ? '//' + comment.value : '/*' + comment.value + '*/';
+
+			if (isInlineComment) {
+				if (comment.type === 'Line') {
+					trailingParts.push(lineSuffix([' ', commentDoc]));
+					trailingParts.push(breakParent);
+				} else {
+					trailingParts.push(' ' + commentDoc);
+				}
+			} else {
+				const refs = [];
+				refs.push(hardline);
+
+				const blankLinesBetween = previousComment
+					? getBlankLinesBetweenNodes(previousComment, comment)
+					: getBlankLinesBetweenNodes(node, comment);
+				if (blankLinesBetween > 0) {
+					refs.push(hardline);
+				}
+
+				refs.push(commentDoc);
+				trailingParts.push(lineSuffix(refs));
+			}
+
+			previousComment = comment;
+		}
+
+		if (trailingParts.length > 0) {
+			parts.push(nodeContent);
+			parts.push(...trailingParts);
+			return parts;
+		}
+	} // Return with or without leading comments
+	if (parts.length > 0) {
+		// Don't add blank line between leading comments and node
+		// because they're meant to be attached together
+		parts.push(nodeContent);
+		return parts;
+	}
+
+	return nodeContent;
+}
+
+/**
  * Main print function for Ripple AST nodes
  * @param {AST.Node | AST.CSS.StyleSheet} node - The AST node to print
  * @param {AstPath} path - The AST path
@@ -810,6 +900,23 @@ function printRippleNode(node, path, options, print, args) {
 				innerCommentParts.push('/*' + comment.value + '*/');
 			}
 		}
+	}
+
+	// A `prettier-ignore` directive keeps the node's original source verbatim.
+	const commentNode = /** @type {AST.Node & AST.NodeWithMaybeComments} */ (node);
+	const ignoreStart = /** @type {AST.NodeWithLocation} */ (node).start;
+	const ignoreEnd = /** @type {AST.NodeWithLocation} */ (node).end;
+	if (
+		hasPrettierIgnore(commentNode) &&
+		typeof options.originalText === 'string' &&
+		typeof ignoreStart === 'number' &&
+		typeof ignoreEnd === 'number'
+	) {
+		return finishRippleNode(
+			commentNode,
+			parts,
+			replaceEndOfLine(options.originalText.slice(ignoreStart, ignoreEnd)),
+		);
 	}
 
 	/** @type {Doc[] | Doc} */
@@ -2338,64 +2445,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 	}
 
-	// Handle trailing comments
-	if (node.trailingComments) {
-		const trailingParts = [];
-		let previousComment = null;
-
-		for (let i = 0; i < node.trailingComments.length; i++) {
-			const comment = node.trailingComments[i];
-			const isInlineComment = Boolean(
-				node.loc && comment.loc && node.loc.end.line === comment.loc.start.line,
-			);
-
-			const commentDoc =
-				comment.type === 'Line' ? '//' + comment.value : '/*' + comment.value + '*/';
-
-			if (isInlineComment) {
-				if (comment.type === 'Line') {
-					trailingParts.push(lineSuffix([' ', commentDoc]));
-					trailingParts.push(breakParent);
-				} else {
-					trailingParts.push(' ' + commentDoc);
-				}
-			} else {
-				const refs = [];
-				refs.push(hardline);
-
-				const blankLinesBetween = previousComment
-					? getBlankLinesBetweenNodes(previousComment, comment)
-					: getBlankLinesBetweenNodes(node, comment);
-				if (blankLinesBetween > 0) {
-					refs.push(hardline);
-				}
-
-				if (comment.type === 'Line') {
-					refs.push(commentDoc);
-					trailingParts.push(lineSuffix(refs));
-				} else {
-					refs.push(commentDoc);
-					trailingParts.push(lineSuffix(refs));
-				}
-			}
-
-			previousComment = comment;
-		}
-
-		if (trailingParts.length > 0) {
-			parts.push(nodeContent);
-			parts.push(...trailingParts);
-			return parts;
-		}
-	} // Return with or without leading comments
-	if (parts.length > 0) {
-		// Don't add blank line between leading comments and node
-		// because they're meant to be attached together
-		parts.push(nodeContent);
-		return parts;
-	}
-
-	return nodeContent;
+	return finishRippleNode(/** @type {AST.Node} */ (node), parts, nodeContent);
 }
 
 /**

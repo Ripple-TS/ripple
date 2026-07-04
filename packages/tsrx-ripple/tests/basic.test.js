@@ -19,7 +19,7 @@ runSharedComponentParamsTests({
 });
 
 describe('@tsrx/ripple faithful text output', () => {
-	it('keeps a single `@` text child as `<>@</>` instead of `{\'@\'}` in type-only output', () => {
+	it("keeps a single `@` text child as `<>@</>` instead of `{'@'}` in type-only output", () => {
 		const { code, errors } = compile_to_volar_mappings(
 			`export function App() {
 				<>@</>

@@ -851,6 +851,89 @@ const items=[1,2,3];
 		expect(result).toBeWithNewline(expected);
 	});
 
+	describe('prettier-ignore', () => {
+		it('preserves a statement verbatim after a line directive', async () => {
+			const input = `export function App() {
+	// prettier-ignore
+	const matrix = [1,0,0,
+		0,1,0,
+		0,0,1];
+	return <div>{matrix.length}</div>;
+}`;
+			const expected = `export function App() {
+  // prettier-ignore
+  const matrix = [1,0,0,
+		0,1,0,
+		0,0,1];
+  return <div>{matrix.length}</div>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('preserves a statement verbatim after a block directive', async () => {
+			const input = `export function App() {
+	/* prettier-ignore */
+	const obj = {a:1,     b:2};
+	return <div>{obj.a}</div>;
+}`;
+			const expected = `export function App() {
+  /* prettier-ignore */
+  const obj = {a:1,     b:2};
+  return <div>{obj.a}</div>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('preserves a JSX element verbatim', async () => {
+			const input = `export function App() @{
+	// prettier-ignore
+	<div   class="x"     id="y">
+		hello
+	</div>
+}`;
+			const expected = `export function App() @{
+  // prettier-ignore
+  <div   class="x"     id="y">
+		hello
+	</div>
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('preserves a whitespace-only fragment verbatim', async () => {
+			const input = `function WhitespaceOnlyApp() @{
+	// prettier-ignore
+	<>
+	</>
+}`;
+			const expected = `function WhitespaceOnlyApp() @{
+  // prettier-ignore
+  <>
+	</>
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('still formats when the comment is not a prettier-ignore directive', async () => {
+			const input = `export function App() {
+	// this is a normal comment
+	const obj = {a:1,     b:2};
+	return <div>{obj.a}</div>;
+}`;
+			const expected = `export function App() {
+  // this is a normal comment
+  const obj = { a: 1, b: 2 };
+  return <div>{obj.a}</div>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+	});
+
 	describe('recovered', () => {
 		/**
 		 * @param {string} code

@@ -25,6 +25,7 @@ describe('basic client > rendering & text', () => {
 
 	it('renders nothing for a whitespace-only fragment', () => {
 		function Basic() @{
+			// prettier-ignore
 			<>
 			</>
 		}

@@ -53,6 +53,7 @@ function AtTextApp() @{
 }
 
 function WhitespaceOnlyApp() @{
+	// prettier-ignore
 	<>
 	</>
 }
