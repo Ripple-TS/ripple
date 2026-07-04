@@ -382,7 +382,15 @@ export class TSRXVirtualCode {
 			// user would have no signal pointing at the actual problem.
 			this.generatedCode = newCode;
 
-			// Create 1:1 mappings for the entire content
+			// Create 1:1 mappings for the entire content.
+			//
+			// Enable `completion` on this fallback mapping. Volar only invokes
+			// completion providers at a cursor position when some mapping covering
+			// it has the completion capability (isCompletionEnabled === !!data.completion).
+			// Without it, a transient compile error (e.g. a half-typed `@if`) would
+			// disable ALL completions in the file, so the user gets no suggestions to
+			// help them finish the very construct that is broken. Keeping completion on
+			// lets template-directive and TypeScript completions surface while editing.
 			this.mappings = [
 				{
 					sourceOffsets: [0],
@@ -390,6 +398,7 @@ export class TSRXVirtualCode {
 					lengths: [newCode.length],
 					generatedLengths: [newCode.length],
 					data: {
+						completion: true,
 						verification: true,
 						customData: {},
 					},
@@ -964,6 +973,42 @@ export function get_compiler_entry_for_file(normalized_file_name) {
 	}
 
 	return undefined;
+}
+
+/**
+ * Resolve the tsrx compiler package that owns a `.tsrx` file (e.g. `'@tsrx/ripple'`,
+ * `'@tsrx/react'`), based on the nearest `package.json` dependencies. All targets
+ * share the `.tsrx` extension, so this is how the editor layer tells them apart —
+ * it reuses the exact same resolution as compilation, so tooling and the compiler
+ * always agree on the platform. Returns `undefined` when no compiler resolves.
+ * @param {string} file_name
+ * @returns {string | undefined}
+ */
+export function get_tsrx_compiler_name_for_file(file_name) {
+	const entry = get_compiler_entry_for_file(file_name.replace(/\\/g, '/'));
+	if (!entry) {
+		return undefined;
+	}
+
+	const normalized_entry = entry.replace(/\\/g, '/');
+	for (const [compiler_name, compiler_dir_parts] of COMPILER_CANDIDATES) {
+		const suffix = '/' + [...compiler_dir_parts, 'src', 'index.js'].join('/');
+		if (normalized_entry.endsWith(suffix)) {
+			return compiler_name;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * Whether a `.tsrx` file is compiled by the Ripple target (as opposed to
+ * React/Solid/Preact/Vue). Used to gate Ripple-runtime-only editor suggestions.
+ * @param {string} file_name
+ * @returns {boolean}
+ */
+export function is_ripple_platform_file(file_name) {
+	return get_tsrx_compiler_name_for_file(file_name) === '@tsrx/ripple';
 }
 
 /**

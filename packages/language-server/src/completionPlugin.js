@@ -7,6 +7,7 @@ import {
 	isInsideImport,
 	isInsideExport,
 	is_ripple_document,
+	is_ripple_platform_document,
 } from './utils.js';
 
 const { log } = createLogging('[Ripple Completion Plugin]');
@@ -172,71 +173,38 @@ function generateImportEdit(documentText, importName) {
 }
 
 /**
- * Ripple-specific completion enhancements
- * Adds custom completions for Ripple syntax patterns
+ * Target-neutral TSRX authoring snippets. These apply to every target (Ripple,
+ * React, Solid, Preact, Vue) because they only use shared TSRX syntax — the
+ * `function … @{ }` component shape and `@if`/`@for`/`@switch`/`@try` control flow.
+ * Offered in every `.tsrx` file regardless of platform.
  */
-const RIPPLE_SNIPPETS = [
+const TSRX_SNIPPETS = [
 	{
-		label: 'module server',
+		label: '@{ }',
+		// `@`-triggered items filter against the typed `@`; carry an explicit filterText
+		// since `@` + label would produce `@@{ }`.
+		filterText: '@{',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Server-only submodule (module level)',
-		documentation:
-			'Declares a server-only submodule. Import exported functions with `import { loadData } from server` before using them.\nMust be at module top level.\n\nUsage:\nmodule server {\n  export async function loadData() { ... }\n}\n\nimport { loadData } from server;',
-		insertText: 'module server {\n\t$0\n}',
+		detail: 'Code block',
+		documentation: 'TSRX code block for setup logic and local declarations',
+		insertText: '@{\n\t$0\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-module-server',
+		sortText: '0-@{',
 	},
 	{
 		label: 'function component',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple component function',
-		documentation: 'Create a new Ripple component',
+		detail: 'TSRX component function',
+		documentation: 'Create a new TSRX component',
 		insertText: 'function ${1:ComponentName}(${2:props}) @{\n\t$0\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-function-component',
 	},
 	{
-		label: 'track',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Reactive state with track',
-		documentation: 'Create a reactive tracked value',
-		insertText: 'let ${1:name} = track(${2:initialValue});',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-track',
-	},
-	{
-		label: 'track-derived',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Derived reactive value',
-		documentation: 'Create a derived reactive value',
-		insertText: 'let ${1:name} = track(() => ${2:@dependency});',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-track-derived',
-	},
-	{
-		label: 'track-getter-setter',
-		kind: CompletionItemKind.Snippet,
-		detail: 'track with get/set',
-		documentation: 'Create tracked value with custom getter/setter',
-		insertText:
-			'let ${1:name} = track(${2:0},\n\t(current) => {\n\t\t$3\n\t\treturn current;\n\t},\n\t(next, prev) => {\n\t\t$4\n\t\treturn next;\n\t}\n);',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-track-getter-setter',
-	},
-	{
-		label: 'effect',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Create an effect',
-		documentation: 'Run side effects when reactive dependencies change',
-		insertText: 'effect(() => {\n\t${1:console.log(@value);}\n});',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-effect',
-	},
-	{
 		label: 'for-of',
 		kind: CompletionItemKind.Snippet,
 		detail: 'for...of loop',
-		documentation: 'Iterate over items in Ripple template',
+		documentation: 'Iterate over items in a TSRX template',
 		insertText: '@for (const ${1:item} of ${2:items}) {\n\t<${3:li}>{${1:item}}</${3:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-of',
@@ -301,15 +269,6 @@ const RIPPLE_SNIPPETS = [
 		sortText: '0-switch-case',
 	},
 	{
-		label: 'untrack',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Untrack reactive value',
-		documentation: 'Read reactive value without creating dependency',
-		insertText: 'untrack(() => @${1:value})',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-untrack',
-	},
-	{
 		label: 'try-pending',
 		kind: CompletionItemKind.Snippet,
 		detail: 'try...pending block',
@@ -317,6 +276,72 @@ const RIPPLE_SNIPPETS = [
 		insertText: '@try {\n\t$1\n} @pending {\n\t<div>Loading...</div>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-try-pending',
+	},
+];
+
+/**
+ * Ripple-runtime-only snippets: reactivity primitives (`track`/`effect`/`untrack`)
+ * and server modules. These reference the `ripple` runtime API, so they are only
+ * offered when the file is compiled by the Ripple target (see `is_ripple_platform_file`).
+ * Showing them for React/Solid/Preact/Vue `.tsrx` files would suggest APIs that
+ * don't exist in those targets.
+ */
+const RIPPLE_API_SNIPPETS = [
+	{
+		label: 'module server',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Server-only submodule (module level)',
+		documentation:
+			'Declares a server-only submodule. Import exported functions with `import { loadData } from server` before using them.\nMust be at module top level.\n\nUsage:\nmodule server {\n  export async function loadData() { ... }\n}\n\nimport { loadData } from server;',
+		insertText: 'module server {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-module-server',
+	},
+	{
+		label: 'track',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Reactive state with track',
+		documentation: 'Create a reactive tracked value',
+		insertText: 'let ${1:name} = track(${2:initialValue});',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-track',
+	},
+	{
+		label: 'track-derived',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Derived reactive value',
+		documentation: 'Create a derived reactive value',
+		insertText: 'let ${1:name} = track(() => ${2:dependency});',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-track-derived',
+	},
+	{
+		label: 'track-getter-setter',
+		kind: CompletionItemKind.Snippet,
+		detail: 'track with get/set',
+		documentation: 'Create tracked value with custom getter/setter',
+		insertText:
+			'let ${1:name} = track(${2:0},\n\t(current) => {\n\t\t$3\n\t\treturn current;\n\t},\n\t(next, prev) => {\n\t\t$4\n\t\treturn next;\n\t}\n);',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-track-getter-setter',
+	},
+	{
+		label: 'effect',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Create an effect',
+		documentation: 'Run side effects when reactive dependencies change',
+		insertText: 'effect(() => {\n\t${1:console.log(value);}\n});',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-effect',
+	},
+	{
+		label: 'untrack',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Untrack reactive value',
+		documentation: 'Read reactive value without creating dependency',
+		insertText: 'untrack(() => ${1:value})',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-untrack',
 	},
 ];
 
@@ -422,26 +447,60 @@ export function createCompletionPlugin() {
 					const fullText = document.getText();
 					const cursorOffset = document.offsetAt(position);
 
+					// All targets share the `.tsrx` extension, so resolve which one this file
+					// belongs to. Ripple-runtime suggestions (`track`/`effect`/`RippleMap`/
+					// `import … from 'ripple'`, …) are only offered for Ripple files; TSRX
+					// authoring snippets (`@if`/`@for`/`@{ }`/component shape) are offered for all.
+					const is_ripple = is_ripple_platform_document(document.uri);
+
 					if (isInsideImport(fullText, cursorOffset)) {
-						items.push(...RIPPLE_IMPORTS);
+						if (is_ripple) {
+							items.push(...RIPPLE_IMPORTS);
+						}
 						return { items, isIncomplete: false };
 					} else if (isInsideExport(fullText, cursorOffset)) {
 						return { items, isIncomplete: false };
 					}
 
-					// @ accessor hint when typing after @
-					if (/@\w*$/.test(line)) {
-						items.push({
-							label: '@value',
-							kind: CompletionItemKind.Variable,
-							detail: 'Access tracked value',
-							documentation: 'Use @ to read/write tracked values',
-						});
+					// Template directives + code block when typing `@` (e.g. `@`, `@i`, `@for`).
+					// A lone `@` is a syntax error until completed, so surfacing these lets the
+					// user resolve it immediately by picking a directive or a `@{ }` code block.
+					const directiveMatch = line.match(/@(\w*)$/);
+					if (directiveMatch) {
+						const replaceRange = {
+							start: {
+								line: position.line,
+								character: position.character - directiveMatch[0].length,
+							},
+							end: position,
+						};
+
+						// Reuse the `@`-prefixed TSRX snippets — the `@{ }` code block and the
+						// `@if`/`@for`/`@switch`/`@try` control flow (available on every target).
+						// They filter against the typed `@` (via each snippet's filterText, falling
+						// back to `@` + label), and are inserted through a textEdit that replaces the
+						// `@` the user already typed (avoiding a duplicated `@@if`).
+						for (const snippet of TSRX_SNIPPETS) {
+							if (!snippet.insertText.startsWith('@')) {
+								continue;
+							}
+							items.push({
+								label: snippet.label,
+								filterText: snippet.filterText ?? '@' + snippet.label,
+								kind: CompletionItemKind.Snippet,
+								detail: snippet.detail,
+								documentation: snippet.documentation,
+								insertTextFormat: InsertTextFormat.Snippet,
+								sortText: snippet.sortText,
+								textEdit: { range: replaceRange, newText: snippet.insertText },
+							});
+						}
+						return { items, isIncomplete: true };
 					}
 
-					// RippleMap/RippleSet completions when typing R, M...
+					// RippleMap/RippleSet completions when typing R, M... (Ripple runtime only).
 					// Also detects if 'new' is already typed before it to avoid duplicating
-					const trackedMatch = line.match(/(new\s+)?[R,M]([\w\.]*)$/);
+					const trackedMatch = is_ripple && line.match(/(new\s+)?[R,M]([\w\.]*)$/);
 
 					if (trackedMatch) {
 						const hasNew = !!trackedMatch[1];
@@ -493,10 +552,15 @@ export function createCompletionPlugin() {
 					// Debug: show what word we're matching
 					log('Current word:', currentWord, 'length:', currentWord.length);
 
-					// ALWAYS provide Ripple snippets and keywords
+					// Always provide the target-neutral TSRX snippets. Ripple-runtime snippets
+					// (track/effect/untrack/module server) are only added for Ripple files, so
+					// React/Solid/Preact/Vue `.tsrx` files don't see APIs they can't use.
 					// Even with 1 character, we return items so that when combined with TypeScript completions,
 					// the merged result will include our items. VS Code's fuzzy matching will filter them.
-					items.push(...RIPPLE_SNIPPETS);
+					items.push(...TSRX_SNIPPETS);
+					if (is_ripple) {
+						items.push(...RIPPLE_API_SNIPPETS);
+					}
 
 					// Return isIncomplete=false and let VS Code handle filtering
 					// Since we're providing all items every time, VS Code can cache and filter client-side

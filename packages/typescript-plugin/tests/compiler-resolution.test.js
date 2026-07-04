@@ -8,6 +8,8 @@ import fs from 'fs';
 const {
 	is_ripple_file,
 	find_workspace_compiler_entry_for_file,
+	get_tsrx_compiler_name_for_file,
+	is_ripple_platform_file,
 	COMPILER_CANDIDATES,
 	RIPPLE_EXTENSIONS,
 	_reset_for_test,
@@ -241,6 +243,32 @@ describe('typescript-plugin compiler resolution', () => {
 				);
 
 				expect(compiler_path).toContain(path.join(...test_case.expected));
+			});
+		}
+	});
+
+	// The editor layer resolves the *platform* (not just the compiler path) so it can
+	// gate Ripple-runtime-only completions. All targets share `.tsrx`, so the only
+	// signal is the nearest package.json — this must agree with compilation.
+	describe('platform name resolution for editor gating', () => {
+		/** @type {{ name: keyof typeof WORKSPACE_CONFIGS, compiler: string, is_ripple: boolean }[]} */
+		const cases = [
+			{ name: 'ripple-only', compiler: '@tsrx/ripple', is_ripple: true },
+			{ name: 'react-only', compiler: '@tsrx/react', is_ripple: false },
+			{ name: 'solid-only', compiler: '@tsrx/solid', is_ripple: false },
+			{ name: 'preact-only', compiler: '@tsrx/preact', is_ripple: false },
+			{ name: 'vue-only', compiler: '@tsrx/vue', is_ripple: false },
+			{ name: 'both', compiler: '@tsrx/ripple', is_ripple: true },
+			{ name: 'both-react', compiler: '@tsrx/react', is_ripple: false },
+		];
+
+		for (const test_case of cases) {
+			it(`${test_case.name} → ${test_case.compiler} (is_ripple=${test_case.is_ripple})`, () => {
+				const workspace = create_fixture_workspace(test_case.name);
+				const file_name = path.join(workspace, 'src', 'App.tsrx');
+
+				expect(get_tsrx_compiler_name_for_file(file_name)).toBe(test_case.compiler);
+				expect(is_ripple_platform_file(file_name)).toBe(test_case.is_ripple);
 			});
 		}
 	});

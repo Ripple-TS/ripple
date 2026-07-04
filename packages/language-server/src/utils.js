@@ -10,6 +10,7 @@ import {
 	charAllowedWordRegex,
 	DEBUG,
 } from '@tsrx/typescript-plugin/src/utils.js';
+import { is_ripple_platform_file } from '@tsrx/typescript-plugin/src/language.js';
 
 const IMPORT_EXPORT_REGEX = {
 	import: {
@@ -157,6 +158,18 @@ export function isInsideExport(text, start) {
  */
 export function is_ripple_document(document_uri) {
 	return RIPPLE_EXTENSIONS.some((extension) => document_uri.endsWith(extension));
+}
+
+/**
+ * Whether a `.tsrx` document is compiled by the Ripple target (vs React/Solid/
+ * Preact/Vue). All targets share the `.tsrx` extension, so this resolves the
+ * platform from the nearest `package.json` — used to gate Ripple-runtime-only
+ * editor suggestions.
+ * @param {string} document_uri
+ * @returns {boolean}
+ */
+export function is_ripple_platform_document(document_uri) {
+	return is_ripple_platform_file(URI.parse(document_uri).fsPath);
 }
 
 export { createLogging, getWordFromPosition, DEBUG };
