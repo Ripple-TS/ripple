@@ -48,6 +48,15 @@ function BasicApp() @{
 	<div className="greeting">{'Hello world'}</div>
 }
 
+function AtTextApp() @{
+	<>@</>
+}
+
+function WhitespaceOnlyApp() @{
+	<>
+	</>
+}
+
 function JsxTextApp() @{
 	<>
 		<div className="jsx-text-entities">Rock &amp; &quot;Roll&quot;</div>
@@ -1041,6 +1050,16 @@ describe('tsrx-react runtime', () => {
 		expect(text('.jsx-text-entities')).toBe('Rock & "Roll"');
 		expect(text('.jsx-text-backslash')).toBe('line\\nbreak');
 		expect(text('.jsx-text-multiline')).toBe('first second');
+	});
+
+	it('renders a bare `@` root text child as literal text', async () => {
+		await render(AtTextApp);
+		expect(container.textContent).toBe('@');
+	});
+
+	it('renders nothing for a whitespace-only root fragment', async () => {
+		await render(WhitespaceOnlyApp);
+		expect(container.textContent).toBe('');
 	});
 
 	it('renders bare JSX text in if-else branches', async () => {

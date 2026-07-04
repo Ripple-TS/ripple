@@ -63,6 +63,35 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).not.toContain('<>{a}a</>');
 		});
 
+		it('keeps a single text child faithful instead of promoting it to a string literal', () => {
+			const result = compile_to_volar_mappings(
+				`export function App() {
+					<>@</>
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors).toEqual([]);
+			// `@` is valid text content and must stay as-is, not be mangled into `{'@'}`.
+			expect(result.code).toContain('<>@</>');
+			expect(result.code).not.toContain("{'@'}");
+		});
+
+		it('does not promote ordinary single-text output into a string literal', () => {
+			const result = compile_to_volar_mappings(
+				`export function App() {
+					<>Hello</>
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain('<>Hello</>');
+			expect(result.code).not.toContain("{'Hello'}");
+		});
+
 		it('keeps callback returns around JSX values clean in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() @{
@@ -2686,6 +2715,24 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return null;');
 		});
 
+		it('keeps a single text child faithful at runtime instead of a string-literal expression', () => {
+			const { code } = compile(`export function App() {\n\t<>@</>\n}`, 'App.tsrx', { loose: true });
+			// `@` is valid text; keep it as-is rather than promoting it to `{'@'}` / `{"@"}`.
+			expect(code).toContain('<>@</>');
+			expect(code).not.toContain("{'@'}");
+			expect(code).not.toContain('{"@"}');
+		});
+
+		it('renders nothing for a whitespace-only render output at runtime', () => {
+			const { code } = compile(`export function App() {\n\t<>\n\t</>\n}`, 'App.tsrx', {
+				loose: true,
+			});
+			// A nullish/whitespace-only output should be nothing, not a stray `{''}` / `{""}`.
+			expect(code).toContain('<></>');
+			expect(code).not.toContain("{''}");
+			expect(code).not.toContain('{""}');
+		});
+
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
 				`export function Button() @{
@@ -2695,9 +2742,10 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			// An authored `<>…</>` is kept verbatim in value position (var-init), so the
-			// text fragment stays a fragment instead of unwrapping to a bare string.
-			expect(code).toContain('const x = <>{"Hello world"}</>;');
+			// An authored `<>…</>` is kept verbatim in value position (var-init): the text
+			// stays faithful to the source rather than being promoted to a `{"Hello world"}`
+			// string-literal expression.
+			expect(code).toContain('const x = <>Hello world</>;');
 			expect(code).toContain('return <>{x}</>;');
 		});
 

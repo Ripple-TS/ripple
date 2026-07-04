@@ -3715,9 +3715,10 @@ function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
 	if (children.length === 1) {
 		const only = children[0];
 		if (only.type === 'JSXText') {
-			return in_jsx_child
-				? setLocation(b.jsx_fragment([only]), /** @type {AST.NodeWithLocation} */ (only))
-				: b.literal(only.value);
+			// Stay faithful to the source: keep a single text child as `<>text</>`
+			// rather than promoting it to a `{'text'}` string literal. Promotion mangles
+			// characters like `@` (a valid text char) into `{'@'}` and loses fidelity.
+			return setLocation(b.jsx_fragment([only]), /** @type {AST.NodeWithLocation} */ (only));
 		}
 		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
 			return only.expression;

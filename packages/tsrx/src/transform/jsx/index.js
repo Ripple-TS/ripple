@@ -1202,7 +1202,9 @@ function build_render_statements(
 		const child = body_nodes[i];
 
 		if (is_loop_skip_return_statement(child)) {
-			statements.push(create_component_return_statement(render_nodes, child));
+			statements.push(
+				create_component_return_statement(render_nodes, child, true, transform_context.typeOnly),
+			);
 			render_nodes.length = 0;
 			has_terminal_return = true;
 			continue;
@@ -1314,7 +1316,7 @@ function build_render_statements(
 		hoist_static_render_nodes(render_nodes, transform_context);
 	}
 
-	let return_arg = build_return_expression(render_nodes);
+	let return_arg = build_return_expression(render_nodes, false, transform_context.typeOnly);
 	// Keep an authored `<> … </>` render output verbatim instead of collapsing it:
 	// an empty `<></>` stays `<></>` (not `null`), and a single child stays wrapped
 	// (not its bare value). The `!== 'JSXFragment'` guard avoids double-wrapping a
@@ -3142,18 +3144,23 @@ function get_generated_component_metadata_list(node) {
  * @param {any[]} render_nodes
  * @param {any} source_node
  * @param {boolean} [map_render_node_locations]
+ * @param {boolean} [type_only]
  * @returns {any}
  */
 function create_component_return_statement(
 	render_nodes,
 	source_node,
 	map_render_node_locations = true,
+	type_only = false,
 ) {
 	const cloned = render_nodes.map((node) =>
 		map_render_node_locations ? clone_expression_node(node) : clone_expression_node(node, false),
 	);
 
-	return set_loc(b.return(build_return_expression(cloned) || create_null_literal()), source_node);
+	return set_loc(
+		b.return(build_return_expression(cloned, false, type_only) || create_null_literal()),
+		source_node,
+	);
 }
 
 /**
@@ -4412,7 +4419,9 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 				const render_nodes = wrap_edge_whitespace(
 					children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context)),
 				);
-				expression = build_return_expression(render_nodes, in_jsx_child) || create_null_literal();
+				expression =
+					build_return_expression(render_nodes, in_jsx_child, transform_context.typeOnly) ||
+					create_null_literal();
 			} finally {
 				transform_context.inside_element_child = saved_inside_element_child;
 			}
@@ -5605,7 +5614,12 @@ function build_switch_with_lift(switch_node, transform_context) {
 			if (helper) {
 				return set_loc(
 					b.switch_case(original_case.test, [
-						create_component_return_statement([helper.component_element], original_case),
+						create_component_return_statement(
+							[helper.component_element],
+							original_case,
+							true,
+							transform_context.typeOnly,
+						),
 					]),
 					original_case,
 				);
@@ -5626,7 +5640,14 @@ function build_switch_with_lift(switch_node, transform_context) {
 
 			for (const child of own_body) {
 				if (is_loop_skip_return_statement(child)) {
-					case_body.push(create_component_return_statement(render_nodes, child));
+					case_body.push(
+						create_component_return_statement(
+							render_nodes,
+							child,
+							true,
+							transform_context.typeOnly,
+						),
+					);
 					has_terminal = true;
 					break;
 				}
@@ -5646,7 +5667,14 @@ function build_switch_with_lift(switch_node, transform_context) {
 
 			if (!has_terminal) {
 				if (render_nodes.length > 0) {
-					case_body.push(create_component_return_statement(render_nodes, original_case));
+					case_body.push(
+						create_component_return_statement(
+							render_nodes,
+							original_case,
+							true,
+							transform_context.typeOnly,
+						),
+					);
 				} else if (case_body.length > 0) {
 					case_body.push(create_null_return_statement());
 				} else if (has_terminator) {
@@ -6199,7 +6227,7 @@ function value_has_unmappable_jsx_loc(value) {
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-export function build_return_expression(render_nodes, in_jsx_child = false) {
+export function build_return_expression(render_nodes, in_jsx_child = false, type_only = false) {
 	if (render_nodes.length === 0) return null;
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
@@ -6213,11 +6241,15 @@ export function build_return_expression(render_nodes, in_jsx_child = false) {
 			return only.expression;
 		}
 		if (only.type === 'JSXText') {
-			if (in_jsx_child) {
-				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			// Keep a single text child faithful to the source (e.g. `<>@</>`) — never
+			// promote it to a `{'text'}` string-literal expression, in either the
+			// type-only editor view or runtime codegen. At runtime we additionally drop a
+			// nullish/whitespace-only child so it renders nothing instead of emitting
+			// empty output.
+			if (!type_only && !in_jsx_child && (only.value ?? '').trim() === '') {
+				return null;
 			}
-			const value = (only.value ?? '').trim();
-			return b.literal(value, JSON.stringify(value), only);
+			return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
 		}
 		return only;
 	}

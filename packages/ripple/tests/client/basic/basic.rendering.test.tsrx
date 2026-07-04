@@ -13,6 +13,27 @@ describe('basic client > rendering & text', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('renders a bare `@` text child as literal text', () => {
+		function Basic() @{
+			<>@</>
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('@');
+	});
+
+	it('renders nothing for a whitespace-only fragment', () => {
+		function Basic() @{
+			<>
+			</>
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('');
+	});
+
 	it('renders semi-dynamic text', () => {
 		function Basic() @{
 			let message = 'Hello World';

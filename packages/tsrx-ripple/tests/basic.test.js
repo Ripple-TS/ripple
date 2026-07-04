@@ -18,6 +18,62 @@ runSharedComponentParamsTests({
 	name: 'ripple',
 });
 
+describe('@tsrx/ripple faithful text output', () => {
+	it('keeps a single `@` text child as `<>@</>` instead of `{\'@\'}` in type-only output', () => {
+		const { code, errors } = compile_to_volar_mappings(
+			`export function App() {
+				<>@</>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(errors).toEqual([]);
+		expect(code).toContain('<>@</>');
+		expect(code).not.toContain("{'@'}");
+	});
+
+	it('does not promote ordinary single-text output into a string literal', () => {
+		const { code, errors } = compile_to_volar_mappings(
+			`export function App() {
+				<>Hello</>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(errors).toEqual([]);
+		expect(code).toContain('<>Hello</>');
+		expect(code).not.toContain("{'Hello'}");
+	});
+
+	it('lowers a single `@` text child to a faithful runtime text node', () => {
+		const { code } = compile(
+			`export function App() {
+				<>@</>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).toContain('_$_.text("@")');
+	});
+
+	it('renders nothing for a whitespace-only runtime output', () => {
+		const { code } = compile(
+			`export function App() {
+				<>
+				</>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		// A nullish/whitespace-only output should emit no text node at all.
+		expect(code).not.toContain('_$_.text');
+	});
+});
+
 describe('@tsrx/ripple style scope hashes', () => {
 	const source = `export function Card() @{
 	<>
