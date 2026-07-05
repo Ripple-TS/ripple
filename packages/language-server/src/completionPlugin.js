@@ -175,7 +175,7 @@ function generateImportEdit(documentText, importName) {
 /**
  * Target-neutral TSRX authoring snippets. These apply to every target (Ripple,
  * React, Solid, Preact, Vue) because they only use shared TSRX syntax — the
- * `function … @{ }` component shape and `@if`/`@for`/`@switch`/`@try` control flow.
+ * component-function shape, code blocks, and `@if`/`@for`/`@switch`/`@try` control flow.
  * Offered in every `.tsrx` file regardless of platform.
  */
 const TSRX_SNIPPETS = [
@@ -190,15 +190,6 @@ const TSRX_SNIPPETS = [
 		insertText: '@{\n\t$0\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-@{',
-	},
-	{
-		label: 'function component',
-		kind: CompletionItemKind.Snippet,
-		detail: 'TSRX component function',
-		documentation: 'Create a new TSRX component',
-		insertText: 'function ${1:ComponentName}(${2:props}) @{\n\t$0\n}',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-function-component',
 	},
 	{
 		label: '@for-of',
@@ -359,6 +350,22 @@ const TSRX_SNIPPETS = [
 		sortText: '0-pending',
 	},
 ];
+
+/**
+ * Generic (non-`@`) TSRX authoring snippet: the component-function shape. Target-neutral, so it
+ * is offered in every `.tsrx` file. Kept out of `TSRX_SNIPPETS` because it is not an `@`-directive
+ * — it must not be offered when the user is typing `@`, and it is the one snippet that still makes
+ * sense inside an `export` declaration (`export function Name(props)` followed by a code block).
+ */
+const COMPONENT_SNIPPET = {
+	label: 'function component',
+	kind: CompletionItemKind.Snippet,
+	detail: 'TSRX component function',
+	documentation: 'Create a new TSRX component',
+	insertText: 'function ${1:ComponentName}(${2:props}) @{\n\t$0\n}',
+	insertTextFormat: InsertTextFormat.Snippet,
+	sortText: '0-function-component',
+};
 
 /**
  * Ripple-runtime-only snippets: reactivity primitives (`track`/`effect`/`untrack`)
@@ -540,7 +547,12 @@ export function createCompletionPlugin() {
 						}
 						return { items, isIncomplete: false };
 					} else if (isInsideExport(fullText, cursorOffset)) {
-						return { items, isIncomplete: false };
+						// `export function Name(props) @{ }` is a valid component declaration, so keep
+						// offering the component snippet — otherwise typing `export func…` shows nothing at
+						// all. Template control-flow and reactivity snippets don't apply after `export`.
+						// Incomplete so VS Code re-requests as the user types (see the general path below).
+						items.push(COMPONENT_SNIPPET);
+						return { items, isIncomplete: true };
 					}
 
 					// Template directives + code block when typing `@` (e.g. `@`, `@i`, `@for`).
@@ -624,27 +636,26 @@ export function createCompletionPlugin() {
 						}
 					}
 
-					// Ripple keywords - extract the last word being typed
-					const wordMatch = line.match(/(\w+)$/);
-					const currentWord = wordMatch ? wordMatch[1] : '';
-
 					// Debug: show what word we're matching
-					log('Current word:', currentWord, 'length:', currentWord.length);
+					const wordMatch = line.match(/(\w+)$/);
+					log('Current word:', wordMatch ? wordMatch[1] : '');
 
-					// Always provide the target-neutral TSRX snippets. Ripple-runtime snippets
+					// Always provide the target-neutral TSRX authoring snippets: the component shape plus
+					// the `@`-directives (so typing e.g. `if` still surfaces `@if`). Ripple-runtime snippets
 					// (track/effect/untrack/module server) are only added for Ripple files, so
 					// React/Solid/Preact/Vue `.tsrx` files don't see APIs they can't use.
-					// Even with 1 character, we return items so that when combined with TypeScript completions,
-					// the merged result will include our items. VS Code's fuzzy matching will filter them.
-					items.push(...TSRX_SNIPPETS);
+					items.push(COMPONENT_SNIPPET, ...TSRX_SNIPPETS);
 					if (is_ripple) {
 						items.push(...RIPPLE_API_SNIPPETS);
 					}
 
-					// Return isIncomplete=false and let VS Code handle filtering
-					// Since we're providing all items every time, VS Code can cache and filter client-side
-					// This works because our items have proper labels that match VS Code's fuzzy matching
-					return { items, isIncomplete: currentWord.length < 2 };
+					// Mark the list incomplete so VS Code re-requests on every keystroke instead of caching
+					// it and filtering client-side. Unlike the `@` path, these snippets aren't behind a
+					// trigger character, so once VS Code caches an `isIncomplete: false` list it never
+					// refreshes: after you erase and retype, it keeps filtering the stale cache and the
+					// snippets never reappear until the editor reloads. The list is a small static array,
+					// so re-requesting each keystroke is cheap.
+					return { items, isIncomplete: true };
 				},
 			};
 		},

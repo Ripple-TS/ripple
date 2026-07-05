@@ -79,6 +79,35 @@ export function create_completion_harness(source, fixture_name = 'App.tsrx') {
 }
 
 /**
+ * Like {@link create_completion_harness}, but keeps the language/scripts handle so the test can
+ * rewrite the document between requests — needed to emulate typing/erasing across a completion
+ * session (the single-snapshot harness can't model VS Code's client-side cache behaviour).
+ * @param {string} initial_source
+ * @param {string} [fixture_name]
+ */
+export function create_stateful_completion_harness(initial_source, fixture_name = 'App.tsrx') {
+	const uri = URI.file(path.join(fixture_dir, fixture_name));
+	const scripts = createUriMap();
+	const language = createLanguage([getRippleLanguagePlugin()], scripts, () => {});
+	const set_document = (/** @type {string} */ source) => {
+		language.scripts.set(uri, create_snapshot(source), 'ripple');
+	};
+	set_document(initial_source);
+
+	const service = createLanguageService(
+		language,
+		[createCompletionPlugin()],
+		{
+			workspaceFolders: [URI.file(root_dir)],
+			console,
+		},
+		{},
+	);
+
+	return { service, uri, set_document };
+}
+
+/**
  * @param {import('@volar/language-server').DocumentSymbol[] | undefined} symbols
  * @param {string} name
  */
