@@ -3928,11 +3928,17 @@ function transform_tsrx_tsx_child(node, context) {
 	// A directive nested as a child of VALUE content (inside an authored fragment that
 	// is itself a directive's branch/case value) is value content too — lower it to
 	// its value (`{cond ? <a/> : <b/>}`), like the JS targets. In render position (a
-	// direct child of the component's rendered output) it still renders, so this is
-	// gated on `value_position` set by `build_tsrx_ts_directive_value`.
+	// direct child of the component's rendered output) `@if`/`@for`/`@try` still render
+	// as statements, so that is gated on `value_position`.
+	//
+	// A `@switch` is the exception: `@case` always renders and cannot `break`/fall through,
+	// so lowering it to a render statement leaves cases without a `return`, which TS reports
+	// as "Fallthrough case in switch" (7029). Its value form already returns from every case
+	// (with a trailing `return null`), so lower a `@switch` child to its value in render
+	// position too — it renders the matched case's output all the same.
 	if (
-		/** @type {any} */ (context).value_position &&
-		/** @type {any} */ (node).metadata?.tsrxDirective
+		/** @type {any} */ (node).metadata?.tsrxDirective &&
+		/** @type {any} */ ((context).value_position || node.type === 'SwitchStatement')
 	) {
 		return b.jsx_expression_container(build_tsrx_ts_directive_value(node, context));
 	}
@@ -4007,6 +4013,34 @@ function transform_tsrx_ts_render_children(children, context) {
 function transform_tsrx_ts_render_node(node, context) {
 	const body = transform_tsrx_ts_render_children([node], context);
 	return body.length === 1 ? body[0] : b.block(body);
+}
+
+/**
+ * Whether a generated statement is guaranteed to return or throw, so control cannot
+ * reach past it. Used to decide whether a `@switch` case needs a synthetic trailing
+ * `return` in the type-only view (a `@case` always renders and cannot fall through,
+ * so the generated case must definitely return — otherwise TS reports 7029).
+ * @param {AST.Statement | null | undefined} statement
+ * @returns {boolean}
+ */
+function statement_definitely_returns(statement) {
+	if (!statement) {
+		return false;
+	}
+	if (statement.type === 'ReturnStatement' || statement.type === 'ThrowStatement') {
+		return true;
+	}
+	if (statement.type === 'BlockStatement') {
+		return statement_definitely_returns(statement.body[statement.body.length - 1]);
+	}
+	if (statement.type === 'IfStatement') {
+		return (
+			statement.alternate != null &&
+			statement_definitely_returns(/** @type {AST.Statement} */ (statement.consequent)) &&
+			statement_definitely_returns(/** @type {AST.Statement} */ (statement.alternate))
+		);
+	}
+	return false;
 }
 
 /**
@@ -4105,12 +4139,27 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 		const cases = node.cases.map((switch_case) => {
 			const consequent_scope =
 				context.state.scopes.get(switch_case.consequent) || context.state.scope;
-			return b.switch_case(
-				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
-				transform_tsrx_ts_render_children(flatten_switch_consequent(switch_case.consequent), {
+			const body = transform_tsrx_ts_render_children(
+				flatten_switch_consequent(switch_case.consequent),
+				{
 					...context,
 					state: { ...context.state, scope: consequent_scope },
-				}),
+				},
+			);
+
+			// A `@case` always renders and cannot `break`/fall through, so the generated case
+			// must definitely return. When its render is conditional (e.g. an `@if` with no
+			// else) or the case is empty, control can reach the end and TS reports
+			// "Fallthrough case in switch" (7029). Append a trailing `return <></>` (render
+			// nothing) — but only when the body doesn't already definitely return, so we never
+			// emit unreachable code.
+			if (!statement_definitely_returns(body[body.length - 1])) {
+				body.push(b.return(b.jsx_fragment([])));
+			}
+
+			return b.switch_case(
+				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
+				body,
 			);
 		});
 
