@@ -79,9 +79,9 @@ export function create_completion_harness(source, fixture_name = 'App.tsrx') {
 }
 
 /**
- * Like {@link create_completion_harness}, but keeps the language/scripts handle so the test can
- * rewrite the document between requests — needed to emulate typing/erasing across a completion
- * session (the single-snapshot harness can't model VS Code's client-side cache behaviour).
+ * Like {@link create_completion_harness}, but exposes a `set_document` handle so a test can rewrite
+ * the file between requests. Needed to emulate a VS Code completion session (typing / erasing /
+ * retyping) against the real language service — the single-snapshot harness can't.
  * @param {string} initial_source
  * @param {string} [fixture_name]
  */
