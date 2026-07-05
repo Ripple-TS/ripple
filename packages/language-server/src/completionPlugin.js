@@ -255,6 +255,7 @@ const TSRX_SNIPPETS = [
 		detail: '@empty clause',
 		documentation: 'Fallback branch when an @for block has no items',
 		insertText: '@empty {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-empty',
 	},
 	{
@@ -263,6 +264,7 @@ const TSRX_SNIPPETS = [
 		detail: '@default clause',
 		documentation: 'Default branch inside an @switch block',
 		insertText: '@default: {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-default',
 	},
 	{
@@ -280,6 +282,7 @@ const TSRX_SNIPPETS = [
 		detail: '@if block',
 		documentation: 'Conditional rendering',
 		insertText: '@if (${1:condition}) {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-if',
 	},
 	{
@@ -288,6 +291,7 @@ const TSRX_SNIPPETS = [
 		detail: '@else clause',
 		documentation: 'Fallback branch after an @if block',
 		insertText: '@else {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-else',
 	},
 	{
@@ -296,6 +300,7 @@ const TSRX_SNIPPETS = [
 		detail: '@else if clause',
 		documentation: 'Chained condition after an @if block',
 		insertText: '@else if (${1:condition}) {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-else-if',
 	},
 	{
@@ -314,6 +319,7 @@ const TSRX_SNIPPETS = [
 		detail: '@case clause',
 		documentation: 'Match branch inside an @switch block',
 		insertText: '@case ${1:match}: {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-case',
 	},
 	{
@@ -340,6 +346,7 @@ const TSRX_SNIPPETS = [
 		detail: '@catch clause',
 		documentation: 'Error branch of an @try block',
 		insertText: '@catch (${1:e}) {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-catch',
 	},
 	{
@@ -348,6 +355,7 @@ const TSRX_SNIPPETS = [
 		detail: '@pending clause',
 		documentation: 'Loading branch of an @try block',
 		insertText: '@pending {\n\t$0\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-pending',
 	},
 ];
