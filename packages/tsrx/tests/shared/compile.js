@@ -92,6 +92,80 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).not.toContain("{'Hello'}");
 		});
 
+		// A `@` on its own line inside a fragment/element is an in-progress `@if`/`@for`/…
+		// directive recovered as text; it compiles fine, so no compile-error fallback covers
+		// it. It must get a completion mapping so the editor offers directive completions —
+		// and that mapping must be WELL-FORMED: equal source and generated lengths. A
+		// mismatched-length mapping (which happened when a whitespace-padded text node was
+		// trimmed but kept its wide location) makes the completion's textEdit range fail to
+		// map back to source, so VS Code silently drops every item (the plugin fires but
+		// nothing shows). These cases exercise the shapes that broke.
+		for (const { name, source } of [
+			{
+				name: 'a bare `@` on its own line',
+				source: 'export function App() {\n\t<>\n\t\t@\n\t</>\n}',
+			},
+			{
+				name: 'a `@`-leading child in an element',
+				source: 'export function App() {\n\t<div>@</div>\n}',
+			},
+			{
+				name: 'a partially typed `@if`',
+				source: 'export function App() {\n\t<>\n\t\t@if\n\t</>\n}',
+			},
+		]) {
+			it(`emits a well-formed completion-only mapping for ${name}`, () => {
+				const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+				const cursor = source.indexOf('@') + 1;
+
+				// Completion mappings covering the cursor right after the `@`.
+				const covering = result.mappings.filter(
+					(m) =>
+						m.data?.completion &&
+						cursor >= m.sourceOffsets[0] &&
+						cursor <= m.sourceOffsets[0] + m.lengths[0],
+				);
+
+				// A completion must be offered at the `@`…
+				expect(covering.length).toBeGreaterThan(0);
+				for (const m of covering) {
+					// …with equal source/generated lengths so the textEdit round-trips (the bug
+					// produced a 9-char source -> 1-char generated mapping here)…
+					expect(m.lengths[0]).toBe(m.generatedLengths[0]);
+					// …and completion only — the `@` text must not be type-checked.
+					expect(m.data?.verification).toBeFalsy();
+				}
+			});
+		}
+
+		it('does not map ordinary template text (no stray completions in plain text)', () => {
+			const source = 'export function App() {\n\t<div>hello world</div>\n}';
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const cursor = source.indexOf('hello') + 1;
+
+			const mapping = result.mappings.find((m) => {
+				const start = m.sourceOffsets[0];
+				return cursor >= start && cursor < start + m.lengths[0] && m.data?.completion;
+			});
+
+			expect(mapping).toBeUndefined();
+		});
+
+		it('does not treat a mid-text `@` (e.g. an email) as a directive', () => {
+			// `a@b.com` — the `@` is not the first non-whitespace char, so it stays plain text
+			// and must not get a completion mapping (no spurious directive completions).
+			const source = 'export function App() {\n\t<div>a@b.com</div>\n}';
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const at = source.indexOf('@');
+
+			const mapping = result.mappings.find(
+				(m) =>
+					m.data?.completion && at >= m.sourceOffsets[0] && at < m.sourceOffsets[0] + m.lengths[0],
+			);
+
+			expect(mapping).toBeUndefined();
+		});
+
 		it('keeps callback returns around JSX values clean in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() @{

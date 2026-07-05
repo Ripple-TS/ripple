@@ -190,11 +190,18 @@ export function is_native_tsrx_template_node(node) {
  * control-flow expressions.
  * @template T
  * @param {T} node
+ * @param {{ to_ts?: boolean }} [options]
  * @returns {T}
  */
-export function normalize_jsx_tsrx_templates(node) {
-	wrap_directives_combined_into_expressions(/** @type {any} */ (node));
-	return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
+export function normalize_jsx_tsrx_templates(node, options = {}) {
+	const previous_to_ts = normalize_output_to_ts;
+	normalize_output_to_ts = !!options.to_ts;
+	try {
+		wrap_directives_combined_into_expressions(/** @type {any} */ (node));
+		return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
+	} finally {
+		normalize_output_to_ts = previous_to_ts;
+	}
 }
 
 /**
@@ -2647,11 +2654,26 @@ function decode_jsx_text_entities(value) {
 }
 
 /**
+ * Whether normalization is producing the type-only (editor) view. In that mode text
+ * is kept verbatim so it stays faithful to the source and its location; whitespace
+ * collapse is a runtime-only concern (see {@link normalize_jsx_text_value}).
+ * @type {boolean}
+ */
+let normalize_output_to_ts = false;
+
+/**
  * @param {string} value
  * @returns {string}
  */
 function normalize_jsx_text_value(value) {
-	const normalized = /[\r\n]/.test(value) ? value.trim() : value;
+	// The whitespace collapse is a runtime-only concern: Ripple lowers text to explicit
+	// `_$_.text(...)` calls, so insignificant JSX whitespace (newlines/indentation between
+	// elements) must be trimmed or it would render as literal text. The type-only view
+	// keeps the JSX shape — like the other targets — so it stays faithful to the source and
+	// its location. Trimming there would leave the node lying about its size (e.g. a lone
+	// `@` with a 1-char value but a multi-char location), producing a mismatched-length
+	// source mapping the editor can't use for completions.
+	const normalized = normalize_output_to_ts ? value : /[\r\n]/.test(value) ? value.trim() : value;
 	return decode_jsx_text_entities(normalized);
 }
 
@@ -3165,6 +3187,9 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 
 	if (node.type === 'JSXText') {
 		const value = normalize_jsx_text_value(node.value);
+		// Runtime collapses insignificant newline whitespace to '' (dropped here) while
+		// keeping significant single spaces. to_ts keeps text verbatim, so a newline-only run
+		// stays non-empty and is preserved — matching the other targets' JSX view.
 		if (value === '') {
 			return null;
 		}

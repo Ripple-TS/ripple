@@ -72,6 +72,33 @@ describe('@tsrx/ripple faithful text output', () => {
 		// A nullish/whitespace-only output should emit no text node at all.
 		expect(code).not.toContain('_$_.text');
 	});
+
+	it('emits a well-formed completion mapping for a `@` in a fragment (to_ts keeps text verbatim)', () => {
+		// A `@` typed on its own line in a fragment (an in-progress `@if`/`@for`/…) is
+		// recovered as text and compiles fine, so no compile-error fallback covers it. The
+		// editor still needs a completion mapping there — and because Ripple keeps text
+		// verbatim in to_ts (it does NOT trim as it does at runtime), the node's value and
+		// location match, so the mapping has equal source/generated lengths and the completion
+		// textEdit round-trips. The trimmed value + wide location combo used to produce a
+		// mismatched mapping and VS Code silently dropped every item. Mirrors the reported
+		// `@{ <> @ <Item/> </> }`.
+		const source = 'function Comp(props) @{\n\t<>\n\t@\n\t\t<div>{"x"}</div>\n\t</>\n}';
+		const { mappings } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const cursor = source.indexOf('@', source.indexOf('<>')) + 1;
+
+		const covering = mappings.filter(
+			(m) =>
+				m.data?.completion &&
+				cursor >= m.sourceOffsets[0] &&
+				cursor <= m.sourceOffsets[0] + m.lengths[0],
+		);
+
+		expect(covering.length).toBeGreaterThan(0);
+		for (const m of covering) {
+			expect(m.lengths[0]).toBe(m.generatedLengths[0]);
+			expect(m.data?.verification).toBeFalsy();
+		}
+	});
 });
 
 describe('@tsrx/ripple style scope hashes', () => {

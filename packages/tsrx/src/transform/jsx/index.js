@@ -4313,7 +4313,9 @@ export function wrap_edge_whitespace(nodes) {
 			}
 		}
 		if (value !== '') {
-			out.push(b.jsx_text(value, value));
+			// keep the location as we need it for @ autocomplete
+			// and perhaps other things in the future
+			out.push(b.jsx_text(value, value, node));
 		}
 		if (trailing) {
 			out.push(trailing);

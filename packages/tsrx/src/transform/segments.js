@@ -53,6 +53,7 @@ import {
 	mapping_data,
 	mapping_data_verify_only,
 	mapping_data_verify_complete,
+	mapping_data_completion_only,
 	build_line_offsets,
 	get_mapping_from_node,
 } from '../source-map-utils.js';
@@ -806,7 +807,29 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'JSXText') {
-				// Text content, no tokens to collect
+				// Text nodes are normally unmapped. But a text node whose first non-whitespace
+				// char is `@` is almost always an in-progress template directive (`@`, `@i`,
+				// `@if …`) the parser recovered as text. It compiles fine, so the compile-error
+				// fallback mapping never covers it. Emit a completion-only mapping (no
+				// verification, or TS would flag the `@`) so the editor can still offer
+				// `@if`/`@for`/`@switch`/`@try` completions there. In the type-only view the text
+				// is kept verbatim (Ripple does not trim it — see `normalize_jsx_text_value`), so
+				// its value and location match and this is a clean, well-formed mapping. Other
+				// text stays unmapped so completions don't pop inside ordinary template text.
+				if (node.loc && typeof node.value === 'string' && node.value.trimStart().startsWith('@')) {
+					try {
+						mappings.push(
+							get_mapping_from_node(
+								node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_completion_only,
+							),
+						);
+					} catch {
+						// No source-map segment for this `@` text node; nothing to map.
+					}
+				}
 				return;
 			} else if (node.type === 'JSXCodeBlock') {
 				for (const statement of node.body) {

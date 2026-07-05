@@ -1369,15 +1369,18 @@ export function jsx_spread_attribute(argument, loc_info) {
 /**
  * @param {string} value
  * @param {string} raw
+ * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXText}
  */
-export function jsx_text(value, raw) {
-	return {
+export function jsx_text(value, raw, loc_info) {
+	const node = /** @type {ESTreeJSX.JSXText} */ ({
 		type: 'JSXText',
 		value,
 		raw,
 		metadata: { path: [] },
-	};
+	});
+
+	return set_location(node, loc_info);
 }
 
 /**

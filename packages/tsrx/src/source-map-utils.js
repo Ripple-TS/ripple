@@ -51,6 +51,17 @@ export const mapping_data_verify_complete = {
 };
 
 /**
+ * Completion only — no verification/hover/navigation. Used for positions that
+ * should surface completions but must not be type-checked, e.g. a `@`-leading text
+ * node that is an in-progress template directive (verifying it as code would raise
+ * spurious diagnostics).
+ * @type {Partial<VolarCodeMapping['data']>}
+ */
+export const mapping_data_completion_only = {
+	completion: true,
+};
+
+/**
  * Convert byte offset to line/column
  * @param {number} offset
  * @param {LineOffsets} line_offsets
