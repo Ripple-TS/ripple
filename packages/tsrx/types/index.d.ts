@@ -1571,7 +1571,10 @@ export type TransformClientContext = Context<AST.Node, TransformClientState>;
 export type TransformServerContext = Context<AST.Node, TransformServerState>;
 export type AnalysisContext = Context<AST.Node, AnalysisState>;
 export type CommonContext = TransformClientContext | TransformServerContext | AnalysisContext;
-export type VisitorClientContext = TransformClientContext & { root?: boolean };
+export type VisitorClientContext = TransformClientContext & {
+	root?: boolean;
+	value_position?: boolean;
+};
 
 /**
  * Delegated event result

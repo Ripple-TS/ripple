@@ -3936,10 +3936,7 @@ function transform_tsrx_tsx_child(node, context) {
 	// as "Fallthrough case in switch" (7029). Its value form already returns from every case
 	// (with a trailing `return null`), so lower a `@switch` child to its value in render
 	// position too — it renders the matched case's output all the same.
-	if (
-		/** @type {any} */ (node).metadata?.tsrxDirective &&
-		/** @type {any} */ ((context).value_position || node.type === 'SwitchStatement')
-	) {
+	if (node.metadata?.tsrxDirective && (context.value_position || node.type === 'SwitchStatement')) {
 		return b.jsx_expression_container(build_tsrx_ts_directive_value(node, context));
 	}
 
