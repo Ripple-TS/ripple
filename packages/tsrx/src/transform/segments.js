@@ -807,28 +807,26 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'JSXText') {
-				// Text nodes are normally unmapped. But a text node whose first non-whitespace
-				// char is `@` is almost always an in-progress template directive (`@`, `@i`,
-				// `@if …`) the parser recovered as text. It compiles fine, so the compile-error
-				// fallback mapping never covers it. Emit a completion-only mapping (no
-				// verification, or TS would flag the `@`) so the editor can still offer
-				// `@if`/`@for`/`@switch`/`@try` completions there. In the type-only view the text
-				// is kept verbatim (Ripple does not trim it — see `normalize_jsx_text_value`), so
-				// its value and location match and this is a clean, well-formed mapping. Other
-				// text stays unmapped so completions don't pop inside ordinary template text.
+				// A text node whose first non-whitespace char is `@` is an in-progress template
+				// directive (`@`, `@i`, `@if …`) the parser recovered as text; emit a completion-only
+				// mapping so the editor can still offer `@if`/`@for`/`@switch`/`@try` completions there.
+				//
+				// Use a token (resolved by matching generated CONTENT) rather than get_mapping_from_node.
+				// At a control-flow boundary the text node's source start maps to several generated
+				// positions — e.g. a preceding `@switch` value-IIFE's `return null; })()` tail AND the
+				// text itself — and get_mapping_from_node just takes the first, so its generated length
+				// spans the wrong region and the editor can't map a completion's edit back to source
+				// (it then drops the item). The token resolves to the position whose generated text
+				// matches the node's value, giving a well-formed same-length mapping. Ripple keeps text
+				// verbatim in to_ts, so `source` and `generated` are identical. Other text stays unmapped.
 				if (node.loc && typeof node.value === 'string' && node.value.trimStart().startsWith('@')) {
-					try {
-						mappings.push(
-							get_mapping_from_node(
-								node,
-								src_to_gen_map,
-								gen_line_offsets,
-								mapping_data_completion_only,
-							),
-						);
-					} catch {
-						// No source-map segment for this `@` text node; nothing to map.
-					}
+					tokens.push({
+						source: node.value,
+						generated: node.value,
+						loc: node.loc,
+						metadata: {},
+						mappingData: mapping_data_completion_only,
+					});
 				}
 				return;
 			} else if (node.type === 'JSXCodeBlock') {

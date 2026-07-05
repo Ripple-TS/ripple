@@ -548,18 +548,10 @@ export function createCompletionPlugin() {
 							end: position,
 						};
 
-						// Reuse the `@`-prefixed TSRX snippets — the `@{ }` code block and the
-						// `@if`/`@for`/`@switch`/`@try` control flow (available on every target).
-						// They filter against the typed `@` (via each snippet's filterText, falling
-						// back to `@` + label), and are inserted through a textEdit that replaces the
-						// `@` the user already typed (avoiding a duplicated `@@if`).
 						for (const snippet of TSRX_SNIPPETS) {
-							if (!snippet.insertText.startsWith('@')) {
-								continue;
-							}
 							items.push({
 								label: snippet.label,
-								filterText: snippet.filterText ?? '@' + snippet.label,
+								filterText: snippet.filterText ?? snippet.label,
 								kind: CompletionItemKind.Snippet,
 								detail: snippet.detail,
 								documentation: snippet.documentation,
@@ -568,7 +560,13 @@ export function createCompletionPlugin() {
 								textEdit: { range: replaceRange, newText: snippet.insertText },
 							});
 						}
-						return { items, isIncomplete: true };
+						// The `@`-directive list is complete (all of it is returned on the first `@`),
+						// so mark it complete. `isIncomplete: true` would make VS Code re-request on
+						// every keystroke and re-filter by the language word — which excludes `@`, so
+						// the word for `@i` is just `i` and never lines up with items whose textEdit
+						// starts at the `@`, dropping them. `false` lets VS Code cache the list and
+						// filter client-side against each item's range (`@i` → `@if`), which is stable.
+						return { items, isIncomplete: false };
 					}
 
 					// RippleMap/RippleSet completions when typing R, M... (Ripple runtime only).

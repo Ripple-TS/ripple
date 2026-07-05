@@ -8,6 +8,7 @@ import { URI } from 'vscode-uri';
 import { beforeEach } from 'vitest';
 import { getRippleLanguagePlugin, _reset_for_test } from '@tsrx/typescript-plugin/src/language.js';
 import { createDocumentSymbolPlugin } from '../src/documentSymbolPlugin.js';
+import { createCompletionPlugin } from '../src/completionPlugin.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root_dir = path.resolve(dirname, '../../..');
@@ -39,6 +40,33 @@ export function create_symbol_harness(source, fixture_name = 'App.tsrx') {
 	const service = createLanguageService(
 		language,
 		[createDocumentSymbolPlugin()],
+		{
+			workspaceFolders: [URI.file(root_dir)],
+			console,
+		},
+		{},
+	);
+	const document = TextDocument.create(uri.toString(), 'ripple', 0, source);
+
+	return { document, service, uri };
+}
+
+/**
+ * Build a Volar language service wired with the completion plugin, so tests can drive
+ * completions end-to-end (including Volar's source<->generated mapping).
+ * @param {string} source
+ * @param {string} [fixture_name]
+ */
+export function create_completion_harness(source, fixture_name = 'App.tsrx') {
+	const uri = URI.file(path.join(fixture_dir, fixture_name));
+	const scripts = createUriMap();
+	const language = createLanguage([getRippleLanguagePlugin()], scripts, () => {});
+	const source_snapshot = create_snapshot(source);
+	language.scripts.set(uri, source_snapshot, 'ripple');
+
+	const service = createLanguageService(
+		language,
+		[createCompletionPlugin()],
 		{
 			workspaceFolders: [URI.file(root_dir)],
 			console,
