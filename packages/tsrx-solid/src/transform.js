@@ -1487,7 +1487,7 @@ function lower_solid_component_control_statement(statement, rest) {
 	// left untouched. The exceptions, which still lower into Solid's reactive
 	// render forms, are:
 	//   - `@`-directives (`@if`/`@for`/`@switch`/`@try`), which carry
-	//     `statementType` / `tsrxDirective` (see `is_template_*_node`); and
+	//     `statementType` (see `is_template_*_node`); and
 	//   - control flow that `throw`s, so a `@try` boundary keeps re-catching when
 	//     the throwing condition changes (a setup-once throw could never re-fire).
 	if (!is_solid_render_control(statement) && !control_flow_has_render_throw(statement)) {
