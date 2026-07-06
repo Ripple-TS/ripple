@@ -186,69 +186,40 @@ export function is_native_tsrx_template_node(node) {
 }
 
 /**
- * Pre-pass: wrap `@if`/`@for`/`@switch`/`@try` directives used in value
- * positions in a `<> … </>` fragment so they lower as values. Directives keep
- * their parser forms (`JSXIfExpression`, …) — the analyzer and transforms
- * dispatch on those directly.
- *
- * Copy-on-write: the input tree is never mutated — changed spines are rebuilt
- * (unchanged subtrees are shared), so the parse result stays pristine.
- * @template {AST.Node} T
- * @param {T} ast
- * @returns {T}
- */
-export function prepare_template_control_flow(ast) {
-	return /** @type {T} */ (wrap_directives_combined_into_expressions(/** @type {any} */ (ast)));
-}
-
-/**
- * A `@if`/`@for`/`@switch`/`@try` control-flow directive. (A `@{ … }` code
- * block is deliberately NOT included: it self-lowers to an IIFE in every
- * position, so it never needs wrapping and wrapping it would add a redundant
- * fragment.)
- * @param {AST.Node} node
- * @returns {boolean}
- */
-function is_control_flow_directive(node) {
-	return is_template_directive(node);
-}
-
-/**
  * Slots where a control-flow directive is a render child / statement and is
  * lowered correctly as-is — so it must NOT be wrapped. Every OTHER slot is a
  * value position (an operator operand, a variable initializer, a `@for` iterable,
  * an `@if`/`@switch` test, a concise arrow body, a `return` argument, a member
  * object, …), where a bare directive would leak as an `if (…) { … }` statement
- * and is wrapped instead. Enumerating the render positions (rather than the value
- * ones) is robust: it covers every value slot, and the pre- and post-normalization
- * node shapes alike.
- * @param {AST.Node} parent
- * @param {string} key
- * @param {AST.Node} child
+ * and is wrapped in a `<> … </>` instead. Enumerating the render positions
+ * (rather than the value ones) is robust: it covers every value slot.
+ * @param {AST.Node | undefined} parent
+ * @param {AST.Node} node
  * @returns {boolean}
  */
-function is_render_child_or_statement_slot(parent, key, child) {
-	// JSX children.
-	if (key === 'children') return true;
-	// Block/program/loop/function bodies are statement lists — but a CONCISE
-	// (non-block) arrow body is an expression position, not a statement.
-	if (key === 'body') {
-		return !(
-			parent?.type === 'ArrowFunctionExpression' &&
-			/** @type {any} */ (child)?.type !== 'BlockStatement'
-		);
+export function is_directive_render_position(parent, node) {
+	if (!parent) return true;
+	const container = /** @type {any} */ (parent);
+	// Block/program/loop/function bodies are statement lists (or a lone body
+	// statement) — but a CONCISE (non-block) arrow body is an expression
+	// position, not a statement, and a directive is never a BlockStatement.
+	if (container.body === node) {
+		return container.type !== 'ArrowFunctionExpression';
 	}
+	if (Array.isArray(container.body) && container.body.includes(node)) return true;
+	// JSX children.
+	if (Array.isArray(container.children) && container.children.includes(node)) return true;
 	// A `@{ … }` code block's trailing render output.
-	if (parent?.type === 'JSXCodeBlock' && key === 'render') return true;
+	if (container.type === 'JSXCodeBlock' && container.render === node) return true;
 	// `{ … }` containers lower their expression through the render machinery.
-	if (parent?.type === 'JSXExpressionContainer' && key === 'expression') return true;
+	if (container.type === 'JSXExpressionContainer' && container.expression === node) return true;
 	// Switch-case statement lists.
-	if (parent?.type === 'SwitchCase' && key === 'consequent') return true;
+	if (container.type === 'SwitchCase' && container.consequent?.includes?.(node)) return true;
 	// An if-node's branches, and the `@else if` chain (another directive) that
 	// lives in `alternate`.
 	if (
-		(parent?.type === 'IfStatement' || parent?.type === 'JSXIfExpression') &&
-		(key === 'consequent' || key === 'alternate')
+		(container.type === 'IfStatement' || container.type === 'JSXIfExpression') &&
+		(container.consequent === node || container.alternate === node)
 	) {
 		return true;
 	}
@@ -256,13 +227,27 @@ function is_render_child_or_statement_slot(parent, key, child) {
 }
 
 /**
- * Wrap a directive in a `<> … </>` — the same shape an authored `<>@if … </>`
- * produces — so it flows through the render machinery (a `tsrx_element` on the
- * client/server, a `<> … </>` in to_ts).
+ * The generated `<> … </>` wrapper for a `@if`/`@for`/`@switch`/`@try`
+ * directive used in a VALUE position — the sole value of a slot
+ * (`let cd = @if (…) { … }`), an operator operand, a conditional branch, an
+ * array element, a `@for` iterable, an `@if`/`@switch` test, a concise arrow
+ * body (`xs.map((x) => @if (…) { … })`), a `return` argument, a member
+ * object. Wrapped, the directive flows through the render machinery as a
+ * valid value (a `tsrx_element` render on the client/server, a `<> … </>` in
+ * to_ts) instead of leaking a bare `if (…) { … }` statement into expression
+ * position (or a raw `JSX…Expression` crashing the printer). A `@{ … }` code
+ * block self-lowers to an IIFE in every position and is never wrapped.
+ *
+ * Memoized on the directive so the analyzer and the transforms share one
+ * wrapper identity.
  * @param {any} directive
  * @returns {any}
  */
-function wrap_directive_in_jsx_fragment(directive) {
+export function get_directive_value_wrapper(directive) {
+	directive.metadata ??= { path: [] };
+	if (directive.metadata.tsrx_value_wrapper) {
+		return directive.metadata.tsrx_value_wrapper;
+	}
 	const fragment = /** @type {any} */ (b.jsx_fragment([directive]));
 	// Mark as a GENERATED wrapper (not an authored `<> … </>`) so the to_ts
 	// single-child collapse keeps unwrapping it to the directive's lowered value,
@@ -275,83 +260,55 @@ function wrap_directive_in_jsx_fragment(directive) {
 	fragment.start = directive.start;
 	fragment.end = directive.end;
 	fragment.loc = directive.loc;
+	directive.metadata.tsrx_value_wrapper = fragment;
 	return fragment;
 }
 
 /**
- * Pre-normalization pass: a `@if`/`@for`/`@switch`/`@try` directive used in ANY
- * value position — the sole value of a slot (`let cd = @if (…) { … }`), an
- * operator operand, a conditional branch, an array element, a `@for` iterable, an
- * `@if`/`@switch` test, a concise arrow body (`xs.map((x) => @if (…) { … })`), a
- * `return` argument, a member object — is wrapped in a `<> … </>` so it becomes a
- * valid value (a `tsrx_element` render, or a `<> … </>` in to_ts) instead of a
- * bare `if (…) { … }` statement leaking into expression position (or a raw
- * `JSX…Expression` crashing the printer). The render positions where a directive
- * is already lowered correctly are enumerated in `is_render_child_or_statement_slot`;
- * everything else is wrapped. A `@{ … }` code block self-lowers to an IIFE in
- * every position and is never wrapped.
- * @param {any} ast
+ * The transform-side dissolution of the old wrap pre-pass: dispatch a template
+ * control-flow directive through `visit`, detouring VALUE-position directives
+ * through their generated `<> … </>` wrapper first. Whether a directive is a
+ * value is decided during ANALYSIS (where traversal is generic and visitor
+ * paths mirror the real tree — the transforms' helper funnels skip levels, so
+ * their paths cannot be trusted for slot checks) and communicated via the
+ * memoized wrapper on the directive's metadata. The wrapper-in-path guard
+ * stops the detour once the wrapper's own visit re-reaches the directive.
+ * @template {{ path: AST.Node[]; visit: (node: AST.Node) => AST.Node }} C
+ * @param {any} node
+ * @param {C} context
+ * @param {(node: any, context: C) => any} visit
+ * @returns {any}
  */
-function wrap_directives_combined_into_expressions(ast) {
-	/**
-	 * @param {any} parent
-	 * @param {string} key
-	 * @param {any} value
-	 * @returns {any}
-	 */
-	const visit_slot = (parent, key, value) => {
-		if (
-			is_control_flow_directive(value) &&
-			!is_render_child_or_statement_slot(parent, key, value)
-		) {
-			return wrap_directive_in_jsx_fragment(visit(value));
-		}
-		return visit(value);
-	};
-	/**
-	 * @param {any} node
-	 * @returns {any}
-	 */
-	const visit = (node) => {
-		if (!node || typeof node !== 'object') return node;
-		/** @type {Record<string, any> | null} */
-		let updates = null;
-		// acorn-typescript quirk: call/new expressions carry their generics as
-		// `typeParameters`; the transforms (and the TSX printer) expect the
-		// standard `typeArguments`.
-		if ((node.type === 'CallExpression' || node.type === 'NewExpression') && node.typeParameters) {
-			updates = { typeArguments: node.typeParameters, typeParameters: undefined };
-		}
-		for (const key of Object.keys(node)) {
-			if (
-				key === 'loc' ||
-				key === 'start' ||
-				key === 'end' ||
-				key === 'metadata' ||
-				key === 'parent'
-			) {
-				continue;
-			}
-			const value = node[key];
-			if (Array.isArray(value)) {
-				/** @type {any[] | null} */
-				let out = null;
-				for (let i = 0; i < value.length; i++) {
-					const next = visit_slot(node, key, value[i]);
-					if (next !== value[i]) {
-						out ??= value.slice();
-						out[i] = next;
-					}
-				}
-				if (out) (updates ??= {})[key] = out;
-			} else if (value && typeof value === 'object') {
-				const next = visit_slot(node, key, value);
-				if (next !== value) (updates ??= {})[key] = next;
-			}
-		}
-		return updates ? { ...node, ...updates } : node;
-	};
-	return visit(ast);
+export function visit_directive_wrapping_values(node, context, visit) {
+	const wrapper = node.metadata?.tsrx_value_wrapper;
+	if (wrapper && !context.path.includes(wrapper)) {
+		return context.visit(wrapper);
+	}
+	return visit(node, context);
+}
+
+/**
+ * The analyzer-side counterpart of {@link visit_directive_wrapping_values}:
+ * the analyzer's traversal is generic, so its visitor path mirrors the real
+ * tree and the slot check is decidable here. A VALUE-position directive gets
+ * its `<> … </>` wrapper memoized (for the transforms to follow) and is
+ * analyzed through it; the wrapper's re-visit of the directive lands in
+ * render position and proceeds normally.
+ * @template {{ path: AST.Node[]; visit: (node: AST.Node) => AST.Node }} C
+ * @param {any} node
+ * @param {C} context
+ * @param {(node: any, context: C) => any} visit
+ * @returns {any}
+ */
+export function analyze_directive_wrapping_values(node, context, visit) {
+	const wrapper = node.metadata?.tsrx_value_wrapper;
+	if (
+		(!wrapper || !context.path.includes(wrapper)) &&
+		!is_directive_render_position(context.path.at(-1), node)
+	) {
+		return context.visit(get_directive_value_wrapper(node));
+	}
+	return visit(node, context);
 }
 
 /**
@@ -2874,9 +2831,7 @@ export function get_code_block_render(block, scopes) {
  */
 export function get_code_block_template_child(block, scopes) {
 	block.metadata ??= { path: [] };
-	const memo = /** @type {{ tsrx_template_child?: { child: AST.Node | null } }} */ (
-		block.metadata
-	);
+	const memo = /** @type {{ tsrx_template_child?: { child: AST.Node | null } }} */ (block.metadata);
 	if (memo.tsrx_template_child) {
 		mirror_code_block_scope(block, memo.tsrx_template_child.child, scopes);
 		return memo.tsrx_template_child.child;

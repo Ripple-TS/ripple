@@ -106,6 +106,7 @@ import {
 	rewrite_lazy_member_base,
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
+	visit_directive_wrapping_values,
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
@@ -2020,6 +2021,19 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
+		const type_parameters = /** @type {any} */ (node).typeParameters;
+		if (type_parameters) {
+			// acorn-typescript quirk: call/new expressions carry their generics as
+			// `typeParameters`; the transforms (and the TSX printer) expect the
+			// standard `typeArguments`.
+			return context.visit(
+				/** @type {any} */ ({
+					...node,
+					typeArguments: type_parameters,
+					typeParameters: undefined,
+				}),
+			);
+		}
 		const callee = node.callee;
 		const parent = context.path.at(-1);
 
@@ -2188,6 +2202,19 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
+		const type_parameters = /** @type {any} */ (node).typeParameters;
+		if (type_parameters) {
+			// acorn-typescript quirk: call/new expressions carry their generics as
+			// `typeParameters`; the transforms (and the TSX printer) expect the
+			// standard `typeArguments`.
+			return context.visit(
+				/** @type {any} */ ({
+					...node,
+					typeArguments: type_parameters,
+					typeParameters: undefined,
+				}),
+			);
+		}
 		const callee = node.callee;
 
 		if (context.state.metadata?.tracking === false) {
@@ -3494,17 +3521,23 @@ const visitors = {
 	// `@for` covers for-of / for-in / for(;;): non-for-of forms have no
 	// dedicated visitor and keep the default traversal, as before.
 	JSXForExpression(node, context) {
-		if (node.statementType === 'ForOfStatement') {
-			return visit_for_of_statement(node, context);
-		}
-		return context.next();
+		return visit_directive_wrapping_values(node, context, (node, context) => {
+			if (node.statementType === 'ForOfStatement') {
+				return visit_for_of_statement(node, context);
+			}
+			return context.next();
+		});
 	},
 
 	SwitchStatement: visit_switch_statement,
-	JSXSwitchExpression: visit_switch_statement,
+	JSXSwitchExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_switch_statement);
+	},
 
 	IfStatement: visit_if_statement,
-	JSXIfExpression: visit_if_statement,
+	JSXIfExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_if_statement);
+	},
 
 	ReturnStatement(node, context) {
 		if (
@@ -3598,7 +3631,9 @@ const visitors = {
 	},
 
 	TryStatement: visit_try_statement,
-	JSXTryExpression: visit_try_statement,
+	JSXTryExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_try_statement);
+	},
 
 	BinaryExpression(node, context) {
 		return b.binary(
@@ -5162,17 +5197,25 @@ function is_authored_native_fragment(node) {
  * @returns {boolean}
  */
 function is_combined_expression_position(path, node) {
-	const parent = /** @type {any} */ (path.at(-1));
-	if (!parent || !isTemplateValuePosition(parent, node)) return false;
+	let parent = /** @type {any} */ (path.at(-1));
+	let slot_node = node;
+	// A generated value wrapper is visited FROM its directive's visitor, so the
+	// directive sits atop the path — the wrapper stands in the directive's
+	// slot, so judge the position against the directive's own parent.
+	if (parent?.metadata?.tsrx_value_wrapper === node) {
+		slot_node = parent;
+		parent = /** @type {any} */ (path.at(-2));
+	}
+	if (!parent || !isTemplateValuePosition(parent, slot_node)) return false;
 	switch (parent.type) {
 		// Sole-value render-output slots: the collapse is invisible, keep it.
 		case 'VariableDeclarator':
-			return parent.init !== node;
+			return parent.init !== slot_node;
 		case 'AssignmentExpression':
-			return parent.right !== node;
+			return parent.right !== slot_node;
 		case 'CallExpression':
 		case 'NewExpression':
-			return !(Array.isArray(parent.arguments) && parent.arguments.includes(node));
+			return !(Array.isArray(parent.arguments) && parent.arguments.includes(slot_node));
 		default:
 			return true;
 	}

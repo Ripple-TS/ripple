@@ -74,6 +74,7 @@ import {
 	strip_tsrx_style_elements,
 	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
+	visit_directive_wrapping_values,
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
@@ -1759,6 +1760,19 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
+		const type_parameters = /** @type {any} */ (node).typeParameters;
+		if (type_parameters) {
+			// acorn-typescript quirk: call/new expressions carry their generics as
+			// `typeParameters`; the transforms (and the TSX printer) expect the
+			// standard `typeArguments`.
+			return context.visit(
+				/** @type {any} */ ({
+					...node,
+					typeArguments: type_parameters,
+					typeParameters: undefined,
+				}),
+			);
+		}
 		const { state } = context;
 
 		// When lowering to JS the call's type arguments are dropped; the rebuilt
@@ -1949,6 +1963,19 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
+		const type_parameters = /** @type {any} */ (node).typeParameters;
+		if (type_parameters) {
+			// acorn-typescript quirk: call/new expressions carry their generics as
+			// `typeParameters`; the transforms (and the TSX printer) expect the
+			// standard `typeArguments`.
+			return context.visit(
+				/** @type {any} */ ({
+					...node,
+					typeArguments: type_parameters,
+					typeParameters: undefined,
+				}),
+			);
+		}
 		const callee = node.callee;
 
 		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'
@@ -2714,20 +2741,26 @@ const visitors = {
 	},
 
 	SwitchStatement: visit_switch_statement,
-	JSXSwitchExpression: visit_switch_statement,
+	JSXSwitchExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_switch_statement);
+	},
 
 	ForOfStatement: visit_for_of_statement,
 	// `@for` covers for-of / for-in / for(;;): non-for-of forms have no
 	// dedicated visitor and keep the default traversal, as before.
 	JSXForExpression(node, context) {
-		if (node.statementType === 'ForOfStatement') {
-			return visit_for_of_statement(node, context);
-		}
-		return context.next();
+		return visit_directive_wrapping_values(node, context, (node, context) => {
+			if (node.statementType === 'ForOfStatement') {
+				return visit_for_of_statement(node, context);
+			}
+			return context.next();
+		});
 	},
 
 	IfStatement: visit_if_statement,
-	JSXIfExpression: visit_if_statement,
+	JSXIfExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_if_statement);
+	},
 
 	ReturnStatement(node, context) {
 		// A `return <markup>` produces a renderable value — lower it to a server
@@ -2899,7 +2932,9 @@ const visitors = {
 	},
 
 	TryStatement: visit_try_statement,
-	JSXTryExpression: visit_try_statement,
+	JSXTryExpression(node, context) {
+		return visit_directive_wrapping_values(node, context, visit_try_statement);
+	},
 
 	JSXExpressionContainer(node, context) {
 		const { visit, state } = context;

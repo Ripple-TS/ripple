@@ -63,7 +63,9 @@ import {
 	is_native_tsrx_function_node,
 	get_code_block_template_child,
 	is_template_child_position,
-	prepare_template_control_flow,
+	is_directive_render_position,
+	get_directive_value_wrapper,
+	analyze_directive_wrapping_values,
 	is_tsrx_component_function,
 } from '../utils.js';
 import {
@@ -1939,7 +1941,9 @@ const visitors = {
 	},
 
 	SwitchStatement: visit_switch_statement,
-	JSXSwitchExpression: visit_switch_statement,
+	JSXSwitchExpression(node, context) {
+		return analyze_directive_wrapping_values(node, context, visit_switch_statement);
+	},
 
 	ForOfStatement(node, context) {
 		if (context.state.regular_js || node.metadata?.regular_js) {
@@ -1975,6 +1979,14 @@ const visitors = {
 	 * @param {AnalysisContext} context
 	 */
 	JSXForExpression(node, context) {
+		const wrapper = node.metadata?.tsrx_value_wrapper;
+		if (
+			(!wrapper || !context.path.includes(wrapper)) &&
+			!is_directive_render_position(context.path.at(-1), node)
+		) {
+			context.visit(get_directive_value_wrapper(node));
+			return;
+		}
 		// `@for` covers for-of / for-in / for(;;): only the for-of form carries
 		// index/key bindings; the other forms analyze like their plain statements.
 		if (node.statementType === 'ForInStatement') {
@@ -2154,7 +2166,9 @@ const visitors = {
 	},
 
 	IfStatement: visit_if_statement,
-	JSXIfExpression: visit_if_statement,
+	JSXIfExpression(node, context) {
+		return analyze_directive_wrapping_values(node, context, visit_if_statement);
+	},
 
 	ReturnStatement(node, context) {
 		const parent = context.path.at(-1);
@@ -2307,7 +2321,9 @@ const visitors = {
 	},
 
 	TryStatement: visit_try_statement,
-	JSXTryExpression: visit_try_statement,
+	JSXTryExpression(node, context) {
+		return analyze_directive_wrapping_values(node, context, visit_try_statement);
+	},
 
 	ForInStatement(node, context) {
 		context.next();
@@ -2761,14 +2777,6 @@ export function analyze(ast, filename, options = {}) {
 	const errors = options.errors ?? [];
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
-
-	// Template pre-pass: wrap value-position directives in a render fragment.
-	// The pass is copy-on-write — the caller's parse tree is left pristine and
-	// everything downstream works on the rebuilt tree. (`@{ … }` template
-	// children need no pre-pass: they are lowered lazily, at their points of
-	// use, via the memoized get_code_block_template_child/get_code_block_render
-	// accessors.)
-	ast = prepare_template_control_flow(ast);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,
