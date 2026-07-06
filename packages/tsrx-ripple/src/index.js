@@ -86,9 +86,10 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		errors,
 		comments,
 	});
-	// Mapping generation walks the pristine source shapes; clone before
-	// analysis lowers the template pre-passes in place.
-	const ast_from_source = structuredClone(ast);
+	// Mapping generation walks the pristine source shapes. Analysis and the
+	// transform are copy-on-write — they rebuild their own tree and never
+	// mutate the parse tree — so the parsed AST *is* the source view.
+	const ast_from_source = ast;
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
 		collect: true,
