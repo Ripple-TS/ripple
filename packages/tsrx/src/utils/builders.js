@@ -1199,10 +1199,12 @@ export function jsx_element_fresh(
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} node
- * @param {ESTreeJSX.JSXOpeningElement['attributes']} attributes
- * @param {ESTreeJSX.JSXElement['children']} children
- * @returns {ESTreeJSX.JSXElement}
+ * Elements carry the parser's widened TSRX shape (dynamic-tag names, lowered
+ * template children) — see {@link jsx_fragment}.
+ * @param {AST.TSRXJSXElement} node
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['attributes']} attributes
+ * @param {AST.TSRXJSXElement['children']} children
+ * @returns {AST.TSRXJSXElement}
  */
 export function jsx_element(node, attributes = [], children = []) {
 	return {
@@ -1228,9 +1230,12 @@ export function jsx_element(node, attributes = [], children = []) {
 }
 
 /**
- * @param {ESTreeJSX.JSXFragment['children']} children
+ * Fragments carry the parser's widened TSRX shape: template lowering places
+ * any node in `children` (statement blocks, directives, code-block IIFEs),
+ * not just printable JSX children.
+ * @param {AST.TSRXJSXFragment['children']} children
  * @param {ESTreeJSX.JSXOpeningFragment['attributes']} [attributes]
- * @returns {ESTreeJSX.JSXFragment}
+ * @returns {AST.TSRXJSXFragment}
  */
 export function jsx_fragment(children = [], attributes = []) {
 	return {

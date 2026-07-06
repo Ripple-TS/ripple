@@ -173,9 +173,9 @@ export function is_template_else_if(node, path) {
 	if (node.type !== 'IfStatement') {
 		return false;
 	}
-	let child = /** @type {any} */ (node);
+	let child = /** @type {AST.Node} */ (node);
 	for (let i = path.length - 1; i >= 0; i -= 1) {
-		const parent = /** @type {any} */ (path[i]);
+		const parent = path[i];
 		if (parent.type === 'JSXIfExpression' && parent.alternate === child) {
 			return true;
 		}

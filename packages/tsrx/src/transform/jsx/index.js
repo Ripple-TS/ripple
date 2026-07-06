@@ -2302,7 +2302,7 @@ function create_style_anchor_name(transform_context) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} element
+ * @param {AST.TSRXJSXElement} element
  */
 function disable_style_anchor_verification(element) {
 	if (element.openingElement?.name) {

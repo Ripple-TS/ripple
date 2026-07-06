@@ -104,6 +104,12 @@ interface BaseNodeMetaData {
 	tsrx_for_pattern_id?: AST.Identifier;
 	/** Memoized render-body statements (see get_native_tsrx_function_body). */
 	tsrx_render_body?: AST.Node[];
+	/** Memoized resolved render slot of a `@{ … }` code block (see get_code_block_render). */
+	tsrx_render_slot?: { render: AST.Node | null };
+	/** Memoized template-child lowering of a `@{ … }` code block (see get_code_block_template_child). */
+	tsrx_template_child?: { child: AST.Node | null };
+	/** Memoized `<> … </>` wrapper for a value-position directive (see get_directive_value_wrapper). */
+	tsrx_value_wrapper?: AST.TSRXJSXFragment;
 	ts_name?: string;
 	delegated?: any;
 	returned_tsrx_return?: AST.ReturnStatement;
@@ -269,6 +275,7 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
+		JSXSpreadChild: ESTreeJSX.JSXSpreadChild;
 		TSRXJSXElement: TSRXJSXElement;
 		TSRXJSXFragment: TSRXJSXFragment;
 		TSRXJSXOpeningElement: ESTreeJSX.TSRXJSXOpeningElement;
@@ -283,6 +290,8 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
+		TSRXJSXElement: TSRXJSXElement;
+		TSRXJSXFragment: TSRXJSXFragment;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -386,6 +395,13 @@ declare module 'estree' {
 		pending?: AST.BlockStatement | null;
 		metadata: BaseNodeMetaData;
 	}
+
+	/** A `@if`/`@for`/`@switch`/`@try` template control-flow directive. */
+	type JSXTemplateDirective =
+		| JSXIfExpression
+		| JSXForExpression
+		| JSXSwitchExpression
+		| JSXTryExpression;
 
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';

@@ -1760,19 +1760,6 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
-		const type_parameters = /** @type {any} */ (node).typeParameters;
-		if (type_parameters) {
-			// acorn-typescript quirk: call/new expressions carry their generics as
-			// `typeParameters`; the transforms (and the TSX printer) expect the
-			// standard `typeArguments`.
-			return context.visit(
-				/** @type {any} */ ({
-					...node,
-					typeArguments: type_parameters,
-					typeParameters: undefined,
-				}),
-			);
-		}
 		const { state } = context;
 
 		// When lowering to JS the call's type arguments are dropped; the rebuilt
@@ -1963,19 +1950,6 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
-		const type_parameters = /** @type {any} */ (node).typeParameters;
-		if (type_parameters) {
-			// acorn-typescript quirk: call/new expressions carry their generics as
-			// `typeParameters`; the transforms (and the TSX printer) expect the
-			// standard `typeArguments`.
-			return context.visit(
-				/** @type {any} */ ({
-					...node,
-					typeArguments: type_parameters,
-					typeParameters: undefined,
-				}),
-			);
-		}
 		const callee = node.callee;
 
 		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'

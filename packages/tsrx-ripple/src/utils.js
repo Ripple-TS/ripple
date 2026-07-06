@@ -199,7 +199,12 @@ export function is_native_tsrx_template_node(node) {
  */
 export function is_directive_render_position(parent, node) {
 	if (!parent) return true;
-	const container = /** @type {any} */ (parent);
+	// A structural view over the slots that can hold a directive — no single
+	// estree interface carries them all.
+	const container =
+		/** @type {{ type: AST.Node['type']; body?: AST.Node | AST.Node[]; children?: AST.Node[]; render?: AST.Node | null; expression?: AST.Node; consequent?: AST.Node | AST.Node[]; alternate?: AST.Node | null }} */ (
+			/** @type {unknown} */ (parent)
+		);
 	// Block/program/loop/function bodies are statement lists (or a lone body
 	// statement) — but a CONCISE (non-block) arrow body is an expression
 	// position, not a statement, and a directive is never a BlockStatement.
@@ -214,7 +219,13 @@ export function is_directive_render_position(parent, node) {
 	// `{ … }` containers lower their expression through the render machinery.
 	if (container.type === 'JSXExpressionContainer' && container.expression === node) return true;
 	// Switch-case statement lists.
-	if (container.type === 'SwitchCase' && container.consequent?.includes?.(node)) return true;
+	if (
+		container.type === 'SwitchCase' &&
+		Array.isArray(container.consequent) &&
+		container.consequent.includes(node)
+	) {
+		return true;
+	}
 	// An if-node's branches, and the `@else if` chain (another directive) that
 	// lives in `alternate`.
 	if (
@@ -240,15 +251,15 @@ export function is_directive_render_position(parent, node) {
  *
  * Memoized on the directive so the analyzer and the transforms share one
  * wrapper identity.
- * @param {any} directive
- * @returns {any}
+ * @param {AST.JSXTemplateDirective} directive
+ * @returns {AST.TSRXJSXFragment}
  */
 export function get_directive_value_wrapper(directive) {
 	directive.metadata ??= { path: [] };
 	if (directive.metadata.tsrx_value_wrapper) {
 		return directive.metadata.tsrx_value_wrapper;
 	}
-	const fragment = /** @type {any} */ (b.jsx_fragment([directive]));
+	const fragment = b.jsx_fragment([directive]);
 	// Mark as a GENERATED wrapper (not an authored `<> … </>`) so the to_ts
 	// single-child collapse keeps unwrapping it to the directive's lowered value,
 	// unlike an authored fragment which is kept verbatim.
@@ -257,9 +268,7 @@ export function get_directive_value_wrapper(directive) {
 		native_tsrx: true,
 		tsrx_generated_wrapper: true,
 	};
-	fragment.start = directive.start;
-	fragment.end = directive.end;
-	fragment.loc = directive.loc;
+	setLocation(fragment, /** @type {AST.NodeWithLocation} */ (directive));
 	directive.metadata.tsrx_value_wrapper = fragment;
 	return fragment;
 }
@@ -273,11 +282,12 @@ export function get_directive_value_wrapper(directive) {
  * their paths cannot be trusted for slot checks) and communicated via the
  * memoized wrapper on the directive's metadata. The wrapper-in-path guard
  * stops the detour once the wrapper's own visit re-reaches the directive.
+ * @template {AST.JSXTemplateDirective} T
  * @template {{ path: AST.Node[]; visit: (node: AST.Node) => AST.Node }} C
- * @param {any} node
+ * @param {T} node
  * @param {C} context
- * @param {(node: any, context: C) => any} visit
- * @returns {any}
+ * @param {(node: T, context: C) => AST.Node | void} visit
+ * @returns {AST.Node | void}
  */
 export function visit_directive_wrapping_values(node, context, visit) {
 	const wrapper = node.metadata?.tsrx_value_wrapper;
@@ -294,11 +304,12 @@ export function visit_directive_wrapping_values(node, context, visit) {
  * its `<> … </>` wrapper memoized (for the transforms to follow) and is
  * analyzed through it; the wrapper's re-visit of the directive lands in
  * render position and proceeds normally.
+ * @template {AST.JSXTemplateDirective} T
  * @template {{ path: AST.Node[]; visit: (node: AST.Node) => AST.Node }} C
- * @param {any} node
+ * @param {T} node
  * @param {C} context
- * @param {(node: any, context: C) => any} visit
- * @returns {any}
+ * @param {(node: T, context: C) => AST.Node | void} visit
+ * @returns {AST.Node | void}
  */
 export function analyze_directive_wrapping_values(node, context, visit) {
 	const wrapper = node.metadata?.tsrx_value_wrapper;
@@ -680,7 +691,7 @@ function statement_contains_native_tsrx_return(statement) {
 
 /**
  * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node, scopes) {
@@ -691,7 +702,7 @@ export function get_native_tsrx_template_children(node, scopes) {
 
 /**
  * @param {AST.Function} node
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_function_body(node, scopes) {
@@ -742,7 +753,7 @@ export function get_native_tsrx_function_body(node, scopes) {
 /**
  * @param {AST.Statement[]} statements
  * @param {boolean} [omit_final_control_return]
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 export function expand_native_tsrx_return_statements(
@@ -885,7 +896,7 @@ function create_return_argument_child(argument, statement) {
 /**
  * @param {AST.Statement} statement
  * @param {boolean} [omit_control_return]
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 function expand_native_tsrx_return_statement(statement, omit_control_return = false, scopes) {
@@ -1035,7 +1046,7 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 
 /**
  * @param {AST.Statement} statement
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Statement}
  */
 function expand_embedded_native_tsrx_return_statement(statement, scopes) {
@@ -1128,7 +1139,7 @@ function collect_style_elements(node, styles, inside_head) {
  * Copy-on-write: rebuilt spine nodes inherit the original's scope mapping when
  * a `scopes` map is provided, so transform-time lookups keep working.
  * @param {AST.Node[]} nodes
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 export function strip_tsrx_style_elements(nodes, scopes) {
@@ -1138,7 +1149,7 @@ export function strip_tsrx_style_elements(nodes, scopes) {
 /**
  * @param {AST.Node[]} nodes
  * @param {boolean} inside_head
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 function strip_style_elements(nodes, inside_head, scopes) {
@@ -1162,7 +1173,7 @@ function strip_style_elements(nodes, inside_head, scopes) {
 /**
  * @param {AST.Node} node
  * @param {boolean} inside_head
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node}
  */
 function strip_style_element_children(node, inside_head, scopes) {
@@ -1970,7 +1981,7 @@ export const dynamic_element_import_local = 'TsrxDynamic';
  * @param {AST.TSRXJSXElement} node
  * @param {AST.Expression} [component_id] - Override for the lowered component
  * reference; defaults to the `TsrxDynamic` local used by type-only output.
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.TSRXJSXElement | null}
  */
 export function lower_dynamic_element(node, component_id, scopes) {
@@ -2760,12 +2771,12 @@ export function strip_class_typescript_syntax(node, context) {
  * consumers treat it like any other template output. Memoized on the node so
  * the analyzer and the transforms share one lowered identity.
  * @param {AST.JSXCodeBlock} block
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node | null}
  */
 export function get_code_block_render(block, scopes) {
 	block.metadata ??= { path: [] };
-	const memo = /** @type {{ tsrx_render_slot?: { render: AST.Node | null } }} */ (block.metadata);
+	const memo = block.metadata;
 	if (memo.tsrx_render_slot) {
 		return memo.tsrx_render_slot.render;
 	}
@@ -2786,7 +2797,7 @@ export function get_code_block_render(block, scopes) {
 			// wrapper fragment.
 			render = inner_child;
 		} else {
-			const fragment = /** @type {any} */ (b.jsx_fragment([/** @type {any} */ (inner_child)]));
+			const fragment = b.jsx_fragment([inner_child]);
 			setLocation(fragment, /** @type {AST.NodeWithLocation} */ (block.render));
 			// native_tsrx so the template paths treat the wrapper like any other
 			// template fragment; tsrx_code_block_chain so template-children
@@ -2826,12 +2837,12 @@ export function get_code_block_render(block, scopes) {
  * scope IIFEs mirror the code block's scope so binding lookups keep working
  * (mirroring is idempotent, so it also applies on memoized hits).
  * @param {AST.JSXCodeBlock} block
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node | null}
  */
 export function get_code_block_template_child(block, scopes) {
 	block.metadata ??= { path: [] };
-	const memo = /** @type {{ tsrx_template_child?: { child: AST.Node | null } }} */ (block.metadata);
+	const memo = block.metadata;
 	if (memo.tsrx_template_child) {
 		mirror_code_block_scope(block, memo.tsrx_template_child.child, scopes);
 		return memo.tsrx_template_child.child;
@@ -2847,7 +2858,7 @@ export function get_code_block_template_child(block, scopes) {
 		// for render-slot consumers (function bodies, value positions). As a
 		// template child, unwrap it instead of stacking an inline component per
 		// nesting level.
-		const inner_child = /** @type {any} */ (render.children[0]);
+		const inner_child = /** @type {AST.Node} */ (render.children[0]);
 		if (body.length === 0) {
 			child = inner_child;
 		} else if (inner_child.type === 'BlockStatement') {
@@ -2900,7 +2911,7 @@ export function get_code_block_template_child(block, scopes) {
  * it needs no mirroring — the scope map already keys off the block itself.
  * @param {AST.JSXCodeBlock} block
  * @param {AST.Node | null} child
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {void}
  */
 function mirror_code_block_scope(block, child, scopes) {
@@ -2909,14 +2920,14 @@ function mirror_code_block_scope(block, child, scopes) {
 	if (!scope) return;
 	if (child.type === 'BlockStatement') {
 		scopes.set(child, scope);
-	} else if (
-		child.type === 'JSXExpressionContainer' &&
-		/** @type {any} */ (child).expression?.metadata?.tsrx_code_block_scope
-	) {
-		const arrow = /** @type {any} */ (child).expression.callee;
-		if (arrow) {
-			scopes.set(arrow, scope);
-			if (arrow.body) scopes.set(arrow.body, scope);
+	} else if (child.type === 'JSXExpressionContainer') {
+		const expression = child.expression;
+		if (expression.type === 'CallExpression' && expression.metadata?.tsrx_code_block_scope) {
+			const arrow = expression.callee;
+			if (arrow.type === 'ArrowFunctionExpression') {
+				scopes.set(arrow, scope);
+				scopes.set(arrow.body, scope);
+			}
 		}
 	}
 }
@@ -2926,7 +2937,7 @@ function mirror_code_block_scope(block, child, scopes) {
  * template forms (dropping blocks that render nothing). Returns the input
  * list unchanged when it holds no code blocks.
  * @param {AST.Node[]} children
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 export function lower_code_block_children(children, scopes) {
@@ -2952,7 +2963,7 @@ export function is_template_child_position(path, node) {
 	if (!parent) return false;
 	if (
 		(parent.type === 'JSXElement' || parent.type === 'JSXFragment') &&
-		/** @type {any} */ (parent).children?.includes(node)
+		parent.children.some((child) => child === node)
 	) {
 		return true;
 	}

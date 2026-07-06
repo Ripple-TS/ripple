@@ -187,7 +187,7 @@ function add_type_only_style_anchor(node, context) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} element
+ * @param {AST.TSRXJSXElement} element
  */
 function disable_style_anchor_verification(element) {
 	if (element.openingElement?.name) {
@@ -209,7 +209,7 @@ function disable_style_anchor_verification(element) {
  * mirrored onto the copies); untouched subtrees are shared with the input.
  * @param {AST.Node[]} body
  * @param {AST.Statement[]} setup
- * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @param {Map<AST.Node | AST.Node[], ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
 function insert_style_ref_setup_statements(body, setup, scopes) {
@@ -2021,19 +2021,6 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
-		const type_parameters = /** @type {any} */ (node).typeParameters;
-		if (type_parameters) {
-			// acorn-typescript quirk: call/new expressions carry their generics as
-			// `typeParameters`; the transforms (and the TSX printer) expect the
-			// standard `typeArguments`.
-			return context.visit(
-				/** @type {any} */ ({
-					...node,
-					typeArguments: type_parameters,
-					typeParameters: undefined,
-				}),
-			);
-		}
 		const callee = node.callee;
 		const parent = context.path.at(-1);
 
@@ -2202,19 +2189,6 @@ const visitors = {
 	},
 
 	NewExpression(node, context) {
-		const type_parameters = /** @type {any} */ (node).typeParameters;
-		if (type_parameters) {
-			// acorn-typescript quirk: call/new expressions carry their generics as
-			// `typeParameters`; the transforms (and the TSX printer) expect the
-			// standard `typeArguments`.
-			return context.visit(
-				/** @type {any} */ ({
-					...node,
-					typeArguments: type_parameters,
-					typeParameters: undefined,
-				}),
-			);
-		}
 		const callee = node.callee;
 
 		if (context.state.metadata?.tracking === false) {
@@ -3803,9 +3777,9 @@ function join_template(items) {
 }
 
 /**
- * @typedef {AST.Statement | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsStatement
- * @typedef {AST.Expression | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsExpression
- * @typedef {ESTreeJSX.JSXElement['children'][number]} TsrxTsxChild
+ * @typedef {AST.Statement | ESTreeJSX.JSXElement | AST.TSRXJSXFragment} TsrxTsStatement
+ * @typedef {AST.Expression | ESTreeJSX.JSXElement | AST.TSRXJSXFragment} TsrxTsExpression
+ * @typedef {ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer | ESTreeJSX.JSXElement | AST.TSRXJSXElement | AST.TSRXJSXFragment} TsrxTsxChild
  * @typedef {TsrxTsExpression | ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer} TsrxTsViewNode
  */
 
@@ -4657,7 +4631,7 @@ function transform_ts_child(node, context) {
 			node = lowered;
 		}
 
-		/** @type {ESTreeJSX.JSXElement['children']} */
+		/** @type {TsrxTsxChild[]} */
 		const children = [];
 		let has_children_props = false;
 		const is_dom_element = is_element_dom_element(node);
@@ -4816,7 +4790,6 @@ function transform_ts_child(node, context) {
 			);
 		}
 
-		/** @type {ESTreeJSX.JSXElement} */
 		const jsxElement = b.jsx_element(element_source, attributes, children);
 		if (element_name === 'style') {
 			disable_style_anchor_verification(jsxElement);
@@ -5197,14 +5170,14 @@ function is_authored_native_fragment(node) {
  * @returns {boolean}
  */
 function is_combined_expression_position(path, node) {
-	let parent = /** @type {any} */ (path.at(-1));
+	let parent = path.at(-1);
 	let slot_node = node;
 	// A generated value wrapper is visited FROM its directive's visitor, so the
 	// directive sits atop the path — the wrapper stands in the directive's
 	// slot, so judge the position against the directive's own parent.
 	if (parent?.metadata?.tsrx_value_wrapper === node) {
 		slot_node = parent;
-		parent = /** @type {any} */ (path.at(-2));
+		parent = path.at(-2);
 	}
 	if (!parent || !isTemplateValuePosition(parent, slot_node)) return false;
 	switch (parent.type) {
@@ -5215,7 +5188,7 @@ function is_combined_expression_position(path, node) {
 			return parent.right !== slot_node;
 		case 'CallExpression':
 		case 'NewExpression':
-			return !(Array.isArray(parent.arguments) && parent.arguments.includes(slot_node));
+			return !parent.arguments.some((argument) => argument === slot_node);
 		default:
 			return true;
 	}

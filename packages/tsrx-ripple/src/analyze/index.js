@@ -2687,7 +2687,7 @@ const visitors = {
 		// bindings and component analysis attach to what actually renders.
 		if (
 			is_template_child_position(context.path, node) ||
-			(parent?.type === 'JSXCodeBlock' && /** @type {any} */ (parent).render === node)
+			(parent?.type === 'JSXCodeBlock' && parent.render === node)
 		) {
 			const child = get_code_block_template_child(node, context.state.scopes);
 			if (child != null && child !== node) {
