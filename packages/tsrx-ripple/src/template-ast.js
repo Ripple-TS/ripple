@@ -144,6 +144,51 @@ export function is_empty_expression_container(node) {
 }
 
 /**
+ * A `@if`/`@for`/`@switch`/`@try` template control-flow directive — the
+ * parser's expression-form nodes. Directives keep these forms end to end; a
+ * plain `IfStatement`/`ForOfStatement`/… is always ordinary JavaScript, except
+ * the `@else if` chain links detected by {@link is_template_else_if}.
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+export function is_template_directive(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'JSXSwitchExpression' ||
+		node?.type === 'JSXTryExpression'
+	);
+}
+
+/**
+ * An `@else if` chain link: the parser emits a plain `IfStatement` for each
+ * `@else if` in an `@if` directive's `alternate`, so directive-ness is
+ * positional — consecutive `IfStatement` alternates rooted at a
+ * `JSXIfExpression`.
+ * @param {AST.Node} node
+ * @param {AST.Node[]} path — ancestor chain, innermost last
+ * @returns {boolean}
+ */
+export function is_template_else_if(node, path) {
+	if (node.type !== 'IfStatement') {
+		return false;
+	}
+	let child = /** @type {any} */ (node);
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const parent = /** @type {any} */ (path[i]);
+		if (parent.type === 'JSXIfExpression' && parent.alternate === child) {
+			return true;
+		}
+		if (parent.type === 'IfStatement' && parent.alternate === child) {
+			child = parent;
+			continue;
+		}
+		return false;
+	}
+	return false;
+}
+
+/**
  * A `<> … </>` fragment that is part of the template: an authored native
  * fragment (`metadata.native_tsrx`, which the parser stamps on template and
  * value-position fragments but not on fragments inside attribute values), a

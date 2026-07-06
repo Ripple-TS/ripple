@@ -6,6 +6,7 @@
 	AnalysisContext,
 	Context,
 	ScopeInterface,
+	Visitor,
 	Visitors,
 	Binding,
 	TopScopedClasses,
@@ -71,7 +72,9 @@ import {
 	is_droppable_template_text,
 	is_dynamic_element,
 	is_empty_expression_container,
+	is_template_directive,
 	is_template_element,
+	is_template_else_if,
 	is_template_fragment,
 	is_template_text_or_expression,
 	rendered_template_children,
@@ -276,6 +279,7 @@ function mark_control_flow_has_template(path, node) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
+			is_template_directive(node) ||
 			is_template_fragment(node)
 		) {
 			node.metadata.has_template = true;
@@ -313,6 +317,7 @@ function is_function_or_class_boundary(node) {
  */
 function is_loop_statement(node) {
 	return (
+		node.type === 'JSXForExpression' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'ForStatement' ||
 		node.type === 'ForInStatement' ||
@@ -338,7 +343,7 @@ function is_inside_component_for_of(path) {
 		// directive enforces the no-return/no-continue rule; a plain JS `for…of`
 		// is ordinary JavaScript, so stop and report it as not template-owned.
 		if (node.type === 'ForOfStatement') {
-			return node.metadata?.tsrxDirective === 'for';
+			return false;
 		}
 	}
 	return false;
@@ -354,13 +359,15 @@ function is_inside_template_if(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'IfStatement' && node.metadata?.tsrxDirective === 'if') {
-			return true;
-		}
-		if (node.type === 'IfStatement' && /** @type {any} */ (node).statementType === 'IfStatement') {
-			return true;
-		}
 		if (node.type === 'JSXIfExpression') {
+			return true;
+		}
+		// An `@else if` chain link is template-owned; any other plain `if` is
+		// ordinary JavaScript the walk passes through.
+		if (
+			node.type === 'IfStatement' &&
+			is_template_else_if(node, /** @type {AST.Node[]} */ (path.slice(0, i)))
+		) {
 			return true;
 		}
 	}
@@ -401,7 +408,7 @@ function break_targets_component_loop(path) {
 		// Only a `@for` template directive forbids it; plain JS loops are ordinary
 		// JavaScript where `break` is allowed.
 		if (is_loop_statement(node)) {
-			return node.type === 'ForOfStatement' && node.metadata?.tsrxDirective === 'for';
+			return node.type === 'JSXForExpression';
 		}
 	}
 	return false;
@@ -1321,6 +1328,190 @@ function is_children_template_expression(expression, context) {
 	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
 
+/**
+ * Shared by the plain statement and the `@`-directive forms — the logic is
+ * (almost) entirely common; directive-ness is derived from the node type
+ * where it matters.
+ * @type {Visitor<AST.SwitchStatement | AST.JSXSwitchExpression, AnalysisState, AST.Node>}
+ */
+const visit_switch_statement = (node, context) => {
+	if (context.state.regular_js || node.metadata?.regular_js) {
+		return context.next({ ...context.state, regular_js: true, component: undefined });
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	context.visit(node.discriminant, context.state);
+
+	for (const switch_case of node.cases) {
+		// Skip empty cases
+		if (switch_case.consequent.length === 0) {
+			continue;
+		}
+
+		node.metadata = {
+			...node.metadata,
+			has_template: false,
+		};
+
+		context.visit(switch_case, context.state);
+	}
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms — the logic is
+ * (almost) entirely common; directive-ness is derived from the node type
+ * where it matters.
+ * @type {Visitor<AST.IfStatement | AST.JSXIfExpression, AnalysisState, AST.Node>}
+ */
+const visit_if_statement = (node, context) => {
+	if (context.state.regular_js || node.metadata?.regular_js) {
+		return context.next({ ...context.state, regular_js: true, component: undefined });
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	const is_template_directive =
+		node.type === 'JSXIfExpression' ||
+		is_template_else_if(node, /** @type {AST.Node[]} */ (context.path));
+
+	node.metadata = {
+		...node.metadata,
+		has_template: false,
+		has_throw: false,
+		has_continue: false,
+	};
+
+	const test_metadata = { tracking: false };
+	context.visit(node.test, { ...context.state, metadata: test_metadata });
+	if (test_metadata.tracking) {
+		/** @type {AST.TrackedNode} */ (node.test).tracked = true;
+	}
+
+	context.visit(node.consequent, context.state);
+
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+	if (
+		consequent_body.length === 1 &&
+		consequent_body[0].type === 'ReturnStatement' &&
+		!node.alternate
+	) {
+		node.metadata.lone_return = true;
+	}
+
+	const consequent_script_only = is_script_only_control_flow_body(node.consequent);
+
+	let alternate_script_only = false;
+	if (node.alternate) {
+		const saved_has_return = node.metadata.has_return;
+		const saved_returns = node.metadata.returns;
+		const saved_has_continue = node.metadata.has_continue;
+		node.metadata.has_template = false;
+		node.metadata.has_throw = false;
+		node.metadata.has_continue = false;
+		context.visit(node.alternate, context.state);
+
+		alternate_script_only = is_script_only_control_flow_body(node.alternate);
+
+		if (saved_has_return) {
+			node.metadata.has_return = true;
+			if (saved_returns) {
+				node.metadata.returns = [...saved_returns, ...(node.metadata.returns || [])];
+			}
+		}
+		if (saved_has_continue) {
+			node.metadata.has_continue = true;
+		}
+	}
+
+	if (!is_template_directive) {
+		if (node.metadata.has_template && !node.metadata.has_return) {
+			error(
+				'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+				context.state.analysis.module.filename,
+				node,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		} else if (!node.metadata.has_template && !node.metadata.has_continue) {
+			node.metadata.regular_js = true;
+		}
+		return;
+	}
+
+	if (
+		!node.metadata.has_template &&
+		!node.metadata.has_return &&
+		!node.metadata.has_throw &&
+		!node.metadata.has_continue &&
+		consequent_script_only &&
+		(!node.alternate || alternate_script_only)
+	) {
+		node.metadata.script_only = true;
+	}
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms — the logic is
+ * (almost) entirely common; directive-ness is derived from the node type
+ * where it matters.
+ * @type {Visitor<AST.TryStatement | AST.JSXTryExpression, AnalysisState, AST.Node>}
+ */
+const visit_try_statement = (node, context) => {
+	const { state } = context;
+	if (state.regular_js || node.metadata?.regular_js) {
+		return context.next({ ...state, regular_js: true, component: undefined });
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	if (node.pending) {
+		node.metadata = {
+			...node.metadata,
+			has_template: false,
+		};
+
+		context.visit(node.block, state);
+
+		if (!node.metadata.has_template && is_script_only_control_flow_body(node.block)) {
+			node.metadata.script_only = true;
+		}
+
+		node.metadata = {
+			...node.metadata,
+			has_template: false,
+		};
+
+		context.visit(node.pending, state);
+
+		if (
+			(node.pending.body || []).length > 0 &&
+			!node.metadata.has_template &&
+			is_script_only_control_flow_body(node.pending)
+		) {
+			node.metadata.script_only = true;
+		}
+	} else {
+		context.visit(node.block, state);
+	}
+
+	if (node.handler) {
+		context.visit(node.handler, state);
+	}
+
+	if (node.finalizer) {
+		context.visit(node.finalizer, state);
+	}
+};
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -1754,31 +1945,8 @@ const visitors = {
 		context.next();
 	},
 
-	SwitchStatement(node, context) {
-		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true, component: undefined });
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		context.visit(node.discriminant, context.state);
-
-		for (const switch_case of node.cases) {
-			// Skip empty cases
-			if (switch_case.consequent.length === 0) {
-				continue;
-			}
-
-			node.metadata = {
-				...node.metadata,
-				has_template: false,
-			};
-
-			context.visit(switch_case, context.state);
-		}
-	},
+	SwitchStatement: visit_switch_statement,
+	JSXSwitchExpression: visit_switch_statement,
 
 	ForOfStatement(node, context) {
 		if (context.state.regular_js || node.metadata?.regular_js) {
@@ -1789,25 +1957,46 @@ const visitors = {
 			return context.next();
 		}
 
-		const is_template_directive = node.metadata?.tsrxDirective === 'for';
-		if (!is_template_directive) {
-			node.metadata = {
-				...node.metadata,
-				has_template: false,
-			};
-			context.next();
-			if (node.metadata.has_template) {
-				error(
-					'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
-					context.state.analysis.module.filename,
-					node,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			} else {
-				node.metadata.regular_js = true;
-			}
-			return;
+		node.metadata = {
+			...node.metadata,
+			has_template: false,
+		};
+		context.next();
+		if (node.metadata.has_template) {
+			error(
+				'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+				context.state.analysis.module.filename,
+				node,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		} else {
+			node.metadata.regular_js = true;
+		}
+	},
+
+	/**
+	 * A `@for` directive — index/key bindings are template concerns; a plain
+	 * JS `for…of` never carries them.
+	 * @param {any} node
+	 * @param {AnalysisContext} context
+	 */
+	JSXForExpression(node, context) {
+		// `@for` covers for-of / for-in / for(;;): only the for-of form carries
+		// index/key bindings; the other forms analyze like their plain statements.
+		if (node.statementType === 'ForInStatement') {
+			return visitors.ForInStatement?.(node, context);
+		}
+		if (node.statementType === 'ForStatement') {
+			return visitors.ForStatement?.(node, context);
+		}
+
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
+		if (!is_inside_component(context)) {
+			return context.next();
 		}
 
 		if (node.index) {
@@ -1976,94 +2165,8 @@ const visitors = {
 		context.next();
 	},
 
-	IfStatement(node, context) {
-		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true, component: undefined });
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		const is_template_directive = node.metadata?.tsrxDirective === 'if';
-
-		node.metadata = {
-			...node.metadata,
-			has_template: false,
-			has_throw: false,
-			has_continue: false,
-		};
-
-		const test_metadata = { tracking: false };
-		context.visit(node.test, { ...context.state, metadata: test_metadata });
-		if (test_metadata.tracking) {
-			/** @type {AST.TrackedNode} */ (node.test).tracked = true;
-		}
-
-		context.visit(node.consequent, context.state);
-
-		const consequent_body =
-			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-
-		if (
-			consequent_body.length === 1 &&
-			consequent_body[0].type === 'ReturnStatement' &&
-			!node.alternate
-		) {
-			node.metadata.lone_return = true;
-		}
-
-		const consequent_script_only = is_script_only_control_flow_body(node.consequent);
-
-		let alternate_script_only = false;
-		if (node.alternate) {
-			const saved_has_return = node.metadata.has_return;
-			const saved_returns = node.metadata.returns;
-			const saved_has_continue = node.metadata.has_continue;
-			node.metadata.has_template = false;
-			node.metadata.has_throw = false;
-			node.metadata.has_continue = false;
-			context.visit(node.alternate, context.state);
-
-			alternate_script_only = is_script_only_control_flow_body(node.alternate);
-
-			if (saved_has_return) {
-				node.metadata.has_return = true;
-				if (saved_returns) {
-					node.metadata.returns = [...saved_returns, ...(node.metadata.returns || [])];
-				}
-			}
-			if (saved_has_continue) {
-				node.metadata.has_continue = true;
-			}
-		}
-
-		if (!is_template_directive) {
-			if (node.metadata.has_template && !node.metadata.has_return) {
-				error(
-					'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
-					context.state.analysis.module.filename,
-					node,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			} else if (!node.metadata.has_template && !node.metadata.has_continue) {
-				node.metadata.regular_js = true;
-			}
-			return;
-		}
-
-		if (
-			!node.metadata.has_template &&
-			!node.metadata.has_return &&
-			!node.metadata.has_throw &&
-			!node.metadata.has_continue &&
-			consequent_script_only &&
-			(!node.alternate || alternate_script_only)
-		) {
-			node.metadata.script_only = true;
-		}
-	},
+	IfStatement: visit_if_statement,
+	JSXIfExpression: visit_if_statement,
 
 	ReturnStatement(node, context) {
 		const parent = context.path.at(-1);
@@ -2215,54 +2318,8 @@ const visitors = {
 		context.next();
 	},
 
-	TryStatement(node, context) {
-		const { state } = context;
-		if (state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...state, regular_js: true, component: undefined });
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		if (node.pending) {
-			node.metadata = {
-				...node.metadata,
-				has_template: false,
-			};
-
-			context.visit(node.block, state);
-
-			if (!node.metadata.has_template && is_script_only_control_flow_body(node.block)) {
-				node.metadata.script_only = true;
-			}
-
-			node.metadata = {
-				...node.metadata,
-				has_template: false,
-			};
-
-			context.visit(node.pending, state);
-
-			if (
-				(node.pending.body || []).length > 0 &&
-				!node.metadata.has_template &&
-				is_script_only_control_flow_body(node.pending)
-			) {
-				node.metadata.script_only = true;
-			}
-		} else {
-			context.visit(node.block, state);
-		}
-
-		if (node.handler) {
-			context.visit(node.handler, state);
-		}
-
-		if (node.finalizer) {
-			context.visit(node.finalizer, state);
-		}
-	},
+	TryStatement: visit_try_statement,
+	JSXTryExpression: visit_try_statement,
 
 	ForInStatement(node, context) {
 		context.next();

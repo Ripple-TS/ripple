@@ -5,6 +5,7 @@
 @import {
 	TransformServerContext,
 	TransformServerState,
+	Visitor,
 	Visitors,
 	AnalysisResult,
 	ScopeInterface,
@@ -85,6 +86,7 @@ import {
 	is_empty_expression_container,
 	is_self_closing,
 	is_template_element,
+	is_template_directive,
 	is_template_fragment,
 	is_template_text,
 	rendered_template_children,
@@ -648,6 +650,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
 		is_template_fragment(node) ||
+		is_template_directive(node) ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -702,6 +705,11 @@ function tsrx_expression_emits_marker(node, context) {
  */
 function node_leads_with_control_flow(node, context) {
 	switch (node.type) {
+		case 'JSXIfExpression':
+		case 'JSXForExpression':
+		case 'JSXSwitchExpression':
+		case 'JSXTryExpression':
+			return true;
 		case 'IfStatement':
 		case 'ForOfStatement':
 		case 'SwitchStatement':
@@ -791,7 +799,8 @@ function is_native_tsrx_statement_position(path) {
 		parent?.type === 'DoWhileStatement' ||
 		parent?.type === 'TryStatement' ||
 		parent?.type === 'SwitchStatement' ||
-		parent?.type === 'LabeledStatement'
+		parent?.type === 'LabeledStatement' ||
+		is_template_directive(parent)
 	);
 }
 
@@ -813,7 +822,11 @@ function is_native_tsrx_value_position(path) {
  * @returns {boolean}
  */
 function should_wrap_node_in_regular_block(node) {
-	return is_template_or_control_flow(node) && node.type !== 'TryStatement';
+	return (
+		is_template_or_control_flow(node) &&
+		node.type !== 'TryStatement' &&
+		node.type !== 'JSXTryExpression'
+	);
 }
 
 /**
@@ -1311,6 +1324,327 @@ function transform_native_tsrx_function(node, context) {
 	fn.metadata.native_tsrx_function = true;
 	return fn;
 }
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.SwitchStatement | AST.JSXSwitchExpression, TransformServerState, AST.Node>}
+ */
+const visit_switch_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	const cases = [];
+
+	for (const switch_case of node.cases) {
+		const case_body = [];
+
+		if (switch_case.consequent.length !== 0) {
+			const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
+			const consequent_scope =
+				context.state.scopes.get(switch_case.consequent) || context.state.scope;
+			const consequent = b.block(
+				transform_body(flattened_consequent, {
+					...context,
+					state: {
+						...context.state,
+						scope: consequent_scope,
+						control_flow_branch_body: true,
+					},
+				}),
+			);
+			case_body.push(...consequent.body);
+		}
+		case_body.push(b.break);
+
+		cases.push(
+			b.switch_case(
+				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
+				case_body,
+			),
+		);
+	}
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+
+	context.state.init?.push(
+		b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
+	);
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.IfStatement | AST.JSXIfExpression, TransformServerState, AST.Node>}
+ */
+const visit_if_statement = (node, context) => {
+	if (context.state.regular_js || node.metadata?.regular_js) {
+		return context.next({ ...context.state, regular_js: true });
+	}
+
+	if (!is_inside_component(context)) {
+		context.next();
+		return;
+	}
+
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+	const consequent_scope = context.state.scopes.get(node.consequent) || context.state.scope;
+
+	if (
+		(node.metadata?.script_only || node.metadata?.has_continue) &&
+		!node.metadata?.has_template &&
+		!node.alternate
+	) {
+		context.state.init?.push(
+			b.if(
+				/** @type {AST.Expression} */ (context.visit(node.test)),
+				b.block(
+					transform_body(consequent_body, {
+						...context,
+						state: { ...context.state, scope: consequent_scope },
+					}),
+				),
+			),
+		);
+		return;
+	}
+
+	const consequent = b.block(
+		transform_body(consequent_body, {
+			...context,
+			state: {
+				...context.state,
+				scope: /** @type {ScopeInterface} */ (consequent_scope),
+				control_flow_branch_body: true,
+			},
+		}),
+	);
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+
+	/** @type {AST.BlockStatement | AST.IfStatement | null} */
+	let alternate = null;
+	if (node.alternate) {
+		const alternate_scope = context.state.scopes.get(node.alternate) || context.state.scope;
+		const alternate_body_nodes =
+			node.alternate.type === 'IfStatement'
+				? [node.alternate]
+				: node.alternate.type === 'BlockStatement'
+					? node.alternate.body
+					: [node.alternate];
+
+		alternate = b.block(
+			transform_body(alternate_body_nodes, {
+				...context,
+				state: {
+					...context.state,
+					scope: alternate_scope,
+					control_flow_branch_body: node.alternate.type !== 'IfStatement',
+				},
+			}),
+		);
+	}
+
+	context.state.init?.push(
+		b.if(/** @type {AST.Expression} */ (context.visit(node.test)), consequent, alternate),
+	);
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.TryStatement | AST.JSXTryExpression, TransformServerState, AST.Node>}
+ */
+const visit_try_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	const has_pending = node.pending !== null;
+	const has_catch = node.handler !== null;
+
+	const body = transform_body(node.block.body, {
+		...context,
+		state: {
+			...context.state,
+			scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.block)),
+		},
+	});
+
+	// Wrap try_fn body with hydration markers when pending or catch is present
+	const try_fn = b.arrow(
+		[],
+		b.block(
+			has_pending || has_catch
+				? [
+						b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+						...body,
+						b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+					]
+				: body,
+		),
+	);
+
+	/** @type {AST.Expression} */
+	let catch_fn = b.literal(null);
+
+	const handler = node.handler;
+	if (handler) {
+		if (handler.param) {
+			delete handler.param.typeAnnotation;
+		}
+
+		/** @type {AST.Statement | null} */
+		let reset = null;
+		if (handler.resetParam) {
+			delete handler.resetParam.typeAnnotation;
+
+			reset = b.const(
+				handler.resetParam.type === 'AssignmentPattern'
+					? /** @type {AST.Identifier} */ (handler.resetParam.left).name
+					: /** @type {AST.Identifier} */ (handler.resetParam).name,
+				b.id('_$_.noop'),
+			);
+		}
+
+		catch_fn = b.arrow(
+			[handler.param || b.id('error')],
+			b.block([
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+				...(reset ? [reset] : []),
+				...transform_body(handler.body.body, {
+					...context,
+					state: {
+						...context.state,
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
+					},
+				}),
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+			]),
+		);
+	}
+
+	const pending_body = node.pending
+		? transform_body(node.pending.body, {
+				...context,
+				state: {
+					...context.state,
+					scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
+				},
+			})
+		: null;
+
+	// Wrap pending_fn body with hydration markers
+	const pending_fn =
+		pending_body !== null
+			? b.arrow(
+					[],
+					b.block([
+						b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
+						...pending_body,
+						b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
+					]),
+				)
+			: b.literal(null);
+
+	context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.ForOfStatement | AST.JSXForExpression, TransformServerState, AST.Node>}
+ */
+const visit_for_of_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		context.next();
+		return;
+	}
+	const body_scope = context.state.scopes.get(node.body);
+
+	if (node.metadata?.script_only && !node.metadata?.has_template) {
+		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
+			...context,
+			state: { ...context.state, scope: /** @type {ScopeInterface} */ (body_scope) },
+		});
+
+		if (node.index) {
+			context.state.init?.push(b.var(node.index, b.literal(0)));
+			body.push(b.stmt(b.update('++', node.index)));
+		}
+
+		context.state.init?.push(
+			b.for_of(
+				/** @type {AST.VariableDeclaration} */ (context.visit(/** @type {AST.Node} */ (node.left))),
+				/** @type {AST.Expression} */
+				(context.visit(/** @type {AST.Node} */ (node.right))),
+				b.block(body),
+			),
+		);
+		return;
+	}
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+
+	const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
+		...context,
+		state: {
+			...context.state,
+			scope: /** @type {ScopeInterface} */ (body_scope),
+			control_flow_branch_body: true,
+		},
+	});
+	const empty_id = node.empty ? b.id(context.state.scope.generate('for_empty')) : null;
+
+	if (node.index) {
+		context.state.init?.push(b.var(node.index, b.literal(0)));
+		body.push(b.stmt(b.update('++', node.index)));
+	}
+	if (empty_id) {
+		context.state.init?.push(b.var(empty_id, b.true));
+		body.unshift(b.stmt(b.assignment('=', empty_id, b.false)));
+	}
+
+	context.state.init?.push(
+		b.for_of(
+			/** @type {AST.VariableDeclaration} */ (context.visit(/** @type {AST.Node} */ (node.left))),
+			/** @type {AST.Expression} */
+			(context.visit(/** @type {AST.Node} */ (node.right))),
+			b.block(body),
+		),
+	);
+
+	if (empty_id && node.empty) {
+		const empty_scope = context.state.scopes.get(node.empty) || context.state.scope;
+		context.state.init?.push(
+			b.if(
+				empty_id,
+				b.block(
+					transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
+						...context,
+						state: { ...context.state, scope: /** @type {ScopeInterface} */ (empty_scope) },
+					}),
+				),
+			),
+		);
+	}
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
+};
 
 /** @type {Visitors<AST.Node, TransformServerState>} */
 const visitors = {
@@ -2329,211 +2663,21 @@ const visitors = {
 		}
 	},
 
-	SwitchStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
+	SwitchStatement: visit_switch_statement,
+	JSXSwitchExpression: visit_switch_statement,
+
+	ForOfStatement: visit_for_of_statement,
+	// `@for` covers for-of / for-in / for(;;): non-for-of forms have no
+	// dedicated visitor and keep the default traversal, as before.
+	JSXForExpression(node, context) {
+		if (node.statementType === 'ForOfStatement') {
+			return visit_for_of_statement(node, context);
 		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		const cases = [];
-
-		for (const switch_case of node.cases) {
-			const case_body = [];
-
-			if (switch_case.consequent.length !== 0) {
-				const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
-				const consequent_scope =
-					context.state.scopes.get(switch_case.consequent) || context.state.scope;
-				const consequent = b.block(
-					transform_body(flattened_consequent, {
-						...context,
-						state: {
-							...context.state,
-							scope: consequent_scope,
-							control_flow_branch_body: true,
-						},
-					}),
-				);
-				case_body.push(...consequent.body);
-			}
-			case_body.push(b.break);
-
-			cases.push(
-				b.switch_case(
-					switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
-					case_body,
-				),
-			);
-		}
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-
-		context.state.init?.push(
-			b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
-		);
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
+		return context.next();
 	},
 
-	ForOfStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
-		}
-
-		if (!is_inside_component(context)) {
-			context.next();
-			return;
-		}
-		const body_scope = context.state.scopes.get(node.body);
-
-		if (node.metadata?.script_only && !node.metadata?.has_template) {
-			const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
-				...context,
-				state: { ...context.state, scope: /** @type {ScopeInterface} */ (body_scope) },
-			});
-
-			if (node.index) {
-				context.state.init?.push(b.var(node.index, b.literal(0)));
-				body.push(b.stmt(b.update('++', node.index)));
-			}
-
-			context.state.init?.push(
-				b.for_of(
-					/** @type {AST.VariableDeclaration} */ (context.visit(node.left)),
-					/** @type {AST.Expression} */
-					(context.visit(node.right)),
-					b.block(body),
-				),
-			);
-			return;
-		}
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-
-		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
-			...context,
-			state: {
-				...context.state,
-				scope: /** @type {ScopeInterface} */ (body_scope),
-				control_flow_branch_body: true,
-			},
-		});
-		const empty_id = node.empty ? b.id(context.state.scope.generate('for_empty')) : null;
-
-		if (node.index) {
-			context.state.init?.push(b.var(node.index, b.literal(0)));
-			body.push(b.stmt(b.update('++', node.index)));
-		}
-		if (empty_id) {
-			context.state.init?.push(b.var(empty_id, b.true));
-			body.unshift(b.stmt(b.assignment('=', empty_id, b.false)));
-		}
-
-		context.state.init?.push(
-			b.for_of(
-				/** @type {AST.VariableDeclaration} */ (context.visit(node.left)),
-				/** @type {AST.Expression} */
-				(context.visit(node.right)),
-				b.block(body),
-			),
-		);
-
-		if (empty_id && node.empty) {
-			const empty_scope = context.state.scopes.get(node.empty) || context.state.scope;
-			context.state.init?.push(
-				b.if(
-					empty_id,
-					b.block(
-						transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
-							...context,
-							state: { ...context.state, scope: /** @type {ScopeInterface} */ (empty_scope) },
-						}),
-					),
-				),
-			);
-		}
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
-	},
-
-	IfStatement(node, context) {
-		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true });
-		}
-
-		if (!is_inside_component(context)) {
-			context.next();
-			return;
-		}
-
-		const consequent_body =
-			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-		const consequent_scope = context.state.scopes.get(node.consequent) || context.state.scope;
-
-		if (
-			(node.metadata?.script_only || node.metadata?.has_continue) &&
-			!node.metadata?.has_template &&
-			!node.alternate
-		) {
-			context.state.init?.push(
-				b.if(
-					/** @type {AST.Expression} */ (context.visit(node.test)),
-					b.block(
-						transform_body(consequent_body, {
-							...context,
-							state: { ...context.state, scope: consequent_scope },
-						}),
-					),
-				),
-			);
-			return;
-		}
-
-		const consequent = b.block(
-			transform_body(consequent_body, {
-				...context,
-				state: {
-					...context.state,
-					scope: /** @type {ScopeInterface} */ (consequent_scope),
-					control_flow_branch_body: true,
-				},
-			}),
-		);
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-
-		/** @type {AST.BlockStatement | AST.IfStatement | null} */
-		let alternate = null;
-		if (node.alternate) {
-			const alternate_scope = context.state.scopes.get(node.alternate) || context.state.scope;
-			const alternate_body_nodes =
-				node.alternate.type === 'IfStatement'
-					? [node.alternate]
-					: node.alternate.type === 'BlockStatement'
-						? node.alternate.body
-						: [node.alternate];
-
-			alternate = b.block(
-				transform_body(alternate_body_nodes, {
-					...context,
-					state: {
-						...context.state,
-						scope: alternate_scope,
-						control_flow_branch_body: node.alternate.type !== 'IfStatement',
-					},
-				}),
-			);
-		}
-
-		context.state.init?.push(
-			b.if(/** @type {AST.Expression} */ (context.visit(node.test)), consequent, alternate),
-		);
-
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
-	},
+	IfStatement: visit_if_statement,
+	JSXIfExpression: visit_if_statement,
 
 	ReturnStatement(node, context) {
 		// A `return <markup>` produces a renderable value — lower it to a server
@@ -2575,7 +2719,9 @@ const visitors = {
 		if (left.type === 'MemberExpression') {
 			const target = get_indexed_reactive_target(left, context);
 			if (target !== null) {
-				const right = /** @type {AST.Expression} */ (context.visit(node.right));
+				const right = /** @type {AST.Expression} */ (
+					context.visit(/** @type {AST.Node} */ (node.right))
+				);
 				let value = right;
 				if (node.operator !== '=') {
 					const operator = /** @type {AST.BinaryOperator} */ (node.operator.slice(0, -1));
@@ -2600,7 +2746,9 @@ const visitors = {
 							context,
 						)
 					),
-					right: /** @type {AST.Expression} */ (context.visit(node.right)),
+					right: /** @type {AST.Expression} */ (
+						context.visit(/** @type {AST.Node} */ (node.right))
+					),
 				};
 			}
 		}
@@ -2609,7 +2757,9 @@ const visitors = {
 		if (left.type === 'Identifier') {
 			const binding = context.state.scope?.get(left.name);
 			if (binding?.transform?.assign && binding.node !== left) {
-				let value = /** @type {AST.Expression} */ (context.visit(node.right));
+				let value = /** @type {AST.Expression} */ (
+					context.visit(/** @type {AST.Node} */ (node.right))
+				);
 
 				// For compound operators (+=, -=, *=, /=), expand to read + operation
 				if (node.operator !== '=') {
@@ -2625,7 +2775,7 @@ const visitors = {
 		return {
 			...node,
 			left: /** @type {AST.Pattern} */ (strip_typescript_expression_wrappers(node.left, context)),
-			right: /** @type {AST.Expression} */ (context.visit(node.right)),
+			right: /** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right))),
 		};
 	},
 
@@ -2698,104 +2848,8 @@ const visitors = {
 		});
 	},
 
-	TryStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		const has_pending = node.pending !== null;
-		const has_catch = node.handler !== null;
-
-		const body = transform_body(node.block.body, {
-			...context,
-			state: {
-				...context.state,
-				scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.block)),
-			},
-		});
-
-		// Wrap try_fn body with hydration markers when pending or catch is present
-		const try_fn = b.arrow(
-			[],
-			b.block(
-				has_pending || has_catch
-					? [
-							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
-							...body,
-							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
-						]
-					: body,
-			),
-		);
-
-		/** @type {AST.Expression} */
-		let catch_fn = b.literal(null);
-
-		const handler = node.handler;
-		if (handler) {
-			if (handler.param) {
-				delete handler.param.typeAnnotation;
-			}
-
-			/** @type {AST.Statement | null} */
-			let reset = null;
-			if (handler.resetParam) {
-				delete handler.resetParam.typeAnnotation;
-
-				reset = b.const(
-					handler.resetParam.type === 'AssignmentPattern'
-						? /** @type {AST.Identifier} */ (handler.resetParam.left).name
-						: /** @type {AST.Identifier} */ (handler.resetParam).name,
-					b.id('_$_.noop'),
-				);
-			}
-
-			catch_fn = b.arrow(
-				[handler.param || b.id('error')],
-				b.block([
-					b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
-					...(reset ? [reset] : []),
-					...transform_body(handler.body.body, {
-						...context,
-						state: {
-							...context.state,
-							scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
-						},
-					}),
-					b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
-				]),
-			);
-		}
-
-		const pending_body = node.pending
-			? transform_body(node.pending.body, {
-					...context,
-					state: {
-						...context.state,
-						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
-					},
-				})
-			: null;
-
-		// Wrap pending_fn body with hydration markers
-		const pending_fn =
-			pending_body !== null
-				? b.arrow(
-						[],
-						b.block([
-							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
-							...pending_body,
-							b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
-						]),
-					)
-				: b.literal(null);
-
-		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
-	},
+	TryStatement: visit_try_statement,
+	JSXTryExpression: visit_try_statement,
 
 	JSXExpressionContainer(node, context) {
 		const { visit, state } = context;

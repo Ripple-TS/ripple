@@ -88,9 +88,6 @@ interface BaseNodeMetaData {
 	dynamicElement?: boolean;
 	templateMode?: 'script' | 'template';
 	script_only?: boolean;
-	tsrxDirective?: 'if' | 'for' | 'switch' | 'try';
-	/** A retyped expression-position directive whose branch bodies are template children. */
-	tsrx_template_directive?: boolean;
 	/** A synthetic wrapper for a nested `@{ @{ ... } }` code-block render chain. */
 	tsrx_code_block_chain?: boolean;
 	/** A synthesized render-body fragment (see create_native_tsrx_render_function). */

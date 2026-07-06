@@ -28,6 +28,7 @@ import {
 	is_dynamic_element,
 	is_template_element,
 	set_element_id,
+	is_template_directive,
 	is_template_expression,
 	is_template_fragment,
 	is_template_text,
@@ -71,17 +72,14 @@ export function should_guard_regular_js_statement(statement) {
 }
 
 /**
- * Plain JS control flow (`if`/`for`/`while`/`switch`/`try`, etc.) that is NOT an
- * `@if`/`@for`/`@switch`/`@try` template directive. Only directives carry
- * `metadata.tsrxDirective`; everything else is ordinary JavaScript that may
- * return JSX, and must lower exactly like control flow in a regular function.
+ * Plain JS control flow (`if`/`for`/`while`/`switch`/`try`, etc.). Template
+ * directives keep their own parser node types (`JSXIfExpression`, …), so any
+ * standard statement form here is ordinary JavaScript that may return JSX and
+ * must lower exactly like control flow in a regular function.
  * @param {AST.Node} node
  * @returns {boolean}
  */
 export function is_plain_js_control_flow(node) {
-	if (node.metadata?.tsrxDirective) {
-		return false;
-	}
 	return (
 		node.type === 'IfStatement' ||
 		node.type === 'SwitchStatement' ||
@@ -182,137 +180,32 @@ export function is_tsrx_component_function(node) {
 export function is_native_tsrx_template_node(node) {
 	return !!(
 		node &&
-		(node.type === 'JSXElement' ||
-			node.type === 'JSXFragment' ||
-			node.type === 'JSXIfExpression' ||
-			node.type === 'JSXForExpression' ||
-			node.type === 'JSXSwitchExpression' ||
-			node.type === 'JSXTryExpression' ||
-			node.metadata?.tsrxDirective === 'if' ||
-			node.metadata?.tsrxDirective === 'for' ||
-			node.metadata?.tsrxDirective === 'switch' ||
-			node.metadata?.tsrxDirective === 'try')
+		(node.type === 'JSXElement' || node.type === 'JSXFragment' || is_template_directive(node))
 	);
 }
 
 /**
- * Pre-pass: make template control flow consumable by the analyzer and
- * transforms. Wraps `@if`/`@for`/`@switch`/`@try` directives used in value
- * positions in a `<> … </>` fragment, then retypes every expression-position
- * `JSX…Expression` directive into its standard ESTree statement form tagged
- * with `metadata.tsrxDirective`.
+ * Pre-pass: wrap `@if`/`@for`/`@switch`/`@try` directives used in value
+ * positions in a `<> … </>` fragment so they lower as values. Directives keep
+ * their parser forms (`JSXIfExpression`, …) — the analyzer and transforms
+ * dispatch on those directly.
  * @param {AST.Node} ast
  * @returns {void}
  */
 export function prepare_template_control_flow(ast) {
 	wrap_directives_combined_into_expressions(/** @type {any} */ (ast));
-	retype_directive_expressions(/** @type {any} */ (ast));
 }
 
 /**
- * @param {any} node
- * @returns {any}
- */
-function retype_directive_expression(node) {
-	const statement = /** @type {any} */ ({ ...node, type: node.statementType });
-	delete statement.statementType;
-	const directive =
-		node.type === 'JSXIfExpression'
-			? 'if'
-			: node.type === 'JSXForExpression'
-				? 'for'
-				: node.type === 'JSXSwitchExpression'
-					? 'switch'
-					: 'try';
-	statement.metadata = {
-		...(statement.metadata ?? {}),
-		tsrxDirective: directive,
-		// Marks a RETYPED directive: its branch bodies are template children
-		// (lowered by `lower_template_code_blocks`), unlike a plain `@else if`
-		// IfStatement that only carries `tsrxDirective` for the transforms.
-		tsrx_template_directive: true,
-	};
-	// `@else if` parses as a plain IfStatement in the alternate — tag it so the
-	// transforms lower it as template control flow (one level, matching the old
-	// normalizer).
-	if (directive === 'if' && statement.alternate?.type === 'IfStatement') {
-		statement.alternate.metadata = {
-			...(statement.alternate.metadata ?? {}),
-			tsrxDirective: 'if',
-		};
-	}
-	return statement;
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_directive_expression(node) {
-	return (
-		node?.type === 'JSXIfExpression' ||
-		node?.type === 'JSXForExpression' ||
-		node?.type === 'JSXSwitchExpression' ||
-		node?.type === 'JSXTryExpression'
-	);
-}
-
-/**
- * @param {any} ast
- * @returns {void}
- */
-function retype_directive_expressions(ast) {
-	const seen = new Set();
-	/** @param {any} node */
-	const visit = (node) => {
-		if (!node || typeof node !== 'object' || seen.has(node)) return;
-		seen.add(node);
-		if (Array.isArray(node)) {
-			for (const item of node) visit(item);
-			return;
-		}
-		for (const key of Object.keys(node)) {
-			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-			const value = node[key];
-			if (Array.isArray(value)) {
-				for (let i = 0; i < value.length; i++) {
-					if (is_directive_expression(value[i])) {
-						value[i] = retype_directive_expression(value[i]);
-					}
-					visit(value[i]);
-				}
-			} else if (is_directive_expression(value)) {
-				node[key] = retype_directive_expression(value);
-				visit(node[key]);
-			} else {
-				visit(value);
-			}
-		}
-	};
-	visit(ast);
-}
-
-/**
- * A `@if`/`@for`/`@switch`/`@try` control-flow directive — a raw `JSX…Expression`
- * before normalization, or a statement carrying `metadata.tsrxDirective` after.
- * (A `@{ … }` code block is deliberately NOT included: it self-lowers to an IIFE
- * in every position, so it never needs wrapping and wrapping it would add a
- * redundant fragment.)
+ * A `@if`/`@for`/`@switch`/`@try` control-flow directive. (A `@{ … }` code
+ * block is deliberately NOT included: it self-lowers to an IIFE in every
+ * position, so it never needs wrapping and wrapping it would add a redundant
+ * fragment.)
  * @param {AST.Node} node
  * @returns {boolean}
  */
 function is_control_flow_directive(node) {
-	const directive = node?.metadata?.tsrxDirective;
-	return (
-		directive === 'if' ||
-		directive === 'for' ||
-		directive === 'switch' ||
-		directive === 'try' ||
-		node?.type === 'JSXIfExpression' ||
-		node?.type === 'JSXForExpression' ||
-		node?.type === 'JSXSwitchExpression' ||
-		node?.type === 'JSXTryExpression'
-	);
+	return is_template_directive(node);
 }
 
 /**
@@ -2705,8 +2598,8 @@ export function strip_class_typescript_syntax(node, context) {
 
 /**
  * Lower the `@{ … }` code blocks that appear as template children throughout
- * the AST: element/fragment children lists and the branch bodies of retyped
- * template directives. Statement-position code blocks (function bodies,
+ * the AST: element/fragment children lists and the branch bodies of template
+ * directives. Statement-position code blocks (function bodies,
  * code-block bodies) are left alone — they stay lexical blocks and are lowered
  * by the transforms. Also drops `EmptyStatement` separators from the lists it
  * touches, matching the old normalizer.
@@ -2748,7 +2641,7 @@ function lower_statement_children(statements, inherited_path) {
 }
 
 /**
- * @param {any} statement — a retyped template directive
+ * @param {any} statement — a template directive (`JSX…Expression`)
  * @param {AST.Node[]} inherited_path
  * @returns {void}
  */
@@ -2864,7 +2757,7 @@ function lower_node(node, inherited_path = []) {
 		}
 		return;
 	}
-	if (node.metadata?.tsrx_template_directive) {
+	if (is_template_directive(node)) {
 		lower_directive_template_slots(node, inherited_path);
 		return;
 	}

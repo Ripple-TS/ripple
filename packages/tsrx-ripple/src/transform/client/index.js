@@ -8,6 +8,7 @@
 	VisitorClientContext,
 	TransformClientState,
 	ScopeInterface,
+	Visitor,
 	Visitors,
 	Binding,
 }	from '../../../types/index';
@@ -119,6 +120,7 @@ import {
 	is_expression_attribute,
 	is_self_closing,
 	is_template_element,
+	is_template_directive,
 	is_template_expression,
 	is_template_fragment,
 	is_template_text,
@@ -1390,6 +1392,444 @@ function build_jsx_to_tsrx_element(node, context) {
 	);
 }
 
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.SwitchStatement | AST.JSXSwitchExpression, TransformClientState, AST.Node>}
+ */
+const visit_switch_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		if (context.state.to_ts) {
+			return transform_ts_child(node, SetContextForOutsideComponent(context));
+		}
+
+		return context.next();
+	}
+
+	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	if (!root_controlled) {
+		context.state.template?.push('<!>');
+	}
+
+	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
+	const statements = [];
+	const cases = [];
+
+	let id_gen = 0;
+	let counter = 0;
+	for (const switch_case of node.cases) {
+		const case_body = [];
+		const consequent = switch_case.consequent;
+
+		if (consequent.length !== 0) {
+			const flattened_consequent = flatten_switch_consequent(consequent);
+			const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
+
+			const block = transform_body(flattened_consequent, {
+				...context,
+				state: { ...context.state, scope: consequent_scope, flush_node: null },
+			});
+			const is_default = switch_case.test == null;
+			const consequent_id = context.state.scope.generate(
+				'switch_case_' + (is_default ? 'default' : id_gen),
+			);
+
+			statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], b.block(block))));
+			case_body.push(
+				b.stmt(b.call(b.member(b.id('result'), b.id('push'), false), b.id(consequent_id))),
+			);
+			id_gen++;
+		}
+		case_body.push(b.return(b.id('result')));
+
+		counter++;
+
+		cases.push(
+			b.switch_case(
+				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
+				case_body,
+			),
+		);
+	}
+
+	statements.push(
+		b.stmt(
+			b.call(
+				'_$_.switch',
+				id,
+				b.thunk(
+					b.block([
+						b.var(b.id('result'), b.array([])),
+						b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
+					]),
+				),
+				root_controlled ? b.true : undefined,
+			),
+		),
+	);
+
+	context.state.init?.push(b.block(statements));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.IfStatement | AST.JSXIfExpression, TransformClientState, AST.Node>}
+ */
+const visit_if_statement = (node, context) => {
+	if (context.state.regular_js || node.metadata?.regular_js) {
+		return context.next({ ...context.state, regular_js: true });
+	}
+
+	if (context.state.to_ts) {
+		return transform_ts_child(node, context);
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+
+	if (
+		(node.metadata?.script_only || node.metadata?.has_continue) &&
+		!node.metadata?.has_template &&
+		!node.alternate
+	) {
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+			context.state.scope;
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		const continue_index = find_top_level_continue_index(consequent_body);
+		const consequent_statements =
+			continue_index === -1
+				? transform_body(consequent_body, {
+						...context,
+						state: { ...context.state, flush_node: null, scope: consequent_scope },
+					})
+				: transform_continue_consequent_body(consequent_body, {
+						...context,
+						state: { ...context.state, flush_node: null, scope: consequent_scope },
+					});
+		const consequent = b.block(consequent_statements);
+
+		context.state.init?.push(
+			b.if(
+				/** @type {AST.Expression} */ (
+					context.visit(node.test, {
+						...context.state,
+						metadata: { ...context.state.metadata },
+					})
+				),
+				consequent,
+			),
+		);
+		return;
+	}
+
+	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	if (!root_controlled) {
+		context.state.template?.push('<!>');
+	}
+
+	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
+	const statements = [];
+
+	const consequent_scope =
+		/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+		context.state.scope;
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+	const consequent = b.block(
+		transform_body(consequent_body, {
+			...context,
+			state: { ...context.state, flush_node: null, scope: consequent_scope },
+		}),
+	);
+	const consequent_id = context.state.scope.generate('consequent');
+
+	statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], consequent)));
+
+	let alternate_id;
+
+	if (node.alternate !== null) {
+		const alternate = /** @type {AST.Statement} */ (node.alternate);
+		const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
+		/** @type {AST.Node[]} */
+		let alternate_body =
+			alternate.type === 'IfStatement'
+				? [alternate]
+				: alternate.type === 'BlockStatement'
+					? alternate.body
+					: [alternate];
+		const alternate_block = b.block(
+			transform_body(alternate_body, {
+				...context,
+				state: { ...context.state, flush_node: null, scope: alternate_scope },
+			}),
+		);
+		alternate_id = context.state.scope.generate('alternate');
+		statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
+	}
+
+	/** @type {AST.Statement[]} */
+	const callback_body = [];
+
+	callback_body.push(
+		b.if(
+			/** @type {AST.Expression} */ (
+				context.visit(node.test, {
+					...context.state,
+					metadata: { ...context.state.metadata },
+				})
+			),
+			b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
+			alternate_id
+				? b.stmt(
+						b.call(
+							b.id('__render'),
+							b.id(alternate_id),
+							node.alternate ? b.literal(false) : undefined,
+						),
+					)
+				: undefined,
+		),
+	);
+
+	statements.push(
+		b.stmt(
+			b.call(
+				'_$_.if',
+				id,
+				b.arrow([b.id('__render')], b.block(callback_body)),
+				root_controlled ? b.true : undefined,
+			),
+		),
+	);
+
+	context.state.init?.push(b.block(statements));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.TryStatement | AST.JSXTryExpression, TransformClientState, AST.Node>}
+ */
+const visit_try_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		if (context.state.to_ts) {
+			return transform_ts_child(node, SetContextForOutsideComponent(context));
+		}
+
+		return context.next();
+	}
+
+	if (context.state.to_ts) {
+		return transform_ts_child(node, context);
+	}
+	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	if (!root_controlled) {
+		context.state.template?.push('<!>');
+	}
+
+	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
+	const handler = /** @type {AST.CatchClause | null} */ (node.handler);
+	const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
+	let body = transform_body(node.block.body, {
+		...context,
+		state: {
+			...context.state,
+			scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.block)),
+		},
+	});
+
+	if (handler?.param) {
+		delete handler.param.typeAnnotation;
+	}
+	if (handler?.resetParam) {
+		delete handler.resetParam.typeAnnotation;
+	}
+
+	const catch_arg =
+		handler === null
+			? b.literal(null)
+			: b.arrow(
+					[
+						b.id('__anchor'),
+						...(handler.param && handler.resetParam
+							? [handler.param, handler.resetParam]
+							: handler.param
+								? [handler.param]
+								: []),
+					],
+					b.block(
+						transform_body(handler.body.body, {
+							...context,
+							state: {
+								...context.state,
+								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
+							},
+						}),
+					),
+				);
+
+	const pending_arg =
+		pending === null
+			? null
+			: b.arrow(
+					[b.id('__anchor')],
+					b.block(
+						transform_body(pending.body, {
+							...context,
+							state: {
+								...context.state,
+								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(pending)),
+							},
+						}),
+					),
+				);
+
+	const try_args = [id, b.arrow([b.id('__anchor')], b.block(body)), catch_arg];
+	if (root_controlled) {
+		// Keep pending_fn positioned (null when absent) so root_controlled lands
+		// in the 5th slot.
+		try_args.push(pending_arg ?? b.literal(null), b.true);
+	} else if (pending_arg !== null) {
+		try_args.push(pending_arg);
+	}
+
+	context.state.init?.push(b.stmt(b.call('_$_.try', ...try_args)));
+};
+
+/**
+ * Shared by the plain statement and the `@`-directive forms.
+ * @type {Visitor<AST.ForOfStatement | AST.JSXForExpression, TransformClientState, AST.Node>}
+ */
+const visit_for_of_statement = (node, context) => {
+	if (context.state.regular_js) {
+		return context.next();
+	}
+
+	if (!is_inside_component(context)) {
+		return context.next();
+	}
+	const is_controlled = node.is_controlled;
+	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	const index = node.index;
+	const key = node.key;
+	let flags = is_controlled ? IS_CONTROLLED : 0;
+
+	if (root_controlled) {
+		flags |= ROOT_CONTROLLED;
+	}
+
+	if (index != null) {
+		flags |= IS_INDEXED;
+	}
+
+	if (node.metadata?.script_only && !node.metadata?.has_template) {
+		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
+			...context,
+			state: {
+				...context.state,
+				scope: body_scope,
+				namespace: context.state.namespace,
+				flush_node: null,
+			},
+		});
+
+		if (index) {
+			body.push(b.stmt(b.update('++', index)));
+			context.state.init?.push(b.var(index, b.literal(0)));
+		}
+
+		context.state.init?.push(
+			b.for_of(
+				/** @type {AST.VariableDeclaration} */ (context.visit(/** @type {AST.Node} */ (node.left))),
+				/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right))),
+				b.block(body),
+			),
+		);
+		return;
+	}
+
+	// do only if not controller
+	if (!is_controlled && !root_controlled) {
+		context.state.template?.push('<!>');
+	}
+
+	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.(false, is_controlled);
+	const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+	const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+	const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
+	/** @type {AST.Statement[]} */
+	const body = transform_body(body_nodes, {
+		...context,
+		state: {
+			...context.state,
+			scope: body_scope,
+			namespace: context.state.namespace,
+			flush_node: null,
+		},
+	});
+
+	const empty_scope = node.empty
+		? context.state.scopes.get(node.empty) || context.state.scope
+		: null;
+	const empty_renderer = node.empty
+		? b.arrow(
+				[b.id('__anchor')],
+				b.block(
+					transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
+						...context,
+						state: {
+							...context.state,
+							scope: /** @type {ScopeInterface} */ (empty_scope),
+							namespace: context.state.namespace,
+							flush_node: null,
+						},
+					}),
+				),
+			)
+		: undefined;
+
+	const for_args = [
+		id,
+		b.thunk(/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right)))),
+		b.arrow(
+			index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
+			b.block(body),
+		),
+		b.literal(flags),
+	];
+	if (key != null) {
+		for_args.push(
+			b.arrow(
+				index ? [pattern, index] : [pattern],
+				/** @type {AST.Expression} */ (context.visit(key)),
+			),
+		);
+	}
+	if (empty_renderer) {
+		for_args.push(empty_renderer);
+	}
+
+	context.state.init?.push(
+		b.stmt(
+			b.call(
+				key != null ? '_$_.for_keyed' : '_$_.for',
+				.../** @type {AST.Expression[]} */ (for_args),
+			),
+		),
+	);
+};
+
 /** @type {Visitors<AST.Node, TransformClientState>} */
 const visitors = {
 	_(node, { next, state, path }) {
@@ -2558,6 +2998,7 @@ const visitors = {
 					element_name !== 'template' &&
 					render_children.some(
 						(child) =>
+							is_template_directive(child) ||
 							child.type === 'IfStatement' ||
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
@@ -2940,339 +3381,21 @@ const visitors = {
 		context.next();
 	},
 
-	ForOfStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
+	ForOfStatement: visit_for_of_statement,
+	// `@for` covers for-of / for-in / for(;;): non-for-of forms have no
+	// dedicated visitor and keep the default traversal, as before.
+	JSXForExpression(node, context) {
+		if (node.statementType === 'ForOfStatement') {
+			return visit_for_of_statement(node, context);
 		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-		const is_controlled = node.is_controlled;
-		const root_controlled = /** @type {any} */ (node).root_controlled === true;
-		const index = node.index;
-		const key = node.key;
-		let flags = is_controlled ? IS_CONTROLLED : 0;
-
-		if (root_controlled) {
-			flags |= ROOT_CONTROLLED;
-		}
-
-		if (index != null) {
-			flags |= IS_INDEXED;
-		}
-
-		if (node.metadata?.script_only && !node.metadata?.has_template) {
-			const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
-			const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
-			const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
-				...context,
-				state: {
-					...context.state,
-					scope: body_scope,
-					namespace: context.state.namespace,
-					flush_node: null,
-				},
-			});
-
-			if (index) {
-				body.push(b.stmt(b.update('++', index)));
-				context.state.init?.push(b.var(index, b.literal(0)));
-			}
-
-			context.state.init?.push(
-				b.for_of(
-					/** @type {AST.VariableDeclaration} */ (context.visit(node.left)),
-					/** @type {AST.Expression} */ (context.visit(node.right)),
-					b.block(body),
-				),
-			);
-			return;
-		}
-
-		// do only if not controller
-		if (!is_controlled && !root_controlled) {
-			context.state.template?.push('<!>');
-		}
-
-		const id = root_controlled
-			? b.id('__anchor')
-			: context.state.flush_node?.(false, is_controlled);
-		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
-		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
-		const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
-		/** @type {AST.Statement[]} */
-		const body = transform_body(body_nodes, {
-			...context,
-			state: {
-				...context.state,
-				scope: body_scope,
-				namespace: context.state.namespace,
-				flush_node: null,
-			},
-		});
-
-		const empty_scope = node.empty
-			? context.state.scopes.get(node.empty) || context.state.scope
-			: null;
-		const empty_renderer = node.empty
-			? b.arrow(
-					[b.id('__anchor')],
-					b.block(
-						transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
-							...context,
-							state: {
-								...context.state,
-								scope: /** @type {ScopeInterface} */ (empty_scope),
-								namespace: context.state.namespace,
-								flush_node: null,
-							},
-						}),
-					),
-				)
-			: undefined;
-
-		const for_args = [
-			id,
-			b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
-			b.arrow(
-				index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
-				b.block(body),
-			),
-			b.literal(flags),
-		];
-		if (key != null) {
-			for_args.push(
-				b.arrow(
-					index ? [pattern, index] : [pattern],
-					/** @type {AST.Expression} */ (context.visit(key)),
-				),
-			);
-		}
-		if (empty_renderer) {
-			for_args.push(empty_renderer);
-		}
-
-		context.state.init?.push(
-			b.stmt(
-				b.call(
-					key != null ? '_$_.for_keyed' : '_$_.for',
-					.../** @type {AST.Expression[]} */ (for_args),
-				),
-			),
-		);
+		return context.next();
 	},
 
-	SwitchStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
-		}
+	SwitchStatement: visit_switch_statement,
+	JSXSwitchExpression: visit_switch_statement,
 
-		if (!is_inside_component(context)) {
-			if (context.state.to_ts) {
-				return transform_ts_child(node, SetContextForOutsideComponent(context));
-			}
-
-			return context.next();
-		}
-
-		const root_controlled = /** @type {any} */ (node).root_controlled === true;
-		if (!root_controlled) {
-			context.state.template?.push('<!>');
-		}
-
-		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
-		const statements = [];
-		const cases = [];
-
-		let id_gen = 0;
-		let counter = 0;
-		for (const switch_case of node.cases) {
-			const case_body = [];
-			const consequent = switch_case.consequent;
-
-			if (consequent.length !== 0) {
-				const flattened_consequent = flatten_switch_consequent(consequent);
-				const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
-
-				const block = transform_body(flattened_consequent, {
-					...context,
-					state: { ...context.state, scope: consequent_scope, flush_node: null },
-				});
-				const is_default = switch_case.test == null;
-				const consequent_id = context.state.scope.generate(
-					'switch_case_' + (is_default ? 'default' : id_gen),
-				);
-
-				statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], b.block(block))));
-				case_body.push(
-					b.stmt(b.call(b.member(b.id('result'), b.id('push'), false), b.id(consequent_id))),
-				);
-				id_gen++;
-			}
-			case_body.push(b.return(b.id('result')));
-
-			counter++;
-
-			cases.push(
-				b.switch_case(
-					switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
-					case_body,
-				),
-			);
-		}
-
-		statements.push(
-			b.stmt(
-				b.call(
-					'_$_.switch',
-					id,
-					b.thunk(
-						b.block([
-							b.var(b.id('result'), b.array([])),
-							b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
-						]),
-					),
-					root_controlled ? b.true : undefined,
-				),
-			),
-		);
-
-		context.state.init?.push(b.block(statements));
-	},
-
-	IfStatement(node, context) {
-		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true });
-		}
-
-		if (context.state.to_ts) {
-			return transform_ts_child(node, context);
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
-		if (
-			(node.metadata?.script_only || node.metadata?.has_continue) &&
-			!node.metadata?.has_template &&
-			!node.alternate
-		) {
-			const consequent_scope =
-				/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
-				context.state.scope;
-			const consequent_body =
-				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-			const continue_index = find_top_level_continue_index(consequent_body);
-			const consequent_statements =
-				continue_index === -1
-					? transform_body(consequent_body, {
-							...context,
-							state: { ...context.state, flush_node: null, scope: consequent_scope },
-						})
-					: transform_continue_consequent_body(consequent_body, {
-							...context,
-							state: { ...context.state, flush_node: null, scope: consequent_scope },
-						});
-			const consequent = b.block(consequent_statements);
-
-			context.state.init?.push(
-				b.if(
-					/** @type {AST.Expression} */ (
-						context.visit(node.test, {
-							...context.state,
-							metadata: { ...context.state.metadata },
-						})
-					),
-					consequent,
-				),
-			);
-			return;
-		}
-
-		const root_controlled = /** @type {any} */ (node).root_controlled === true;
-		if (!root_controlled) {
-			context.state.template?.push('<!>');
-		}
-
-		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
-		const statements = [];
-
-		const consequent_scope =
-			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
-			context.state.scope;
-		const consequent_body =
-			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-		const consequent = b.block(
-			transform_body(consequent_body, {
-				...context,
-				state: { ...context.state, flush_node: null, scope: consequent_scope },
-			}),
-		);
-		const consequent_id = context.state.scope.generate('consequent');
-
-		statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], consequent)));
-
-		let alternate_id;
-
-		if (node.alternate !== null) {
-			const alternate = /** @type {AST.Statement} */ (node.alternate);
-			const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
-			/** @type {AST.Node[]} */
-			let alternate_body =
-				alternate.type === 'IfStatement'
-					? [alternate]
-					: alternate.type === 'BlockStatement'
-						? alternate.body
-						: [alternate];
-			const alternate_block = b.block(
-				transform_body(alternate_body, {
-					...context,
-					state: { ...context.state, flush_node: null, scope: alternate_scope },
-				}),
-			);
-			alternate_id = context.state.scope.generate('alternate');
-			statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
-		}
-
-		/** @type {AST.Statement[]} */
-		const callback_body = [];
-
-		callback_body.push(
-			b.if(
-				/** @type {AST.Expression} */ (
-					context.visit(node.test, {
-						...context.state,
-						metadata: { ...context.state.metadata },
-					})
-				),
-				b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
-				alternate_id
-					? b.stmt(
-							b.call(
-								b.id('__render'),
-								b.id(alternate_id),
-								node.alternate ? b.literal(false) : undefined,
-							),
-						)
-					: undefined,
-			),
-		);
-
-		statements.push(
-			b.stmt(
-				b.call(
-					'_$_.if',
-					id,
-					b.arrow([b.id('__render')], b.block(callback_body)),
-					root_controlled ? b.true : undefined,
-				),
-			),
-		);
-
-		context.state.init?.push(b.block(statements));
-	},
+	IfStatement: visit_if_statement,
+	JSXIfExpression: visit_if_statement,
 
 	ReturnStatement(node, context) {
 		if (
@@ -3365,95 +3488,8 @@ const visitors = {
 		return context.next();
 	},
 
-	TryStatement(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
-		}
-
-		if (!is_inside_component(context)) {
-			if (context.state.to_ts) {
-				return transform_ts_child(node, SetContextForOutsideComponent(context));
-			}
-
-			return context.next();
-		}
-
-		if (context.state.to_ts) {
-			return transform_ts_child(node, context);
-		}
-		const root_controlled = /** @type {any} */ (node).root_controlled === true;
-		if (!root_controlled) {
-			context.state.template?.push('<!>');
-		}
-
-		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
-		const handler = /** @type {AST.CatchClause | null} */ (node.handler);
-		const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
-		let body = transform_body(node.block.body, {
-			...context,
-			state: {
-				...context.state,
-				scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.block)),
-			},
-		});
-
-		if (handler?.param) {
-			delete handler.param.typeAnnotation;
-		}
-		if (handler?.resetParam) {
-			delete handler.resetParam.typeAnnotation;
-		}
-
-		const catch_arg =
-			handler === null
-				? b.literal(null)
-				: b.arrow(
-						[
-							b.id('__anchor'),
-							...(handler.param && handler.resetParam
-								? [handler.param, handler.resetParam]
-								: handler.param
-									? [handler.param]
-									: []),
-						],
-						b.block(
-							transform_body(handler.body.body, {
-								...context,
-								state: {
-									...context.state,
-									scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
-								},
-							}),
-						),
-					);
-
-		const pending_arg =
-			pending === null
-				? null
-				: b.arrow(
-						[b.id('__anchor')],
-						b.block(
-							transform_body(pending.body, {
-								...context,
-								state: {
-									...context.state,
-									scope: /** @type {ScopeInterface} */ (context.state.scopes.get(pending)),
-								},
-							}),
-						),
-					);
-
-		const try_args = [id, b.arrow([b.id('__anchor')], b.block(body)), catch_arg];
-		if (root_controlled) {
-			// Keep pending_fn positioned (null when absent) so root_controlled lands
-			// in the 5th slot.
-			try_args.push(pending_arg ?? b.literal(null), b.true);
-		} else if (pending_arg !== null) {
-			try_args.push(pending_arg);
-		}
-
-		context.state.init?.push(b.stmt(b.call('_$_.try', ...try_args)));
-	},
+	TryStatement: visit_try_statement,
+	JSXTryExpression: visit_try_statement,
 
 	BinaryExpression(node, context) {
 		return b.binary(
@@ -3719,11 +3755,13 @@ function build_tsrx_to_ts_expression(node, context, in_jsx_child = false) {
 	// emit. Render position never sets `tsrx_generated_wrapper`, so it is unaffected;
 	// authored `<> … </>` (no wrapper flag) keeps flowing through the normal path.
 	if (node.metadata?.tsrx_generated_wrapper === true) {
-		const only = (node.children || []).find(
-			(/** @type {any} */ child) => child && child.type !== 'EmptyStatement',
+		const only = /** @type {AST.Node | undefined} */ (
+			(node.children || []).find(
+				(/** @type {any} */ child) => child && child.type !== 'EmptyStatement',
+			)
 		);
-		if (only && /** @type {any} */ (only).metadata?.tsrxDirective) {
-			const value = build_tsrx_ts_directive_value(only, context);
+		if (only && is_template_directive(only)) {
+			const value = build_tsrx_ts_directive_value(/** @type {any} */ (only), context);
 			return in_jsx_child ? b.jsx_expression_container(value) : value;
 		}
 	}
@@ -3888,7 +3926,10 @@ function transform_tsrx_tsx_child(node, context) {
 	// as "Fallthrough case in switch" (7029). Its value form already returns from every case
 	// (with a trailing `return null`), so lower a `@switch` child to its value in render
 	// position too — it renders the matched case's output all the same.
-	if (node.metadata?.tsrxDirective && (context.value_position || node.type === 'SwitchStatement')) {
+	if (
+		is_template_directive(node) &&
+		(context.value_position || node.type === 'JSXSwitchExpression')
+	) {
 		return b.jsx_expression_container(build_tsrx_ts_directive_value(node, context));
 	}
 
@@ -3929,12 +3970,15 @@ function transform_tsrx_ts_render_children(children, context) {
 
 		if (is_template_or_control_flow(child)) {
 			if (
+				is_template_directive(child) ||
 				child.type === 'IfStatement' ||
 				child.type === 'ForOfStatement' ||
 				child.type === 'SwitchStatement' ||
 				child.type === 'TryStatement'
 			) {
-				body.push(transform_tsrx_ts_render_control_flow_statement(child, context));
+				body.push(
+					transform_tsrx_ts_render_control_flow_statement(/** @type {any} */ (child), context),
+				);
 			} else {
 				body.push(
 					...transform_tsrx_ts_statements_to_render_body(
@@ -3993,12 +4037,12 @@ function statement_definitely_returns(statement) {
 }
 
 /**
- * @param {AST.IfStatement | AST.ForOfStatement | AST.SwitchStatement | AST.TryStatement} node
+ * @param {AST.JSXIfExpression | AST.JSXForExpression | AST.JSXSwitchExpression | AST.JSXTryExpression | AST.IfStatement | AST.ForOfStatement | AST.SwitchStatement | AST.TryStatement} node
  * @param {VisitorClientContext} context
  * @returns {AST.Statement}
  */
 function transform_tsrx_ts_render_control_flow_statement(node, context) {
-	if (node.type === 'IfStatement') {
+	if (node.type === 'JSXIfExpression' || node.type === 'IfStatement') {
 		const consequent_scope =
 			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
 			context.state.scope;
@@ -4042,7 +4086,10 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 		);
 	}
 
-	if (node.type === 'ForOfStatement') {
+	if (
+		node.type === 'ForOfStatement' ||
+		(node.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
+	) {
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const block_body = transform_tsrx_ts_render_children(
 			/** @type {AST.BlockStatement} */ (node.body).body,
@@ -4074,8 +4121,8 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 				: null;
 
 		const result = b.for_of(
-			/** @type {AST.Pattern} */ (context.visit(node.left)),
-			/** @type {AST.Expression} */ (context.visit(node.right)),
+			/** @type {AST.Pattern} */ (context.visit(/** @type {AST.Node} */ (node.left))),
+			/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right))),
 			b.block(block_body),
 			node.await,
 			/** @type {AST.NodeWithLocation} */ (node),
@@ -4084,7 +4131,7 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 		return result;
 	}
 
-	if (node.type === 'SwitchStatement') {
+	if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
 		const cases = node.cases.map((switch_case) => {
 			const consequent_scope =
 				context.state.scopes.get(switch_case.consequent) || context.state.scope;
@@ -4119,54 +4166,57 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 		);
 	}
 
-	const try_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.block));
+	const try_node = /** @type {AST.TryStatement | AST.JSXTryExpression} */ (node);
+	const try_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(try_node.block));
 	const try_body = b.block(
-		transform_tsrx_ts_render_children(node.block.body, {
+		transform_tsrx_ts_render_children(try_node.block.body, {
 			...context,
 			state: { ...context.state, scope: try_scope },
 		}),
-		/** @type {AST.NodeWithLocation} */ (node.block),
+		/** @type {AST.NodeWithLocation} */ (try_node.block),
 	);
 
 	let catch_handler = null;
-	if (node.handler) {
-		const catch_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.handler.body));
+	if (try_node.handler) {
+		const catch_scope = /** @type {ScopeInterface} */ (
+			context.state.scopes.get(try_node.handler.body)
+		);
 		catch_handler = b.catch_clause(
-			node.handler.param || null,
-			node.handler.resetParam || null,
+			try_node.handler.param || null,
+			try_node.handler.resetParam || null,
 			b.block(
-				transform_tsrx_ts_render_children(node.handler.body.body, {
+				transform_tsrx_ts_render_children(try_node.handler.body.body, {
 					...context,
 					state: { ...context.state, scope: catch_scope },
 				}),
-				/** @type {AST.NodeWithLocation} */ (node.handler.body),
+				/** @type {AST.NodeWithLocation} */ (try_node.handler.body),
 			),
-			/** @type {AST.NodeWithLocation} */ (node.handler),
+			/** @type {AST.NodeWithLocation} */ (try_node.handler),
 		);
 	}
 
-	const pending = node.pending
+	const pending = try_node.pending
 		? b.block(
-				transform_tsrx_ts_render_children(node.pending.body, {
+				transform_tsrx_ts_render_children(try_node.pending.body, {
 					...context,
 					state: {
 						...context.state,
-						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(try_node.pending)),
 					},
 				}),
-				/** @type {AST.NodeWithLocation} */ (node.pending),
+				/** @type {AST.NodeWithLocation} */ (try_node.pending),
 			)
 		: null;
-	const finalizer = node.finalizer
+	const finalizer = try_node.finalizer
 		? b.block(
-				transform_body(node.finalizer.body, {
+				transform_body(try_node.finalizer.body, {
 					...context,
 					state: {
 						...context.state,
-						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.finalizer)),
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(try_node.finalizer)),
 					},
 				}),
-				/** @type {AST.NodeWithLocation} */ (node.finalizer),
+				/** @type {AST.NodeWithLocation} */ (try_node.finalizer),
 			)
 		: null;
 
@@ -4224,7 +4274,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		const renders = [];
 		for (const stmt of body) {
 			if (stmt == null || stmt.type === 'EmptyStatement') continue;
-			if (/** @type {any} */ (stmt).metadata?.tsrxDirective) {
+			if (is_template_directive(stmt)) {
 				// A nested directive is render content here — lower it to its own value.
 				renders.push(to_fragment_child(build_tsrx_ts_directive_value(stmt, scoped(stmt))));
 				continue;
@@ -4255,7 +4305,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		return b.call(b.thunk(b.block(stmts)));
 	};
 
-	if (node.type === 'IfStatement') {
+	if (node.type === 'JSXIfExpression') {
 		const cons_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 		const consequent = branch_value(cons_body, node.consequent);
@@ -4274,7 +4324,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		);
 	}
 
-	if (node.type === 'ForOfStatement') {
+	if (node.type === 'JSXForExpression') {
 		// `@for await` iterates an AsyncIterable, which `Array.from` does NOT accept.
 		// Accumulate with a real `for await` loop instead (the runtime renders via
 		// `_$_.for`; this is the to_ts type view only). Await the async IIFE so the
@@ -4377,7 +4427,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		return b.call(b.member(items(), b.id('map')), map_arrow);
 	}
 
-	if (node.type === 'SwitchStatement') {
+	if (node.type === 'JSXSwitchExpression') {
 		const cases = node.cases.map((/** @type {any} */ sc) =>
 			b.switch_case(
 				sc.test ? /** @type {AST.Expression} */ (context.visit(sc.test)) : null,
@@ -4628,7 +4678,7 @@ function transform_ts_child(node, context) {
 		} else {
 			state.init?.push(b.stmt(jsxElement));
 		}
-	} else if (node.type === 'IfStatement') {
+	} else if (node.type === 'IfStatement' || node.type === 'JSXIfExpression') {
 		const consequent_scope =
 			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
 			context.state.scope;
@@ -4672,7 +4722,7 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(result);
-	} else if (node.type === 'SwitchStatement') {
+	} else if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
 		const cases = [];
 
 		for (const switch_case of node.cases) {
@@ -4708,7 +4758,10 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(result);
-	} else if (node.type === 'ForOfStatement') {
+	} else if (
+		node.type === 'ForOfStatement' ||
+		(node.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
+	) {
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const block_body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
 			...context,
@@ -4748,7 +4801,7 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(result);
-	} else if (node.type === 'TryStatement') {
+	} else if (node.type === 'TryStatement' || node.type === 'JSXTryExpression') {
 		const try_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.block));
 		const try_body = b.block(
 			transform_body(node.block.body, {
@@ -4890,6 +4943,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
 		is_template_fragment(node) ||
+		is_template_directive(node) ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -4937,7 +4991,8 @@ function is_native_tsrx_statement_position(path) {
 		parent?.type === 'DoWhileStatement' ||
 		parent?.type === 'TryStatement' ||
 		parent?.type === 'SwitchStatement' ||
-		parent?.type === 'LabeledStatement'
+		parent?.type === 'LabeledStatement' ||
+		is_template_directive(parent)
 	);
 }
 
@@ -5089,6 +5144,7 @@ function element_has_dynamic_content(element) {
 	// Check children for dynamic content
 	for (const child of /** @type {AST.Node[]} */ (element.children)) {
 		if (
+			is_template_directive(child) ||
 			child.type === 'IfStatement' ||
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
@@ -5199,6 +5255,7 @@ function transform_children(children, context) {
 	const is_fragment =
 		normalized.some(
 			(node) =>
+				is_template_directive(node) ||
 				node.type === 'IfStatement' ||
 				node.type === 'TryStatement' ||
 				node.type === 'ForOfStatement' ||
@@ -5247,7 +5304,8 @@ function transform_children(children, context) {
 	const single_output = root_output.length === 1 ? root_output[0] : null;
 	const root_controlled =
 		single_output !== null &&
-		(single_output.type === 'IfStatement' ||
+		(is_template_directive(single_output) ||
+			single_output.type === 'IfStatement' ||
 			single_output.type === 'SwitchStatement' ||
 			single_output.type === 'ForOfStatement' ||
 			single_output.type === 'TryStatement' ||
@@ -5543,6 +5601,7 @@ function transform_children(children, context) {
 						/** @type {any} */ (node).children
 					).some(
 						(child) =>
+							is_template_directive(child) ||
 							child.type === 'IfStatement' ||
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
@@ -5658,7 +5717,10 @@ function transform_children(children, context) {
 					get_template_expression(/** @type {any} */ (node), false),
 					/** @type {AST.Expression} */ (expression),
 				);
-			} else if (node.type === 'ForOfStatement') {
+			} else if (
+				node.type === 'ForOfStatement' ||
+				(node.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
+			) {
 				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
@@ -5666,7 +5728,7 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-			} else if (node.type === 'IfStatement') {
+			} else if (node.type === 'IfStatement' || node.type === 'JSXIfExpression') {
 				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
@@ -5674,7 +5736,7 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-			} else if (node.type === 'TryStatement') {
+			} else if (node.type === 'TryStatement' || node.type === 'JSXTryExpression') {
 				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {
@@ -5682,7 +5744,7 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-			} else if (node.type === 'SwitchStatement') {
+			} else if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
 				skipped = 0;
 				node.is_controlled = is_controlled;
 				visit(node, {

@@ -63,10 +63,9 @@ export function create_scopes(ast, root, parent, error_options) {
 		const scope = state.scope.child(true);
 		scopes.set(node, scope);
 
-		if (node.type === 'ForOfStatement') {
-			if (node.index) {
-				state.scope.declare(node.index, 'normal', 'let');
-			}
+		// Only a `@for` directive can declare an `index` binding.
+		if (node.type === 'JSXForExpression' && node.index) {
+			state.scope.declare(node.index, 'normal', 'let');
 		}
 
 		next({ scope });
