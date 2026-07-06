@@ -19,6 +19,14 @@ import {
 	simpleHash,
 	strongHash,
 } from '@tsrx/core';
+import {
+	get_template_expression,
+	is_droppable_template_text,
+	is_empty_expression_container,
+	is_template_expression,
+	is_template_text,
+	is_template_text_or_expression,
+} from './template-ast.js';
 const b = builders;
 
 // Re-export under the framework's snake_case internal convention.
@@ -194,14 +202,8 @@ export function is_native_tsrx_template_node(node) {
  * @returns {T}
  */
 export function normalize_jsx_tsrx_templates(node, options = {}) {
-	const previous_to_ts = normalize_output_to_ts;
-	normalize_output_to_ts = !!options.to_ts;
-	try {
-		wrap_directives_combined_into_expressions(/** @type {any} */ (node));
-		return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
-	} finally {
-		normalize_output_to_ts = previous_to_ts;
-	}
+	wrap_directives_combined_into_expressions(/** @type {any} */ (node));
+	return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
 }
 
 /**
@@ -875,11 +877,11 @@ function should_render_return_argument(argument) {
 /**
  * @param {AST.Expression} argument
  * @param {AST.ReturnStatement} statement
- * @returns {AST.TSRXExpression}
+ * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function create_return_argument_child(argument, statement) {
-	return /** @type {AST.TSRXExpression} */ ({
-		type: 'TSRXExpression',
+	return /** @type {ESTreeJSX.JSXExpressionContainer} */ ({
+		type: 'JSXExpressionContainer',
 		expression: argument,
 		metadata: {
 			path: statement.metadata?.path ?? [],
@@ -1961,6 +1963,7 @@ export function lower_dynamic_element(node, component_id) {
  * @returns {AST.Node[]}
  */
 export function normalize_children(children, context) {
+	const to_ts = !!context.state.to_ts;
 	/** @type {AST.Node[]} */
 	const normalized = [];
 
@@ -1973,34 +1976,42 @@ export function normalize_children(children, context) {
 		const prev_child = normalized[i - 1];
 
 		if (
-			(child.type === 'TSRXExpression' || child.type === 'Text') &&
-			(prev_child?.type === 'TSRXExpression' || prev_child?.type === 'Text')
+			is_template_text_or_expression(child) &&
+			prev_child != null &&
+			is_template_text_or_expression(prev_child)
 		) {
+			const child_expression = get_template_expression(/** @type {any} */ (child), to_ts);
+			const prev_expression = get_template_expression(/** @type {any} */ (prev_child), to_ts);
 			if (
-				(child.type === 'TSRXExpression' &&
-					is_children_template_expression(child.expression, context.state.scope)) ||
-				(prev_child.type === 'TSRXExpression' &&
-					is_children_template_expression(prev_child.expression, context.state.scope)) ||
-				expression_contains_call(child.expression) ||
-				expression_contains_call(prev_child.expression)
+				(is_template_expression(child) &&
+					is_children_template_expression(child_expression, context.state.scope)) ||
+				(is_template_expression(prev_child) &&
+					is_children_template_expression(prev_expression, context.state.scope)) ||
+				expression_contains_call(child_expression) ||
+				expression_contains_call(prev_expression)
 			) {
 				continue;
 			}
 
-			if (prev_child.type === 'Text' || child.type === 'Text') {
-				prev_child.type = 'Text';
-			}
-			if (child.expression.type === 'Literal' && prev_child.expression.type === 'Literal') {
-				prev_child.expression = b.literal(
-					prev_child.expression.value + String(child.expression.value),
-				);
-			} else {
-				prev_child.expression = b.binary(
-					'+',
-					prev_child.expression,
-					b.call('String', b.logical('??', child.expression, b.literal(''))),
-				);
-			}
+			const merged_expression =
+				child_expression.type === 'Literal' && prev_expression.type === 'Literal'
+					? b.literal(prev_expression.value + String(child_expression.value))
+					: b.binary(
+							'+',
+							prev_expression,
+							b.call('String', b.logical('??', child_expression, b.literal(''))),
+						);
+			const merged = b.jsx_expression_container(
+				merged_expression,
+				/** @type {AST.NodeWithLocation} */ (prev_child),
+			);
+			merged.metadata = {
+				...(prev_child.metadata ?? {}),
+				// A run containing any text renders through the text path
+				// (`_$_.text`/`set_text`) — the analogue of the old merged `Text` node.
+				tsrx_text: is_template_text(prev_child) || is_template_text(child),
+			};
+			normalized[i - 1] = merged;
 			normalized.splice(i, 1);
 		}
 	}
@@ -2241,6 +2252,13 @@ function is_template_fragment_binding(binding, scope, visited = new Set()) {
  */
 function normalize_child(node, normalized, context) {
 	if (node.type === 'EmptyStatement') {
+		return;
+	} else if (
+		// Insignificant whitespace text renders nothing, and a `{/* comment */}`
+		// container is a comment — both are dropped from the rendered children.
+		is_droppable_template_text(node, !!context.state.to_ts) ||
+		is_empty_expression_container(node)
+	) {
 		return;
 	} else if (
 		node.type === 'Element' &&
@@ -2628,56 +2646,6 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 }
 
 /**
- * @param {string} value
- * @returns {string}
- */
-function decode_jsx_text_entities(value) {
-	return value.replace(
-		/&(#x[0-9a-fA-F]+|#[0-9]+|amp|quot|apos|lt|gt);/g,
-		(/** @type {string} */ match, /** @type {string} */ entity) => {
-			if (entity === 'amp') return '&';
-			if (entity === 'quot') return '"';
-			if (entity === 'apos') return "'";
-			if (entity === 'lt') return '<';
-			if (entity === 'gt') return '>';
-			if (entity.startsWith('#x')) {
-				const code_point = Number.parseInt(entity.slice(2), 16);
-				return Number.isNaN(code_point) ? match : String.fromCodePoint(code_point);
-			}
-			if (entity.startsWith('#')) {
-				const code_point = Number.parseInt(entity.slice(1), 10);
-				return Number.isNaN(code_point) ? match : String.fromCodePoint(code_point);
-			}
-			return match;
-		},
-	);
-}
-
-/**
- * Whether normalization is producing the type-only (editor) view. In that mode text
- * is kept verbatim so it stays faithful to the source and its location; whitespace
- * collapse is a runtime-only concern (see {@link normalize_jsx_text_value}).
- * @type {boolean}
- */
-let normalize_output_to_ts = false;
-
-/**
- * @param {string} value
- * @returns {string}
- */
-function normalize_jsx_text_value(value) {
-	// The whitespace collapse is a runtime-only concern: Ripple lowers text to explicit
-	// `_$_.text(...)` calls, so insignificant JSX whitespace (newlines/indentation between
-	// elements) must be trimmed or it would render as literal text. The type-only view
-	// keeps the JSX shape — like the other targets — so it stays faithful to the source and
-	// its location. Trimming there would leave the node lying about its size (e.g. a lone
-	// `@` with a 1-char value but a multi-char location), producing a mismatched-length
-	// source mapping the editor can't use for completions.
-	const normalized = normalize_output_to_ts ? value : /[\r\n]/.test(value) ? value.trim() : value;
-	return decode_jsx_text_entities(normalized);
-}
-
-/**
  * @param {ESTreeJSX.JSXFragment} node
  * @param {AST.Node[]} [inherited_path]
  * @returns {AST.TsrxFragment}
@@ -2890,7 +2858,7 @@ function code_block_to_template_child(block, inherited_path) {
 			statement.metadata = { path: inherited_path };
 			return statement;
 		}
-		if (inner_child.type !== 'TSRXExpression') {
+		if (inner_child.type !== 'JSXExpressionContainer') {
 			// Unreachable by construction — the chain wrapper only ever holds
 			// a statement block or an expression child.
 			return inner_child;
@@ -2911,7 +2879,7 @@ function code_block_to_template_child(block, inherited_path) {
 			b.call(b.arrow([], b.block(scope_body, /** @type {AST.NodeWithLocation} */ (block))))
 		);
 		scope_call.metadata = { ...scope_call.metadata, tsrx_code_block_scope: true };
-		return b.tsrx_expression(scope_call, /** @type {AST.NodeWithLocation} */ (block));
+		return b.jsx_expression_container(scope_call, /** @type {AST.NodeWithLocation} */ (block));
 	}
 
 	if (render == null) {
@@ -2929,7 +2897,7 @@ function code_block_to_template_child(block, inherited_path) {
 		return render;
 	}
 
-	return b.tsrx_expression(
+	return b.jsx_expression_container(
 		wrap_code_block_in_iife(block),
 		/** @type {AST.NodeWithLocation} */ (block),
 	);
@@ -2981,10 +2949,8 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
 		return jsx_control_expression_to_statement(node, inherited_path);
 	}
 	if (node.type === 'JSXText') {
-		return jsx_to_ripple_node(node, inherited_path);
-	}
-	if (node.type === 'JSXExpressionContainer') {
-		return jsx_to_ripple_node(node, inherited_path);
+		// Consumed directly from the parser AST (see template-ast.js).
+		return node;
 	}
 	if (node.type === 'JSXCodeBlock') {
 		// Each `@{ … }` is its own lexical scope, so nested blocks never merge
@@ -3185,28 +3151,11 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		return jsx_style_to_ripple_element(node, inherited_path);
 	}
 
-	if (node.type === 'JSXText') {
-		const value = normalize_jsx_text_value(node.value);
-		// Runtime collapses insignificant newline whitespace to '' (dropped here) while
-		// keeping significant single spaces. to_ts keeps text verbatim, so a newline-only run
-		// stays non-empty and is preserved — matching the other targets' JSX view.
-		if (value === '') {
-			return null;
-		}
-		return /** @type {AST.Node} */ (
-			b.text(value, /** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)))
-		);
-	}
-
-	if (node.type === 'JSXExpressionContainer') {
-		if (node.expression.type === 'JSXEmptyExpression') return null;
-		return /** @type {AST.Node} */ ({
-			type: 'TSRXExpression',
-			expression: normalize_jsx_tsrx_node(node.expression, inherited_path),
-			metadata: {},
-			start: node.start,
-			end: node.end,
-		});
+	if (node.type === 'JSXText' || node.type === 'JSXExpressionContainer') {
+		// Consumed directly from the parser AST (see template-ast.js). Elements
+		// nested inside a container's expression still normalize via the
+		// recursive pass; this helper only sees already-normalized subtrees.
+		return node;
 	}
 
 	if (node.type === 'JSXFragment') {

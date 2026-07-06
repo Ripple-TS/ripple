@@ -76,6 +76,13 @@ import {
 	wrap_code_block_in_iife,
 	is_code_block_function_body,
 } from '../../utils.js';
+import {
+	get_template_text_value,
+	is_droppable_template_text,
+	is_empty_expression_container,
+	is_template_text,
+	rendered_template_children,
+} from '../../template-ast.js';
 
 /**
  * @param {unknown} value
@@ -739,8 +746,8 @@ function is_template_or_control_flow(node) {
 
 	return (
 		node.type === 'Element' ||
-		node.type === 'TSRXExpression' ||
-		node.type === 'Text' ||
+		node.type === 'JSXExpressionContainer' ||
+		node.type === 'JSXText' ||
 		node.type === 'TsrxFragment' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -753,9 +760,9 @@ function is_template_or_control_flow(node) {
  * Whether a `{ … }` expression child is lowered to `_$_.render_expression(…)`,
  * which (unlike `render_tsrx_element` or plain text output) brackets its output
  * in a `<!--[-->`…`<!--]-->` hydration boundary. Mirrors the routing in the
- * `TSRXExpression` server visitor. A `@{ … }` block in template position reaches
- * here as a `TSRXExpression` wrapping its IIFE call.
- * @param {AST.TSRXExpression} node
+ * `JSXExpressionContainer` server visitor. A `@{ … }` block in template position
+ * reaches here as a `JSXExpressionContainer` wrapping its IIFE call.
+ * @param {ESTreeJSX.JSXExpressionContainer} node
  * @param {TransformServerContext} context
  * @returns {boolean}
  */
@@ -802,13 +809,25 @@ function node_leads_with_control_flow(node, context) {
 		case 'TryStatement':
 			return node.metadata?.regular_js ? null : true;
 		case 'Element':
-		case 'Text':
 			return false;
-		case 'TSRXExpression':
-			return tsrx_expression_emits_marker(/** @type {AST.TSRXExpression} */ (node), context);
+		case 'JSXText':
+			// Insignificant whitespace renders nothing — keep scanning.
+			return is_droppable_template_text(node, false) ? null : false;
+		case 'JSXExpressionContainer':
+			// Comment containers render nothing; merged text runs render as text.
+			if (is_empty_expression_container(node)) {
+				return null;
+			}
+			if (is_template_text(node)) {
+				return false;
+			}
+			return tsrx_expression_emits_marker(
+				/** @type {ESTreeJSX.JSXExpressionContainer} */ (node),
+				context,
+			);
 		case 'TsrxFragment':
 			return fragment_leads_with_control_flow(
-				node.children.filter((c) => c != null && c.type !== 'EmptyStatement'),
+				rendered_template_children(node.children, false),
 				context,
 			);
 		case 'JSXCodeBlock':
@@ -2797,8 +2816,31 @@ const visitors = {
 		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
 	},
 
-	TSRXExpression(node, context) {
+	JSXExpressionContainer(node, context) {
 		const { visit, state } = context;
+
+		// A `{/* comment */}` container renders nothing.
+		if (is_empty_expression_container(node)) {
+			return;
+		}
+
+		// A merged text run (adjacent text/expression children collapsed by
+		// `normalize_children`) renders through the plain text path.
+		if (is_template_text(node)) {
+			const expression = /** @type {AST.Expression} */ (visit(node.expression, state));
+
+			if (expression.type === 'Literal') {
+				state.init?.push(
+					b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
+				);
+			} else {
+				state.init?.push(
+					b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))),
+				);
+			}
+			return;
+		}
+
 		const is_static_native_tsrx_call = is_static_native_tsrx_function_call(
 			/** @type {AST.Expression} */ (node.expression),
 			context,
@@ -2836,16 +2878,15 @@ const visitors = {
 		}
 	},
 
-	Text(node, { visit, state }) {
-		let expression = /** @type {AST.Expression} */ (visit(node.expression, state));
+	JSXText(node, { state }) {
+		const value = get_template_text_value(node, false);
 
-		if (expression.type === 'Literal') {
-			state.init?.push(
-				b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
-			);
-		} else {
-			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));
+		// Insignificant whitespace collapses to nothing.
+		if (value === '') {
+			return;
 		}
+
+		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(value)))));
 	},
 
 	TsrxFragment(node, context) {

@@ -75,9 +75,9 @@ describe('compiler > basics', () => {
 		const text_expression = elements[1].children[0] as AST.Node & { expression: AST.Expression };
 
 		expect(elements).toHaveLength(2);
-		expect(expression.type).toBe('TSRXExpression');
+		expect(expression.type).toBe('JSXExpressionContainer');
 		expect((expression.expression as AST.Identifier).name).toBe('markup');
-		expect(text_expression.type).toBe('TSRXExpression');
+		expect(text_expression.type).toBe('JSXExpressionContainer');
 		expect((text_expression.expression as AST.Identifier).name).toBe('text');
 
 		const { code } = compile(source, 'text-directive.tsrx', { mode: 'client' });
@@ -197,7 +197,7 @@ export function App() @{
 		const fragment = get_returned_tsrx(declaration) as any;
 
 		expect(fragment.type).toBe('TsrxFragment');
-		expect(fragment.children[0].type).toBe('TSRXExpression');
+		expect(fragment.children[0].type).toBe('JSXExpressionContainer');
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toBe('333');
 	});
@@ -217,7 +217,7 @@ export function App() @{
 
 		expect(fragment.type).toBe('TsrxFragment');
 		expect(fragment.children.map((child: any) => child.type)).toEqual([
-			'TSRXExpression',
+			'JSXExpressionContainer',
 		]);
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toContain('<b></b>');
@@ -1234,9 +1234,9 @@ export function App() @{
 					: returned.children.find((n: AST.Node) => n.type === 'Element') as AST.Element;
 			expect((ul.id as AST.Identifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
-			const text = ul.children[0] as unknown as { type: string; expression: AST.Literal };
-			expect(text.type).toBe('Text');
-			expect(text.expression.value).toBe('var a = "123"');
+			const text = ul.children[0] as unknown as { type: string; value: string };
+			expect(text.type).toBe('JSXText');
+			expect(text.value).toBe('var a = "123"');
 			expect((ul.closingElement?.name as ESTreeJSX.JSXIdentifier)?.name).toBe('ul');
 		},
 	);

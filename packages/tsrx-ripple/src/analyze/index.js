@@ -62,6 +62,13 @@ import {
 	is_native_tsrx_function_node,
 	is_tsrx_component_function,
 } from '../utils.js';
+import {
+	get_template_expression,
+	is_droppable_template_text,
+	is_empty_expression_container,
+	is_template_text_or_expression,
+	rendered_template_children,
+} from '../template-ast.js';
 import is_reference from 'is-reference';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
@@ -2459,7 +2466,7 @@ const visitors = {
 					// TODO: could transform attributes as something, e.g. Text Node, and avoid a fatal error
 					error('<head> cannot have any attributes', state.analysis.module.filename, node);
 				}
-				if (node.children.length === 0) {
+				if (rendered_template_children(node.children, !!state.to_ts).length === 0) {
 					// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 					error('<head> must have children', state.analysis.module.filename, node);
 				}
@@ -2474,10 +2481,7 @@ const visitors = {
 				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
-					if (
-						children.length !== 1 ||
-						(children[0].type !== 'TSRXExpression' && children[0].type !== 'Text')
-					) {
+					if (children.length !== 1 || !is_template_text_or_expression(children[0])) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
 							'<title> must have only contain text nodes',
@@ -2594,7 +2598,7 @@ const visitors = {
 				}
 			}
 
-			if (is_void && node.children.length > 0) {
+			if (is_void && rendered_template_children(node.children, !!state.to_ts).length > 0) {
 				error(
 					`The <${/** @type {AST.Identifier} */ (node.id).name}> element is a void element and cannot have children`,
 					state.analysis.module.filename,
@@ -2670,9 +2674,15 @@ const visitors = {
 			for (const child of node.children) {
 				if (is_native_tsrx_function_node(child)) {
 					visit(child, state);
-				} else if (child.type !== 'EmptyStatement') {
+				} else if (
+					child.type !== 'EmptyStatement' &&
+					!is_droppable_template_text(child, !!state.to_ts) &&
+					!is_empty_expression_container(child)
+				) {
 					implicit_children.push(
-						child.type === 'TSRXExpression' || child.type === 'Text' ? child.expression : child,
+						is_template_text_or_expression(child)
+							? get_template_expression(child, !!state.to_ts)
+							: child,
 					);
 				}
 			}
@@ -2700,31 +2710,29 @@ const visitors = {
 		};
 	},
 
-	TSRXExpression(node, context) {
+	JSXExpressionContainer(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}
 
-		mark_control_flow_has_template(context.path, node);
+		// A `{/* comment */}` container renders nothing — it must not mark the
+		// surrounding control flow as templated.
+		if (!is_empty_expression_container(node)) {
+			mark_control_flow_has_template(context.path, node);
+		}
 
 		context.next();
 	},
 
-	Text(node, context) {
+	JSXText(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}
 
-		mark_control_flow_has_template(context.path, node);
-
-		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
-			error(
-				'`children` cannot be rendered using explicit text interpolation. Use `{children}` or `{props.children}` instead.',
-				context.state.analysis.module.filename,
-				node.expression,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
+		// Insignificant whitespace collapses to nothing at runtime — it must not
+		// mark the surrounding control flow as templated.
+		if (!is_droppable_template_text(node, !!context.state.to_ts)) {
+			mark_control_flow_has_template(context.path, node);
 		}
 
 		context.next();

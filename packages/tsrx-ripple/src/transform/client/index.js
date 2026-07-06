@@ -106,6 +106,14 @@ import {
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
 } from '../../utils.js';
+import {
+	get_template_expression,
+	get_template_text_value,
+	is_empty_expression_container,
+	is_template_expression,
+	is_template_text,
+	is_template_text_or_expression,
+} from '../../template-ast.js';
 import is_reference from 'is-reference';
 
 /**
@@ -1129,12 +1137,14 @@ function apply_updates(init, update, state) {
  */
 function visit_title_element(node, context) {
 	const normalized = normalize_children(node.children, context);
-	const content = normalized[0];
+	const content = /** @type {any} */ (normalized[0]);
 
 	const metadata = { tracking: false };
-	const visited = context.visit(content, { ...context.state, metadata });
 	const result = /** @type {AST.Expression} */ (
-		/** @type {{expression?: AST.Expression}} */ (visited).expression
+		context.visit(get_template_expression(content, !!context.state.to_ts), {
+			...context.state,
+			metadata,
+		})
 	);
 
 	if (metadata.tracking) {
@@ -2613,7 +2623,9 @@ const visitors = {
 							child.type === 'TsrxFragment' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							((child.type === 'TSRXExpression' || child.type === 'Text') &&
+							// A JSXText child is always a literal; only a `{ … }` container
+							// (including a merged text run) can hold a dynamic expression.
+							(child.type === 'JSXExpressionContainer' &&
 								child.expression.type !== 'Literal'),
 					);
 
@@ -3871,13 +3883,16 @@ function transform_tsrx_tsx_child(node, context) {
 		return null;
 	}
 
-	if (node.type === 'Text') {
-		const expression = /** @type {AST.Literal} */ (node.expression);
-		const value = String(expression.value ?? '');
+	if (node.type === 'JSXText') {
+		const value = get_template_text_value(node, true);
 		return setLocation(b.jsx_text(value, value), /** @type {AST.NodeWithLocation} */ (node));
 	}
 
-	if (node.type === 'TSRXExpression') {
+	if (node.type === 'JSXExpressionContainer') {
+		// A `{/* comment */}` container renders nothing.
+		if (is_empty_expression_container(node)) {
+			return null;
+		}
 		// An EMPTY fragment that is the container's expression (`<b>{<></>}</b>`) must
 		// stay `<></>`: the `{}` already supplies the wrapper, so the default
 		// `in_jsx_child = false` lowering to a bare `null` drops the source fragment.
@@ -3891,7 +3906,7 @@ function transform_tsrx_tsx_child(node, context) {
 				(/** @type {any} */ child) =>
 					child &&
 					child.type !== 'EmptyStatement' &&
-					(child.type !== 'Text' || String(child.expression?.value ?? '') !== ''),
+					(child.type !== 'JSXText' || get_template_text_value(child, true) !== ''),
 			);
 		const expression = is_empty_fragment
 			? build_tsrx_to_ts_expression(/** @type {AST.TsrxFragment} */ (expr), context, true)
@@ -4482,8 +4497,17 @@ function build_tsrx_ts_directive_value(node, context) {
 function transform_ts_child(node, context) {
 	const { state, visit } = context;
 
-	if (node.type === 'TSRXExpression' || node.type === 'Text') {
-		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
+	if (is_template_text_or_expression(node)) {
+		if (is_empty_expression_container(node)) {
+			return;
+		}
+		state.init?.push(
+			b.stmt(
+				/** @type {AST.Expression} */ (
+					visit(get_template_expression(/** @type {any} */ (node), true), { ...state })
+				),
+			),
+		);
 	} else if (node.type === 'Element') {
 		if (lower_dynamic_element(node)) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
@@ -4907,8 +4931,8 @@ function is_template_or_control_flow(node) {
 
 	return (
 		node.type === 'Element' ||
-		node.type === 'TSRXExpression' ||
-		node.type === 'Text' ||
+		node.type === 'JSXExpressionContainer' ||
+		node.type === 'JSXText' ||
 		node.type === 'TsrxFragment' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -5117,10 +5141,7 @@ function element_has_dynamic_content(element) {
 		) {
 			return true;
 		}
-		if (
-			(child.type === 'TSRXExpression' || child.type === 'Text') &&
-			child.expression.type !== 'Literal'
-		) {
+		if (child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal') {
 			return true;
 		}
 		// Non-DOM element (component)
@@ -5234,7 +5255,7 @@ function transform_children(children, context) {
 		).length === 1 &&
 			normalized.some(
 				(node) =>
-					node.type === 'TSRXExpression' &&
+					is_template_expression(node) &&
 					is_children_template_expression(node.expression, state.scope),
 			)) ||
 		// At root level, non-literal expressions need a fragment template so the
@@ -5242,9 +5263,7 @@ function transform_children(children, context) {
 		// is a no-op when the value is a TSRXElement.
 		(root &&
 			normalized.some(
-				(node) =>
-					node.type === 'TSRXExpression' &&
-					/** @type {AST.TSRXExpression} */ (node).expression.type !== 'Literal',
+				(node) => is_template_expression(node) && node.expression.type !== 'Literal',
 			)) ||
 		normalized.filter(
 			(node) =>
@@ -5318,10 +5337,10 @@ function transform_children(children, context) {
 		return b.id(
 			node.type == 'Element' && is_element_dom_element(node)
 				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
-				: node.type == 'TSRXExpression'
-					? state.scope.generate('expression')
-					: node.type == 'Text'
-						? state.scope.generate('text')
+				: is_template_text(node)
+					? state.scope.generate('text')
+					: is_template_expression(node)
+						? state.scope.generate('expression')
 						: state.scope.generate('node'),
 			/** @type {AST.NodeWithLocation} */ (node.type === 'Element' ? node.openingElement : node),
 		);
@@ -5397,10 +5416,14 @@ function transform_children(children, context) {
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
 			let is_create_text_only = false;
-			if (node.type === 'TSRXExpression' || node.type === 'Text') {
+			if (is_template_text_or_expression(node)) {
 				metadata = { tracking: false };
 				expression = /** @type {AST.Expression} */ (
-					visit(node.expression, { ...state, flush_node: null, metadata })
+					visit(get_template_expression(/** @type {any} */ (node), false), {
+						...state,
+						flush_node: null,
+						metadata,
+					})
 				);
 				is_create_text_only = normalized.length === 1 && expression.type === 'Literal';
 			}
@@ -5554,7 +5577,7 @@ function transform_children(children, context) {
 							child.type === 'TsrxFragment' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							((child.type === 'TSRXExpression' || child.type === 'Text') &&
+							(child.type === 'JSXExpressionContainer' &&
 								child.expression.type !== 'Literal'),
 					);
 
@@ -5585,7 +5608,7 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-			} else if (node.type === 'TSRXExpression') {
+			} else if (is_template_expression(node)) {
 				const expr = /** @type {AST.Expression} */ (expression);
 				const is_static_native_tsrx_call = is_static_native_tsrx_function_call(
 					/** @type {AST.Expression} */ (node.expression),
@@ -5648,8 +5671,11 @@ function transform_children(children, context) {
 							: b.stmt(call),
 					);
 				}
-			} else if (node.type === 'Text') {
-				render_text_expression(node.expression, /** @type {AST.Expression} */ (expression));
+			} else if (is_template_text(node)) {
+				render_text_expression(
+					get_template_expression(/** @type {any} */ (node), false),
+					/** @type {AST.Expression} */ (expression),
+				);
 			} else if (node.type === 'ForOfStatement') {
 				skipped = 0;
 				node.is_controlled = is_controlled;
