@@ -74,6 +74,9 @@ import {
 	strip_tsrx_style_elements,
 	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
+	get_code_block_render,
+	get_code_block_template_child,
+	lower_code_block_children,
 	is_code_block_function_body,
 } from '../../utils.js';
 import {
@@ -758,10 +761,15 @@ function node_leads_with_control_flow(node, context) {
 				rendered_template_children(/** @type {AST.Node[]} */ (node.children), false),
 				context,
 			);
-		case 'JSXCodeBlock':
-			// A `@{ … }` block renders only its `render` output (the body is setup);
-			// a code-only block (no render) contributes no DOM.
-			return node.render != null ? node_leads_with_control_flow(node.render, context) : null;
+		case 'JSXCodeBlock': {
+			// A `@{ … }` block renders only what its lowered template form emits
+			// (the body is setup); a code-only block contributes no DOM.
+			const child = get_code_block_template_child(
+				/** @type {AST.JSXCodeBlock} */ (node),
+				context.state.scopes,
+			);
+			return child != null && child !== node ? node_leads_with_control_flow(child, context) : null;
+		}
 		default:
 			// Non-renderable setup statement — keep scanning for the first node.
 			return null;
@@ -1217,10 +1225,13 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 			/** @type {unknown} */ (node.argument)
 		);
 	}
-	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
-		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
-			/** @type {unknown} */ (node.render)
-		);
+	if (node.type === 'JSXCodeBlock') {
+		const render = get_code_block_render(node);
+		if (is_native_tsrx_template_node(render)) {
+			return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
+				/** @type {unknown} */ (render)
+			);
+		}
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -1856,7 +1867,7 @@ const visitors = {
 		// `transform_native_tsrx_function`. Everywhere else, lower it to a plain
 		// BlockStatement so the JS printer (which has no JSXCodeBlock visitor) can
 		// emit it.
-		if (node.render != null) {
+		if (get_code_block_render(node, context.state.scopes) != null) {
 			return context.next();
 		}
 		/** @type {AST.Statement[]} */
@@ -2624,13 +2635,17 @@ const visitors = {
 				}
 			}
 
-			for (const child of node.children) {
+			const element_children = lower_code_block_children(
+				/** @type {AST.Node[]} */ (node.children),
+				context.state.scopes,
+			);
+			for (const child of element_children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				}
 			}
 
-			const children_filtered = node.children.filter(
+			const children_filtered = element_children.filter(
 				(/** @type {any} */ child) =>
 					child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);

@@ -466,18 +466,37 @@ export function is_expression_attribute(attr) {
 }
 
 /**
+ * Whether a `@{ … }` code block lowers to anything at all — setup statements
+ * or (possibly chained) render output. An empty-all-the-way-down block lowers
+ * to nothing and renders nothing.
+ * @param {AST.JSXCodeBlock} block
+ * @returns {boolean}
+ */
+export function code_block_renders_or_runs(block) {
+	if ((block.body || []).some((statement) => statement.type !== 'EmptyStatement')) {
+		return true;
+	}
+	const render = block.render;
+	if (render == null) return false;
+	return render.type !== 'JSXCodeBlock'
+		? true
+		: code_block_renders_or_runs(/** @type {AST.JSXCodeBlock} */ (render));
+}
+
+/**
  * The children that actually render: everything except empty statements,
- * insignificant whitespace text, and `{/* comment *​/}` containers.
+ * insignificant whitespace text, `{/* comment *​/}` containers, and `@{ … }`
+ * blocks that lower to nothing.
  * @param {AST.Node[]} children
  * @param {boolean} to_ts
  * @returns {AST.Node[]}
  */
 export function rendered_template_children(children, to_ts) {
-	return children.filter(
-		(child) =>
-			child != null &&
-			child.type !== 'EmptyStatement' &&
-			!is_droppable_template_text(child, to_ts) &&
-			!is_empty_expression_container(child),
-	);
+	return children.filter((child) => {
+		if (child == null || child.type === 'EmptyStatement') return false;
+		if (child.type === 'JSXCodeBlock') {
+			return code_block_renders_or_runs(/** @type {AST.JSXCodeBlock} */ (child));
+		}
+		return !is_droppable_template_text(child, to_ts) && !is_empty_expression_container(child);
+	});
 }

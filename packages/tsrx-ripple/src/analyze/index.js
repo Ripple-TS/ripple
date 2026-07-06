@@ -61,7 +61,8 @@ import {
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
-	lower_template_code_blocks,
+	get_code_block_template_child,
+	is_template_child_position,
 	prepare_template_control_flow,
 	is_tsrx_component_function,
 } from '../utils.js';
@@ -2661,6 +2662,27 @@ const visitors = {
 		context.next();
 	},
 
+	JSXCodeBlock(node, context) {
+		const parent = context.path.at(-1);
+
+		// A `@{ … }` in a template-children slot, or the render slot of another
+		// code block (an `@{ @{ … } }` chain), analyzes as its lowered template
+		// form — the same memoized node the transforms will consume, so scope
+		// bindings and component analysis attach to what actually renders.
+		if (
+			is_template_child_position(context.path, node) ||
+			(parent?.type === 'JSXCodeBlock' && /** @type {any} */ (parent).render === node)
+		) {
+			const child = get_code_block_template_child(node, context.state.scopes);
+			if (child != null && child !== node) {
+				context.visit(child);
+			}
+			return;
+		}
+
+		context.next();
+	},
+
 	AwaitExpression(node, context) {
 		const parent_block = get_parent_block_node(context);
 
@@ -2740,12 +2762,13 @@ export function analyze(ast, filename, options = {}) {
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
 
-	// Template pre-passes: wrap value-position directives and lower `@{ … }`
-	// template children. Scope creation needs the lowered shapes (the
-	// code-block IIFEs carry bindings), so this must precede createScopes. The
-	// passes are copy-on-write — the caller's parse tree is left pristine and
-	// everything downstream works on the rebuilt tree.
-	ast = lower_template_code_blocks(prepare_template_control_flow(ast));
+	// Template pre-pass: wrap value-position directives in a render fragment.
+	// The pass is copy-on-write — the caller's parse tree is left pristine and
+	// everything downstream works on the rebuilt tree. (`@{ … }` template
+	// children need no pre-pass: they are lowered lazily, at their points of
+	// use, via the memoized get_code_block_template_child/get_code_block_render
+	// accessors.)
+	ast = prepare_template_control_flow(ast);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,

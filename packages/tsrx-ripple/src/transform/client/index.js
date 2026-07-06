@@ -106,6 +106,9 @@ import {
 	rewrite_lazy_member_base,
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
+	get_code_block_render,
+	get_code_block_template_child,
+	lower_code_block_children,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -747,10 +750,13 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 			/** @type {unknown} */ (node.argument)
 		);
 	}
-	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
-		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
-			/** @type {unknown} */ (node.render)
-		);
+	if (node.type === 'JSXCodeBlock') {
+		const render = get_code_block_render(node);
+		if (is_native_tsrx_template_node(render)) {
+			return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
+				/** @type {unknown} */ (render)
+			);
+		}
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -2443,18 +2449,19 @@ const visitors = {
 					body,
 				);
 			}
+			const render = get_code_block_render(node, context.state.scopes);
 			return {
 				...node,
 				body,
-				render: node.render
+				render: render
 					? transform_tsrx_ts_render_node(
-							/** @type {AST.Node} */ (node.render),
+							/** @type {AST.Node} */ (render),
 							/** @type {VisitorClientContext} */ (context),
 						)
 					: null,
 			};
 		}
-		if (node.render != null) {
+		if (get_code_block_render(node, context.state.scopes) != null) {
 			return context.next();
 		}
 		const body = node.body.map(
@@ -2499,7 +2506,10 @@ const visitors = {
 				: expression;
 		}
 
-		const children_filtered = /** @type {AST.Node[]} */ (node.children).filter((child) => {
+		const children_filtered = lower_code_block_children(
+			/** @type {AST.Node[]} */ (node.children),
+			state.scopes,
+		).filter((child) => {
 			return child != null && child.type !== 'EmptyStatement';
 		});
 
@@ -3061,7 +3071,9 @@ const visitors = {
 			if (!is_void) {
 				const element_name = /** @type {AST.Identifier} */ (element_id).name;
 				const render_children = /** @type {AST.Node[]} */ (
-					inner_html_attribute === null ? node.children : []
+					inner_html_attribute === null
+						? lower_code_block_children(node.children, state.scopes)
+						: []
 				);
 				// Special handling for <template> elements
 				if (element_name === 'template' && render_children.length > 0) {
@@ -3250,13 +3262,17 @@ const visitors = {
 				}
 			}
 
-			for (const child of /** @type {AST.Node[]} */ (node.children)) {
+			const element_children = lower_code_block_children(
+				/** @type {AST.Node[]} */ (node.children),
+				state.scopes,
+			);
+			for (const child of element_children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				}
 			}
 
-			const children_filtered = /** @type {AST.Node[]} */ (node.children).filter(
+			const children_filtered = element_children.filter(
 				(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);
 
@@ -3818,7 +3834,7 @@ function transform_tsrx_ts_children(children, context) {
 	const init = [];
 	const ts_state = { ...state, init };
 
-	for (const child of children) {
+	for (const child of lower_code_block_children(children, state.scopes)) {
 		if (child == null || child.type === 'EmptyStatement') continue;
 		// Spread `context` (not just `visit`/`state`) so flags like `value_position`
 		// reach nested fragment/element children — see transform_tsrx_tsx_child.
@@ -3917,7 +3933,7 @@ function transform_tsrx_tsx_children(children, context) {
 		pending_statement_children = [];
 	};
 
-	for (const child of children) {
+	for (const child of lower_code_block_children(children, context.state.scopes)) {
 		const transformed = transform_tsrx_tsx_child(child, context);
 		if (transformed === undefined) {
 			pending_statement_children.push(child);
@@ -4058,7 +4074,7 @@ function transform_tsrx_ts_render_children(children, context) {
 	/** @type {AST.Statement[]} */
 	const body = [];
 
-	for (const child of children) {
+	for (const child of lower_code_block_children(children, context.state.scopes)) {
 		if (child == null || child.type === 'EmptyStatement') continue;
 
 		if (is_template_or_control_flow(child)) {
@@ -4365,7 +4381,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		const setup = [];
 		/** @type {any[]} */
 		const renders = [];
-		for (const stmt of body) {
+		for (const stmt of lower_code_block_children(body, context.state.scopes)) {
 			if (stmt == null || stmt.type === 'EmptyStatement') continue;
 			if (is_template_directive(stmt)) {
 				// A nested directive is render content here — lower it to its own value.
@@ -5246,7 +5262,7 @@ function element_has_dynamic_content(element) {
 	}
 
 	// Check children for dynamic content
-	for (const child of /** @type {AST.Node[]} */ (element.children)) {
+	for (const child of lower_code_block_children(/** @type {AST.Node[]} */ (element.children))) {
 		if (
 			is_template_directive(child) ||
 			child.type === 'IfStatement' ||
