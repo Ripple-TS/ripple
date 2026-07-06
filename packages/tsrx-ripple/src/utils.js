@@ -196,18 +196,100 @@ export function is_native_tsrx_template_node(node) {
 }
 
 /**
- * Normalize native JSX-shaped TSRX parser nodes into Ripple's current internal
- * template node shape. Ripple's renderer still consumes Element/TsrxFragment,
- * while the shared parser now emits JSXElement/JSXFragment plus custom JSX
- * control-flow expressions.
- * @template T
- * @param {T} node
- * @param {{ to_ts?: boolean }} [options]
- * @returns {T}
+ * Pre-pass: make template control flow consumable by the analyzer and
+ * transforms. Wraps `@if`/`@for`/`@switch`/`@try` directives used in value
+ * positions in a `<> … </>` fragment, then retypes every expression-position
+ * `JSX…Expression` directive into its standard ESTree statement form tagged
+ * with `metadata.tsrxDirective`.
+ * @param {AST.Node} ast
+ * @returns {void}
  */
-export function normalize_jsx_tsrx_templates(node, options = {}) {
-	wrap_directives_combined_into_expressions(/** @type {any} */ (node));
-	return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
+export function prepare_template_control_flow(ast) {
+	wrap_directives_combined_into_expressions(/** @type {any} */ (ast));
+	retype_directive_expressions(/** @type {any} */ (ast));
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function retype_directive_expression(node) {
+	const statement = /** @type {any} */ ({ ...node, type: node.statementType });
+	delete statement.statementType;
+	const directive =
+		node.type === 'JSXIfExpression'
+			? 'if'
+			: node.type === 'JSXForExpression'
+				? 'for'
+				: node.type === 'JSXSwitchExpression'
+					? 'switch'
+					: 'try';
+	statement.metadata = {
+		...(statement.metadata ?? {}),
+		tsrxDirective: directive,
+		// Marks a RETYPED directive: its branch bodies are template children
+		// (lowered by `lower_template_code_blocks`), unlike a plain `@else if`
+		// IfStatement that only carries `tsrxDirective` for the transforms.
+		tsrx_template_directive: true,
+	};
+	// `@else if` parses as a plain IfStatement in the alternate — tag it so the
+	// transforms lower it as template control flow (one level, matching the old
+	// normalizer).
+	if (directive === 'if' && statement.alternate?.type === 'IfStatement') {
+		statement.alternate.metadata = {
+			...(statement.alternate.metadata ?? {}),
+			tsrxDirective: 'if',
+		};
+	}
+	return statement;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_directive_expression(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'JSXSwitchExpression' ||
+		node?.type === 'JSXTryExpression'
+	);
+}
+
+/**
+ * @param {any} ast
+ * @returns {void}
+ */
+function retype_directive_expressions(ast) {
+	const seen = new Set();
+	/** @param {any} node */
+	const visit = (node) => {
+		if (!node || typeof node !== 'object' || seen.has(node)) return;
+		seen.add(node);
+		if (Array.isArray(node)) {
+			for (const item of node) visit(item);
+			return;
+		}
+		for (const key of Object.keys(node)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+			const value = node[key];
+			if (Array.isArray(value)) {
+				for (let i = 0; i < value.length; i++) {
+					if (is_directive_expression(value[i])) {
+						value[i] = retype_directive_expression(value[i]);
+					}
+					visit(value[i]);
+				}
+			} else if (is_directive_expression(value)) {
+				node[key] = retype_directive_expression(value);
+				visit(node[key]);
+			} else {
+				visit(value);
+			}
+		}
+	};
+	visit(ast);
 }
 
 /**
@@ -2621,132 +2703,190 @@ export function strip_class_typescript_syntax(node, context) {
 }
 
 /**
- * Fragments stay raw `JSXFragment` nodes; normalization only lowers their
- * template children (code blocks, nested elements) in place.
- * @param {ESTreeJSX.JSXFragment} node
- * @param {AST.Node[]} [inherited_path]
- * @returns {ESTreeJSX.JSXFragment}
+ * Lower the `@{ … }` code blocks that appear as template children throughout
+ * the AST: element/fragment children lists and the branch bodies of retyped
+ * template directives. Statement-position code blocks (function bodies,
+ * code-block bodies) are left alone — they stay lexical blocks and are lowered
+ * by the transforms. Also drops `EmptyStatement` separators from the lists it
+ * touches, matching the old normalizer.
+ * @param {AST.Node} ast
+ * @returns {void}
  */
-function jsx_to_ripple_fragment(node, inherited_path = []) {
-	node.children = /** @type {any} */ (
-		normalize_jsx_tsrx_template_children(node.children || [], inherited_path)
-	);
-	// Marking `native_tsrx` pulls raw JSX fragments (attribute values entering
-	// `build_jsx_to_tsrx_element`) into the template paths; authored template
-	// fragments already carry the flag from the parser.
-	node.metadata = { ...(node.metadata ?? {}), native_tsrx: true, path: inherited_path };
-	return node;
-}
-
-/**
- * @param {any} node
- * @param {AST.Node[]} [inherited_path]
- * @returns {any}
- */
-function jsx_control_expression_to_statement(node, inherited_path = []) {
-	const statement = /** @type {any} */ ({ ...node, type: node.statementType });
-	delete statement.statementType;
-	const directive =
-		node.type === 'JSXIfExpression'
-			? 'if'
-			: node.type === 'JSXForExpression'
-				? 'for'
-				: node.type === 'JSXSwitchExpression'
-					? 'switch'
-					: node.type === 'JSXTryExpression'
-						? 'try'
-						: null;
-	statement.metadata = { ...(statement.metadata ?? {}), path: inherited_path };
-	if (directive) {
-		statement.metadata.tsrxDirective = directive;
-	}
-
-	if (statement.consequent?.type === 'BlockStatement') {
-		statement.consequent.body = normalize_jsx_tsrx_template_children(
-			statement.consequent.body || [],
-			[...inherited_path, statement],
-		);
-	} else if (statement.consequent) {
-		statement.consequent = normalize_jsx_tsrx_node(statement.consequent, [
-			...inherited_path,
-			statement,
-		]);
-	}
-	if (statement.alternate?.type === 'BlockStatement') {
-		statement.alternate.body = normalize_jsx_tsrx_template_children(
-			statement.alternate.body || [],
-			[...inherited_path, statement],
-		);
-	} else if (statement.alternate) {
-		statement.alternate = normalize_jsx_tsrx_node(statement.alternate, [
-			...inherited_path,
-			statement,
-		]);
-		if (directive === 'if' && statement.alternate?.type === 'IfStatement') {
-			statement.alternate.metadata = {
-				...(statement.alternate.metadata ?? {}),
-				tsrxDirective: 'if',
-			};
-		}
-	}
-	if (statement.body?.type === 'BlockStatement') {
-		statement.body.body = normalize_jsx_tsrx_template_children(statement.body.body || [], [
-			...inherited_path,
-			statement,
-		]);
-	}
-	if (statement.empty?.type === 'BlockStatement') {
-		statement.empty.body = normalize_jsx_tsrx_template_children(statement.empty.body || [], [
-			...inherited_path,
-			statement,
-		]);
-	}
-	if (statement.block?.type === 'BlockStatement') {
-		statement.block.body = normalize_jsx_tsrx_template_children(statement.block.body || [], [
-			...inherited_path,
-			statement,
-		]);
-	}
-	if (statement.pending?.type === 'BlockStatement') {
-		statement.pending.body = normalize_jsx_tsrx_template_children(statement.pending.body || [], [
-			...inherited_path,
-			statement,
-		]);
-	}
-	if (statement.handler?.body?.type === 'BlockStatement') {
-		statement.handler.body.body = normalize_jsx_tsrx_template_children(
-			statement.handler.body.body || [],
-			[...inherited_path, statement],
-		);
-	}
-	if (statement.finalizer?.type === 'BlockStatement') {
-		statement.finalizer.body = normalize_jsx_tsrx_template_children(
-			statement.finalizer.body || [],
-			[...inherited_path, statement],
-		);
-	}
-	if (Array.isArray(statement.cases)) {
-		for (const switch_case of statement.cases) {
-			switch_case.consequent = normalize_jsx_tsrx_template_children(switch_case.consequent || [], [
-				...inherited_path,
-				statement,
-			]);
-		}
-	}
-
-	return statement;
+export function lower_template_code_blocks(ast) {
+	lower_node(/** @type {any} */ (ast), []);
 }
 
 /**
  * @param {any[]} children
- * @param {AST.Node[]} [inherited_path]
- * @returns {AST.Node[]}
+ * @param {AST.Node[]} inherited_path
+ * @returns {any[]}
  */
-function normalize_jsx_tsrx_children(children, inherited_path = []) {
+function lower_template_children(children, inherited_path = []) {
 	return children
-		.map((/** @type {any} */ child) => normalize_jsx_tsrx_node(child, inherited_path))
-		.flat()
+		.map((/** @type {any} */ child) => {
+			lower_node(child, inherited_path);
+			return child?.type === 'JSXCodeBlock'
+				? code_block_to_template_child(child, inherited_path)
+				: child;
+		})
 		.filter((/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement');
+}
+
+/**
+ * @param {any[]} statements
+ * @param {AST.Node[]} inherited_path
+ * @returns {any[]}
+ */
+function lower_statement_children(statements, inherited_path) {
+	for (const statement of statements) {
+		lower_node(statement, inherited_path);
+	}
+	return statements.filter(
+		(/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement',
+	);
+}
+
+/**
+ * @param {any} statement — a retyped template directive
+ * @param {AST.Node[]} inherited_path
+ * @returns {void}
+ */
+function lower_directive_template_slots(statement, inherited_path) {
+	const path = [...inherited_path, statement];
+	if (statement.consequent?.type === 'BlockStatement') {
+		statement.consequent.body = lower_template_children(statement.consequent.body || [], path);
+	} else if (statement.consequent) {
+		lower_node(statement.consequent, path);
+	}
+	if (statement.alternate?.type === 'BlockStatement') {
+		statement.alternate.body = lower_template_children(statement.alternate.body || [], path);
+	} else if (statement.alternate) {
+		lower_node(statement.alternate, path);
+	}
+	if (statement.body?.type === 'BlockStatement') {
+		statement.body.body = lower_template_children(statement.body.body || [], path);
+	}
+	if (statement.empty?.type === 'BlockStatement') {
+		statement.empty.body = lower_template_children(statement.empty.body || [], path);
+	}
+	if (statement.block?.type === 'BlockStatement') {
+		statement.block.body = lower_template_children(statement.block.body || [], path);
+	}
+	if (statement.pending?.type === 'BlockStatement') {
+		statement.pending.body = lower_template_children(statement.pending.body || [], path);
+	}
+	if (statement.handler?.body?.type === 'BlockStatement') {
+		statement.handler.body.body = lower_template_children(statement.handler.body.body || [], path);
+	}
+	if (statement.finalizer?.type === 'BlockStatement') {
+		statement.finalizer.body = lower_template_children(statement.finalizer.body || [], path);
+	}
+	if (Array.isArray(statement.cases)) {
+		for (const switch_case of statement.cases) {
+			switch_case.consequent = lower_template_children(switch_case.consequent || [], path);
+		}
+	}
+	// Test/discriminant/iterable expressions are not template slots — raw JSX
+	// there lowers through the transforms' value paths — but they may still
+	// contain nested templates, so keep walking them.
+	if (statement.test) lower_node(statement.test, path);
+	if (statement.discriminant) lower_node(statement.discriminant, path);
+	if (statement.right) lower_node(statement.right, path);
+}
+
+/**
+ * The recursive worker for {@link lower_template_code_blocks}: dispatches on
+ * the node shapes that own template-children lists and walks everything else
+ * generically.
+ * @param {any} node
+ * @param {AST.Node[]} inherited_path
+ * @returns {void}
+ */
+function lower_node(node, inherited_path = []) {
+	if (!node || typeof node !== 'object') return;
+	if (Array.isArray(node)) {
+		for (const item of node) lower_node(item, inherited_path);
+		return;
+	}
+
+	if (node.type === 'JSXFragment' || node.type === 'JSXElement') {
+		node.children = lower_template_children(node.children || [], [...inherited_path, node]);
+		if (node.type === 'JSXElement') {
+			// Attribute values may hold raw JSX with nested templates.
+			lower_node(node.openingElement?.attributes, [...inherited_path, node]);
+		}
+		return;
+	}
+	if (
+		node.type === 'JSXStyleElement' ||
+		node.type === 'JSXText' ||
+		node.type === 'StyleSheet' ||
+		node.type === 'JSXOpeningElement' ||
+		node.type === 'JSXClosingElement'
+	) {
+		return;
+	}
+	if (node.type === 'JSXCodeBlock') {
+		// Each `@{ … }` is its own lexical scope, so nested blocks never merge
+		// into their parent. A block whose render output is itself a code block
+		// (`@{ @{ … } }`) keeps the nesting: the inner block is lowered like a
+		// template child inside a synthetic fragment so it gets its own scope.
+		const path = [...inherited_path, node];
+		node.body = lower_statement_children(node.body || [], path);
+		if (node.render?.type === 'JSXCodeBlock') {
+			const inner = node.render;
+			lower_node(inner, path);
+			const inner_child = code_block_to_template_child(inner, path);
+			// An inner block that is empty all the way down renders nothing —
+			// drop it so the outer block becomes code-only (and prunable too).
+			if (inner_child == null) {
+				node.render = null;
+			} else if (is_native_tsrx_template_node(inner_child)) {
+				// The inner chain collapsed to a plain template node (its scope
+				// was unobservable) — it becomes this block's render directly,
+				// with no wrapper fragment.
+				node.render = inner_child;
+			} else {
+				const fragment = /** @type {any} */ (b.jsx_fragment([/** @type {any} */ (inner_child)]));
+				setLocation(fragment, /** @type {AST.NodeWithLocation} */ (inner));
+				fragment.metadata.path = path;
+				// native_tsrx so core scope creation treats the wrapper like any
+				// other template fragment; tsrx_code_block_chain so
+				// template-children lowering can unwrap it instead of stacking an
+				// inline component per nesting level.
+				fragment.metadata.native_tsrx = true;
+				fragment.metadata.tsrx_code_block_chain = true;
+				node.render = fragment;
+			}
+		} else if (node.render) {
+			lower_node(node.render, path);
+		}
+		return;
+	}
+	if (node.metadata?.tsrx_template_directive) {
+		lower_directive_template_slots(node, inherited_path);
+		return;
+	}
+
+	for (const key in node) {
+		if (
+			key === 'metadata' ||
+			key === 'parent' ||
+			key === 'loc' ||
+			key === 'start' ||
+			key === 'end' ||
+			key === 'type'
+		) {
+			continue;
+		}
+
+		const value = node[key];
+		if (Array.isArray(value)) {
+			node[key] = lower_statement_children(value, [...inherited_path, node]);
+		} else if (value && typeof value === 'object') {
+			lower_node(value, [...inherited_path, node]);
+		}
+	}
 }
 
 /**
@@ -2838,170 +2978,44 @@ function code_block_to_template_child(block, inherited_path) {
 }
 
 /**
- * Normalize a template children list (fragment/element children, control-flow
- * branch bodies), lowering `@{ … }` code-block children into their scoped
- * template-child form. Statement arrays that are not template children
- * (function bodies, program body) must keep using
- * `normalize_jsx_tsrx_children` so statement-position code blocks stay
- * lexical blocks.
- * @param {any[]} children
- * @param {AST.Node[]} [inherited_path]
- * @returns {AST.Node[]}
- */
-function normalize_jsx_tsrx_template_children(children, inherited_path = []) {
-	return normalize_jsx_tsrx_children(children, inherited_path)
-		.map((child) =>
-			child.type === 'JSXCodeBlock' ? code_block_to_template_child(child, inherited_path) : child,
-		)
-		.filter((child) => child != null);
-}
-
-/**
+ * Mark every element/fragment in a raw JSX subtree `native_tsrx` so the
+ * transforms route it through the template paths rather than the raw-JSX
+ * value lowering.
  * @param {any} node
- * @param {AST.Node[]} [inherited_path]
- * @returns {any}
+ * @returns {void}
  */
-function normalize_jsx_tsrx_node(node, inherited_path = []) {
-	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return normalize_jsx_tsrx_children(node, inherited_path);
-
-	if (node.type === 'JSXFragment') {
-		return jsx_to_ripple_fragment(node, inherited_path);
+function mark_raw_template_jsx(node) {
+	if (!node || typeof node !== 'object') return;
+	if (Array.isArray(node)) {
+		for (const item of node) mark_raw_template_jsx(item);
+		return;
 	}
-	if (node.type === 'JSXElement') {
-		return jsx_to_ripple_node(node, inherited_path);
+	// Only children chains: raw JSX inside `{ … }` containers or attribute
+	// values keeps lowering lazily through the value path.
+	if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+		node.metadata = { ...(node.metadata ?? {}), native_tsrx: true };
+		mark_raw_template_jsx(node.children);
 	}
-	if (node.type === 'JSXStyleElement') {
-		// Consumed directly from the parser AST — its children are stylesheet
-		// AST, nothing to normalize.
-		node.metadata = { ...(node.metadata ?? {}), path: inherited_path };
-		return node;
-	}
-	if (
-		node.type === 'JSXIfExpression' ||
-		node.type === 'JSXForExpression' ||
-		node.type === 'JSXSwitchExpression' ||
-		node.type === 'JSXTryExpression'
-	) {
-		return jsx_control_expression_to_statement(node, inherited_path);
-	}
-	if (node.type === 'JSXText') {
-		// Consumed directly from the parser AST (see template-ast.js).
-		return node;
-	}
-	if (node.type === 'JSXCodeBlock') {
-		// Each `@{ … }` is its own lexical scope, so nested blocks never merge
-		// into their parent. A block whose render output is itself a code block
-		// (`@{ @{ … } }`) keeps the nesting: the inner block is lowered like a
-		// template child inside a synthetic fragment so it gets its own scope.
-		const path = [...inherited_path, node];
-		node.body = normalize_jsx_tsrx_children(node.body || [], path);
-		if (node.render?.type === 'JSXCodeBlock') {
-			const inner = normalize_jsx_tsrx_node(node.render, path);
-			const inner_child = code_block_to_template_child(inner, path);
-			// An inner block that is empty all the way down renders nothing —
-			// drop it so the outer block becomes code-only (and prunable too).
-			if (inner_child == null) {
-				node.render = null;
-			} else if (is_native_tsrx_template_node(inner_child)) {
-				// The inner chain collapsed to a plain template node (its scope
-				// was unobservable) — it becomes this block's render directly,
-				// with no wrapper fragment.
-				node.render = inner_child;
-			} else {
-				const fragment = /** @type {any} */ (b.jsx_fragment([/** @type {any} */ (inner_child)]));
-				setLocation(fragment, /** @type {AST.NodeWithLocation} */ (inner));
-				fragment.metadata.path = path;
-				// native_tsrx so core scope creation treats the wrapper like any
-				// other template fragment; tsrx_code_block_chain so
-				// template-children lowering can unwrap it instead of stacking an
-				// inline component per nesting level.
-				fragment.metadata.native_tsrx = true;
-				fragment.metadata.tsrx_code_block_chain = true;
-				node.render = fragment;
-			}
-		} else if (node.render) {
-			node.render = normalize_jsx_tsrx_node(node.render, path);
-		}
-		return node;
-	}
-
-	for (const key in node) {
-		if (
-			key === 'metadata' ||
-			key === 'parent' ||
-			key === 'loc' ||
-			key === 'start' ||
-			key === 'end' ||
-			key === 'type'
-		) {
-			continue;
-		}
-
-		const value = node[key];
-		if (Array.isArray(value)) {
-			node[key] = normalize_jsx_tsrx_children(value, [...inherited_path, node]);
-		} else if (value && typeof value === 'object') {
-			node[key] = normalize_jsx_tsrx_node(value, [...inherited_path, node]);
-		}
-	}
-
-	return node;
 }
 
 /**
- * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
- * (Element, Text, TSRXExpression) for JSX-to-template lowering.
+ * Adopt a raw JSX subtree (an attribute value or other JSX that never entered
+ * the template traversal) into the template machinery at transform time:
+ * marks its elements/fragments `native_tsrx`, retypes any nested directives,
+ * and lowers its `@{ … }` code-block template children. Returns the template
+ * children — a fragment root flattens to its children list.
  *
  * @param {any} node
  * @param {AST.Node[]} [inherited_path]
  * @returns {any}
  */
 export function jsx_to_ripple_node(node, inherited_path = []) {
-	if (node.type === 'JSXElement') {
-		// Elements stay raw JSXElement nodes; only their template children are
-		// lowered in place. Marking `native_tsrx` pulls raw JSX (attribute
-		// values entering `build_jsx_to_tsrx_element`) into the template paths;
-		// authored template elements already carry the flag from the parser.
-		node.metadata = { ...(node.metadata ?? {}), native_tsrx: true, path: inherited_path };
-
-		node.children = /** @type {AST.Node[]} */ (
-			normalize_jsx_tsrx_template_children(/** @type {AST.Node[]} */ (node.children), [
-				...inherited_path,
-				node,
-			]).filter(Boolean)
-		);
-
-		return node;
-	}
-
-	if (
-		node.type === 'JSXStyleElement' ||
-		node.type === 'JSXText' ||
-		node.type === 'JSXExpressionContainer'
-	) {
-		// Consumed directly from the parser AST (see template-ast.js). Elements
-		// nested inside a container's expression still normalize via the
-		// recursive pass; this helper only sees already-normalized subtrees.
-		return node;
-	}
+	mark_raw_template_jsx(node);
+	prepare_template_control_flow(node);
+	lower_node(node, inherited_path);
 
 	if (node.type === 'JSXFragment') {
-		return /** @type {AST.Node[]} */ (
-			normalize_jsx_tsrx_template_children(
-				/** @type {AST.Node[]} */ (node.children),
-				inherited_path,
-			).filter(Boolean)
-		);
-	}
-
-	if (
-		node.type === 'JSXIfExpression' ||
-		node.type === 'JSXForExpression' ||
-		node.type === 'JSXSwitchExpression' ||
-		node.type === 'JSXTryExpression'
-	) {
-		return jsx_control_expression_to_statement(node, inherited_path);
+		return node.children;
 	}
 
 	return node;
