@@ -20,6 +20,32 @@ import { create as createCssService } from 'volar-service-css';
 
 const { log, logError } = createLogging('[Ripple Language Server]');
 
+/**
+ * Strip whole-document formatting capabilities from a Volar service plugin.
+ *
+ * The bundled TypeScript (`typescript-syntactic`) and CSS services advertise a
+ * `documentFormattingProvider`. Because they run against the virtual TS/CSS code
+ * rather than the `.tsrx` source, their edits don't map back and formatting is a
+ * no-op — yet the capability still makes the language client contribute a
+ * "TSRX for VS Code" entry to "Format Document With…" that silently does nothing.
+ * Formatting for `.tsrx` is owned by Prettier + @tsrx/prettier-plugin (configured
+ * as the default `[ripple]` formatter in the VS Code extension), so we drop these
+ * capabilities to keep Prettier as the single, working formatter. On-type
+ * formatting is left intact.
+ *
+ * @template {{ capabilities?: Record<string, unknown> }} T
+ * @param {T} plugin
+ * @returns {T}
+ */
+function stripDocumentFormatting(plugin) {
+	const {
+		documentFormattingProvider: _fmt,
+		documentRangeFormattingProvider: _rangeFmt,
+		...capabilities
+	} = plugin.capabilities ?? {};
+	return { ...plugin, capabilities };
+}
+
 export function createRippleLanguageServer() {
 	const connection = createConnection();
 	const server = createServer(connection);
@@ -98,8 +124,8 @@ export function createRippleLanguageServer() {
 					createCompileErrorDiagnosticPlugin(),
 					createDefinitionPlugin(),
 					createDocumentSymbolPlugin(),
-					createCssService(),
-					...createTypeScriptServices(ts),
+					stripDocumentFormatting(createCssService()),
+					...createTypeScriptServices(ts).map(stripDocumentFormatting),
 					// !IMPORTANT 'createTypeScriptDiagnosticFilterPlugin', 'createHoverPlugin',
 					// and 'createDocumentHighlightPlugin' must come after TypeScript services
 					// to intercept volar's and vscode default providers

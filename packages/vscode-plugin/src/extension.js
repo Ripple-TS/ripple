@@ -204,12 +204,13 @@ export async function activate(context) {
 		context.subscriptions.push(activateAutoInsertion([{ language: 'ripple' }], client));
 		console.log('[Ripple] Auto-insertion activated');
 
-		// Configure Prettier to handle .tsrx files
+		// Configure Prettier to handle .tsrx files. This sets Prettier as the default
+		// formatter for `[ripple]`, so "Format Document" routes to it directly. We deliberately
+		// do not register our own DocumentFormattingEditProvider: it would show up as a second,
+		// redundant "TSRX for VS Code" entry in "Format Document With…" alongside the one the
+		// language client already contributes (volar-service-typescript / -css), and it broke
+		// whenever the Prettier extension's format command was unavailable.
 		await configurePrettier();
-
-		// Register custom formatter
-		const formatProvider = registerFormatter();
-		context.subscriptions.push(formatProvider);
 
 		// Configure TypeScript command visibility for Ripple files
 		//
@@ -516,31 +517,6 @@ async function configurePrettier() {
 	} catch (error) {
 		console.error('Failed to configure Prettier:', error);
 	}
-}
-
-function registerFormatter() {
-	return vscode.languages.registerDocumentFormattingEditProvider(
-		{ language: 'ripple', scheme: 'file' },
-		{
-			async provideDocumentFormattingEdits(document) {
-				try {
-					console.log('Formatting Ripple document:', document.fileName);
-
-					// Try to use Prettier extension first
-					const edits = await vscode.commands.executeCommand(
-						'editor.action.formatDocument.prettier',
-					);
-					return Array.isArray(edits) ? edits : [];
-				} catch (error) {
-					console.error('Ripple formatting error:', error);
-					vscode.window.showErrorMessage(
-						'Failed to format Ripple file. Ensure Prettier and @tsrx/prettier-plugin are installed.',
-					);
-					return [];
-				}
-			},
-		},
-	);
 }
 
 export async function deactivate() {
