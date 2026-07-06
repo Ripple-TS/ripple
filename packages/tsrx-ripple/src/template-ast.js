@@ -102,7 +102,7 @@ export function is_template_expression(node) {
  * Any text or expression template child (`JSXText` or `JSXExpressionContainer`,
  * merged or not).
  * @param {AST.Node} node
- * @returns {boolean}
+ * @returns {node is ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer}
  */
 export function is_template_text_or_expression(node) {
 	return node.type === 'JSXText' || node.type === 'JSXExpressionContainer';

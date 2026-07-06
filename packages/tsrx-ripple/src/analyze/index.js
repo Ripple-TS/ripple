@@ -1198,7 +1198,7 @@ function visit_function(node, context) {
 			}
 		}
 
-		/** @type {ESTreeJSX.JSXElement[]} */
+		/** @type {Array<AST.TSRXJSXElement | AST.JSXStyleElement>} */
 		const elements = [];
 		const metadata = {};
 		const styleClasses = new Map();
@@ -2276,10 +2276,6 @@ const visitors = {
 		context.next();
 	},
 
-	/**
-	 * @param {any} node
-	 * @param {AnalysisContext} context
-	 */
 	JSXFragment(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
@@ -2289,10 +2285,6 @@ const visitors = {
 		return context.next();
 	},
 
-	/**
-	 * @param {any} node
-	 * @param {AnalysisContext} context
-	 */
 	JSXStyleElement(node, context) {
 		if (context.state.regular_js || node.metadata?.regular_js) {
 			return context.next({ ...context.state, regular_js: true, component: undefined });
@@ -2307,10 +2299,6 @@ const visitors = {
 		// Children are stylesheet AST — nothing to analyze.
 	},
 
-	/**
-	 * @param {any} node
-	 * @param {AnalysisContext} context
-	 */
 	JSXElement(node, context) {
 		// A raw (non-template) element — an attribute value or other JSX that
 		// never entered the template traversal.
@@ -2597,7 +2585,7 @@ const visitors = {
 
 		return {
 			...node,
-			children: node.children.map((/** @type {any} */ child) => visit(child)),
+			children: node.children.map((child) => visit(child)),
 		};
 	},
 

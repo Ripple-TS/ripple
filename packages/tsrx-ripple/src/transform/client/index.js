@@ -2065,7 +2065,7 @@ const visitors = {
 		// The TS view needs the `<TsrxDynamic is={expr}>` component shape for type
 		// checking; production codegen keeps `node.id` as the dynamic expression
 		// and renders it directly via `_$_.composite` in the component branch.
-		if (state.to_ts && lower_dynamic_element(/** @type {ESTreeJSX.JSXElement} */ (node))) {
+		if (state.to_ts && lower_dynamic_element(node)) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 		}
 
@@ -5178,7 +5178,7 @@ function transform_children(children, context) {
 		for (const child of children) {
 			if (
 				is_template_element(child) &&
-				lower_dynamic_element(/** @type {ESTreeJSX.JSXElement} */ (child))
+				lower_dynamic_element(/** @type {AST.TSRXJSXElement} */ (child))
 			) {
 				state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 			}

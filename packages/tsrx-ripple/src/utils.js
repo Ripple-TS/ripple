@@ -1992,7 +1992,7 @@ export function is_element_dom_element(node) {
 export const dynamic_element_import_local = 'TsrxDynamic';
 
 /**
- * @param {ESTreeJSX.JSXElement} node
+ * @param {AST.TSRXJSXElement} node
  * @param {AST.Expression} [component_id] - Override for the lowered component
  * reference; defaults to the `TsrxDynamic` local used by type-only output.
  * @returns {boolean}

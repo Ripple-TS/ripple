@@ -268,7 +268,7 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
@@ -825,7 +825,7 @@ function is_head_element(node) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} node
+ * @param {AST.TSRXJSXElement} node
  * @param {TransformServerContext} context
  * @returns {boolean}
  */
@@ -844,7 +844,7 @@ function is_ripple_fragment_element(node, context) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} node
+ * @param {AST.TSRXJSXElement} node
  * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
@@ -934,7 +934,7 @@ function push_inner_html_expression(expression, state) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} node
+ * @param {AST.TSRXJSXElement} node
  * @param {TransformServerContext} context
  * @returns {void}
  */
@@ -985,7 +985,7 @@ function transform_variable_declaration(node, context) {
 		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
 		const init = is_template_fragment(declarator_init)
 			? build_template_node_to_tsrx_element(
-					/** @type {ESTreeJSX.JSXFragment} */ (declarator_init),
+					/** @type {AST.TSRXJSXFragment} */ (declarator_init),
 					context,
 				)
 			: declarator_init
@@ -1876,10 +1876,6 @@ const visitors = {
 		// at analysis time and injected separately.
 	},
 
-	/**
-	 * @param {any} node
-	 * @param {TransformServerContext} context
-	 */
 	JSXElement(node, context) {
 		const { state, visit } = context;
 
@@ -2547,7 +2543,7 @@ const visitors = {
 		if (!context.state.to_ts && is_native_tsrx_template_node(node.argument)) {
 			return b.return(
 				build_template_node_to_tsrx_element(
-					/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
+					/** @type {AST.TSRXJSXElement | AST.TSRXJSXFragment} */ (
 						/** @type {unknown} */ (node.argument)
 					),
 					context,

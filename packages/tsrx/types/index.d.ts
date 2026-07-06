@@ -303,7 +303,14 @@ declare module 'estree' {
 			AST.NodeWithMaybeComments {
 		openingElement: ESTreeJSX.TSRXJSXOpeningElement;
 		closingElement: ESTreeJSX.TSRXJSXClosingElement | null;
-		children: TSRXJSXChild[];
+		/** Loose-mode recovery: the element was never closed. */
+		unclosed?: boolean;
+		/**
+		 * The parser emits {@link TSRXJSXChild}; the compile pre-passes lower
+		 * template children in place (retyped directives, code-block IIFEs,
+		 * merged text runs), so any node can appear here by transform time.
+		 */
+		children: AST.Node[];
 		metadata: BaseNodeMetaData & {
 			ts_name?: string;
 		};
@@ -311,7 +318,8 @@ declare module 'estree' {
 
 	interface TSRXJSXFragment
 		extends Omit<ESTreeJSX.JSXFragment, 'children'>, AST.NodeWithMaybeComments {
-		children: TSRXJSXChild[];
+		/** See {@link TSRXJSXElement}'s `children`. */
+		children: AST.Node[];
 	}
 
 	interface JSXCodeBlock extends AST.BaseExpression {
@@ -691,11 +699,25 @@ declare module 'estree-jsx' {
 	}
 
 	interface TSRXJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
-		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName | JSXExpressionContainer;
+		// AST.MemberExpression: the parser never produces it, but the to_ts
+		// transform plants the visited member chain (`<Foo.Bar>`) into the name
+		// slot for the TSX printer and its source mappings.
+		name:
+			| JSXMemberExpression
+			| JSXIdentifier
+			| JSXNamespacedName
+			| JSXExpressionContainer
+			| import('estree').MemberExpression;
 	}
 
 	interface TSRXJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
-		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName | JSXExpressionContainer;
+		// See TSRXJSXOpeningElement's `name`.
+		name:
+			| JSXMemberExpression
+			| JSXIdentifier
+			| JSXNamespacedName
+			| JSXExpressionContainer
+			| import('estree').MemberExpression;
 	}
 
 	interface ExpressionMap {
@@ -1379,7 +1401,7 @@ export interface AnalysisState extends BaseState {
 			filename: string;
 		};
 	};
-	elements?: Array<ESTreeJSX.JSXElement>;
+	elements?: Array<AST.TSRXJSXElement | AST.JSXStyleElement>;
 	function_depth?: number;
 	collect?: boolean;
 	metadata: BaseStateMetaData & {
@@ -1458,7 +1480,25 @@ export interface TransformClientState extends BaseState {
 }
 
 /** Override zimmerframe types and provide our own */
-type NodeOf<T extends string, X> = X extends { type: T } ? X : never;
+/**
+ * Where stock `@types/estree-jsx` and the TSRX parser shapes share a `type`
+ * tag, visitors receive the TSRX shape — the parser only ever produces that
+ * one (dynamic tag names, code-block children, `metadata`, `start`/`end`).
+ * Interface merging cannot widen the stock interfaces' property types, so the
+ * TSRXJSX* variants override the plain ones here instead.
+ */
+interface VisitorNodeOverrides {
+	JSXElement: AST.TSRXJSXElement;
+	JSXFragment: AST.TSRXJSXFragment;
+	JSXOpeningElement: ESTreeJSX.TSRXJSXOpeningElement;
+	JSXClosingElement: ESTreeJSX.TSRXJSXClosingElement;
+}
+
+type NodeOf<T extends string, X> = T extends keyof VisitorNodeOverrides
+	? VisitorNodeOverrides[T]
+	: X extends { type: T }
+		? X
+		: never;
 
 type SpecializedVisitors<T extends AST.Node | AST.CSS.Node, U> = {
 	[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
