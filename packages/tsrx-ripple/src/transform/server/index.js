@@ -77,6 +77,8 @@ import {
 	is_code_block_function_body,
 } from '../../utils.js';
 import {
+	get_attribute_name,
+	get_attribute_value,
 	get_template_text_value,
 	is_droppable_template_text,
 	is_empty_expression_container,
@@ -944,15 +946,11 @@ function is_ripple_fragment_element(node, context) {
 
 /**
  * @param {AST.Element} node
- * @returns {AST.Attribute | null}
+ * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
 	for (const attr of node.attributes) {
-		if (
-			attr.type === 'Attribute' &&
-			attr.name.type === 'Identifier' &&
-			attr.name.name === 'innerHTML'
-		) {
+		if (attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'innerHTML') {
 			return attr;
 		}
 	}
@@ -961,16 +959,17 @@ function get_inner_html_attribute(node) {
 }
 
 /**
- * @param {AST.Attribute} attr
+ * @param {ESTreeJSX.JSXAttribute} attr
  * @param {TransformServerContext} context
  * @returns {AST.Expression}
  */
 function get_attribute_value_expression(attr, context) {
-	if (attr.value === null) {
+	const value = get_attribute_value(attr);
+	if (value === null) {
 		return b.literal('');
 	}
 
-	return /** @type {AST.Expression} */ (context.visit(attr.value, context.state));
+	return /** @type {AST.Expression} */ (context.visit(value, context.state));
 }
 
 /**
@@ -1937,7 +1936,7 @@ const visitors = {
 		}
 
 		const is_dom_element = is_element_dom_element(node);
-		const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
+		const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
 		const child_namespace = is_dom_element
@@ -1998,13 +1997,14 @@ const visitors = {
 			};
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.name.type === 'Identifier') {
-						const name = attr.name.name;
+				if (attr.type === 'JSXAttribute') {
+					{
+						const name = get_attribute_name(attr);
+						const attr_value = get_attribute_value(attr);
 
 						if (name === 'innerHTML') {
 							const expression =
-								attr.value === null ? b.literal('') : get_attribute_value_expression(attr, context);
+								attr_value === null ? b.literal('') : get_attribute_value_expression(attr, context);
 							if (is_spreading) {
 								spread_attributes?.push(b.prop('init', b.literal('innerHTML'), expression));
 							} else {
@@ -2013,7 +2013,7 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value === null) {
+						if (attr_value === null) {
 							// omit a valueless event attr (analyze errored); `hidden` etc. still emit
 							if (!isEventAttribute(name)) {
 								handle_static_attr(name, true);
@@ -2025,8 +2025,8 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value.type === 'Literal' && name !== 'class') {
-							handle_static_attr(name, attr.value.value);
+						if (attr_value.type === 'Literal' && name !== 'class') {
+							handle_static_attr(name, attr_value.value);
 							continue;
 						}
 
@@ -2041,7 +2041,7 @@ const visitors = {
 						}
 						const metadata = { tracking: false };
 						const expression = /** @type {AST.Expression} */ (
-							visit(attr.value, { ...state, metadata })
+							visit(attr_value, { ...state, metadata })
 						);
 
 						state.init?.push(
@@ -2058,7 +2058,7 @@ const visitors = {
 							),
 						);
 					}
-				} else if (attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					spread_attributes?.push(
 						b.spread(/** @type {AST.Expression} */ (visit(attr.argument, state))),
 					);
@@ -2066,7 +2066,7 @@ const visitors = {
 			}
 
 			if (class_attribute !== null) {
-				const attr_value = /** @type {AST.Expression} */ (class_attribute.value);
+				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
 				if (attr_value.type === 'Literal') {
 					let value = attr_value.value;
 
@@ -2074,7 +2074,7 @@ const visitors = {
 						value = `${scoping_hash} ${value}`;
 					}
 
-					handle_static_attr(class_attribute.name.name, value);
+					handle_static_attr('class', value);
 				} else {
 					const metadata = { tracking: false };
 					let expression = /** @type {AST.Expression} */ (
@@ -2219,21 +2219,23 @@ const visitors = {
 			const apply_parent_css_scope = state.applyParentCssScope;
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.name.type === 'Identifier') {
+				if (attr.type === 'JSXAttribute') {
+					{
+						const attr_name = get_attribute_name(attr);
+						const attr_value = get_attribute_value(attr);
 						const metadata = { tracking: false };
 						let property =
-							attr.value === null
+							attr_value === null
 								? b.literal(true)
 								: /** @type {AST.Expression} */ (
-										visit(/** @type {AST.Expression} */ (attr.value), {
+										visit(/** @type {AST.Expression} */ (attr_value), {
 											...state,
 											metadata,
 										})
 									);
 
 						const scoped_hash = get_component_css_hash(state);
-						if (attr.name.name === 'class' && node.metadata.scoped && scoped_hash) {
+						if (attr_name === 'class' && node.metadata.scoped && scoped_hash) {
 							if (property.type === 'Literal') {
 								property = b.literal(`${scoped_hash} ${property.value}`);
 							} else {
@@ -2241,7 +2243,7 @@ const visitors = {
 							}
 						}
 
-						if (attr.name.name === 'children') {
+						if (attr_name === 'children') {
 							children_prop = b.prop(
 								'init',
 								b.id('children'),
@@ -2251,9 +2253,9 @@ const visitors = {
 							continue;
 						}
 
-						props.push(b.prop('init', b.key(attr.name.name), property));
+						props.push(b.prop('init', b.key(attr_name), property));
 					}
-				} else if (attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					props.push(
 						b.spread(
 							/** @type {AST.Expression} */ (
@@ -2266,10 +2268,7 @@ const visitors = {
 
 			if (node.metadata.scoped && get_component_css(state)) {
 				const hasClassAttr = node.attributes.some(
-					(attr) =>
-						attr.type === 'Attribute' &&
-						attr.name.type === 'Identifier' &&
-						attr.name.name === 'class',
+					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
 					const name = is_spreading ? '#class' : 'class';
@@ -2834,9 +2833,7 @@ const visitors = {
 					b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
 				);
 			} else {
-				state.init?.push(
-					b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))),
-				);
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));
 			}
 			return;
 		}

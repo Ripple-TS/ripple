@@ -63,6 +63,8 @@ import {
 	is_tsrx_component_function,
 } from '../utils.js';
 import {
+	get_attribute_name_node,
+	get_attribute_value,
 	get_template_expression,
 	is_droppable_template_text,
 	is_empty_expression_container,
@@ -2528,10 +2530,12 @@ const visitors = {
 			}
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.value && attr.value.type === 'JSXEmptyExpression') {
+				if (attr.type === 'JSXAttribute') {
+					const attr_name = get_attribute_name_node(attr);
+					const attr_value = get_attribute_value(attr);
+					if (attr_value && attr_value.type === 'JSXEmptyExpression') {
 						const value = /** @type {ESTreeJSX.JSXEmptyExpression & AST.NodeWithLocation} */ (
-							attr.value
+							attr_value
 						);
 						error(
 							'attributes must only be assigned a non-empty expression',
@@ -2555,45 +2559,43 @@ const visitors = {
 							context.state.analysis.comments,
 						);
 					}
-					if (attr.name.type === 'Identifier') {
-						attribute_names.add(attr.name);
+					attribute_names.add(attr_name);
 
-						if (attr.name.name === 'key') {
+					if (attr_name.name === 'key') {
+						error(
+							'The `key` attribute is not a thing in Ripple, and cannot be used on DOM elements. If you are using a for loop, then use the `for (let item of items; key item.id)` syntax.',
+							state.analysis.module.filename,
+							attr,
+							context.state.collect ? context.state.analysis.errors : undefined,
+							context.state.analysis.comments,
+						);
+					}
+
+					if (isEventAttribute(attr_name.name)) {
+						if (attr_value === null) {
+							// A regular attribute can have no value (like `hidden`), but an
+							// event attribute like `<div onC>` has no handler to run
 							error(
-								'The `key` attribute is not a thing in Ripple, and cannot be used on DOM elements. If you are using a for loop, then use the `for (let item of items; key item.id)` syntax.',
+								`the \`${attr_name.name}\` event attribute must be assigned a handler expression`,
 								state.analysis.module.filename,
 								attr,
 								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
-						}
+						} else {
+							const handler = visit(/** @type {AST.Expression} */ (attr_value), state);
+							const is_delegated = is_delegated_event(attr_name.name, handler, context);
 
-						if (isEventAttribute(attr.name.name)) {
-							if (attr.value === null) {
-								// A regular attribute can have no value (like `hidden`), but an
-								// event attribute like `<div onC>` has no handler to run
-								error(
-									`the \`${attr.name.name}\` event attribute must be assigned a handler expression`,
-									state.analysis.module.filename,
-									attr,
-									context.state.collect ? context.state.analysis.errors : undefined,
-									context.state.analysis.comments,
-								);
-							} else {
-								const handler = visit(/** @type {AST.Expression} */ (attr.value), state);
-								const is_delegated = is_delegated_event(attr.name.name, handler, context);
-
-								if (is_delegated) {
-									if (attr.metadata === undefined) {
-										attr.metadata = { path: [...path] };
-									}
-
-									attr.metadata.delegated = is_delegated;
+							if (is_delegated) {
+								if (attr.metadata === undefined) {
+									attr.metadata = { path: [...path] };
 								}
+
+								attr.metadata.delegated = is_delegated;
 							}
-						} else if (attr.value !== null) {
-							visit(attr.value, state);
 						}
+					} else if (attr_value !== null) {
+						visit(attr_value, state);
 					}
 				}
 			}
@@ -2613,14 +2615,13 @@ const visitors = {
 			}
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.name.type === 'Identifier') {
-						attribute_names.add(attr.name);
+				if (attr.type === 'JSXAttribute') {
+					attribute_names.add(get_attribute_name_node(attr));
+					const attr_value = get_attribute_value(attr);
+					if (attr_value !== null) {
+						visit(attr_value, state);
 					}
-					if (attr.value !== null) {
-						visit(attr.value, state);
-					}
-				} else if (attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					visit(attr.argument, state);
 				}
 			}
@@ -2643,21 +2644,18 @@ const visitors = {
 			// Validate that parent element attributes don't reference child-declared components
 			if (child_component_names.size > 0) {
 				for (const attr of node.attributes) {
-					if (
-						attr.type === 'Attribute' &&
-						attr.value !== null &&
-						attr.value.type === 'Identifier'
-					) {
-						if (child_component_names.has(attr.value.name)) {
+					const attr_value = attr.type === 'JSXAttribute' ? get_attribute_value(attr) : null;
+					if (attr.type === 'JSXAttribute' && attr_value?.type === 'Identifier') {
+						if (child_component_names.has(attr_value.name)) {
 							error(
-								`Cannot use component '${attr.value.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
+								`Cannot use component '${attr_value.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,
 								state.analysis.module.filename,
-								attr.value,
+								attr_value,
 								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
 						}
-					} else if (attr.type === 'SpreadAttribute' && attr.argument.type === 'Identifier') {
+					} else if (attr.type === 'JSXSpreadAttribute' && attr.argument.type === 'Identifier') {
 						if (child_component_names.has(attr.argument.name)) {
 							error(
 								`Cannot use component '${attr.argument.name}' as a prop on its parent element. Component declarations inside children are not in scope for the parent element's attributes.`,

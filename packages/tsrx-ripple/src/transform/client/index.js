@@ -107,9 +107,13 @@ import {
 	wrap_code_block_in_iife,
 } from '../../utils.js';
 import {
+	get_attribute_name,
+	get_attribute_name_node,
+	get_attribute_value,
 	get_template_expression,
 	get_template_text_value,
 	is_empty_expression_container,
+	is_expression_attribute,
 	is_template_expression,
 	is_template_text,
 	is_template_text_or_expression,
@@ -1338,15 +1342,11 @@ function is_ripple_fragment_element(node, context) {
 
 /**
  * @param {AST.Element} node
- * @returns {AST.Attribute | null}
+ * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
 	for (const attr of node.attributes) {
-		if (
-			attr.type === 'Attribute' &&
-			attr.name.type === 'Identifier' &&
-			attr.name.name === 'innerHTML'
-		) {
+		if (attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'innerHTML') {
 			return attr;
 		}
 	}
@@ -1355,17 +1355,18 @@ function get_inner_html_attribute(node) {
 }
 
 /**
- * @param {AST.Attribute} attr
+ * @param {ESTreeJSX.JSXAttribute} attr
  * @param {VisitorClientContext} context
  * @returns {AST.Expression}
  */
 function get_attribute_value_expression(attr, context) {
-	if (attr.value === null) {
+	const value = get_attribute_value(attr);
+	if (value === null) {
 		return b.literal('');
 	}
 
 	return /** @type {AST.Expression} */ (
-		context.visit(attr.value, {
+		context.visit(value, {
 			...context.state,
 			flush_node: null,
 			metadata: { tracking: false },
@@ -2193,7 +2194,7 @@ const visitors = {
 		}
 
 		const is_dom_element = is_element_dom_element(node);
-		const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
+		const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
 		const child_namespace = is_dom_element
@@ -2229,9 +2230,9 @@ const visitors = {
 		};
 
 		if (is_dom_element) {
-			/** @type {AST.Attribute | null} */
+			/** @type {ESTreeJSX.JSXAttribute | null} */
 			let class_attribute = null;
-			/** @type {AST.Attribute | null} */
+			/** @type {ESTreeJSX.JSXAttribute | null} */
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
@@ -2245,16 +2246,17 @@ const visitors = {
 			state.template?.push(`<${element_name}`);
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.name.type === 'Identifier') {
-						const name = attr.name.name;
+				if (attr.type === 'JSXAttribute') {
+					const attr_value = get_attribute_value(attr);
+					{
+						const name = get_attribute_name(attr);
 
 						if (name === 'innerHTML') {
 							const metadata = { tracking: false };
 							const expression =
-								attr.value === null
+								attr_value === null
 									? b.literal('')
-									: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
+									: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
 
 							if (is_spreading) {
 								spread_attributes?.push(b.prop('init', b.literal('innerHTML'), expression));
@@ -2276,7 +2278,7 @@ const visitors = {
 											),
 										),
 									expression,
-									identity: attr.value ?? b.literal(''),
+									identity: attr_value ?? b.literal(''),
 									initial: b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
 								});
 							} else {
@@ -2296,7 +2298,7 @@ const visitors = {
 							continue;
 						}
 
-						if (attr.value === null) {
+						if (attr_value === null) {
 							// omit a valueless event attr (analyze errored); `hidden` etc. still emit
 							if (!isEventAttribute(name)) {
 								handle_static_attr(name, true);
@@ -2307,26 +2309,26 @@ const visitors = {
 						if (name === 'ref') {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
-							const source = get_ref_source_argument(attr.value);
+							const source = get_ref_source_argument(attr_value);
 							const ref_value =
 								source.type === 'ArrayExpression'
-									? create_ref_value_call(attr.value, context)
-									: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
+									? create_ref_value_call(attr_value, context)
+									: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
 							const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(ref_value)];
 							if (source.type !== 'ArrayExpression') {
-								add_ref_setter_arg(ref_args, attr.value, ref_value);
+								add_ref_setter_arg(ref_args, attr_value, ref_value);
 							}
 							state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
 							continue;
 						}
 
 						if (
-							attr.value.type === 'Literal' &&
+							attr_value.type === 'Literal' &&
 							name !== 'class' &&
 							name !== 'style' &&
 							!(name === 'value' && element_name === 'option')
 						) {
-							handle_static_attr(name, attr.value.value);
+							handle_static_attr(name, attr_value.value);
 							continue;
 						}
 
@@ -2334,14 +2336,14 @@ const visitors = {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
+								visit(attr_value, { ...state, metadata })
 							);
 
 							if (metadata.tracking) {
 								local_updates.push({
 									operation: (key) => b.stmt(b.call('_$_.set_value', id, key)),
 									expression,
-									identity: attr.value,
+									identity: attr_value,
 									initial: b.void0,
 								});
 							} else {
@@ -2367,14 +2369,14 @@ const visitors = {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
+								visit(attr_value, { ...state, metadata })
 							);
 
 							if (metadata.tracking) {
 								local_updates.push({
 									operation: (key) => b.stmt(b.call('_$_.set_checked', id, key)),
 									expression,
-									identity: attr.value,
+									identity: attr_value,
 									initial: b.void0,
 								});
 							} else {
@@ -2387,14 +2389,14 @@ const visitors = {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
 							const expression = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
+								visit(attr_value, { ...state, metadata })
 							);
 
 							if (metadata.tracking) {
 								local_updates.push({
 									operation: (key) => b.stmt(b.call('_$_.set_selected', id, key)),
 									expression,
-									identity: attr.value,
+									identity: attr_value,
 									initial: b.void0,
 								});
 							} else {
@@ -2406,7 +2408,7 @@ const visitors = {
 						if (isEventAttribute(name)) {
 							const metadata = { tracking: false };
 							let handler = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
+								visit(attr_value, { ...state, metadata })
 							);
 							const id = state.flush_node?.();
 
@@ -2443,7 +2445,7 @@ const visitors = {
 						}
 						const metadata = { tracking: false };
 						const expression = /** @type {AST.Expression} */ (
-							visit(attr.value, { ...state, metadata })
+							visit(attr_value, { ...state, metadata })
 						);
 						// All other attributes
 						if (metadata.tracking) {
@@ -2466,7 +2468,7 @@ const visitors = {
 									operation: (key) =>
 										b.stmt(b.call('_$_.set_attribute', id, b.literal(attribute), key)),
 									expression,
-									identity: attr.value,
+									identity: attr_value,
 									initial: b.void0,
 								});
 							}
@@ -2490,7 +2492,7 @@ const visitors = {
 							}
 						}
 					}
-				} else if (attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					spread_attributes?.push(
 						b.spread(/** @type {AST.Expression} */ (visit(attr.argument, state))),
 					);
@@ -2498,7 +2500,7 @@ const visitors = {
 			}
 
 			if (class_attribute !== null) {
-				const attr_value = /** @type {AST.Expression} */ (class_attribute.value);
+				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
 				if (attr_value.type === 'Literal') {
 					let value = attr_value.value;
 
@@ -2506,7 +2508,7 @@ const visitors = {
 						value = `${scoping_hash} ${value}`;
 					}
 
-					handle_static_attr(class_attribute.name.name, value);
+					handle_static_attr('class', value);
 				} else {
 					const id = state.flush_node?.();
 					const metadata = { tracking: false };
@@ -2538,9 +2540,9 @@ const visitors = {
 			}
 
 			if (style_attribute !== null) {
-				const attr_value = /** @type {AST.Expression} */ (style_attribute.value);
+				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(style_attribute));
 				if (attr_value.type === 'Literal') {
-					handle_static_attr(style_attribute.name.name, attr_value.value);
+					handle_static_attr('style', attr_value.value);
 				} else {
 					const id = state.flush_node?.();
 					const metadata = { tracking: false };
@@ -2625,8 +2627,7 @@ const visitors = {
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							// A JSXText child is always a literal; only a `{ … }` container
 							// (including a merged text run) can hold a dynamic expression.
-							(child.type === 'JSXExpressionContainer' &&
-								child.expression.type !== 'Literal'),
+							(child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal'),
 					);
 
 				if (needs_pop) {
@@ -2667,26 +2668,28 @@ const visitors = {
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
-			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
+			const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
 			/** @type {AST.Property | null} */
 			let children_prop = null;
 
 			for (const attr of node.attributes) {
-				if (attr.type === 'Attribute') {
-					if (attr.name.type === 'Identifier') {
+				if (attr.type === 'JSXAttribute') {
+					{
+						const attr_name = get_attribute_name(attr);
+						const attr_value = get_attribute_value(attr);
 						const metadata = { tracking: false };
-						if (attr.name.name === 'ref' && attr.value !== null) {
-							props.push(b.prop('init', b.key('ref'), create_ref_value_call(attr.value, context)));
+						if (attr_name === 'ref' && attr_value !== null) {
+							props.push(b.prop('init', b.key('ref'), create_ref_value_call(attr_value, context)));
 							continue;
 						}
 
 						let property =
-							attr.value === null
+							attr_value === null
 								? b.literal(true)
 								: /** @type {AST.Expression} */ (
-										visit(attr.value, { ...state, flush_node: null, metadata })
+										visit(attr_value, { ...state, flush_node: null, metadata })
 									);
 						if (property.type === 'Identifier') {
 							const binding = state.scope.get(property.name);
@@ -2700,7 +2703,7 @@ const visitors = {
 						}
 
 						const scoped_hash = get_component_css_hash(state);
-						if (attr.name.name === 'class' && node.metadata.scoped && scoped_hash) {
+						if (attr_name === 'class' && node.metadata.scoped && scoped_hash) {
 							if (property.type === 'Literal') {
 								property = b.literal(`${scoped_hash} ${property.value}`);
 							} else {
@@ -2709,7 +2712,7 @@ const visitors = {
 						}
 
 						if (metadata.tracking) {
-							if (attr.name.name === 'children') {
+							if (attr_name === 'children') {
 								children_prop = b.prop(
 									'get',
 									b.id('children'),
@@ -2726,12 +2729,12 @@ const visitors = {
 							props.push(
 								b.prop(
 									'get',
-									b.key(attr.name.name),
+									b.key(attr_name),
 									b.function(null, [], b.block([b.return(property)])),
 								),
 							);
 						} else {
-							if (attr.name.name === 'children') {
+							if (attr_name === 'children') {
 								children_prop = b.prop(
 									'init',
 									b.id('children'),
@@ -2741,20 +2744,10 @@ const visitors = {
 								continue;
 							}
 
-							props.push(b.prop('init', b.key(attr.name.name), property));
+							props.push(b.prop('init', b.key(attr_name), property));
 						}
-					} else {
-						props.push(
-							b.prop(
-								'init',
-								b.key(attr.name.name),
-								/** @type {AST.Expression} */ (
-									visit(/** @type {AST.Node} */ (attr.value), { ...state, flush_node: null })
-								),
-							),
-						);
 					}
-				} else if (attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					props.push(
 						b.spread(
 							/** @type {AST.Expression} */
@@ -2774,10 +2767,7 @@ const visitors = {
 
 			if (node.metadata.scoped && get_component_css(state)) {
 				const hasClassAttr = node.attributes.some(
-					(attr) =>
-						attr.type === 'Attribute' &&
-						attr.name.type === 'Identifier' &&
-						attr.name.name === 'class',
+					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
 					const name = is_spreading ? '#class' : 'class';
@@ -4527,10 +4517,10 @@ function transform_ts_child(node, context) {
 				: state.namespace;
 
 		const attributes = node.attributes.map((attr) => {
-			if (attr.type === 'Attribute') {
-				const name = visit(attr.name, state);
+			if (attr.type === 'JSXAttribute') {
+				const name = visit(get_attribute_name_node(attr), state);
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
-					attr.value
+					get_attribute_value(attr)
 				);
 				/** @type {string} */
 				let prop_name;
@@ -4540,8 +4530,8 @@ function transform_ts_child(node, context) {
 					name_node = name;
 					prop_name = name.name;
 				} else {
-					name_node = attr.name;
-					prop_name = attr.name.name || 'unknown';
+					name_node = get_attribute_name_node(attr);
+					prop_name = get_attribute_name(attr) || 'unknown';
 				}
 				const ref_target_type =
 					prop_name === 'ref' ? create_element_ref_target_type(node, state) : null;
@@ -4568,7 +4558,7 @@ function transform_ts_child(node, context) {
 					jsx_name,
 					// match the source code usage of expressions for literals
 					// for proper source mapping to avoid turning strings into expressions
-					attr_value?.type === 'Literal' && !attr_value.was_expression
+					attr_value?.type === 'Literal' && !is_expression_attribute(attr)
 						? /** @type {AST.Literal} */ (value)
 						: b.jsx_expression_container(
 								/** @type {AST.Expression} */ (value),
@@ -4594,7 +4584,7 @@ function transform_ts_child(node, context) {
 					/** @type {AST.NodeWithLocation} */ (attr),
 				);
 				return jsx_attr;
-			} else if (attr.type === 'SpreadAttribute') {
+			} else if (attr.type === 'JSXSpreadAttribute') {
 				const argument = visit(attr.argument, state);
 				return b.jsx_spread_attribute(
 					/** @type {AST.Expression} */ (argument),
@@ -4602,7 +4592,7 @@ function transform_ts_child(node, context) {
 				);
 			} else {
 				// Should not happen
-				throw new Error(`Unexpected attribute type: ${/** @type {AST.Attribute} */ (attr).type}`);
+				throw new Error(`Unexpected attribute type: ${/** @type {AST.Node} */ (attr).type}`);
 			}
 		});
 
@@ -5120,12 +5110,13 @@ function build_native_tsrx_value_expression(children, source_node, context) {
 function element_has_dynamic_content(element) {
 	// Check for dynamic attributes
 	for (const attr of element.attributes) {
-		if (attr.type === 'Attribute') {
+		if (attr.type === 'JSXAttribute') {
+			const attr_value = get_attribute_value(attr);
 			// Dynamic value expression (not null, not Literal)
-			if (attr.value !== null && attr.value.type !== 'Literal') {
+			if (attr_value !== null && attr_value.type !== 'Literal') {
 				return true;
 			}
-		} else if (attr.type === 'SpreadAttribute') {
+		} else if (attr.type === 'JSXSpreadAttribute') {
 			return true;
 		}
 	}
@@ -5577,8 +5568,7 @@ function transform_children(children, context) {
 							child.type === 'TsrxFragment' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
-							(child.type === 'JSXExpressionContainer' &&
-								child.expression.type !== 'Literal'),
+							(child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal'),
 					);
 
 					const has_following_renderable_sibling = normalized

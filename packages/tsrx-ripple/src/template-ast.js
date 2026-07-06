@@ -140,9 +140,111 @@ export function get_template_expression(node, to_ts) {
  * @returns {boolean}
  */
 export function is_empty_expression_container(node) {
-	return (
-		node.type === 'JSXExpressionContainer' && node.expression?.type === 'JSXEmptyExpression'
+	return node.type === 'JSXExpressionContainer' && node.expression?.type === 'JSXEmptyExpression';
+}
+
+/**
+ * The attribute's name as a string, flattening `<ns:name>` namespaced names.
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {string}
+ */
+export function get_attribute_name(attr) {
+	return attr.name.type === 'JSXIdentifier'
+		? attr.name.name
+		: attr.name.namespace.name + ':' + attr.name.name.name;
+}
+
+/**
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {number}
+ */
+function attribute_name_end(attr) {
+	return /** @type {number} */ (
+		attr.name.end && attr.name.end > /** @type {number} */ (attr.name.start)
+			? attr.name.end
+			: /** @type {number} */ (attr.end) - 1
 	);
+}
+
+/**
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {AST.Position | undefined}
+ */
+function attribute_shorthand_end_loc(attr) {
+	return attr.loc?.end && attr.loc.end.column > 0
+		? { ...attr.loc.end, column: attr.loc.end.column - 1 }
+		: attr.loc?.end;
+}
+
+/**
+ * The attribute's name as a plain `Identifier`, memoized on the attribute so
+ * the analyzer and transforms share one node (attribute-name identifiers are
+ * collected into sets and compared by identity).
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {AST.Identifier}
+ */
+export function get_attribute_name_node(attr) {
+	attr.metadata ??= { path: [] };
+	const metadata = /** @type {{ attribute_name_node?: AST.Identifier }} */ (attr.metadata);
+	if (metadata.attribute_name_node === undefined) {
+		metadata.attribute_name_node = /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: get_attribute_name(attr),
+			tracked: false,
+			start: attr.name.start,
+			end: attribute_name_end(attr),
+			loc: {
+				start: attr.name.loc?.start ?? attr.loc?.start,
+				end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
+			},
+		});
+	}
+	return metadata.attribute_name_node;
+}
+
+/**
+ * The attribute's value expression: `null` for a valueless attribute
+ * (`<div attr>`), the expression for a `{ … }` container value, a synthesized
+ * `Identifier` (memoized) for a shorthand attribute (`<div {foo}>`), and the
+ * literal itself for a quoted value.
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {AST.Expression | null}
+ */
+export function get_attribute_value(attr) {
+	if (attr.shorthand === true) {
+		attr.metadata ??= { path: [] };
+		const metadata = /** @type {{ attribute_shorthand_value?: AST.Identifier }} */ (attr.metadata);
+		if (metadata.attribute_shorthand_value === undefined) {
+			metadata.attribute_shorthand_value = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: get_attribute_name(attr),
+				start: attr.name.start,
+				end: attribute_name_end(attr),
+				loc: {
+					start: attr.name.loc?.start ?? attr.loc?.start,
+					end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
+				},
+			});
+		}
+		return metadata.attribute_shorthand_value;
+	}
+	if (attr.value == null) {
+		return null;
+	}
+	return attr.value.type === 'JSXExpressionContainer'
+		? /** @type {AST.Expression} */ (attr.value.expression)
+		: /** @type {AST.Expression} */ (attr.value);
+}
+
+/**
+ * Whether the attribute's value was authored as a `{ … }` expression container
+ * (as opposed to a quoted literal). Replaces the old `value.was_expression`
+ * marker the normalizer stamped on unwrapped values.
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {boolean}
+ */
+export function is_expression_attribute(attr) {
+	return attr.value?.type === 'JSXExpressionContainer';
 }
 
 /**

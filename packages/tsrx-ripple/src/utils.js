@@ -1920,11 +1920,10 @@ export function lower_dynamic_element(node, component_id) {
 		return false;
 	}
 
-	const expression = /** @type {AST.Expression & { was_expression?: boolean }} */ (node.id);
+	const expression = /** @type {AST.Expression} */ (node.id);
 	const closing_name = /** @type {any} */ (node.closingElement?.name);
 	const closing_expression =
 		closing_name?.expression && clone_expression_node(closing_name.expression);
-	expression.was_expression = true;
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
 	node.id = component_id ?? b.id(dynamic_element_import_local);
 	if (node.openingElement?.name) {
@@ -1934,22 +1933,25 @@ export function lower_dynamic_element(node, component_id) {
 		node.closingElement.name = b.jsx_id(dynamic_element_import_local);
 	}
 	node.attributes = [
-		/** @type {AST.Attribute} */ ({
-			type: 'Attribute',
-			name: {
-				type: 'Identifier',
-				name: 'is',
-				tracked: false,
+		// A synthetic `is={expr}` JSXAttribute; the container value marks it as
+		// an authored-expression attribute for the accessors.
+		/** @type {ESTreeJSX.JSXAttribute} */ (
+			/** @type {unknown} */ ({
+				type: 'JSXAttribute',
+				name: b.jsx_id(
+					'is',
+					/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
+				),
+				value: b.jsx_expression_container(
+					expression,
+					/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
+				),
+				shorthand: false,
 				start: expression.start,
 				end: expression.end,
 				loc: expression.loc,
-			},
-			value: expression,
-			shorthand: false,
-			start: expression.start,
-			end: expression.end,
-			loc: expression.loc,
-		}),
+			})
+		),
 		...node.attributes,
 	];
 	node.isDynamic = false;
@@ -3058,66 +3060,9 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 			});
 		}
 
-		const attributes = opening.attributes
-			.map((/** @type {any} */ attr) => {
-				if (attr.type === 'JSXAttribute') {
-					const name =
-						attr.name.type === 'JSXIdentifier'
-							? attr.name.name
-							: attr.name.namespace.name + ':' + attr.name.name.name;
-					const shorthand_end_loc =
-						attr.loc?.end && attr.loc.end.column > 0
-							? { ...attr.loc.end, column: attr.loc.end.column - 1 }
-							: attr.loc?.end;
-					const value = attr.shorthand
-						? {
-								type: 'Identifier',
-								name,
-								start: attr.name.start,
-								end:
-									attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
-								loc: {
-									start: attr.name.loc?.start ?? attr.loc?.start,
-									end: attr.name.loc?.end ?? shorthand_end_loc,
-								},
-							}
-						: attr.value
-							? attr.value.type === 'JSXExpressionContainer'
-								? attr.value.expression
-								: attr.value
-							: null;
-					if (attr.value?.type === 'JSXExpressionContainer' && value) {
-						value.was_expression = true;
-					}
-					return /** @type {AST.Node} */ ({
-						type: 'Attribute',
-						name: {
-							type: 'Identifier',
-							name,
-							tracked: false,
-							start: attr.name.start,
-							end: attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
-							loc: {
-								start: attr.name.loc?.start ?? attr.loc?.start,
-								end: attr.name.loc?.end ?? shorthand_end_loc,
-							},
-						},
-						value,
-						shorthand: attr.shorthand === true,
-						start: attr.start,
-						end: attr.end,
-					});
-				} else if (attr.type === 'JSXSpreadAttribute') {
-					return /** @type {AST.Node} */ ({
-						type: 'SpreadAttribute',
-						argument: attr.argument,
-						start: attr.start,
-						end: attr.end,
-					});
-				}
-				return null;
-			})
-			.filter(Boolean);
+		// Attributes stay raw JSXAttribute/JSXSpreadAttribute nodes — consumers
+		// unwrap them via the template-ast.js accessors.
+		const attributes = opening.attributes;
 
 		const element = /** @type {AST.Element} */ (
 			/** @type {unknown} */ ({
