@@ -1995,7 +1995,10 @@ const visitors = {
 						}
 
 						if (attr.value === null) {
-							handle_static_attr(name, true);
+							// omit a valueless event attr (analyze errored); `hidden` etc. still emit
+							if (!isEventAttribute(name)) {
+								handle_static_attr(name, true);
+							}
 							continue;
 						}
 
