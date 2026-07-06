@@ -71,6 +71,7 @@ import {
 	is_droppable_template_text,
 	is_dynamic_element,
 	is_empty_expression_container,
+	is_template_element,
 	is_template_fragment,
 	is_template_text_or_expression,
 	rendered_template_children,
@@ -83,124 +84,6 @@ const TRACKED_INDEX_VALUE_ERROR =
 	'Do not access tracked values with [0]. Use .value or &[] lazy destructuring instead. Numeric tracked access leads to degraded performance.';
 const TRACKED_INDEX_REFERENCE_ERROR =
 	'Do not access tracked values with [1]. Use the tracked value directly instead. Numeric tracked access leads to degraded performance.';
-
-/**
- * Ripple analysis still works with internal Element nodes after parser
- * normalization. Keep that compatibility local by presenting those nodes to the
- * shared CSS pruner as native JSX only during pruning.
- *
- * @param {AST.Node[]} nodes
- * @returns {() => void}
- */
-function prepare_legacy_nodes_for_css_pruning(nodes) {
-	/** @type {{ node: any, type: string, native_tsrx: unknown, had_native_tsrx: boolean }[]} */
-	const changed = [];
-	const seen = new Set();
-
-	/** @param {any} node */
-	function visit(node) {
-		if (!node || typeof node !== 'object' || seen.has(node)) {
-			return;
-		}
-		seen.add(node);
-
-		if (node.type === 'Element') {
-			node.metadata ??= { path: [] };
-			changed.push({
-				node,
-				type: node.type,
-				native_tsrx: node.metadata.native_tsrx,
-				had_native_tsrx: Object.prototype.hasOwnProperty.call(node.metadata, 'native_tsrx'),
-			});
-			node.type = 'JSXElement';
-			node.metadata.native_tsrx = true;
-		}
-
-		if (Array.isArray(node.children)) {
-			for (const child of node.children) {
-				visit(child);
-			}
-		}
-	}
-
-	for (const node of nodes) {
-		visit(node);
-	}
-
-	return () => {
-		for (let i = changed.length - 1; i >= 0; i--) {
-			const entry = changed[i];
-			entry.node.type = entry.type;
-			if (entry.had_native_tsrx) {
-				entry.node.metadata.native_tsrx = entry.native_tsrx;
-			} else {
-				delete entry.node.metadata.native_tsrx;
-			}
-		}
-	};
-}
-
-/**
- * Scope creation lives in @tsrx/core and only understands JSX-shaped native
- * TSRX nodes. Ripple still normalizes to internal Element nodes before
- * analysis, so present them as JSX only while scopes are created.
- *
- * @param {AST.Node} node
- * @returns {() => void}
- */
-function prepare_legacy_nodes_for_core_scopes(node) {
-	/** @type {{ node: any, type: string, native_tsrx: unknown, had_native_tsrx: boolean }[]} */
-	const changed = [];
-	const seen = new Set();
-
-	/** @param {any} current */
-	function visit(current) {
-		if (!current || typeof current !== 'object' || seen.has(current)) {
-			return;
-		}
-		seen.add(current);
-
-		if (current.type === 'Element') {
-			current.metadata ??= { path: [] };
-			changed.push({
-				node: current,
-				type: current.type,
-				native_tsrx: current.metadata.native_tsrx,
-				had_native_tsrx: Object.prototype.hasOwnProperty.call(current.metadata, 'native_tsrx'),
-			});
-			current.type = 'JSXElement';
-			current.metadata.native_tsrx = true;
-		}
-
-		for (const key in current) {
-			if (key === 'parent' || key === 'loc' || key === 'range' || key === 'metadata') {
-				continue;
-			}
-			const value = current[key];
-			if (Array.isArray(value)) {
-				for (const child of value) {
-					visit(child);
-				}
-			} else if (value && typeof value === 'object') {
-				visit(value);
-			}
-		}
-	}
-
-	visit(node);
-
-	return () => {
-		for (let i = changed.length - 1; i >= 0; i--) {
-			const entry = changed[i];
-			entry.node.type = entry.type;
-			if (entry.had_native_tsrx) {
-				entry.node.metadata.native_tsrx = entry.native_tsrx;
-			} else {
-				delete entry.node.metadata.native_tsrx;
-			}
-		}
-	};
-}
 
 const mutating_method_names = new Set([
 	'add',
@@ -218,9 +101,6 @@ const mutating_method_names = new Set([
 	'splice',
 	'unshift',
 ]);
-
-const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
 /**
  * @param {AST.MemberExpression} node
@@ -497,7 +377,7 @@ function is_inside_template_child(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'Element' || is_template_fragment(node)) {
+		if (is_template_element(node) || is_template_fragment(node)) {
 			return true;
 		}
 	}
@@ -1342,13 +1222,8 @@ function visit_function(node, context) {
 		if (css !== null) {
 			analyzeCss(css);
 			const prune = () => {
-				const restore_nodes = prepare_legacy_nodes_for_css_pruning(elements);
-				try {
-					for (const element of elements) {
-						pruneCss(css, element, styleClasses, topScopedClasses);
-					}
-				} finally {
-					restore_nodes();
+				for (const element of elements) {
+					pruneCss(css, element, styleClasses, topScopedClasses);
 				}
 			};
 			prune();
@@ -2401,10 +2276,6 @@ const visitors = {
 		context.next();
 	},
 
-	JSXElement(node, context) {
-		return context.next();
-	},
-
 	/**
 	 * @param {any} node
 	 * @param {AnalysisContext} context
@@ -2436,13 +2307,15 @@ const visitors = {
 		// Children are stylesheet AST — nothing to analyze.
 	},
 
-	Element(node, context) {
-		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true, component: undefined });
+	JSXElement(node, context) {
+		// A raw (non-template) element — an attribute value or other JSX that
+		// never entered the template traversal.
+		if (!is_template_element(node)) {
+			return context.next();
 		}
 
-		if (!node.id) {
-			error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
 		}
 
 		const { state, visit, path } = context;
@@ -2831,19 +2704,12 @@ export function analyze(ast, filename, options = {}) {
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
 
-	const restore_scope_nodes = prepare_legacy_nodes_for_core_scopes(ast);
-	let scope;
-	let scopes;
-	try {
-		({ scope, scopes } = createScopes(ast, scope_root, null, {
-			collect,
-			errors,
-			filename,
-			comments,
-		}));
-	} finally {
-		restore_scope_nodes();
-	}
+	const { scope, scopes } = createScopes(ast, scope_root, null, {
+		collect,
+		errors,
+		filename,
+		comments,
+	});
 
 	const analysis = /** @type {AnalysisResult} */ ({
 		module: { ast, scope, scopes, filename },

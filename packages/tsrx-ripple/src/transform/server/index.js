@@ -124,8 +124,6 @@ function apply_tsrx_css_scoping(nodes, state) {
 	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
 	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
 
-	const restore_nodes = prepare_legacy_nodes_for_css_pruning(nodes);
-
 	/**
 	 * @param {AST.Node} node
 	 * @returns {void}
@@ -146,69 +144,9 @@ function apply_tsrx_css_scoping(nodes, state) {
 		}
 	}
 
-	try {
-		for (const node of nodes) {
-			visit_node(node);
-		}
-	} finally {
-		restore_nodes();
-	}
-}
-
-/**
- * Ripple still lowers JSX-shaped TSRX into internal Element nodes before its
- * renderer runs. Keep that compatibility local by presenting those nodes to the
- * shared CSS pruner as native JSX only during pruning.
- *
- * @param {AST.Node[]} nodes
- * @returns {() => void}
- */
-function prepare_legacy_nodes_for_css_pruning(nodes) {
-	/** @type {{ node: any, type: string, native_tsrx: unknown, had_native_tsrx: boolean }[]} */
-	const changed = [];
-	const seen = new Set();
-
-	/** @param {any} node */
-	function visit(node) {
-		if (!node || typeof node !== 'object' || seen.has(node)) {
-			return;
-		}
-		seen.add(node);
-
-		if (node.type === 'Element') {
-			node.metadata ??= { path: [] };
-			changed.push({
-				node,
-				type: node.type,
-				native_tsrx: node.metadata.native_tsrx,
-				had_native_tsrx: Object.prototype.hasOwnProperty.call(node.metadata, 'native_tsrx'),
-			});
-			node.type = 'JSXElement';
-			node.metadata.native_tsrx = true;
-		}
-
-		if (Array.isArray(node.children)) {
-			for (const child of node.children) {
-				visit(child);
-			}
-		}
-	}
-
 	for (const node of nodes) {
-		visit(node);
+		visit_node(node);
 	}
-
-	return () => {
-		for (let i = changed.length - 1; i >= 0; i--) {
-			const entry = changed[i];
-			entry.node.type = entry.type;
-			if (entry.had_native_tsrx) {
-				entry.node.metadata.native_tsrx = entry.native_tsrx;
-			} else {
-				delete entry.node.metadata.native_tsrx;
-			}
-		}
-	};
 }
 
 /**
@@ -816,7 +754,8 @@ function node_leads_with_control_flow(node, context) {
 		case 'SwitchStatement':
 		case 'TryStatement':
 			return node.metadata?.regular_js ? null : true;
-		case 'Element':
+		case 'JSXElement':
+		case 'JSXStyleElement':
 			return false;
 		case 'JSXText':
 			// Insignificant whitespace renders nothing — keep scanning.
@@ -1577,13 +1516,6 @@ const visitors = {
 		return b.block(statements);
 	},
 
-	JSXElement(node, context) {
-		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
-		}
-		return context.next();
-	},
-
 	JSXFragment(node, context) {
 		// A raw (non-template) fragment — an attribute value or other JSX that
 		// never entered the template traversal.
@@ -1987,8 +1919,17 @@ const visitors = {
 		// at analysis time and injected separately.
 	},
 
-	Element(node, context) {
+	JSXElement(node, context) {
 		const { state, visit } = context;
+
+		// A raw (non-template) element — an attribute value or other JSX that
+		// never entered the template traversal.
+		if (!is_template_element(node)) {
+			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+				return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
+			}
+			return context.next();
+		}
 
 		lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'));
 

@@ -1487,7 +1487,7 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('template(`<button>Hello</button>`');
-		expect(code).toContain('_$_.append(__anchor, button_1)');
+		expect(code).toContain('_$_.append(__anchor, button)');
 		expect(code).not.toContain('template(``');
 	});
 
@@ -1500,7 +1500,7 @@ describe('@tsrx/ripple <> expression values', () => {
 		);
 
 		expect(code).toContain('template(`<div>Commented</div>`');
-		expect(code).toContain('_$_.append(__anchor, div_1)');
+		expect(code).toContain('_$_.append(__anchor, div)');
 	});
 
 	it('keeps directly called PascalCase numeric helpers as ordinary functions', () => {

@@ -27,6 +27,7 @@ import {
 	is_empty_expression_container,
 	is_dynamic_element,
 	is_template_element,
+	set_element_id,
 	is_template_expression,
 	is_template_fragment,
 	is_template_text,
@@ -181,8 +182,7 @@ export function is_tsrx_component_function(node) {
 export function is_native_tsrx_template_node(node) {
 	return !!(
 		node &&
-		(node.type === 'Element' ||
-			node.type === 'JSXElement' ||
+		(node.type === 'JSXElement' ||
 			node.type === 'JSXFragment' ||
 			node.type === 'JSXIfExpression' ||
 			node.type === 'JSXForExpression' ||
@@ -1909,29 +1909,29 @@ export function is_element_dom_element(node) {
 export const dynamic_element_import_local = 'TsrxDynamic';
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @param {AST.Expression} [component_id] - Override for the lowered component
  * reference; defaults to the `TsrxDynamic` local used by type-only output.
  * @returns {boolean}
  */
 export function lower_dynamic_element(node, component_id) {
-	if (node.isDynamic !== true) {
+	if (!is_dynamic_element(node)) {
 		return false;
 	}
 
-	const expression = /** @type {AST.Expression} */ (node.id);
+	const expression = /** @type {AST.Expression} */ (get_element_id(node));
 	const closing_name = /** @type {any} */ (node.closingElement?.name);
 	const closing_expression =
 		closing_name?.expression && clone_expression_node(closing_name.expression);
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
-	node.id = component_id ?? b.id(dynamic_element_import_local);
+	set_element_id(node, component_id ?? b.id(dynamic_element_import_local));
 	if (node.openingElement?.name) {
 		node.openingElement.name = b.jsx_id(dynamic_element_import_local);
 	}
 	if (node.closingElement?.name) {
 		node.closingElement.name = b.jsx_id(dynamic_element_import_local);
 	}
-	node.attributes = [
+	node.openingElement.attributes = [
 		// A synthetic `is={expr}` JSXAttribute; the container value marks it as
 		// an authored-expression attribute for the accessors.
 		/** @type {ESTreeJSX.JSXAttribute} */ (
@@ -1951,9 +1951,14 @@ export function lower_dynamic_element(node, component_id) {
 				loc: expression.loc,
 			})
 		),
-		...node.attributes,
+		...node.openingElement.attributes,
 	];
+	// The tag is no longer dynamic — clear the parser's markers (the name
+	// container was already replaced above).
 	node.isDynamic = false;
+	if (node.openingElement) {
+		node.openingElement.isDynamic = false;
+	}
 	return true;
 }
 
@@ -2271,9 +2276,12 @@ function normalize_child(node, normalized, context) {
 	} else if (
 		is_template_element(node) &&
 		get_element_id(node).type === 'Identifier' &&
-		/** @type {AST.Identifier} */ ((get_element_id(node)).name === 'head' ||
-			/** @type {AST.Identifier} */ ((get_element_id(node)).name === 'title' &&
-				context.state.inside_head))
+		/** @type {AST.Identifier} */ (
+			get_element_id(node).name === 'head' ||
+				/** @type {AST.Identifier} */ (
+					get_element_id(node).name === 'title' && context.state.inside_head
+				)
+		)
 	) {
 		return;
 	} else {
@@ -2546,7 +2554,7 @@ export function is_inside_left_side_assignment(node) {
 			case 'MethodDefinition':
 			case 'PropertyDefinition':
 			case 'StaticBlock':
-			case 'Element':
+			case 'JSXElement':
 				return false;
 
 			default:
@@ -2613,45 +2621,6 @@ export function strip_class_typescript_syntax(node, context) {
 }
 
 /**
- * Converts a JSXMemberExpression to an AST MemberExpression.
- * e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
- * @param {import('estree-jsx').JSXMemberExpression} jsx_member
- * @returns {AST.MemberExpression}
- */
-function jsx_member_expression_to_member_expression(jsx_member) {
-	/** @type {AST.Expression} */
-	let object;
-
-	if (jsx_member.object.type === 'JSXMemberExpression') {
-		// Recursively convert nested member expressions
-		object = jsx_member_expression_to_member_expression(jsx_member.object);
-	} else {
-		// Base case: JSXIdentifier
-		object = /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: jsx_member.object.name,
-			start: jsx_member.object.start,
-			end: jsx_member.object.end,
-		});
-	}
-
-	return /** @type {AST.MemberExpression} */ ({
-		type: 'MemberExpression',
-		object,
-		property: /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: jsx_member.property.name,
-			start: jsx_member.property.start,
-			end: jsx_member.property.end,
-		}),
-		computed: false,
-		optional: false,
-		start: jsx_member.start,
-		end: jsx_member.end,
-	});
-}
-
-/**
  * Fragments stay raw `JSXFragment` nodes; normalization only lowers their
  * template children (code blocks, nested elements) in place.
  * @param {ESTreeJSX.JSXFragment} node
@@ -2662,7 +2631,10 @@ function jsx_to_ripple_fragment(node, inherited_path = []) {
 	node.children = /** @type {any} */ (
 		normalize_jsx_tsrx_template_children(node.children || [], inherited_path)
 	);
-	node.metadata = { ...(node.metadata ?? {}), path: inherited_path };
+	// Marking `native_tsrx` pulls raw JSX fragments (attribute values entering
+	// `build_jsx_to_tsrx_element`) into the template paths; authored template
+	// fragments already carry the flag from the parser.
+	node.metadata = { ...(node.metadata ?? {}), native_tsrx: true, path: inherited_path };
 	return node;
 }
 
@@ -2987,73 +2959,20 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
  */
 export function jsx_to_ripple_node(node, inherited_path = []) {
 	if (node.type === 'JSXElement') {
-		const opening = node.openingElement;
-		const name = opening.name;
+		// Elements stay raw JSXElement nodes; only their template children are
+		// lowered in place. Marking `native_tsrx` pulls raw JSX (attribute
+		// values entering `build_jsx_to_tsrx_element`) into the template paths;
+		// authored template elements already carry the flag from the parser.
+		node.metadata = { ...(node.metadata ?? {}), native_tsrx: true, path: inherited_path };
 
-		/** @type {AST.Identifier | AST.MemberExpression | AST.Expression} */
-		let id;
-
-		if (name.type === 'JSXIdentifier') {
-			id = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: name.name,
-				start: name.start,
-				end: name.end,
-			});
-		} else if (name.type === 'JSXMemberExpression') {
-			// Convert JSXMemberExpression to MemberExpression
-			// e.g., <Foo.Bar.Baz> → MemberExpression(MemberExpression(Foo, Bar), Baz)
-			id = jsx_member_expression_to_member_expression(name);
-		} else if (name.type === 'JSXNamespacedName') {
-			// For JSXNamespacedName like <namespace:element>, create an identifier with the full name
-			id = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: name.namespace.name + ':' + name.name.name,
-				start: name.start,
-				end: name.end,
-			});
-		} else if (name.type === 'JSXExpressionContainer' && name.isDynamic === true) {
-			id = name.expression;
-		} else {
-			// Fallback - should not reach here
-			id = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: 'unknown',
-				start: /** @type {AST.Node} */ (name).start,
-				end: /** @type {AST.Node} */ (name).end,
-			});
-		}
-
-		// Attributes stay raw JSXAttribute/JSXSpreadAttribute nodes — consumers
-		// unwrap them via the template-ast.js accessors.
-		const attributes = opening.attributes;
-
-		const element = /** @type {AST.Element} */ (
-			/** @type {unknown} */ ({
-				type: 'Element',
-				id,
-				attributes,
-				children: [],
-				openingElement: opening,
-				closingElement: node.closingElement,
-				selfClosing: opening.selfClosing,
-				metadata: { scoped: false, path: inherited_path },
-				start: node.start,
-				end: node.end,
-			})
-		);
-		if (node.isDynamic === true || opening.isDynamic === true || name.isDynamic === true) {
-			element.isDynamic = true;
-		}
-
-		element.children = /** @type {AST.Node[]} */ (
+		node.children = /** @type {AST.Node[]} */ (
 			normalize_jsx_tsrx_template_children(/** @type {AST.Node[]} */ (node.children), [
 				...inherited_path,
-				element,
+				node,
 			]).filter(Boolean)
 		);
 
-		return element;
+		return node;
 	}
 
 	if (

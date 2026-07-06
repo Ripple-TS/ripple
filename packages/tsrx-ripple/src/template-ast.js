@@ -211,9 +211,6 @@ export function jsx_member_expression_to_member_expression(jsx_member) {
  * @returns {AST.Identifier | AST.MemberExpression | AST.Expression}
  */
 export function get_element_id(node) {
-	if (node.type === 'Element') {
-		return node.id;
-	}
 	node.metadata ??= { path: [] };
 	const metadata = /** @type {{ id_node?: AST.Expression }} */ (node.metadata);
 	if (metadata.id_node === undefined) {
@@ -252,15 +249,12 @@ export function get_element_id(node) {
 /**
  * A template element: an authored native element, or a raw JSX element that
  * `build_jsx_to_tsrx_element` marked native when pulling it into the template
- * machinery. (The interim `Element` leg is removed once normalization stops
- * producing Element nodes.)
+ * machinery.
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_template_element(node) {
-	return (
-		node?.type === 'Element' || (node?.type === 'JSXElement' && node.metadata?.native_tsrx === true)
-	);
+	return node?.type === 'JSXElement' && node.metadata?.native_tsrx === true;
 }
 
 /**
@@ -273,10 +267,6 @@ export function is_template_element(node) {
  * @returns {void}
  */
 export function set_element_id(node, id) {
-	if (node.type === 'Element') {
-		node.id = id;
-		return;
-	}
 	node.metadata ??= { path: [] };
 	node.metadata.id_node = id;
 }
@@ -287,7 +277,7 @@ export function set_element_id(node, id) {
  * @returns {Array<ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute>}
  */
 export function get_element_attributes(node) {
-	return node.type === 'Element' ? node.attributes : (node.openingElement?.attributes ?? []);
+	return node.openingElement?.attributes ?? [];
 }
 
 /**
@@ -295,24 +285,17 @@ export function get_element_attributes(node) {
  * @returns {boolean}
  */
 export function is_self_closing(node) {
-	return node.type === 'Element'
-		? node.selfClosing === true
-		: node.openingElement?.selfClosing === true;
+	return node.openingElement?.selfClosing === true;
 }
 
 /**
  * Whether the element has a dynamic `<{expr}>` tag that has not (yet) been
- * lowered to the `TsrxDynamic` component by `lower_dynamic_element`.
+ * lowered to the `TsrxDynamic` component by `lower_dynamic_element` (which
+ * clears these markers).
  * @param {any} node
  * @returns {boolean}
  */
 export function is_dynamic_element(node) {
-	if (node.type === 'Element') {
-		return node.isDynamic === true;
-	}
-	if (node.metadata?.dynamic_lowered === true) {
-		return false;
-	}
 	return (
 		node.isDynamic === true ||
 		node.openingElement?.isDynamic === true ||

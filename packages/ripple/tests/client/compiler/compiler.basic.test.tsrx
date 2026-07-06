@@ -69,8 +69,8 @@ describe('compiler > basics', () => {
 
 		const ast = parse(source, 'App.tsrx');
 		const elements = get_returned_tsrx(ast.body[0]).children.filter(
-			(node: AST.Node) => node.type === 'Element',
-		) as AST.Element[];
+			(node: AST.Node) => node.type === 'JSXElement',
+		) as ESTreeJSX.JSXElement[];
 		const expression = elements[0].children[0] as AST.Node & { expression: AST.Expression };
 		const text_expression = elements[1].children[0] as AST.Node & { expression: AST.Expression };
 
@@ -1229,10 +1229,10 @@ export function App() @{
 			const ast = parse(source, 'App.tsrx');
 			const returned = get_returned_tsrx(ast.body[0]);
 			const ul =
-				returned.type === 'Element'
+				returned.type === 'JSXElement'
 					? returned
-					: returned.children.find((n: AST.Node) => n.type === 'Element') as AST.Element;
-			expect((ul.id as AST.Identifier).name).toBe('ul');
+					: (returned.children.find((n: AST.Node) => n.type === 'JSXElement') as ESTreeJSX.JSXElement);
+			expect((ul.openingElement.name as ESTreeJSX.JSXIdentifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
 			const text = ul.children[0] as unknown as { type: string; value: string };
 			expect(text.type).toBe('JSXText');
