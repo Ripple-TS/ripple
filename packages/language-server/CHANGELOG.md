@@ -1,5 +1,21 @@
 # @ripple-ts/language-server
 
+## 0.3.87
+
+### Patch Changes
+
+- [#1317](https://github.com/Ripple-TS/ripple/pull/1317)
+  [`d70bd3e`](https://github.com/Ripple-TS/ripple/commit/d70bd3e96c9330667e53f046882408ab54770a5e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Improve the
+  `function component` completion snippet: it is now offered when typing
+  `export func…` (it was suppressed inside an `export` statement), and it is no
+  longer suggested while typing `@` (it is not an `@`-directive).
+
+- Updated dependencies
+  [[`cc95ffa`](https://github.com/Ripple-TS/ripple/commit/cc95ffaef3f3d3cd252176ea94308f89739f0212)]:
+  - @tsrx/core@0.1.34
+  - @tsrx/typescript-plugin@0.3.87
+
 ## 0.3.86
 
 ### Patch Changes

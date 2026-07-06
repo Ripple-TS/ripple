@@ -1,5 +1,20 @@
 # @tsrx/prettier-plugin
 
+## 0.3.87
+
+### Patch Changes
+
+- [#1315](https://github.com/Ripple-TS/ripple/pull/1315)
+  [`cc95ffa`](https://github.com/Ripple-TS/ripple/commit/cc95ffaef3f3d3cd252176ea94308f89739f0212)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Respect `// prettier-ignore`
+  (and `/* prettier-ignore */`) directives. A node immediately preceded by a
+  `prettier-ignore` comment is now emitted verbatim from the original source
+  instead of being reformatted, matching Prettier core behavior. This works for
+  statements, JSX elements, and fragments.
+- Updated dependencies
+  [[`cc95ffa`](https://github.com/Ripple-TS/ripple/commit/cc95ffaef3f3d3cd252176ea94308f89739f0212)]:
+  - @tsrx/core@0.1.34
+
 ## 0.3.86
 
 ## 0.3.85

@@ -1,5 +1,13 @@
 # @tsrx/react
 
+## 0.2.34
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cc95ffa`](https://github.com/Ripple-TS/ripple/commit/cc95ffaef3f3d3cd252176ea94308f89739f0212)]:
+  - @tsrx/core@0.1.34
+
 ## 0.2.33
 
 ### Patch Changes
