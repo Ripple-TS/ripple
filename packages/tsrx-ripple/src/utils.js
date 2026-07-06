@@ -21,9 +21,12 @@ import {
 	strongHash,
 } from '@tsrx/core';
 import {
+	get_element_id,
 	get_template_expression,
 	is_droppable_template_text,
 	is_empty_expression_container,
+	is_dynamic_element,
+	is_template_element,
 	is_template_expression,
 	is_template_fragment,
 	is_template_text,
@@ -1080,9 +1083,9 @@ function collect_style_elements(node, styles, inside_head) {
 	const node_any = /** @type {any} */ (node);
 	const next_inside_head =
 		inside_head ||
-		(node_any.type === 'Element' &&
-			node_any.id?.type === 'Identifier' &&
-			node_any.id.name === 'head');
+		(is_template_element(node_any) &&
+			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
+			/** @type {any} */ (get_element_id(node_any)).name === 'head');
 	if ('children' in node && Array.isArray(node.children)) {
 		collect_style_elements(/** @type {AST.Node[]} */ (node.children), styles, next_inside_head);
 	}
@@ -1124,9 +1127,9 @@ function strip_style_element_children(node, inside_head) {
 	const node_any = /** @type {any} */ (node);
 	const next_inside_head =
 		inside_head ||
-		(node_any.type === 'Element' &&
-			node_any.id?.type === 'Identifier' &&
-			node_any.id.name === 'head');
+		(is_template_element(node_any) &&
+			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
+			/** @type {any} */ (get_element_id(node_any)).name === 'head');
 	if ('children' in node && Array.isArray(node.children)) {
 		node.children = strip_style_elements(
 			/** @type {AST.Node[]} */ (node.children),
@@ -1891,10 +1894,10 @@ export function escape_html(value, is_attr = false) {
 export function is_element_dom_element(node) {
 	// A dynamic tag's id is an arbitrary expression (possibly a lowercase
 	// identifier) and resolves at runtime, never statically to a DOM element.
-	if (/** @type {AST.Element} */ (node).isDynamic === true) {
+	if (is_dynamic_element(node)) {
 		return false;
 	}
-	const id = /** @type {AST.Element} */ (node).id;
+	const id = /** @type {AST.Identifier} */ (get_element_id(node));
 	return (
 		id.type === 'Identifier' &&
 		id.name[0].toLowerCase() === id.name[0] &&
@@ -2266,9 +2269,11 @@ function normalize_child(node, normalized, context) {
 		// Component styles render nothing — their CSS is extracted at analysis.
 		return;
 	} else if (
-		node.type === 'Element' &&
-		node.id.type === 'Identifier' &&
-		(node.id.name === 'head' || (node.id.name === 'title' && context.state.inside_head))
+		is_template_element(node) &&
+		get_element_id(node).type === 'Identifier' &&
+		/** @type {AST.Identifier} */ ((get_element_id(node)).name === 'head' ||
+			/** @type {AST.Identifier} */ ((get_element_id(node)).name === 'title' &&
+				context.state.inside_head))
 	) {
 		return;
 	} else {

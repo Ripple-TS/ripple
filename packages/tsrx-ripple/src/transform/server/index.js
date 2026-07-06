@@ -79,9 +79,13 @@ import {
 import {
 	get_attribute_name,
 	get_attribute_value,
+	get_element_attributes,
+	get_element_id,
 	get_template_text_value,
 	is_droppable_template_text,
 	is_empty_expression_container,
+	is_self_closing,
+	is_template_element,
 	is_template_fragment,
 	is_template_text,
 	rendered_template_children,
@@ -425,7 +429,7 @@ function contains_template_value_node(node) {
 				return;
 			}
 			if (
-				node.type === 'Element' ||
+				is_template_element(node) ||
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
 				node.type === 'JSXStyleElement' ||
@@ -565,7 +569,7 @@ function is_template_value_binding(expression, scope) {
 	const initial = /** @type {AST.Node | null | undefined} */ (binding?.initial);
 	return (
 		binding?.metadata?.is_template_value === true ||
-		initial?.type === 'Element' ||
+		is_template_element(initial) ||
 		initial?.type === 'JSXStyleElement' ||
 		is_template_fragment(initial)
 	);
@@ -748,7 +752,7 @@ function is_template_or_control_flow(node) {
 	}
 
 	return (
-		node.type === 'Element' ||
+		is_template_element(node) ||
 		node.type === 'JSXStyleElement' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
@@ -907,7 +911,7 @@ function is_native_tsrx_value_position(path) {
 	const parent = path.at(-1);
 	return !(
 		is_native_tsrx_statement_position(path) ||
-		parent?.type === 'Element' ||
+		is_template_element(parent) ||
 		is_template_fragment(parent)
 	);
 }
@@ -925,7 +929,7 @@ function should_wrap_node_in_regular_block(node) {
  * @returns {boolean}
  */
 function is_head_element(node) {
-	return node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head';
+	return is_template_element(node) && /** @type {any} */ (get_element_id(node)).name === 'head';
 }
 
 /**
@@ -934,15 +938,16 @@ function is_head_element(node) {
  * @returns {boolean}
  */
 function is_ripple_fragment_element(node, context) {
-	if (node.id.type === 'Identifier') {
-		return node.id.name === 'Fragment' && is_ripple_import(node.id, context);
+	const id = get_element_id(node);
+	if (id.type === 'Identifier') {
+		return id.name === 'Fragment' && is_ripple_import(id, context);
 	}
 
 	return (
-		node.id.type === 'MemberExpression' &&
-		node.id.property.type === 'Identifier' &&
-		node.id.property.name === 'Fragment' &&
-		is_ripple_import(node.id, context)
+		id.type === 'MemberExpression' &&
+		id.property.type === 'Identifier' &&
+		id.property.name === 'Fragment' &&
+		is_ripple_import(id, context)
 	);
 }
 
@@ -951,7 +956,7 @@ function is_ripple_fragment_element(node, context) {
  * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
-	for (const attr of node.attributes) {
+	for (const attr of get_element_attributes(node)) {
 		if (attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'innerHTML') {
 			return attr;
 		}
@@ -1987,6 +1992,9 @@ const visitors = {
 
 		lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'));
 
+		const element_id = get_element_id(node);
+		const element_attributes = get_element_attributes(node);
+
 		if (
 			state.regular_js ||
 			(!state.template_child &&
@@ -2008,20 +2016,20 @@ const visitors = {
 		}
 
 		const is_dom_element = is_element_dom_element(node);
-		const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
+		const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
 		const child_namespace = is_dom_element
 			? determine_namespace_for_children(
-					/** @type {AST.Identifier} */ (node.id).name,
+					/** @type {AST.Identifier} */ (element_id).name,
 					state.namespace,
 				)
 			: state.namespace;
 
 		if (is_dom_element) {
-			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
-			const use_self_closing_syntax = node.selfClosing && is_void;
-			const tag_name = b.literal(/** @type {AST.Identifier} */ (node.id).name);
+			const is_void = is_void_element(/** @type {AST.Identifier} */ (element_id).name);
+			const use_self_closing_syntax = is_self_closing(node) && is_void;
+			const tag_name = b.literal(/** @type {AST.Identifier} */ (element_id).name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
@@ -2068,7 +2076,7 @@ const visitors = {
 				}
 			};
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					{
 						const name = get_attribute_name(attr);
@@ -2191,7 +2199,7 @@ const visitors = {
 
 			// In dev mode, emit push_element for runtime nesting validation
 			if (state.dev) {
-				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				const element_name = /** @type {AST.Identifier} */ (element_id).name;
 				const loc = node.loc;
 				state.init?.push(
 					b.stmt(
@@ -2290,7 +2298,7 @@ const visitors = {
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					{
 						const attr_name = get_attribute_name(attr);
@@ -2339,7 +2347,7 @@ const visitors = {
 			}
 
 			if (node.metadata.scoped && get_component_css(state)) {
-				const hasClassAttr = node.attributes.some(
+				const hasClassAttr = element_attributes.some(
 					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
@@ -2392,7 +2400,8 @@ const visitors = {
 			const args = [b.object(props)];
 
 			// Check if this is a locally defined component
-			const component_name = node.id.type === 'Identifier' ? node.id.name : null;
+			const component_name =
+				element_id.type === 'Identifier' ? /** @type {AST.Identifier} */ (element_id).name : null;
 			const local_metadata = component_name
 				? state.component_metadata.find((m) => m.id === component_name)
 				: null;
@@ -2401,7 +2410,7 @@ const visitors = {
 			const comp_call = b.call('_$_.render_component', comp_id, b.spread(args_id));
 			const comp_call_statement = b.stmt(comp_call);
 
-			const visited_id = /** @type {AST.Expression} */ (visit(node.id, state));
+			const visited_id = /** @type {AST.Expression} */ (visit(element_id, state));
 			/** @type {AST.Statement[]} */
 			const statements = [b.const(comp_id, visited_id), b.const(args_id, b.array(args))];
 

@@ -110,15 +110,21 @@ import {
 	get_attribute_name,
 	get_attribute_name_node,
 	get_attribute_value,
+	get_element_attributes,
+	get_element_id,
 	get_style_css,
 	get_template_expression,
 	get_template_text_value,
+	is_dynamic_element,
 	is_empty_expression_container,
 	is_expression_attribute,
+	is_self_closing,
+	is_template_element,
 	is_template_expression,
 	is_template_fragment,
 	is_template_text,
 	is_template_text_or_expression,
+	set_element_id,
 } from '../../template-ast.js';
 import is_reference from 'is-reference';
 
@@ -1251,7 +1257,7 @@ function create_element_ref_target_type(node, state) {
 	if (!is_element_dom_element(node)) {
 		return null;
 	}
-	const element_name = /** @type {AST.Identifier} */ (node.id).name;
+	const element_name = /** @type {AST.Identifier} */ (get_element_id(node)).name;
 	const namespace =
 		element_name === 'svg' ? 'svg' : element_name === 'math' ? 'mathml' : state.namespace;
 	return create_element_ref_target_type_for_name(element_name, namespace);
@@ -1334,15 +1340,16 @@ function ripple_namespace_requires_block(name) {
  * @returns {boolean}
  */
 function is_ripple_fragment_element(node, context) {
-	if (node.id.type === 'Identifier') {
-		return node.id.name === 'Fragment' && is_ripple_import(node.id, context);
+	const id = get_element_id(node);
+	if (id.type === 'Identifier') {
+		return id.name === 'Fragment' && is_ripple_import(id, context);
 	}
 
 	return (
-		node.id.type === 'MemberExpression' &&
-		node.id.property.type === 'Identifier' &&
-		node.id.property.name === 'Fragment' &&
-		is_ripple_import(node.id, context)
+		id.type === 'MemberExpression' &&
+		id.property.type === 'Identifier' &&
+		id.property.name === 'Fragment' &&
+		is_ripple_import(id, context)
 	);
 }
 
@@ -1351,7 +1358,7 @@ function is_ripple_fragment_element(node, context) {
  * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
-	for (const attr of node.attributes) {
+	for (const attr of get_element_attributes(node)) {
 		if (attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'innerHTML') {
 			return attr;
 		}
@@ -2168,6 +2175,9 @@ const visitors = {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 		}
 
+		const element_id = get_element_id(node);
+		const element_attributes = get_element_attributes(node);
+
 		if (state.to_ts) {
 			const fragment = /** @type {ESTreeJSX.JSXFragment} */ (
 				/** @type {unknown} */ ({
@@ -2207,7 +2217,11 @@ const visitors = {
 			// the child content as the script's text. Scripts with no inline body
 			// (e.g. `<script src={...} />`) carry their behavior in attributes, so
 			// they fall through to generic element handling instead.
-			if (node.id.type === 'Identifier' && node.id.name === 'script' && node.children.length > 0) {
+			if (
+				element_id.type === 'Identifier' &&
+				element_id.name === 'script' &&
+				node.children.length > 0
+			) {
 				const id = state.flush_node?.();
 				state.template?.push('<!>');
 				context.state.init?.push(
@@ -2220,12 +2234,12 @@ const visitors = {
 		}
 
 		const is_dom_element = is_element_dom_element(node);
-		const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
+		const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
 		const child_namespace = is_dom_element
 			? determine_namespace_for_children(
-					/** @type {AST.Identifier} */ (node.id).name,
+					/** @type {AST.Identifier} */ (element_id).name,
 					state.namespace,
 				)
 			: state.namespace;
@@ -2262,7 +2276,7 @@ const visitors = {
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
-			const element_name = /** @type {AST.Identifier} */ (node.id).name;
+			const element_name = /** @type {AST.Identifier} */ (element_id).name;
 			const is_void = is_void_element(element_name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
@@ -2271,7 +2285,7 @@ const visitors = {
 
 			state.template?.push(`<${element_name}`);
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					const attr_value = get_attribute_value(attr);
 					{
@@ -2545,7 +2559,7 @@ const visitors = {
 					const hash_arg = scoping_hash ? b.literal(scoping_hash) : undefined;
 					const is_html =
 						context.state.namespace === 'html' &&
-						/** @type {AST.Identifier} */ (node.id).name !== 'svg';
+						/** @type {AST.Identifier} */ (element_id).name !== 'svg';
 
 					if (metadata.tracking) {
 						local_updates.push({
@@ -2614,7 +2628,7 @@ const visitors = {
 			const update = [];
 
 			if (!is_void) {
-				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				const element_name = /** @type {AST.Identifier} */ (element_id).name;
 				const render_children = inner_html_attribute === null ? node.children : [];
 				// Special handling for <template> elements
 				if (element_name === 'template' && render_children.length > 0) {
@@ -2649,8 +2663,8 @@ const visitors = {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							is_template_fragment(child) ||
-							(child.type === 'Element' &&
-								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
+							(is_template_element(child) &&
+								(get_element_id(child).type !== 'Identifier' || !is_element_dom_element(child))) ||
 							// A JSXText child is always a literal; only a `{ … }` container
 							// (including a merged text run) can hold a dynamic expression.
 							(child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal'),
@@ -2694,13 +2708,13 @@ const visitors = {
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
-			const is_spreading = node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
+			const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
 			/** @type {AST.Property | null} */
 			let children_prop = null;
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					{
 						const attr_name = get_attribute_name(attr);
@@ -2792,7 +2806,7 @@ const visitors = {
 			}
 
 			if (node.metadata.scoped && get_component_css(state)) {
-				const hasClassAttr = node.attributes.some(
+				const hasClassAttr = element_attributes.some(
 					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
@@ -2847,7 +2861,7 @@ const visitors = {
 
 			const metadata = { tracking: false };
 			// We visit, but only to gather metadata
-			b.call(/** @type {AST.Expression} */ (visit(node.id, { ...state, metadata })));
+			b.call(/** @type {AST.Expression} */ (visit(element_id, { ...state, metadata })));
 
 			// We're calling a component from within svg/mathml context
 			const is_with_ns = state.namespace !== DEFAULT_NAMESPACE;
@@ -2890,10 +2904,10 @@ const visitors = {
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or
 			// null) and re-renders when a tracked expression changes.
-			if (metadata.tracking || node.isDynamic === true) {
+			if (metadata.tracking || is_dynamic_element(node)) {
 				const shared = b.call(
 					'_$_.composite',
-					b.thunk(/** @type {AST.Expression} */ (visit(node.id, state))),
+					b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
 					id,
 					object_props,
 				);
@@ -2905,7 +2919,7 @@ const visitors = {
 			} else {
 				const shared = b.call(
 					'_$_.render_component',
-					/** @type {AST.Expression} */ (visit(node.id, state)),
+					/** @type {AST.Expression} */ (visit(element_id, state)),
 					id,
 					object_props,
 				);
@@ -3933,7 +3947,7 @@ function transform_tsrx_tsx_child(node, context) {
 		);
 	}
 
-	if (node.type === 'Element' || node.type === 'JSXStyleElement') {
+	if (is_template_element(node) || node.type === 'JSXStyleElement') {
 		const expression = transform_ts_child(node, {
 			...context,
 			state: { ...context.state, init: null },
@@ -4538,7 +4552,7 @@ function transform_ts_child(node, context) {
 		} else {
 			state.init?.push(b.stmt(jsxElement));
 		}
-	} else if (node.type === 'Element') {
+	} else if (is_template_element(node)) {
 		if (lower_dynamic_element(node)) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 		}
@@ -4548,15 +4562,15 @@ function transform_ts_child(node, context) {
 		let has_children_props = false;
 		const is_dom_element = is_element_dom_element(node);
 		const element_name =
-			/** @type {AST.Node} */ (node.id).type === 'Identifier'
-				? /** @type {AST.Identifier} */ (node.id).name
+			/** @type {AST.Node} */ (get_element_id(node)).type === 'Identifier'
+				? /** @type {AST.Identifier} */ (get_element_id(node)).name
 				: null;
 		const child_namespace =
 			is_dom_element && element_name !== null
 				? determine_namespace_for_children(element_name, state.namespace)
 				: state.namespace;
 
-		const attributes = node.attributes.map((attr) => {
+		const attributes = get_element_attributes(node).map((attr) => {
 			if (attr.type === 'JSXAttribute') {
 				const name = visit(get_attribute_name_node(attr), state);
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
@@ -4636,7 +4650,12 @@ function transform_ts_child(node, context) {
 			}
 		});
 
-		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
+		if (
+			!is_self_closing(node) &&
+			!node.unclosed &&
+			!has_children_props &&
+			node.children.length > 0
+		) {
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 			const child_context = {
 				...context,
@@ -4668,10 +4687,12 @@ function transform_ts_child(node, context) {
 			}
 		}
 
-		if (node.id.type === 'MemberExpression') {
-			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
+		if (get_element_id(node).type === 'MemberExpression') {
+			const member = /** @type {AST.MemberExpression} */ (
+				visit(get_element_id(node), { ...state })
+			);
 
-			node.id = member;
+			set_element_id(node, member);
 			/** @type {ESTreeJSX.TSRXJSXOpeningElement} */ (node.openingElement).name = member;
 			if (node.closingElement) {
 				/** @type {ESTreeJSX.TSRXJSXClosingElement} */ (node.closingElement).name = setLocation(
@@ -4960,7 +4981,7 @@ function is_template_or_control_flow(node) {
 	}
 
 	return (
-		node.type === 'Element' ||
+		is_template_element(node) ||
 		node.type === 'JSXStyleElement' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
@@ -5024,7 +5045,7 @@ function is_native_tsrx_value_position(path) {
 	const parent = path.at(-1);
 	return !(
 		is_native_tsrx_statement_position(path) ||
-		parent?.type === 'Element' ||
+		is_template_element(parent) ||
 		is_template_fragment(parent)
 	);
 }
@@ -5150,7 +5171,7 @@ function build_native_tsrx_value_expression(children, source_node, context) {
  */
 function element_has_dynamic_content(element) {
 	// Check for dynamic attributes
-	for (const attr of element.attributes) {
+	for (const attr of get_element_attributes(element)) {
 		if (attr.type === 'JSXAttribute') {
 			const attr_value = get_attribute_value(attr);
 			// Dynamic value expression (not null, not Literal)
@@ -5178,15 +5199,15 @@ function element_has_dynamic_content(element) {
 		}
 		// Non-DOM element (component)
 		if (
-			child.type === 'Element' &&
-			(child.id.type !== 'Identifier' || !is_element_dom_element(child))
+			is_template_element(child) &&
+			(get_element_id(child).type !== 'Identifier' || !is_element_dom_element(child))
 		) {
 			return true;
 		}
 		// Recursively check DOM element children
 		if (
-			child.type === 'Element' &&
-			child.id.type === 'Identifier' &&
+			is_template_element(child) &&
+			get_element_id(child).type === 'Identifier' &&
 			is_element_dom_element(child)
 		) {
 			if (element_has_dynamic_content(child)) {
@@ -5252,7 +5273,7 @@ function transform_children(children, context) {
 	const { visit, state, root } = context;
 	if (state.to_ts) {
 		for (const child of children) {
-			if (child.type === 'Element' && lower_dynamic_element(child)) {
+			if (is_template_element(child) && lower_dynamic_element(child)) {
 				state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 			}
 		}
@@ -5264,7 +5285,8 @@ function transform_children(children, context) {
 
 	const head_elements = /** @type {AST.Element[]} */ (
 		children.filter(
-			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
+			(node) =>
+				is_template_element(node) && /** @type {any} */ (get_element_id(node)).name === 'head',
 		)
 	);
 
@@ -5276,8 +5298,8 @@ function transform_children(children, context) {
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
 				is_template_fragment(node) ||
-				(node.type === 'Element' &&
-					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
+				(is_template_element(node) &&
+					(get_element_id(node).type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
 		(normalized.filter(
 			(node) =>
@@ -5325,11 +5347,11 @@ function transform_children(children, context) {
 			// A single static component child (`render_component`, not a dynamic/
 			// composite tag, DOM element, or ripple `Fragment`) renders before
 			// __anchor too.
-			(single_output.type === 'Element' &&
-				single_output.isDynamic !== true &&
-				single_output.id.type === 'Identifier' &&
-				!(/** @type {any} */ (single_output.id).tracked) &&
-				single_output.id.name !== 'children' &&
+			(is_template_element(single_output) &&
+				!is_dynamic_element(single_output) &&
+				get_element_id(single_output).type === 'Identifier' &&
+				!(/** @type {any} */ (get_element_id(single_output)).tracked) &&
+				/** @type {AST.Identifier} */ (get_element_id(single_output)).name !== 'children' &&
 				!is_element_dom_element(single_output) &&
 				!is_ripple_fragment_element(single_output, context)));
 	if (root_controlled) {
@@ -5342,11 +5364,11 @@ function transform_children(children, context) {
 	// the component's root, dropping the placeholder comment nodes from the template.
 	/** @param {AST.Node} n */
 	const is_static_component_child = (n) =>
-		n.type === 'Element' &&
-		/** @type {any} */ (n).isDynamic !== true &&
-		n.id.type === 'Identifier' &&
-		!n.id.tracked &&
-		n.id.name !== 'children' &&
+		is_template_element(n) &&
+		!is_dynamic_element(n) &&
+		get_element_id(n).type === 'Identifier' &&
+		!(/** @type {any} */ (get_element_id(n)).tracked) &&
+		/** @type {AST.Identifier} */ (get_element_id(n)).name !== 'children' &&
 		!is_element_dom_element(n) &&
 		!is_ripple_fragment_element(n, context);
 	const all_component_append =
@@ -5367,8 +5389,8 @@ function transform_children(children, context) {
 	/** @param {AST.Node} node */
 	const get_id = (node) => {
 		return b.id(
-			node.type == 'Element' && is_element_dom_element(node)
-				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
+			is_template_element(node) && is_element_dom_element(node)
+				? state.scope.generate(/** @type {AST.Identifier} */ (get_element_id(node)).name)
 				: node.type === 'JSXStyleElement'
 					? state.scope.generate('style')
 					: is_template_text(node)
@@ -5376,7 +5398,7 @@ function transform_children(children, context) {
 						: is_template_expression(node)
 							? state.scope.generate('expression')
 							: state.scope.generate('node'),
-			/** @type {AST.NodeWithLocation} */ (node.type === 'Element' ? node.openingElement : node),
+			/** @type {AST.NodeWithLocation} */ (is_template_element(node) ? node.openingElement : node),
 		);
 	};
 
@@ -5386,7 +5408,7 @@ function transform_children(children, context) {
 			? b.id(
 					state.scope.generate('fragment'),
 					/** @type {AST.NodeWithLocation} */ (
-						node.type === 'Element' ? node.openingElement : node
+						is_template_element(node) ? node.openingElement : node
 					),
 				)
 			: get_id(node);
@@ -5565,7 +5587,7 @@ function transform_children(children, context) {
 				}
 			};
 
-			if (node.type === 'Element') {
+			if (is_template_element(node)) {
 				if (is_element_dom_element(node)) {
 					skipped++;
 				} else {
@@ -5596,8 +5618,8 @@ function transform_children(children, context) {
 					// the Element visitor doesn't add pop() for it
 					const has_dom_element_children = node.children.some(
 						(child) =>
-							child.type === 'Element' &&
-							child.id.type === 'Identifier' &&
+							is_template_element(child) &&
+							get_element_id(child).type === 'Identifier' &&
 							is_element_dom_element(child),
 					);
 
@@ -5609,8 +5631,8 @@ function transform_children(children, context) {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							is_template_fragment(child) ||
-							(child.type === 'Element' &&
-								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
+							(is_template_element(child) &&
+								(get_element_id(child).type !== 'Identifier' || !is_element_dom_element(child))) ||
 							(child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal'),
 					);
 
@@ -5774,7 +5796,7 @@ function transform_children(children, context) {
 		const title_element = /** @type {AST.Element} */ (
 			children.find(
 				(node) =>
-					node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'title',
+					is_template_element(node) && /** @type {any} */ (get_element_id(node)).name === 'title',
 			)
 		);
 

@@ -164,6 +164,163 @@ export function is_template_fragment(node) {
 }
 
 /**
+ * Converts a JSXMemberExpression to a plain MemberExpression.
+ * e.g., `<Foo.Bar.Baz>` → MemberExpression(MemberExpression(Foo, Bar), Baz)
+ * @param {ESTreeJSX.JSXMemberExpression} jsx_member
+ * @returns {AST.MemberExpression}
+ */
+export function jsx_member_expression_to_member_expression(jsx_member) {
+	/** @type {AST.Expression} */
+	let object;
+
+	if (jsx_member.object.type === 'JSXMemberExpression') {
+		object = jsx_member_expression_to_member_expression(jsx_member.object);
+	} else {
+		object = /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.object.name,
+			start: jsx_member.object.start,
+			end: jsx_member.object.end,
+		});
+	}
+
+	return /** @type {AST.MemberExpression} */ ({
+		type: 'MemberExpression',
+		object,
+		property: /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: jsx_member.property.name,
+			start: jsx_member.property.start,
+			end: jsx_member.property.end,
+		}),
+		computed: false,
+		optional: false,
+		start: jsx_member.start,
+		end: jsx_member.end,
+	});
+}
+
+/**
+ * The element's tag as a plain expression: an `Identifier` for
+ * `JSXIdentifier`/`JSXNamespacedName` names, a `MemberExpression` for
+ * `<Foo.Bar>`, or the tag expression itself for a dynamic `<{expr}>` element.
+ * Memoized on the element so the analyzer and transforms share one node.
+ * `lower_dynamic_element` overwrites the memo when it rewrites a dynamic tag
+ * to the `TsrxDynamic` component.
+ * @param {any} node
+ * @returns {AST.Identifier | AST.MemberExpression | AST.Expression}
+ */
+export function get_element_id(node) {
+	if (node.type === 'Element') {
+		return node.id;
+	}
+	node.metadata ??= { path: [] };
+	const metadata = /** @type {{ id_node?: AST.Expression }} */ (node.metadata);
+	if (metadata.id_node === undefined) {
+		const name = node.openingElement.name;
+		if (name.type === 'JSXIdentifier') {
+			metadata.id_node = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else if (name.type === 'JSXMemberExpression') {
+			metadata.id_node = jsx_member_expression_to_member_expression(name);
+		} else if (name.type === 'JSXNamespacedName') {
+			metadata.id_node = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: name.namespace.name + ':' + name.name.name,
+				start: name.start,
+				end: name.end,
+			});
+		} else if (name.type === 'JSXExpressionContainer' && name.isDynamic === true) {
+			metadata.id_node = name.expression;
+		} else {
+			// Fallback - should not reach here
+			metadata.id_node = /** @type {AST.Identifier} */ ({
+				type: 'Identifier',
+				name: 'unknown',
+				start: name.start,
+				end: name.end,
+			});
+		}
+	}
+	return metadata.id_node;
+}
+
+/**
+ * A template element: an authored native element, or a raw JSX element that
+ * `build_jsx_to_tsrx_element` marked native when pulling it into the template
+ * machinery. (The interim `Element` leg is removed once normalization stops
+ * producing Element nodes.)
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+export function is_template_element(node) {
+	return (
+		node?.type === 'Element' || (node?.type === 'JSXElement' && node.metadata?.native_tsrx === true)
+	);
+}
+
+/**
+ * Replace the element's derived id (used when a transform rewrites the tag —
+ * dynamic elements lowering to `TsrxDynamic`, member-expression tags being
+ * visited). Writes the memo on JSX elements; the interim `Element` leg writes
+ * the `id` field directly.
+ * @param {any} node
+ * @param {AST.Expression} id
+ * @returns {void}
+ */
+export function set_element_id(node, id) {
+	if (node.type === 'Element') {
+		node.id = id;
+		return;
+	}
+	node.metadata ??= { path: [] };
+	node.metadata.id_node = id;
+}
+
+/**
+ * The element's attributes (raw `JSXAttribute`/`JSXSpreadAttribute` nodes).
+ * @param {any} node
+ * @returns {Array<ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute>}
+ */
+export function get_element_attributes(node) {
+	return node.type === 'Element' ? node.attributes : (node.openingElement?.attributes ?? []);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_self_closing(node) {
+	return node.type === 'Element'
+		? node.selfClosing === true
+		: node.openingElement?.selfClosing === true;
+}
+
+/**
+ * Whether the element has a dynamic `<{expr}>` tag that has not (yet) been
+ * lowered to the `TsrxDynamic` component by `lower_dynamic_element`.
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_dynamic_element(node) {
+	if (node.type === 'Element') {
+		return node.isDynamic === true;
+	}
+	if (node.metadata?.dynamic_lowered === true) {
+		return false;
+	}
+	return (
+		node.isDynamic === true ||
+		node.openingElement?.isDynamic === true ||
+		node.openingElement?.name?.isDynamic === true
+	);
+}
+
+/**
  * The CSS source of a `<style>` template element.
  * @param {any} node
  * @returns {string}

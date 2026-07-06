@@ -65,8 +65,11 @@ import {
 import {
 	get_attribute_name_node,
 	get_attribute_value,
+	get_element_attributes,
+	get_element_id,
 	get_template_expression,
 	is_droppable_template_text,
+	is_dynamic_element,
 	is_empty_expression_container,
 	is_template_fragment,
 	is_template_text_or_expression,
@@ -2443,12 +2446,14 @@ const visitors = {
 		}
 
 		const { state, visit, path } = context;
-		const is_dynamic_element = node.isDynamic === true;
+		const element_id = get_element_id(node);
+		const element_attributes = get_element_attributes(node);
+		const is_dynamic = is_dynamic_element(node);
 		const is_dom_element = is_element_dom_element(node);
 		// Dynamic tags (`<{expr}>`) resolve at runtime: scoped CSS pruning must
 		// keep type selectors (the tag could be any element) and collect the
 		// element so its classes match and receive the scope hash.
-		if (is_dynamic_element) {
+		if (is_dynamic) {
 			node.metadata.dynamicElement = true;
 		}
 		/** @type {Set<AST.Identifier>} */
@@ -2457,14 +2462,14 @@ const visitors = {
 		mark_control_flow_has_template(path, node);
 
 		if (
-			!is_dynamic_element &&
+			!is_dynamic &&
 			!is_dom_element &&
-			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
+			is_children_template_expression(/** @type {AST.Expression} */ (element_id), context)
 		) {
 			error(
 				'`children` cannot be rendered as a component. Render it with `{children}` or `{props.children}` instead.',
 				state.analysis.module.filename,
-				node.id,
+				element_id,
 				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
@@ -2473,9 +2478,9 @@ const visitors = {
 		validateNesting(node, context);
 
 		if (is_dom_element) {
-			if (/** @type {AST.Identifier} */ (node.id).name === 'head') {
+			if (/** @type {AST.Identifier} */ (element_id).name === 'head') {
 				// head validation
-				if (node.attributes.length > 0) {
+				if (element_attributes.length > 0) {
 					// TODO: could transform attributes as something, e.g. Text Node, and avoid a fatal error
 					error('<head> cannot have any attributes', state.analysis.module.filename, node);
 				}
@@ -2491,7 +2496,7 @@ const visitors = {
 				return;
 			}
 			if (state.inside_head) {
-				if (/** @type {AST.Identifier} */ (node.id).name === 'title') {
+				if (/** @type {AST.Identifier} */ (element_id).name === 'title') {
 					const children = normalize_children(node.children, context);
 
 					if (children.length !== 1 || !is_template_text_or_expression(children[0])) {
@@ -2505,16 +2510,16 @@ const visitors = {
 				}
 
 				// check for invalid elements in head
-				if (!valid_in_head.has(/** @type {AST.Identifier} */ (node.id).name)) {
+				if (!valid_in_head.has(/** @type {AST.Identifier} */ (element_id).name)) {
 					// TODO: could transform invalid elements as something, e.g. Text Node, and avoid a fatal error
 					error(
-						`<${/** @type {AST.Identifier} */ (node.id).name}> cannot be used in <head>`,
+						`<${/** @type {AST.Identifier} */ (element_id).name}> cannot be used in <head>`,
 						state.analysis.module.filename,
 						node,
 					);
 				}
 			} else {
-				if (/** @type {AST.Identifier} */ (node.id).name === 'script') {
+				if (/** @type {AST.Identifier} */ (element_id).name === 'script') {
 					const err_msg = '<script> cannot be used outside of <head>.';
 					error(
 						err_msg,
@@ -2534,13 +2539,13 @@ const visitors = {
 				}
 			}
 
-			const is_void = isVoidElement(/** @type {AST.Identifier} */ (node.id).name);
+			const is_void = isVoidElement(/** @type {AST.Identifier} */ (element_id).name);
 
 			if (state.elements) {
 				state.elements.push(node);
 			}
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					const attr_name = get_attribute_name_node(attr);
 					const attr_value = get_attribute_value(attr);
@@ -2613,7 +2618,7 @@ const visitors = {
 
 			if (is_void && rendered_template_children(node.children, !!state.to_ts).length > 0) {
 				error(
-					`The <${/** @type {AST.Identifier} */ (node.id).name}> element is a void element and cannot have children`,
+					`The <${/** @type {AST.Identifier} */ (element_id).name}> element is a void element and cannot have children`,
 					state.analysis.module.filename,
 					node,
 					context.state.collect ? context.state.analysis.errors : undefined,
@@ -2621,11 +2626,11 @@ const visitors = {
 				);
 			}
 		} else {
-			if (is_dynamic_element && state.elements) {
+			if (is_dynamic && state.elements) {
 				state.elements.push(node);
 			}
 
-			for (const attr of node.attributes) {
+			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					attribute_names.add(get_attribute_name_node(attr));
 					const attr_value = get_attribute_value(attr);
@@ -2654,7 +2659,7 @@ const visitors = {
 
 			// Validate that parent element attributes don't reference child-declared components
 			if (child_component_names.size > 0) {
-				for (const attr of node.attributes) {
+				for (const attr of element_attributes) {
 					const attr_value = attr.type === 'JSXAttribute' ? get_attribute_value(attr) : null;
 					if (attr.type === 'JSXAttribute' && attr_value?.type === 'Identifier') {
 						if (child_component_names.has(attr_value.name)) {
