@@ -164,6 +164,19 @@ export function is_template_fragment(node) {
 }
 
 /**
+ * The CSS source of a `<style>` template element.
+ * @param {any} node
+ * @returns {string}
+ */
+export function get_style_css(node) {
+	return (
+		node.css ??
+		node.children?.find((/** @type {any} */ child) => child?.type === 'StyleSheet')?.source ??
+		''
+	);
+}
+
+/**
  * The attribute's name as a string, flattening `<ns:name>` namespaced names.
  * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {string}

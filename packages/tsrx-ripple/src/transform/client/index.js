@@ -110,6 +110,7 @@ import {
 	get_attribute_name,
 	get_attribute_name_node,
 	get_attribute_value,
+	get_style_css,
 	get_template_expression,
 	get_template_text_value,
 	is_empty_expression_container,
@@ -2118,21 +2119,13 @@ const visitors = {
 		return context.next();
 	},
 
-	Element(node, context) {
-		const { state, visit } = context;
-
-		// The TS view needs the `<TsrxDynamic is={expr}>` component shape for type
-		// checking; production codegen keeps `node.id` as the dynamic expression
-		// and renders it directly via `_$_.composite` in the component branch.
-		if (state.to_ts && lower_dynamic_element(node)) {
-			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
-		}
+	JSXStyleElement(node, context) {
+		const { state } = context;
 
 		if (
-			is_style_element(node) &&
-			(state.regular_js ||
-				is_native_tsrx_value_position(context.path) ||
-				is_regular_js_statement_position(context.path))
+			state.regular_js ||
+			is_native_tsrx_value_position(context.path) ||
+			is_regular_js_statement_position(context.path)
 		) {
 			const expression = build_style_class_map_expression(node, context);
 			if (expression) {
@@ -2141,6 +2134,38 @@ const visitors = {
 				}
 				return expression;
 			}
+		}
+
+		if (state.to_ts) {
+			const fragment = /** @type {ESTreeJSX.JSXFragment} */ (
+				/** @type {unknown} */ ({
+					type: 'JSXFragment',
+					children: [node],
+					openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+					closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
+					metadata: { path: [], tsrx_render_fragment: true },
+				})
+			);
+			return build_tsrx_to_ts_expression(fragment, context);
+		}
+
+		if (state.inside_head) {
+			state.template?.push(`<style>${sanitizeTemplateString(get_style_css(node))}</style>`);
+			return;
+		}
+
+		// Component styles render nothing at runtime — their CSS is extracted at
+		// analysis time and injected separately.
+	},
+
+	Element(node, context) {
+		const { state, visit } = context;
+
+		// The TS view needs the `<TsrxDynamic is={expr}>` component shape for type
+		// checking; production codegen keeps `node.id` as the dynamic expression
+		// and renders it directly via `_$_.composite` in the component branch.
+		if (state.to_ts && lower_dynamic_element(node)) {
+			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 		}
 
 		if (state.to_ts) {
@@ -2178,10 +2203,6 @@ const visitors = {
 		}
 
 		if (context.state.inside_head) {
-			if (node.id.type === 'Identifier' && node.id.name === 'style') {
-				state.template?.push(`<style>${sanitizeTemplateString(node.css)}</style>`);
-				return;
-			}
 			// Inline scripts (`<script>{code}</script>`) are rendered by injecting
 			// the child content as the script's text. Scripts with no inline body
 			// (e.g. `<script src={...} />`) carry their behavior in attributes, so
@@ -3912,7 +3933,7 @@ function transform_tsrx_tsx_child(node, context) {
 		);
 	}
 
-	if (node.type === 'Element') {
+	if (node.type === 'Element' || node.type === 'JSXStyleElement') {
 		const expression = transform_ts_child(node, {
 			...context,
 			state: { ...context.state, init: null },
@@ -4503,6 +4524,20 @@ function transform_ts_child(node, context) {
 				),
 			),
 		);
+	} else if (node.type === 'JSXStyleElement') {
+		// to_ts: emit an empty `<style>` element for type-only mappings. The CSS
+		// children are TSRX stylesheet AST, never printed as TSX children, and
+		// style attributes were never carried over.
+		const jsxElement = b.jsx_element(/** @type {any} */ (node), [], []);
+		disable_style_anchor_verification(jsxElement);
+		if (!state.init) {
+			return jsxElement;
+		}
+		if (/** @type {any} */ (node).unclosed) {
+			state.init?.push(/** @type {AST.Statement} */ (/** @type {unknown} */ (jsxElement)));
+		} else {
+			state.init?.push(b.stmt(jsxElement));
+		}
 	} else if (node.type === 'Element') {
 		if (lower_dynamic_element(node)) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
@@ -4926,6 +4961,7 @@ function is_template_or_control_flow(node) {
 
 	return (
 		node.type === 'Element' ||
+		node.type === 'JSXStyleElement' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
 		is_template_fragment(node) ||
@@ -5333,11 +5369,13 @@ function transform_children(children, context) {
 		return b.id(
 			node.type == 'Element' && is_element_dom_element(node)
 				? state.scope.generate(/** @type {AST.Identifier} */ (node.id).name)
-				: is_template_text(node)
-					? state.scope.generate('text')
-					: is_template_expression(node)
-						? state.scope.generate('expression')
-						: state.scope.generate('node'),
+				: node.type === 'JSXStyleElement'
+					? state.scope.generate('style')
+					: is_template_text(node)
+						? state.scope.generate('text')
+						: is_template_expression(node)
+							? state.scope.generate('expression')
+							: state.scope.generate('node'),
 			/** @type {AST.NodeWithLocation} */ (node.type === 'Element' ? node.openingElement : node),
 		);
 	};
@@ -5595,6 +5633,16 @@ function transform_children(children, context) {
 						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
+			} else if (node.type === 'JSXStyleElement') {
+				// A `<style>` in `<head>` renders as a static template element; the
+				// visitor pushes its markup (or nothing outside head).
+				skipped++;
+
+				visit(node, {
+					...state,
+					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
+					namespace: state.namespace,
+				});
 			} else if (is_template_fragment(node)) {
 				skipped = 0;
 

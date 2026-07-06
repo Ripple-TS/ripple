@@ -2415,6 +2415,24 @@ const visitors = {
 		return context.next();
 	},
 
+	/**
+	 * @param {any} node
+	 * @param {AnalysisContext} context
+	 */
+	JSXStyleElement(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
+		mark_control_flow_has_template(context.path, node);
+
+		if (context.state.elements) {
+			context.state.elements.push(node);
+		}
+
+		// Children are stylesheet AST — nothing to analyze.
+	},
+
 	Element(node, context) {
 		if (context.state.regular_js || node.metadata?.regular_js) {
 			return context.next({ ...context.state, regular_js: true, component: undefined });

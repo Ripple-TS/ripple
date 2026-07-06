@@ -1023,15 +1023,10 @@ function expand_embedded_native_tsrx_return_statement(statement) {
 
 /**
  * @param {AST.Node | null | undefined} node
- * @returns {node is AST.Element}
+ * @returns {node is AST.JSXStyleElement}
  */
 export function is_style_element(node) {
-	return !!(
-		node &&
-		node.type === 'Element' &&
-		node.id?.type === 'Identifier' &&
-		node.id.name === 'style'
-	);
+	return !!(node && node.type === 'JSXStyleElement');
 }
 
 /**
@@ -2264,13 +2259,16 @@ function normalize_child(node, normalized, context) {
 	) {
 		return;
 	} else if (
+		node.type === 'JSXStyleElement' &&
+		!context.state.inside_head &&
+		!context.state.keep_component_style
+	) {
+		// Component styles render nothing — their CSS is extracted at analysis.
+		return;
+	} else if (
 		node.type === 'Element' &&
 		node.id.type === 'Identifier' &&
-		((node.id.name === 'style' &&
-			!context.state.inside_head &&
-			!context.state.keep_component_style) ||
-			node.id.name === 'head' ||
-			(node.id.name === 'title' && context.state.inside_head))
+		(node.id.name === 'head' || (node.id.name === 'title' && context.state.inside_head))
 	) {
 		return;
 	} else {
@@ -2763,41 +2761,6 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 }
 
 /**
- * @param {AST.JSXStyleElement} node
- * @param {AST.Node[]} [inherited_path]
- * @returns {AST.Element}
- */
-function jsx_style_to_ripple_element(node, inherited_path = []) {
-	const id = /** @type {AST.Identifier} */ ({
-		type: 'Identifier',
-		name: 'style',
-		start: node.openingElement?.name?.start ?? node.start,
-		end: node.openingElement?.name?.end ?? node.start,
-		loc: node.openingElement?.name?.loc,
-	});
-	const stylesheet = node.children?.find(
-		(/** @type {any} */ child) => child?.type === 'StyleSheet',
-	);
-
-	return /** @type {AST.Element} */ (
-		/** @type {unknown} */ ({
-			type: 'Element',
-			id,
-			attributes: [],
-			children: node.children || [],
-			openingElement: node.openingElement,
-			closingElement: node.closingElement,
-			selfClosing: false,
-			css: stylesheet?.source ?? '',
-			metadata: { ...(node.metadata ?? {}), scoped: false, path: inherited_path },
-			start: node.start,
-			end: node.end,
-			loc: node.loc,
-		})
-	);
-}
-
-/**
  * @param {any[]} children
  * @param {AST.Node[]} [inherited_path]
  * @returns {AST.Node[]}
@@ -2932,7 +2895,10 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
 		return jsx_to_ripple_node(node, inherited_path);
 	}
 	if (node.type === 'JSXStyleElement') {
-		return jsx_style_to_ripple_element(node, inherited_path);
+		// Consumed directly from the parser AST — its children are stylesheet
+		// AST, nothing to normalize.
+		node.metadata = { ...(node.metadata ?? {}), path: inherited_path };
+		return node;
 	}
 	if (
 		node.type === 'JSXIfExpression' ||
@@ -3085,11 +3051,11 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		return element;
 	}
 
-	if (node.type === 'JSXStyleElement') {
-		return jsx_style_to_ripple_element(node, inherited_path);
-	}
-
-	if (node.type === 'JSXText' || node.type === 'JSXExpressionContainer') {
+	if (
+		node.type === 'JSXStyleElement' ||
+		node.type === 'JSXText' ||
+		node.type === 'JSXExpressionContainer'
+	) {
 		// Consumed directly from the parser AST (see template-ast.js). Elements
 		// nested inside a container's expression still normalize via the
 		// recursive pass; this helper only sees already-normalized subtrees.

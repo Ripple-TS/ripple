@@ -428,6 +428,7 @@ function contains_template_value_node(node) {
 				node.type === 'Element' ||
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
+				node.type === 'JSXStyleElement' ||
 				(node.type === 'CallExpression' &&
 					node.callee.type === 'Identifier' &&
 					node.callee.name === '_$_.tsrx_element')
@@ -565,6 +566,7 @@ function is_template_value_binding(expression, scope) {
 	return (
 		binding?.metadata?.is_template_value === true ||
 		initial?.type === 'Element' ||
+		initial?.type === 'JSXStyleElement' ||
 		is_template_fragment(initial)
 	);
 }
@@ -747,6 +749,7 @@ function is_template_or_control_flow(node) {
 
 	return (
 		node.type === 'Element' ||
+		node.type === 'JSXStyleElement' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
 		is_template_fragment(node) ||
@@ -1958,16 +1961,13 @@ const visitors = {
 		return transform_variable_declaration(node, context);
 	},
 
-	Element(node, context) {
-		const { state, visit } = context;
-
-		lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'));
+	JSXStyleElement(node, context) {
+		const { state } = context;
 
 		if (
-			is_style_element(node) &&
-			(state.regular_js ||
-				is_native_tsrx_value_position(context.path) ||
-				is_regular_js_statement_position(context.path))
+			state.regular_js ||
+			is_native_tsrx_value_position(context.path) ||
+			is_regular_js_statement_position(context.path)
 		) {
 			const expression = build_style_class_map_expression(node, context);
 			if (expression) {
@@ -1977,6 +1977,15 @@ const visitors = {
 				return expression;
 			}
 		}
+
+		// Component styles render nothing on the server — their CSS is extracted
+		// at analysis time and injected separately.
+	},
+
+	Element(node, context) {
+		const { state, visit } = context;
+
+		lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'));
 
 		if (
 			state.regular_js ||
