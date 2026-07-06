@@ -1231,7 +1231,9 @@ export function App() @{
 			const ul =
 				returned.type === 'JSXElement'
 					? returned
-					: (returned.children.find((n: AST.Node) => n.type === 'JSXElement') as ESTreeJSX.JSXElement);
+					: returned.children.find(
+							(n: AST.Node) => n.type === 'JSXElement',
+						) as ESTreeJSX.JSXElement;
 			expect((ul.openingElement.name as ESTreeJSX.JSXIdentifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
 			const text = ul.children[0] as unknown as { type: string; value: string };
