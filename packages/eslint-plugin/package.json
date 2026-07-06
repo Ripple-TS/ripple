@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/eslint-plugin",
-  "version": "0.3.87",
+  "version": "0.3.88",
   "description": "ESLint plugin for Ripple",
   "type": "module",
   "main": "src/index.ts",

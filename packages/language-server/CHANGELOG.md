@@ -1,5 +1,16 @@
 # @ripple-ts/language-server
 
+## 0.3.88
+
+### Patch Changes
+
+- [`22a71e4`](https://github.com/Ripple-TS/ripple/commit/22a71e4e7c7670f0a502c3006ec4e203a3419d74)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Make the function component
+  auto-completion show up when @ is typed
+
+- Updated dependencies []:
+  - @tsrx/typescript-plugin@0.3.88
+
 ## 0.3.87
 
 ### Patch Changes
