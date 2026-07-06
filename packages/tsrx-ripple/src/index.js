@@ -6,7 +6,6 @@ import { createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
-import { lower_template_code_blocks, prepare_template_control_flow } from './utils.js';
 
 /**
  * Parse Ripple source code to ESTree AST
@@ -36,8 +35,6 @@ export function compile(source, filename, options = {}) {
 		filename,
 		collect ? { ...options, collect, errors, comments } : undefined,
 	);
-	prepare_template_control_flow(ast);
-	lower_template_code_blocks(ast);
 	const analysis = analyze(
 		ast,
 		filename,
@@ -89,9 +86,9 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		errors,
 		comments,
 	});
+	// Mapping generation walks the pristine source shapes; clone before
+	// analysis lowers the template pre-passes in place.
 	const ast_from_source = structuredClone(ast);
-	prepare_template_control_flow(ast);
-	lower_template_code_blocks(ast);
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
 		collect: true,

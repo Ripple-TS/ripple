@@ -61,6 +61,8 @@ import {
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
+	lower_template_code_blocks,
+	prepare_template_control_flow,
 	is_tsrx_component_function,
 } from '../utils.js';
 import {
@@ -2752,6 +2754,12 @@ export function analyze(ast, filename, options = {}) {
 	const errors = options.errors ?? [];
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
+
+	// Template pre-passes: wrap value-position directives and lower `@{ … }`
+	// template children in place. Scope creation needs the lowered shapes (the
+	// code-block IIFEs carry bindings), so this must precede createScopes.
+	prepare_template_control_flow(ast);
+	lower_template_code_blocks(ast);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,
