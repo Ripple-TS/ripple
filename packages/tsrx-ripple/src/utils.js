@@ -189,11 +189,15 @@ export function is_native_tsrx_template_node(node) {
  * positions in a `<> … </>` fragment so they lower as values. Directives keep
  * their parser forms (`JSXIfExpression`, …) — the analyzer and transforms
  * dispatch on those directly.
- * @param {AST.Node} ast
- * @returns {void}
+ *
+ * Copy-on-write: the input tree is never mutated — changed spines are rebuilt
+ * (unchanged subtrees are shared), so the parse result stays pristine.
+ * @template {AST.Node} T
+ * @param {T} ast
+ * @returns {T}
  */
 export function prepare_template_control_flow(ast) {
-	wrap_directives_combined_into_expressions(/** @type {any} */ (ast));
+	return /** @type {T} */ (wrap_directives_combined_into_expressions(/** @type {any} */ (ast)));
 }
 
 /**
@@ -288,49 +292,70 @@ function wrap_directive_in_jsx_fragment(directive) {
  * @param {any} ast
  */
 function wrap_directives_combined_into_expressions(ast) {
-	const seen = new Set();
 	/**
 	 * @param {any} parent
 	 * @param {string} key
-	 * @param {any} child
-	 * @returns {boolean}
+	 * @param {any} value
+	 * @returns {any}
 	 */
-	const is_flagged = (parent, key, child) =>
-		is_control_flow_directive(child) && !is_render_child_or_statement_slot(parent, key, child);
+	const visit_slot = (parent, key, value) => {
+		if (
+			is_control_flow_directive(value) &&
+			!is_render_child_or_statement_slot(parent, key, value)
+		) {
+			return wrap_directive_in_jsx_fragment(visit(value));
+		}
+		return visit(value);
+	};
 	/**
 	 * @param {any} node
+	 * @returns {any}
 	 */
 	const visit = (node) => {
-		if (!node || typeof node !== 'object' || seen.has(node)) return;
-		seen.add(node);
-		if (Array.isArray(node)) {
-			for (const item of node) visit(item);
-			return;
+		if (!node || typeof node !== 'object') return node;
+		/** @type {Record<string, any> | null} */
+		let updates = null;
+		// acorn-typescript quirk: call/new expressions carry their generics as
+		// `typeParameters`; the transforms (and the TSX printer) expect the
+		// standard `typeArguments`.
+		if ((node.type === 'CallExpression' || node.type === 'NewExpression') && node.typeParameters) {
+			updates = { typeArguments: node.typeParameters, typeParameters: undefined };
 		}
 		for (const key of Object.keys(node)) {
-			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+			if (
+				key === 'loc' ||
+				key === 'start' ||
+				key === 'end' ||
+				key === 'metadata' ||
+				key === 'parent'
+			) {
+				continue;
+			}
 			const value = node[key];
 			if (Array.isArray(value)) {
+				/** @type {any[] | null} */
+				let out = null;
 				for (let i = 0; i < value.length; i++) {
-					if (is_flagged(node, key, value[i])) {
-						value[i] = wrap_directive_in_jsx_fragment(value[i]);
+					const next = visit_slot(node, key, value[i]);
+					if (next !== value[i]) {
+						out ??= value.slice();
+						out[i] = next;
 					}
-					visit(value[i]);
 				}
-			} else if (is_flagged(node, key, value)) {
-				node[key] = wrap_directive_in_jsx_fragment(value);
-				visit(node[key]);
-			} else {
-				visit(value);
+				if (out) (updates ??= {})[key] = out;
+			} else if (value && typeof value === 'object') {
+				const next = visit_slot(node, key, value);
+				if (next !== value) (updates ??= {})[key] = next;
 			}
 		}
+		return updates ? { ...node, ...updates } : node;
 	};
-	visit(ast);
+	return visit(ast);
 }
 
 /**
  * Wrap a `@{ … }` code block in an immediately-invoked arrow
- * (`(() => @{ … })()`). Ripple only lowers a code block when it is a function body
+ * (`(() =>@{ … })()`). Ripple only lowers a code block when it is a function body
  * @param {AST.JSXCodeBlock} code_block
  * @returns {AST.CallExpression}
  */
@@ -705,21 +730,31 @@ export function get_native_tsrx_template_children(node) {
 
 /**
  * @param {AST.Function} node
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
-export function get_native_tsrx_function_body(node) {
+export function get_native_tsrx_function_body(node, scopes) {
+	// Memoized: the expansion is computed once (during analysis) and shared
+	// with the transforms, so the expanded statements keep one identity across
+	// stages — metadata written on them by the analyzer stays visible.
+	node.metadata ??= { path: [] };
+	const metadata = /** @type {{ tsrx_render_body?: AST.Node[] }} */ (node.metadata);
+	if (metadata.tsrx_render_body) {
+		return metadata.tsrx_render_body;
+	}
+
+	/** @type {AST.Node[]} */
+	let result;
 	if (node.body?.type === 'JSXCodeBlock') {
 		const block = node.body;
-		return [
-			...expand_native_tsrx_return_statements(block.body || [], true),
+		result = [
+			...expand_native_tsrx_return_statements(block.body || [], true, scopes),
 			...(is_native_tsrx_template_node(block.render)
 				? [mark_returned_template_child(/** @type {AST.Node} */ (block.render))]
 				: []),
 		];
-	}
-
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return is_native_tsrx_template_node(node.body)
+	} else if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		result = is_native_tsrx_template_node(node.body)
 			? [
 					...get_native_tsrx_template_children(
 						/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
@@ -728,20 +763,25 @@ export function get_native_tsrx_function_body(node) {
 					).map((child) => mark_returned_template_child(child)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
+	} else {
+		const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
+		result = expand_native_tsrx_return_statements(body, true, scopes);
 	}
 
-	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	return expand_native_tsrx_return_statements(body, true);
+	metadata.tsrx_render_body = result;
+	return result;
 }
 
 /**
  * @param {AST.Statement[]} statements
  * @param {boolean} [omit_final_control_return]
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
 export function expand_native_tsrx_return_statements(
 	statements,
 	omit_final_control_return = false,
+	scopes,
 ) {
 	return statements.flatMap((statement, index) =>
 		expand_native_tsrx_return_statement(
@@ -749,6 +789,7 @@ export function expand_native_tsrx_return_statements(
 			omit_final_control_return &&
 				index === statements.length - 1 &&
 				statement.type === 'ReturnStatement',
+			scopes,
 		),
 	);
 }
@@ -877,9 +918,25 @@ function create_return_argument_child(argument, statement) {
 /**
  * @param {AST.Statement} statement
  * @param {boolean} [omit_control_return]
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
-function expand_native_tsrx_return_statement(statement, omit_control_return = false) {
+function expand_native_tsrx_return_statement(statement, omit_control_return = false, scopes) {
+	/**
+	 * Copy-on-write helper: rebuilt spine nodes inherit the original's scope
+	 * mapping so transform-time lookups keep working.
+	 * @template {AST.Node} T
+	 * @param {T} original
+	 * @param {Partial<T>} updates
+	 * @returns {T}
+	 */
+	const rebuild = (original, updates) => {
+		const copy = { ...original, ...updates };
+		const scope = scopes?.get(original);
+		if (scope) scopes?.set(copy, scope);
+		return copy;
+	};
+
 	if (statement.metadata?.returned_tsrx_child) {
 		return [statement];
 	}
@@ -904,7 +961,11 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 		const children = omit_control_return
 			? template_children.flatMap((child) =>
 					node_contains_component_return(child)
-						? expand_native_tsrx_return_statement(/** @type {AST.Statement} */ (child))
+						? expand_native_tsrx_return_statement(
+								/** @type {AST.Statement} */ (child),
+								false,
+								scopes,
+							)
 						: [child],
 				)
 			: template_children;
@@ -944,44 +1005,61 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 	}
 
 	if (statement.type === 'BlockStatement') {
-		statement.body = /** @type {AST.Statement[]} */ (
-			expand_native_tsrx_return_statements(statement.body || [])
+		const body = /** @type {AST.Statement[]} */ (
+			expand_native_tsrx_return_statements(statement.body || [], false, scopes)
 		);
-		return [statement];
+		return [body === (statement.body || []) ? statement : rebuild(statement, { body })];
 	}
 
 	if (statement.type === 'IfStatement') {
-		statement.consequent = expand_embedded_native_tsrx_return_statement(statement.consequent);
-		if (statement.alternate) {
-			statement.alternate = expand_embedded_native_tsrx_return_statement(statement.alternate);
-		}
-		return [statement];
+		const consequent = expand_embedded_native_tsrx_return_statement(statement.consequent, scopes);
+		const alternate = statement.alternate
+			? expand_embedded_native_tsrx_return_statement(statement.alternate, scopes)
+			: statement.alternate;
+		return [
+			consequent === statement.consequent && alternate === statement.alternate
+				? statement
+				: rebuild(statement, { consequent, alternate }),
+		];
 	}
 
 	if (statement.type === 'SwitchStatement') {
-		for (const switch_case of statement.cases || []) {
-			switch_case.consequent = /** @type {AST.Statement[]} */ (
-				expand_native_tsrx_return_statements(switch_case.consequent || [])
+		/** @type {AST.SwitchCase[] | null} */
+		let cases = null;
+		(statement.cases || []).forEach((switch_case, i) => {
+			const consequent = /** @type {AST.Statement[]} */ (
+				expand_native_tsrx_return_statements(switch_case.consequent || [], false, scopes)
 			);
-		}
-		return [statement];
+			if (consequent !== (switch_case.consequent || [])) {
+				cases ??= statement.cases.slice();
+				cases[i] = rebuild(switch_case, { consequent });
+			}
+		});
+		return [cases ? rebuild(statement, { cases }) : statement];
 	}
 
 	if (statement.type === 'TryStatement') {
-		statement.block = /** @type {AST.BlockStatement} */ (
-			expand_embedded_native_tsrx_return_statement(statement.block)
+		/** @type {Partial<AST.TryStatement> & Record<string, any>} */
+		const updates = {};
+		const block = /** @type {AST.BlockStatement} */ (
+			expand_embedded_native_tsrx_return_statement(statement.block, scopes)
 		);
+		if (block !== statement.block) updates.block = block;
 		if (statement.handler?.body) {
-			statement.handler.body = /** @type {AST.BlockStatement} */ (
-				expand_embedded_native_tsrx_return_statement(statement.handler.body)
+			const body = /** @type {AST.BlockStatement} */ (
+				expand_embedded_native_tsrx_return_statement(statement.handler.body, scopes)
 			);
+			if (body !== statement.handler.body) {
+				updates.handler = rebuild(statement.handler, { body });
+			}
 		}
 		if (statement.finalizer) {
-			statement.finalizer = /** @type {AST.BlockStatement} */ (
-				expand_embedded_native_tsrx_return_statement(statement.finalizer)
+			const finalizer = /** @type {AST.BlockStatement} */ (
+				expand_embedded_native_tsrx_return_statement(statement.finalizer, scopes)
 			);
+			if (finalizer !== statement.finalizer) updates.finalizer = finalizer;
 		}
-		return [statement];
+		return [Object.keys(updates).length > 0 ? rebuild(statement, updates) : statement];
 	}
 
 	return [statement];
@@ -989,16 +1067,19 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 
 /**
  * @param {AST.Statement} statement
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Statement}
  */
-function expand_embedded_native_tsrx_return_statement(statement) {
-	const expanded = expand_native_tsrx_return_statement(statement);
-	return expanded.length === 1
-		? /** @type {AST.Statement} */ (expanded[0])
-		: b.block(
-				/** @type {AST.Statement[]} */ (expanded),
-				/** @type {AST.NodeWithLocation} */ (statement),
-			);
+function expand_embedded_native_tsrx_return_statement(statement, scopes) {
+	const expanded = expand_native_tsrx_return_statement(statement, false, scopes);
+	return expanded.length === 1 && expanded[0] === statement
+		? statement
+		: expanded.length === 1
+			? /** @type {AST.Statement} */ (expanded[0])
+			: b.block(
+					/** @type {AST.Statement[]} */ (expanded),
+					/** @type {AST.NodeWithLocation} */ (statement),
+				);
 }
 
 /**
@@ -1076,56 +1157,86 @@ function collect_style_elements(node, styles, inside_head) {
 }
 
 /**
+ * Copy-on-write: rebuilt spine nodes inherit the original's scope mapping when
+ * a `scopes` map is provided, so transform-time lookups keep working.
  * @param {AST.Node[]} nodes
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
-export function strip_tsrx_style_elements(nodes) {
-	return strip_style_elements(nodes, false);
+export function strip_tsrx_style_elements(nodes, scopes) {
+	return strip_style_elements(nodes, false, scopes);
 }
 
 /**
  * @param {AST.Node[]} nodes
  * @param {boolean} inside_head
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
-function strip_style_elements(nodes, inside_head) {
-	return nodes
-		.filter((node) => !(is_style_element(node) && !inside_head))
-		.map((node) => strip_style_element_children(node, inside_head))
-		.filter(Boolean);
+function strip_style_elements(nodes, inside_head, scopes) {
+	/** @type {AST.Node[] | null} */
+	let out = null;
+	for (let i = 0; i < nodes.length; i++) {
+		const node = nodes[i];
+		const next =
+			is_style_element(node) && !inside_head
+				? null
+				: strip_style_element_children(node, inside_head, scopes);
+		if (next !== node) {
+			out ??= nodes.slice();
+			out[i] = /** @type {AST.Node} */ (next);
+		}
+	}
+	const result = out ?? nodes;
+	return result.some((node) => node == null) ? result.filter(Boolean) : result;
 }
 
 /**
  * @param {AST.Node} node
  * @param {boolean} inside_head
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node}
  */
-function strip_style_element_children(node, inside_head) {
+function strip_style_element_children(node, inside_head, scopes) {
 	const node_any = /** @type {any} */ (node);
 	const next_inside_head =
 		inside_head ||
 		(is_template_element(node_any) &&
 			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
 			/** @type {any} */ (get_element_id(node_any)).name === 'head');
+	/** @type {Record<string, any> | null} */
+	let updates = null;
 	if ('children' in node && Array.isArray(node.children)) {
-		node.children = /** @type {any} */ (
-			strip_style_elements(/** @type {AST.Node[]} */ (node.children), next_inside_head)
+		const children = strip_style_elements(
+			/** @type {AST.Node[]} */ (node.children),
+			next_inside_head,
+			scopes,
 		);
+		if (children !== node.children) (updates ??= {}).children = children;
 	}
 	if (node.type === 'BlockStatement') {
-		node.body = /** @type {AST.Statement[]} */ (strip_style_elements(node.body, next_inside_head));
+		const body = /** @type {AST.Statement[]} */ (
+			strip_style_elements(node.body, next_inside_head, scopes)
+		);
+		if (body !== node.body) (updates ??= {}).body = body;
 	}
 	if (node.type === 'IfStatement') {
-		node.consequent = /** @type {AST.Statement} */ (
-			strip_style_element_children(node.consequent, next_inside_head)
+		const consequent = /** @type {AST.Statement} */ (
+			strip_style_element_children(node.consequent, next_inside_head, scopes)
 		);
+		if (consequent !== node.consequent) (updates ??= {}).consequent = consequent;
 		if (node.alternate) {
-			node.alternate = /** @type {AST.Statement} */ (
-				strip_style_element_children(node.alternate, next_inside_head)
+			const alternate = /** @type {AST.Statement} */ (
+				strip_style_element_children(node.alternate, next_inside_head, scopes)
 			);
+			if (alternate !== node.alternate) (updates ??= {}).alternate = alternate;
 		}
 	}
-	return node;
+	if (!updates) return node;
+	const copy = { ...node, ...updates };
+	const scope = scopes?.get(node);
+	if (scope) scopes?.set(copy, scope);
+	return copy;
 }
 
 /**
@@ -1885,14 +1996,18 @@ export function is_element_dom_element(node) {
 export const dynamic_element_import_local = 'TsrxDynamic';
 
 /**
+ * Lower a dynamic `<{expr}>` element to the `TsrxDynamic` component shape on a
+ * copy — the source element is never mutated. Returns the lowered copy, or
+ * `null` when the element is not dynamic.
  * @param {AST.TSRXJSXElement} node
  * @param {AST.Expression} [component_id] - Override for the lowered component
  * reference; defaults to the `TsrxDynamic` local used by type-only output.
- * @returns {boolean}
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
+ * @returns {AST.TSRXJSXElement | null}
  */
-export function lower_dynamic_element(node, component_id) {
+export function lower_dynamic_element(node, component_id, scopes) {
 	if (!is_dynamic_element(node)) {
-		return false;
+		return null;
 	}
 
 	const expression = /** @type {AST.Expression} */ (get_element_id(node));
@@ -1900,42 +2015,51 @@ export function lower_dynamic_element(node, component_id) {
 	const closing_expression =
 		closing_name?.expression && clone_expression_node(closing_name.expression);
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
-	set_element_id(node, component_id ?? b.id(dynamic_element_import_local));
-	if (node.openingElement?.name) {
-		node.openingElement.name = b.jsx_id(dynamic_element_import_local);
-	}
-	if (node.closingElement?.name) {
-		node.closingElement.name = b.jsx_id(dynamic_element_import_local);
-	}
-	node.openingElement.attributes = [
+
+	const is_attribute = /** @type {ESTreeJSX.JSXAttribute} */ (
 		// A synthetic `is={expr}` JSXAttribute; the container value marks it as
 		// an authored-expression attribute for the accessors.
-		/** @type {ESTreeJSX.JSXAttribute} */ (
-			/** @type {unknown} */ ({
-				type: 'JSXAttribute',
-				name: b.jsx_id(
-					'is',
-					/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
-				),
-				value: b.jsx_expression_container(
-					expression,
-					/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
-				),
-				shorthand: false,
-				start: expression.start,
-				end: expression.end,
-				loc: expression.loc,
-			})
-		),
-		...node.openingElement.attributes,
-	];
-	// The tag is no longer dynamic — clear the parser's markers (the name
-	// container was already replaced above).
-	/** @type {any} */ (node).isDynamic = false;
-	if (node.openingElement) {
-		/** @type {any} */ (node.openingElement).isDynamic = false;
-	}
-	return true;
+		/** @type {unknown} */ ({
+			type: 'JSXAttribute',
+			name: b.jsx_id(
+				'is',
+				/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
+			),
+			value: b.jsx_expression_container(
+				expression,
+				/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (expression)),
+			),
+			shorthand: false,
+			start: expression.start,
+			end: expression.end,
+			loc: expression.loc,
+		})
+	);
+
+	const opening = node.openingElement;
+	const copy = /** @type {AST.TSRXJSXElement} */ ({
+		...node,
+		// The tag is no longer dynamic — the copy drops the parser's markers and
+		// the dynamic name container.
+		isDynamic: false,
+		openingElement: {
+			...opening,
+			isDynamic: false,
+			name: opening?.name ? b.jsx_id(dynamic_element_import_local) : opening?.name,
+			attributes: [is_attribute, ...(opening?.attributes ?? [])],
+		},
+		closingElement: node.closingElement?.name
+			? { ...node.closingElement, name: b.jsx_id(dynamic_element_import_local) }
+			: node.closingElement,
+		// Fork the metadata so the id memo can point at the component reference
+		// without polluting the source element's memoized dynamic expression.
+		metadata: { .../** @type {any} */ (node.metadata) },
+	});
+	set_element_id(copy, component_id ?? b.id(dynamic_element_import_local));
+
+	const scope = scopes?.get(node);
+	if (scope) scopes?.set(copy, scope);
+	return copy;
 }
 
 /**
@@ -2350,17 +2474,20 @@ export function build_getter(node, context) {
 
 	if (!context.path) return node;
 
-	for (let i = context.path.length - 1; i >= 0; i -= 1) {
-		const binding = state.scope.get(node.name);
-		const transform = binding?.transform;
+	// don't transform the declaration itself — checked structurally because the
+	// declarator id may be a copy of the binding's node (copy-on-write rewrites)
+	const parent = context.path.at(-1);
+	if (parent?.type === 'VariableDeclarator' && parent.id === node) {
+		return node;
+	}
 
-		// don't transform the declaration itself
-		if (node !== binding?.node) {
-			const read_fn = transform?.read;
+	const binding = state.scope.get(node.name);
 
-			if (read_fn) {
-				return read_fn(node);
-			}
+	if (node !== binding?.node) {
+		const read_fn = binding?.transform?.read;
+
+		if (read_fn) {
+			return read_fn(node);
 		}
 	}
 
@@ -2580,20 +2707,70 @@ export function ripple_import_requires_block(name) {
 }
 
 /**
+ * Visit a node's children the way zimmerframe's `context.next()` would, but on
+ * a shallow copy with the given fields cleared, so the cleared subtrees are
+ * neither visited nor emitted. The source node is left untouched; the copy
+ * mirrors the source's scope mapping when one exists.
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {CommonContext} context
+ * @param {string[]} cleared_fields
+ * @returns {T}
+ */
+export function visit_children_without(node, context, cleared_fields) {
+	const copy = /** @type {Record<string, any>} */ ({ ...node });
+	for (const field of cleared_fields) {
+		copy[field] = undefined;
+	}
+	for (const key in copy) {
+		if (key === 'type') continue;
+		const child = copy[key];
+		if (child && typeof child === 'object') {
+			if (Array.isArray(child)) {
+				copy[key] = child.map((item) =>
+					item && typeof item === 'object' ? context.visit(item) : item,
+				);
+			} else {
+				copy[key] = context.visit(child);
+			}
+		}
+	}
+	const scopes = /** @type {any} */ (context.state)?.scopes;
+	const scope = scopes?.get(node);
+	if (scope) scopes.set(copy, scope);
+	return /** @type {T} */ (/** @type {unknown} */ (copy));
+}
+
+/**
+ * Strips TypeScript-only class syntax and visits the remaining children,
+ * returning the transformed copy — the source node is never mutated.
  * @param {AST.ClassDeclaration | AST.ClassExpression} node
  * @param {CommonContext} context
- * @returns {void}
+ * @returns {AST.ClassDeclaration | AST.ClassExpression}
  */
 export function strip_class_typescript_syntax(node, context) {
-	delete node.typeParameters;
-	delete node.superTypeParameters;
-	delete node.implements;
+	let superClass = node.superClass;
 
-	if (node.superClass?.type === 'TSInstantiationExpression') {
-		node.superClass = /** @type {AST.Expression} */ (context.visit(node.superClass.expression));
-	} else if (node.superClass && 'typeArguments' in node.superClass) {
-		delete node.superClass.typeArguments;
+	if (superClass?.type === 'TSInstantiationExpression') {
+		superClass = /** @type {AST.Expression} */ (context.visit(superClass.expression));
+	} else if (superClass && 'typeArguments' in superClass) {
+		superClass = /** @type {AST.Expression} */ ({ ...superClass, typeArguments: undefined });
 	}
+
+	/** @type {AST.ClassDeclaration | AST.ClassExpression} */
+	let source = node;
+	if (superClass !== node.superClass) {
+		source = { ...node, superClass };
+		const scopes = /** @type {any} */ (context.state)?.scopes;
+		const scope = scopes?.get(node);
+		if (scope) scopes.set(source, scope);
+	}
+
+	return visit_children_without(source, context, [
+		'typeParameters',
+		'superTypeParameters',
+		'implements',
+	]);
 }
 
 /**
@@ -2603,11 +2780,15 @@ export function strip_class_typescript_syntax(node, context) {
  * code-block bodies) are left alone — they stay lexical blocks and are lowered
  * by the transforms. Also drops `EmptyStatement` separators from the lists it
  * touches, matching the old normalizer.
- * @param {AST.Node} ast
- * @returns {void}
+ *
+ * Copy-on-write: the input tree is never mutated — changed spines are rebuilt
+ * (unchanged subtrees are shared), so the parse result stays pristine.
+ * @template {AST.Node} T
+ * @param {T} ast
+ * @returns {T}
  */
 export function lower_template_code_blocks(ast) {
-	lower_node(/** @type {any} */ (ast), []);
+	return /** @type {T} */ (lower_node(/** @type {any} */ (ast), []));
 }
 
 /**
@@ -2616,14 +2797,22 @@ export function lower_template_code_blocks(ast) {
  * @returns {any[]}
  */
 function lower_template_children(children, inherited_path = []) {
-	return children
-		.map((/** @type {any} */ child) => {
-			lower_node(child, inherited_path);
-			return child?.type === 'JSXCodeBlock'
-				? code_block_to_template_child(child, inherited_path)
-				: child;
-		})
-		.filter((/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement');
+	/** @type {any[] | null} */
+	let out = null;
+	for (let i = 0; i < children.length; i++) {
+		let next = lower_node(children[i], inherited_path);
+		if (next?.type === 'JSXCodeBlock') {
+			next = code_block_to_template_child(next, inherited_path);
+		}
+		if (next !== children[i]) {
+			out ??= children.slice();
+			out[i] = next;
+		}
+	}
+	const result = out ?? children;
+	return result.some((/** @type {any} */ child) => child == null || child.type === 'EmptyStatement')
+		? result.filter((/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement')
+		: result;
 }
 
 /**
@@ -2632,84 +2821,122 @@ function lower_template_children(children, inherited_path = []) {
  * @returns {any[]}
  */
 function lower_statement_children(statements, inherited_path) {
-	for (const statement of statements) {
-		lower_node(statement, inherited_path);
+	/** @type {any[] | null} */
+	let out = null;
+	for (let i = 0; i < statements.length; i++) {
+		const next = lower_node(statements[i], inherited_path);
+		if (next !== statements[i]) {
+			out ??= statements.slice();
+			out[i] = next;
+		}
 	}
-	return statements.filter(
-		(/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement',
-	);
+	const result = out ?? statements;
+	return result.some((/** @type {any} */ child) => child == null || child.type === 'EmptyStatement')
+		? result.filter((/** @type {any} */ child) => child != null && child.type !== 'EmptyStatement')
+		: result;
+}
+
+/**
+ * Rebuild a `BlockStatement`-valued slot with lowered template children,
+ * reusing the original when nothing changed.
+ * @param {any} block
+ * @param {AST.Node[]} path
+ * @returns {any}
+ */
+function lower_block_slot(block, path) {
+	const body = lower_template_children(block.body || [], path);
+	return body === (block.body || []) ? block : { ...block, body };
 }
 
 /**
  * @param {any} statement — a template directive (`JSX…Expression`)
  * @param {AST.Node[]} inherited_path
- * @returns {void}
+ * @returns {any}
  */
 function lower_directive_template_slots(statement, inherited_path) {
 	const path = [...inherited_path, statement];
-	if (statement.consequent?.type === 'BlockStatement') {
-		statement.consequent.body = lower_template_children(statement.consequent.body || [], path);
-	} else if (statement.consequent) {
-		lower_node(statement.consequent, path);
+	/** @type {Record<string, any> | null} */
+	let updates = null;
+	/** @param {string} key @param {any} next @param {any} prev */
+	const update = (key, next, prev) => {
+		if (next !== prev) (updates ??= {})[key] = next;
+	};
+
+	for (const key of ['consequent', 'alternate']) {
+		const value = statement[key];
+		if (value?.type === 'BlockStatement') {
+			update(key, lower_block_slot(value, path), value);
+		} else if (value) {
+			update(key, lower_node(value, path), value);
+		}
 	}
-	if (statement.alternate?.type === 'BlockStatement') {
-		statement.alternate.body = lower_template_children(statement.alternate.body || [], path);
-	} else if (statement.alternate) {
-		lower_node(statement.alternate, path);
-	}
-	if (statement.body?.type === 'BlockStatement') {
-		statement.body.body = lower_template_children(statement.body.body || [], path);
-	}
-	if (statement.empty?.type === 'BlockStatement') {
-		statement.empty.body = lower_template_children(statement.empty.body || [], path);
-	}
-	if (statement.block?.type === 'BlockStatement') {
-		statement.block.body = lower_template_children(statement.block.body || [], path);
-	}
-	if (statement.pending?.type === 'BlockStatement') {
-		statement.pending.body = lower_template_children(statement.pending.body || [], path);
+	for (const key of ['body', 'empty', 'block', 'pending', 'finalizer']) {
+		const value = statement[key];
+		if (value?.type === 'BlockStatement') {
+			update(key, lower_block_slot(value, path), value);
+		}
 	}
 	if (statement.handler?.body?.type === 'BlockStatement') {
-		statement.handler.body.body = lower_template_children(statement.handler.body.body || [], path);
-	}
-	if (statement.finalizer?.type === 'BlockStatement') {
-		statement.finalizer.body = lower_template_children(statement.finalizer.body || [], path);
+		const body = lower_block_slot(statement.handler.body, path);
+		if (body !== statement.handler.body) {
+			update('handler', { ...statement.handler, body }, statement.handler);
+		}
 	}
 	if (Array.isArray(statement.cases)) {
-		for (const switch_case of statement.cases) {
-			switch_case.consequent = lower_template_children(switch_case.consequent || [], path);
+		/** @type {any[] | null} */
+		let cases = null;
+		for (let i = 0; i < statement.cases.length; i++) {
+			const switch_case = statement.cases[i];
+			const consequent = lower_template_children(switch_case.consequent || [], path);
+			if (consequent !== (switch_case.consequent || [])) {
+				cases ??= /** @type {any[]} */ (statement.cases.slice());
+				cases[i] = { ...switch_case, consequent };
+			}
 		}
+		if (cases) update('cases', cases, statement.cases);
 	}
 	// Test/discriminant/iterable expressions are not template slots — raw JSX
 	// there lowers through the transforms' value paths — but they may still
 	// contain nested templates, so keep walking them.
-	if (statement.test) lower_node(statement.test, path);
-	if (statement.discriminant) lower_node(statement.discriminant, path);
-	if (statement.right) lower_node(statement.right, path);
+	for (const key of ['test', 'discriminant', 'right']) {
+		const value = statement[key];
+		if (value) update(key, lower_node(value, path), value);
+	}
+
+	if (!updates) return statement;
+	return { ...statement, .../** @type {Record<string, any>} */ (updates) };
 }
 
 /**
  * The recursive worker for {@link lower_template_code_blocks}: dispatches on
  * the node shapes that own template-children lists and walks everything else
- * generically.
+ * generically, rebuilding only the spines that change.
  * @param {any} node
  * @param {AST.Node[]} inherited_path
- * @returns {void}
+ * @returns {any}
  */
 function lower_node(node, inherited_path = []) {
-	if (!node || typeof node !== 'object') return;
+	if (!node || typeof node !== 'object') return node;
 	if (Array.isArray(node)) {
-		for (const item of node) lower_node(item, inherited_path);
-		return;
+		return lower_statement_children(node, inherited_path);
 	}
 
 	if (node.type === 'JSXFragment' || node.type === 'JSXElement') {
-		node.children = lower_template_children(node.children || [], [...inherited_path, node]);
-		if (node.type === 'JSXElement') {
+		/** @type {Record<string, any> | null} */
+		let updates = null;
+		const children = lower_template_children(node.children || [], [...inherited_path, node]);
+		if (children !== (node.children || [])) (updates ??= {}).children = children;
+		if (node.type === 'JSXElement' && node.openingElement?.attributes) {
 			// Attribute values may hold raw JSX with nested templates.
-			lower_node(node.openingElement?.attributes, [...inherited_path, node]);
+			const attributes = lower_statement_children(node.openingElement.attributes, [
+				...inherited_path,
+				node,
+			]);
+			if (attributes !== node.openingElement.attributes) {
+				(updates ??= {}).openingElement = { ...node.openingElement, attributes };
+			}
 		}
-		return;
+		return updates ? { ...node, ...updates } : node;
 	}
 	if (
 		node.type === 'JSXStyleElement' ||
@@ -2718,7 +2945,7 @@ function lower_node(node, inherited_path = []) {
 		node.type === 'JSXOpeningElement' ||
 		node.type === 'JSXClosingElement'
 	) {
-		return;
+		return node;
 	}
 	if (node.type === 'JSXCodeBlock') {
 		// Each `@{ … }` is its own lexical scope, so nested blocks never merge
@@ -2726,20 +2953,22 @@ function lower_node(node, inherited_path = []) {
 		// (`@{ @{ … } }`) keeps the nesting: the inner block is lowered like a
 		// template child inside a synthetic fragment so it gets its own scope.
 		const path = [...inherited_path, node];
-		node.body = lower_statement_children(node.body || [], path);
+		/** @type {Record<string, any> | null} */
+		let updates = null;
+		const body = lower_statement_children(node.body || [], path);
+		if (body !== (node.body || [])) (updates ??= {}).body = body;
 		if (node.render?.type === 'JSXCodeBlock') {
-			const inner = node.render;
-			lower_node(inner, path);
+			const inner = lower_node(node.render, path);
 			const inner_child = code_block_to_template_child(inner, path);
 			// An inner block that is empty all the way down renders nothing —
 			// drop it so the outer block becomes code-only (and prunable too).
 			if (inner_child == null) {
-				node.render = null;
+				(updates ??= {}).render = null;
 			} else if (is_native_tsrx_template_node(inner_child)) {
 				// The inner chain collapsed to a plain template node (its scope
 				// was unobservable) — it becomes this block's render directly,
 				// with no wrapper fragment.
-				node.render = inner_child;
+				(updates ??= {}).render = inner_child;
 			} else {
 				const fragment = /** @type {any} */ (b.jsx_fragment([/** @type {any} */ (inner_child)]));
 				setLocation(fragment, /** @type {AST.NodeWithLocation} */ (inner));
@@ -2750,18 +2979,20 @@ function lower_node(node, inherited_path = []) {
 				// inline component per nesting level.
 				fragment.metadata.native_tsrx = true;
 				fragment.metadata.tsrx_code_block_chain = true;
-				node.render = fragment;
+				(updates ??= {}).render = fragment;
 			}
 		} else if (node.render) {
-			lower_node(node.render, path);
+			const render = lower_node(node.render, path);
+			if (render !== node.render) (updates ??= {}).render = render;
 		}
-		return;
+		return updates ? { ...node, ...updates } : node;
 	}
 	if (is_template_directive(node)) {
-		lower_directive_template_slots(node, inherited_path);
-		return;
+		return lower_directive_template_slots(node, inherited_path);
 	}
 
+	/** @type {Record<string, any> | null} */
+	let updates = null;
 	for (const key in node) {
 		if (
 			key === 'metadata' ||
@@ -2776,11 +3007,15 @@ function lower_node(node, inherited_path = []) {
 
 		const value = node[key];
 		if (Array.isArray(value)) {
-			node[key] = lower_statement_children(value, [...inherited_path, node]);
+			const next = lower_statement_children(value, [...inherited_path, node]);
+			if (next !== value) (updates ??= {})[key] = next;
 		} else if (value && typeof value === 'object') {
-			lower_node(value, [...inherited_path, node]);
+			const next = lower_node(value, [...inherited_path, node]);
+			if (next !== value) (updates ??= {})[key] = next;
 		}
 	}
+
+	return updates ? { ...node, ...updates } : node;
 }
 
 /**
@@ -2794,10 +3029,10 @@ function lower_node(node, inherited_path = []) {
  * - code-only: a plain `BlockStatement` — statements run in source order,
  *   scoped, render nothing;
  * - setup code + render output: an inline anonymous component expression
- *   (`(() => @{ … })()`, the same lowering as value-position code blocks),
+ *   (`(() =>@{ … })()`, the same lowering as value-position code blocks),
  *   since the setup may feed the output — `_$_.expression` is the right tool
  *   for a dynamic child value;
- * - nested chains (`@{ @{ … } }`): intermediate levels with statements merge
+ * - nested chains (a code block directly inside another): intermediate levels with statements merge
  *   into one IIFE as nested plain `{ … }` blocks (one closure, not one per
  *   level), and only the innermost render-bearing level becomes the inline
  *   component.
@@ -2893,24 +3128,17 @@ function mark_raw_template_jsx(node) {
 }
 
 /**
- * Adopt a raw JSX subtree (an attribute value or other JSX that never entered
- * the template traversal) into the template machinery at transform time:
- * marks its elements/fragments `native_tsrx`, retypes any nested directives,
- * and lowers its `@{ … }` code-block template children. Returns the template
- * children — a fragment root flattens to its children list.
+ * Adopt a raw JSX subtree (an attribute value or other JSX the parser did not
+ * stamp `native_tsrx`) into the template machinery. The analyze-time
+ * pre-passes already traversed it (they walk attribute values too), so its
+ * code blocks and value-position directives are lowered — adoption is just
+ * the `native_tsrx` marking that routes the visitors down the template paths,
+ * plus flattening a fragment root to its children.
  *
  * @param {any} node
- * @param {AST.Node[]} [inherited_path]
  * @returns {any}
  */
-export function jsx_to_ripple_node(node, inherited_path = []) {
+export function adopt_raw_template_jsx(node) {
 	mark_raw_template_jsx(node);
-	prepare_template_control_flow(node);
-	lower_node(node, inherited_path);
-
-	if (node.type === 'JSXFragment') {
-		return node.children;
-	}
-
-	return node;
+	return node.type === 'JSXFragment' ? node.children : node;
 }

@@ -94,6 +94,16 @@ interface BaseNodeMetaData {
 	tsrx_render_fragment?: boolean;
 	/** A merged text run produced by normalize_children - renders through the text path. */
 	tsrx_text?: boolean;
+	/** Control-flow node renders as the sole child of its parent (controlled anchor). */
+	is_controlled?: boolean;
+	/** Control-flow node is the root of a render body - anchors on `__anchor`. */
+	root_controlled?: boolean;
+	/** Append target set by transform_children when all siblings are static component children. */
+	append_into?: AST.Identifier;
+	/** Generated pattern id substituted for a destructured keyed `@for` left. */
+	tsrx_for_pattern_id?: AST.Identifier;
+	/** Memoized render-body statements (see get_native_tsrx_function_body). */
+	tsrx_render_body?: AST.Node[];
 	ts_name?: string;
 	delegated?: any;
 	returned_tsrx_return?: AST.ReturnStatement;

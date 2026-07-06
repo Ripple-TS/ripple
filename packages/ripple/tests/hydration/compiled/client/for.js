@@ -1202,9 +1202,8 @@ function TodoItem(props) {
 			var span_6 = _$_.sibling(input);
 
 			{
-				var expression_23 = _$_.child(span_6);
+				var expression_23 = _$_.child(span_6, true);
 
-				_$_.expression(expression_23, () => props.text);
 				_$_.pop(span_6);
 			}
 		}
@@ -1217,19 +1216,25 @@ function TodoItem(props) {
 					_$_.set_checked(input, __prev.a = __a);
 				}
 
-				var __b = lazy_14.value ? 'completed' : 'pending';
+				var __b = props.text;
 
 				if (__prev.b !== __b) {
-					_$_.set_class(span_6, __prev.b = __b, void 0, true);
+					_$_.set_text(expression_23, __prev.b = __b);
 				}
 
-				var __c = `todo-${props.id}`;
+				var __c = lazy_14.value ? 'completed' : 'pending';
 
 				if (__prev.c !== __c) {
-					_$_.set_class(div_16, __prev.c = __c, void 0, true);
+					_$_.set_class(span_6, __prev.c = __c, void 0, true);
+				}
+
+				var __d = `todo-${props.id}`;
+
+				if (__prev.d !== __d) {
+					_$_.set_class(div_16, __prev.d = __d, void 0, true);
 				}
 			},
-			{ a: void 0, b: Symbol(), c: Symbol() }
+			{ a: void 0, b: ' ', c: Symbol(), d: Symbol() }
 		);
 
 		_$_.append(__anchor, div_16);

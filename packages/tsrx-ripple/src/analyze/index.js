@@ -1213,7 +1213,7 @@ function visit_function(node, context) {
 		const styleClasses = new Map();
 		/** @type {TopScopedClasses} */
 		const topScopedClasses = new Map();
-		const render_body = get_native_tsrx_function_body(node);
+		const render_body = get_native_tsrx_function_body(node, context.state.scopes);
 		const component_state = {
 			...context.state,
 			component: node,
@@ -1225,7 +1225,6 @@ function visit_function(node, context) {
 		context.next(component_state);
 
 		const css = collect_tsrx_stylesheet(render_body);
-		/** @type {any} */ (node).css = css;
 		/** @type {any} */ (node.metadata).css = css;
 
 		if (css !== null) {
@@ -1752,15 +1751,6 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
-		// bug in our acorn [parser]: it uses typeParameters instead of typeArguments
-		// @ts-expect-error
-		if (node.typeParameters) {
-			// @ts-expect-error
-			node.typeArguments = node.typeParameters;
-			// @ts-expect-error
-			delete node.typeParameters;
-		}
-
 		const callee = node.callee;
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (callee), context)) {
@@ -2026,8 +2016,11 @@ const visitors = {
 			if (state.to_ts || state.mode === 'server') {
 				pattern_id = pattern;
 			} else {
+				// The transforms substitute the generated pattern id for the
+				// destructured left when lowering a keyed @for — communicated
+				// via metadata rather than rewriting the source declaration.
 				pattern_id = b.id(scope.generate('pattern'));
-				/** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id = pattern_id;
+				node.metadata.tsrx_for_pattern_id = pattern_id;
 			}
 
 			for (const path of paths) {
@@ -2156,14 +2149,6 @@ const visitors = {
 	},
 
 	TSTypeReference(node, context) {
-		// bug in our acorn parser: it uses typeParameters instead of typeArguments
-		// @ts-expect-error
-		if (node.typeParameters) {
-			// @ts-expect-error
-			node.typeArguments = node.typeParameters;
-			// @ts-expect-error
-			delete node.typeParameters;
-		}
 		context.next();
 	},
 
@@ -2756,10 +2741,11 @@ export function analyze(ast, filename, options = {}) {
 	const collect = !!(options.collect || options.loose);
 
 	// Template pre-passes: wrap value-position directives and lower `@{ … }`
-	// template children in place. Scope creation needs the lowered shapes (the
-	// code-block IIFEs carry bindings), so this must precede createScopes.
-	prepare_template_control_flow(ast);
-	lower_template_code_blocks(ast);
+	// template children. Scope creation needs the lowered shapes (the
+	// code-block IIFEs carry bindings), so this must precede createScopes. The
+	// passes are copy-on-write — the caller's parse tree is left pristine and
+	// everything downstream works on the rebuilt tree.
+	ast = lower_template_code_blocks(prepare_template_control_flow(ast));
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,

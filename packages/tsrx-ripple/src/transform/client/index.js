@@ -87,7 +87,8 @@ import {
 	ripple_import_requires_block,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
-	jsx_to_ripple_node,
+	visit_children_without,
+	adopt_raw_template_jsx,
 	build_index_read,
 	build_index_write,
 	build_index_update,
@@ -200,30 +201,54 @@ function disable_style_anchor_verification(element) {
 }
 
 /**
+ * Copy-on-write: nodes on the changed spine are rebuilt (their scope mapping is
+ * mirrored onto the copies); untouched subtrees are shared with the input.
  * @param {AST.Node[]} body
  * @param {AST.Statement[]} setup
+ * @param {Map<AST.Node | AST.Node[], any>} [scopes]
  * @returns {AST.Node[]}
  */
-function insert_style_ref_setup_statements(body, setup) {
+function insert_style_ref_setup_statements(body, setup, scopes) {
 	if (setup.length === 0) {
 		return body;
 	}
 
 	let inserted = false;
 
+	/**
+	 * @template T
+	 * @param {T} original
+	 * @param {T} copy
+	 * @returns {T}
+	 */
+	const mirror_scope = (original, copy) => {
+		const scope = scopes?.get(/** @type {any} */ (original));
+		if (scope) scopes?.set(/** @type {any} */ (copy), scope);
+		return copy;
+	};
+
 	/** @param {AST.Node[]} nodes */
 	const insert_in_list = (nodes) => {
 		const index = nodes.findIndex((node) => node.metadata?.returned_tsrx_child);
 		if (index !== -1) {
 			inserted = true;
-			return [
+			return mirror_scope(nodes, [
 				...nodes.slice(0, index),
 				...setup.map((statement) => clone_expression_node(statement, false)),
 				...nodes.slice(index),
-			];
+			]);
 		}
 
-		return nodes.map(insert_in_statement);
+		/** @type {AST.Node[] | null} */
+		let out = null;
+		for (let i = 0; i < nodes.length; i++) {
+			const next = insert_in_statement(nodes[i]);
+			if (next !== nodes[i]) {
+				out ??= nodes.slice();
+				out[i] = next;
+			}
+		}
+		return out === null ? nodes : mirror_scope(nodes, out);
 	};
 
 	/** @param {AST.Node} node */
@@ -232,34 +257,57 @@ function insert_style_ref_setup_statements(body, setup) {
 			return node;
 		}
 		if (node.type === 'BlockStatement') {
-			node.body = /** @type {AST.Statement[]} */ (insert_in_list(node.body || []));
-			return node;
+			const list = node.body || [];
+			const node_body = /** @type {AST.Statement[]} */ (insert_in_list(list));
+			return node_body === list ? node : mirror_scope(node, { ...node, body: node_body });
 		}
 		if (node.type === 'IfStatement') {
-			node.consequent = /** @type {AST.Statement} */ (insert_in_statement(node.consequent));
+			/** @type {Record<string, any> | null} */
+			let updates = null;
+			const consequent = /** @type {AST.Statement} */ (insert_in_statement(node.consequent));
+			if (consequent !== node.consequent) (updates ??= {}).consequent = consequent;
 			if (node.alternate) {
-				node.alternate = /** @type {AST.Statement} */ (insert_in_statement(node.alternate));
+				const alternate = /** @type {AST.Statement} */ (insert_in_statement(node.alternate));
+				if (alternate !== node.alternate) (updates ??= {}).alternate = alternate;
 			}
-			return node;
+			return updates === null ? node : mirror_scope(node, { ...node, ...updates });
 		}
 		if (node.type === 'SwitchStatement') {
-			for (const switch_case of node.cases || []) {
-				switch_case.consequent = /** @type {AST.Statement[]} */ (
-					insert_in_list(switch_case.consequent || [])
-				);
+			const node_cases = node.cases || [];
+			/** @type {AST.SwitchCase[] | null} */
+			let cases = null;
+			for (let i = 0; i < node_cases.length; i++) {
+				const switch_case = node_cases[i];
+				const list = switch_case.consequent || [];
+				const consequent = /** @type {AST.Statement[]} */ (insert_in_list(list));
+				if (consequent !== list) {
+					cases ??= node_cases.slice();
+					cases[i] = mirror_scope(switch_case, { ...switch_case, consequent });
+				}
 			}
-			return node;
+			return cases === null ? node : mirror_scope(node, { ...node, cases });
 		}
 		if (node.type === 'TryStatement') {
-			node.block = /** @type {AST.BlockStatement} */ (insert_in_statement(node.block));
+			/** @type {Record<string, any> | null} */
+			let updates = null;
+			const block = /** @type {AST.BlockStatement} */ (insert_in_statement(node.block));
+			if (block !== node.block) (updates ??= {}).block = block;
 			if (node.handler?.body) {
-				node.handler.body = /** @type {AST.BlockStatement} */ (
+				const handler_body = /** @type {AST.BlockStatement} */ (
 					insert_in_statement(node.handler.body)
 				);
+				if (handler_body !== node.handler.body) {
+					(updates ??= {}).handler = mirror_scope(node.handler, {
+						...node.handler,
+						body: handler_body,
+					});
+				}
 			}
 			if (node.finalizer) {
-				node.finalizer = /** @type {AST.BlockStatement} */ (insert_in_statement(node.finalizer));
+				const finalizer = /** @type {AST.BlockStatement} */ (insert_in_statement(node.finalizer));
+				if (finalizer !== node.finalizer) (updates ??= {}).finalizer = finalizer;
 			}
+			return updates === null ? node : mirror_scope(node, { ...node, ...updates });
 		}
 		return node;
 	};
@@ -631,28 +679,24 @@ function visit_function(node, context) {
 		return context.next(SetStateForOutsideComponent(state));
 	}
 
-	delete node.returnType;
-	delete node.typeParameters;
-
-	for (const param of node.params) {
-		delete param.typeAnnotation;
-		// Handle AssignmentPattern (parameters with default values)
-		if (param.type === 'AssignmentPattern' && param.left) {
-			delete param.left.typeAnnotation;
-		}
-	}
-
-	// Replace lazy destructuring params with generated identifiers
+	// Strip parameter type annotations via copies (the source params are never
+	// mutated) and replace lazy destructuring params with generated identifiers
 	const transformed_params = node.params.map((param) => {
-		const pattern = param.type === 'AssignmentPattern' ? param.left : param;
+		/** @type {AST.Pattern} */
+		let param_out = param.typeAnnotation ? { ...param, typeAnnotation: undefined } : param;
+		// Handle AssignmentPattern (parameters with default values)
+		if (param_out.type === 'AssignmentPattern' && param_out.left?.typeAnnotation) {
+			param_out = { ...param_out, left: { ...param_out.left, typeAnnotation: undefined } };
+		}
+		const pattern = param_out.type === 'AssignmentPattern' ? param_out.left : param_out;
 		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
 			const transformed_pattern = replace_lazy_param_pattern(pattern);
-			if (param.type === 'AssignmentPattern') {
-				return /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern });
+			if (param_out.type === 'AssignmentPattern') {
+				return /** @type {AST.AssignmentPattern} */ ({ ...param_out, left: transformed_pattern });
 			}
 			return transformed_pattern;
 		}
-		return param;
+		return param_out;
 	});
 
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
@@ -681,6 +725,8 @@ function visit_function(node, context) {
 		...node,
 		params: transformed_params.map((param) => context.visit(param, state)),
 		body,
+		returnType: undefined,
+		typeParameters: undefined,
 	};
 }
 
@@ -769,12 +815,16 @@ function transform_native_tsrx_function(node, context) {
 		let props_param = node.params[0];
 
 		if (props_param.type === 'Identifier') {
-			delete props_param.typeAnnotation;
-			props = props_param;
+			props = props_param.typeAnnotation
+				? /** @type {AST.Pattern} */ ({ ...props_param, typeAnnotation: undefined })
+				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
-			delete props_param.typeAnnotation;
 			if (!props_param.lazy) {
-				props = replace_lazy_param_pattern(props_param);
+				props = replace_lazy_param_pattern(
+					/** @type {AST.Pattern} */ (
+						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
+					),
+				);
 			}
 		} else {
 			props = props_param;
@@ -791,7 +841,7 @@ function transform_native_tsrx_function(node, context) {
 		context.state.scope;
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
 	const is_synthetic_children = node.metadata?.synthetic_children === true;
-	const raw_render_body = get_native_tsrx_function_body(node);
+	const raw_render_body = get_native_tsrx_function_body(node, context.state.scopes);
 	const css = get_component_css({ ...context.state, component: node });
 	const style_ref_setup = css
 		? createStyleRefSetupStatements(
@@ -804,7 +854,8 @@ function transform_native_tsrx_function(node, context) {
 			)
 		: [];
 	const render_body = strip_tsrx_style_elements(
-		insert_style_ref_setup_statements(raw_render_body, style_ref_setup),
+		insert_style_ref_setup_statements(raw_render_body, style_ref_setup, context.state.scopes),
+		context.state.scopes,
 	);
 	const transformed_body = transform_body(render_body, {
 		...context,
@@ -1366,7 +1417,7 @@ function SetStateForOutsideComponent(state, more_state = {}) {
  */
 function build_jsx_to_tsrx_element(node, context) {
 	const { state, visit, path } = context;
-	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path);
+	const result = adopt_raw_template_jsx(/** @type {AST.Node} */ (node));
 	const converted = Array.isArray(result) ? result : [result];
 	/** @type {AST.Node[]} */
 	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
@@ -1409,7 +1460,7 @@ const visit_switch_statement = (node, context) => {
 		return context.next();
 	}
 
-	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	const root_controlled = node.metadata?.root_controlled === true;
 	if (!root_controlled) {
 		context.state.template?.push('<!>');
 	}
@@ -1528,7 +1579,7 @@ const visit_if_statement = (node, context) => {
 		return;
 	}
 
-	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	const root_controlled = node.metadata?.root_controlled === true;
 	if (!root_controlled) {
 		context.state.template?.push('<!>');
 	}
@@ -1631,7 +1682,7 @@ const visit_try_statement = (node, context) => {
 	if (context.state.to_ts) {
 		return transform_ts_child(node, context);
 	}
-	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	const root_controlled = node.metadata?.root_controlled === true;
 	if (!root_controlled) {
 		context.state.template?.push('<!>');
 	}
@@ -1647,12 +1698,14 @@ const visit_try_statement = (node, context) => {
 		},
 	});
 
-	if (handler?.param) {
-		delete handler.param.typeAnnotation;
-	}
-	if (handler?.resetParam) {
-		delete handler.resetParam.typeAnnotation;
-	}
+	// Strip catch-param type annotations on copies embedded in the output; the
+	// source handler params are never mutated.
+	const handler_param = handler?.param
+		? /** @type {AST.Pattern} */ ({ ...handler.param, typeAnnotation: undefined })
+		: null;
+	const handler_reset_param = handler?.resetParam
+		? /** @type {AST.Pattern} */ ({ ...handler.resetParam, typeAnnotation: undefined })
+		: null;
 
 	const catch_arg =
 		handler === null
@@ -1660,10 +1713,10 @@ const visit_try_statement = (node, context) => {
 			: b.arrow(
 					[
 						b.id('__anchor'),
-						...(handler.param && handler.resetParam
-							? [handler.param, handler.resetParam]
-							: handler.param
-								? [handler.param]
+						...(handler_param && handler_reset_param
+							? [handler_param, handler_reset_param]
+							: handler_param
+								? [handler_param]
 								: []),
 					],
 					b.block(
@@ -1717,8 +1770,8 @@ const visit_for_of_statement = (node, context) => {
 	if (!is_inside_component(context)) {
 		return context.next();
 	}
-	const is_controlled = node.is_controlled;
-	const root_controlled = /** @type {any} */ (node).root_controlled === true;
+	const is_controlled = node.metadata?.is_controlled;
+	const root_controlled = node.metadata?.root_controlled === true;
 	const index = node.index;
 	const key = node.key;
 	let flags = is_controlled ? IS_CONTROLLED : 0;
@@ -1732,7 +1785,9 @@ const visit_for_of_statement = (node, context) => {
 	}
 
 	if (node.metadata?.script_only && !node.metadata?.has_template) {
-		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+		const pattern =
+			node.metadata?.tsrx_for_pattern_id ??
+			/** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
 			...context,
@@ -1749,9 +1804,19 @@ const visit_for_of_statement = (node, context) => {
 			context.state.init?.push(b.var(index, b.literal(0)));
 		}
 
+		const left = /** @type {AST.VariableDeclaration} */ (
+			context.visit(/** @type {AST.Node} */ (node.left))
+		);
 		context.state.init?.push(
 			b.for_of(
-				/** @type {AST.VariableDeclaration} */ (context.visit(/** @type {AST.Node} */ (node.left))),
+				// A keyed loop iterates the generated pattern id (see the
+				// analyzer's tsrx_for_pattern_id), not the source destructuring.
+				node.metadata?.tsrx_for_pattern_id
+					? {
+							...left,
+							declarations: [{ ...left.declarations[0], id: node.metadata.tsrx_for_pattern_id }],
+						}
+					: left,
 				/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right))),
 				b.block(body),
 			),
@@ -1765,7 +1830,9 @@ const visit_for_of_statement = (node, context) => {
 	}
 
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.(false, is_controlled);
-	const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+	const pattern =
+		node.metadata?.tsrx_for_pattern_id ??
+		/** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 	const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 	const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
 	/** @type {AST.Statement[]} */
@@ -1911,21 +1978,21 @@ const visitors = {
 		if (state.to_ts && state.ancestor_server_block) {
 			/** @type {AST.VariableDeclaration[]} */
 			const locals = state.server_block_locals;
-			for (const spec of node.specifiers) {
+			// Rebuild the specifiers with obfuscated locals on copies — the source
+			// import declaration is never mutated.
+			const specifiers = node.specifiers.map((spec) => {
 				const original_name = spec.local.name;
 				const name = obfuscateIdentifier(original_name);
-				if (
+				const local =
 					spec.type !== 'ImportSpecifier' ||
 					(spec.imported && /** @type {AST.Identifier} */ (spec.imported).name !== spec.local.name)
-				) {
-					spec.local.name = name;
-				} else {
-					spec.local = b.id(name);
-				}
-				spec.local.metadata.source_name = original_name;
+						? { ...spec.local, name }
+						: b.id(name);
+				local.metadata = { ...local.metadata, source_name: original_name };
 				locals.push(b.const(original_name, b.id(name)));
-			}
-			state.imports.add(node);
+				return { ...spec, local };
+			});
+			state.imports.add(/** @type {AST.ImportDeclaration} */ ({ ...node, specifiers }));
 			return b.empty;
 		}
 
@@ -1947,9 +2014,6 @@ const visitors = {
 	},
 
 	CallExpression(node, context) {
-		if (!context.state.to_ts) {
-			delete node.typeArguments;
-		}
 		const callee = node.callee;
 		const parent = context.path.at(-1);
 
@@ -1978,6 +2042,7 @@ const visitors = {
 						...(requires_block ? [b.id('__block')] : []),
 						...node.arguments.map((arg) => context.visit(arg)),
 					]),
+					typeArguments: undefined,
 				};
 			}
 		}
@@ -1987,12 +2052,10 @@ const visitors = {
 			const track_method_name = matched_track_call === 'trackAsync' ? 'track_async' : 'track';
 			/** @type {(AST.Expression | AST.SpreadElement)[]} */
 			const call_args = [];
-			if (node.arguments.length === 0) {
-				node.arguments.push(b.void0);
-			}
+			const source_args = node.arguments.length === 0 ? [b.void0] : node.arguments;
 
-			for (let i = 0; i < node.arguments.length; i++) {
-				const arg = node.arguments[i];
+			for (let i = 0; i < source_args.length; i++) {
+				const arg = source_args[i];
 				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
 				if (i === 0) {
 					call_args.push(b.id('__block'));
@@ -2004,6 +2067,7 @@ const visitors = {
 				...node,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
 				arguments: call_args,
+				typeArguments: undefined,
 			});
 		}
 
@@ -2044,7 +2108,12 @@ const visitors = {
 			!context.path.some((node) => is_native_tsrx_function_node(node)) ||
 			is_declared_function_within_component(callee, context)
 		) {
-			return context.next();
+			if (context.state.to_ts) {
+				return context.next();
+			}
+			// Like `context.next()`, but on a copy without the TypeScript-only type
+			// arguments so they are neither visited nor emitted.
+			return visit_children_without(node, context, ['typeArguments']);
 		}
 
 		// Handle array methods that access the array
@@ -2075,6 +2144,7 @@ const visitors = {
 			arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
 				node.arguments.map((arg) => context.visit(arg))
 			),
+			typeArguments: undefined,
 		};
 
 		// A generated code-block scope IIFE is already a zero-argument
@@ -2140,7 +2210,9 @@ const visitors = {
 			is_value_static(node)
 		) {
 			if (!context.state.to_ts) {
-				delete node.typeArguments;
+				// Like `context.next()`, but on a copy without the TypeScript-only
+				// type arguments so they are neither visited nor emitted.
+				return visit_children_without(node, context, ['typeArguments']);
 			}
 
 			return context.next();
@@ -2200,21 +2272,23 @@ const visitors = {
 
 	PropertyDefinition(node, context) {
 		if (!context.state.to_ts) {
-			delete node.typeAnnotation;
+			// Like `context.next()`, but on a copy without the TypeScript-only type
+			// annotation so it is neither visited nor emitted.
+			return visit_children_without(node, context, ['typeAnnotation']);
 		}
 		return context.next();
 	},
 
 	ClassDeclaration(node, context) {
 		if (!context.state.to_ts) {
-			strip_class_typescript_syntax(node, context);
+			return strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
 
 	ClassExpression(node, context) {
 		if (!context.state.to_ts) {
-			strip_class_typescript_syntax(node, context);
+			return strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
@@ -2230,9 +2304,15 @@ const visitors = {
 		) {
 			if (context.state.to_ts) {
 				// In TypeScript mode, convert to a regular assignment (drop the pattern)
-				node.expression.left.lazy = false;
 				delete node.expression.left.metadata.lazy_id;
-				return context.next();
+				const expression = {
+					...node.expression,
+					left: { ...node.expression.left, lazy: false },
+				};
+				return {
+					...node,
+					expression: /** @type {AST.Expression} */ (context.visit(expression)),
+				};
 			}
 			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
 			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
@@ -2241,36 +2321,45 @@ const visitors = {
 	},
 
 	VariableDeclaration(node, context) {
-		for (const declarator of node.declarations) {
-			if (!context.state.to_ts) {
-				delete declarator.id.typeAnnotation;
+		// Rewrite declarator ids on copies (strip type annotations, replace lazy
+		// destructuring patterns) — the source declarators are never mutated.
+		const declarations = node.declarations.map((declarator) => {
+			/** @type {AST.VariableDeclarator['id']} */
+			let id = declarator.id;
 
+			if (!context.state.to_ts) {
 				// Replace lazy destructuring patterns with the generated identifier
 				if (
-					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
-					declarator.id.lazy &&
-					declarator.id.metadata?.lazy_id
+					(id.type === 'ObjectPattern' || id.type === 'ArrayPattern') &&
+					id.lazy &&
+					id.metadata?.lazy_id
 				) {
-					declarator.id = b.id(declarator.id.metadata.lazy_id);
+					id = b.id(id.metadata.lazy_id);
+				} else if (id.typeAnnotation) {
+					id = { ...id, typeAnnotation: undefined };
 				}
-			}
-		}
-
-		if (context.state.to_ts) {
-			for (const declarator of node.declarations) {
-				if (
-					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
-					declarator.id.lazy
-				) {
-					declarator.id.lazy = false;
-					if (declarator.id.metadata?.lazy_id) {
-						delete declarator.id.metadata.lazy_id;
-					}
+			} else if ((id.type === 'ObjectPattern' || id.type === 'ArrayPattern') && id.lazy) {
+				if (id.metadata?.lazy_id) {
+					delete id.metadata.lazy_id;
 				}
+				id = { ...id, lazy: false };
 			}
-		}
 
-		return context.next();
+			if (id === declarator.id) {
+				return declarator;
+			}
+			const copy = { ...declarator, id };
+			const scope = context.state.scopes.get(declarator);
+			if (scope) context.state.scopes.set(copy, scope);
+			return copy;
+		});
+
+		return {
+			...node,
+			declarations: declarations.map(
+				(declarator) => /** @type {AST.VariableDeclarator} */ (context.visit(declarator)),
+			),
+		};
 	},
 
 	VariableDeclarator(node, context) {
@@ -2505,8 +2594,12 @@ const visitors = {
 		// The TS view needs the `<TsrxDynamic is={expr}>` component shape for type
 		// checking; production codegen keeps `node.id` as the dynamic expression
 		// and renders it directly via `_$_.composite` in the component branch.
-		if (state.to_ts && lower_dynamic_element(node)) {
-			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+		if (state.to_ts) {
+			const lowered = lower_dynamic_element(node, undefined, state.scopes);
+			if (lowered) {
+				state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+				node = lowered;
+			}
 		}
 
 		const element_id = get_element_id(node);
@@ -3032,11 +3125,11 @@ const visitors = {
 				state.init?.push(b.block(init));
 			}
 		} else {
-			const root_controlled = /** @type {any} */ (node).root_controlled === true;
+			const root_controlled = node.metadata?.root_controlled === true;
 			// `append_into` is a `{ parent }` sentinel set by transform_children when
 			// every sibling is a static component: render directly into the parent,
 			// no `<!>` placeholder and no child()/sibling() navigation.
-			const append_into = node.append_into ?? null;
+			const append_into = node.metadata?.append_into ?? null;
 			const id = root_controlled
 				? b.id('__anchor')
 				: append_into
@@ -4507,8 +4600,10 @@ function transform_ts_child(node, context) {
 			state.init?.push(b.stmt(jsxElement));
 		}
 	} else if (is_template_element(node)) {
-		if (lower_dynamic_element(node)) {
+		const lowered = lower_dynamic_element(node, undefined, state.scopes);
+		if (lowered) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+			node = lowered;
 		}
 
 		/** @type {ESTreeJSX.JSXElement['children']} */
@@ -4641,28 +4736,37 @@ function transform_ts_child(node, context) {
 			}
 		}
 
+		let element_source = /** @type {ESTreeJSX.JSXElement} */ (/** @type {unknown} */ (node));
+
 		if (get_element_id(node).type === 'MemberExpression') {
 			const member = /** @type {AST.MemberExpression} */ (
 				visit(get_element_id(node), { ...state })
 			);
 
 			set_element_id(node, member);
-			/** @type {ESTreeJSX.TSRXJSXOpeningElement} */ (node.openingElement).name = member;
-			if (node.closingElement) {
-				/** @type {ESTreeJSX.TSRXJSXClosingElement} */ (node.closingElement).name = setLocation(
-					{ ...member },
-					/** @type {AST.NodeWithLocation} */ (node.closingElement.name),
-					true,
-				);
-			}
+			// Plant the visited member tag on local copies for the printer — the
+			// source element is never mutated.
+			const opening = /** @type {ESTreeJSX.TSRXJSXOpeningElement} */ ({
+				...node.openingElement,
+				name: member,
+			});
+			const closing = node.closingElement
+				? /** @type {ESTreeJSX.TSRXJSXClosingElement} */ ({
+						...node.closingElement,
+						name: setLocation(
+							{ ...member },
+							/** @type {AST.NodeWithLocation} */ (node.closingElement.name),
+							true,
+						),
+					})
+				: null;
+			element_source = /** @type {ESTreeJSX.JSXElement} */ (
+				/** @type {unknown} */ ({ ...node, openingElement: opening, closingElement: closing })
+			);
 		}
 
 		/** @type {ESTreeJSX.JSXElement} */
-		const jsxElement = b.jsx_element(
-			/** @type {ESTreeJSX.JSXElement} */ (/** @type {unknown} */ (node)),
-			attributes,
-			children,
-		);
+		const jsxElement = b.jsx_element(element_source, attributes, children);
 		if (element_name === 'style') {
 			disable_style_anchor_verification(jsxElement);
 		}
@@ -5231,14 +5335,15 @@ function transform_template_element(node, state, visit, child_namespace) {
 function transform_children(children, context) {
 	const { visit, state, root } = context;
 	if (state.to_ts) {
-		for (const child of children) {
-			if (
-				is_template_element(child) &&
-				lower_dynamic_element(/** @type {AST.TSRXJSXElement} */ (child))
-			) {
+		children = children.map((child) => {
+			const lowered = is_template_element(child)
+				? lower_dynamic_element(/** @type {AST.TSRXJSXElement} */ (child), undefined, state.scopes)
+				: null;
+			if (lowered) {
 				state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 			}
-		}
+			return lowered ?? child;
+		});
 	}
 	const normalized = normalize_children(children, {
 		...context,
@@ -5320,7 +5425,10 @@ function transform_children(children, context) {
 				!is_element_dom_element(single_output) &&
 				!is_ripple_fragment_element(single_output, context)));
 	if (root_controlled) {
-		/** @type {any} */ (single_output).root_controlled = true;
+		/** @type {AST.Node} */ (single_output).metadata = {
+			.../** @type {AST.Node} */ (single_output).metadata,
+			root_controlled: true,
+		};
 	}
 
 	// All-component children can append directly into the parent element instead of
@@ -5347,7 +5455,7 @@ function transform_children(children, context) {
 		const append_anchor_id = b.id(state.scope.generate('append_anchor'));
 		state.init?.push(b.var(append_anchor_id, b.call('_$_.append_into', parent_id)));
 		for (const child of normalized) {
-			child.append_into = append_anchor_id;
+			child.metadata = { ...child.metadata, append_into: append_anchor_id };
 		}
 	}
 
@@ -5722,7 +5830,7 @@ function transform_children(children, context) {
 				(node.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
 			) {
 				skipped = 0;
-				node.is_controlled = is_controlled;
+				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
@@ -5730,7 +5838,7 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'IfStatement' || node.type === 'JSXIfExpression') {
 				skipped = 0;
-				node.is_controlled = is_controlled;
+				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
@@ -5738,7 +5846,7 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'TryStatement' || node.type === 'JSXTryExpression') {
 				skipped = 0;
-				node.is_controlled = is_controlled;
+				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
@@ -5746,7 +5854,7 @@ function transform_children(children, context) {
 				});
 			} else if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
 				skipped = 0;
-				node.is_controlled = is_controlled;
+				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),

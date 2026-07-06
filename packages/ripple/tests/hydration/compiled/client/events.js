@@ -183,11 +183,14 @@ export function ChildButton(props) {
 		_$_.render_event('Click', button_6, () => props.onClick);
 
 		{
-			var expression_7 = _$_.child(button_6);
+			var expression_7 = _$_.child(button_6, true);
 
-			_$_.expression(expression_7, () => props.label);
 			_$_.pop(button_6);
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression_7, props.label);
+		});
 
 		_$_.append(__anchor, button_6);
 	});

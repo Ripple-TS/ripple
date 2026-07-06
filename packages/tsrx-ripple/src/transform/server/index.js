@@ -64,7 +64,7 @@ import {
 	get_ripple_namespace_call_name,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
-	jsx_to_ripple_node,
+	adopt_raw_template_jsx,
 	build_index_read,
 	build_index_write,
 	build_index_update,
@@ -170,14 +170,30 @@ function create_server_style_class_map_expression(stylesheet) {
 /**
  * @param {AST.Node[]} body
  * @param {AST.Statement[]} setup
+ * @param {Map<AST.Node[] | AST.Node, ScopeInterface>} [scopes]
  * @returns {AST.Node[]}
  */
-function insert_style_ref_setup_statements(body, setup) {
+function insert_style_ref_setup_statements(body, setup, scopes) {
 	if (setup.length === 0) {
 		return body;
 	}
 
 	let inserted = false;
+
+	/**
+	 * Copy-on-write helper: rebuilt spine nodes inherit the original's scope
+	 * mapping so transform-time lookups keep working.
+	 * @template {AST.Node} T
+	 * @param {T} original
+	 * @param {Partial<T>} updates
+	 * @returns {T}
+	 */
+	const rebuild = (original, updates) => {
+		const copy = { ...original, ...updates };
+		const scope = scopes?.get(original);
+		if (scope) scopes?.set(copy, scope);
+		return copy;
+	};
 
 	/** @param {AST.Node[]} nodes */
 	const insert_in_list = (nodes) => {
@@ -194,40 +210,44 @@ function insert_style_ref_setup_statements(body, setup) {
 		return nodes.map(insert_in_statement);
 	};
 
-	/** @param {AST.Node} node */
+	/** @param {AST.Node} node @returns {AST.Node} */
 	const insert_in_statement = (node) => {
 		if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration') {
 			return node;
 		}
 		if (node.type === 'BlockStatement') {
-			node.body = /** @type {AST.Statement[]} */ (insert_in_list(node.body || []));
-			return node;
+			const block_body = /** @type {AST.Statement[]} */ (insert_in_list(node.body || []));
+			return rebuild(node, { body: block_body });
 		}
 		if (node.type === 'IfStatement') {
-			node.consequent = /** @type {AST.Statement} */ (insert_in_statement(node.consequent));
-			if (node.alternate) {
-				node.alternate = /** @type {AST.Statement} */ (insert_in_statement(node.alternate));
-			}
-			return node;
+			const consequent = /** @type {AST.Statement} */ (insert_in_statement(node.consequent));
+			const alternate = node.alternate
+				? /** @type {AST.Statement} */ (insert_in_statement(node.alternate))
+				: node.alternate;
+			return rebuild(node, { consequent, alternate });
 		}
 		if (node.type === 'SwitchStatement') {
-			for (const switch_case of node.cases || []) {
-				switch_case.consequent = /** @type {AST.Statement[]} */ (
-					insert_in_list(switch_case.consequent || [])
-				);
-			}
-			return node;
+			const cases = (node.cases || []).map((switch_case) =>
+				rebuild(switch_case, {
+					consequent: /** @type {AST.Statement[]} */ (insert_in_list(switch_case.consequent || [])),
+				}),
+			);
+			return rebuild(node, { cases });
 		}
 		if (node.type === 'TryStatement') {
-			node.block = /** @type {AST.BlockStatement} */ (insert_in_statement(node.block));
+			/** @type {Partial<AST.TryStatement> & Record<string, any>} */
+			const updates = {
+				block: /** @type {AST.BlockStatement} */ (insert_in_statement(node.block)),
+			};
 			if (node.handler?.body) {
-				node.handler.body = /** @type {AST.BlockStatement} */ (
-					insert_in_statement(node.handler.body)
-				);
+				updates.handler = rebuild(node.handler, {
+					body: /** @type {AST.BlockStatement} */ (insert_in_statement(node.handler.body)),
+				});
 			}
 			if (node.finalizer) {
-				node.finalizer = /** @type {AST.BlockStatement} */ (insert_in_statement(node.finalizer));
+				updates.finalizer = /** @type {AST.BlockStatement} */ (insert_in_statement(node.finalizer));
 			}
+			return rebuild(node, updates);
 		}
 		return node;
 	};
@@ -246,7 +266,7 @@ function insert_style_ref_setup_statements(body, setup) {
  */
 function build_jsx_to_tsrx_element(node, context) {
 	const { visit, state, path } = context;
-	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path);
+	const result = adopt_raw_template_jsx(/** @type {AST.Node} */ (node));
 	const converted = Array.isArray(result) ? result : [result];
 	/** @type {AST.Node[]} */
 	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
@@ -981,19 +1001,23 @@ function is_dead_native_tsrx_expression_statement(node) {
 function transform_variable_declaration(node, context) {
 	/** @type {Map<AST.VariableDeclarator, AST.Expression | null>} */
 	const transformed_inits = new Map();
+	/** @type {Map<AST.VariableDeclarator, AST.Pattern>} */
+	const transformed_ids = new Map();
 
 	for (const declarator of node.declarations) {
+		let declarator_id = declarator.id;
 		if (!context.state.to_ts) {
-			delete declarator.id.typeAnnotation;
-
 			if (
-				(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
-				declarator.id.lazy &&
-				declarator.id.metadata?.lazy_id
+				(declarator_id.type === 'ObjectPattern' || declarator_id.type === 'ArrayPattern') &&
+				declarator_id.lazy &&
+				declarator_id.metadata?.lazy_id
 			) {
-				declarator.id = b.id(declarator.id.metadata.lazy_id);
+				declarator_id = b.id(declarator_id.metadata.lazy_id);
+			} else if (declarator_id.typeAnnotation) {
+				declarator_id = { ...declarator_id, typeAnnotation: undefined };
 			}
 		}
+		transformed_ids.set(declarator, declarator_id);
 
 		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
 		const init = is_template_fragment(declarator_init)
@@ -1013,7 +1037,9 @@ function transform_variable_declaration(node, context) {
 		...node,
 		declarations: node.declarations.map((declarator) => ({
 			...declarator,
-			id: /** @type {AST.Pattern} */ (context.visit(declarator.id)),
+			id: /** @type {AST.Pattern} */ (
+				context.visit(transformed_ids.get(declarator) ?? declarator.id)
+			),
 			init: transformed_inits.get(declarator) ?? null,
 		})),
 	};
@@ -1232,17 +1258,19 @@ function transform_native_tsrx_function(node, context) {
 	let props_param_output = null;
 
 	if (node.params.length > 0) {
-		let props_param = node.params[0];
+		const props_param = node.params[0];
 
 		if (props_param.type === 'Identifier') {
-			delete props_param.typeAnnotation;
-			props_param_output = props_param;
+			props_param_output = props_param.typeAnnotation
+				? { ...props_param, typeAnnotation: undefined }
+				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
-			delete props_param.typeAnnotation;
 			if (props_param.lazy) {
 				props_param_output = b.id('__props');
 			} else {
-				props_param_output = replace_lazy_param_pattern(props_param);
+				props_param_output = replace_lazy_param_pattern(
+					props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param,
+				);
 			}
 		} else {
 			props_param_output = props_param;
@@ -1259,7 +1287,7 @@ function transform_native_tsrx_function(node, context) {
 		body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
 	}
 
-	const raw_render_body = get_native_tsrx_function_body(node);
+	const raw_render_body = get_native_tsrx_function_body(node, context.state.scopes);
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
 	const render_scope_node = get_native_tsrx_return_template_node(
 		node.body,
@@ -1280,7 +1308,8 @@ function transform_native_tsrx_function(node, context) {
 			)
 		: [];
 	const render_body = strip_tsrx_style_elements(
-		insert_style_ref_setup_statements(raw_render_body, style_ref_setup),
+		insert_style_ref_setup_statements(raw_render_body, style_ref_setup, context.state.scopes),
+		context.state.scopes,
 	);
 	body_statements.push(
 		...transform_body(render_body, {
@@ -1323,6 +1352,32 @@ function transform_native_tsrx_function(node, context) {
 	const fn = b.function(node_id, component_params, component_body);
 	fn.metadata.native_tsrx_function = true;
 	return fn;
+}
+
+/**
+ * Returns the function's params with TypeScript annotations stripped and lazy
+ * destructuring patterns replaced by their generated identifiers, without
+ * mutating the original nodes.
+ * @param {AST.Pattern[]} params
+ * @returns {AST.Pattern[]}
+ */
+function strip_function_params(params) {
+	return params.map((param) => {
+		let stripped = param.typeAnnotation ? { ...param, typeAnnotation: undefined } : param;
+		// Handle AssignmentPattern (parameters with default values)
+		if (stripped.type === 'AssignmentPattern' && stripped.left?.typeAnnotation) {
+			stripped = { ...stripped, left: { ...stripped.left, typeAnnotation: undefined } };
+		}
+		// Replace lazy destructuring params with generated identifiers
+		const pattern = stripped.type === 'AssignmentPattern' ? stripped.left : stripped;
+		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
+			const transformed_pattern = replace_lazy_param_pattern(pattern);
+			return stripped.type === 'AssignmentPattern'
+				? /** @type {AST.AssignmentPattern} */ ({ ...stripped, left: transformed_pattern })
+				: transformed_pattern;
+		}
+		return stripped;
+	});
 }
 
 /**
@@ -1501,15 +1556,17 @@ const visit_try_statement = (node, context) => {
 
 	const handler = node.handler;
 	if (handler) {
-		if (handler.param) {
-			delete handler.param.typeAnnotation;
-		}
+		const handler_param = handler.param
+			? handler.param.typeAnnotation
+				? /** @type {AST.Pattern} */ ({ ...handler.param, typeAnnotation: undefined })
+				: handler.param
+			: null;
 
 		/** @type {AST.Statement | null} */
 		let reset = null;
 		if (handler.resetParam) {
-			delete handler.resetParam.typeAnnotation;
-
+			// `resetParam` never reaches the output (only its name is read below),
+			// so its type annotation needs no stripping.
 			reset = b.const(
 				handler.resetParam.type === 'AssignmentPattern'
 					? /** @type {AST.Identifier} */ (handler.resetParam.left).name
@@ -1519,7 +1576,7 @@ const visit_try_statement = (node, context) => {
 		}
 
 		catch_fn = b.arrow(
-			[handler.param || b.id('error')],
+			[handler_param || b.id('error')],
 			b.block([
 				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
 				...(reset ? [reset] : []),
@@ -1693,9 +1750,9 @@ const visitors = {
 	CallExpression(node, context) {
 		const { state } = context;
 
-		if (!state.to_ts) {
-			delete node.typeArguments;
-		}
+		// When lowering to JS the call's type arguments are dropped; the rebuilt
+		// nodes below override `typeArguments` instead of mutating `node`.
+		const type_arguments = state.to_ts ? node.typeArguments : undefined;
 
 		const callee = node.callee;
 
@@ -1713,6 +1770,7 @@ const visitors = {
 			if (ripple_runtime_method !== null) {
 				return {
 					...node,
+					typeArguments: type_arguments,
 					callee: b.member(b.id('_$_'), b.id(ripple_runtime_method)),
 					arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
 						...node.arguments.map((arg) => context.visit(arg)),
@@ -1727,12 +1785,10 @@ const visitors = {
 
 			/** @type {AST.BaseCallExpression['arguments']} */
 			const call_args = [];
-			if (node.arguments.length === 0) {
-				node.arguments.push(b.void0);
-			}
+			const track_args = node.arguments.length === 0 ? [b.void0] : node.arguments;
 
-			for (let i = 0; i < node.arguments.length; i++) {
-				const arg = node.arguments[i];
+			for (let i = 0; i < track_args.length; i++) {
+				const arg = track_args[i];
 				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
 				if (i === 0) {
 					call_args.push(b.literal(node.metadata.hash));
@@ -1741,6 +1797,7 @@ const visitors = {
 
 			return {
 				...node,
+				typeArguments: type_arguments,
 				callee: b.member(b.id('_$_'), b.id(track_method_name)),
 				arguments: call_args,
 			};
@@ -1772,7 +1829,12 @@ const visitors = {
 			}
 		}
 
-		return context.next();
+		const walked = /** @type {AST.CallExpression | undefined} */ (context.next());
+		const result = walked ?? node;
+		if (!state.to_ts && result.typeArguments) {
+			return { ...result, typeArguments: undefined };
+		}
+		return walked;
 	},
 
 	JSXCodeBlock(node, context) {
@@ -1878,10 +1940,6 @@ const visitors = {
 	NewExpression(node, context) {
 		const callee = node.callee;
 
-		if (!context.state.to_ts) {
-			delete node.typeArguments;
-		}
-
 		// Transform `new RippleArray(...)`, `new RippleMap(...)`, etc. imported from 'ripple'
 		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
 			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
@@ -1895,26 +1953,37 @@ const visitors = {
 			}
 		}
 
-		return context.next();
+		const walked = /** @type {AST.NewExpression | undefined} */ (context.next());
+		const result = walked ?? node;
+		if (!context.state.to_ts && result.typeArguments) {
+			return { ...result, typeArguments: undefined };
+		}
+		return walked;
 	},
 
 	PropertyDefinition(node, context) {
-		if (!context.state.to_ts) {
-			delete node.typeAnnotation;
+		const walked = /** @type {AST.PropertyDefinition | undefined} */ (context.next());
+		const result = walked ?? node;
+		if (!context.state.to_ts && result.typeAnnotation) {
+			return { ...result, typeAnnotation: undefined };
 		}
-		return context.next();
+		return walked;
 	},
 
 	ClassDeclaration(node, context) {
 		if (!context.state.to_ts) {
-			strip_class_typescript_syntax(node, context);
+			// Returns a stripped copy with visited children — the source node is
+			// never mutated.
+			return strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
 
 	ClassExpression(node, context) {
 		if (!context.state.to_ts) {
-			strip_class_typescript_syntax(node, context);
+			// Returns a stripped copy with visited children — the source node is
+			// never mutated.
+			return strip_class_typescript_syntax(node, context);
 		}
 		return context.next();
 	},
@@ -1933,25 +2002,15 @@ const visitors = {
 			return transform_native_tsrx_function(node, context);
 		}
 		if (!context.state.to_ts) {
-			delete node.returnType;
-			delete node.typeParameters;
-			for (let i = 0; i < node.params.length; i++) {
-				const param = node.params[i];
-				delete param.typeAnnotation;
-				// Handle AssignmentPattern (parameters with default values)
-				if (param.type === 'AssignmentPattern' && param.left) {
-					delete param.left.typeAnnotation;
-				}
-				// Replace lazy destructuring params with generated identifiers
-				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-					const transformed_pattern = replace_lazy_param_pattern(pattern);
-					node.params[i] =
-						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
-							: transformed_pattern;
-				}
-			}
+			const params = strip_function_params(node.params);
+			return {
+				...node,
+				returnType: undefined,
+				typeParameters: undefined,
+				id: node.id ? /** @type {AST.Identifier} */ (context.visit(node.id)) : node.id,
+				params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
+				body: /** @type {AST.BlockStatement} */ (context.visit(node.body)),
+			};
 		}
 		return context.next();
 	},
@@ -1961,25 +2020,15 @@ const visitors = {
 			return transform_native_tsrx_function(node, context);
 		}
 		if (!context.state.to_ts) {
-			delete node.returnType;
-			delete node.typeParameters;
-			for (let i = 0; i < node.params.length; i++) {
-				const param = node.params[i];
-				delete param.typeAnnotation;
-				// Handle AssignmentPattern (parameters with default values)
-				if (param.type === 'AssignmentPattern' && param.left) {
-					delete param.left.typeAnnotation;
-				}
-				// Replace lazy destructuring params with generated identifiers
-				const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-				if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-					const transformed_pattern = replace_lazy_param_pattern(pattern);
-					node.params[i] =
-						param.type === 'AssignmentPattern'
-							? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
-							: transformed_pattern;
-				}
-			}
+			const params = strip_function_params(node.params);
+			return {
+				...node,
+				returnType: undefined,
+				typeParameters: undefined,
+				id: node.id ? /** @type {AST.Identifier} */ (context.visit(node.id)) : node.id,
+				params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
+				body: /** @type {AST.BlockStatement} */ (context.visit(node.body)),
+			};
 		}
 		return context.next();
 	},
@@ -2002,27 +2051,12 @@ const visitors = {
 		if (is_tsrx_component_function(node)) {
 			return transform_native_tsrx_function(node, context);
 		}
-		delete node.returnType;
-		delete node.typeParameters;
-		const params = node.params.map((param) => {
-			delete param.typeAnnotation;
-			// Handle AssignmentPattern (parameters with default values)
-			if (param.type === 'AssignmentPattern' && param.left) {
-				delete param.left.typeAnnotation;
-			}
-			// Replace lazy destructuring params with generated identifiers
-			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
-			if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-				const transformed_pattern = replace_lazy_param_pattern(pattern);
-				return param.type === 'AssignmentPattern'
-					? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
-					: transformed_pattern;
-			}
-			return param;
-		});
+		const params = strip_function_params(node.params);
 
 		return {
 			...node,
+			returnType: undefined,
+			typeParameters: undefined,
 			params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
 			body:
 				node.body.type === 'BlockStatement'
@@ -2222,7 +2256,8 @@ const visitors = {
 			return context.next();
 		}
 
-		lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'));
+		node =
+			lower_dynamic_element(node, b.member(b.id('_$_'), 'dynamic_element'), state.scopes) ?? node;
 
 		const element_id = get_element_id(node);
 		const element_attributes = get_element_attributes(node);
@@ -2830,13 +2865,13 @@ const visitors = {
 
 			/** @type {AST.VariableDeclaration[]} */
 			const locals = state.server_block_locals;
-			for (const spec of node.specifiers) {
+			const specifiers = node.specifiers.map((spec) => {
 				const original_name = spec.local.name;
 				const name = obfuscateIdentifier(original_name);
-				spec.local = b.id(name);
 				locals.push(b.const(original_name, b.id(name)));
-			}
-			state.imports.add(node);
+				return { ...spec, local: b.id(name) };
+			});
+			state.imports.add(/** @type {AST.ImportDeclaration} */ ({ ...node, specifiers }));
 			return b.empty;
 		}
 
@@ -3249,8 +3284,7 @@ function thread_statement_list(list, out_id) {
 			pending.push(arg);
 		} else if (CONTAINER_TYPES.has(stmt.type) && !container_header_branches(stmt)) {
 			commit();
-			thread_container(stmt, out_id);
-			out.push(stmt);
+			out.push(thread_container(stmt, out_id));
 		} else if (stmt.type === 'ReturnStatement' || contains_branching_call(stmt)) {
 			flush();
 			out.push(stmt);
@@ -3266,47 +3300,63 @@ function thread_statement_list(list, out_id) {
 }
 
 /**
- * Threads the accumulator into a container's body slot(s), in place.
+ * Threads the accumulator into a container's body slot(s), copy-on-write:
+ * returns a rebuilt statement instead of mutating the original.
  * @param {AST.Statement} stmt
  * @param {string} out_id
- * @returns {void}
+ * @returns {AST.Statement}
  */
 function thread_container(stmt, out_id) {
 	/** @param {AST.Statement} node @returns {AST.Statement} */
 	const body_slot = (node) => {
 		if (node.type === 'BlockStatement') {
-			node.body = thread_statement_list(node.body, out_id);
-			return node;
+			return { ...node, body: thread_statement_list(node.body, out_id) };
 		}
 		return b.block(thread_statement_list([node], out_id));
 	};
 	switch (stmt.type) {
 		case 'BlockStatement':
-			stmt.body = thread_statement_list(stmt.body, out_id);
-			break;
+			return { ...stmt, body: thread_statement_list(stmt.body, out_id) };
 		case 'IfStatement':
-			stmt.consequent = body_slot(stmt.consequent);
-			if (stmt.alternate) stmt.alternate = body_slot(stmt.alternate);
-			break;
+			return {
+				...stmt,
+				consequent: body_slot(stmt.consequent),
+				alternate: stmt.alternate ? body_slot(stmt.alternate) : stmt.alternate,
+			};
 		case 'ForStatement':
 		case 'ForInStatement':
 		case 'ForOfStatement':
 		case 'WhileStatement':
 		case 'DoWhileStatement':
 		case 'LabeledStatement':
-			stmt.body = body_slot(stmt.body);
-			break;
+			return { ...stmt, body: body_slot(stmt.body) };
 		case 'SwitchStatement':
-			for (const switch_case of stmt.cases) {
-				switch_case.consequent = thread_statement_list(switch_case.consequent, out_id);
-			}
-			break;
+			return {
+				...stmt,
+				cases: stmt.cases.map((switch_case) => ({
+					...switch_case,
+					consequent: thread_statement_list(switch_case.consequent, out_id),
+				})),
+			};
 		case 'TryStatement':
-			stmt.block.body = thread_statement_list(stmt.block.body, out_id);
-			if (stmt.handler)
-				stmt.handler.body.body = thread_statement_list(stmt.handler.body.body, out_id);
-			if (stmt.finalizer) stmt.finalizer.body = thread_statement_list(stmt.finalizer.body, out_id);
-			break;
+			return {
+				...stmt,
+				block: { ...stmt.block, body: thread_statement_list(stmt.block.body, out_id) },
+				handler: stmt.handler
+					? {
+							...stmt.handler,
+							body: {
+								...stmt.handler.body,
+								body: thread_statement_list(stmt.handler.body.body, out_id),
+							},
+						}
+					: stmt.handler,
+				finalizer: stmt.finalizer
+					? { ...stmt.finalizer, body: thread_statement_list(stmt.finalizer.body, out_id) }
+					: stmt.finalizer,
+			};
+		default:
+			return stmt;
 	}
 }
 
@@ -3382,34 +3432,58 @@ function fresh_accumulator_name(body) {
  * and flush before every branching statement and at block end. So a child block's
  * slot always follows what the parent already flushed: we never accumulate across
  * a block boundary.
+ *
+ * Copy-on-write: the input tree is never mutated — changed spines are rebuilt
+ * and the rebuilt program is returned. A shared subtree is rewritten once and
+ * every occurrence points at the same rewritten copy (mirroring the old
+ * in-place semantics).
  * @param {AST.Program} program
- * @returns {void}
+ * @returns {AST.Program}
  */
 function accumulate_output_pushes(program) {
-	const seen = new WeakSet();
-	/** @param {unknown} node */
+	/** @type {WeakMap<object, unknown>} */
+	const cache = new WeakMap();
+	/** @param {unknown} node @returns {unknown} */
 	const recurse = (node) => {
 		if (Array.isArray(node)) {
-			for (const child of node) recurse(child);
-			return;
+			/** @type {unknown[] | null} */
+			let copy = null;
+			for (let i = 0; i < node.length; i++) {
+				const next = recurse(node[i]);
+				if (next !== node[i]) {
+					copy ??= node.slice();
+					copy[i] = next;
+				}
+			}
+			return copy ?? node;
 		}
-		if (!is_traversable_ast_node(node)) return;
-		if (seen.has(node)) return;
-		seen.add(node);
+		if (!is_traversable_ast_node(node)) return node;
+		if (cache.has(node)) return cache.get(node);
+		// Guard against cycles: re-entry resolves to the original node.
+		cache.set(node, node);
+
+		/** @type {Record<string, any>} */
+		let result = node;
 
 		if (isFunctionNode(node)) {
 			const body = /** @type {AST.Function} */ (node).body;
 			if (body && body.type === 'BlockStatement' && has_direct_output_push(body.body)) {
 				const out_id = fresh_accumulator_name(body.body);
-				body.body = [
-					b.let(b.id(out_id), b.literal('')),
-					...thread_statement_list(body.body, out_id),
-					b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
-				];
+				result = {
+					...node,
+					body: {
+						...body,
+						body: [
+							b.let(b.id(out_id), b.literal('')),
+							...thread_statement_list(body.body, out_id),
+							b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
+						],
+					},
+				};
 			}
 		}
 
-		for (const key in node) {
+		for (const key in result) {
 			if (
 				key === 'metadata' ||
 				key === 'loc' ||
@@ -3419,10 +3493,18 @@ function accumulate_output_pushes(program) {
 			) {
 				continue;
 			}
-			recurse(node[key]);
+			const child = result[key];
+			const next = recurse(child);
+			if (next !== child) {
+				if (result === node) result = { .../** @type {Record<string, any>} */ (node) };
+				result[key] = next;
+			}
 		}
+
+		cache.set(node, result);
+		return result;
 	};
-	recurse(program);
+	return /** @type {AST.Program} */ (recurse(program));
 }
 
 /**
@@ -3462,18 +3544,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const { css, cssHash } = renderCssResult(state.stylesheets, minify_css);
 
-	// Register each stylesheet's CSS so the runtime can serialize it
-	if (css) {
-		for (const stylesheet of state.stylesheets) {
-			const css_for_component = renderStylesheets([stylesheet]);
-			/** @type {AST.Program} */ (program).body.push(
-				b.stmt(
-					b.call('_$_.register_css', b.literal(stylesheet.hash), b.literal(css_for_component)),
-				),
-			);
-		}
-	}
-
 	/** @type {AST.Program['body']} */
 	let body = [];
 
@@ -3487,13 +3557,25 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	body.push(...program.body);
 
-	program.body = body;
+	// Register each stylesheet's CSS so the runtime can serialize it
+	if (css) {
+		for (const stylesheet of state.stylesheets) {
+			const css_for_component = renderStylesheets([stylesheet]);
+			body.push(
+				b.stmt(
+					b.call('_$_.register_css', b.literal(stylesheet.hash), b.literal(css_for_component)),
+				),
+			);
+		}
+	}
+
+	program = /** @type {AST.Program} */ ({ ...program, body });
 
 	// Accumulate each runtime block's output into a single `__out` string and
 	// push it once per block (flushing only before a child block) so the whole
 	// `@for` feed lands in one push. Stays within block boundaries by
 	// construction (see accumulate_output_pushes).
-	accumulate_output_pushes(/** @type {AST.Program} */ (program));
+	program = accumulate_output_pushes(/** @type {AST.Program} */ (program));
 
 	const { code, map } = print(
 		program,
