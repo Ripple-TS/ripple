@@ -180,6 +180,21 @@ export function create_scopes(ast, root, parent, error_options) {
 		SwitchStatement: create_block_scope,
 		JSXForExpression: create_block_scope,
 		JSXSwitchExpression: create_block_scope,
+		// Each `@{ … }` code block is its own lexical scope, whether it is a
+		// function body or a template child — its bindings never leak out.
+		JSXCodeBlock(node, context) {
+			const parent = context.path.at(-1);
+			if (
+				parent?.type === 'FunctionDeclaration' ||
+				parent?.type === 'FunctionExpression' ||
+				parent?.type === 'ArrowFunctionExpression'
+			) {
+				// The function already created a scope for its body.
+				context.next();
+			} else {
+				create_block_scope(node, context);
+			}
+		},
 		BlockStatement(node, context) {
 			const parent = context.path.at(-1);
 			if (
