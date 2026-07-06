@@ -19,7 +19,6 @@ import {
 	renderCssResult,
 	renderStylesheets,
 	prepareStylesheetForRender,
-	pruneCss,
 	collectStyleRefAttributes,
 	createStyleClassMap,
 	createStyleClassMapFromStylesheet,
@@ -106,50 +105,6 @@ function is_traversable_ast_node(value) {
 }
 
 /**
- * Re-run CSS pruning on JSX converted into Ripple template nodes so server
- * output applies the same scoped metadata as regular Ripple template elements.
- *
- * @param {AST.Node[]} nodes
- * @param {TransformServerState} state
- * @returns {void}
- */
-function apply_tsrx_css_scoping(nodes, state) {
-	const component = state.component;
-	const css = get_component_css(state);
-	if (!component || !css) {
-		return;
-	}
-	const stylesheet = /** @type {AST.CSS.StyleSheet} */ (css);
-
-	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
-	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
-
-	/**
-	 * @param {AST.Node} node
-	 * @returns {void}
-	 */
-	function visit_node(node) {
-		if (node.type === 'Element') {
-			pruneCss(stylesheet, node, style_classes, top_scoped_classes);
-			for (const child of node.children) {
-				visit_node(child);
-			}
-			return;
-		}
-
-		if ('children' in node && Array.isArray(node.children)) {
-			for (const child of node.children) {
-				visit_node(/** @type {AST.Node} */ (child));
-			}
-		}
-	}
-
-	for (const node of nodes) {
-		visit_node(node);
-	}
-}
-
-/**
  * @param {TransformServerState} state
  * @returns {AST.CSS.StyleSheet | null}
  */
@@ -167,7 +122,7 @@ function get_component_css_hash(state) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {AST.JSXStyleElement} node
  * @param {TransformServerContext} context
  * @returns {AST.ObjectExpression | null}
  */
@@ -294,8 +249,6 @@ function build_jsx_to_tsrx_element(node, context) {
 	/** @type {AST.Node[]} */
 	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
 
-	apply_tsrx_css_scoping(children, state);
-
 	/** @type {AST.Statement[]} */
 	const init = [];
 	transform_children(
@@ -315,14 +268,16 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
- * @param {AST.Element | ESTreeJSX.JSXFragment} node
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
 function build_template_node_to_tsrx_element(node, context) {
 	const { visit, state, path } = context;
 	const children = is_template_fragment(node)
-		? node.children.filter((child) => child != null && child.type !== 'EmptyStatement')
+		? /** @type {AST.Node[]} */ (node.children).filter(
+				(child) => child != null && child.type !== 'EmptyStatement',
+			)
 		: [
 				{
 					...node,
@@ -332,8 +287,6 @@ function build_template_node_to_tsrx_element(node, context) {
 					},
 				},
 			];
-
-	apply_tsrx_css_scoping(children, state);
 
 	/** @type {AST.Statement[]} */
 	const init = [];
@@ -774,7 +727,7 @@ function node_leads_with_control_flow(node, context) {
 			);
 		case 'JSXFragment':
 			return fragment_leads_with_control_flow(
-				rendered_template_children(node.children, false),
+				rendered_template_children(/** @type {AST.Node[]} */ (node.children), false),
 				context,
 			);
 		case 'JSXCodeBlock':
@@ -872,7 +825,7 @@ function is_head_element(node) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @param {TransformServerContext} context
  * @returns {boolean}
  */
@@ -891,7 +844,7 @@ function is_ripple_fragment_element(node, context) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @returns {ESTreeJSX.JSXAttribute | null}
  */
 function get_inner_html_attribute(node) {
@@ -981,7 +934,7 @@ function push_inner_html_expression(expression, state) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @param {TransformServerContext} context
  * @returns {void}
  */
@@ -993,7 +946,7 @@ function visit_ripple_fragment_element(node, context) {
 		return;
 	}
 
-	transform_children(node.children, context);
+	transform_children(/** @type {AST.Node[]} */ (node.children), context);
 }
 
 /**
@@ -1031,7 +984,10 @@ function transform_variable_declaration(node, context) {
 
 		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
 		const init = is_template_fragment(declarator_init)
-			? build_template_node_to_tsrx_element(declarator_init, context)
+			? build_template_node_to_tsrx_element(
+					/** @type {ESTreeJSX.JSXFragment} */ (declarator_init),
+					context,
+				)
 			: declarator_init
 				? /** @type {AST.Expression} */ (
 						context.visit(declarator_init, { ...context.state, template_child: false })
@@ -1158,7 +1114,7 @@ function transform_children(children, context) {
 		}
 	}
 
-	const head_elements = /** @type {AST.Element[]} */ (
+	const head_elements = /** @type {ESTreeJSX.JSXElement[]} */ (
 		children.filter((node) => is_head_element(node))
 	);
 
@@ -1174,7 +1130,7 @@ function transform_children(children, context) {
 			// Emit hydration marker comment with hash
 			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
 
-			transform_children(head_element.children, {
+			transform_children(/** @type {AST.Node[]} */ (head_element.children), {
 				...context,
 				state: { ...state, skip_regular_blocks: true },
 			});
@@ -1208,20 +1164,22 @@ function transform_body(body, context) {
 /**
  * @param {AST.Node | null | undefined} node
  * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | ESTreeJSX.JSXFragment | null}
+ * @returns {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | null}
  */
 function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
 	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (/** @type {unknown} */ (node));
+		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
+			/** @type {unknown} */ (node)
+		);
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
 			/** @type {unknown} */ (node.argument)
 		);
 	}
 	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
-		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+		return /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
 			/** @type {unknown} */ (node.render)
 		);
 	}
@@ -1527,10 +1485,9 @@ const visitors = {
 		}
 
 		const { visit, state } = context;
-		const children = node.children.filter(
+		const children = /** @type {AST.Node[]} */ (node.children).filter(
 			(child) => child != null && child.type !== 'EmptyStatement',
 		);
-		apply_tsrx_css_scoping(children, state);
 
 		/** @type {AST.Statement[]} */
 		const init = [];
@@ -1919,6 +1876,10 @@ const visitors = {
 		// at analysis time and injected separately.
 	},
 
+	/**
+	 * @param {any} node
+	 * @param {TransformServerContext} context
+	 */
 	JSXElement(node, context) {
 		const { state, visit } = context;
 
@@ -2305,7 +2266,8 @@ const visitors = {
 			}
 
 			const children_filtered = node.children.filter(
-				(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
+				(/** @type {any} */ child) =>
+					child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);
 
 			if (children_filtered.length > 0) {
@@ -2585,7 +2547,7 @@ const visitors = {
 		if (!context.state.to_ts && is_native_tsrx_template_node(node.argument)) {
 			return b.return(
 				build_template_node_to_tsrx_element(
-					/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+					/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
 						/** @type {unknown} */ (node.argument)
 					),
 					context,

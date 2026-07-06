@@ -89,6 +89,14 @@ interface BaseNodeMetaData {
 	templateMode?: 'script' | 'template';
 	script_only?: boolean;
 	tsrxDirective?: 'if' | 'for' | 'switch' | 'try';
+	/** A retyped expression-position directive whose branch bodies are template children. */
+	tsrx_template_directive?: boolean;
+	/** A synthetic wrapper for a nested `@{ @{ ... } }` code-block render chain. */
+	tsrx_code_block_chain?: boolean;
+	/** A synthesized render-body fragment (see create_native_tsrx_render_function). */
+	tsrx_render_fragment?: boolean;
+	/** A merged text run produced by normalize_children - renders through the text path. */
+	tsrx_text?: boolean;
 	ts_name?: string;
 	delegated?: any;
 	returned_tsrx_return?: AST.ReturnStatement;
@@ -248,30 +256,16 @@ declare module 'estree' {
 		tracked?: boolean;
 	}
 
-	interface SimpleLiteral extends AST.LiteralNode {}
-	interface RegExpLiteral extends AST.LiteralNode {}
-	interface BigIntLiteral extends AST.LiteralNode {}
-
 	interface TrackedNode {
 		tracked?: boolean;
 	}
 
-	interface LiteralNode {
-		was_expression?: boolean;
-	}
-
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
-		Element: Element;
-		TsrxFragment: TsrxFragment;
-		Text: Text;
 		TSRXJSXElement: TSRXJSXElement;
 		TSRXJSXFragment: TSRXJSXFragment;
 		TSRXJSXOpeningElement: ESTreeJSX.TSRXJSXOpeningElement;
 		TSRXJSXClosingElement: ESTreeJSX.TSRXJSXClosingElement;
-		TSRXExpression: TSRXExpression;
-		Attribute: Attribute;
-		SpreadAttribute: SpreadAttribute;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -282,10 +276,6 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		Element: Element;
-		TsrxFragment: TsrxFragment;
-		Text: Text;
-		TSRXExpression: TSRXExpression;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -298,69 +288,6 @@ declare module 'estree' {
 	}
 
 	type TraversableAstNode = AST.Node & Record<string, unknown>;
-
-	// Ripple-normalized template node shapes. The core parser emits JSX-shaped
-	// TSRX nodes; @tsrx/ripple creates these during its normalization pass.
-	interface Attribute extends AST.BaseNode {
-		type: 'Attribute';
-		name: AST.Identifier;
-		value: any;
-		shorthand?: boolean;
-		metadata: BaseNodeMetaData;
-	}
-
-	interface SpreadAttribute extends AST.BaseNode {
-		type: 'SpreadAttribute';
-		argument: AST.Expression;
-		metadata: BaseNodeMetaData;
-	}
-
-	interface Element extends AST.BaseExpression {
-		type: 'Element';
-		id: AST.Expression;
-		attributes: Array<Attribute | SpreadAttribute>;
-		children: AST.Node[];
-		openingElement: ESTreeJSX.JSXOpeningElement;
-		closingElement: ESTreeJSX.JSXClosingElement | null;
-		selfClosing?: boolean;
-		unclosed?: boolean;
-		isDynamic?: boolean;
-		css?: string;
-		metadata: BaseNodeMetaData;
-		start: number;
-		end: number;
-	}
-
-	interface TsrxFragment extends AST.BaseExpression {
-		type: 'TsrxFragment';
-		children: AST.Node[];
-		openingElement?: ESTreeJSX.JSXOpeningFragment;
-		closingElement?: ESTreeJSX.JSXClosingFragment | null;
-		selfClosing?: boolean;
-		attributes?: Array<Attribute | SpreadAttribute>;
-		metadata: BaseNodeMetaData & {
-			/**
-			 * A synthetic wrapper for a nested code-block render chain
-			 * (`@{ @{ … } }`), so render-slot consumers see a template node;
-			 * template-children lowering unwraps it.
-			 */
-			tsrx_code_block_chain?: boolean;
-		};
-		start: number;
-		end: number;
-	}
-
-	interface Text extends AST.BaseExpression {
-		type: 'Text';
-		expression: AST.Expression;
-		metadata: BaseNodeMetaData;
-	}
-
-	interface TSRXExpression extends AST.BaseExpression {
-		type: 'TSRXExpression';
-		expression: AST.Expression;
-		metadata: BaseNodeMetaData;
-	}
 
 	type TSRXJSXChild =
 		| ESTreeJSX.JSXText
@@ -1452,7 +1379,7 @@ export interface AnalysisState extends BaseState {
 			filename: string;
 		};
 	};
-	elements?: Array<ESTreeJSX.JSXElement | AST.Element>;
+	elements?: Array<ESTreeJSX.JSXElement>;
 	function_depth?: number;
 	collect?: boolean;
 	metadata: BaseStateMetaData & {

@@ -243,7 +243,7 @@ export function get_element_id(node) {
 			});
 		}
 	}
-	return metadata.id_node;
+	return /** @type {AST.Expression} */ (metadata.id_node);
 }
 
 /**

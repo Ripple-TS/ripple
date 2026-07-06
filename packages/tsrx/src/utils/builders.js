@@ -369,26 +369,6 @@ export function literal(value, raw, loc_info) {
 }
 
 /**
- * Ripple template `Text` node wrapping a string literal of `value`. Used by the
- * Ripple normalizer when lowering a JSX text child to a template Text node.
- *
- * Remove once Ripple transformers move to the parser's JSX AST
- *
- * @param {string} value
- * @param {AST.NodeWithLocation} [loc_info]
- * @returns {AST.Text}
- */
-export function text(value, loc_info) {
-	const node = /** @type {AST.Text} */ ({
-		type: 'Text',
-		expression: literal(value, JSON.stringify(value), loc_info),
-		metadata: { path: [] },
-	});
-
-	return set_location(node, loc_info);
-}
-
-/**
  * @param {AST.Expression | AST.Super} object
  * @param {string | AST.Expression | AST.PrivateIdentifier} property
  * @param {boolean} computed
@@ -1267,44 +1247,6 @@ export function jsx_fragment(children = [], attributes = []) {
 		children,
 		metadata: { path: [] },
 	};
-}
-
-/**
- * Ripple's internal fragment template node (the normalized form of a
- * `JSXFragment`).
- * @param {AST.Node[]} [children]
- * @param {AST.NodeWithLocation} [loc_info]
- * @returns {AST.TsrxFragment}
- */
-export function tsrx_fragment(children = [], loc_info) {
-	const node = /** @type {AST.TsrxFragment} */ (
-		/** @type {unknown} */ ({
-			type: 'TsrxFragment',
-			children,
-			attributes: [],
-			selfClosing: false,
-			metadata: { path: [] },
-		})
-	);
-
-	return set_location(node, loc_info);
-}
-
-/**
- * Ripple's internal expression template child (the normalized form of a
- * `JSXExpressionContainer` child).
- * @param {AST.Expression} expression
- * @param {AST.NodeWithLocation} [loc_info]
- * @returns {AST.TSRXExpression}
- */
-export function tsrx_expression(expression, loc_info) {
-	const node = /** @type {AST.TSRXExpression} */ ({
-		type: 'TSRXExpression',
-		expression,
-		metadata: { path: [] },
-	});
-
-	return set_location(node, loc_info);
 }
 
 /**

@@ -358,9 +358,9 @@ function is_render_child_or_statement_slot(parent, key, child) {
 }
 
 /**
- * Wrap a directive in a `<> … </>` so it normalizes to a `TsrxFragment` — the
- * same shape an authored `<>@if … </>` produces — and flows through the render
- * machinery (a `tsrx_element` on the client/server, a `<> … </>` in to_ts).
+ * Wrap a directive in a `<> … </>` — the same shape an authored `<>@if … </>`
+ * produces — so it flows through the render machinery (a `tsrx_element` on the
+ * client/server, a `<> … </>` in to_ts).
  * @param {any} directive
  * @returns {any}
  */
@@ -803,11 +803,11 @@ function statement_contains_native_tsrx_return(statement) {
 }
 
 /**
- * @param {AST.Element | ESTreeJSX.JSXFragment} node
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node) {
-	return is_template_fragment(node) ? node.children || [] : [node];
+	return is_template_fragment(node) ? /** @type {AST.Node[]} */ (node.children || []) : [node];
 }
 
 /**
@@ -829,7 +829,9 @@ export function get_native_tsrx_function_body(node) {
 		return is_native_tsrx_template_node(node.body)
 			? [
 					...get_native_tsrx_template_children(
-						/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (/** @type {unknown} */ (node.body)),
+						/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
+							/** @type {unknown} */ (node.body)
+						),
 					).map((child) => mark_returned_template_child(child)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
@@ -1002,7 +1004,7 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 
 	if (statement.type === 'ReturnStatement' && is_native_tsrx_template_node(statement.argument)) {
 		const template_children = get_native_tsrx_template_children(
-			/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+			/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
 				/** @type {unknown} */ (statement.argument)
 			),
 		);
@@ -1213,9 +1215,8 @@ function strip_style_element_children(node, inside_head) {
 			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
 			/** @type {any} */ (get_element_id(node_any)).name === 'head');
 	if ('children' in node && Array.isArray(node.children)) {
-		node.children = strip_style_elements(
-			/** @type {AST.Node[]} */ (node.children),
-			next_inside_head,
+		node.children = /** @type {any} */ (
+			strip_style_elements(/** @type {AST.Node[]} */ (node.children), next_inside_head)
 		);
 	}
 	if (node.type === 'BlockStatement') {
@@ -2037,9 +2038,9 @@ export function lower_dynamic_element(node, component_id) {
 	];
 	// The tag is no longer dynamic — clear the parser's markers (the name
 	// container was already replaced above).
-	node.isDynamic = false;
+	/** @type {any} */ (node).isDynamic = false;
 	if (node.openingElement) {
-		node.openingElement.isDynamic = false;
+		/** @type {any} */ (node.openingElement).isDynamic = false;
 	}
 	return true;
 }
@@ -2358,10 +2359,10 @@ function normalize_child(node, normalized, context) {
 	} else if (
 		is_template_element(node) &&
 		get_element_id(node).type === 'Identifier' &&
-		/** @type {AST.Identifier} */ (
-			get_element_id(node).name === 'head' ||
-				/** @type {AST.Identifier} */ (
-					get_element_id(node).name === 'title' && context.state.inside_head
+		/** @type {any} */ (
+			/** @type {any} */ (get_element_id(node)).name === 'head' ||
+				/** @type {any} */ (
+					/** @type {any} */ (get_element_id(node)).name === 'title' && context.state.inside_head
 				)
 		)
 	) {
@@ -2920,7 +2921,7 @@ function code_block_to_template_child(block, inherited_path) {
 	// positions). As a template child, unwrap it instead of stacking an
 	// inline component per nesting level.
 	if (render?.type === 'JSXFragment' && render.metadata?.tsrx_code_block_chain) {
-		const inner_child = render.children[0];
+		const inner_child = /** @type {any} */ (render.children[0]);
 		if (body.length === 0) {
 			return inner_child;
 		}

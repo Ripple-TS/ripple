@@ -832,10 +832,7 @@ describe('@tsrx/ripple Volar mappings style anchors', () => {
 		const collect_style_nodes = (node) => {
 			if (!node || typeof node !== 'object' || seen.has(node)) return;
 			seen.add(node);
-			if (
-				node.type === 'JSXStyleElement' ||
-				(node.type === 'Element' && node.id?.name === 'style')
-			) {
+			if (node.type === 'JSXStyleElement') {
 				source_style_nodes.push(node.type);
 			}
 			for (const key in node) {
