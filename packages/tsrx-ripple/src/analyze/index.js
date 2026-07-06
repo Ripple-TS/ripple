@@ -1228,7 +1228,7 @@ function visit_function(node, context) {
 		context.next(component_state);
 
 		const css = collect_tsrx_stylesheet(render_body);
-		/** @type {any} */ (node.metadata).css = css;
+		node.metadata.component_css = css;
 
 		if (css !== null) {
 			analyzeCss(css);
@@ -1245,7 +1245,7 @@ function visit_function(node, context) {
 				prune();
 			}
 			if (topScopedClasses.size > 0) {
-				/** @type {any} */ (node.metadata).topScopedClasses = topScopedClasses;
+				node.metadata.topScopedClasses = topScopedClasses;
 			}
 		}
 

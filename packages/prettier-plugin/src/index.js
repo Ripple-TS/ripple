@@ -2603,7 +2603,9 @@ function printVariableDeclaration(node, path, options, print) {
 		(parentNode && parentNode.type === 'ForInStatement' && parentNode.left === node) ||
 		(parentNode &&
 			parentNode.type === 'JSXForExpression' &&
-			(parentNode.left === node || parentNode.init === node));
+			(parentNode.statementType === 'ForStatement'
+				? parentNode.init === node
+				: parentNode.left === node));
 
 	const declarations = path.map(print, 'declarations');
 	const declarationParts = join(', ', declarations);

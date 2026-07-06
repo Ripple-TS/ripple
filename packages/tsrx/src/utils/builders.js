@@ -1200,8 +1200,9 @@ export function jsx_element_fresh(
 
 /**
  * Elements carry the parser's widened TSRX shape (dynamic-tag names, lowered
- * template children) — see {@link jsx_fragment}.
- * @param {AST.TSRXJSXElement} node
+ * template children) — see {@link jsx_fragment}. A `JSXStyleElement` shares
+ * the element shape and may be re-emitted as an empty `<style>` element.
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @param {ESTreeJSX.TSRXJSXOpeningElement['attributes']} attributes
  * @param {AST.TSRXJSXElement['children']} children
  * @returns {AST.TSRXJSXElement}

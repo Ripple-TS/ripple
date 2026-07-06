@@ -149,7 +149,7 @@ export function is_empty_expression_container(node) {
  * plain `IfStatement`/`ForOfStatement`/… is always ordinary JavaScript, except
  * the `@else if` chain links detected by {@link is_template_else_if}.
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.JSXTemplateDirective}
  */
 export function is_template_directive(node) {
 	return (
@@ -314,6 +314,17 @@ export function is_template_element(node) {
 export function set_element_id(node, id) {
 	node.metadata ??= { path: [] };
 	node.metadata.id_node = id;
+}
+
+/**
+ * The element's tag as a plain `Identifier` — `null` for member-expression,
+ * namespaced, or dynamic tags.
+ * @param {any} node
+ * @returns {AST.Identifier | null}
+ */
+export function get_element_identifier(node) {
+	const id = get_element_id(node);
+	return id.type === 'Identifier' ? /** @type {AST.Identifier} */ (id) : null;
 }
 
 /**

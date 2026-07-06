@@ -143,6 +143,10 @@ interface FunctionMetaData extends BaseNodeMetaData {
 	is_method?: boolean;
 	tracked?: boolean;
 	has_lazy_descendants?: boolean;
+	/** The component's extracted `<style>` stylesheet (element-level scoped-class info lives on BaseNodeMetaData's `css`). */
+	component_css?: AST.CSS.StyleSheet | null;
+	/** Top-level scoped classes collected while pruning the component's CSS. */
+	topScopedClasses?: TopScopedClasses;
 	synthetic_children?: boolean;
 	generated_helpers?: any[];
 	generated_statics?: any[];
@@ -362,21 +366,38 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData;
 	}
 
-	interface JSXForExpression extends AST.BaseExpression {
+	interface JSXForExpressionBase extends AST.BaseExpression {
 		type: 'JSXForExpression';
-		statementType: 'ForStatement' | 'ForInStatement' | 'ForOfStatement';
-		body: AST.Statement;
-		init?: AST.VariableDeclaration | AST.Expression | null;
-		test?: AST.Expression | null;
-		update?: AST.Expression | null;
-		left?: AST.VariableDeclaration | AST.Pattern;
-		right?: AST.Expression;
-		await?: boolean;
+		/** The parser raises unless the directive body is a `{ … }` block. */
+		body: AST.BlockStatement;
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
 		empty?: AST.BlockStatement | null;
 		metadata: BaseNodeMetaData;
 	}
+
+	interface JSXForOfExpression extends JSXForExpressionBase {
+		statementType: 'ForOfStatement';
+		left: AST.VariableDeclaration | AST.Pattern;
+		right: AST.Expression;
+		await?: boolean;
+	}
+
+	interface JSXForInExpression extends JSXForExpressionBase {
+		statementType: 'ForInStatement';
+		left: AST.VariableDeclaration | AST.Pattern;
+		right: AST.Expression;
+	}
+
+	interface JSXForPlainExpression extends JSXForExpressionBase {
+		statementType: 'ForStatement';
+		init?: AST.VariableDeclaration | AST.Expression | null;
+		test?: AST.Expression | null;
+		update?: AST.Expression | null;
+	}
+
+	/** `@for` — discriminated on `statementType` (for-of / for-in / for(;;)). */
+	type JSXForExpression = JSXForOfExpression | JSXForInExpression | JSXForPlainExpression;
 
 	interface JSXSwitchExpression extends AST.BaseExpression {
 		type: 'JSXSwitchExpression';
@@ -1088,8 +1109,10 @@ declare module 'estree' {
 	> {
 		typeAnnotation: TypeNode;
 	}
-	interface TSTypeAssertion extends AcornTSNode<TSESTree.TSTypeAssertion> {
+	interface TSTypeAssertion extends Omit<AcornTSNode<TSESTree.TSTypeAssertion>, 'typeAnnotation'> {
+		// Have to override it to use our Expression for required properties like metadata
 		expression: AST.Expression;
+		typeAnnotation: TypeNode;
 	}
 	interface TSTypeLiteral extends Omit<AcornTSNode<TSESTree.TSTypeLiteral>, 'members'> {
 		members: TypeElement[];

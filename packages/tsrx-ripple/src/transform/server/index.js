@@ -75,6 +75,7 @@ import {
 	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
 	visit_directive_wrapping_values,
+	replace_with_statements,
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
@@ -115,8 +116,7 @@ function is_traversable_ast_node(value) {
  * @returns {AST.CSS.StyleSheet | null}
  */
 function get_component_css(state) {
-	const component = /** @type {any} */ (state.component);
-	return component?.css ?? component?.metadata?.css ?? null;
+	return state.component?.metadata.component_css ?? null;
 }
 
 /**
@@ -1632,7 +1632,7 @@ const visit_try_statement = (node, context) => {
 
 /**
  * Shared by the plain statement and the `@`-directive forms.
- * @type {Visitor<AST.ForOfStatement | AST.JSXForExpression, TransformServerState, AST.Node>}
+ * @type {Visitor<AST.ForOfStatement | AST.JSXForOfExpression, TransformServerState, AST.Node>}
  */
 const visit_for_of_statement = (node, context) => {
 	if (context.state.regular_js) {
@@ -2873,7 +2873,7 @@ const visitors = {
 		const { state } = context;
 
 		if (get_submodule_import_source_name(node) === 'server') {
-			return /** @type {any} */ (transform_server_module_import(node));
+			return replace_with_statements(transform_server_module_import(node));
 		}
 
 		if (!state.to_ts && node.importKind === 'type') {

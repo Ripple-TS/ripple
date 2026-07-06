@@ -323,6 +323,18 @@ export function analyze_directive_wrapping_values(node, context, visit) {
 }
 
 /**
+ * Replace a single statement with several from a visitor: zimmerframe stores
+ * the array verbatim in the parent's statement list and the printer flattens
+ * nested statement arrays, so this is a supported — if untyped — replacement
+ * shape. This helper is the one sanctioned boundary for it.
+ * @param {AST.Statement[]} statements
+ * @returns {AST.Node}
+ */
+export function replace_with_statements(statements) {
+	return /** @type {AST.Node} */ (/** @type {unknown} */ (statements));
+}
+
+/**
  * Wrap a `@{ … }` code block in an immediately-invoked arrow
  * (`(() =>@{ … })()`). Ripple only lowers a code block when it is a function body
  * @param {AST.JSXCodeBlock} code_block
