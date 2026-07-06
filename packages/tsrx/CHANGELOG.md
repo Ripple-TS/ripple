@@ -1,5 +1,19 @@
 # @tsrx/core
 
+## 0.1.35
+
+### Patch Changes
+
+- [#1322](https://github.com/Ripple-TS/ripple/pull/1322)
+  [`51eed86`](https://github.com/Ripple-TS/ripple/commit/51eed869b7ea26b5554893c9f8dd363f2d2121bc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parenthesized multiline JSX
+  with nested children inside a ternary branch of an expression container (e.g.
+  `{cond ? (<Outer><Inner>hi</Inner></Outer>) : null}` spread across lines) no
+  longer fails to parse. After the closing `)`, the tokenizer treated the
+  following `: null` as template raw text of the enclosing element and swallowed
+  it; raw text inside an expression container is now only read when the innermost
+  template element was opened inside that container.
+
 ## 0.1.34
 
 ### Patch Changes
