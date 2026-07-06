@@ -82,6 +82,7 @@ import {
 	get_template_text_value,
 	is_droppable_template_text,
 	is_empty_expression_container,
+	is_template_fragment,
 	is_template_text,
 	rendered_template_children,
 } from '../../template-ast.js';
@@ -372,24 +373,23 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
- * @param {AST.Element | AST.TsrxFragment} node
+ * @param {AST.Element | ESTreeJSX.JSXFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
 function build_template_node_to_tsrx_element(node, context) {
 	const { visit, state, path } = context;
-	const children =
-		node.type === 'TsrxFragment'
-			? node.children.filter((child) => child != null && child.type !== 'EmptyStatement')
-			: [
-					{
-						...node,
-						metadata: {
-							...node.metadata,
-							regular_js: undefined,
-						},
+	const children = is_template_fragment(node)
+		? node.children.filter((child) => child != null && child.type !== 'EmptyStatement')
+		: [
+				{
+					...node,
+					metadata: {
+						...node.metadata,
+						regular_js: undefined,
 					},
-				];
+				},
+			];
 
 	apply_tsrx_css_scoping(children, state);
 
@@ -428,7 +428,6 @@ function contains_template_value_node(node) {
 				node.type === 'Element' ||
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
-				node.type === 'TsrxFragment' ||
 				(node.type === 'CallExpression' &&
 					node.callee.type === 'Identifier' &&
 					node.callee.name === '_$_.tsrx_element')
@@ -566,7 +565,7 @@ function is_template_value_binding(expression, scope) {
 	return (
 		binding?.metadata?.is_template_value === true ||
 		initial?.type === 'Element' ||
-		initial?.type === 'TsrxFragment'
+		is_template_fragment(initial)
 	);
 }
 
@@ -750,7 +749,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
-		node.type === 'TsrxFragment' ||
+		is_template_fragment(node) ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -827,7 +826,7 @@ function node_leads_with_control_flow(node, context) {
 				/** @type {ESTreeJSX.JSXExpressionContainer} */ (node),
 				context,
 			);
-		case 'TsrxFragment':
+		case 'JSXFragment':
 			return fragment_leads_with_control_flow(
 				rendered_template_children(node.children, false),
 				context,
@@ -906,7 +905,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'TsrxFragment'
+		is_template_fragment(parent)
 	);
 }
 
@@ -1084,14 +1083,13 @@ function transform_variable_declaration(node, context) {
 		}
 
 		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
-		const init =
-			declarator_init?.type === 'TsrxFragment'
-				? build_template_node_to_tsrx_element(declarator_init, context)
-				: declarator_init
-					? /** @type {AST.Expression} */ (
-							context.visit(declarator_init, { ...context.state, template_child: false })
-						)
-					: null;
+		const init = is_template_fragment(declarator_init)
+			? build_template_node_to_tsrx_element(declarator_init, context)
+			: declarator_init
+				? /** @type {AST.Expression} */ (
+						context.visit(declarator_init, { ...context.state, template_child: false })
+					)
+				: null;
 		transformed_inits.set(declarator, init);
 	}
 
@@ -1263,18 +1261,22 @@ function transform_body(body, context) {
 /**
  * @param {AST.Node | null | undefined} node
  * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | AST.TsrxFragment | null}
+ * @returns {AST.Element | ESTreeJSX.JSXFragment | null}
  */
 function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
 	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (/** @type {unknown} */ (node));
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+			/** @type {unknown} */ (node.argument)
+		);
 	}
 	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.render));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+			/** @type {unknown} */ (node.render)
+		);
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -1575,10 +1577,71 @@ const visitors = {
 	},
 
 	JSXFragment(node, context) {
-		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
+		// A raw (non-template) fragment — an attribute value or other JSX that
+		// never entered the template traversal.
+		if (!is_template_fragment(node)) {
+			if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+				return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
+			}
+			return context.next();
 		}
-		return context.next();
+
+		const { visit, state } = context;
+		const children = node.children.filter(
+			(child) => child != null && child.type !== 'EmptyStatement',
+		);
+		apply_tsrx_css_scoping(children, state);
+
+		/** @type {AST.Statement[]} */
+		const init = [];
+		transform_children(
+			children,
+			/** @type {TransformServerContext} */ ({
+				visit,
+				state: {
+					...state,
+					init,
+					regular_js: false,
+					jsx_to_tsrx_element: true,
+					// The fragment's own children are no longer the direct body of the
+					// enclosing control-flow branch, so they must not inherit the marker.
+					control_flow_branch_body: false,
+				},
+			}),
+		);
+
+		if (state.template_child) {
+			// In template position the client lowers `<>…</>` to a `<!>` placeholder +
+			// `_$_.expression(() => _$_.tsrx_element(…))`. During hydration that
+			// expression() needs a matching `<!--[-->`…`<!--]-->` boundary whenever it
+			// would otherwise borrow a nested control-flow's start marker as its own and
+			// advance the cursor past that child's content (desyncing hydration). That
+			// happens in two situations:
+			//   - the fragment is the direct body of a control-flow branch (or nested in
+			//     an element within one): the enclosing block already consumed its own
+			//     marker via hydrate_next before the branch body runs, leaving none for
+			//     the fragment — `control_flow_branch_body`;
+			//   - the fragment leads with control flow (e.g. a component body
+			//     `<> @for … </>`): its first child's marker would be mistaken for the
+			//     fragment's own.
+			// A fragment that leads with a component/element instead reuses its host
+			// boundary (or adopts real nodes) and must NOT be bracketed, or the extra
+			// markers desync the static-cursor (`next()` + skip_advance) client path.
+			const needs_boundary =
+				state.control_flow_branch_body || fragment_leads_with_control_flow(children, context);
+			if (needs_boundary && init.length > 0) {
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+				state.init?.push(b.block(init));
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
+			} else if (init.length > 0) {
+				// Template body: push children statements inline
+				state.init?.push(b.block(init));
+			}
+		} else {
+			// Expression context: return tsrx_element(render_fn)
+			const render_fn = b.arrow([], b.block(init));
+			return b.call('_$_.tsrx_element', render_fn);
+		}
 	},
 
 	NewExpression(node, context) {
@@ -2563,7 +2626,9 @@ const visitors = {
 		if (!context.state.to_ts && is_native_tsrx_template_node(node.argument)) {
 			return b.return(
 				build_template_node_to_tsrx_element(
-					/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument)),
+					/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+						/** @type {unknown} */ (node.argument)
+					),
 					context,
 				),
 				/** @type {AST.NodeWithLocation} */ (node),
@@ -2884,65 +2949,6 @@ const visitors = {
 		}
 
 		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(value)))));
-	},
-
-	TsrxFragment(node, context) {
-		const { visit, state } = context;
-		const children = node.children.filter(
-			(child) => child != null && child.type !== 'EmptyStatement',
-		);
-		apply_tsrx_css_scoping(children, state);
-
-		/** @type {AST.Statement[]} */
-		const init = [];
-		transform_children(
-			children,
-			/** @type {TransformServerContext} */ ({
-				visit,
-				state: {
-					...state,
-					init,
-					regular_js: false,
-					jsx_to_tsrx_element: true,
-					// The fragment's own children are no longer the direct body of the
-					// enclosing control-flow branch, so they must not inherit the marker.
-					control_flow_branch_body: false,
-				},
-			}),
-		);
-
-		if (state.template_child) {
-			// In template position the client lowers `<>…</>` to a `<!>` placeholder +
-			// `_$_.expression(() => _$_.tsrx_element(…))`. During hydration that
-			// expression() needs a matching `<!--[-->`…`<!--]-->` boundary whenever it
-			// would otherwise borrow a nested control-flow's start marker as its own and
-			// advance the cursor past that child's content (desyncing hydration). That
-			// happens in two situations:
-			//   - the fragment is the direct body of a control-flow branch (or nested in
-			//     an element within one): the enclosing block already consumed its own
-			//     marker via hydrate_next before the branch body runs, leaving none for
-			//     the fragment — `control_flow_branch_body`;
-			//   - the fragment leads with control flow (e.g. a component body
-			//     `<> @for … </>`): its first child's marker would be mistaken for the
-			//     fragment's own.
-			// A fragment that leads with a component/element instead reuses its host
-			// boundary (or adopts real nodes) and must NOT be bracketed, or the extra
-			// markers desync the static-cursor (`next()` + skip_advance) client path.
-			const needs_boundary =
-				state.control_flow_branch_body || fragment_leads_with_control_flow(children, context);
-			if (needs_boundary && init.length > 0) {
-				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-				state.init?.push(b.block(init));
-				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
-			} else if (init.length > 0) {
-				// Template body: push children statements inline
-				state.init?.push(b.block(init));
-			}
-		} else {
-			// Expression context: return tsrx_element(render_fn)
-			const render_fn = b.arrow([], b.block(init));
-			return b.call('_$_.tsrx_element', render_fn);
-		}
 	},
 
 	TSModuleBlock(node, context) {

@@ -144,6 +144,26 @@ export function is_empty_expression_container(node) {
 }
 
 /**
+ * A `<> … </>` fragment that is part of the template: an authored native
+ * fragment (`metadata.native_tsrx`, which the parser stamps on template and
+ * value-position fragments but not on fragments inside attribute values), a
+ * synthesized render-body fragment (`tsrx_render_fragment`), or a code-block
+ * chain wrapper (`tsrx_code_block_chain`). Compiler-generated directive
+ * wrappers set `native_tsrx` themselves. Raw JSX fragments (attribute values)
+ * are NOT template fragments — they lower through the raw-JSX value path.
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+export function is_template_fragment(node) {
+	return (
+		node?.type === 'JSXFragment' &&
+		(node.metadata?.native_tsrx === true ||
+			node.metadata?.tsrx_render_fragment === true ||
+			node.metadata?.tsrx_code_block_chain === true)
+	);
+}
+
+/**
  * The attribute's name as a string, flattening `<ns:name>` namespaced names.
  * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {string}

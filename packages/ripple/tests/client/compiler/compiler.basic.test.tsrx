@@ -196,7 +196,7 @@ export function App() @{
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration) as any;
 
-		expect(fragment.type).toBe('TsrxFragment');
+		expect(fragment.type).toBe('JSXFragment');
 		expect(fragment.children[0].type).toBe('JSXExpressionContainer');
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toBe('333');
@@ -215,7 +215,7 @@ export function App() @{
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration) as any;
 
-		expect(fragment.type).toBe('TsrxFragment');
+		expect(fragment.type).toBe('JSXFragment');
 		expect(fragment.children.map((child: any) => child.type)).toEqual([
 			'JSXExpressionContainer',
 		]);

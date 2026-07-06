@@ -16,6 +16,7 @@ import {
 	isNonDelegated,
 	isVoidElement,
 	normalizeEventName,
+	setLocation,
 	simpleHash,
 	strongHash,
 } from '@tsrx/core';
@@ -24,6 +25,7 @@ import {
 	is_droppable_template_text,
 	is_empty_expression_container,
 	is_template_expression,
+	is_template_fragment,
 	is_template_text,
 	is_template_text_or_expression,
 } from './template-ast.js';
@@ -177,7 +179,6 @@ export function is_native_tsrx_template_node(node) {
 	return !!(
 		node &&
 		(node.type === 'Element' ||
-			node.type === 'TsrxFragment' ||
 			node.type === 'JSXElement' ||
 			node.type === 'JSXFragment' ||
 			node.type === 'JSXIfExpression' ||
@@ -717,11 +718,11 @@ function statement_contains_native_tsrx_return(statement) {
 }
 
 /**
- * @param {AST.Element | AST.TsrxFragment} node
+ * @param {AST.Element | ESTreeJSX.JSXFragment} node
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node) {
-	return node.type === 'TsrxFragment' ? node.children || [] : [node];
+	return is_template_fragment(node) ? node.children || [] : [node];
 }
 
 /**
@@ -743,7 +744,7 @@ export function get_native_tsrx_function_body(node) {
 		return is_native_tsrx_template_node(node.body)
 			? [
 					...get_native_tsrx_template_children(
-						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
+						/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (/** @type {unknown} */ (node.body)),
 					).map((child) => mark_returned_template_child(child)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
@@ -916,7 +917,9 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 
 	if (statement.type === 'ReturnStatement' && is_native_tsrx_template_node(statement.argument)) {
 		const template_children = get_native_tsrx_template_children(
-			/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (statement.argument)),
+			/** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+				/** @type {unknown} */ (statement.argument)
+			),
 		);
 		const children = omit_control_return
 			? template_children.flatMap((child) =>
@@ -1158,15 +1161,13 @@ function strip_style_element_children(node, inside_head) {
  * @returns {AST.ArrowFunctionExpression}
  */
 export function create_native_tsrx_render_function(params, children, source_node) {
-	const fragment = /** @type {AST.TsrxFragment} */ (
+	const fragment = /** @type {ESTreeJSX.JSXFragment} */ (
 		/** @type {unknown} */ ({
-			type: 'TsrxFragment',
+			type: 'JSXFragment',
 			children,
-			openingElement: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-			closingElement: { type: 'JSXClosingFragment', metadata: { path: [] } },
-			selfClosing: false,
-			attributes: [],
-			metadata: { path: [] },
+			openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+			closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
+			metadata: { path: [], tsrx_render_fragment: true },
 		})
 	);
 	const fn = b.arrow(
@@ -2215,7 +2216,7 @@ export function is_children_template_expression(expression, scope, component_sco
  * @returns {boolean}
  */
 function is_template_fragment_node(node) {
-	return node?.type === 'TsrxFragment';
+	return is_template_fragment(node);
 }
 
 /**
@@ -2648,27 +2649,18 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 }
 
 /**
+ * Fragments stay raw `JSXFragment` nodes; normalization only lowers their
+ * template children (code blocks, nested elements) in place.
  * @param {ESTreeJSX.JSXFragment} node
  * @param {AST.Node[]} [inherited_path]
- * @returns {AST.TsrxFragment}
+ * @returns {ESTreeJSX.JSXFragment}
  */
 function jsx_to_ripple_fragment(node, inherited_path = []) {
-	const fragment = /** @type {AST.TsrxFragment} */ (
-		/** @type {unknown} */ ({
-			type: 'TsrxFragment',
-			children: normalize_jsx_tsrx_template_children(node.children || [], inherited_path),
-			openingElement: node.openingFragment,
-			closingElement: node.closingFragment,
-			selfClosing: false,
-			attributes: [],
-			metadata: { ...(node.metadata ?? {}), path: inherited_path },
-			start: node.start,
-			end: node.end,
-			loc: node.loc,
-		})
+	node.children = /** @type {any} */ (
+		normalize_jsx_tsrx_template_children(node.children || [], inherited_path)
 	);
-
-	return fragment;
+	node.metadata = { ...(node.metadata ?? {}), path: inherited_path };
+	return node;
 }
 
 /**
@@ -2847,7 +2839,7 @@ function code_block_to_template_child(block, inherited_path) {
 	// synthetic fragment for render-slot consumers (function bodies, value
 	// positions). As a template child, unwrap it instead of stacking an
 	// inline component per nesting level.
-	if (render?.type === 'TsrxFragment' && render.metadata.tsrx_code_block_chain) {
+	if (render?.type === 'JSXFragment' && render.metadata?.tsrx_code_block_chain) {
 		const inner_child = render.children[0];
 		if (body.length === 0) {
 			return inner_child;
@@ -2974,13 +2966,14 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
 				// with no wrapper fragment.
 				node.render = inner_child;
 			} else {
-				const fragment = b.tsrx_fragment(
-					[inner_child],
-					/** @type {AST.NodeWithLocation} */ (inner),
-				);
+				const fragment = /** @type {any} */ (b.jsx_fragment([/** @type {any} */ (inner_child)]));
+				setLocation(fragment, /** @type {AST.NodeWithLocation} */ (inner));
 				fragment.metadata.path = path;
-				// Mark the wrapper so template-children lowering can unwrap it
-				// instead of stacking an inline component per nesting level.
+				// native_tsrx so core scope creation treats the wrapper like any
+				// other template fragment; tsrx_code_block_chain so
+				// template-children lowering can unwrap it instead of stacking an
+				// inline component per nesting level.
+				fragment.metadata.native_tsrx = true;
 				fragment.metadata.tsrx_code_block_chain = true;
 				node.render = fragment;
 			}

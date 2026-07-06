@@ -68,6 +68,7 @@ import {
 	get_template_expression,
 	is_droppable_template_text,
 	is_empty_expression_container,
+	is_template_fragment,
 	is_template_text_or_expression,
 	rendered_template_children,
 } from '../template-ast.js';
@@ -138,8 +139,8 @@ function prepare_legacy_nodes_for_css_pruning(nodes) {
 
 /**
  * Scope creation lives in @tsrx/core and only understands JSX-shaped native
- * TSRX nodes. Ripple still normalizes to internal Element/TsrxFragment nodes
- * before analysis, so present them as JSX only while scopes are created.
+ * TSRX nodes. Ripple still normalizes to internal Element nodes before
+ * analysis, so present them as JSX only while scopes are created.
  *
  * @param {AST.Node} node
  * @returns {() => void}
@@ -156,7 +157,7 @@ function prepare_legacy_nodes_for_core_scopes(node) {
 		}
 		seen.add(current);
 
-		if (current.type === 'Element' || current.type === 'TsrxFragment') {
+		if (current.type === 'Element') {
 			current.metadata ??= { path: [] };
 			changed.push({
 				node: current,
@@ -164,7 +165,7 @@ function prepare_legacy_nodes_for_core_scopes(node) {
 				native_tsrx: current.metadata.native_tsrx,
 				had_native_tsrx: Object.prototype.hasOwnProperty.call(current.metadata, 'native_tsrx'),
 			});
-			current.type = current.type === 'Element' ? 'JSXElement' : 'JSXFragment';
+			current.type = 'JSXElement';
 			current.metadata.native_tsrx = true;
 		}
 
@@ -392,7 +393,7 @@ function mark_control_flow_has_template(path, node) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
-			node.type === 'TsrxFragment'
+			is_template_fragment(node)
 		) {
 			node.metadata.has_template = true;
 		}
@@ -493,7 +494,7 @@ function is_inside_template_child(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'Element' || node.type === 'TsrxFragment') {
+		if (node.type === 'Element' || is_template_fragment(node)) {
 			return true;
 		}
 	}
@@ -2401,19 +2402,11 @@ const visitors = {
 		return context.next();
 	},
 
-	JSXFragment(node, context) {
-		if (!node.metadata?.native_tsrx) {
-			return context.next();
-		}
-
-		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
-	},
-
 	/**
 	 * @param {any} node
 	 * @param {AnalysisContext} context
 	 */
-	TsrxFragment(node, context) {
+	JSXFragment(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}

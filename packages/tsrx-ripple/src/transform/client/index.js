@@ -115,6 +115,7 @@ import {
 	is_empty_expression_container,
 	is_expression_attribute,
 	is_template_expression,
+	is_template_fragment,
 	is_template_text,
 	is_template_text_or_expression,
 } from '../../template-ast.js';
@@ -784,18 +785,22 @@ function visit_function(node, context) {
 /**
  * @param {AST.Node | null | undefined} node
  * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | AST.TsrxFragment | null}
+ * @returns {AST.Element | ESTreeJSX.JSXFragment | null}
  */
 function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
 	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (/** @type {unknown} */ (node));
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+			/** @type {unknown} */ (node.argument)
+		);
 	}
 	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.render));
+		return /** @type {AST.Element | ESTreeJSX.JSXFragment} */ (
+			/** @type {unknown} */ (node.render)
+		);
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -2029,27 +2034,19 @@ const visitors = {
 	},
 
 	JSXFragment(node, context) {
-		if (context.state.to_ts) {
-			return context.next();
-		}
-		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
-		}
-		return context.next();
-	},
-
-	JSXElement(node, context) {
-		if (context.state.to_ts) {
-			return context.next();
-		}
-		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
-		}
-		return context.next();
-	},
-
-	TsrxFragment(node, context) {
 		const { state, visit } = context;
+
+		// A raw (non-template) fragment — an attribute value or other JSX that
+		// never entered the template traversal.
+		if (!is_template_fragment(node)) {
+			if (state.to_ts) {
+				return context.next();
+			}
+			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+				return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
+			}
+			return context.next();
+		}
 
 		// to_ts mode: produce a JSX fragment from native TSRX children.
 		if (state.to_ts) {
@@ -2111,6 +2108,16 @@ const visitors = {
 		return element;
 	},
 
+	JSXElement(node, context) {
+		if (context.state.to_ts) {
+			return context.next();
+		}
+		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
+		}
+		return context.next();
+	},
+
 	Element(node, context) {
 		const { state, visit } = context;
 
@@ -2137,15 +2144,13 @@ const visitors = {
 		}
 
 		if (state.to_ts) {
-			const fragment = /** @type {AST.TsrxFragment} */ (
+			const fragment = /** @type {ESTreeJSX.JSXFragment} */ (
 				/** @type {unknown} */ ({
-					type: 'TsrxFragment',
+					type: 'JSXFragment',
 					children: [node],
-					openingElement: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-					closingElement: { type: 'JSXClosingFragment', metadata: { path: [] } },
-					selfClosing: false,
-					attributes: [],
-					metadata: { path: [] },
+					openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+					closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
+					metadata: { path: [], tsrx_render_fragment: true },
 				})
 			);
 			return build_tsrx_to_ts_expression(fragment, context);
@@ -2622,7 +2627,7 @@ const visitors = {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
-							child.type === 'TsrxFragment' ||
+							is_template_fragment(child) ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							// A JSXText child is always a literal; only a `{ … }` container
@@ -3767,7 +3772,7 @@ function transform_tsrx_ts_children(children, context) {
  * remain inline JSX; fragments with setup statements need an IIFE so declarations
  * stay in statement position.
  *
- * @param {AST.TsrxFragment} node
+ * @param {ESTreeJSX.JSXFragment} node
  * @param {VisitorClientContext} context
  * @param {boolean} [in_jsx_child]
  * @returns {TsrxTsViewNode}
@@ -3891,7 +3896,7 @@ function transform_tsrx_tsx_child(node, context) {
 		// targets and how the same fragment survives in an attribute value.
 		const expr = node.expression;
 		const is_empty_fragment =
-			expr?.type === 'TsrxFragment' &&
+			is_template_fragment(expr) &&
 			!(expr.children || []).some(
 				(/** @type {any} */ child) =>
 					child &&
@@ -3899,7 +3904,7 @@ function transform_tsrx_tsx_child(node, context) {
 					(child.type !== 'JSXText' || get_template_text_value(child, true) !== ''),
 			);
 		const expression = is_empty_fragment
-			? build_tsrx_to_ts_expression(/** @type {AST.TsrxFragment} */ (expr), context, true)
+			? build_tsrx_to_ts_expression(/** @type {ESTreeJSX.JSXFragment} */ (expr), context, true)
 			: /** @type {AST.Expression} */ (context.visit(node.expression, context.state));
 		return b.jsx_expression_container(
 			/** @type {AST.Expression} */ (expression),
@@ -3917,7 +3922,7 @@ function transform_tsrx_tsx_child(node, context) {
 			: undefined;
 	}
 
-	if (node.type === 'TsrxFragment') {
+	if (is_template_fragment(node)) {
 		// `in_jsx_child` mode already returns a valid JSX child (a fragment, or a
 		// `{expr}` container kept for type visibility), so use it as-is. Only a bare
 		// expression (which can happen in other positions) needs wrapping.
@@ -4861,7 +4866,7 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(/** @type {AST.Statement} */ (result));
-	} else if (node.type === 'TsrxFragment') {
+	} else if (is_template_fragment(node)) {
 		let result = build_tsrx_to_ts_expression(node, context);
 		// Keep an AUTHORED `<> … </>` here too (a render-output / control-flow branch
 		// body, e.g. the `<>{[1,2,3]}</>` branch of an `@if`), so it is not unwrapped to
@@ -4923,7 +4928,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'JSXExpressionContainer' ||
 		node.type === 'JSXText' ||
-		node.type === 'TsrxFragment' ||
+		is_template_fragment(node) ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -4984,7 +4989,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'TsrxFragment'
+		is_template_fragment(parent)
 	);
 }
 
@@ -5008,7 +5013,7 @@ function is_native_tsrx_value_position(path) {
  */
 function is_authored_native_fragment(node) {
 	return (
-		node?.type === 'TsrxFragment' &&
+		node?.type === 'JSXFragment' &&
 		node.metadata?.native_tsrx === true &&
 		node.metadata?.tsrx_generated_wrapper !== true &&
 		node.metadata?.tsrx_code_block_chain !== true
@@ -5128,7 +5133,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
-			child.type === 'TsrxFragment'
+			is_template_fragment(child)
 		) {
 			return true;
 		}
@@ -5234,7 +5239,7 @@ function transform_children(children, context) {
 				node.type === 'TryStatement' ||
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
-				node.type === 'TsrxFragment' ||
+				is_template_fragment(node) ||
 				(node.type === 'Element' &&
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
@@ -5565,7 +5570,7 @@ function transform_children(children, context) {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
-							child.type === 'TsrxFragment' ||
+							is_template_fragment(child) ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							(child.type === 'JSXExpressionContainer' && child.expression.type !== 'Literal'),
@@ -5590,7 +5595,7 @@ function transform_children(children, context) {
 						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
-			} else if (node.type === 'TsrxFragment') {
+			} else if (is_template_fragment(node)) {
 				skipped = 0;
 
 				visit(node, {
