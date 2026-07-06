@@ -29,9 +29,9 @@ export function IfTruthy() {
 
 		{
 			var consequent = (__anchor) => {
-				var div_1 = root();
+				var div = root();
 
-				_$_.append(__anchor, div_1);
+				_$_.append(__anchor, div);
 			};
 
 			_$_.if(
@@ -51,9 +51,9 @@ export function IfFalsy() {
 
 		{
 			var consequent_1 = (__anchor) => {
-				var div_2 = root_1();
+				var div_1 = root_1();
 
-				_$_.append(__anchor, div_2);
+				_$_.append(__anchor, div_1);
 			};
 
 			_$_.if(
@@ -73,15 +73,15 @@ export function IfElse() {
 
 		{
 			var consequent_2 = (__anchor) => {
-				var div_3 = root_2();
+				var div_2 = root_2();
 
-				_$_.append(__anchor, div_3);
+				_$_.append(__anchor, div_2);
 			};
 
 			var alternate = (__anchor) => {
-				var div_4 = root_3();
+				var div_3 = root_3();
 
-				_$_.append(__anchor, div_4);
+				_$_.append(__anchor, div_3);
 			};
 
 			_$_.if(
@@ -103,19 +103,19 @@ export function ReactiveIf() {
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_5();
-			var button_1 = _$_.first_child_frag(fragment_1);
+			var button = _$_.first_child_frag(fragment_1);
 
-			button_1.__click = () => {
+			button.__click = () => {
 				_$_.set(lazy, !lazy.value);
 			};
 
-			var node = _$_.sibling(button_1);
+			var node = _$_.sibling(button);
 
 			{
 				var consequent_3 = (__anchor) => {
-					var div_5 = root_6();
+					var div_4 = root_6();
 
-					_$_.append(__anchor, div_5);
+					_$_.append(__anchor, div_4);
 				};
 
 				_$_.if(node, (__render) => {
@@ -138,25 +138,25 @@ export function ReactiveIfElse() {
 
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_8();
-			var button_2 = _$_.first_child_frag(fragment_3);
+			var button_1 = _$_.first_child_frag(fragment_3);
 
-			button_2.__click = () => {
+			button_1.__click = () => {
 				_$_.set(lazy_1, !lazy_1.value);
 			};
 
-			var node_2 = _$_.sibling(button_2);
+			var node_2 = _$_.sibling(button_1);
 
 			{
 				var consequent_4 = (__anchor) => {
-					var div_6 = root_9();
+					var div_5 = root_9();
 
-					_$_.append(__anchor, div_6);
+					_$_.append(__anchor, div_5);
 				};
 
 				var alternate_1 = (__anchor) => {
-					var div_7 = root_10();
+					var div_6 = root_10();
 
-					_$_.append(__anchor, div_7);
+					_$_.append(__anchor, div_6);
 				};
 
 				_$_.if(node_2, (__render) => {
@@ -180,33 +180,33 @@ export function NestedIf() {
 
 		_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_5 = root_12();
-			var button_3 = _$_.first_child_frag(fragment_5);
+			var button_2 = _$_.first_child_frag(fragment_5);
 
-			button_3.__click = () => {
+			button_2.__click = () => {
 				_$_.set(lazy_2, !lazy_2.value);
 			};
 
-			var button_4 = _$_.sibling(button_3);
+			var button_3 = _$_.sibling(button_2);
 
-			button_4.__click = () => {
+			button_3.__click = () => {
 				_$_.set(lazy_3, !lazy_3.value);
 			};
 
-			var node_4 = _$_.sibling(button_4);
+			var node_4 = _$_.sibling(button_3);
 
 			{
 				var consequent_6 = (__anchor) => {
-					var div_8 = root_13();
+					var div_7 = root_13();
 
 					{
-						var expression = _$_.child(div_8);
+						var expression = _$_.child(div_7);
 						var node_5 = _$_.sibling(expression);
 
 						{
 							var consequent_5 = (__anchor) => {
-								var span_1 = root_14();
+								var span = root_14();
 
-								_$_.append(__anchor, span_1);
+								_$_.append(__anchor, span);
 							};
 
 							_$_.if(node_5, (__render) => {
@@ -214,10 +214,10 @@ export function NestedIf() {
 							});
 						}
 
-						_$_.pop(div_8);
+						_$_.pop(div_7);
 					}
 
-					_$_.append(__anchor, div_8);
+					_$_.append(__anchor, div_7);
 				};
 
 				_$_.if(node_4, (__render) => {
@@ -235,48 +235,48 @@ export function NestedIf() {
 export function IfElseIfChain() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_4 = _$_.track('loading', __block, '4c69c94a');
-		var div_9 = root_15();
+		var div_8 = root_15();
 
 		{
-			var button_5 = _$_.child(div_9);
+			var button_4 = _$_.child(div_8);
+
+			button_4.__click = () => {
+				_$_.set(lazy_4, 'success');
+			};
+
+			var button_5 = _$_.sibling(button_4);
 
 			button_5.__click = () => {
-				_$_.set(lazy_4, 'success');
+				_$_.set(lazy_4, 'error');
 			};
 
 			var button_6 = _$_.sibling(button_5);
 
 			button_6.__click = () => {
-				_$_.set(lazy_4, 'error');
-			};
-
-			var button_7 = _$_.sibling(button_6);
-
-			button_7.__click = () => {
 				_$_.set(lazy_4, 'loading');
 			};
 
-			var node_7 = _$_.sibling(button_7);
+			var node_7 = _$_.sibling(button_6);
 
 			{
 				var consequent_7 = (__anchor) => {
-					var div_10 = root_16();
+					var div_9 = root_16();
 
-					_$_.append(__anchor, div_10);
+					_$_.append(__anchor, div_9);
 				};
 
 				var alternate_3 = (__anchor) => {
 					{
 						var consequent_8 = (__anchor) => {
-							var div_11 = root_17();
+							var div_10 = root_17();
 
-							_$_.append(__anchor, div_11);
+							_$_.append(__anchor, div_10);
 						};
 
 						var alternate_2 = (__anchor) => {
-							var div_12 = root_18();
+							var div_11 = root_18();
 
-							_$_.append(__anchor, div_12);
+							_$_.append(__anchor, div_11);
 						};
 
 						_$_.if(
@@ -294,10 +294,10 @@ export function IfElseIfChain() {
 				});
 			}
 
-			_$_.pop(div_9);
+			_$_.pop(div_8);
 		}
 
-		_$_.append(__anchor, div_9);
+		_$_.append(__anchor, div_8);
 	});
 }
 

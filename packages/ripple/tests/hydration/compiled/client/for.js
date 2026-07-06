@@ -84,65 +84,65 @@ import { track } from 'ripple';
 export function StaticForLoop() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = ['Apple', 'Banana', 'Cherry'];
-		var ul_1 = root();
+		var ul = root();
 
 		{
 			_$_.for(
-				ul_1,
+				ul,
 				() => items,
 				(__anchor, item) => {
-					var li_1 = root_1();
+					var li = root_1();
 
 					{
-						var expression = _$_.child(li_1);
+						var expression = _$_.child(li);
 
 						_$_.expression(expression, () => item);
-						_$_.pop(li_1);
+						_$_.pop(li);
 					}
 
-					_$_.append(__anchor, li_1);
+					_$_.append(__anchor, li);
 				},
 				4
 			);
 
-			_$_.pop(ul_1);
+			_$_.pop(ul);
 		}
 
-		_$_.append(__anchor, ul_1);
+		_$_.append(__anchor, ul);
 	});
 }
 
 export function ForLoopWithIndex() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = ['A', 'B', 'C'];
-		var ul_2 = root_2();
+		var ul_1 = root_2();
 
 		{
 			_$_.for(
-				ul_2,
+				ul_1,
 				() => items,
 				(__anchor, item, i) => {
-					var li_2 = root_3();
+					var li_1 = root_3();
 
 					{
-						var expression_1 = _$_.child(li_2, true);
+						var expression_1 = _$_.child(li_1, true);
 
-						_$_.pop(li_2);
+						_$_.pop(li_1);
 					}
 
 					_$_.render(() => {
 						_$_.set_text(expression_1, `${i.value}: ${item}`);
 					});
 
-					_$_.append(__anchor, li_2);
+					_$_.append(__anchor, li_1);
 				},
 				12
 			);
 
-			_$_.pop(ul_2);
+			_$_.pop(ul_1);
 		}
 
-		_$_.append(__anchor, ul_2);
+		_$_.append(__anchor, ul_1);
 	});
 }
 
@@ -154,32 +154,32 @@ export function KeyedForLoop() {
 			{ id: 3, name: 'Third' }
 		];
 
-		var ul_3 = root_4();
+		var ul_2 = root_4();
 
 		{
 			_$_.for_keyed(
-				ul_3,
+				ul_2,
 				() => items,
 				(__anchor, pattern) => {
-					var li_3 = root_5();
+					var li_2 = root_5();
 
 					{
-						var expression_2 = _$_.child(li_3);
+						var expression_2 = _$_.child(li_2);
 
 						_$_.expression(expression_2, () => _$_.get(pattern).name);
-						_$_.pop(li_3);
+						_$_.pop(li_2);
 					}
 
-					_$_.append(__anchor, li_3);
+					_$_.append(__anchor, li_2);
 				},
 				4,
 				(pattern) => _$_.get(pattern).id
 			);
 
-			_$_.pop(ul_3);
+			_$_.pop(ul_2);
 		}
 
-		_$_.append(__anchor, ul_3);
+		_$_.append(__anchor, ul_2);
 	});
 }
 
@@ -191,34 +191,34 @@ export function ReactiveForLoopAdd() {
 
 		_$_.expression(node, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_7();
-			var button_1 = _$_.first_child_frag(fragment_1);
+			var button = _$_.first_child_frag(fragment_1);
 
-			button_1.__click = () => {
+			button.__click = () => {
 				_$_.set(lazy, [...lazy.value, 'C']);
 			};
 
-			var ul_4 = _$_.sibling(button_1);
+			var ul_3 = _$_.sibling(button);
 
 			{
 				_$_.for(
-					ul_4,
+					ul_3,
 					() => lazy.value,
 					(__anchor, item) => {
-						var li_4 = root_8();
+						var li_3 = root_8();
 
 						{
-							var expression_3 = _$_.child(li_4);
+							var expression_3 = _$_.child(li_3);
 
 							_$_.expression(expression_3, () => item);
-							_$_.pop(li_4);
+							_$_.pop(li_3);
 						}
 
-						_$_.append(__anchor, li_4);
+						_$_.append(__anchor, li_3);
 					},
 					4
 				);
 
-				_$_.pop(ul_4);
+				_$_.pop(ul_3);
 			}
 
 			_$_.next();
@@ -237,34 +237,34 @@ export function ReactiveForLoopRemove() {
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_10();
-			var button_2 = _$_.first_child_frag(fragment_3);
+			var button_1 = _$_.first_child_frag(fragment_3);
 
-			button_2.__click = () => {
+			button_1.__click = () => {
 				_$_.set(lazy_1, _$_.with_scope(__block, () => lazy_1.value.slice(0, -1)));
 			};
 
-			var ul_5 = _$_.sibling(button_2);
+			var ul_4 = _$_.sibling(button_1);
 
 			{
 				_$_.for(
-					ul_5,
+					ul_4,
 					() => lazy_1.value,
 					(__anchor, item) => {
-						var li_5 = root_11();
+						var li_4 = root_11();
 
 						{
-							var expression_4 = _$_.child(li_5);
+							var expression_4 = _$_.child(li_4);
 
 							_$_.expression(expression_4, () => item);
-							_$_.pop(li_5);
+							_$_.pop(li_4);
 						}
 
-						_$_.append(__anchor, li_5);
+						_$_.append(__anchor, li_4);
 					},
 					4
 				);
 
-				_$_.pop(ul_5);
+				_$_.pop(ul_4);
 			}
 
 			_$_.next();
@@ -278,28 +278,28 @@ export function ReactiveForLoopRemove() {
 export function ForLoopInteractive() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_2 = _$_.track([0, 0, 0], __block, '36f563df');
-		var div_1 = root_12();
+		var div = root_12();
 
 		{
 			_$_.for(
-				div_1,
+				div,
 				() => lazy_2.value,
 				(__anchor, count, i) => {
-					var div_2 = root_13();
+					var div_1 = root_13();
 
 					{
-						var span_1 = _$_.child(div_2);
+						var span = _$_.child(div_1);
 
 						{
-							var expression_5 = _$_.child(span_1);
+							var expression_5 = _$_.child(span);
 
 							_$_.expression(expression_5, () => count);
-							_$_.pop(span_1);
+							_$_.pop(span);
 						}
 
-						var button_3 = _$_.sibling(span_1);
+						var button_2 = _$_.sibling(span);
 
-						button_3.__click = () => {
+						button_2.__click = () => {
 							const newCounts = [...lazy_2.value];
 
 							newCounts[i.value]++;
@@ -308,103 +308,103 @@ export function ForLoopInteractive() {
 					}
 
 					_$_.render(() => {
-						_$_.set_class(div_2, `item-${i.value}`, void 0, true);
+						_$_.set_class(div_1, `item-${i.value}`, void 0, true);
 					});
 
-					_$_.append(__anchor, div_2);
+					_$_.append(__anchor, div_1);
 				},
 				12
 			);
 
-			_$_.pop(div_1);
+			_$_.pop(div);
 		}
 
-		_$_.append(__anchor, div_1);
+		_$_.append(__anchor, div);
 	});
 }
 
 export function NestedForLoop() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const grid = [[1, 2], [3, 4]];
-		var div_3 = root_14();
+		var div_2 = root_14();
 
 		{
 			_$_.for(
-				div_3,
+				div_2,
 				() => grid,
 				(__anchor, row, rowIndex) => {
-					var div_4 = root_15();
+					var div_3 = root_15();
 
 					{
 						_$_.for(
-							div_4,
+							div_3,
 							() => row,
 							(__anchor, cell, colIndex) => {
-								var span_2 = root_16();
+								var span_1 = root_16();
 
 								{
-									var expression_6 = _$_.child(span_2);
+									var expression_6 = _$_.child(span_1);
 
 									_$_.expression(expression_6, () => cell);
-									_$_.pop(span_2);
+									_$_.pop(span_1);
 								}
 
 								_$_.render(() => {
-									_$_.set_class(span_2, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
+									_$_.set_class(span_1, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
 								});
 
-								_$_.append(__anchor, span_2);
+								_$_.append(__anchor, span_1);
 							},
 							12
 						);
 
-						_$_.pop(div_4);
+						_$_.pop(div_3);
 
 						_$_.render(() => {
-							_$_.set_class(div_4, `row-${rowIndex.value}`, void 0, true);
+							_$_.set_class(div_3, `row-${rowIndex.value}`, void 0, true);
 						});
 					}
 
-					_$_.append(__anchor, div_4);
+					_$_.append(__anchor, div_3);
 				},
 				12
 			);
 
-			_$_.pop(div_3);
+			_$_.pop(div_2);
 		}
 
-		_$_.append(__anchor, div_3);
+		_$_.append(__anchor, div_2);
 	});
 }
 
 export function EmptyForLoop() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = [];
-		var div_5 = root_17();
+		var div_4 = root_17();
 
 		{
 			_$_.for(
-				div_5,
+				div_4,
 				() => items,
 				(__anchor, item) => {
-					var span_3 = root_18();
+					var span_2 = root_18();
 
 					{
-						var expression_7 = _$_.child(span_3);
+						var expression_7 = _$_.child(span_2);
 
 						_$_.expression(expression_7, () => item);
-						_$_.pop(span_3);
+						_$_.pop(span_2);
 					}
 
-					_$_.append(__anchor, span_3);
+					_$_.append(__anchor, span_2);
 				},
 				4
 			);
 
-			_$_.pop(div_5);
+			_$_.pop(div_4);
 		}
 
-		_$_.append(__anchor, div_5);
+		_$_.append(__anchor, div_4);
 	});
 }
 
@@ -415,49 +415,49 @@ export function ForLoopComplexObjects() {
 			{ id: 2, name: 'Bob', role: 'User' }
 		];
 
-		var div_6 = root_19();
+		var div_5 = root_19();
 
 		{
 			_$_.for_keyed(
-				div_6,
+				div_5,
 				() => users,
 				(__anchor, pattern_1) => {
-					var div_7 = root_20();
+					var div_6 = root_20();
 
 					{
-						var span_4 = _$_.child(div_7);
+						var span_3 = _$_.child(div_6);
 
 						{
-							var expression_8 = _$_.child(span_4);
+							var expression_8 = _$_.child(span_3);
 
 							_$_.expression(expression_8, () => _$_.get(pattern_1).name);
-							_$_.pop(span_4);
+							_$_.pop(span_3);
 						}
 
-						var span_5 = _$_.sibling(span_4);
+						var span_4 = _$_.sibling(span_3);
 
 						{
-							var expression_9 = _$_.child(span_5);
+							var expression_9 = _$_.child(span_4);
 
 							_$_.expression(expression_9, () => _$_.get(pattern_1).role);
-							_$_.pop(span_5);
+							_$_.pop(span_4);
 						}
 					}
 
 					_$_.render(() => {
-						_$_.set_class(div_7, `user-${_$_.get(pattern_1).id}`, void 0, true);
+						_$_.set_class(div_6, `user-${_$_.get(pattern_1).id}`, void 0, true);
 					});
 
-					_$_.append(__anchor, div_7);
+					_$_.append(__anchor, div_6);
 				},
 				4,
 				(pattern_1) => _$_.get(pattern_1).id
 			);
 
-			_$_.pop(div_6);
+			_$_.pop(div_5);
 		}
 
-		_$_.append(__anchor, div_6);
+		_$_.append(__anchor, div_5);
 	});
 }
 
@@ -478,39 +478,39 @@ export function KeyedForLoopReorder() {
 
 		_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_5 = root_22();
-			var button_4 = _$_.first_child_frag(fragment_5);
+			var button_3 = _$_.first_child_frag(fragment_5);
 
-			button_4.__click = () => {
+			button_3.__click = () => {
 				_$_.set(lazy_3, [lazy_3.value[2], lazy_3.value[0], lazy_3.value[1]]);
 			};
 
-			var ul_6 = _$_.sibling(button_4);
+			var ul_5 = _$_.sibling(button_3);
 
 			{
 				_$_.for_keyed(
-					ul_6,
+					ul_5,
 					() => lazy_3.value,
 					(__anchor, pattern_2) => {
-						var li_6 = root_23();
+						var li_5 = root_23();
 
 						{
-							var expression_10 = _$_.child(li_6);
+							var expression_10 = _$_.child(li_5);
 
 							_$_.expression(expression_10, () => _$_.get(pattern_2).name);
-							_$_.pop(li_6);
+							_$_.pop(li_5);
 						}
 
 						_$_.render(() => {
-							_$_.set_class(li_6, `item-${_$_.get(pattern_2).id}`, void 0, true);
+							_$_.set_class(li_5, `item-${_$_.get(pattern_2).id}`, void 0, true);
 						});
 
-						_$_.append(__anchor, li_6);
+						_$_.append(__anchor, li_5);
 					},
 					4,
 					(pattern_2) => _$_.get(pattern_2).id
 				);
 
-				_$_.pop(ul_6);
+				_$_.pop(ul_5);
 			}
 
 			_$_.next();
@@ -529,39 +529,39 @@ export function KeyedForLoopUpdate() {
 
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_7 = root_25();
-			var button_5 = _$_.first_child_frag(fragment_7);
+			var button_4 = _$_.first_child_frag(fragment_7);
 
-			button_5.__click = () => {
+			button_4.__click = () => {
 				_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
 			};
 
-			var ul_7 = _$_.sibling(button_5);
+			var ul_6 = _$_.sibling(button_4);
 
 			{
 				_$_.for_keyed(
-					ul_7,
+					ul_6,
 					() => lazy_4.value,
 					(__anchor, pattern_3) => {
-						var li_7 = root_26();
+						var li_6 = root_26();
 
 						{
-							var expression_11 = _$_.child(li_7);
+							var expression_11 = _$_.child(li_6);
 
 							_$_.expression(expression_11, () => _$_.get(pattern_3).name);
-							_$_.pop(li_7);
+							_$_.pop(li_6);
 						}
 
 						_$_.render(() => {
-							_$_.set_class(li_7, `item-${_$_.get(pattern_3).id}`, void 0, true);
+							_$_.set_class(li_6, `item-${_$_.get(pattern_3).id}`, void 0, true);
 						});
 
-						_$_.append(__anchor, li_7);
+						_$_.append(__anchor, li_6);
 					},
 					4,
 					(pattern_3) => _$_.get(pattern_3).id
 				);
 
-				_$_.pop(ul_7);
+				_$_.pop(ul_6);
 			}
 
 			_$_.next();
@@ -580,36 +580,36 @@ export function ForLoopMixedOperations() {
 
 		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_9 = root_28();
-			var button_6 = _$_.first_child_frag(fragment_9);
+			var button_5 = _$_.first_child_frag(fragment_9);
 
-			button_6.__click = () => {
+			button_5.__click = () => {
 				_$_.set(lazy_5, ['D', 'C', 'A', 'E']);
 			};
 
-			var ul_8 = _$_.sibling(button_6);
+			var ul_7 = _$_.sibling(button_5);
 
 			{
 				_$_.for(
-					ul_8,
+					ul_7,
 					() => lazy_5.value,
 					(__anchor, item) => {
-						var li_8 = root_29();
+						var li_7 = root_29();
 
-						_$_.set_class(li_8, `item-${item}`, void 0, true);
+						_$_.set_class(li_7, `item-${item}`, void 0, true);
 
 						{
-							var expression_12 = _$_.child(li_8);
+							var expression_12 = _$_.child(li_7);
 
 							_$_.expression(expression_12, () => item);
-							_$_.pop(li_8);
+							_$_.pop(li_7);
 						}
 
-						_$_.append(__anchor, li_8);
+						_$_.append(__anchor, li_7);
 					},
 					4
 				);
 
-				_$_.pop(ul_8);
+				_$_.pop(ul_7);
 			}
 
 			_$_.next();
@@ -629,47 +629,47 @@ export function ForLoopInsideIf() {
 
 		_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_11 = root_31();
-			var button_7 = _$_.first_child_frag(fragment_11);
+			var button_6 = _$_.first_child_frag(fragment_11);
 
-			button_7.__click = () => {
+			button_6.__click = () => {
 				_$_.set(lazy_6, !lazy_6.value);
 			};
 
-			var button_8 = _$_.sibling(button_7);
+			var button_7 = _$_.sibling(button_6);
 
-			button_8.__click = () => {
+			button_7.__click = () => {
 				_$_.set(lazy_7, [...lazy_7.value, 'W']);
 			};
 
-			var node_5 = _$_.sibling(button_8);
+			var node_5 = _$_.sibling(button_7);
 
 			{
 				var consequent = (__anchor) => {
-					var ul_9 = root_32();
+					var ul_8 = root_32();
 
 					{
 						_$_.for(
-							ul_9,
+							ul_8,
 							() => lazy_7.value,
 							(__anchor, item) => {
-								var li_9 = root_33();
+								var li_8 = root_33();
 
 								{
-									var expression_13 = _$_.child(li_9);
+									var expression_13 = _$_.child(li_8);
 
 									_$_.expression(expression_13, () => item);
-									_$_.pop(li_9);
+									_$_.pop(li_8);
 								}
 
-								_$_.append(__anchor, li_9);
+								_$_.append(__anchor, li_8);
 							},
 							4
 						);
 
-						_$_.pop(ul_9);
+						_$_.pop(ul_8);
 					}
 
-					_$_.append(__anchor, ul_9);
+					_$_.append(__anchor, ul_8);
 				};
 
 				_$_.if(node_5, (__render) => {
@@ -692,34 +692,34 @@ export function ForLoopEmptyToPopulated() {
 
 		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_13 = root_35();
-			var button_9 = _$_.first_child_frag(fragment_13);
+			var button_8 = _$_.first_child_frag(fragment_13);
 
-			button_9.__click = () => {
+			button_8.__click = () => {
 				_$_.set(lazy_8, ['One', 'Two', 'Three']);
 			};
 
-			var ul_10 = _$_.sibling(button_9);
+			var ul_9 = _$_.sibling(button_8);
 
 			{
 				_$_.for(
-					ul_10,
+					ul_9,
 					() => lazy_8.value,
 					(__anchor, item) => {
-						var li_10 = root_36();
+						var li_9 = root_36();
 
 						{
-							var expression_14 = _$_.child(li_10);
+							var expression_14 = _$_.child(li_9);
 
 							_$_.expression(expression_14, () => item);
-							_$_.pop(li_10);
+							_$_.pop(li_9);
 						}
 
-						_$_.append(__anchor, li_10);
+						_$_.append(__anchor, li_9);
 					},
 					4
 				);
 
-				_$_.pop(ul_10);
+				_$_.pop(ul_9);
 			}
 
 			_$_.next();
@@ -738,34 +738,34 @@ export function ForLoopPopulatedToEmpty() {
 
 		_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_15 = root_38();
-			var button_10 = _$_.first_child_frag(fragment_15);
+			var button_9 = _$_.first_child_frag(fragment_15);
 
-			button_10.__click = () => {
+			button_9.__click = () => {
 				_$_.set(lazy_9, []);
 			};
 
-			var ul_11 = _$_.sibling(button_10);
+			var ul_10 = _$_.sibling(button_9);
 
 			{
 				_$_.for(
-					ul_11,
+					ul_10,
 					() => lazy_9.value,
 					(__anchor, item) => {
-						var li_11 = root_39();
+						var li_10 = root_39();
 
 						{
-							var expression_15 = _$_.child(li_11);
+							var expression_15 = _$_.child(li_10);
 
 							_$_.expression(expression_15, () => item);
-							_$_.pop(li_11);
+							_$_.pop(li_10);
 						}
 
-						_$_.append(__anchor, li_11);
+						_$_.append(__anchor, li_10);
 					},
 					4
 				);
 
-				_$_.pop(ul_11);
+				_$_.pop(ul_10);
 			}
 
 			_$_.next();
@@ -779,73 +779,73 @@ export function ForLoopPopulatedToEmpty() {
 export function NestedForLoopReactive() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_10 = _$_.track([[1, 2], [3, 4]], __block, 'a2f41fb3');
-		var div_8 = root_40();
+		var div_7 = root_40();
 
 		{
-			var button_11 = _$_.child(div_8);
+			var button_10 = _$_.child(div_7);
 
-			button_11.__click = () => {
+			button_10.__click = () => {
 				_$_.set(lazy_10, [...lazy_10.value, [5, 6]]);
 			};
 
-			var button_12 = _$_.sibling(button_11);
+			var button_11 = _$_.sibling(button_10);
 
-			button_12.__click = () => {
+			button_11.__click = () => {
 				const newGrid = _$_.with_scope(__block, () => lazy_10.value.map((row) => [...row]));
 
 				newGrid[0][0] = 99;
 				_$_.set(lazy_10, newGrid);
 			};
 
-			var div_9 = _$_.sibling(button_12);
+			var div_8 = _$_.sibling(button_11);
 
 			{
 				_$_.for(
-					div_9,
+					div_8,
 					() => lazy_10.value,
 					(__anchor, row, rowIndex) => {
-						var div_10 = root_41();
+						var div_9 = root_41();
 
 						{
 							_$_.for(
-								div_10,
+								div_9,
 								() => row,
 								(__anchor, cell, colIndex) => {
-									var span_6 = root_42();
+									var span_5 = root_42();
 
 									{
-										var expression_16 = _$_.child(span_6);
+										var expression_16 = _$_.child(span_5);
 
 										_$_.expression(expression_16, () => cell);
-										_$_.pop(span_6);
+										_$_.pop(span_5);
 									}
 
 									_$_.render(() => {
-										_$_.set_class(span_6, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
+										_$_.set_class(span_5, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
 									});
 
-									_$_.append(__anchor, span_6);
+									_$_.append(__anchor, span_5);
 								},
 								12
 							);
 
-							_$_.pop(div_10);
+							_$_.pop(div_9);
 
 							_$_.render(() => {
-								_$_.set_class(div_10, `row-${rowIndex.value}`, void 0, true);
+								_$_.set_class(div_9, `row-${rowIndex.value}`, void 0, true);
 							});
 						}
 
-						_$_.append(__anchor, div_10);
+						_$_.append(__anchor, div_9);
 					},
 					12
 				);
 
-				_$_.pop(div_9);
+				_$_.pop(div_8);
 			}
 		}
 
-		_$_.append(__anchor, div_8);
+		_$_.append(__anchor, div_7);
 	});
 }
 
@@ -868,95 +868,95 @@ export function ForLoopDeeplyNested() {
 			}
 		];
 
-		var div_11 = root_43();
+		var div_10 = root_43();
 
 		{
 			_$_.for_keyed(
-				div_11,
+				div_10,
 				() => departments,
 				(__anchor, pattern_4) => {
-					var div_12 = root_44();
+					var div_11 = root_44();
 
 					{
-						var h2_1 = _$_.child(div_12);
+						var h2 = _$_.child(div_11);
 
 						{
-							var expression_17 = _$_.child(h2_1);
+							var expression_17 = _$_.child(h2);
 
 							_$_.expression(expression_17, () => _$_.get(pattern_4).name);
-							_$_.pop(h2_1);
+							_$_.pop(h2);
 						}
 
-						var node_9 = _$_.sibling(h2_1);
+						var node_9 = _$_.sibling(h2);
 
 						_$_.for_keyed(
 							node_9,
 							() => _$_.get(pattern_4).teams,
 							(__anchor, pattern_5) => {
-								var div_13 = root_45();
+								var div_12 = root_45();
 
 								{
-									var h3_1 = _$_.child(div_13);
+									var h3 = _$_.child(div_12);
 
 									{
-										var expression_18 = _$_.child(h3_1);
+										var expression_18 = _$_.child(h3);
 
 										_$_.expression(expression_18, () => _$_.get(pattern_5).name);
-										_$_.pop(h3_1);
+										_$_.pop(h3);
 									}
 
-									var ul_12 = _$_.sibling(h3_1);
+									var ul_11 = _$_.sibling(h3);
 
 									{
 										_$_.for(
-											ul_12,
+											ul_11,
 											() => _$_.get(pattern_5).members,
 											(__anchor, member) => {
-												var li_12 = root_46();
+												var li_11 = root_46();
 
 												{
-													var expression_19 = _$_.child(li_12);
+													var expression_19 = _$_.child(li_11);
 
 													_$_.expression(expression_19, () => member);
-													_$_.pop(li_12);
+													_$_.pop(li_11);
 												}
 
-												_$_.append(__anchor, li_12);
+												_$_.append(__anchor, li_11);
 											},
 											4
 										);
 
-										_$_.pop(ul_12);
+										_$_.pop(ul_11);
 									}
 								}
 
 								_$_.render(() => {
-									_$_.set_class(div_13, `team-${_$_.get(pattern_5).id}`, void 0, true);
+									_$_.set_class(div_12, `team-${_$_.get(pattern_5).id}`, void 0, true);
 								});
 
-								_$_.append(__anchor, div_13);
+								_$_.append(__anchor, div_12);
 							},
 							0,
 							(pattern_5) => _$_.get(pattern_5).id
 						);
 
-						_$_.pop(div_12);
+						_$_.pop(div_11);
 					}
 
 					_$_.render(() => {
-						_$_.set_class(div_12, `dept-${_$_.get(pattern_4).id}`, void 0, true);
+						_$_.set_class(div_11, `dept-${_$_.get(pattern_4).id}`, void 0, true);
 					});
 
-					_$_.append(__anchor, div_12);
+					_$_.append(__anchor, div_11);
 				},
 				4,
 				(pattern_4) => _$_.get(pattern_4).id
 			);
 
-			_$_.pop(div_11);
+			_$_.pop(div_10);
 		}
 
-		_$_.append(__anchor, div_11);
+		_$_.append(__anchor, div_10);
 	});
 }
 
@@ -968,25 +968,25 @@ export function ForLoopIndexUpdate() {
 
 		_$_.expression(node_10, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_17 = root_48();
-			var button_13 = _$_.first_child_frag(fragment_17);
+			var button_12 = _$_.first_child_frag(fragment_17);
 
-			button_13.__click = () => {
+			button_12.__click = () => {
 				_$_.set(lazy_11, ['Zeroth', ...lazy_11.value]);
 			};
 
-			var ul_13 = _$_.sibling(button_13);
+			var ul_12 = _$_.sibling(button_12);
 
 			{
 				_$_.for(
-					ul_13,
+					ul_12,
 					() => lazy_11.value,
 					(__anchor, item, i) => {
-						var li_13 = root_49();
+						var li_12 = root_49();
 
 						{
-							var expression_20 = _$_.child(li_13, true);
+							var expression_20 = _$_.child(li_12, true);
 
-							_$_.pop(li_13);
+							_$_.pop(li_12);
 						}
 
 						_$_.render(
@@ -1000,18 +1000,18 @@ export function ForLoopIndexUpdate() {
 								var __b = `item-${i.value}`;
 
 								if (__prev.b !== __b) {
-									_$_.set_class(li_13, __prev.b = __b, void 0, true);
+									_$_.set_class(li_12, __prev.b = __b, void 0, true);
 								}
 							},
 							{ a: ' ', b: Symbol() }
 						);
 
-						_$_.append(__anchor, li_13);
+						_$_.append(__anchor, li_12);
 					},
 					12
 				);
 
-				_$_.pop(ul_13);
+				_$_.pop(ul_12);
 			}
 
 			_$_.next();
@@ -1039,25 +1039,25 @@ export function KeyedForLoopWithIndex() {
 
 		_$_.expression(node_11, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_19 = root_51();
-			var button_14 = _$_.first_child_frag(fragment_19);
+			var button_13 = _$_.first_child_frag(fragment_19);
 
-			button_14.__click = () => {
+			button_13.__click = () => {
 				_$_.set(lazy_12, [lazy_12.value[1], lazy_12.value[2], lazy_12.value[0]]);
 			};
 
-			var ul_14 = _$_.sibling(button_14);
+			var ul_13 = _$_.sibling(button_13);
 
 			{
 				_$_.for_keyed(
-					ul_14,
+					ul_13,
 					() => lazy_12.value,
 					(__anchor, pattern_6, i) => {
-						var li_14 = root_52();
+						var li_13 = root_52();
 
 						{
-							var expression_21 = _$_.child(li_14, true);
+							var expression_21 = _$_.child(li_13, true);
 
-							_$_.pop(li_14);
+							_$_.pop(li_13);
 						}
 
 						_$_.render(
@@ -1071,25 +1071,25 @@ export function KeyedForLoopWithIndex() {
 								var __b = i.value;
 
 								if (__prev.b !== __b) {
-									_$_.set_attribute(li_14, 'data-index', __prev.b = __b);
+									_$_.set_attribute(li_13, 'data-index', __prev.b = __b);
 								}
 
 								var __c = `item-${_$_.get(pattern_6).id}`;
 
 								if (__prev.c !== __c) {
-									_$_.set_class(li_14, __prev.c = __c, void 0, true);
+									_$_.set_class(li_13, __prev.c = __c, void 0, true);
 								}
 							},
 							{ a: ' ', b: void 0, c: Symbol() }
 						);
 
-						_$_.append(__anchor, li_14);
+						_$_.append(__anchor, li_13);
 					},
 					12,
 					(pattern_6, i) => _$_.get(pattern_6).id
 				);
 
-				_$_.pop(ul_14);
+				_$_.pop(ul_13);
 			}
 
 			_$_.next();
@@ -1108,38 +1108,38 @@ export function ForLoopWithSiblings() {
 
 		_$_.expression(node_13, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_21 = root_54();
-			var div_14 = _$_.first_child_frag(fragment_21);
+			var div_13 = _$_.first_child_frag(fragment_21);
 
 			{
-				var header_1 = _$_.child(div_14);
-				var node_12 = _$_.sibling(header_1);
+				var header = _$_.child(div_13);
+				var node_12 = _$_.sibling(header);
 
 				_$_.for(
 					node_12,
 					() => lazy_13.value,
 					(__anchor, item) => {
-						var div_15 = root_55();
+						var div_14 = root_55();
 
-						_$_.set_class(div_15, `item-${item}`, void 0, true);
+						_$_.set_class(div_14, `item-${item}`, void 0, true);
 
 						{
-							var expression_22 = _$_.child(div_15);
+							var expression_22 = _$_.child(div_14);
 
 							_$_.expression(expression_22, () => item);
-							_$_.pop(div_15);
+							_$_.pop(div_14);
 						}
 
-						_$_.append(__anchor, div_15);
+						_$_.append(__anchor, div_14);
 					},
 					0
 				);
 
-				_$_.pop(div_14);
+				_$_.pop(div_13);
 			}
 
-			var button_15 = _$_.sibling(div_14);
+			var button_14 = _$_.sibling(div_13);
 
-			button_15.__click = () => {
+			button_14.__click = () => {
 				_$_.set(lazy_13, [...lazy_13.value, 'C']);
 			};
 
@@ -1159,11 +1159,11 @@ export function ForLoopItemState() {
 			{ id: 3, text: 'Todo 3' }
 		];
 
-		var div_16 = root_56();
+		var div_15 = root_56();
 
 		{
 			_$_.for_keyed(
-				div_16,
+				div_15,
 				() => initialItems,
 				(__anchor, pattern_7) => {
 					_$_.render_component(TodoItem, __anchor, {
@@ -1180,32 +1180,32 @@ export function ForLoopItemState() {
 				(pattern_7) => _$_.get(pattern_7).id
 			);
 
-			_$_.pop(div_16);
+			_$_.pop(div_15);
 		}
 
-		_$_.append(__anchor, div_16);
+		_$_.append(__anchor, div_15);
 	});
 }
 
 function TodoItem(props) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_14 = _$_.track(false, __block, '4f2402a4');
-		var div_17 = root_57();
+		var div_16 = root_57();
 
 		{
-			var input_1 = _$_.child(div_17);
+			var input = _$_.child(div_16);
 
-			input_1.__change = (e) => {
+			input.__change = (e) => {
 				_$_.set(lazy_14, e.target.checked);
 			};
 
-			var span_7 = _$_.sibling(input_1);
+			var span_6 = _$_.sibling(input);
 
 			{
-				var expression_23 = _$_.child(span_7);
+				var expression_23 = _$_.child(span_6);
 
 				_$_.expression(expression_23, () => props.text);
-				_$_.pop(span_7);
+				_$_.pop(span_6);
 			}
 		}
 
@@ -1214,56 +1214,56 @@ function TodoItem(props) {
 				var __a = lazy_14.value;
 
 				if (__prev.a !== __a) {
-					_$_.set_checked(input_1, __prev.a = __a);
+					_$_.set_checked(input, __prev.a = __a);
 				}
 
 				var __b = lazy_14.value ? 'completed' : 'pending';
 
 				if (__prev.b !== __b) {
-					_$_.set_class(span_7, __prev.b = __b, void 0, true);
+					_$_.set_class(span_6, __prev.b = __b, void 0, true);
 				}
 
 				var __c = `todo-${props.id}`;
 
 				if (__prev.c !== __c) {
-					_$_.set_class(div_17, __prev.c = __c, void 0, true);
+					_$_.set_class(div_16, __prev.c = __c, void 0, true);
 				}
 			},
 			{ a: void 0, b: Symbol(), c: Symbol() }
 		);
 
-		_$_.append(__anchor, div_17);
+		_$_.append(__anchor, div_16);
 	});
 }
 
 export function ForLoopSingleItem() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = ['Only'];
-		var ul_15 = root_58();
+		var ul_14 = root_58();
 
 		{
 			_$_.for(
-				ul_15,
+				ul_14,
 				() => items,
 				(__anchor, item) => {
-					var li_15 = root_59();
+					var li_14 = root_59();
 
 					{
-						var expression_24 = _$_.child(li_15);
+						var expression_24 = _$_.child(li_14);
 
 						_$_.expression(expression_24, () => item);
-						_$_.pop(li_15);
+						_$_.pop(li_14);
 					}
 
-					_$_.append(__anchor, li_15);
+					_$_.append(__anchor, li_14);
 				},
 				4
 			);
 
-			_$_.pop(ul_15);
+			_$_.pop(ul_14);
 		}
 
-		_$_.append(__anchor, ul_15);
+		_$_.append(__anchor, ul_14);
 	});
 }
 
@@ -1275,36 +1275,36 @@ export function ForLoopAddAtBeginning() {
 
 		_$_.expression(node_14, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_23 = root_61();
-			var button_16 = _$_.first_child_frag(fragment_23);
+			var button_15 = _$_.first_child_frag(fragment_23);
 
-			button_16.__click = () => {
+			button_15.__click = () => {
 				_$_.set(lazy_15, ['A', ...lazy_15.value]);
 			};
 
-			var ul_16 = _$_.sibling(button_16);
+			var ul_15 = _$_.sibling(button_15);
 
 			{
 				_$_.for(
-					ul_16,
+					ul_15,
 					() => lazy_15.value,
 					(__anchor, item) => {
-						var li_16 = root_62();
+						var li_15 = root_62();
 
-						_$_.set_class(li_16, `item-${item}`, void 0, true);
+						_$_.set_class(li_15, `item-${item}`, void 0, true);
 
 						{
-							var expression_25 = _$_.child(li_16);
+							var expression_25 = _$_.child(li_15);
 
 							_$_.expression(expression_25, () => item);
-							_$_.pop(li_16);
+							_$_.pop(li_15);
 						}
 
-						_$_.append(__anchor, li_16);
+						_$_.append(__anchor, li_15);
 					},
 					4
 				);
 
-				_$_.pop(ul_16);
+				_$_.pop(ul_15);
 			}
 
 			_$_.next();
@@ -1323,39 +1323,39 @@ export function ForLoopAddInMiddle() {
 
 		_$_.expression(node_15, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_25 = root_64();
-			var button_17 = _$_.first_child_frag(fragment_25);
+			var button_16 = _$_.first_child_frag(fragment_25);
 
-			button_17.__click = () => {
+			button_16.__click = () => {
 				const copy = [...lazy_16.value];
 
 				_$_.with_scope(__block, () => copy.splice(1, 0, 'B'));
 				_$_.set(lazy_16, copy);
 			};
 
-			var ul_17 = _$_.sibling(button_17);
+			var ul_16 = _$_.sibling(button_16);
 
 			{
 				_$_.for(
-					ul_17,
+					ul_16,
 					() => lazy_16.value,
 					(__anchor, item) => {
-						var li_17 = root_65();
+						var li_16 = root_65();
 
-						_$_.set_class(li_17, `item-${item}`, void 0, true);
+						_$_.set_class(li_16, `item-${item}`, void 0, true);
 
 						{
-							var expression_26 = _$_.child(li_17);
+							var expression_26 = _$_.child(li_16);
 
 							_$_.expression(expression_26, () => item);
-							_$_.pop(li_17);
+							_$_.pop(li_16);
 						}
 
-						_$_.append(__anchor, li_17);
+						_$_.append(__anchor, li_16);
 					},
 					4
 				);
 
-				_$_.pop(ul_17);
+				_$_.pop(ul_16);
 			}
 
 			_$_.next();
@@ -1374,36 +1374,36 @@ export function ForLoopRemoveFromMiddle() {
 
 		_$_.expression(node_16, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_27 = root_67();
-			var button_18 = _$_.first_child_frag(fragment_27);
+			var button_17 = _$_.first_child_frag(fragment_27);
 
-			button_18.__click = () => {
+			button_17.__click = () => {
 				_$_.set(lazy_17, _$_.with_scope(__block, () => lazy_17.value.filter((item) => item !== 'B')));
 			};
 
-			var ul_18 = _$_.sibling(button_18);
+			var ul_17 = _$_.sibling(button_17);
 
 			{
 				_$_.for(
-					ul_18,
+					ul_17,
 					() => lazy_17.value,
 					(__anchor, item) => {
-						var li_18 = root_68();
+						var li_17 = root_68();
 
-						_$_.set_class(li_18, `item-${item}`, void 0, true);
+						_$_.set_class(li_17, `item-${item}`, void 0, true);
 
 						{
-							var expression_27 = _$_.child(li_18);
+							var expression_27 = _$_.child(li_17);
 
 							_$_.expression(expression_27, () => item);
-							_$_.pop(li_18);
+							_$_.pop(li_17);
 						}
 
-						_$_.append(__anchor, li_18);
+						_$_.append(__anchor, li_17);
 					},
 					4
 				);
 
-				_$_.pop(ul_18);
+				_$_.pop(ul_17);
 			}
 
 			_$_.next();
@@ -1417,35 +1417,35 @@ export function ForLoopRemoveFromMiddle() {
 export function ForLoopLargeList() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = _$_.with_scope(__block, () => Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`));
-		var ul_19 = root_69();
+		var ul_18 = root_69();
 
 		{
 			_$_.for(
-				ul_19,
+				ul_18,
 				() => items,
 				(__anchor, item, i) => {
-					var li_19 = root_70();
+					var li_18 = root_70();
 
 					{
-						var expression_28 = _$_.child(li_19);
+						var expression_28 = _$_.child(li_18);
 
 						_$_.expression(expression_28, () => item);
-						_$_.pop(li_19);
+						_$_.pop(li_18);
 					}
 
 					_$_.render(() => {
-						_$_.set_class(li_19, `item-${i.value}`, void 0, true);
+						_$_.set_class(li_18, `item-${i.value}`, void 0, true);
 					});
 
-					_$_.append(__anchor, li_19);
+					_$_.append(__anchor, li_18);
 				},
 				12
 			);
 
-			_$_.pop(ul_19);
+			_$_.pop(ul_18);
 		}
 
-		_$_.append(__anchor, ul_19);
+		_$_.append(__anchor, ul_18);
 	});
 }
 
@@ -1457,39 +1457,39 @@ export function ForLoopSwap() {
 
 		_$_.expression(node_17, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_29 = root_72();
-			var button_19 = _$_.first_child_frag(fragment_29);
+			var button_18 = _$_.first_child_frag(fragment_29);
 
-			button_19.__click = () => {
+			button_18.__click = () => {
 				const copy = [...lazy_18.value];
 
 				[copy[0], copy[3]] = [copy[3], copy[0]];
 				_$_.set(lazy_18, copy);
 			};
 
-			var ul_20 = _$_.sibling(button_19);
+			var ul_19 = _$_.sibling(button_18);
 
 			{
 				_$_.for(
-					ul_20,
+					ul_19,
 					() => lazy_18.value,
 					(__anchor, item) => {
-						var li_20 = root_73();
+						var li_19 = root_73();
 
-						_$_.set_class(li_20, `item-${item}`, void 0, true);
+						_$_.set_class(li_19, `item-${item}`, void 0, true);
 
 						{
-							var expression_29 = _$_.child(li_20);
+							var expression_29 = _$_.child(li_19);
 
 							_$_.expression(expression_29, () => item);
-							_$_.pop(li_20);
+							_$_.pop(li_19);
 						}
 
-						_$_.append(__anchor, li_20);
+						_$_.append(__anchor, li_19);
 					},
 					4
 				);
 
-				_$_.pop(ul_20);
+				_$_.pop(ul_19);
 			}
 
 			_$_.next();
@@ -1508,36 +1508,36 @@ export function ForLoopReverse() {
 
 		_$_.expression(node_18, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_31 = root_75();
-			var button_20 = _$_.first_child_frag(fragment_31);
+			var button_19 = _$_.first_child_frag(fragment_31);
 
-			button_20.__click = () => {
+			button_19.__click = () => {
 				_$_.set(lazy_19, _$_.with_scope(__block, () => [...lazy_19.value].reverse()));
 			};
 
-			var ul_21 = _$_.sibling(button_20);
+			var ul_20 = _$_.sibling(button_19);
 
 			{
 				_$_.for(
-					ul_21,
+					ul_20,
 					() => lazy_19.value,
 					(__anchor, item) => {
-						var li_21 = root_76();
+						var li_20 = root_76();
 
-						_$_.set_class(li_21, `item-${item}`, void 0, true);
+						_$_.set_class(li_20, `item-${item}`, void 0, true);
 
 						{
-							var expression_30 = _$_.child(li_21);
+							var expression_30 = _$_.child(li_20);
 
 							_$_.expression(expression_30, () => item);
-							_$_.pop(li_21);
+							_$_.pop(li_20);
 						}
 
-						_$_.append(__anchor, li_21);
+						_$_.append(__anchor, li_20);
 					},
 					4
 				);
 
-				_$_.pop(ul_21);
+				_$_.pop(ul_20);
 			}
 
 			_$_.next();

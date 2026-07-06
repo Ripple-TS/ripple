@@ -33,16 +33,16 @@ const formatValue = function (...args) {
 function ServerCallResult({ count }) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '2e21cbe9');
-		var p_1 = root();
+		var p = root();
 
 		{
-			var expression = _$_.child(p_1);
+			var expression = _$_.child(p);
 
 			_$_.expression(expression, () => lazy.value);
-			_$_.pop(p_1);
+			_$_.pop(p);
 		}
 
-		_$_.append(__anchor, p_1);
+		_$_.append(__anchor, p);
 	});
 }
 
@@ -54,13 +54,13 @@ export function AsyncWithServerCall() {
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_2();
-			var button_1 = _$_.first_child_frag(fragment_1);
+			var button = _$_.first_child_frag(fragment_1);
 
-			button_1.__click = () => {
+			button.__click = () => {
 				_$_.update(lazy_1);
 			};
 
-			var node = _$_.sibling(button_1);
+			var node = _$_.sibling(button);
 
 			_$_.try(
 				node,
@@ -73,9 +73,9 @@ export function AsyncWithServerCall() {
 				},
 				null,
 				(__anchor) => {
-					var p_2 = root_3();
+					var p_1 = root_3();
 
-					_$_.append(__anchor, p_2);
+					_$_.append(__anchor, p_1);
 				}
 			);
 
@@ -92,22 +92,22 @@ export function AsyncSimpleValue() {
 			__anchor,
 			(__anchor) => {
 				let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('hydrated value')), __block, '4e502c38');
-				var p_3 = root_4();
+				var p_2 = root_4();
 
 				{
-					var expression_1 = _$_.child(p_3);
+					var expression_1 = _$_.child(p_2);
 
 					_$_.expression(expression_1, () => lazy_2.value);
-					_$_.pop(p_3);
+					_$_.pop(p_2);
 				}
 
-				_$_.append(__anchor, p_3);
+				_$_.append(__anchor, p_2);
 			},
 			null,
 			(__anchor) => {
-				var p_4 = root_5();
+				var p_3 = root_5();
 
-				_$_.append(__anchor, p_4);
+				_$_.append(__anchor, p_3);
 			},
 			true
 		);
@@ -120,22 +120,22 @@ export function AsyncNumericValue() {
 			__anchor,
 			(__anchor) => {
 				let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(42)), __block, '14891754');
-				var span_1 = root_6();
+				var span = root_6();
 
 				{
-					var expression_2 = _$_.child(span_1);
+					var expression_2 = _$_.child(span);
 
 					_$_.expression(expression_2, () => lazy_3.value);
-					_$_.pop(span_1);
+					_$_.pop(span);
 				}
 
-				_$_.append(__anchor, span_1);
+				_$_.append(__anchor, span);
 			},
 			null,
 			(__anchor) => {
-				var span_2 = root_7();
+				var span_1 = root_7();
 
-				_$_.append(__anchor, span_2);
+				_$_.append(__anchor, span_1);
 			},
 			true
 		);
@@ -148,35 +148,35 @@ export function AsyncObjectValue() {
 			__anchor,
 			(__anchor) => {
 				let lazy_4 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, 'f325448a');
-				var div_1 = root_8();
+				var div = root_8();
 
 				{
-					var span_3 = _$_.child(div_1);
+					var span_2 = _$_.child(div);
 
 					{
-						var expression_3 = _$_.child(span_3);
+						var expression_3 = _$_.child(span_2);
 
 						_$_.expression(expression_3, () => lazy_4.value.name);
-						_$_.pop(span_3);
+						_$_.pop(span_2);
 					}
 
-					var span_4 = _$_.sibling(span_3);
+					var span_3 = _$_.sibling(span_2);
 
 					{
-						var expression_4 = _$_.child(span_4);
+						var expression_4 = _$_.child(span_3);
 
 						_$_.expression(expression_4, () => lazy_4.value.age);
-						_$_.pop(span_4);
+						_$_.pop(span_3);
 					}
 				}
 
-				_$_.append(__anchor, div_1);
+				_$_.append(__anchor, div);
 			},
 			null,
 			(__anchor) => {
-				var div_2 = root_9();
+				var div_1 = root_9();
 
-				_$_.append(__anchor, div_2);
+				_$_.append(__anchor, div_1);
 			},
 			true
 		);
@@ -190,35 +190,35 @@ export function AsyncMultipleValues() {
 			(__anchor) => {
 				let lazy_5 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('alpha')), __block, 'ab8199a0');
 				let lazy_6 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('beta')), __block, 'fb7ad40b');
-				var div_3 = root_10();
+				var div_2 = root_10();
 
 				{
-					var span_5 = _$_.child(div_3);
+					var span_4 = _$_.child(div_2);
 
 					{
-						var expression_5 = _$_.child(span_5);
+						var expression_5 = _$_.child(span_4);
 
 						_$_.expression(expression_5, () => lazy_5.value);
-						_$_.pop(span_5);
+						_$_.pop(span_4);
 					}
 
-					var span_6 = _$_.sibling(span_5);
+					var span_5 = _$_.sibling(span_4);
 
 					{
-						var expression_6 = _$_.child(span_6);
+						var expression_6 = _$_.child(span_5);
 
 						_$_.expression(expression_6, () => lazy_6.value);
-						_$_.pop(span_6);
+						_$_.pop(span_5);
 					}
 				}
 
-				_$_.append(__anchor, div_3);
+				_$_.append(__anchor, div_2);
 			},
 			null,
 			(__anchor) => {
-				var div_4 = root_11();
+				var div_3 = root_11();
 
-				_$_.append(__anchor, div_4);
+				_$_.append(__anchor, div_3);
 			},
 			true
 		);
@@ -231,33 +231,33 @@ export function AsyncWithCatch() {
 			__anchor,
 			(__anchor) => {
 				let lazy_7 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('fetch failed'))), __block, '99982de5');
-				var p_5 = root_12();
+				var p_4 = root_12();
 
 				{
-					var expression_7 = _$_.child(p_5);
+					var expression_7 = _$_.child(p_4);
 
 					_$_.expression(expression_7, () => lazy_7.value);
+					_$_.pop(p_4);
+				}
+
+				_$_.append(__anchor, p_4);
+			},
+			(__anchor, e) => {
+				var p_5 = root_13();
+
+				{
+					var expression_8 = _$_.child(p_5);
+
+					_$_.expression(expression_8, () => e.message);
 					_$_.pop(p_5);
 				}
 
 				_$_.append(__anchor, p_5);
 			},
-			(__anchor, e) => {
-				var p_6 = root_13();
-
-				{
-					var expression_8 = _$_.child(p_6);
-
-					_$_.expression(expression_8, () => e.message);
-					_$_.pop(p_6);
-				}
+			(__anchor) => {
+				var p_6 = root_14();
 
 				_$_.append(__anchor, p_6);
-			},
-			(__anchor) => {
-				var p_7 = root_14();
-
-				_$_.append(__anchor, p_7);
 			},
 			true
 		);
@@ -270,22 +270,22 @@ export function ChildWithError() {
 			__anchor,
 			(__anchor) => {
 				let lazy_8 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('child error'))), __block, '1dea4c85');
-				var p_8 = root_15();
+				var p_7 = root_15();
 
 				{
-					var expression_9 = _$_.child(p_8);
+					var expression_9 = _$_.child(p_7);
 
 					_$_.expression(expression_9, () => lazy_8.value);
-					_$_.pop(p_8);
+					_$_.pop(p_7);
 				}
 
-				_$_.append(__anchor, p_8);
+				_$_.append(__anchor, p_7);
 			},
 			null,
 			(__anchor) => {
-				var p_9 = root_16();
+				var p_8 = root_16();
 
-				_$_.append(__anchor, p_9);
+				_$_.append(__anchor, p_8);
 			},
 			true
 		);
@@ -300,16 +300,16 @@ export function ParentWithCatch() {
 				_$_.render_component(ChildWithError, __anchor, {});
 			},
 			(__anchor, e) => {
-				var p_10 = root_17();
+				var p_9 = root_17();
 
 				{
-					var expression_10 = _$_.child(p_10);
+					var expression_10 = _$_.child(p_9);
 
 					_$_.expression(expression_10, () => e.message);
-					_$_.pop(p_10);
+					_$_.pop(p_9);
 				}
 
-				_$_.append(__anchor, p_10);
+				_$_.append(__anchor, p_9);
 			},
 			null,
 			true
@@ -320,16 +320,16 @@ export function ParentWithCatch() {
 function ReactiveDependencyResult({ count }) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_9 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, 'c9d12acf');
-		var p_11 = root_18();
+		var p_10 = root_18();
 
 		{
-			var expression_11 = _$_.child(p_11);
+			var expression_11 = _$_.child(p_10);
 
 			_$_.expression(expression_11, () => lazy_9.value);
-			_$_.pop(p_11);
+			_$_.pop(p_10);
 		}
 
-		_$_.append(__anchor, p_11);
+		_$_.append(__anchor, p_10);
 	});
 }
 
@@ -341,13 +341,13 @@ export function AsyncWithReactiveDependency() {
 
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_20();
-			var button_2 = _$_.first_child_frag(fragment_3);
+			var button_1 = _$_.first_child_frag(fragment_3);
 
-			button_2.__click = () => {
+			button_1.__click = () => {
 				_$_.update(lazy_10);
 			};
 
-			var node_2 = _$_.sibling(button_2);
+			var node_2 = _$_.sibling(button_1);
 
 			_$_.try(
 				node_2,
@@ -360,9 +360,9 @@ export function AsyncWithReactiveDependency() {
 				},
 				null,
 				(__anchor) => {
-					var p_12 = root_21();
+					var p_11 = root_21();
 
-					_$_.append(__anchor, p_12);
+					_$_.append(__anchor, p_11);
 				}
 			);
 

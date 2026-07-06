@@ -9,40 +9,40 @@ var root_2 = _$_.template(`<div><template id="before"></template><!><template id
 export function SimpleTemplateHtml() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const data = 'test data';
-		var template_1 = root();
+		var template = root();
 
-		template_1.innerHTML = data ?? template_1.innerHTML;
-		_$_.append(__anchor, template_1);
+		template.innerHTML = data ?? template.innerHTML;
+		_$_.append(__anchor, template);
 	});
 }
 
 export function TemplateWithJSON() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const jsonData = _$_.with_scope(__block, () => JSON.stringify({ message: 'hello', count: 42 }));
-		var template_2 = root_1();
+		var template_1 = root_1();
 
-		template_2.innerHTML = jsonData ?? template_2.innerHTML;
-		_$_.append(__anchor, template_2);
+		template_1.innerHTML = jsonData ?? template_1.innerHTML;
+		_$_.append(__anchor, template_1);
 	});
 }
 
 export function TemplateAroundIfBlock() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const show = true;
-		var div_1 = root_2();
+		var div = root_2();
 
 		{
-			var template_3 = _$_.child(div_1);
+			var template_2 = _$_.child(div);
 
-			template_3.innerHTML = "before" ?? template_3.innerHTML;
+			template_2.innerHTML = "before" ?? template_2.innerHTML;
 
-			var node = _$_.sibling(template_3);
+			var node = _$_.sibling(template_2);
 
 			{
 				var consequent = (__anchor) => {
-					var span_1 = root_3();
+					var span = root_3();
 
-					_$_.append(__anchor, span_1);
+					_$_.append(__anchor, span);
 				};
 
 				_$_.if(node, (__render) => {
@@ -50,12 +50,12 @@ export function TemplateAroundIfBlock() {
 				});
 			}
 
-			var template_4 = _$_.sibling(node);
+			var template_3 = _$_.sibling(node);
 
-			template_4.innerHTML = "after" ?? template_4.innerHTML;
-			_$_.pop(div_1);
+			template_3.innerHTML = "after" ?? template_3.innerHTML;
+			_$_.pop(div);
 		}
 
-		_$_.append(__anchor, div_1);
+		_$_.append(__anchor, div);
 	});
 }

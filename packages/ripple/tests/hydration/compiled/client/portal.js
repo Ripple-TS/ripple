@@ -14,11 +14,11 @@ import { Portal, track } from 'ripple';
 
 export function SimplePortal() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_1 = root();
+		var div = root();
 
 		{
-			var h1_1 = _$_.child(div_1);
-			var node = _$_.sibling(h1_1);
+			var h1 = _$_.child(div);
+			var node = _$_.sibling(h1);
 
 			_$_.render_component(Portal, node, {
 				get target() {
@@ -26,30 +26,30 @@ export function SimplePortal() {
 				},
 
 				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_2 = root_1();
+					var div_1 = root_1();
 
-					_$_.append(__anchor, div_2);
+					_$_.append(__anchor, div_1);
 				})
 			});
 
-			_$_.pop(div_1);
+			_$_.pop(div);
 		}
 
-		_$_.append(__anchor, div_1);
+		_$_.append(__anchor, div);
 	});
 }
 
 export function ConditionalPortal() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy = _$_.track(true, __block, '4f6df174');
-		var div_3 = root_2();
+		var div_2 = root_2();
 
 		{
-			var button_1 = _$_.child(div_3);
+			var button = _$_.child(div_2);
 
-			button_1.__click = () => _$_.set(lazy, !lazy.value);
+			button.__click = () => _$_.set(lazy, !lazy.value);
 
-			var node_1 = _$_.sibling(button_1);
+			var node_1 = _$_.sibling(button);
 
 			{
 				var consequent = (__anchor) => {
@@ -59,9 +59,9 @@ export function ConditionalPortal() {
 						},
 
 						children: _$_.tsrx_element((__anchor, __block) => {
-							var div_4 = root_3();
+							var div_3 = root_3();
 
-							_$_.append(__anchor, div_4);
+							_$_.append(__anchor, div_3);
 						})
 					});
 				};
@@ -71,20 +71,20 @@ export function ConditionalPortal() {
 				});
 			}
 
-			_$_.pop(div_3);
+			_$_.pop(div_2);
 		}
 
-		_$_.append(__anchor, div_3);
+		_$_.append(__anchor, div_2);
 	});
 }
 
 export function PortalWithMainContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_5 = root_4();
+		var div_4 = root_4();
 
 		{
-			var div_6 = _$_.child(div_5);
-			var node_2 = _$_.sibling(div_6);
+			var div_5 = _$_.child(div_4);
+			var node_2 = _$_.sibling(div_5);
 
 			_$_.render_component(Portal, node_2, {
 				get target() {
@@ -92,29 +92,29 @@ export function PortalWithMainContent() {
 				},
 
 				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_7 = root_5();
+					var div_6 = root_5();
 
-					_$_.append(__anchor, div_7);
+					_$_.append(__anchor, div_6);
 				})
 			});
 
-			_$_.pop(div_5);
+			_$_.pop(div_4);
 		}
 
-		_$_.append(__anchor, div_5);
+		_$_.append(__anchor, div_4);
 	});
 }
 
 export function NestedContentWithPortal() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_8 = root_6();
+		var div_7 = root_6();
 
 		{
-			var div_9 = _$_.child(div_8);
+			var div_8 = _$_.child(div_7);
 
-			_$_.pop(div_9);
+			_$_.pop(div_8);
 
-			var node_3 = _$_.sibling(div_9);
+			var node_3 = _$_.sibling(div_8);
 
 			_$_.render_component(Portal, node_3, {
 				get target() {
@@ -122,16 +122,16 @@ export function NestedContentWithPortal() {
 				},
 
 				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_10 = root_7();
+					var div_9 = root_7();
 
-					_$_.append(__anchor, div_10);
+					_$_.append(__anchor, div_9);
 				})
 			});
 
-			_$_.pop(div_8);
+			_$_.pop(div_7);
 		}
 
-		_$_.append(__anchor, div_8);
+		_$_.append(__anchor, div_7);
 	});
 }
 

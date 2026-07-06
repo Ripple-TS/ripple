@@ -9,37 +9,37 @@ import { track } from 'ripple';
 
 export function Layout({ children }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_1 = root();
+		var div = root();
 
 		{
-			var nav_1 = _$_.child(div_1);
-			var main_1 = _$_.sibling(nav_1);
+			var nav = _$_.child(div);
+			var main = _$_.sibling(nav);
 
 			{
-				var expression = _$_.child(main_1);
+				var expression = _$_.child(main);
 
 				_$_.expression(expression, () => children);
-				_$_.pop(main_1);
+				_$_.pop(main);
 			}
 		}
 
-		_$_.append(__anchor, div_1);
+		_$_.append(__anchor, div);
 	});
 }
 
 export function Content() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy = _$_.track(true, __block, '0bdb1500');
-		var div_2 = root_1();
+		var div_1 = root_1();
 
 		{
-			var node = _$_.child(div_2);
+			var node = _$_.child(div_1);
 
 			{
 				var consequent = (__anchor) => {
-					var p_1 = root_2();
+					var p = root_2();
 
-					_$_.append(__anchor, p_1);
+					_$_.append(__anchor, p);
 				};
 
 				_$_.if(node, (__render) => {
@@ -47,10 +47,10 @@ export function Content() {
 				});
 			}
 
-			_$_.pop(div_2);
+			_$_.pop(div_1);
 		}
 
-		_$_.append(__anchor, div_2);
+		_$_.append(__anchor, div_1);
 	});
 }
 

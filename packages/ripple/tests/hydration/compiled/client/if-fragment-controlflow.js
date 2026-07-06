@@ -38,10 +38,10 @@ export function IfFragmentForElement() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
 		const hasLoaded = true;
-		var div_1 = root();
+		var div = root();
 
 		{
-			var node = _$_.child(div_1);
+			var node = _$_.child(div);
 
 			{
 				var consequent = (__anchor) => {
@@ -56,16 +56,16 @@ export function IfFragmentForElement() {
 							node_1,
 							() => muzes,
 							(__anchor, pattern) => {
-								var p_1 = root_3();
+								var p = root_3();
 
 								{
-									var expression = _$_.child(p_1);
+									var expression = _$_.child(p);
 
 									_$_.expression(expression, () => _$_.get(pattern).muzeId);
-									_$_.pop(p_1);
+									_$_.pop(p);
 								}
 
-								_$_.append(__anchor, p_1);
+								_$_.append(__anchor, p);
 							},
 							0,
 							(pattern) => _$_.get(pattern).muzeId
@@ -82,10 +82,10 @@ export function IfFragmentForElement() {
 				});
 			}
 
-			_$_.pop(div_1);
+			_$_.pop(div);
 		}
 
-		_$_.append(__anchor, div_1);
+		_$_.append(__anchor, div);
 	});
 }
 
@@ -93,10 +93,10 @@ export function IfFragmentForIfIf() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
 		const hasLoaded = true;
-		var div_2 = root_4();
+		var div_1 = root_4();
 
 		{
-			var node_3 = _$_.child(div_2);
+			var node_3 = _$_.child(div_1);
 
 			{
 				var consequent_3 = (__anchor) => {
@@ -111,16 +111,16 @@ export function IfFragmentForIfIf() {
 							node_4,
 							() => muzes,
 							(__anchor, pattern_1) => {
-								var p_2 = root_7();
+								var p_1 = root_7();
 
 								{
-									var expression_1 = _$_.child(p_2);
+									var expression_1 = _$_.child(p_1);
 
 									_$_.expression(expression_1, () => _$_.get(pattern_1).muzeId);
-									_$_.pop(p_2);
+									_$_.pop(p_1);
 								}
 
-								_$_.append(__anchor, p_2);
+								_$_.append(__anchor, p_1);
 							},
 							0,
 							(pattern_1) => _$_.get(pattern_1).muzeId
@@ -130,9 +130,9 @@ export function IfFragmentForIfIf() {
 
 						{
 							var consequent_1 = (__anchor) => {
-								var span_1 = root_8();
+								var span = root_8();
 
-								_$_.append(__anchor, span_1);
+								_$_.append(__anchor, span);
 							};
 
 							_$_.if(node_5, (__render) => {
@@ -144,9 +144,9 @@ export function IfFragmentForIfIf() {
 
 						{
 							var consequent_2 = (__anchor) => {
-								var span_2 = root_9();
+								var span_1 = root_9();
 
-								_$_.append(__anchor, span_2);
+								_$_.append(__anchor, span_1);
 							};
 
 							_$_.if(node_6, (__render) => {
@@ -165,20 +165,20 @@ export function IfFragmentForIfIf() {
 				});
 			}
 
-			_$_.pop(div_2);
+			_$_.pop(div_1);
 		}
 
-		_$_.append(__anchor, div_2);
+		_$_.append(__anchor, div_1);
 	});
 }
 
 export function IfFragmentElements() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const hasLoaded = true;
-		var div_3 = root_10();
+		var div_2 = root_10();
 
 		{
-			var node_8 = _$_.child(div_3);
+			var node_8 = _$_.child(div_2);
 
 			{
 				var consequent_4 = (__anchor) => {
@@ -199,10 +199,10 @@ export function IfFragmentElements() {
 				});
 			}
 
-			_$_.pop(div_3);
+			_$_.pop(div_2);
 		}
 
-		_$_.append(__anchor, div_3);
+		_$_.append(__anchor, div_2);
 	});
 }
 
@@ -220,16 +220,16 @@ export function ComponentBodyFragmentControlFlow() {
 				node_10,
 				() => muzes,
 				(__anchor, pattern_2) => {
-					var p_3 = root_15();
+					var p_2 = root_15();
 
 					{
-						var expression_2 = _$_.child(p_3);
+						var expression_2 = _$_.child(p_2);
 
 						_$_.expression(expression_2, () => _$_.get(pattern_2).muzeId);
-						_$_.pop(p_3);
+						_$_.pop(p_2);
 					}
 
-					_$_.append(__anchor, p_3);
+					_$_.append(__anchor, p_2);
 				},
 				0,
 				(pattern_2) => _$_.get(pattern_2).muzeId
@@ -259,16 +259,16 @@ export function ComponentBodyCodeBlockControlFlow() {
 					__anchor,
 					() => rows,
 					(__anchor, pattern_3) => {
-						var p_4 = root_17();
+						var p_3 = root_17();
 
 						{
-							var expression_3 = _$_.child(p_4);
+							var expression_3 = _$_.child(p_3);
 
 							_$_.expression(expression_3, () => _$_.get(pattern_3).muzeId);
-							_$_.pop(p_4);
+							_$_.pop(p_3);
 						}
 
-						_$_.append(__anchor, p_4);
+						_$_.append(__anchor, p_3);
 					},
 					16,
 					(pattern_3) => _$_.get(pattern_3).muzeId
@@ -286,10 +286,10 @@ export function IfCodeBlockControlFlow() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
 		const hasLoaded = true;
-		var div_4 = root_19();
+		var div_3 = root_19();
 
 		{
-			var node_13 = _$_.child(div_4);
+			var node_13 = _$_.child(div_3);
 
 			{
 				var consequent_5 = (__anchor) => {
@@ -307,16 +307,16 @@ export function IfCodeBlockControlFlow() {
 								__anchor,
 								() => rows,
 								(__anchor, pattern_4) => {
-									var p_5 = root_21();
+									var p_4 = root_21();
 
 									{
-										var expression_5 = _$_.child(p_5);
+										var expression_5 = _$_.child(p_4);
 
 										_$_.expression(expression_5, () => _$_.get(pattern_4).muzeId);
-										_$_.pop(p_5);
+										_$_.pop(p_4);
 									}
 
-									_$_.append(__anchor, p_5);
+									_$_.append(__anchor, p_4);
 								},
 								16,
 								(pattern_4) => _$_.get(pattern_4).muzeId
@@ -334,10 +334,10 @@ export function IfCodeBlockControlFlow() {
 				});
 			}
 
-			_$_.pop(div_4);
+			_$_.pop(div_3);
 		}
 
-		_$_.append(__anchor, div_4);
+		_$_.append(__anchor, div_3);
 	});
 }
 
@@ -345,16 +345,16 @@ export function IfElseFragment() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
 		const hasLoaded = false;
-		var div_5 = root_23();
+		var div_4 = root_23();
 
 		{
-			var node_15 = _$_.child(div_5);
+			var node_15 = _$_.child(div_4);
 
 			{
 				var consequent_6 = (__anchor) => {
-					var span_3 = root_24();
+					var span_2 = root_24();
 
-					_$_.append(__anchor, span_3);
+					_$_.append(__anchor, span_2);
 				};
 
 				var alternate = (__anchor) => {
@@ -369,16 +369,16 @@ export function IfElseFragment() {
 							node_16,
 							() => muzes,
 							(__anchor, pattern_5) => {
-								var p_6 = root_27();
+								var p_5 = root_27();
 
 								{
-									var expression_7 = _$_.child(p_6);
+									var expression_7 = _$_.child(p_5);
 
 									_$_.expression(expression_7, () => _$_.get(pattern_5).muzeId);
-									_$_.pop(p_6);
+									_$_.pop(p_5);
 								}
 
-								_$_.append(__anchor, p_6);
+								_$_.append(__anchor, p_5);
 							},
 							0,
 							(pattern_5) => _$_.get(pattern_5).muzeId
@@ -395,10 +395,10 @@ export function IfElseFragment() {
 				});
 			}
 
-			_$_.pop(div_5);
+			_$_.pop(div_4);
 		}
 
-		_$_.append(__anchor, div_5);
+		_$_.append(__anchor, div_4);
 	});
 }
 
@@ -406,17 +406,17 @@ export function IfDivFragment() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
 		const hasLoaded = true;
-		var div_6 = root_28();
+		var div_5 = root_28();
 
 		{
-			var node_18 = _$_.child(div_6);
+			var node_18 = _$_.child(div_5);
 
 			{
 				var consequent_7 = (__anchor) => {
-					var section_1 = root_29();
+					var section = root_29();
 
 					{
-						var node_20 = _$_.child(section_1);
+						var node_20 = _$_.child(section);
 
 						_$_.expression(node_20, () => _$_.tsrx_element((__anchor, __block) => {
 							var fragment_14 = root_30();
@@ -426,16 +426,16 @@ export function IfDivFragment() {
 								node_19,
 								() => muzes,
 								(__anchor, pattern_6) => {
-									var p_7 = root_31();
+									var p_6 = root_31();
 
 									{
-										var expression_8 = _$_.child(p_7);
+										var expression_8 = _$_.child(p_6);
 
 										_$_.expression(expression_8, () => _$_.get(pattern_6).muzeId);
-										_$_.pop(p_7);
+										_$_.pop(p_6);
 									}
 
-									_$_.append(__anchor, p_7);
+									_$_.append(__anchor, p_6);
 								},
 								0,
 								(pattern_6) => _$_.get(pattern_6).muzeId
@@ -444,10 +444,10 @@ export function IfDivFragment() {
 							_$_.append(__anchor, fragment_14);
 						}));
 
-						_$_.pop(section_1);
+						_$_.pop(section);
 					}
 
-					_$_.append(__anchor, section_1);
+					_$_.append(__anchor, section);
 				};
 
 				_$_.if(node_18, (__render) => {
@@ -455,9 +455,9 @@ export function IfDivFragment() {
 				});
 			}
 
-			_$_.pop(div_6);
+			_$_.pop(div_5);
 		}
 
-		_$_.append(__anchor, div_6);
+		_$_.append(__anchor, div_5);
 	});
 }

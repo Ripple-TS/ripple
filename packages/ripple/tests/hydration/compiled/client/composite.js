@@ -12,12 +12,28 @@ var root_7 = _$_.template(`<!>`, 1, 1);
 
 export function Layout(__props) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_1 = root();
+		var div = root();
 
 		{
-			var expression = _$_.child(div_1);
+			var expression = _$_.child(div);
 
 			_$_.expression(expression, () => __props.children);
+			_$_.pop(div);
+		}
+
+		_$_.append(__anchor, div);
+	});
+}
+
+export function TextWrappedLayout(__props) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_1 = root_1();
+
+		{
+			var expression_2 = _$_.child(div_1);
+			var expression_1 = _$_.sibling(expression_2);
+
+			_$_.expression(expression_1, () => __props.children);
 			_$_.pop(div_1);
 		}
 
@@ -25,27 +41,11 @@ export function Layout(__props) {
 	});
 }
 
-export function TextWrappedLayout(__props) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div_2 = root_1();
-
-		{
-			var expression_2 = _$_.child(div_2);
-			var expression_1 = _$_.sibling(expression_2);
-
-			_$_.expression(expression_1, () => __props.children);
-			_$_.pop(div_2);
-		}
-
-		_$_.append(__anchor, div_2);
-	});
-}
-
 export function SingleChild() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_3 = root_2();
+		var div_2 = root_2();
 
-		_$_.append(__anchor, div_3);
+		_$_.append(__anchor, div_2);
 	});
 }
 

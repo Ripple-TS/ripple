@@ -33,13 +33,13 @@ export function StaticTitle() {
 		var node = _$_.first_child_frag(fragment);
 
 		_$_.expression(node, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_1 = root_1();
+			var div = root_1();
 
 			_$_.head('6e1f1b90', (__anchor) => {
 				_$_.document.title = 'Static Test Title';
 			});
 
-			_$_.append(__anchor, div_1);
+			_$_.append(__anchor, div);
 		}));
 
 		_$_.append(__anchor, fragment);
@@ -53,16 +53,16 @@ export function ReactiveTitle() {
 		var node_1 = _$_.first_child_frag(fragment_1);
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_2 = root_3();
+			var div_1 = root_3();
 
 			{
-				var span_1 = _$_.child(div_2);
+				var span = _$_.child(div_1);
 
 				{
-					var expression = _$_.child(span_1);
+					var expression = _$_.child(span);
 
 					_$_.expression(expression, () => lazy.value);
-					_$_.pop(span_1);
+					_$_.pop(span);
 				}
 			}
 
@@ -72,7 +72,7 @@ export function ReactiveTitle() {
 				});
 			});
 
-			_$_.append(__anchor, div_2);
+			_$_.append(__anchor, div_1);
 		}));
 
 		_$_.append(__anchor, fragment_1);
@@ -85,7 +85,7 @@ export function MultipleHeadElements() {
 		var node_2 = _$_.first_child_frag(fragment_2);
 
 		_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_3 = root_5();
+			var div_2 = root_5();
 
 			_$_.head('07a54928', (__anchor) => {
 				var fragment_3 = root_6();
@@ -95,7 +95,7 @@ export function MultipleHeadElements() {
 				_$_.append(__anchor, fragment_3, true);
 			});
 
-			_$_.append(__anchor, div_3);
+			_$_.append(__anchor, div_2);
 		}));
 
 		_$_.append(__anchor, fragment_2);
@@ -109,24 +109,24 @@ export function ReactiveMetaTags() {
 		var node_3 = _$_.first_child_frag(fragment_4);
 
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_4 = root_8();
+			var div_3 = root_8();
 
 			{
-				var expression_1 = _$_.child(div_4);
+				var expression_1 = _$_.child(div_3);
 
 				_$_.expression(expression_1, () => lazy_1.value);
-				_$_.pop(div_4);
+				_$_.pop(div_3);
 			}
 
 			_$_.head('4ca6a546', (__anchor) => {
-				var meta_1 = root_9();
+				var meta = root_9();
 
 				_$_.document.title = 'My Page';
-				_$_.set_attribute(meta_1, 'content');
-				_$_.append(__anchor, meta_1);
+				_$_.set_attribute(meta, 'content');
+				_$_.append(__anchor, meta);
 			});
 
-			_$_.append(__anchor, div_4);
+			_$_.append(__anchor, div_3);
 		}));
 
 		_$_.append(__anchor, fragment_4);
@@ -140,13 +140,13 @@ export function TitleWithTemplate() {
 		var node_4 = _$_.first_child_frag(fragment_5);
 
 		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_5 = root_11();
+			var div_4 = root_11();
 
 			{
-				var expression_2 = _$_.child(div_5);
+				var expression_2 = _$_.child(div_4);
 
 				_$_.expression(expression_2, () => lazy_2.value);
-				_$_.pop(div_5);
+				_$_.pop(div_4);
 			}
 
 			_$_.head('10dc944d', (__anchor) => {
@@ -155,7 +155,7 @@ export function TitleWithTemplate() {
 				});
 			});
 
-			_$_.append(__anchor, div_5);
+			_$_.append(__anchor, div_4);
 		}));
 
 		_$_.append(__anchor, fragment_5);
@@ -168,13 +168,13 @@ export function EmptyTitle() {
 		var node_5 = _$_.first_child_frag(fragment_6);
 
 		_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_6 = root_13();
+			var div_5 = root_13();
 
 			_$_.head('13ba9873', (__anchor) => {
 				_$_.document.title = '';
 			});
 
-			_$_.append(__anchor, div_6);
+			_$_.append(__anchor, div_5);
 		}));
 
 		_$_.append(__anchor, fragment_6);
@@ -189,13 +189,13 @@ export function ConditionalTitle() {
 		var node_6 = _$_.first_child_frag(fragment_7);
 
 		_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_7 = root_15();
+			var div_6 = root_15();
 
 			{
-				var expression_3 = _$_.child(div_7);
+				var expression_3 = _$_.child(div_6);
 
 				_$_.expression(expression_3, () => lazy_4.value);
-				_$_.pop(div_7);
+				_$_.pop(div_6);
 			}
 
 			_$_.head('4b39c36b', (__anchor) => {
@@ -204,7 +204,7 @@ export function ConditionalTitle() {
 				});
 			});
 
-			_$_.append(__anchor, div_7);
+			_$_.append(__anchor, div_6);
 		}));
 
 		_$_.append(__anchor, fragment_7);
@@ -219,16 +219,16 @@ export function ComputedTitle() {
 		var node_7 = _$_.first_child_frag(fragment_8);
 
 		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_8 = root_17();
+			var div_7 = root_17();
 
 			{
-				var span_2 = _$_.child(div_8);
+				var span_1 = _$_.child(div_7);
 
 				{
-					var expression_4 = _$_.child(span_2);
+					var expression_4 = _$_.child(span_1);
 
 					_$_.expression(expression_4, () => lazy_5.value);
-					_$_.pop(span_2);
+					_$_.pop(span_1);
 				}
 			}
 
@@ -238,7 +238,7 @@ export function ComputedTitle() {
 				});
 			});
 
-			_$_.append(__anchor, div_8);
+			_$_.append(__anchor, div_7);
 		}));
 
 		_$_.append(__anchor, fragment_8);
@@ -251,19 +251,19 @@ export function MultipleHeadBlocks() {
 		var node_8 = _$_.first_child_frag(fragment_9);
 
 		_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_9 = root_19();
+			var div_8 = root_19();
 
 			_$_.head('9a44f25d', (__anchor) => {
 				_$_.document.title = 'First Head';
 			});
 
 			_$_.head('0873e476', (__anchor) => {
-				var meta_2 = root_20();
+				var meta_1 = root_20();
 
-				_$_.append(__anchor, meta_2);
+				_$_.append(__anchor, meta_1);
 			});
 
-			_$_.append(__anchor, div_9);
+			_$_.append(__anchor, div_8);
 		}));
 
 		_$_.append(__anchor, fragment_9);
@@ -276,13 +276,13 @@ export function HeadWithStyle() {
 		var node_9 = _$_.first_child_frag(fragment_10);
 
 		_$_.expression(node_9, () => _$_.tsrx_element((__anchor, __block) => {
-			var div_10 = root_22();
+			var div_9 = root_22();
 
 			_$_.head('d75c5358', (__anchor) => {
 				_$_.document.title = 'Styled Page';
 			});
 
-			_$_.append(__anchor, div_10);
+			_$_.append(__anchor, div_9);
 		}));
 
 		_$_.append(__anchor, fragment_10);

@@ -35,21 +35,21 @@ export function SwitchStatic() {
 
 		{
 			var switch_case_0 = (__anchor) => {
-				var div_1 = root();
+				var div = root();
+
+				_$_.append(__anchor, div);
+			};
+
+			var switch_case_1 = (__anchor) => {
+				var div_1 = root_1();
 
 				_$_.append(__anchor, div_1);
 			};
 
-			var switch_case_1 = (__anchor) => {
-				var div_2 = root_1();
+			var switch_case_default = (__anchor) => {
+				var div_2 = root_2();
 
 				_$_.append(__anchor, div_2);
-			};
-
-			var switch_case_default = (__anchor) => {
-				var div_3 = root_2();
-
-				_$_.append(__anchor, div_3);
 			};
 
 			_$_.switch(
@@ -85,31 +85,31 @@ export function SwitchReactive() {
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_4();
-			var button_1 = _$_.first_child_frag(fragment_1);
+			var button = _$_.first_child_frag(fragment_1);
 
-			button_1.__click = () => {
+			button.__click = () => {
 				if (lazy.value === 'a') _$_.set(lazy, 'b'); else if (lazy.value === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
 			};
 
-			var node = _$_.sibling(button_1);
+			var node = _$_.sibling(button);
 
 			{
 				var switch_case_0_1 = (__anchor) => {
-					var div_4 = root_5();
+					var div_3 = root_5();
+
+					_$_.append(__anchor, div_3);
+				};
+
+				var switch_case_1_1 = (__anchor) => {
+					var div_4 = root_6();
 
 					_$_.append(__anchor, div_4);
 				};
 
-				var switch_case_1_1 = (__anchor) => {
-					var div_5 = root_6();
+				var switch_case_default_1 = (__anchor) => {
+					var div_5 = root_7();
 
 					_$_.append(__anchor, div_5);
-				};
-
-				var switch_case_default_1 = (__anchor) => {
-					var div_6 = root_7();
-
-					_$_.append(__anchor, div_6);
 				};
 
 				_$_.switch(node, () => {
@@ -144,15 +144,15 @@ export function SwitchFallthrough() {
 
 		{
 			var switch_case_0_2 = (__anchor) => {
-				var div_7 = root_8();
+				var div_6 = root_8();
 
-				_$_.append(__anchor, div_7);
+				_$_.append(__anchor, div_6);
 			};
 
 			var switch_case_default_2 = (__anchor) => {
-				var div_8 = root_9();
+				var div_7 = root_9();
 
-				_$_.append(__anchor, div_8);
+				_$_.append(__anchor, div_7);
 			};
 
 			_$_.switch(
@@ -187,31 +187,31 @@ export function SwitchNumericLevels() {
 
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_11();
-			var button_2 = _$_.first_child_frag(fragment_3);
+			var button_1 = _$_.first_child_frag(fragment_3);
 
-			button_2.__click = () => {
+			button_1.__click = () => {
 				if (lazy_1.value === 1) _$_.set(lazy_1, 2); else if (lazy_1.value === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
 			};
 
-			var node_2 = _$_.sibling(button_2);
+			var node_2 = _$_.sibling(button_1);
 
 			{
 				var switch_case_0_3 = (__anchor) => {
-					var div_9 = root_12();
+					var div_8 = root_12();
+
+					_$_.append(__anchor, div_8);
+				};
+
+				var switch_case_1_2 = (__anchor) => {
+					var div_9 = root_13();
 
 					_$_.append(__anchor, div_9);
 				};
 
-				var switch_case_1_2 = (__anchor) => {
-					var div_10 = root_13();
+				var switch_case_2 = (__anchor) => {
+					var div_10 = root_14();
 
 					_$_.append(__anchor, div_10);
-				};
-
-				var switch_case_2 = (__anchor) => {
-					var div_11 = root_14();
-
-					_$_.append(__anchor, div_11);
 				};
 
 				_$_.switch(node_2, () => {
@@ -248,31 +248,31 @@ export function SwitchBlockScoped() {
 
 		_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_5 = root_16();
-			var button_3 = _$_.first_child_frag(fragment_5);
+			var button_2 = _$_.first_child_frag(fragment_5);
 
-			button_3.__click = () => {
+			button_2.__click = () => {
 				if (lazy_2.value === 1) _$_.set(lazy_2, 2); else if (lazy_2.value === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
 			};
 
-			var node_4 = _$_.sibling(button_3);
+			var node_4 = _$_.sibling(button_2);
 
 			{
 				var switch_case_0_4 = (__anchor) => {
-					var div_12 = root_17();
+					var div_11 = root_17();
+
+					_$_.append(__anchor, div_11);
+				};
+
+				var switch_case_1_3 = (__anchor) => {
+					var div_12 = root_18();
 
 					_$_.append(__anchor, div_12);
 				};
 
-				var switch_case_1_3 = (__anchor) => {
-					var div_13 = root_18();
+				var switch_case_2_1 = (__anchor) => {
+					var div_13 = root_19();
 
 					_$_.append(__anchor, div_13);
-				};
-
-				var switch_case_2_1 = (__anchor) => {
-					var div_14 = root_19();
-
-					_$_.append(__anchor, div_14);
 				};
 
 				_$_.switch(node_4, () => {
@@ -309,31 +309,31 @@ export function SwitchNoBreak() {
 
 		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_7 = root_21();
-			var button_4 = _$_.first_child_frag(fragment_7);
+			var button_3 = _$_.first_child_frag(fragment_7);
 
-			button_4.__click = () => {
+			button_3.__click = () => {
 				if (lazy_3.value === 1) _$_.set(lazy_3, 2); else if (lazy_3.value === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
 			};
 
-			var node_6 = _$_.sibling(button_4);
+			var node_6 = _$_.sibling(button_3);
 
 			{
 				var switch_case_0_5 = (__anchor) => {
-					var div_15 = root_22();
+					var div_14 = root_22();
+
+					_$_.append(__anchor, div_14);
+				};
+
+				var switch_case_1_4 = (__anchor) => {
+					var div_15 = root_23();
 
 					_$_.append(__anchor, div_15);
 				};
 
-				var switch_case_1_4 = (__anchor) => {
-					var div_16 = root_23();
+				var switch_case_2_2 = (__anchor) => {
+					var div_16 = root_24();
 
 					_$_.append(__anchor, div_16);
-				};
-
-				var switch_case_2_2 = (__anchor) => {
-					var div_17 = root_24();
-
-					_$_.append(__anchor, div_17);
 				};
 
 				_$_.switch(node_6, () => {
