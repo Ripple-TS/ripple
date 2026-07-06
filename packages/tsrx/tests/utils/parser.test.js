@@ -541,6 +541,32 @@ abc
 		expect(outer.alternate.alternate.type).toBe('JSXElement');
 	});
 
+	it('parses a parenthesized multiline element with nested children in a ternary branch', () => {
+		const returned = getReturned(
+			`function App({ cond }) {
+				return <div>
+					{cond
+						? (<Outer>
+								<Inner>hi</Inner>
+							</Outer>)
+						: null}
+				</div>;
+			}`,
+		);
+
+		const expression = returned.children.find(
+			(child) => child.type === 'JSXExpressionContainer',
+		).expression;
+		expect(expression.type).toBe('ConditionalExpression');
+		expect(expression.consequent.type).toBe('JSXElement');
+		expect(expression.consequent.openingElement.name.name).toBe('Outer');
+		const inner = expression.consequent.children.find((child) => child.type === 'JSXElement');
+		expect(inner.openingElement.name.name).toBe('Inner');
+		expect(inner.children[0].value).toBe('hi');
+		expect(expression.alternate.type).toBe('Literal');
+		expect(expression.alternate.value).toBeNull();
+	});
+
 	it('preserves element-text whitespace in ternary branches inside an expression container', () => {
 		const span = findElement(
 			`function App() {

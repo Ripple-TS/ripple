@@ -259,6 +259,13 @@ export function TSRXPlugin(config) {
 			// `#filterTemplateScriptContexts`.
 			/** @type {number[]} */
 			#expressionContainerContextBaselines = [];
+			// `#path` length at the start of each open `{ … }` expression container.
+			// Raw template text inside a container belongs only to an element opened
+			// inside it (`{<div>   a</div>}`); at the container's own expression level
+			// (`{cond ? (<Outer>…</Outer>) : null}` after the `)`) the next characters
+			// are JS, and reading them as raw text would swallow tokens like `: null`.
+			/** @type {number[]} */
+			#expressionContainerPathBaselines = [];
 			#consumeContainerBraceAfterScope = false;
 			#scriptJSXElementDepth = 0;
 			#forceScriptJSXElementDepth = 0;
@@ -935,6 +942,26 @@ export function TSRXPlugin(config) {
 				const current_template_node = this.#currentNativeTemplateNode();
 				if (!current_template_node || this.#isJSXControlFlowDirectiveAt(this.pos)) {
 					return false;
+				}
+				// Inside an expression container (only reachable with
+				// `allow_inside_expression_container`), raw text belongs to an element
+				// opened inside the container. When the innermost native template element
+				// sits below the container's path baseline we are at the container's own
+				// expression level — e.g. after `(<Outer>…</Outer>)` in
+				// `{cond ? (<Outer>…</Outer>) : null}` — and the following characters are
+				// JS tokens, not template text.
+				if (this.#jsxExpressionContainerDepth > 0 && !this.#openingNativeTemplateNode) {
+					const path_baseline = this.#expressionContainerPathBaselines.at(-1) ?? 0;
+					let inside_container = false;
+					for (let i = this.#path.length - 1; i >= path_baseline; i--) {
+						if (this.#isNativeTemplateNode(this.#path[i])) {
+							inside_container = true;
+							break;
+						}
+					}
+					if (!inside_container) {
+						return false;
+					}
 				}
 				if (this.#isTemplateLineCommentStart(this.pos)) {
 					return false;
@@ -3377,6 +3404,7 @@ export function TSRXPlugin(config) {
 					// container must not strip anything below this floor (see
 					// `#filterTemplateScriptContexts`).
 					this.#expressionContainerContextBaselines.push(this.context.length);
+					this.#expressionContainerPathBaselines.push(this.#path.length);
 					pushed_context_baseline = true;
 
 					node.expression =
@@ -3398,6 +3426,7 @@ export function TSRXPlugin(config) {
 					this.#jsxExpressionContainerDepth--;
 					if (pushed_context_baseline) {
 						this.#expressionContainerContextBaselines.pop();
+						this.#expressionContainerPathBaselines.pop();
 					}
 				}
 
