@@ -2900,4 +2900,62 @@ foo();`;
 		expect(block.body).toEqual([]);
 		expect(block.render.type).toBe('JSXFragment');
 	});
+
+	it('parses a conditional whose parenthesized branch has nested element children on their own lines', () => {
+		// Regression: Prettier wraps a conditional JSX branch in parentheses across
+		// multiple lines. A nested non-self-closing child on its own line left a JSX
+		// tokenizer context above the enclosing `(`, so after the `)` the tokenizer
+		// stayed in JSX-text mode and mis-tokenized the ternary `:` (an `&&` branch,
+		// whose next token is `}`, happened to survive). See
+		// #popTokenContextsAfterTemplateExpressionElement.
+		const source = [
+			'export function C() {',
+			'  return (',
+			'    <div>',
+			'      {cond ? (',
+			'        <Outer>',
+			'          <Inner>hi</Inner>',
+			'        </Outer>',
+			'      ) : null}',
+			'    </div>',
+			'  );',
+			'}',
+		].join('\n');
+		const conditional = findNode(source, 'ConditionalExpression');
+		expect(conditional.consequent.type).toBe('JSXElement');
+		expect(conditional.consequent.openingElement.name.name).toBe('Outer');
+		expect(conditional.alternate.type).toBe('Literal');
+	});
+
+	it('parses the same nested-JSX shape in `&&` and array-literal holes', () => {
+		const and = [
+			'export function C() {',
+			'  return (',
+			'    <div>',
+			'      {cond && (',
+			'        <Outer>',
+			'          <Inner>hi</Inner>',
+			'        </Outer>',
+			'      )}',
+			'    </div>',
+			'  );',
+			'}',
+		].join('\n');
+		expect(findElement(and, 'Outer')).toBeTruthy();
+
+		const list = [
+			'export function C() {',
+			'  return (',
+			'    <div>',
+			'      {[',
+			'        <Outer>',
+			'          <Inner>hi</Inner>',
+			'        </Outer>,',
+			'      ]}',
+			'    </div>',
+			'  );',
+			'}',
+		].join('\n');
+		expect(findElement(list, 'Outer')).toBeTruthy();
+	});
 });

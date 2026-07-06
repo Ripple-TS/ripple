@@ -2358,6 +2358,32 @@ export function TSRXPlugin(config) {
 					ctx.length = ci - 1;
 					return;
 				}
+				// A JSX tokenizer context (`tc_expr`/`tc_oTag`/`tc_cTag`) leaked by a nested
+				// element child laid out on its own line can sit directly above the enclosing
+				// `(`/`[` delimiter. Left in place it keeps the tokenizer in JSX-text mode for
+				// whatever follows the delimiter's close, so a ternary `:` after a parenthesized
+				// JSX consequent (`{c ? (<a><b/></a>) : d}`) tokenizes as JSX text and the parse
+				// derails. Strip the leaked context(s) down to the delimiter and pop it,
+				// restoring JS-expression mode. (A non-JSX context such as a template-literal
+				// `${` already shields the shallow case, so only the leaked-JSX top needs this.)
+				if (
+					(this.type === tt.parenR || this.type === tt.bracketR) &&
+					(top === tstc.tc_expr || top === tstc.tc_oTag || top === tstc.tc_cTag)
+				) {
+					let i = ci;
+					while (
+						i >= 0 &&
+						(ctx[i] === tstc.tc_expr || ctx[i] === tstc.tc_oTag || ctx[i] === tstc.tc_cTag)
+					) {
+						i--;
+					}
+					const delimiter = this.type === tt.parenR ? '(' : '[';
+					if (i >= 0 && ctx[i]?.token === delimiter) {
+						ctx.length = i;
+						this.exprAllowed = false;
+						return;
+					}
+				}
 				// Closing token after the template at expression position. For `}`
 				// only pop if it actually closes this `b_expr` — otherwise the
 				// brace targets an inner callback/object body that should pop it
