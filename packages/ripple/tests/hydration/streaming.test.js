@@ -141,6 +141,8 @@ describe('hydration > streamed boundaries (chunk before hydration)', () => {
 		flushSync();
 
 		expect(container.querySelector('.root-catch')?.textContent).toBe('late failure');
+		// routing the error neutralized the errored slot markers
+		expect(container.innerHTML).not.toContain('<!--[!');
 	});
 });
 
@@ -167,6 +169,8 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		expect(container.querySelector('.after-async')?.textContent).toBe('after-async');
 		// the trackAsync envelope from the chunk was consumed during activation
 		expect(document.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+		// activation retires the slot wrapper markers, matching buffered SSR
+		expect(container.innerHTML).not.toContain('<!--[?');
 
 		/** @type {HTMLButtonElement} */ (container.querySelector('.inc')).click();
 		flushSync();
@@ -190,6 +194,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 
 		expect(container.querySelector('.resolved')?.textContent).toBe('late body');
 		expect(container.querySelector('.caught')).toBeNull();
+		expect(container.innerHTML).not.toContain('<!--[?');
 	});
 
 	it('activates a streamed server-rendered catch branch', async () => {
@@ -209,6 +214,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		expect(container.querySelector('.loading')).toBeNull();
 		expect(container.querySelector('.caught')?.textContent).toBe('boom');
 		expect(container.querySelector('.resolved')).toBeNull();
+		expect(container.innerHTML).not.toContain('<!--[?');
 	});
 
 	it('routes an errored slot arriving after hydration to the client root catch', async () => {
@@ -231,6 +237,9 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 
 		expect(container.querySelector('.root-catch')?.textContent).toBe('late failure');
 		expect(container.querySelector('.loading')).toBeNull();
+		// the errored slot markers were neutralized when the error was routed
+		expect(container.innerHTML).not.toContain('<!--[?');
+		expect(container.innerHTML).not.toContain('<!--[!');
 	});
 
 	it('hydrates a suspended root boundary and activates it on chunk arrival', async () => {
@@ -257,6 +266,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 
 		expect(container.querySelector('.root-pending')).toBeNull();
 		expect(container.querySelector('.root-async')?.textContent).toBe('root data');
+		expect(container.innerHTML).not.toContain('<!--[?');
 	});
 
 	it('hydrates a root chunk that arrived before hydration through the normal path', async () => {
@@ -326,5 +336,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 
 		expect(container.querySelector('.inner-loading')).toBeNull();
 		expect(container.querySelector('.inner')?.textContent).toBe('I');
+		// both nested activations retired their slot markers
+		expect(container.innerHTML).not.toContain('<!--[?');
 	});
 });

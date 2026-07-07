@@ -241,6 +241,18 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 	}
 
 	/**
+	 * Retires the slot wrapper markers once the slot's fate is decided: the
+	 * open comment loses its marker data (it may still serve as the boundary
+	 * anchor, so it must stay in the DOM) and the close comment is dropped —
+	 * keeping `[`/`]` depth balanced for scans over surrounding slots.
+	 * @returns {void}
+	 */
+	function neutralize_slot_markers() {
+		/** @type {Comment} */ (slot_open).data = '';
+		/** @type {ChildNode} */ (slot_close).remove();
+	}
+
+	/**
 	 * Reads the streamed unit error envelope for this slot and routes the
 	 * error into this boundary, or the nearest catch boundary above it.
 	 * @param {string} id
@@ -250,6 +262,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		if (try_block === null || is_destroyed(try_block)) {
 			return;
 		}
+		neutralize_slot_markers();
 		var message = 'An error occurred during server rendering';
 		var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
 		if (script !== null) {
@@ -314,8 +327,18 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		}
 		var first = /** @type {ChildNode} */ (slot_open).nextSibling;
 		if (first === null || first === slot_close) {
+			neutralize_slot_markers();
 			return;
 		}
+		// adopt the streamed body's own <!--[--> as the boundary anchor (the
+		// node the buffered-SSR hydration path would have used) and drop the
+		// slot wrapper comments, so the resulting DOM matches buffered SSR
+		// exactly like the pre-hydration swap path does
+		if (anchor === slot_open) {
+			anchor = first;
+		}
+		/** @type {ChildNode} */ (slot_open).remove();
+		/** @type {ChildNode} */ (slot_close).remove();
 		var previous_hydrating = hydrating;
 		var previous_hydrate_node = hydrate_node;
 		set_hydrating(true);
