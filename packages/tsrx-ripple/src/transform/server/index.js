@@ -85,6 +85,7 @@ import {
 	get_attribute_value,
 	get_element_attributes,
 	get_element_id,
+	get_element_identifier,
 	get_template_text_value,
 	is_droppable_template_text,
 	is_empty_expression_container,
@@ -238,7 +239,7 @@ function insert_style_ref_setup_statements(body, setup, scopes) {
 			return rebuild(node, { cases });
 		}
 		if (node.type === 'TryStatement') {
-			/** @type {Partial<AST.TryStatement> & Record<string, any>} */
+			/** @type {Partial<AST.TryStatement>} */
 			const updates = {
 				block: /** @type {AST.BlockStatement} */ (insert_in_statement(node.block)),
 			};
@@ -862,7 +863,7 @@ function should_wrap_node_in_regular_block(node) {
  * @returns {boolean}
  */
 function is_head_element(node) {
-	return is_template_element(node) && /** @type {any} */ (get_element_id(node)).name === 'head';
+	return is_template_element(node) && get_element_identifier(node)?.name === 'head';
 }
 
 /**
@@ -2646,8 +2647,7 @@ const visitors = {
 			}
 
 			const children_filtered = element_children.filter(
-				(/** @type {any} */ child) =>
-					child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
+				(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);
 
 			if (children_filtered.length > 0) {
@@ -3485,14 +3485,14 @@ function accumulate_output_pushes(program) {
 		// Guard against cycles: re-entry resolves to the original node.
 		cache.set(node, node);
 
-		/** @type {Record<string, any>} */
-		let result = node;
+		/** @type {AST.TraversableAstNode} */
+		let result = /** @type {AST.TraversableAstNode} */ (node);
 
 		if (isFunctionNode(node)) {
 			const body = /** @type {AST.Function} */ (node).body;
 			if (body && body.type === 'BlockStatement' && has_direct_output_push(body.body)) {
 				const out_id = fresh_accumulator_name(body.body);
-				result = {
+				result = /** @type {AST.TraversableAstNode} */ ({
 					...node,
 					body: {
 						...body,
@@ -3502,7 +3502,7 @@ function accumulate_output_pushes(program) {
 							b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
 						],
 					},
-				};
+				});
 			}
 		}
 
@@ -3519,7 +3519,7 @@ function accumulate_output_pushes(program) {
 			const child = result[key];
 			const next = recurse(child);
 			if (next !== child) {
-				if (result === node) result = { .../** @type {Record<string, any>} */ (node) };
+				if (result === node) result = /** @type {AST.TraversableAstNode} */ ({ ...node });
 				result[key] = next;
 			}
 		}

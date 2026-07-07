@@ -1586,8 +1586,10 @@ const visitors = {
 	Identifier(node, context) {
 		const binding = context.state.scope.get(node.name);
 		const parent = context.path.at(-1);
+		// The TSRX dialect allows an Identifier import source (`from server`),
+		// which the estree type for `source` (a Literal) does not model.
 		const is_import_source =
-			parent?.type === 'ImportDeclaration' && /** @type {any} */ (parent).source === node;
+			parent?.type === 'ImportDeclaration' && /** @type {AST.Node} */ (parent.source) === node;
 
 		if (
 			!is_import_source &&
@@ -1975,7 +1977,7 @@ const visitors = {
 	/**
 	 * A `@for` directive — index/key bindings are template concerns; a plain
 	 * JS `for…of` never carries them.
-	 * @param {any} node
+	 * @param {AST.JSXForExpression} node
 	 * @param {AnalysisContext} context
 	 */
 	JSXForExpression(node, context) {
@@ -1988,12 +1990,10 @@ const visitors = {
 			return;
 		}
 		// `@for` covers for-of / for-in / for(;;): only the for-of form carries
-		// index/key bindings; the other forms analyze like their plain statements.
-		if (node.statementType === 'ForInStatement') {
-			return visitors.ForInStatement?.(node, context);
-		}
-		if (node.statementType === 'ForStatement') {
-			return visitors.ForStatement?.(node, context);
+		// index/key bindings; the other forms analyze like their plain statements
+		// (an ordinary traversal, same as the ForInStatement/ForStatement visitors).
+		if (node.statementType !== 'ForOfStatement') {
+			return context.next();
 		}
 
 		if (context.state.regular_js || node.metadata?.regular_js) {

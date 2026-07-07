@@ -22,6 +22,7 @@ import {
 } from '@tsrx/core';
 import {
 	get_element_id,
+	get_element_identifier,
 	get_template_expression,
 	is_droppable_template_text,
 	is_empty_expression_container,
@@ -377,7 +378,7 @@ export function is_code_block_function_body(node, parent) {
 		(parent?.type === 'ArrowFunctionExpression' ||
 			parent?.type === 'FunctionDeclaration' ||
 			parent?.type === 'FunctionExpression') &&
-		/** @type {any} */ (parent).body === node
+		parent.body === node
 	);
 }
 
@@ -501,7 +502,7 @@ function node_contains_native_tsrx_template(node, root = false) {
 			continue;
 		}
 
-		const value = /** @type {any} */ (node)[key];
+		const value = /** @type {AST.TraversableAstNode} */ (node)[key];
 		if (Array.isArray(value)) {
 			if (value.some((child) => node_contains_native_tsrx_template(child, false))) {
 				return true;
@@ -509,7 +510,7 @@ function node_contains_native_tsrx_template(node, root = false) {
 		} else if (
 			value &&
 			typeof value === 'object' &&
-			node_contains_native_tsrx_template(value, false)
+			node_contains_native_tsrx_template(/** @type {AST.Node} */ (value), false)
 		) {
 			return true;
 		}
@@ -641,7 +642,7 @@ function statements_contain_native_tsrx_return(statements) {
 }
 
 /**
- * @param {any} statement
+ * @param {AST.Node | null | undefined} statement
  * @returns {boolean}
  */
 function statement_contains_native_tsrx_return(statement) {
@@ -673,7 +674,7 @@ function statement_contains_native_tsrx_return(statement) {
 	}
 
 	if (statement.type === 'SwitchStatement') {
-		return (statement.cases || []).some((/** @type {any} */ c) =>
+		return (statement.cases || []).some((c) =>
 			statements_contain_native_tsrx_return(c.consequent || []),
 		);
 	}
@@ -834,10 +835,8 @@ function node_contains_component_return(node) {
 	}
 
 	if (node.type === 'SwitchStatement') {
-		return (node.cases || []).some((/** @type {any} */ switch_case) =>
-			/** @type {AST.Statement[]} */ (switch_case.consequent || []).some((statement) =>
-				node_contains_component_return(statement),
-			),
+		return (node.cases || []).some((switch_case) =>
+			(switch_case.consequent || []).some((statement) => node_contains_component_return(statement)),
 		);
 	}
 
@@ -1101,11 +1100,9 @@ function collect_style_elements(node, styles, inside_head) {
 	}
 	if (is_style_element(node)) {
 		if (!inside_head) {
-			const stylesheet = node.children?.find(
-				(/** @type {any} */ child) => child.type === 'StyleSheet',
-			);
+			const stylesheet = node.children?.find((child) => child.type === 'StyleSheet');
 			if (stylesheet) {
-				styles.push(/** @type {AST.CSS.StyleSheet} */ (/** @type {unknown} */ (stylesheet)));
+				styles.push(stylesheet);
 			}
 		}
 		return;
@@ -1117,12 +1114,8 @@ function collect_style_elements(node, styles, inside_head) {
 	) {
 		return;
 	}
-	const node_any = /** @type {any} */ (node);
 	const next_inside_head =
-		inside_head ||
-		(is_template_element(node_any) &&
-			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
-			/** @type {any} */ (get_element_id(node_any)).name === 'head');
+		inside_head || (is_template_element(node) && get_element_identifier(node)?.name === 'head');
 	if ('children' in node && Array.isArray(node.children)) {
 		collect_style_elements(/** @type {AST.Node[]} */ (node.children), styles, next_inside_head);
 	}
@@ -1177,12 +1170,8 @@ function strip_style_elements(nodes, inside_head, scopes) {
  * @returns {AST.Node}
  */
 function strip_style_element_children(node, inside_head, scopes) {
-	const node_any = /** @type {any} */ (node);
 	const next_inside_head =
-		inside_head ||
-		(is_template_element(node_any) &&
-			/** @type {any} */ (get_element_id(node_any))?.type === 'Identifier' &&
-			/** @type {any} */ (get_element_id(node_any)).name === 'head');
+		inside_head || (is_template_element(node) && get_element_identifier(node)?.name === 'head');
 	/** @type {Record<string, any> | null} */
 	let updates = null;
 	if ('children' in node && Array.isArray(node.children)) {
@@ -1236,10 +1225,7 @@ export function create_native_tsrx_render_function(params, children, source_node
 	);
 	const fn = b.arrow(
 		params,
-		b.block(
-			[b.return(/** @type {any} */ (fragment))],
-			/** @type {AST.NodeWithLocation | undefined} */ (source_node),
-		),
+		b.block([b.return(fragment)], /** @type {AST.NodeWithLocation | undefined} */ (source_node)),
 		false,
 		undefined,
 		/** @type {AST.NodeWithLocation | undefined} */ (source_node),
@@ -1990,9 +1976,10 @@ export function lower_dynamic_element(node, component_id, scopes) {
 	}
 
 	const expression = /** @type {AST.Expression} */ (get_element_id(node));
-	const closing_name = /** @type {any} */ (node.closingElement?.name);
+	const closing_name = node.closingElement?.name;
 	const closing_expression =
-		closing_name?.expression && clone_expression_node(closing_name.expression);
+		closing_name?.type === 'JSXExpressionContainer' &&
+		clone_expression_node(closing_name.expression);
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
 
 	const is_attribute = /** @type {ESTreeJSX.JSXAttribute} */ (
@@ -2032,7 +2019,7 @@ export function lower_dynamic_element(node, component_id, scopes) {
 			: node.closingElement,
 		// Fork the metadata so the id memo can point at the component reference
 		// without polluting the source element's memoized dynamic expression.
-		metadata: { .../** @type {any} */ (node.metadata) },
+		metadata: { ...node.metadata },
 	});
 	set_element_id(copy, component_id ?? b.id(dynamic_element_import_local));
 
@@ -2065,8 +2052,8 @@ export function normalize_children(children, context) {
 			prev_child != null &&
 			is_template_text_or_expression(prev_child)
 		) {
-			const child_expression = get_template_expression(/** @type {any} */ (child), to_ts);
-			const prev_expression = get_template_expression(/** @type {any} */ (prev_child), to_ts);
+			const child_expression = get_template_expression(child, to_ts);
+			const prev_expression = get_template_expression(prev_child, to_ts);
 			if (
 				(is_template_expression(child) &&
 					is_children_template_expression(child_expression, context.state.scope)) ||
@@ -2365,13 +2352,8 @@ function normalize_child(node, normalized, context) {
 		return;
 	} else if (
 		is_template_element(node) &&
-		get_element_id(node).type === 'Identifier' &&
-		/** @type {any} */ (
-			/** @type {any} */ (get_element_id(node)).name === 'head' ||
-				/** @type {any} */ (
-					/** @type {any} */ (get_element_id(node)).name === 'title' && context.state.inside_head
-				)
-		)
+		(get_element_identifier(node)?.name === 'head' ||
+			(get_element_identifier(node)?.name === 'title' && context.state.inside_head))
 	) {
 		return;
 	} else {
@@ -2725,9 +2707,9 @@ export function visit_children_without(node, context, cleared_fields) {
 			}
 		}
 	}
-	const scopes = /** @type {any} */ (context.state)?.scopes;
+	const scopes = context.state.scopes;
 	const scope = scopes?.get(node);
-	if (scope) scopes.set(copy, scope);
+	if (scope) scopes.set(/** @type {AST.Node} */ (copy), scope);
 	return /** @type {T} */ (/** @type {unknown} */ (copy));
 }
 
@@ -2751,7 +2733,7 @@ export function strip_class_typescript_syntax(node, context) {
 	let source = node;
 	if (superClass !== node.superClass) {
 		source = { ...node, superClass };
-		const scopes = /** @type {any} */ (context.state)?.scopes;
+		const scopes = context.state.scopes;
 		const scope = scopes?.get(node);
 		if (scope) scopes.set(source, scope);
 	}
@@ -2986,7 +2968,7 @@ export function is_template_child_position(path, node) {
  * Mark every element/fragment in a raw JSX subtree `native_tsrx` so the
  * transforms route it through the template paths rather than the raw-JSX
  * value lowering.
- * @param {any} node
+ * @param {AST.Node | AST.Node[] | null | undefined} node
  * @returns {void}
  */
 function mark_raw_template_jsx(node) {
@@ -3011,8 +2993,8 @@ function mark_raw_template_jsx(node) {
  * the `native_tsrx` marking that routes the visitors down the template paths,
  * plus flattening a fragment root to its children.
  *
- * @param {any} node
- * @returns {any}
+ * @param {AST.Node} node
+ * @returns {AST.Node | AST.Node[]}
  */
 export function adopt_raw_template_jsx(node) {
 	mark_raw_template_jsx(node);
