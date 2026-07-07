@@ -80,5 +80,8 @@
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default",
     "@types/node": "catalog:default"
+  },
+  "scripts": {
+    "bench:ssr": "node benchmarks/streaming-ssr.bench.mjs"
   }
 }

@@ -64,3 +64,6 @@ temp/
 
 # differential test rig precompile cache
 **/.react-cache/
+
+# streaming SSR benchmark compiled output
+**/benchmarks/.compiled/

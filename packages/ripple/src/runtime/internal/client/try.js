@@ -485,7 +485,8 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		// continue the outer hydration walk after the slot
 		set_hydrate_node(slot_close);
 
-		var registry = /** @type {any} */ ((window).__RIPPLE_B__ ??= {});
+		var global_window = /** @type {any} */ (window);
+		var registry = (global_window.__RIPPLE_B__ ??= {});
 		var unit_id = streamed_id;
 		if (streamed_errored) {
 			// the inline runtime already emptied the slot and marked it errored
