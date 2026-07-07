@@ -576,6 +576,50 @@ describe('streaming root boundary', () => {
 	});
 });
 
+describe('streaming with a document template', () => {
+	it('wraps the shell in the scaffold and appends the suffix on close', async () => {
+		const d = deferred<string>();
+
+		function Content() @{
+			let &[data] = trackAsync(() => d.promise);
+			<p>{data}</p>
+		}
+
+		function App() @{
+			@try {
+				<Content />
+			} @pending {
+				<p>{'loading...'}</p>
+			}
+		}
+
+		const { chunks, sink, isClosed } = recordingSink();
+		const result = render(App, {
+			stream: sink,
+			streamTemplate: {
+				before: '<html><head><title>t</title>',
+				between: '</head><body><div id="root">',
+				after: '</div></body></html>',
+			},
+		});
+
+		expect(chunks).toHaveLength(1);
+		expect(chunks[0].startsWith('<html><head><title>t</title>')).toBe(true);
+		expect(chunks[0]).toContain('</head><body><div id="root">');
+		// the shell body follows the scaffold's body opening
+		expect(chunks[0].indexOf('<div id="root">')).toBeLessThan(chunks[0].indexOf('loading...'));
+		expect(chunks[0]).not.toContain('</html>');
+
+		d.resolve('done');
+		await result;
+
+		expect(isClosed()).toBe(true);
+		// the suffix is the final push, after the last chunk
+		expect(chunks[chunks.length - 1]).toBe('</div></body></html>');
+		expect(chunks[chunks.length - 2]).toContain('<p>done</p>');
+	});
+});
+
 describe('streaming head content', () => {
 	it('ships head writes from async content as a head template in the chunk', async () => {
 		const d = deferred<string>();

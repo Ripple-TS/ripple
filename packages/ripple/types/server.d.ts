@@ -43,12 +43,27 @@ export interface Stream {
 	sink: StreamSink;
 }
 
+export interface StreamTemplate {
+	/** Document prefix, up to (and excluding) where SSR head content belongs. */
+	before: string;
+	/** From after the SSR head content to where the SSR body belongs. */
+	between: string;
+	/** Document suffix, pushed right before the stream closes. */
+	after: string;
+}
+
 export interface BaseRenderOptions {
 	stream?: StreamSink;
 	// defaults to true
 	// set to false to add more content
 	closeStream?: boolean;
 	rootBoundary?: RootBoundaryOptions;
+	/**
+	 * Streaming only: document scaffold emitted around the shell — `before` +
+	 * head content + `between` + body precede the streamed chunks, `after` is
+	 * pushed when the stream closes.
+	 */
+	streamTemplate?: StreamTemplate;
 }
 
 export interface StreamingRenderOptions extends BaseRenderOptions {

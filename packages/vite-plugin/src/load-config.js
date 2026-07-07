@@ -140,6 +140,9 @@ export function resolveRippleConfig(raw, options = {}) {
 			routes: raw.router?.routes ?? [],
 		},
 		rootBoundary: raw.rootBoundary ?? {},
+		ssr: {
+			streaming: raw.ssr?.streaming ?? false,
+		},
 		middlewares: raw.middlewares ?? [],
 		platform: {
 			env: raw.platform?.env ?? {},

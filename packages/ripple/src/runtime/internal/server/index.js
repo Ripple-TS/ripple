@@ -487,6 +487,8 @@ export class Output {
 	#parent = null;
 	/** @type {StreamSink | null} */
 	#streamOutput = null;
+	/** @type {{ before: string, between: string, after: string } | null} */
+	#stream_template = null;
 	#stream_started = false;
 	#stream_finished = false;
 	/** @type {null | number} */
@@ -985,7 +987,12 @@ export class Output {
 		for (var hash of this.#css) {
 			chunk.css.add(hash);
 		}
-		var out = head_html + chunk.head + this.#chunk_css(chunk.css) + chunk.scripts.join('');
+		var template = this.#stream_template;
+		var out = template !== null ? template.before : '';
+		out += head_html + chunk.head + this.#chunk_css(chunk.css) + chunk.scripts.join('');
+		if (template !== null) {
+			out += template.between;
+		}
 		if (this.unit !== null) {
 			// the root boundary suspended: its slot IS the body (the body
 			// markers travel with the unit's content instead), so the slot
@@ -1041,10 +1048,12 @@ export class Output {
 
 	/**
 	 * @param {StreamSink} stream
+	 * @param {{ before: string, between: string, after: string } | null} [template]
 	 */
-	_setStream(stream) {
+	_setStream(stream, template = null) {
 		if (this.#is_root) {
 			this.#streamOutput = stream;
+			this.#stream_template = template;
 			return;
 		}
 
@@ -1064,6 +1073,9 @@ export class Output {
 		if (this.#is_root) {
 			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
 				this.#stream_finished = true;
+				if (this.#stream_template !== null && this.#stream_template.after !== '') {
+					this.#streamOutput.push(this.#stream_template.after);
+				}
 				this.#streamOutput.close();
 			}
 			return;
@@ -1131,7 +1143,7 @@ export async function render(component, passed_in_options = {}) {
 			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
 			if (options.stream) {
-				output._setStream(options.stream);
+				output._setStream(options.stream, options.streamTemplate ?? null);
 			}
 			render_component(component, {});
 			output._decrementPending();

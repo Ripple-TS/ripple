@@ -141,6 +141,19 @@ export interface RippleConfigOptions {
 	};
 	/** Global root pending/catch UI used by client and SSR render roots */
 	rootBoundary?: RootBoundaryOptions;
+	ssr?: {
+		/**
+		 * Stream render-route responses: the synchronous shell (with pending
+		 * fallbacks for suspended `@try` boundaries) is sent immediately and
+		 * each boundary's content streams as it settles.
+		 *
+		 * Requires `<!--ssr-head-->` and `<!--ssr-body-->` markers in
+		 * index.html; falls back to buffered rendering when they are missing.
+		 *
+		 * @default false
+		 */
+		streaming?: boolean;
+	};
 	/** Global middlewares applied to all routes */
 	middlewares?: Middleware[];
 	platform?: {
@@ -181,6 +194,10 @@ export interface ResolvedRippleConfig {
 		routes: Route[];
 	};
 	rootBoundary: RootBoundaryOptions;
+	ssr: {
+		/** @default false */
+		streaming: boolean;
+	};
 	/** @default [] */
 	middlewares: Middleware[];
 	platform: {

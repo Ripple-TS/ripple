@@ -144,7 +144,7 @@ export function generateServerEntry(options) {
 // Auto-generated server entry for production build
 // Do not edit — regenerated on each build
 
-import { render, get_css_for_hashes, executeServerFunction } from 'ripple/server';
+import { render, get_css_for_hashes, create_ssr_stream, executeServerFunction } from 'ripple/server';
 import { createHandler, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -200,6 +200,7 @@ const handler = createHandler(
     rpcModules,
     trustProxy: rippleConfig.server.trustProxy,
     rootBoundary: rippleConfig.rootBoundary,
+    streaming: rippleConfig.ssr.streaming,
     runtime: rippleConfig.adapter.runtime,
     clientAssets,
   },
@@ -208,6 +209,7 @@ const handler = createHandler(
     getCss: get_css_for_hashes,
     htmlTemplate,
     executeServerFunction,
+    createSsrStream: create_ssr_stream,
   },
 );
 

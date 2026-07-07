@@ -11,6 +11,7 @@
 
 import { createRouter } from './router.js';
 import { createContext, runMiddlewareChain } from './middleware.js';
+import { buildStreamTemplate, createStreamingResponse } from './stream-response.js';
 import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js';
 import { get_route_entry_id, get_route_entry_path } from '../routes.js';
 import {
@@ -49,7 +50,7 @@ export { resolveRippleConfig } from '../load-config.js';
  * @returns {(request: Request) => Promise<Response>}
  */
 export function createHandler(manifest, options) {
-	const { render, getCss, htmlTemplate, executeServerFunction } = options;
+	const { render, getCss, htmlTemplate, executeServerFunction, createSsrStream } = options;
 	const router = createRouter(manifest.routes);
 	const globalMiddlewares = manifest.middlewares;
 	const trustProxy = manifest.trustProxy ?? false;
@@ -107,6 +108,7 @@ export function createHandler(manifest, options) {
 					getCss,
 					htmlTemplate,
 					clientAssets,
+					createSsrStream,
 				);
 			} else {
 				return await handleServerRoute(match.route, context, globalMiddlewares);
@@ -140,6 +142,7 @@ export function createHandler(manifest, options) {
  * @param {(css: Set<string>) => string} getCss
  * @param {string} htmlTemplate
  * @param {Record<string, ClientAssetEntry>} clientAssets
+ * @param {import('../../types/production.d.ts').HandlerOptions['createSsrStream']} [createSsrStream]
  * @returns {Promise<Response>}
  */
 async function handleRenderRoute(
@@ -151,6 +154,7 @@ async function handleRenderRoute(
 	getCss,
 	htmlTemplate,
 	clientAssets,
+	createSsrStream,
 ) {
 	const renderHandler = async () => {
 		// Get the page component
@@ -170,20 +174,6 @@ async function handleRenderRoute(
 			RootComponent = createLayoutWrapper(LayoutComponent, PageComponent, pageProps);
 		} else {
 			RootComponent = createPropsWrapper(PageComponent, pageProps);
-		}
-
-		// Render to HTML
-		const { head, body, css } = await render(RootComponent, {
-			rootBoundary: manifest.rootBoundary,
-		});
-
-		// Generate inline scoped CSS (from SSR-rendered component hashes)
-		let cssContent = '';
-		if (css.size > 0) {
-			const cssString = getCss(css);
-			if (cssString) {
-				cssContent = `<style data-ripple-ssr>${cssString}</style>`;
-			}
 		}
 
 		// Build asset preload tags from the client manifest.
@@ -214,12 +204,44 @@ async function handleRenderRoute(
 			routeIndex: getRenderRouteIndex(manifest.routes, route),
 			params: context.params,
 		});
-		const headContent = [
-			head,
-			cssContent,
-			...preloadTags,
-			`<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`,
-		]
+		const routeDataScript = `<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`;
+
+		if (manifest.streaming && createSsrStream) {
+			// SSR head content and CSS travel in the stream itself; only the
+			// static per-request head additions go into the scaffold
+			const streamTemplate = buildStreamTemplate(
+				htmlTemplate,
+				[...preloadTags, routeDataScript].join('\n'),
+			);
+			if (streamTemplate) {
+				return createStreamingResponse({
+					render,
+					createSsrStream,
+					component: RootComponent,
+					rootBoundary: manifest.rootBoundary,
+					streamTemplate,
+				});
+			}
+			console.warn(
+				'[ripple] ssr.streaming is enabled but the HTML template is missing the <!--ssr-head--> or <!--ssr-body--> marker — falling back to buffered SSR.',
+			);
+		}
+
+		// Render to HTML
+		const { head, body, css } = await render(RootComponent, {
+			rootBoundary: manifest.rootBoundary,
+		});
+
+		// Generate inline scoped CSS (from SSR-rendered component hashes)
+		let cssContent = '';
+		if (css.size > 0) {
+			const cssString = getCss(css);
+			if (cssString) {
+				cssContent = `<style data-ripple-ssr>${cssString}</style>`;
+			}
+		}
+
+		const headContent = [head, cssContent, ...preloadTags, routeDataScript]
 			.filter(Boolean)
 			.join('\n');
 

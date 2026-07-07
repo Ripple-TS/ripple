@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js';
+import { buildStreamTemplate, createStreamingResponse } from './stream-response.js';
 import {
 	get_component_export,
 	get_route_entry_export_name,
@@ -40,7 +41,8 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 		}
 
 		// Load ripple server utilities
-		const { render, get_css_for_hashes } = await vite.ssrLoadModule('ripple/server');
+		const { render, get_css_for_hashes, create_ssr_stream } =
+			await vite.ssrLoadModule('ripple/server');
 
 		// Load the page component
 		const entryPath = get_route_entry_path(route.entry);
@@ -75,6 +77,42 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 			RootComponent = createPropsWrapper(PageComponent, pageProps);
 		}
 
+		// Load and process index.html template
+		const templatePath = join(vite.config.root, 'index.html');
+		let template = await readFile(templatePath, 'utf-8');
+
+		// Apply Vite's HTML transforms (HMR client, module resolution, etc.)
+		template = await vite.transformIndexHtml(context.url.pathname, template);
+
+		// Inject hydration script before </body>
+		const hydrationScript = `<script type="module" src="/@id/virtual:ripple-hydrate"></script>`;
+		template = template.replace('</body>', `${hydrationScript}\n</body>`);
+
+		const routeData = JSON.stringify({
+			entry: entryPath,
+			routeIndex: getRenderRouteIndex(rippleConfig, route),
+			params: context.params,
+		});
+		const routeDataScript = `<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`;
+
+		if (rippleConfig?.ssr?.streaming) {
+			// SSR head content and CSS travel in the stream itself; only the
+			// static per-request head additions go into the scaffold
+			const streamTemplate = buildStreamTemplate(template, routeDataScript);
+			if (streamTemplate) {
+				return createStreamingResponse({
+					render,
+					createSsrStream: create_ssr_stream,
+					component: RootComponent,
+					rootBoundary: rippleConfig?.rootBoundary,
+					streamTemplate,
+				});
+			}
+			console.warn(
+				'[ripple] ssr.streaming is enabled but index.html is missing the <!--ssr-head--> or <!--ssr-body--> marker — falling back to buffered SSR.',
+			);
+		}
+
 		// Render to HTML
 		/** @type {RenderResult} */
 		const { head, body, css } = await render(RootComponent, {
@@ -91,32 +129,10 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 		}
 
 		// Build head content with hydration data
-		const routeData = JSON.stringify({
-			entry: entryPath,
-			routeIndex: getRenderRouteIndex(rippleConfig, route),
-			params: context.params,
-		});
-		const headContent = [
-			head,
-			cssContent,
-			`<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`,
-		]
-			.filter(Boolean)
-			.join('\n');
-
-		// Load and process index.html template
-		const templatePath = join(vite.config.root, 'index.html');
-		let template = await readFile(templatePath, 'utf-8');
-
-		// Apply Vite's HTML transforms (HMR client, module resolution, etc.)
-		template = await vite.transformIndexHtml(context.url.pathname, template);
+		const headContent = [head, cssContent, routeDataScript].filter(Boolean).join('\n');
 
 		// Replace placeholders
-		let html = template.replace('<!--ssr-head-->', headContent).replace('<!--ssr-body-->', body);
-
-		// Inject hydration script before </body>
-		const hydrationScript = `<script type="module" src="/@id/virtual:ripple-hydrate"></script>`;
-		html = html.replace('</body>', `${hydrationScript}\n</body>`);
+		const html = template.replace('<!--ssr-head-->', headContent).replace('<!--ssr-body-->', body);
 
 		return new Response(html, {
 			status: 200,
