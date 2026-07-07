@@ -66,4 +66,4 @@ temp/
 **/.react-cache/
 
 # streaming SSR benchmark compiled output
-**/benchmarks/.compiled/
+benchmarks/streaming-ssr/.compiled/

@@ -1,87 +1,84 @@
 {
-  "name": "ripple",
-  "description": "Ripple is an elegant TypeScript UI framework",
-  "license": "MIT",
-  "author": "Dominic Gannaway",
-  "version": "0.3.90",
-  "type": "module",
-  "module": "src/runtime/index-client.js",
-  "main": "src/runtime/index-client.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Ripple-TS/ripple.git",
-    "directory": "packages/ripple"
-  },
-  "bugs": {
-    "url": "https://github.com/Ripple-TS/ripple/issues"
-  },
-  "homepage": "https://ripple-ts.com",
-  "keywords": [
-    "ripple",
-    "UI",
-    "framework"
-  ],
-  "exports": {
-    ".": {
-      "types": "./types/index.d.ts",
-      "worker": "./src/runtime/index-server.js",
-      "browser": "./src/runtime/index-client.js",
-      "default": "./src/runtime/index-server.js"
-    },
-    "./package.json": "./package.json",
-    "./server": {
-      "types": "./types/server.d.ts",
-      "default": "./src/server/index.js"
-    },
-    "./compiler": {
-      "types": "./types/compiler.d.ts",
-      "default": "./src/compiler/index.js"
-    },
-    "./compiler/internal/import": {
-      "types": "./src/compiler/types/import.d.ts"
-    },
-    "./validator": {
-      "types": "./types/index.d.ts",
-      "require": "./validator/index.js",
-      "default": "./src/validator/index.js"
-    },
-    "./internal/client": {
-      "default": "./src/runtime/internal/client/index.js"
-    },
-    "./internal/client-types": {
-      "types": "./src/runtime/internal/client/types.d.ts"
-    },
-    "./internal/server": {
-      "default": "./src/runtime/internal/server/index.js"
-    },
-    "./internal/server-types": {
-      "types": "./src/runtime/internal/server/types.d.ts"
-    },
-    "./jsx-runtime": {
-      "types": "./src/jsx-runtime.d.ts",
-      "import": "./src/jsx-runtime.js",
-      "default": "./src/jsx-runtime.js"
-    }
-  },
-  "imports": {
-    "#client": "./src/runtime/internal/client/types.d.ts",
-    "#client/constants": "./src/internal/client/constants.js",
-    "#server": "./src/runtime/internal/server/types.d.ts",
-    "#public": "./types/index.d.ts"
-  },
-  "dependencies": {
-    "clsx": "catalog:default",
-    "devalue": "catalog:default",
-    "esm-env": "catalog:default",
-    "@tsrx/core": "workspace:*",
-    "@tsrx/ripple": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/estree": "catalog:default",
-    "@types/estree-jsx": "catalog:default",
-    "@types/node": "catalog:default"
-  },
-  "scripts": {
-    "bench:ssr": "node benchmarks/streaming-ssr.bench.mjs"
-  }
+	"name": "ripple",
+	"description": "Ripple is an elegant TypeScript UI framework",
+	"license": "MIT",
+	"author": "Dominic Gannaway",
+	"version": "0.3.90",
+	"type": "module",
+	"module": "src/runtime/index-client.js",
+	"main": "src/runtime/index-client.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Ripple-TS/ripple.git",
+		"directory": "packages/ripple"
+	},
+	"bugs": {
+		"url": "https://github.com/Ripple-TS/ripple/issues"
+	},
+	"homepage": "https://ripple-ts.com",
+	"keywords": [
+		"ripple",
+		"UI",
+		"framework"
+	],
+	"exports": {
+		".": {
+			"types": "./types/index.d.ts",
+			"worker": "./src/runtime/index-server.js",
+			"browser": "./src/runtime/index-client.js",
+			"default": "./src/runtime/index-server.js"
+		},
+		"./package.json": "./package.json",
+		"./server": {
+			"types": "./types/server.d.ts",
+			"default": "./src/server/index.js"
+		},
+		"./compiler": {
+			"types": "./types/compiler.d.ts",
+			"default": "./src/compiler/index.js"
+		},
+		"./compiler/internal/import": {
+			"types": "./src/compiler/types/import.d.ts"
+		},
+		"./validator": {
+			"types": "./types/index.d.ts",
+			"require": "./validator/index.js",
+			"default": "./src/validator/index.js"
+		},
+		"./internal/client": {
+			"default": "./src/runtime/internal/client/index.js"
+		},
+		"./internal/client-types": {
+			"types": "./src/runtime/internal/client/types.d.ts"
+		},
+		"./internal/server": {
+			"default": "./src/runtime/internal/server/index.js"
+		},
+		"./internal/server-types": {
+			"types": "./src/runtime/internal/server/types.d.ts"
+		},
+		"./jsx-runtime": {
+			"types": "./src/jsx-runtime.d.ts",
+			"import": "./src/jsx-runtime.js",
+			"default": "./src/jsx-runtime.js"
+		}
+	},
+	"imports": {
+		"#client": "./src/runtime/internal/client/types.d.ts",
+		"#client/constants": "./src/internal/client/constants.js",
+		"#server": "./src/runtime/internal/server/types.d.ts",
+		"#public": "./types/index.d.ts"
+	},
+	"dependencies": {
+		"clsx": "catalog:default",
+		"devalue": "catalog:default",
+		"esm-env": "catalog:default",
+		"@tsrx/core": "workspace:*",
+		"@tsrx/ripple": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/estree": "catalog:default",
+		"@types/estree-jsx": "catalog:default",
+		"@types/node": "catalog:default"
+	}
 }

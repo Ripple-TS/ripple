@@ -31,8 +31,8 @@ catalogs:
       specifier: ^5.3.0
       version: 5.3.0
     '@solidjs/web':
-      specifier: 2.0.0-beta.14
-      version: 2.0.0-beta.14
+      specifier: 2.0.0-beta.15
+      version: 2.0.0-beta.15
     '@sveltejs/acorn-typescript':
       specifier: ^1.0.10
       version: 1.0.10
@@ -181,8 +181,8 @@ catalogs:
       specifier: 4.0.1
       version: 4.0.1
     solid-js:
-      specifier: 2.0.0-beta.14
-      version: 2.0.0-beta.14
+      specifier: 2.0.0-beta.15
+      version: 2.0.0-beta.15
     source-map:
       specifier: ^0.7.6
       version: 0.7.6
@@ -258,8 +258,8 @@ catalogs:
 overrides:
   esrap: ^2.2.8
   semver: ^7.7.4
-  babel-preset-solid: 2.0.0-beta.14
-  babel-plugin-jsx-dom-expressions: 0.50.0-next.13
+  babel-preset-solid: 2.0.0-beta.15
+  babel-plugin-jsx-dom-expressions: 0.50.0-next.14
 
 importers:
 
@@ -280,7 +280,7 @@ importers:
         version: link:packages/vite-plugin
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@tsrx/eslint-plugin':
         specifier: workspace:*
         version: link:packages/eslint-plugin
@@ -325,7 +325,7 @@ importers:
         version: 8.17.0(valibot@1.2.0(typescript@5.9.3))
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
       source-map:
         specifier: catalog:default
         version: 0.7.6
@@ -337,7 +337,7 @@ importers:
         version: 5.9.3
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
       vitest:
         specifier: catalog:default
         version: 4.1.6(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
@@ -418,10 +418,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
     devDependencies:
       '@tsrx/solid':
         specifier: workspace:*
@@ -434,7 +434,7 @@ importers:
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   benchmarks/recursive-context:
     dependencies:
@@ -475,17 +475,17 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
     devDependencies:
       vite:
         specifier: catalog:default
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: ^3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   benchmarks/signal-favoring:
     dependencies:
@@ -526,17 +526,47 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
     devDependencies:
       vite:
         specifier: catalog:default
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: ^3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+
+  benchmarks/streaming-ssr:
+    dependencies:
+      '@babel/core':
+        specifier: catalog:default
+        version: 7.29.0
+      '@solidjs/web':
+        specifier: catalog:default
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../../packages/tsrx-ripple
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../../packages/tsrx-solid
+      babel-preset-solid:
+        specifier: 2.0.0-beta.15
+        version: 2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15)
+      react:
+        specifier: catalog:default
+        version: 19.2.4
+      react-dom:
+        specifier: catalog:default
+        version: 19.2.4(react@19.2.4)
+      ripple:
+        specifier: workspace:*
+        version: link:../../packages/ripple
+      solid-js:
+        specifier: catalog:default
+        version: 2.0.0-beta.15
 
   grammars/tree-sitter:
     dependencies:
@@ -644,15 +674,15 @@ importers:
         specifier: workspace:*
         version: link:../tsrx-solid
       babel-preset-solid:
-        specifier: 2.0.0-beta.14
-        version: 2.0.0-beta.14(@babel/core@7.29.0)(solid-js@2.0.0-beta.14)
+        specifier: 2.0.0-beta.15
+        version: 2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15)
       bun:
         specifier: ^1.0.0
         version: 1.3.10
     devDependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@types/babel__core':
         specifier: catalog:default
         version: 7.20.5
@@ -661,7 +691,7 @@ importers:
         version: 1.3.10
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -952,21 +982,21 @@ importers:
         specifier: ^10.1.1
         version: 10.1.1(@babel/core@7.29.0)(@rspack/core@1.7.11(@swc/helpers@0.5.15))
       babel-preset-solid:
-        specifier: 2.0.0-beta.14
-        version: 2.0.0-beta.14(@babel/core@7.29.0)(solid-js@2.0.0-beta.14)
+        specifier: 2.0.0-beta.15
+        version: 2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15)
       solid-refresh:
         specifier: 0.8.0-next.7
-        version: 0.8.0-next.7(solid-js@2.0.0-beta.14)
+        version: 0.8.0-next.7(solid-js@2.0.0-beta.15)
     devDependencies:
       '@rspack/core':
         specifier: ^1.6.0
         version: 1.7.11(@swc/helpers@0.5.15)
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -1176,7 +1206,7 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
@@ -1185,7 +1215,7 @@ importers:
         version: 2.2.8(@typescript-eslint/types@8.56.1)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
       zimmerframe:
         specifier: catalog:default
         version: 1.1.4
@@ -1370,13 +1400,13 @@ importers:
     devDependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -1385,7 +1415,7 @@ importers:
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   packages/vite-plugin-vue:
     dependencies:
@@ -1544,10 +1574,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: catalog:default
-        version: 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       solid-js:
         specifier: catalog:default
-        version: 2.0.0-beta.14
+        version: 2.0.0-beta.15
     devDependencies:
       '@ripple-ts/language-server':
         specifier: workspace:*
@@ -1569,7 +1599,7 @@ importers:
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vite-plugin-solid:
         specifier: 3.0.0-next.5
-        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
   playground/vue:
     dependencies:
@@ -3356,13 +3386,13 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
-  '@solidjs/signals@2.0.0-beta.14':
-    resolution: {integrity: sha512-y72nYtD7ogwX/UR5g2Y+meyeO6Q/xbQGtmvVTQX6USkMwEGOMnytqDnHj5amUzD7Fzqg32svwtCSx/q8hsOXAA==}
+  '@solidjs/signals@2.0.0-beta.15':
+    resolution: {integrity: sha512-lw4a4frNajnmVjILbyfrgJ4ksqU+YKhkepZ8glKK9Q68O3zq7W8qDLOtsz5v1mt0o3TB11/rozJFpgMTmnYegg==}
 
-  '@solidjs/web@2.0.0-beta.14':
-    resolution: {integrity: sha512-iYqLqYapbnYBxbX9WspujYBdFHM1HND+Pd0p18vXHHlhYi42oBmIayxH4JsqPA+abe19nnpjXLmv03X2/IpmVQ==}
+  '@solidjs/web@2.0.0-beta.15':
+    resolution: {integrity: sha512-+LvmzzN5CHxQ+TeCGgA8DKuB8S4t0EHVlmDUlAp4hkLnh7My3ZGuKYHKWsFMd8w08nPgF6LdBZkH+c5iNcmcSA==}
     peerDependencies:
-      solid-js: ^2.0.0-beta.14
+      solid-js: ^2.0.0-beta.15
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -4200,16 +4230,16 @@ packages:
       webpack:
         optional: true
 
-  babel-plugin-jsx-dom-expressions@0.50.0-next.13:
-    resolution: {integrity: sha512-ANjSohrXkRTxqFOENz5vk57UEjLHx4lqOibSXmNZ51aNvzZ7zT22JB+kpv9AutPzhy7tcJaNtnLoq6yqlTZTzw==}
+  babel-plugin-jsx-dom-expressions@0.50.0-next.14:
+    resolution: {integrity: sha512-eMUq8UuVs5ROCiYmtMBp/TWuRxL7GZ32JUs47CmTzZo8hX9AIayTnNtbsBmQlfEnJla3TaxgBYDvGxNlHCqVcA==}
     peerDependencies:
       '@babel/core': ^7.20.12
 
-  babel-preset-solid@2.0.0-beta.14:
-    resolution: {integrity: sha512-l0eX4t+vYmANQqEbRWz0d7b9zt2SybxX7/PfA5cyWGphSGiMtGahFT6XHXktDd8x16o5t1DyPIl7yfa/HAho3A==}
+  babel-preset-solid@2.0.0-beta.15:
+    resolution: {integrity: sha512-nXbT3ZlgHmVcH1VvEFwyrxcMQmpRJ55JoOLy+4wAxpaYtADw5YJh4t5UlT5WyuWfv6VC7URDCkFGEdAOjmTwjw==}
     peerDependencies:
       '@babel/core': ^7.0.0
-      solid-js: ^2.0.0-beta.14
+      solid-js: ^2.0.0-beta.15
     peerDependenciesMeta:
       solid-js:
         optional: true
@@ -6452,8 +6482,8 @@ packages:
     resolution: {integrity: sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg==}
     engines: {node: '>= 18'}
 
-  solid-js@2.0.0-beta.14:
-    resolution: {integrity: sha512-gbbvlxhs1GgL1IsnwHNtkTCRBBQcIDMwznBw3T05iYvP+fuUKMyIPku+ZLjeALyX4RaSLR99JSL6NttyHsYb8Q==}
+  solid-js@2.0.0-beta.15:
+    resolution: {integrity: sha512-3hvcmEFUgDlahc++/ulrPhnc5IM7aJbW1P4TUaKsMZpDY5qGcOagtL4nbXGdUPnVP0JsJhMuE9bXEcLdLE+2SA==}
 
   solid-refresh@0.8.0-next.7:
     resolution: {integrity: sha512-fqkPRAeiE0tqfo2ZljeQBIXwfYssU2w1FmaWFrXmnV33B/CfGfez7BjtOF0Y1/orUNRXI/DZcJlJThHllcCMsA==}
@@ -8957,13 +8987,13 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@solidjs/signals@2.0.0-beta.14': {}
+  '@solidjs/signals@2.0.0-beta.15': {}
 
-  '@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14)':
+  '@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15)':
     dependencies:
       seroval: 1.5.2
       seroval-plugins: 1.5.2(seroval@1.5.2)
-      solid-js: 2.0.0-beta.14
+      solid-js: 2.0.0-beta.15
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -9879,7 +9909,7 @@ snapshots:
     optionalDependencies:
       '@rspack/core': 1.7.11(@swc/helpers@0.5.15)
 
-  babel-plugin-jsx-dom-expressions@0.50.0-next.13(@babel/core@7.29.0):
+  babel-plugin-jsx-dom-expressions@0.50.0-next.14(@babel/core@7.29.0):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/helper-module-imports': 7.18.6
@@ -9889,12 +9919,12 @@ snapshots:
       parse5: 7.3.0
       validate-html-nesting: 1.2.4
 
-  babel-preset-solid@2.0.0-beta.14(@babel/core@7.29.0)(solid-js@2.0.0-beta.14):
+  babel-preset-solid@2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15):
     dependencies:
       '@babel/core': 7.29.0
-      babel-plugin-jsx-dom-expressions: 0.50.0-next.13(@babel/core@7.29.0)
+      babel-plugin-jsx-dom-expressions: 0.50.0-next.14(@babel/core@7.29.0)
     optionalDependencies:
-      solid-js: 2.0.0-beta.14
+      solid-js: 2.0.0-beta.15
 
   balanced-match@1.0.2: {}
 
@@ -12277,18 +12307,18 @@ snapshots:
 
   smol-toml@1.6.1: {}
 
-  solid-js@2.0.0-beta.14:
+  solid-js@2.0.0-beta.15:
     dependencies:
-      '@solidjs/signals': 2.0.0-beta.14
+      '@solidjs/signals': 2.0.0-beta.15
       csstype: 3.2.3
       seroval: 1.5.2
       seroval-plugins: 1.5.2(seroval@1.5.2)
 
-  solid-refresh@0.8.0-next.7(solid-js@2.0.0-beta.14):
+  solid-refresh@0.8.0-next.7(solid-js@2.0.0-beta.15):
     dependencies:
       '@babel/generator': 7.29.1
       '@babel/types': 7.29.0
-      solid-js: 2.0.0-beta.14
+      solid-js: 2.0.0-beta.15
 
   source-map-js@1.2.1: {}
 
@@ -12711,29 +12741,29 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
+  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@babel/core': 7.29.0
-      '@solidjs/web': 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+      '@solidjs/web': 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@types/babel__core': 7.20.5
-      babel-preset-solid: 2.0.0-beta.14(@babel/core@7.29.0)(solid-js@2.0.0-beta.14)
+      babel-preset-solid: 2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15)
       merge-anything: 5.1.7
-      solid-js: 2.0.0-beta.14
-      solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.14)
+      solid-js: 2.0.0-beta.15
+      solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.15)
       vite: 8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
       vitefu: 1.1.3(vite@8.0.12(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.14(solid-js@2.0.0-beta.14))(solid-js@2.0.0-beta.14)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
+  vite-plugin-solid@3.0.0-next.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)):
     dependencies:
       '@babel/core': 7.29.0
-      '@solidjs/web': 2.0.0-beta.14(solid-js@2.0.0-beta.14)
+      '@solidjs/web': 2.0.0-beta.15(solid-js@2.0.0-beta.15)
       '@types/babel__core': 7.20.5
-      babel-preset-solid: 2.0.0-beta.14(@babel/core@7.29.0)(solid-js@2.0.0-beta.14)
+      babel-preset-solid: 2.0.0-beta.15(@babel/core@7.29.0)(solid-js@2.0.0-beta.15)
       merge-anything: 5.1.7
-      solid-js: 2.0.0-beta.14
-      solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.14)
+      solid-js: 2.0.0-beta.15
+      solid-refresh: 0.8.0-next.7(solid-js@2.0.0-beta.15)
       vite: 8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
       vitefu: 1.1.3(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
     transitivePeerDependencies:

@@ -1,0 +1,21 @@
+{
+  "name": "@benchmarks/streaming-ssr",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Streaming SSR benchmark — TTFB, total render time and throughput for pages with async @try boundaries. Targets: ripple (buffered + streaming), Solid 2.0 renderToStream, React 19 renderToReadableStream.",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "dependencies": {
+    "@babel/core": "catalog:default",
+    "@solidjs/web": "catalog:default",
+    "@tsrx/ripple": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "babel-preset-solid": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
+    "ripple": "workspace:*",
+    "solid-js": "catalog:default"
+  }
+}

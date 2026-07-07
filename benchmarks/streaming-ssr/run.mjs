@@ -1,61 +1,81 @@
 /**
- * Streaming SSR benchmark: Ripple buffered vs Ripple streaming vs React 19
- * (`renderToReadableStream` + Suspense — the same out-of-order streaming
- * model), on equivalent page shapes.
+ * Streaming SSR benchmark: Ripple buffered vs Ripple streaming vs Solid 2.0
+ * (`renderToStream` from @solidjs/web) vs React 19
+ * (`renderToReadableStream` + Suspense) — all three streamers use the same
+ * shell-then-out-of-order-chunks model, on equivalent page shapes.
  *
- * Solid is deliberately absent: the only Solid in this workspace is the
- * 2.0 beta pulled in by tsrx-solid, whose server build does not expose
- * renderToStream / renderToStringAsync, and tsrx-solid itself is a
- * client-only target. Revisit when either grows an SSR streaming surface.
+ * The Ripple and Solid pages are authored in TSRX (page.tsrx /
+ * page-solid.tsrx) and compiled at startup through the pipelines the
+ * frameworks actually use (@tsrx/ripple server target; @tsrx/solid →
+ * babel-preset-solid `generate: 'ssr', hydratable: true`). The React page is
+ * hand-built with createElement + Suspense + a thrown-promise resource.
  *
- * Run with: pnpm --filter ripple bench:ssr
- * (or: node packages/ripple/benchmarks/streaming-ssr.bench.mjs)
+ * Run:  pnpm --filter @benchmarks/streaming-ssr bench
+ *  (or: node benchmarks/streaming-ssr/run.mjs)
  */
 
+// Set BEFORE importing anything that resolves a framework runtime: react-dom
+// picks its production build off process.env.NODE_ENV at require time.
 process.env.NODE_ENV = 'production';
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const compiled_dir = join(__dirname, '.compiled');
+mkdirSync(compiled_dir, { recursive: true });
 
 // ---------------------------------------------------------------------------
-// Compile the TSRX page for the server target (same pipeline as the tests)
+// Compile the Ripple page for the server target (same pipeline as the tests)
 // ---------------------------------------------------------------------------
 
-const { compile } = await import('@tsrx/ripple');
-const source = readFileSync(join(__dirname, 'page.tsrx'), 'utf-8');
-const compiled = compile(source, 'page.tsrx', { mode: 'server' }).code.replace(
+const { compile: compileRipple } = await import('@tsrx/ripple');
+const ripple_source = readFileSync(join(__dirname, 'page.tsrx'), 'utf-8');
+const ripple_compiled = compileRipple(ripple_source, 'page.tsrx', { mode: 'server' }).code.replace(
 	/import\s*\{([^}]+)\}\s*from\s*['"]ripple['"]/g,
 	(_m, specifiers) => `import {${specifiers}} from 'ripple/server'`,
 );
+const ripple_path = join(compiled_dir, 'page.ripple.server.mjs');
+writeFileSync(ripple_path, ripple_compiled);
 
-const compiled_dir = join(__dirname, '.compiled');
-mkdirSync(compiled_dir, { recursive: true });
-const compiled_path = join(compiled_dir, 'page.server.mjs');
-writeFileSync(compiled_path, compiled);
-
-const { Page, SyncPage, state } = await import(pathToFileURL(compiled_path).href);
+const { Page, SyncPage, state } = await import(pathToFileURL(ripple_path).href);
 const { render } = await import('ripple/server');
 
 // ---------------------------------------------------------------------------
-// React baseline (resolved through vite-plugin-react's dependency tree)
+// Compile the Solid page: @tsrx/solid → Solid-flavoured JSX → babel-preset-solid
+// SSR output against @solidjs/web (hydratable, matching a production setup)
 // ---------------------------------------------------------------------------
 
-let React = null;
-let ReactDOMServer = null;
-try {
-	const require_react = createRequire(
-		pathToFileURL(join(__dirname, '../../vite-plugin-react/package.json')).href,
-	);
-	React = require_react('react');
-	ReactDOMServer = require_react('react-dom/server.node');
-} catch {
-	console.warn('[bench] react/react-dom not resolvable — skipping the React baseline');
-}
+const { compile: compileSolid } = await import('@tsrx/solid');
+const { transformAsync } = await import('@babel/core');
+const { default: presetSolid } = await import('babel-preset-solid');
+
+const solid_source = readFileSync(join(__dirname, 'page-solid.tsrx'), 'utf-8');
+const solid_jsx = compileSolid(solid_source, 'page-solid.tsrx').code;
+const solid_ssr = await transformAsync(solid_jsx, {
+	filename: 'page-solid.jsx',
+	babelrc: false,
+	configFile: false,
+	presets: [[presetSolid, { generate: 'ssr', hydratable: true, moduleName: '@solidjs/web' }]],
+});
+const solid_path = join(compiled_dir, 'page.solid.server.mjs');
+writeFileSync(solid_path, solid_ssr.code);
+
+const {
+	Page: SolidPage,
+	SyncPage: SolidSyncPage,
+	state: solid_state,
+} = await import(pathToFileURL(solid_path).href);
+const { renderToStream, createComponent } = await import('@solidjs/web');
+
+// ---------------------------------------------------------------------------
+// React baseline
+// ---------------------------------------------------------------------------
+
+const React = (await import('react')).default;
+const ReactDOMServer = await import('react-dom/server.node');
 
 // ---------------------------------------------------------------------------
 // Workload
@@ -71,10 +91,10 @@ const sync_rows = Array.from({ length: SYNC_ROWS }, (_, i) => `sync row ${i}`);
 const boundary_rows = (index) =>
 	Array.from({ length: ROWS_PER_BOUNDARY }, (_, i) => `boundary ${index} row ${i}`);
 
-function configureRipple(boundaries, delay_ms) {
-	state.syncRows = sync_rows;
-	state.indices = Array.from({ length: boundaries }, (_, i) => i);
-	state.loaders = state.indices.map((index) => {
+function configureState(target, boundaries, delay_ms) {
+	target.syncRows = sync_rows;
+	target.indices = Array.from({ length: boundaries }, (_, i) => i);
+	target.loaders = target.indices.map((index) => {
 		const rows = boundary_rows(index);
 		return delay_ms === 0
 			? () => Promise.resolve(rows)
@@ -158,11 +178,9 @@ async function runRippleBuffered(component) {
 
 async function runRippleStreaming(component) {
 	let first = 0;
-	let bytes = 0;
 	const sink = {
-		push(chunk) {
+		push() {
 			if (first === 0) first = performance.now();
-			bytes += chunk.length;
 		},
 		close() {},
 		error() {},
@@ -170,8 +188,24 @@ async function runRippleStreaming(component) {
 	const start = performance.now();
 	await render(component, { stream: sink });
 	const total = performance.now() - start;
-	void bytes;
 	return { ttfb: first - start, total };
+}
+
+function runSolidStreaming(component) {
+	return new Promise((resolve, reject) => {
+		const start = performance.now();
+		let first = 0;
+		renderToStream(() => createComponent(component, {}), {
+			onError: reject,
+		}).pipe({
+			write() {
+				if (first === 0) first = performance.now();
+			},
+			end() {
+				resolve({ ttfb: first - start, total: performance.now() - start });
+			},
+		});
+	});
 }
 
 async function runReactStreaming(element) {
@@ -216,82 +250,48 @@ async function measure(label, iterations, warmup, run) {
 
 const results = [];
 
-// 1. Fully synchronous page — streaming machinery must cost ~nothing
-configureRipple(0, 0);
-results.push(
-	await measure('sync page · ripple buffered', 300, 50, () => runRippleBuffered(SyncPage)),
-);
-results.push(
-	await measure('sync page · ripple streaming', 300, 50, () => runRippleStreaming(SyncPage)),
-);
-if (ReactDOMServer) {
+async function scenario(label, iterations, warmup, boundaries, delay_ms, { sync = false } = {}) {
+	configureState(state, boundaries, delay_ms);
 	results.push(
-		await measure('sync page · react streaming', 300, 50, () =>
-			runReactStreaming(makeReactPage(0, 0)),
+		await measure(`${label} · ripple buffered`, iterations, warmup, () =>
+			runRippleBuffered(sync ? SyncPage : Page),
+		),
+	);
+	results.push(
+		await measure(`${label} · ripple streaming`, iterations, warmup, () =>
+			runRippleStreaming(sync ? SyncPage : Page),
+		),
+	);
+	configureState(solid_state, boundaries, delay_ms);
+	results.push(
+		await measure(`${label} · solid streaming`, iterations, warmup, () =>
+			runSolidStreaming(sync ? SolidSyncPage : SolidPage),
+		),
+	);
+	results.push(
+		await measure(`${label} · react streaming`, iterations, warmup, () =>
+			runReactStreaming(makeReactPage(boundaries, delay_ms)),
 		),
 	);
 }
 
+// 1. Fully synchronous page — streaming machinery must cost ~nothing
+await scenario('sync page', 300, 50, 0, 0, { sync: true });
+
 // 2. Async boundaries resolving in microtasks — pure machinery overhead
-configureRipple(BOUNDARIES, 0);
-results.push(
-	await measure(`${BOUNDARIES} boundaries (microtask) · ripple buffered`, 200, 30, () =>
-		runRippleBuffered(Page),
-	),
-);
-results.push(
-	await measure(`${BOUNDARIES} boundaries (microtask) · ripple streaming`, 200, 30, () =>
-		runRippleStreaming(Page),
-	),
-);
-if (ReactDOMServer) {
-	results.push(
-		await measure(`${BOUNDARIES} boundaries (microtask) · react streaming`, 200, 30, () =>
-			runReactStreaming(makeReactPage(BOUNDARIES, 0)),
-		),
-	);
-}
+await scenario(`${BOUNDARIES} boundaries (microtask)`, 200, 30, BOUNDARIES, 0);
 
 // 3. Async boundaries with real data latency — the case streaming exists for:
 //    TTFB should be ~free for streaming and ~DATA_DELAY_MS for buffered
-configureRipple(BOUNDARIES, DATA_DELAY_MS);
-results.push(
-	await measure(`${BOUNDARIES} boundaries (${DATA_DELAY_MS}ms data) · ripple buffered`, 40, 5, () =>
-		runRippleBuffered(Page),
-	),
+await scenario(
+	`${BOUNDARIES} boundaries (${DATA_DELAY_MS}ms data)`,
+	40,
+	5,
+	BOUNDARIES,
+	DATA_DELAY_MS,
 );
-results.push(
-	await measure(
-		`${BOUNDARIES} boundaries (${DATA_DELAY_MS}ms data) · ripple streaming`,
-		40,
-		5,
-		() => runRippleStreaming(Page),
-	),
-);
-if (ReactDOMServer) {
-	results.push(
-		await measure(
-			`${BOUNDARIES} boundaries (${DATA_DELAY_MS}ms data) · react streaming`,
-			40,
-			5,
-			() => runReactStreaming(makeReactPage(BOUNDARIES, DATA_DELAY_MS)),
-		),
-	);
-}
 
-// 4. Many boundaries — scaling of the flush-unit bookkeeping
-configureRipple(MANY_BOUNDARIES, 0);
-results.push(
-	await measure(`${MANY_BOUNDARIES} boundaries (microtask) · ripple streaming`, 100, 20, () =>
-		runRippleStreaming(Page),
-	),
-);
-if (ReactDOMServer) {
-	results.push(
-		await measure(`${MANY_BOUNDARIES} boundaries (microtask) · react streaming`, 100, 20, () =>
-			runReactStreaming(makeReactPage(MANY_BOUNDARIES, 0)),
-		),
-	);
-}
+// 4. Many boundaries — scaling of the flush/segment bookkeeping
+await scenario(`${MANY_BOUNDARIES} boundaries (microtask)`, 100, 20, MANY_BOUNDARIES, 0);
 
 console.table(results);
