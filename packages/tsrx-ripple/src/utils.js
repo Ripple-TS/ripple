@@ -28,7 +28,6 @@ import {
 	is_empty_expression_container,
 	is_dynamic_element,
 	is_template_element,
-	set_element_id,
 	is_template_directive,
 	is_template_else_if,
 	is_template_expression,
@@ -2002,6 +2001,14 @@ export function lower_dynamic_element(node, component_id, scopes) {
 		})
 	);
 
+	// The component reference becomes the copy's tag: the default `TsrxDynamic`
+	// local as a plain JSX identifier, or the caller's reference (the server's
+	// `_$_.dynamic_element` member) planted directly in the name slot —
+	// get_element_id derives the id from either.
+	const name =
+		component_id && component_id.type === 'MemberExpression'
+			? component_id
+			: b.jsx_id(dynamic_element_import_local);
 	const opening = node.openingElement;
 	const copy = /** @type {AST.TSRXJSXElement} */ ({
 		...node,
@@ -2011,17 +2018,14 @@ export function lower_dynamic_element(node, component_id, scopes) {
 		openingElement: {
 			...opening,
 			isDynamic: false,
-			name: opening?.name ? b.jsx_id(dynamic_element_import_local) : opening?.name,
+			name,
 			attributes: [is_attribute, ...(opening?.attributes ?? [])],
 		},
 		closingElement: node.closingElement?.name
 			? { ...node.closingElement, name: b.jsx_id(dynamic_element_import_local) }
 			: node.closingElement,
-		// Fork the metadata so the id memo can point at the component reference
-		// without polluting the source element's memoized dynamic expression.
 		metadata: { ...node.metadata },
 	});
-	set_element_id(copy, component_id ?? b.id(dynamic_element_import_local));
 
 	const scope = scopes?.get(node);
 	if (scope) scopes?.set(copy, scope);

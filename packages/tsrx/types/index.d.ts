@@ -110,8 +110,6 @@ interface BaseNodeMetaData {
 	tsrx_template_child?: { child: AST.Node | null };
 	/** Memoized `<> … </>` wrapper for a value-position directive (see get_directive_value_wrapper). */
 	tsrx_value_wrapper?: AST.TSRXJSXFragment;
-	/** Memoized element tag expression (see get_element_id). */
-	id_node?: AST.Expression;
 	ts_name?: string;
 	delegated?: any;
 	returned_tsrx_return?: AST.ReturnStatement;

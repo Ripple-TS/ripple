@@ -248,47 +248,46 @@ export function jsx_member_expression_to_member_expression(jsx_member) {
 /**
  * The element's tag as a plain expression: an `Identifier` for
  * `JSXIdentifier`/`JSXNamespacedName` names, a `MemberExpression` for
- * `<Foo.Bar>`, or the tag expression itself for a dynamic `<{expr}>` element.
- * Memoized on the element so the analyzer and transforms share one node.
- * `lower_dynamic_element` overwrites the memo when it rewrites a dynamic tag
- * to the `TsrxDynamic` component.
+ * `<Foo.Bar>` (or one planted directly in the name slot by a tag rewrite,
+ * e.g. `lower_dynamic_element`'s server component reference), or the tag
+ * expression itself for a dynamic `<{expr}>` element.
  * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {AST.Identifier | AST.MemberExpression | AST.Expression}
  */
 export function get_element_id(node) {
-	node.metadata ??= { path: [] };
-	const metadata = node.metadata;
-	if (metadata.id_node === undefined) {
-		const name = node.openingElement.name;
-		if (name.type === 'JSXIdentifier') {
-			metadata.id_node = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: name.name,
-				start: name.start,
-				end: name.end,
-			});
-		} else if (name.type === 'JSXMemberExpression') {
-			metadata.id_node = jsx_member_expression_to_member_expression(name);
-		} else if (name.type === 'JSXNamespacedName') {
-			metadata.id_node = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: name.namespace.name + ':' + name.name.name,
-				start: name.start,
-				end: name.end,
-			});
-		} else if (name.type === 'JSXExpressionContainer' && name.isDynamic === true) {
-			metadata.id_node = name.expression;
-		} else {
-			// Fallback - should not reach here
-			metadata.id_node = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: 'unknown',
-				start: name.start,
-				end: name.end,
-			});
-		}
+	const name = node.openingElement.name;
+	if (name.type === 'JSXIdentifier') {
+		return /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: name.name,
+			start: name.start,
+			end: name.end,
+		});
 	}
-	return /** @type {AST.Expression} */ (metadata.id_node);
+	if (name.type === 'JSXMemberExpression') {
+		return jsx_member_expression_to_member_expression(name);
+	}
+	if (name.type === 'JSXNamespacedName') {
+		return /** @type {AST.Identifier} */ ({
+			type: 'Identifier',
+			name: name.namespace.name + ':' + name.name.name,
+			start: name.start,
+			end: name.end,
+		});
+	}
+	if (name.type === 'MemberExpression') {
+		return name;
+	}
+	if (name.type === 'JSXExpressionContainer' && name.isDynamic === true) {
+		return /** @type {AST.Expression} */ (name.expression);
+	}
+	// Fallback - should not reach here
+	return /** @type {AST.Identifier} */ ({
+		type: 'Identifier',
+		name: 'unknown',
+		start: name.start,
+		end: name.end,
+	});
 }
 
 /**
@@ -300,20 +299,6 @@ export function get_element_id(node) {
  */
 export function is_template_element(node) {
 	return node?.type === 'JSXElement' && node.metadata?.native_tsrx === true;
-}
-
-/**
- * Replace the element's derived id (used when a transform rewrites the tag —
- * dynamic elements lowering to `TsrxDynamic`, member-expression tags being
- * visited). Writes the memo on JSX elements; the interim `Element` leg writes
- * the `id` field directly.
- * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
- * @param {AST.Expression} id
- * @returns {void}
- */
-export function set_element_id(node, id) {
-	node.metadata ??= { path: [] };
-	node.metadata.id_node = id;
 }
 
 /**

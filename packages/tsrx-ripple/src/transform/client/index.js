@@ -131,7 +131,6 @@ import {
 	is_template_fragment,
 	is_template_text,
 	is_template_text_or_expression,
-	set_element_id,
 } from '../../template-ast.js';
 import is_reference from 'is-reference';
 
@@ -4779,7 +4778,6 @@ function transform_ts_child(node, context) {
 				visit(get_element_id(element), { ...state })
 			);
 
-			set_element_id(element, member);
 			// Plant the visited member tag on local copies for the printer — the
 			// source element is never mutated.
 			const opening = /** @type {ESTreeJSX.TSRXJSXOpeningElement} */ ({
