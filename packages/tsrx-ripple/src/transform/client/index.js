@@ -107,7 +107,6 @@ import {
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
 	visit_directive_wrapping_values,
-	replace_with_statements,
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
@@ -1975,7 +1974,7 @@ const visitors = {
 		const { state } = context;
 
 		if (get_submodule_import_source_name(node) === 'server') {
-			return replace_with_statements(transform_server_module_import(node, state));
+			return transform_server_module_import(node, state);
 		}
 
 		if (!state.to_ts && node.importKind === 'type') {

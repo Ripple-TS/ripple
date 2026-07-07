@@ -75,7 +75,6 @@ import {
 	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
 	visit_directive_wrapping_values,
-	replace_with_statements,
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
@@ -2873,7 +2872,7 @@ const visitors = {
 		const { state } = context;
 
 		if (get_submodule_import_source_name(node) === 'server') {
-			return replace_with_statements(transform_server_module_import(node));
+			return transform_server_module_import(node);
 		}
 
 		if (!state.to_ts && node.importKind === 'type') {

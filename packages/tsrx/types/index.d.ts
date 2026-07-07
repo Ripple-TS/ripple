@@ -1558,7 +1558,12 @@ export type CatchAllVisitor<T, U, V> = (
 	visit: VisitFn<V>,
 ) => V | void;
 
-export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
+/**
+ * A visitor may replace a node with several: zimmerframe stores the returned
+ * array verbatim in the parent's statement list and the printer flattens
+ * nested statement arrays.
+ */
+export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | V[] | void;
 
 export type Visitors<T extends AST.Node | AST.CSS.Node, U> = T['type'] extends '_'
 	? never
