@@ -13,6 +13,19 @@ export const HYDRATION_START = '[';
 export const HYDRATION_END = ']';
 export const HYDRATION_ERROR = {};
 
+// Streaming SSR slot markers. A `<!--[?N-->` comment opens the slot of flush
+// unit N whose content has not been streamed yet (the slot shows the pending
+// fallback, or nothing for catch-only boundaries). The inline stream runtime
+// rewrites the slot to plain `<!--[-->…<!--]-->` when the unit's chunk
+// arrives, or to `<!--[!N-->` when the unit errored after its region was
+// already on the wire.
+export const HYDRATION_START_PENDING = '[?';
+export const HYDRATION_START_ERRORED = '[!';
+
+export const STREAM_CHUNK_ATTR = 'data-tsrx-chunk';
+export const STREAM_HEAD_ATTR = 'data-tsrx-head';
+export const STREAM_ERROR_SCRIPT_PREFIX = '__tsrx_te_';
+
 export const BLOCK_OPEN = `<!--${HYDRATION_START}-->`;
 export const BLOCK_CLOSE = `<!--${HYDRATION_END}-->`;
 export const EMPTY_COMMENT = `<!---->`;

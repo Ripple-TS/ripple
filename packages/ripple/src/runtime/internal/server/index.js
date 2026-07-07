@@ -17,6 +17,31 @@
 /** @typedef {TrackedValue} Tracked */
 /** @typedef {DerivedValue} Derived */
 
+/**
+ * A streaming flush unit: a try boundary whose body suspended during
+ * rendering. Its slot (wrapper markers + pending fallback) ships with the
+ * enclosing region while the real body — kept as a detached buffer tree whose
+ * holes async re-runs fill in place — streams later as a framed chunk once
+ * every async operation registered on the boundary settles.
+ * @typedef {{
+ *   id: number;
+ *   block: Block;
+ *   output: Output;
+ *   content: NestedArray<string>;
+ *   head: NestedArray<string>;
+ *   css: Set<string>;
+ *   scripts: string[];
+ *   settled: boolean;
+ *   flushed: boolean;
+ *   slot_sent: boolean;
+ *   sealed: boolean;
+ *   errored: boolean;
+ *   error: string | null;
+ * }} FlushUnit
+ */
+
+/** @typedef {{ css: Set<string>, scripts: string[], head: string }} StreamChunk */
+
 import {
 	DERIVED,
 	UNINITIALIZED,
@@ -37,7 +62,17 @@ import {
 } from '@tsrx/core/runtime/html';
 import { clsx } from 'clsx';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
-import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
+import {
+	BLOCK_CLOSE,
+	BLOCK_OPEN,
+	HYDRATION_START_PENDING,
+	HYDRATION_START_ERRORED,
+	STREAM_CHUNK_ATTR,
+	STREAM_HEAD_ATTR,
+	STREAM_ERROR_SCRIPT_PREFIX,
+} from '../../../constants.js';
+import { get_css_for_hashes } from './css-registry.js';
+import { STREAM_RUNTIME_SCRIPT } from './stream-runtime.js';
 import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
@@ -54,6 +89,7 @@ import {
 	cancel_async_operations,
 	component_block,
 	get_closest_catch_block,
+	get_closest_try_block,
 	try_block,
 } from './blocks.js';
 import { COMPONENT_BLOCK, TRY_BLOCK } from './constants.js';
@@ -467,6 +503,21 @@ export class Output {
 	#async_operations = new Set();
 	/** @type {null | 'head'} */
 	target = null;
+	/** @type {null | FlushUnit} */
+	unit = null;
+	/** @type {NestedArray<string> | null} */
+	#content_redirect = null;
+	/** @type {NestedArray<string> | null} */
+	#head_redirect = null;
+	// streaming state, only used on the root instance
+	#next_unit_id = 1;
+	/** @type {FlushUnit[]} */
+	#units = [];
+	/** @type {WeakMap<NestedArray<string>, FlushUnit>} */
+	#unit_slots = new WeakMap();
+	/** @type {Set<string>} */
+	#sent_css = new Set();
+	#shell_flushed = false;
 
 	get root() {
 		return this.#root;
@@ -508,8 +559,10 @@ export class Output {
 		} else {
 			this.#root = parent.root;
 			this.#parent = parent;
-			this.#parent.body.push(this.body);
-			this.#parent.head.push(this.head);
+			// branches created after a flush unit sealed its slot belong to the
+			// unit's detached content tree, not to the already-shaped slot
+			(parent.#content_redirect ?? parent.#body).push(this.#body);
+			(parent.#head_redirect ?? parent.#head).push(this.#head);
 		}
 	}
 
@@ -520,32 +573,24 @@ export class Output {
 	 * @returns {void}
 	 */
 	#push(str, is_root = false, is_prepend = false) {
-		if (this.isStreamMode() && !this.isSyncRun()) {
-			// TODO - we need to wrap the resulting block output into something that
-			// the client-side can understand and append them appropriately,
-			// or actually, first append and hydrate when the full block is finished
-			// without waiting for the all blocks to finish streaming to make hydration faster
-			/** @type {StreamSink} */
-			(this.#root.#streamOutput).push(str);
-			return;
-		}
-
 		var instance = is_root ? this.#root : this;
 
 		// we never write to `head` in the root instance
 		if (instance !== this.#root && instance.target === 'head') {
+			var head = instance.#head_redirect ?? instance.#head;
 			if (is_prepend) {
-				instance.#head.unshift(str);
+				head.unshift(str);
 			} else {
-				instance.#head.push(str);
+				head.push(str);
 			}
 			return;
 		}
 
+		var body = instance.#content_redirect ?? instance.#body;
 		if (is_prepend) {
-			instance.#body.unshift(str);
+			body.unshift(str);
 		} else {
-			instance.#body.push(str);
+			body.push(str);
 		}
 	}
 
@@ -562,6 +607,14 @@ export class Output {
 	 * @returns {void}
 	 */
 	push_serialized_error(str) {
+		var root = this.#root;
+		if (root.#streamOutput !== null && root.#shell_flushed) {
+			// past the shell the root buffer is already on the wire — emit the
+			// envelope directly so it reaches the document before any chunk
+			// whose hydration depends on it
+			root.#streamOutput.push(str);
+			return;
+		}
 		// prepend to the root block to avoid messing up the hydration markers
 		// writing to the root to avoid being cleared in the local instance when an error occurs
 		this.#push(str, true, true);
@@ -572,10 +625,31 @@ export class Output {
 	 * @returns {void}
 	 */
 	push_serialized_result(str) {
+		var root = this.#root;
+		if (root.#streamOutput !== null && !root.#sync_run) {
+			var unit = this.#nearest_unflushed_unit();
+			if (unit !== null) {
+				// ships with the unit's chunk, ahead of the template, so the
+				// boundary can hydrate from it synchronously
+				unit.scripts.push(str);
+				return;
+			}
+			if (root.#shell_flushed) {
+				root.#streamOutput.push(str);
+				return;
+			}
+		}
 		this.#push(str);
 	}
 
 	clear() {
+		if (this.#content_redirect !== null) {
+			// a sealed flush unit clears its detached content, never the slot
+			this.#content_redirect.length = 0;
+			/** @type {NestedArray<string>} */ (this.#head_redirect).length = 0;
+			/** @type {FlushUnit} */ (this.unit).scripts.length = 0;
+			return;
+		}
 		this.#head.length = 0;
 		this.#body.length = 0;
 		this.#css.clear();
@@ -586,13 +660,67 @@ export class Output {
 	 * @returns {void}
 	 */
 	register_css(hash) {
-		if (this.isStreamMode() && !this.isSyncRun()) {
-			// TODO - when we're in the streaming mode and finished the sync render,
-			// We should wrap the css into something that the client-side can understand
-			// and append them into the head immediately
-			return;
+		var root = this.#root;
+		if (root.#streamOutput !== null && !root.#sync_run) {
+			var unit = this.#nearest_unflushed_unit();
+			if (unit !== null) {
+				unit.css.add(hash);
+				return;
+			}
+			if (root.#shell_flushed) {
+				if (!root.#sent_css.has(hash)) {
+					root.#sent_css.add(hash);
+					var css_text = get_css_for_hashes(new Set([hash]));
+					if (css_text) {
+						root.#streamOutput.push('<style data-ripple-ssr>' + css_text + '</style>');
+					}
+				}
+				return;
+			}
 		}
-		this.#root.#css.add(hash);
+		root.#css.add(hash);
+	}
+
+	/**
+	 * @returns {FlushUnit | null}
+	 */
+	#nearest_unflushed_unit() {
+		/** @type {Output | null} */
+		var output = this;
+		while (output !== null) {
+			var unit = output.unit;
+			// an unsealed unit is still rendering its slot (wrapper + fallback),
+			// which ships with the enclosing region — keep walking up
+			if (unit !== null && !unit.flushed && unit.sealed) {
+				return unit;
+			}
+			output = output.#parent;
+		}
+		return null;
+	}
+
+	/**
+	 * @returns {FlushUnit | null}
+	 */
+	nearestUnflushedUnit() {
+		return this.#nearest_unflushed_unit();
+	}
+
+	/**
+	 * Whether the region this output writes into has already been streamed —
+	 * its bytes are on the wire and can no longer be replaced server-side.
+	 * @returns {boolean}
+	 */
+	isRegionSent() {
+		/** @type {Output | null} */
+		var output = this;
+		while (output !== null) {
+			if (output.unit !== null) {
+				return output.unit.flushed;
+			}
+			output = output.#parent;
+		}
+		return this.#root.#shell_flushed;
 	}
 
 	/**
@@ -611,6 +739,11 @@ export class Output {
 	resolveAsync(operation) {
 		this.#async_operations.delete(operation);
 		this.#root._decrementPending();
+		var unit = this.unit;
+		if (unit !== null && !unit.flushed && !unit.settled && this.#async_operations.size === 0) {
+			unit.settled = true;
+			this.#root._maybeFlushUnit(unit);
+		}
 	}
 
 	cancelAsyncOperations() {
@@ -620,6 +753,253 @@ export class Output {
 			this.clear();
 			this.#root._decrementPending();
 		}
+	}
+
+	/**
+	 * @returns {boolean}
+	 */
+	hasPendingAsyncOperations() {
+		return this.#async_operations.size > 0;
+	}
+
+	/**
+	 * Marks the flush unit of a boundary abandoned by an ancestor error as
+	 * done so it can never stream a stale chunk.
+	 * @returns {void}
+	 */
+	abandonUnit() {
+		var unit = this.unit;
+		if (unit !== null && !unit.flushed) {
+			unit.settled = true;
+			unit.flushed = true;
+		}
+	}
+
+	/**
+	 * Converts this try-block output into a streaming flush unit: the
+	 * partially-rendered body (whose holes async re-runs fill in place) is
+	 * detached as the unit's content tree, and the now-empty live buffer
+	 * becomes the slot that receives the wrapper markers and fallback.
+	 * @param {Block} block
+	 * @returns {FlushUnit}
+	 */
+	_createFlushUnit(block) {
+		var root = this.#root;
+		/** @type {FlushUnit} */
+		var unit = {
+			id: root.#next_unit_id++,
+			block,
+			output: this,
+			content: this.#body.splice(0, this.#body.length),
+			head: this.#head.splice(0, this.#head.length),
+			css: new Set(),
+			scripts: [],
+			settled: false,
+			flushed: false,
+			slot_sent: false,
+			sealed: false,
+			errored: false,
+			error: null,
+		};
+		this.unit = unit;
+		root.#unit_slots.set(this.#body, unit);
+		root.#units.push(unit);
+		return unit;
+	}
+
+	/**
+	 * Called once the slot (wrapper markers + fallback) is fully rendered:
+	 * from here on, direct writes to this output (e.g. a late catch render)
+	 * belong to the unit's content, not to the already-shaped slot.
+	 * @returns {void}
+	 */
+	_sealSlot() {
+		var unit = /** @type {FlushUnit} */ (this.unit);
+		unit.sealed = true;
+		this.#content_redirect = unit.content;
+		this.#head_redirect = unit.head;
+	}
+
+	/**
+	 * Flattens a buffer tree to HTML. A nested array that is the slot of a
+	 * flush unit gets special treatment: a settled, unflushed, non-errored
+	 * unit is inlined (coalesced into the current chunk, merging its css,
+	 * scripts and head); anything else emits the slot as-is (wrapper +
+	 * fallback) and is marked sent so the unit may flush itself later.
+	 * @param {NestedArray<string>} tree
+	 * @param {StreamChunk} chunk
+	 * @returns {string}
+	 */
+	#serialize(tree, chunk) {
+		var out = '';
+		for (var i = 0; i < tree.length; i++) {
+			var item = tree[i];
+			if (typeof item === 'string') {
+				out += item;
+				continue;
+			}
+			var unit = this.#unit_slots.get(item);
+			if (unit !== undefined && !unit.flushed) {
+				if (unit.settled && !unit.errored) {
+					out += this.#collect_unit(unit, chunk);
+					continue;
+				}
+				unit.slot_sent = true;
+			}
+			out += this.#serialize(item, chunk);
+		}
+		return out;
+	}
+
+	/**
+	 * @param {FlushUnit} unit
+	 * @param {StreamChunk} chunk
+	 * @returns {string} the unit's content HTML
+	 */
+	#collect_unit(unit, chunk) {
+		unit.flushed = true;
+		for (var hash of unit.css) {
+			chunk.css.add(hash);
+		}
+		for (var i = 0; i < unit.scripts.length; i++) {
+			chunk.scripts.push(unit.scripts[i]);
+		}
+		chunk.head += this.#serialize(unit.head, chunk);
+		return this.#serialize(unit.content, chunk);
+	}
+
+	/**
+	 * @param {Set<string>} hashes
+	 * @returns {string}
+	 */
+	#chunk_css(hashes) {
+		/** @type {Set<string>} */
+		var fresh = new Set();
+		for (var hash of hashes) {
+			if (!this.#sent_css.has(hash)) {
+				this.#sent_css.add(hash);
+				fresh.add(hash);
+			}
+		}
+		if (fresh.size === 0) {
+			return '';
+		}
+		var css_text = get_css_for_hashes(fresh);
+		return css_text ? '<style data-ripple-ssr>' + css_text + '</style>' : '';
+	}
+
+	/**
+	 * @param {FlushUnit} unit
+	 * @returns {void}
+	 */
+	_maybeFlushUnit(unit) {
+		if (!this.#is_root) {
+			throw new Error('_maybeFlushUnit() is an internal method.');
+		}
+		if (this.#streamOutput === null || this.#stream_finished || !this.#shell_flushed) {
+			return;
+		}
+		if (!unit.settled || unit.flushed || !unit.slot_sent) {
+			return;
+		}
+		this.#flush_unit(unit);
+		this.#sweep_units();
+	}
+
+	/**
+	 * @param {FlushUnit} unit
+	 * @returns {void}
+	 */
+	#flush_unit(unit) {
+		var sink = /** @type {StreamSink} */ (this.#streamOutput);
+		if (unit.errored) {
+			unit.flushed = true;
+			sink.push(
+				'<script id="' +
+					STREAM_ERROR_SCRIPT_PREFIX +
+					unit.id +
+					'" type="application/json">' +
+					escape_script(JSON.stringify({ message: unit.error })) +
+					'</script>' +
+					'<script>__TSRX_S__(' +
+					unit.id +
+					',1)</script>',
+			);
+			return;
+		}
+		/** @type {StreamChunk} */
+		var chunk = { css: new Set(), scripts: [], head: '' };
+		var html = this.#collect_unit(unit, chunk);
+		var out = this.#chunk_css(chunk.css);
+		if (chunk.head !== '') {
+			out += '<template ' + STREAM_HEAD_ATTR + '="' + unit.id + '">' + chunk.head + '</template>';
+		}
+		out += chunk.scripts.join('');
+		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
+		out += '<script>__TSRX_S__(' + unit.id + ')</script>';
+		sink.push(out);
+	}
+
+	/**
+	 * Flushes every unit whose slot has been sent and whose async work has
+	 * settled. Flushing a parent chunk marks nested unsettled slots as sent,
+	 * which can make further units eligible — loop until a fixpoint.
+	 * @returns {void}
+	 */
+	#sweep_units() {
+		var units = this.#units;
+		var progressed = true;
+		while (progressed) {
+			progressed = false;
+			for (var i = 0; i < units.length; i++) {
+				var unit = units[i];
+				if (unit.settled && !unit.flushed && unit.slot_sent) {
+					this.#flush_unit(unit);
+					progressed = true;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Emits the shell: everything rendered synchronously (suspended
+	 * boundaries show their fallback inside `<!--[?N-->…<!--]-->` slots), all
+	 * CSS registered so far, and — when unresolved slots remain — the inline
+	 * swap runtime that later chunks call into.
+	 * @returns {void}
+	 */
+	_streamShell() {
+		if (!this.#is_root) {
+			throw new Error('_streamShell() is an internal method.');
+		}
+		var sink = /** @type {StreamSink} */ (this.#streamOutput);
+		this._startStream();
+		/** @type {StreamChunk} */
+		var chunk = { css: new Set(), scripts: [], head: '' };
+		var head_html = this.#serialize(this.#head, chunk);
+		var body = this.#serialize(this.#body, chunk);
+		if (this.unit !== null && !this.unit.flushed) {
+			// the root boundary's slot is the shell body itself
+			this.unit.slot_sent = true;
+		}
+		for (var hash of this.#css) {
+			chunk.css.add(hash);
+		}
+		var out = head_html + chunk.head + this.#chunk_css(chunk.css) + chunk.scripts.join('');
+		out += BLOCK_OPEN + body + BLOCK_CLOSE;
+		var has_open_units = false;
+		for (var i = 0; i < this.#units.length; i++) {
+			if (!this.#units[i].flushed) {
+				has_open_units = true;
+				break;
+			}
+		}
+		if (has_open_units) {
+			out += STREAM_RUNTIME_SCRIPT;
+		}
+		sink.push(out);
+		this.#shell_flushed = true;
+		this.#sweep_units();
 	}
 
 	_incrementPending() {
@@ -748,16 +1128,6 @@ export async function render(component, passed_in_options = {}) {
 			render_component(component, {});
 			output._decrementPending();
 			output._finishSyncRun();
-
-			if (output.isStreamMode()) {
-				sync_buffers_to_string(output);
-				output._startStream();
-				output.push(head);
-				output.push(body);
-				// TODO - how do we handle css?, in needs to be inside the head
-				// We probably can allocate a buffer inside the head for this
-				// We should have the same order of insertion as for the full async render
-			}
 		},
 		(error) => {
 			// We're not going to send the error in the stream stream.error()
@@ -783,10 +1153,15 @@ export async function render(component, passed_in_options = {}) {
 		},
 	);
 
-	await /** @type {Block} */ (/** @type {unknown} */ (root_block)).o.promise;
+	const output = /** @type {Block} */ (/** @type {unknown} */ (root_block)).o;
+	if (output.isStreamMode()) {
+		// shell: sync content + fallbacks in open slots + css + swap runtime
+		output._streamShell();
+	}
+
+	await output.promise;
 	reset_state();
 
-	const output = /** @type {Block} */ (/** @type {unknown} */ (root_block)).o;
 	if (output.isStreamMode() && options.closeStream) {
 		output._closeStream();
 	}
@@ -1570,6 +1945,95 @@ function route_track_async_error_to_catch_block_with_boundary(catch_block, hash,
 }
 
 /**
+ * Turns a try boundary whose body suspended into a streaming flush unit:
+ * the partially-rendered body is detached (async re-runs keep filling its
+ * holes in place) and the live slot receives the `<!--[?N-->` wrapper with
+ * the pending fallback (nothing for catch-only boundaries).
+ * @param {Block} block
+ * @param {(() => void) | null} pending_fn
+ * @returns {void}
+ */
+export function begin_stream_unit(block, pending_fn) {
+	var output = block.o;
+	var unit = output._createFlushUnit(block);
+	output.push('<!--' + HYDRATION_START_PENDING + unit.id + '-->');
+	if (pending_fn !== null) {
+		pending_fn();
+	}
+	output.push(BLOCK_CLOSE);
+	output._sealSlot();
+}
+
+/**
+ * Handles an error surfaced by async rendering work after the initial sync
+ * pass: routes it to the nearest catch boundary when that boundary's region
+ * can still be rendered server-side, otherwise marks the nearest unflushed
+ * flush unit as errored so the client resolves the boundary at hydration.
+ * @param {Block} origin_block
+ * @param {Block} op_block
+ * @param {string | null} hash
+ * @param {any} error
+ * @returns {void}
+ */
+function handle_async_render_error(origin_block, op_block, hash, error) {
+	var catch_block = get_closest_catch_block(origin_block);
+
+	if (catch_block.o.isStreamMode() && catch_block.o.isRegionSent()) {
+		fail_stream_unit(op_block, error);
+		return;
+	}
+
+	if (hash !== null) {
+		route_track_async_error_to_catch_block_with_boundary(catch_block, hash, error);
+	} else {
+		route_error_to_catch_block(catch_block, error);
+	}
+	settle_unit_after_catch(catch_block);
+}
+
+/**
+ * The nearest catch boundary's bytes are already on the wire — emit a
+ * unit-level error envelope instead, so the client routes the error into the
+ * live boundary during hydration.
+ * @param {Block} op_block
+ * @param {any} error
+ * @returns {void}
+ */
+function fail_stream_unit(op_block, error) {
+	var unit = op_block.o.nearestUnflushedUnit();
+	if (unit === null) {
+		// everything around the failure is already streamed — nothing the
+		// server can do beyond reporting it
+		console.error(error);
+		return;
+	}
+	cancel_async_operations(unit.block);
+	unit.errored = true;
+	unit.error = get_public_track_async_error_message(error);
+	unit.settled = true;
+	unit.output.root._maybeFlushUnit(unit);
+}
+
+/**
+ * After a catch branch rendered into a boundary's buffers, the enclosing
+ * flush unit may have no outstanding async work left (it was cancelled) —
+ * settle and flush it.
+ * @param {Block} catch_block
+ * @returns {void}
+ */
+function settle_unit_after_catch(catch_block) {
+	var output = catch_block.o;
+	if (!output.isStreamMode()) {
+		return;
+	}
+	var unit = output.nearestUnflushedUnit();
+	if (unit !== null && !unit.settled && !unit.output.hasPendingAsyncOperations()) {
+		unit.settled = true;
+		unit.output.root._maybeFlushUnit(unit);
+	}
+}
+
+/**
  * @param {(str: string) => void} push_fn
  * @param {string} hash
  * @param {object} envelope - The envelope containing the serialized data
@@ -1666,11 +2130,7 @@ function run_track_async(t, fn, block, dr, dj) {
 						if (dj) {
 							dj(error);
 						}
-						route_track_async_error_to_catch_block_with_boundary(
-							get_closest_catch_block(block),
-							t.h,
-							error,
-						);
+						handle_async_render_error(block, get_closest_try_block(block), t.h, error);
 					},
 				);
 				return;
@@ -1715,11 +2175,7 @@ function run_track_async(t, fn, block, dr, dj) {
 			if (dj) {
 				dj(error);
 			}
-			route_track_async_error_to_catch_block_with_boundary(
-				get_closest_catch_block(block),
-				t.h,
-				error,
-			);
+			handle_async_render_error(block, get_closest_try_block(block), t.h, error);
 		},
 	);
 }
@@ -1833,7 +2289,10 @@ function register_block_rerun(block) {
 	}
 
 	var cancelled = false;
-	var try_catch_block = get_closest_catch_block(block);
+	// async work is accounted on the nearest try boundary (in stream mode
+	// that boundary becomes the flush unit); errors still route to the
+	// nearest catch boundary separately
+	var op_block = get_closest_try_block(block);
 	var operation = {
 		cancel: () => {
 			cancelled = true;
@@ -1845,7 +2304,7 @@ function register_block_rerun(block) {
 		},
 	};
 
-	try_catch_block.o.registerAsync(operation);
+	op_block.o.registerAsync(operation);
 	/** @type {PromiseLike<any>} */ (/** @type {Tracked} */ (t).ap).then(
 		() => {
 			if (cancelled) {
@@ -1854,17 +2313,16 @@ function register_block_rerun(block) {
 			reset_state();
 			try {
 				run_block(block);
-				try_catch_block.o.resolveAsync(operation);
+				op_block.o.resolveAsync(operation);
 			} catch (error) {
 				if (error instanceof TrackAsyncRunError) {
 					var {
 						cause,
 						tracked: { h: hash },
 					} = /** @type {InstanceType<typeof TrackAsyncRunError>} */ (error);
-					error = cause;
-					route_track_async_error_to_catch_block_with_boundary(try_catch_block, hash, error);
+					handle_async_render_error(block, op_block, hash, cause);
 				} else {
-					route_error_to_catch_block(try_catch_block, error);
+					handle_async_render_error(block, op_block, null, error);
 				}
 			}
 		},
@@ -1872,11 +2330,7 @@ function register_block_rerun(block) {
 			if (cancelled) {
 				return;
 			}
-			route_track_async_error_to_catch_block_with_boundary(
-				try_catch_block,
-				/** @type {Tracked} */ (t).h,
-				error,
-			);
+			handle_async_render_error(block, op_block, /** @type {Tracked} */ (t).h, error);
 		},
 	);
 	// clear all output buffers as we'll rerun the block rendering
@@ -1899,18 +2353,14 @@ export function run_block(block) {
 		active_dependency = null;
 		block.fn(block.o);
 	} catch (error) {
-		var output = block.o;
 		if (error === ASYNC_DERIVED_READ_THROWN) {
-			// regardless of the render mode (stream, etc.)
-			// we need to rerun the block when the dependency's promise resolves
+			// regardless of the render mode we re-run the block when the
+			// dependency's promise resolves; the block's buffer keeps its place
+			// in the output tree, so the surrounding markup renders on with a
+			// hole here. In stream mode the enclosing try boundary checks after
+			// its body ran whether async work registered on it and becomes a
+			// flush unit if so.
 			register_block_rerun(block);
-
-			if (output.isStreamMode() && output.isSyncRun()) {
-				// rethrowing so that the pending block catches it
-				// we should only render fallback/pending in the streaming mode
-				// when in the synchronous phase
-				throw error;
-			}
 		} else {
 			// always re-throw real errors
 			// during sync, try_block's catch handles it;

@@ -13,6 +13,7 @@ import { ASYNC_DERIVED_READ_THROWN } from '../client/constants.js';
 import {
 	TRY_CATCH_BLOCK,
 	TRY_PENDING_BLOCK,
+	TRY_BLOCK,
 	REGULAR_BLOCK,
 	COMPONENT_BLOCK,
 	ROOT_BLOCK,
@@ -27,6 +28,7 @@ import {
 	TrackAsyncRunError,
 	create_public_track_async_error,
 	serialize_track_async_error,
+	begin_stream_unit,
 } from './index.js';
 
 /**
@@ -87,14 +89,21 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 
 	try {
 		try_fn();
+
+		if (created_block.o.isStreamMode() && created_block.o.hasPendingAsyncOperations()) {
+			// the body suspended: turn this boundary into a streaming flush unit —
+			// the partially-rendered body is kept (async re-runs fill its holes in
+			// place) and the live slot gets the wrapper markers plus the pending
+			// fallback (nothing, for catch-only boundaries)
+			begin_stream_unit(created_block, pending_fn);
+		}
 	} catch (error) {
 		set_active_block(created_block);
-		if (error === ASYNC_DERIVED_READ_THROWN && created_block.f & TRY_PENDING_BLOCK) {
-			// we should only end up here in the streaming mode during the sync phase
-			created_block.o.clear();
-			pending_fn?.();
-			// continue processing other try blocks
-			return created_block;
+		if (error === ASYNC_DERIVED_READ_THROWN) {
+			// pending reads inside blocks are swallowed by run_block (they
+			// register a re-run); a sentinel escaping to here means a read
+			// happened outside any block — let an outer boundary deal with it
+			throw error;
 		}
 
 		if (created_block.f & TRY_CATCH_BLOCK) {
@@ -141,6 +150,26 @@ export function component_block(fn) {
 }
 
 /**
+ * Nearest try boundary (pending or catch) — async work is accounted on it,
+ * and in stream mode it is the boundary that becomes a flush unit.
+ * @param {Block} block
+ * @returns {TryBlock}
+ */
+export function get_closest_try_block(block) {
+	var current = block;
+
+	while (current !== null) {
+		if (current.f & TRY_BLOCK) {
+			return /** @type {TryBlock} */ (current);
+		}
+		// the root block always carries try flags, so we never reach null
+		current = /** @type {Block} */ (current.p);
+	}
+
+	throw new Error('No try block found');
+}
+
+/**
  * @param {Block} block
  * @returns {TryBlockWithCatch}
  */
@@ -161,15 +190,20 @@ export function get_closest_catch_block(block) {
 }
 
 /**
+ * Cancels outstanding async work below an error boundary. Descendant try
+ * boundaries (`is_descendant`) additionally abandon their streaming flush
+ * units — their regions get replaced by the boundary's catch content, so
+ * they must never stream a stale chunk.
  * @param {Block | null} block
+ * @param {boolean} [is_descendant=false]
  * @returns {void}
  */
-export function cancel_async_operations(block) {
+export function cancel_async_operations(block, is_descendant = false) {
 	if (block === null) {
 		return;
 	}
 
-	if (block.f & TRY_CATCH_BLOCK) {
+	if (block.f & TRY_BLOCK) {
 		if (block.f & CAUGHT_ERROR) {
 			// already handling an error — skip
 			return;
@@ -177,11 +211,15 @@ export function cancel_async_operations(block) {
 
 		block.o.cancelAsyncOperations();
 		block.f |= CAUGHT_ERROR;
+
+		if (is_descendant) {
+			block.o.abandonUnit();
+		}
 	}
 
 	var child = block.first;
 	while (child !== null) {
-		cancel_async_operations(child);
+		cancel_async_operations(child, true);
 		child = child.next;
 	}
 }
