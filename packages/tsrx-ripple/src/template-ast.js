@@ -110,25 +110,20 @@ export function is_template_text_or_expression(node) {
 
 /**
  * The rendered expression of a text/expression template child. A `JSXText`
- * lowers to its (whitespace-collapsed) string literal, memoized on the node so
- * every consumer shares one literal; a container yields its expression.
+ * lowers to its (whitespace-collapsed) string literal; a container yields its
+ * expression.
  * @param {ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer} node
  * @param {boolean} to_ts
  * @returns {AST.Expression}
  */
 export function get_template_expression(node, to_ts) {
 	if (node.type === 'JSXText') {
-		node.metadata ??= { path: [] };
-		const metadata = /** @type {{ template_expression?: AST.Literal }} */ (node.metadata);
-		if (metadata.template_expression === undefined) {
-			const value = get_template_text_value(node, to_ts);
-			metadata.template_expression = b.literal(
-				value,
-				JSON.stringify(value),
-				/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)),
-			);
-		}
-		return metadata.template_expression;
+		const value = get_template_text_value(node, to_ts);
+		return b.literal(
+			value,
+			JSON.stringify(value),
+			/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)),
+		);
 	}
 	return /** @type {AST.Expression} */ (node.expression);
 }
@@ -363,9 +358,7 @@ export function get_attribute_value(attr) {
 	if (attr.value == null) {
 		return null;
 	}
-	return attr.value.type === 'JSXExpressionContainer'
-		? /** @type {AST.Expression} */ (attr.value.expression)
-		: /** @type {AST.Expression} */ (attr.value);
+	return attr.value.type === 'JSXExpressionContainer' ? attr.value.expression : attr.value;
 }
 
 /**
