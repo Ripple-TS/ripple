@@ -1289,7 +1289,7 @@ function ripple_namespace_requires_block(name) {
 }
 
 /**
- * @param {AST.Node} node
+ * @param {AST.TSRXJSXElement} node
  * @param {TransformClientContext | VisitorClientContext} context
  * @returns {boolean}
  */

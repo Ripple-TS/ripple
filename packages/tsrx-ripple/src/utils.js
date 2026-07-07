@@ -1940,7 +1940,7 @@ export function escape_html(value, is_attr = false) {
 
 /**
  * Returns true if node is a DOM element (not a component)
- * @param {AST.Node} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {boolean}
  */
 export function is_element_dom_element(node) {

@@ -110,6 +110,8 @@ interface BaseNodeMetaData {
 	tsrx_template_child?: { child: AST.Node | null };
 	/** Memoized `<> … </>` wrapper for a value-position directive (see get_directive_value_wrapper). */
 	tsrx_value_wrapper?: AST.TSRXJSXFragment;
+	/** Memoized element tag expression (see get_element_id). */
+	id_node?: AST.Expression;
 	ts_name?: string;
 	delegated?: any;
 	returned_tsrx_return?: AST.ReturnStatement;
@@ -323,6 +325,8 @@ declare module 'estree' {
 			AST.NodeWithMaybeComments {
 		openingElement: ESTreeJSX.TSRXJSXOpeningElement;
 		closingElement: ESTreeJSX.TSRXJSXClosingElement | null;
+		/** The parser marks dynamic `<{expr}>` tags; lower_dynamic_element clears it on its copy. */
+		isDynamic?: boolean;
 		/** Loose-mode recovery: the element was never closed. */
 		unclosed?: boolean;
 		/**
@@ -743,6 +747,8 @@ declare module 'estree-jsx' {
 	}
 
 	interface TSRXJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
+		/** The parser marks dynamic `<{expr}>` tags; lower_dynamic_element clears it on its copy. */
+		isDynamic?: boolean;
 		// AST.MemberExpression: the parser never produces it, but the to_ts
 		// transform plants the visited member chain (`<Foo.Bar>`) into the name
 		// slot for the TSX printer and its source mappings.

@@ -197,7 +197,7 @@ export function is_template_else_if(node, path) {
  * wrappers set `native_tsrx` themselves. Raw JSX fragments (attribute values)
  * are NOT template fragments — they lower through the raw-JSX value path.
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.TSRXJSXFragment}
  */
 export function is_template_fragment(node) {
 	return (
@@ -252,12 +252,12 @@ export function jsx_member_expression_to_member_expression(jsx_member) {
  * Memoized on the element so the analyzer and transforms share one node.
  * `lower_dynamic_element` overwrites the memo when it rewrites a dynamic tag
  * to the `TsrxDynamic` component.
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {AST.Identifier | AST.MemberExpression | AST.Expression}
  */
 export function get_element_id(node) {
 	node.metadata ??= { path: [] };
-	const metadata = /** @type {{ id_node?: AST.Expression }} */ (node.metadata);
+	const metadata = node.metadata;
 	if (metadata.id_node === undefined) {
 		const name = node.openingElement.name;
 		if (name.type === 'JSXIdentifier') {
@@ -296,7 +296,7 @@ export function get_element_id(node) {
  * `build_jsx_to_tsrx_element` marked native when pulling it into the template
  * machinery.
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.TSRXJSXElement}
  */
 export function is_template_element(node) {
 	return node?.type === 'JSXElement' && node.metadata?.native_tsrx === true;
@@ -307,7 +307,7 @@ export function is_template_element(node) {
  * dynamic elements lowering to `TsrxDynamic`, member-expression tags being
  * visited). Writes the memo on JSX elements; the interim `Element` leg writes
  * the `id` field directly.
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @param {AST.Expression} id
  * @returns {void}
  */
@@ -319,17 +319,17 @@ export function set_element_id(node, id) {
 /**
  * The element's tag as a plain `Identifier` — `null` for member-expression,
  * namespaced, or dynamic tags.
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {AST.Identifier | null}
  */
 export function get_element_identifier(node) {
 	const id = get_element_id(node);
-	return id.type === 'Identifier' ? /** @type {AST.Identifier} */ (id) : null;
+	return id.type === 'Identifier' ? id : null;
 }
 
 /**
  * The element's attributes (raw `JSXAttribute`/`JSXSpreadAttribute` nodes).
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {Array<ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute>}
  */
 export function get_element_attributes(node) {
@@ -337,7 +337,7 @@ export function get_element_attributes(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {boolean}
  */
 export function is_self_closing(node) {
@@ -348,28 +348,25 @@ export function is_self_closing(node) {
  * Whether the element has a dynamic `<{expr}>` tag that has not (yet) been
  * lowered to the `TsrxDynamic` component by `lower_dynamic_element` (which
  * clears these markers).
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {boolean}
  */
 export function is_dynamic_element(node) {
+	const name = node.openingElement?.name;
 	return (
 		node.isDynamic === true ||
 		node.openingElement?.isDynamic === true ||
-		node.openingElement?.name?.isDynamic === true
+		(name?.type === 'JSXExpressionContainer' && name.isDynamic === true)
 	);
 }
 
 /**
  * The CSS source of a `<style>` template element.
- * @param {any} node
+ * @param {AST.JSXStyleElement} node
  * @returns {string}
  */
 export function get_style_css(node) {
-	return (
-		node.css ??
-		node.children?.find((/** @type {any} */ child) => child?.type === 'StyleSheet')?.source ??
-		''
-	);
+	return node.css ?? node.children?.find((child) => child?.type === 'StyleSheet')?.source ?? '';
 }
 
 /**

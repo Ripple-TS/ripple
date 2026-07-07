@@ -86,10 +86,6 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		errors,
 		comments,
 	});
-	// Mapping generation walks the pristine source shapes. Analysis and the
-	// transform are copy-on-write — they rebuild their own tree and never
-	// mutate the parse tree — so the parsed AST *is* the source view.
-	const ast_from_source = ast;
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
 		collect: true,
@@ -107,7 +103,10 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 
 	return createVolarMappingsResult({
 		ast: transformed.ast,
-		ast_from_source,
+		// Mapping generation walks the pristine source shapes. Analysis and the
+		// transform are copy-on-write — they rebuild their own tree and never
+		// mutate the parse tree — so the parsed AST *is* the source view.
+		ast_from_source: ast,
 		source,
 		generated_code: transformed.code,
 		source_map: transformed.map,
