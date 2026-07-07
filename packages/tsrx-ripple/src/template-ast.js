@@ -215,34 +215,18 @@ export function is_template_fragment(node) {
  * @returns {AST.MemberExpression}
  */
 export function jsx_member_expression_to_member_expression(jsx_member) {
-	/** @type {AST.Expression} */
-	let object;
+	const object =
+		jsx_member.object.type === 'JSXMemberExpression'
+			? jsx_member_expression_to_member_expression(jsx_member.object)
+			: b.id(jsx_member.object.name, /** @type {AST.NodeWithLocation} */ (jsx_member.object));
 
-	if (jsx_member.object.type === 'JSXMemberExpression') {
-		object = jsx_member_expression_to_member_expression(jsx_member.object);
-	} else {
-		object = /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: jsx_member.object.name,
-			start: jsx_member.object.start,
-			end: jsx_member.object.end,
-		});
-	}
-
-	return /** @type {AST.MemberExpression} */ ({
-		type: 'MemberExpression',
+	return b.member(
 		object,
-		property: /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: jsx_member.property.name,
-			start: jsx_member.property.start,
-			end: jsx_member.property.end,
-		}),
-		computed: false,
-		optional: false,
-		start: jsx_member.start,
-		end: jsx_member.end,
-	});
+		b.id(jsx_member.property.name, /** @type {AST.NodeWithLocation} */ (jsx_member.property)),
+		false,
+		false,
+		/** @type {AST.NodeWithLocation} */ (jsx_member),
+	);
 }
 
 /**
@@ -257,23 +241,16 @@ export function jsx_member_expression_to_member_expression(jsx_member) {
 export function get_element_id(node) {
 	const name = node.openingElement.name;
 	if (name.type === 'JSXIdentifier') {
-		return /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: name.name,
-			start: name.start,
-			end: name.end,
-		});
+		return b.id(name.name, /** @type {AST.NodeWithLocation} */ (name));
 	}
 	if (name.type === 'JSXMemberExpression') {
 		return jsx_member_expression_to_member_expression(name);
 	}
 	if (name.type === 'JSXNamespacedName') {
-		return /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: name.namespace.name + ':' + name.name.name,
-			start: name.start,
-			end: name.end,
-		});
+		return b.id(
+			name.namespace.name + ':' + name.name.name,
+			/** @type {AST.NodeWithLocation} */ (name),
+		);
 	}
 	if (name.type === 'MemberExpression') {
 		return name;
@@ -282,12 +259,7 @@ export function get_element_id(node) {
 		return /** @type {AST.Expression} */ (name.expression);
 	}
 	// Fallback - should not reach here
-	return /** @type {AST.Identifier} */ ({
-		type: 'Identifier',
-		name: 'unknown',
-		start: name.start,
-		end: name.end,
-	});
+	return b.id('unknown', /** @type {AST.NodeWithLocation} */ (name));
 }
 
 /**
@@ -388,56 +360,42 @@ function attribute_shorthand_end_loc(attr) {
 }
 
 /**
- * The attribute's name as a plain `Identifier`, memoized on the attribute so
- * the analyzer and transforms share one node (attribute-name identifiers are
- * collected into sets and compared by identity).
+ * Synthesize a plain `Identifier` spanning the attribute's name (for a
+ * shorthand attribute, the name inside the braces).
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @returns {AST.Identifier}
+ */
+function attribute_identifier(attr) {
+	const node = b.id(get_attribute_name(attr));
+	node.start = attr.name.start;
+	node.end = attribute_name_end(attr);
+	node.loc = /** @type {AST.SourceLocation} */ ({
+		start: attr.name.loc?.start ?? attr.loc?.start,
+		end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
+	});
+	return node;
+}
+
+/**
+ * The attribute's name as a plain `Identifier`.
  * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {AST.Identifier}
  */
 export function get_attribute_name_node(attr) {
-	attr.metadata ??= { path: [] };
-	const metadata = /** @type {{ attribute_name_node?: AST.Identifier }} */ (attr.metadata);
-	if (metadata.attribute_name_node === undefined) {
-		metadata.attribute_name_node = /** @type {AST.Identifier} */ ({
-			type: 'Identifier',
-			name: get_attribute_name(attr),
-			tracked: false,
-			start: attr.name.start,
-			end: attribute_name_end(attr),
-			loc: {
-				start: attr.name.loc?.start ?? attr.loc?.start,
-				end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
-			},
-		});
-	}
-	return metadata.attribute_name_node;
+	return attribute_identifier(attr);
 }
 
 /**
  * The attribute's value expression: `null` for a valueless attribute
  * (`<div attr>`), the expression for a `{ … }` container value, a synthesized
- * `Identifier` (memoized) for a shorthand attribute (`<div {foo}>`), and the
- * literal itself for a quoted value.
+ * `Identifier` for a shorthand attribute (`<div {foo}>`), and the literal
+ * itself for a quoted value.
  * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {AST.Expression | null}
  */
 export function get_attribute_value(attr) {
 	if (attr.shorthand === true) {
-		attr.metadata ??= { path: [] };
-		const metadata = /** @type {{ attribute_shorthand_value?: AST.Identifier }} */ (attr.metadata);
-		if (metadata.attribute_shorthand_value === undefined) {
-			metadata.attribute_shorthand_value = /** @type {AST.Identifier} */ ({
-				type: 'Identifier',
-				name: get_attribute_name(attr),
-				start: attr.name.start,
-				end: attribute_name_end(attr),
-				loc: {
-					start: attr.name.loc?.start ?? attr.loc?.start,
-					end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
-				},
-			});
-		}
-		return metadata.attribute_shorthand_value;
+		return attribute_identifier(attr);
 	}
 	if (attr.value == null) {
 		return null;
