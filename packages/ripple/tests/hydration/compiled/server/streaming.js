@@ -25,6 +25,7 @@ export function resetControls() {
 	controls.outer = make();
 	controls.inner = make();
 	controls.rootDirect = make();
+	controls.head = make();
 }
 
 resetControls();
@@ -291,14 +292,85 @@ export function RootPending() {
 	});
 }
 
-export function StreamRootDirect() {
+function HeadContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_5 = _$_.track_async(() => controls.rootDirect.promise, '9cd3c3cd');
+		let lazy_5 = _$_.track_async(() => controls.head.promise, '9cd3c3cd');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="root-async">' + _$_.escape(lazy_5.value) + '</p>';
+			__out += '<!--[--><!--[-->';
+
+			if (lazy_5.value) {
+				__out += '<!--[--><p class="head-content">' + _$_.escape(lazy_5.value) + '</p>';
+				_$_.output_push(__out);
+				__out = '';
+				_$_.set_output_target('head');
+				__out += '<!--e957a664--><title>' + _$_.escape('title:' + lazy_5.value) + '</title>';
+				_$_.output_push(__out);
+				__out = '';
+				_$_.set_output_target(null);
+				__out += '<!--]-->';
+			}
+
+			__out += '<!--]--><!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function StreamHead() {
+	return _$_.tsrx_element(() => {
+		_$_.try_block(
+			() => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					{
+						const comp = HeadContent;
+						const args = [{}];
+
+						_$_.render_component(comp, ...args);
+					}
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			},
+			null,
+			() => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					let __out = '';
+
+					__out += '<p class="loading">loading...</p>';
+					_$_.output_push(__out);
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			}
+		);
+	});
+}
+
+export function StreamRootDirect() {
+	return _$_.tsrx_element(() => {
+		let lazy_6 = _$_.track_async(() => controls.rootDirect.promise, 'bc9e61da');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<p class="root-async">' + _$_.escape(lazy_6.value) + '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -306,12 +378,12 @@ export function StreamRootDirect() {
 
 function OuterContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_6 = _$_.track_async(() => controls.outer.promise, 'bc9e61da');
+		let lazy_7 = _$_.track_async(() => controls.outer.promise, '35931cce');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="outer">' + _$_.escape(lazy_6.value) + '</p>';
+			__out += '<p class="outer">' + _$_.escape(lazy_7.value) + '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -319,12 +391,12 @@ function OuterContent() {
 
 function InnerContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_7 = _$_.track_async(() => controls.inner.promise, '35931cce');
+		let lazy_8 = _$_.track_async(() => controls.inner.promise, '6c7d38ed');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="inner">' + _$_.escape(lazy_7.value) + '</p>';
+			__out += '<p class="inner">' + _$_.escape(lazy_8.value) + '</p>';
 			_$_.output_push(__out);
 		});
 	});

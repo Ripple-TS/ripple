@@ -576,6 +576,54 @@ describe('streaming root boundary', () => {
 	});
 });
 
+describe('streaming head content', () => {
+	it('ships head writes from async content as a head template in the chunk', async () => {
+		const d = deferred<string>();
+
+		function LateHead() @{
+			let &[data] = trackAsync(() => d.promise);
+			<>
+				@if (data) {
+					<>
+						<head>
+							<title>
+								{'title:' + data}
+							</title>
+						</head>
+						<p class="has-head">{data}</p>
+					</>
+				}
+			</>
+		}
+
+		function App() @{
+			@try {
+				<LateHead />
+			} @pending {
+				<p>{'loading...'}</p>
+			}
+		}
+
+		const { chunks, sink } = recordingSink();
+		const result = render(App, { stream: sink });
+
+		expect(chunks).toHaveLength(1);
+		expect(chunks[0]).not.toContain('<title>');
+
+		d.resolve('late');
+		await result;
+
+		expect(chunks).toHaveLength(2);
+		const chunk = chunks[1];
+		expect(chunk).toMatch(
+			/<template data-ripple-head="\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
+		);
+		expect(chunk).toContain('<p class="has-head">late</p>');
+		// the head template precedes the content template
+		expect(chunk.indexOf('data-ripple-head')).toBeLessThan(chunk.indexOf('data-ripple-chunk'));
+	});
+});
+
 describe('streaming CSS', () => {
 	it('sends sync CSS with the shell and async-only CSS with its chunk, deduplicated', async () => {
 		const d_gate = deferred<boolean>();

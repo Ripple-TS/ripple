@@ -18,13 +18,17 @@ var root_13 = _$_.template(`<p class="resolved"> </p>`, 0);
 var root_14 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_15 = _$_.template(`<section class="root-catch"> </section>`, 0);
 var root_16 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
-var root_17 = _$_.template(`<p class="root-async"> </p>`, 0);
-var root_18 = _$_.template(`<p class="outer"> </p>`, 0);
-var root_19 = _$_.template(`<p class="inner"> </p>`, 0);
-var root_22 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
-var root_21 = _$_.template(`<!><!>`, 1, 2);
-var root_20 = _$_.template(`<!>`, 1, 1);
-var root_23 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
+var root_19 = _$_.template(`<p class="head-content"> </p>`, 0);
+var root_18 = _$_.template(`<!>`, 1, 1);
+var root_17 = _$_.template(`<!>`, 1, 1);
+var root_20 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_21 = _$_.template(`<p class="root-async"> </p>`, 0);
+var root_22 = _$_.template(`<p class="outer"> </p>`, 0);
+var root_23 = _$_.template(`<p class="inner"> </p>`, 0);
+var root_26 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
+var root_25 = _$_.template(`<!><!>`, 1, 2);
+var root_24 = _$_.template(`<!>`, 1, 1);
+var root_27 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
 
 import { track, trackAsync } from 'ripple';
 
@@ -52,6 +56,7 @@ export function resetControls() {
 	controls.outer = make();
 	controls.inner = make();
 	controls.rootDirect = make();
+	controls.head = make();
 }
 
 resetControls();
@@ -281,51 +286,117 @@ export function RootPending() {
 	});
 }
 
+function HeadContent() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_5 = _$_.track_async(() => controls.head.promise, __block, '9cd3c3cd');
+		var fragment_6 = root_17();
+		var node_7 = _$_.first_child_frag(fragment_6);
+
+		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
+			{
+				var consequent = (__anchor) => {
+					var fragment_7 = root_18();
+					var node_6 = _$_.first_child_frag(fragment_7);
+
+					_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
+						var p_7 = root_19();
+
+						{
+							var expression_7 = _$_.child(p_7);
+
+							_$_.expression(expression_7, () => lazy_5.value);
+							_$_.pop(p_7);
+						}
+
+						_$_.head('e957a664', (__anchor) => {
+							_$_.render(() => {
+								_$_.document.title = 'title:' + lazy_5.value;
+							});
+						});
+
+						_$_.append(__anchor, p_7);
+					}));
+
+					_$_.append(__anchor, fragment_7);
+				};
+
+				_$_.if(
+					__anchor,
+					(__render) => {
+						if (lazy_5.value) __render(consequent);
+					},
+					true
+				);
+			}
+		}));
+
+		_$_.append(__anchor, fragment_6);
+	});
+}
+
+export function StreamHead() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		_$_.try(
+			__anchor,
+			(__anchor) => {
+				_$_.render_component(HeadContent, __anchor, {});
+			},
+			null,
+			(__anchor) => {
+				var p_8 = root_20();
+
+				_$_.append(__anchor, p_8);
+			},
+			true
+		);
+	});
+}
+
 export function StreamRootDirect() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_5 = _$_.track_async(() => controls.rootDirect.promise, __block, '9cd3c3cd');
-		var p_7 = root_17();
+		let lazy_6 = _$_.track_async(() => controls.rootDirect.promise, __block, 'bc9e61da');
+		var p_9 = root_21();
 
 		{
-			var expression_7 = _$_.child(p_7);
+			var expression_8 = _$_.child(p_9);
 
-			_$_.expression(expression_7, () => lazy_5.value);
-			_$_.pop(p_7);
+			_$_.expression(expression_8, () => lazy_6.value);
+			_$_.pop(p_9);
 		}
 
-		_$_.append(__anchor, p_7);
+		_$_.append(__anchor, p_9);
 	});
 }
 
 function OuterContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_6 = _$_.track_async(() => controls.outer.promise, __block, 'bc9e61da');
-		var p_8 = root_18();
+		let lazy_7 = _$_.track_async(() => controls.outer.promise, __block, '35931cce');
+		var p_10 = root_22();
 
 		{
-			var expression_8 = _$_.child(p_8);
+			var expression_9 = _$_.child(p_10);
 
-			_$_.expression(expression_8, () => lazy_6.value);
-			_$_.pop(p_8);
+			_$_.expression(expression_9, () => lazy_7.value);
+			_$_.pop(p_10);
 		}
 
-		_$_.append(__anchor, p_8);
+		_$_.append(__anchor, p_10);
 	});
 }
 
 function InnerContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_7 = _$_.track_async(() => controls.inner.promise, __block, '35931cce');
-		var p_9 = root_19();
+		let lazy_8 = _$_.track_async(() => controls.inner.promise, __block, '6c7d38ed');
+		var p_11 = root_23();
 
 		{
-			var expression_9 = _$_.child(p_9);
+			var expression_10 = _$_.child(p_11);
 
-			_$_.expression(expression_9, () => lazy_7.value);
-			_$_.pop(p_9);
+			_$_.expression(expression_10, () => lazy_8.value);
+			_$_.pop(p_11);
 		}
 
-		_$_.append(__anchor, p_9);
+		_$_.append(__anchor, p_11);
 	});
 }
 
@@ -334,40 +405,40 @@ export function StreamNested() {
 		_$_.try(
 			__anchor,
 			(__anchor) => {
-				var fragment_6 = root_20();
-				var node_8 = _$_.first_child_frag(fragment_6);
+				var fragment_8 = root_24();
+				var node_10 = _$_.first_child_frag(fragment_8);
 
-				_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
-					var fragment_7 = root_21();
-					var node_6 = _$_.first_child_frag(fragment_7);
+				_$_.expression(node_10, () => _$_.tsrx_element((__anchor, __block) => {
+					var fragment_9 = root_25();
+					var node_8 = _$_.first_child_frag(fragment_9);
 
-					_$_.render_component(OuterContent, node_6, {});
+					_$_.render_component(OuterContent, node_8, {});
 
-					var node_7 = _$_.sibling(node_6);
+					var node_9 = _$_.sibling(node_8);
 
 					_$_.try(
-						node_7,
+						node_9,
 						(__anchor) => {
 							_$_.render_component(InnerContent, __anchor, {});
 						},
 						null,
 						(__anchor) => {
-							var p_10 = root_22();
+							var p_12 = root_26();
 
-							_$_.append(__anchor, p_10);
+							_$_.append(__anchor, p_12);
 						}
 					);
 
-					_$_.append(__anchor, fragment_7);
+					_$_.append(__anchor, fragment_9);
 				}));
 
-				_$_.append(__anchor, fragment_6);
+				_$_.append(__anchor, fragment_8);
 			},
 			null,
 			(__anchor) => {
-				var p_11 = root_23();
+				var p_13 = root_27();
 
-				_$_.append(__anchor, p_11);
+				_$_.append(__anchor, p_13);
 			},
 			true
 		);

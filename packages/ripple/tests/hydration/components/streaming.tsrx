@@ -26,6 +26,7 @@ export function resetControls() {
 	controls.outer = make();
 	controls.inner = make();
 	controls.rootDirect = make();
+	controls.head = make();
 }
 
 resetControls();
@@ -106,6 +107,30 @@ export function RootCatch({ error, reset }: { error: Error; reset: () => void })
 
 export function RootPending() @{
 	<p class="root-pending">{'root-loading'}</p>
+}
+
+function HeadContent() @{
+	let &[data] = trackAsync(() => controls.head.promise);
+	<>
+		@if (data) {
+			<>
+				<head>
+					<title>
+						{'title:' + data}
+					</title>
+				</head>
+				<p class="head-content">{data}</p>
+			</>
+		}
+	</>
+}
+
+export function StreamHead() @{
+	@try {
+		<HeadContent />
+	} @pending {
+		<p class="loading">{'loading...'}</p>
+	}
 }
 
 export function StreamRootDirect() @{

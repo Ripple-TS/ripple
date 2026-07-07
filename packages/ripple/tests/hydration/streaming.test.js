@@ -282,6 +282,23 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		expect(container.querySelector('.root-pending')).toBeNull();
 	});
 
+	it('moves streamed head content into document.head on chunk arrival', async () => {
+		const { chunks, done } = startStream(ServerComponents.StreamHead);
+		mountShell(chunks[0]);
+
+		hydrate(ClientComponents.StreamHead, { target: container });
+		expect(container.querySelector('.loading')).not.toBeNull();
+
+		ServerComponents.controls.head.resolve('late');
+		await done;
+		receiveChunk(chunks[1]);
+		flushSync();
+
+		expect(document.title).toBe('title:late');
+		expect(container.querySelector('.head-content')?.textContent).toBe('late');
+		expect(document.querySelector('template[data-ripple-head]')).toBeNull();
+	});
+
 	it('activates nested boundaries chunk by chunk, parent first', async () => {
 		const { chunks, done } = startStream(ServerComponents.StreamNested);
 		mountShell(chunks[0]);
