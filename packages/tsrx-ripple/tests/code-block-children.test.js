@@ -99,6 +99,21 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		expect(code).toContain('<span class="sum">{x + y}</span>');
 	});
 
+	it('collapses a whole-body nested chain to a bare IIFE in the TS view', () => {
+		// The chain wrapper fragment is compiler-generated (tsrx_code_block_chain)
+		// — is_authored_native_fragment must not treat it as an authored `<> … </>`
+		// or the returned value keeps a spurious fragment around the IIFE.
+		const source = `function Comp(props) @{
+	@{
+		const { Item } = props;
+		<Item></Item>
+	}
+}`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx');
+		expect(code).toContain('return (() => {');
+		expect(code).not.toContain('return <>{(() => {');
+	});
+
 	const empty_nested = `function App() @{
 	<>
 		<span>{'a'}</span>
