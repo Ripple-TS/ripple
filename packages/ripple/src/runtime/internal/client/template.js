@@ -223,7 +223,8 @@ function is_after_hydration_block(start, target) {
 		if (current.nodeType === COMMENT_NODE) {
 			var data = /** @type {Comment} */ (current).data;
 
-			if (data === HYDRATION_START) {
+			// `[`-prefixed covers plain block starts and streaming slot markers
+			if (data.startsWith(HYDRATION_START)) {
 				depth += 1;
 			} else if (data === HYDRATION_END) {
 				if (depth === 0) {

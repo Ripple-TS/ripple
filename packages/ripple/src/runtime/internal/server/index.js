@@ -92,7 +92,7 @@ import {
 	get_closest_try_block,
 	try_block,
 } from './blocks.js';
-import { COMPONENT_BLOCK, TRY_BLOCK } from './constants.js';
+import { COMPONENT_BLOCK, ROOT_BLOCK, TRY_BLOCK } from './constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
@@ -921,7 +921,7 @@ export class Output {
 					'" type="application/json">' +
 					escape_script(JSON.stringify({ message: unit.error })) +
 					'</script>' +
-					'<script>__TSRX_S__(' +
+					'<script>__RIPPLE_S__(' +
 					unit.id +
 					',1)</script>',
 			);
@@ -936,7 +936,7 @@ export class Output {
 		}
 		out += chunk.scripts.join('');
 		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
-		out += '<script>__TSRX_S__(' + unit.id + ')</script>';
+		out += '<script>__RIPPLE_S__(' + unit.id + ')</script>';
 		sink.push(out);
 	}
 
@@ -986,7 +986,15 @@ export class Output {
 			chunk.css.add(hash);
 		}
 		var out = head_html + chunk.head + this.#chunk_css(chunk.css) + chunk.scripts.join('');
-		out += BLOCK_OPEN + body + BLOCK_CLOSE;
+		if (this.unit !== null) {
+			// the root boundary suspended: its slot IS the body (the body
+			// markers travel with the unit's content instead), so the slot
+			// marker doubles as the hydration anchor and is unambiguously
+			// root-owned
+			out += body;
+		} else {
+			out += BLOCK_OPEN + body + BLOCK_CLOSE;
+		}
 		var has_open_units = false;
 		for (var i = 0; i < this.#units.length; i++) {
 			if (!this.#units[i].flushed) {
@@ -1956,6 +1964,13 @@ function route_track_async_error_to_catch_block_with_boundary(catch_block, hash,
 export function begin_stream_unit(block, pending_fn) {
 	var output = block.o;
 	var unit = output._createFlushUnit(block);
+	if (block.f & ROOT_BLOCK) {
+		// a user try body carries its own compiled <!--[-->…<!--]--> markers;
+		// the root boundary's content does not — add them so every unit's
+		// content hydrates (and swaps) through the same shape
+		unit.content.unshift(BLOCK_OPEN);
+		unit.content.push(BLOCK_CLOSE);
+	}
 	output.push('<!--' + HYDRATION_START_PENDING + unit.id + '-->');
 	if (pending_fn !== null) {
 		pending_fn();

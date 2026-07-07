@@ -3,11 +3,11 @@
  * shell chunk (only when the shell contains unresolved flush-unit slots).
  *
  * Exposes two globals:
- * - `__TSRX_B__`: registry shared with the hydrating app. Before a unit's
+ * - `__RIPPLE_B__`: registry shared with the hydrating app. Before a unit's
  *   chunk arrives, the app may register `{ a(template, errored) }` for a slot
  *   it hydrated in the pending state; after a swap the runtime stores `1` to
  *   mark the slot done.
- * - `__TSRX_S__(id, errored)`: called by each streamed chunk. Moves streamed
+ * - `__RIPPLE_S__(id, errored)`: called by each streamed chunk. Moves streamed
  *   head content into `<head>`, then either hands the chunk template to the
  *   registered boundary (post-hydration arrival) or swaps the fallback DOM
  *   directly (pre-hydration arrival) and normalizes the slot markers so the
@@ -18,11 +18,11 @@
  * script is hand-minified against those values.
  */
 export const STREAM_RUNTIME_SCRIPT =
-	'<script>(function(){var d=document;var B=window.__TSRX_B__||(window.__TSRX_B__={});' +
-	'window.__TSRX_S__=function(n,e){' +
-	"var h=d.querySelector('template[data-tsrx-head=\"'+n+'\"]');" +
+	'<script>(function(){var d=document;var B=window.__RIPPLE_B__||(window.__RIPPLE_B__={});' +
+	'window.__RIPPLE_S__=function(n,e){' +
+	"var h=d.querySelector('template[data-ripple-head=\"'+n+'\"]');" +
 	'if(h){d.head.appendChild(h.content);h.remove();}' +
-	"var t=d.querySelector('template[data-tsrx-chunk=\"'+n+'\"]');" +
+	"var t=d.querySelector('template[data-ripple-chunk=\"'+n+'\"]');" +
 	'var r=B[n];' +
 	'if(r&&r.a){B[n]=1;r.a(t,e);if(t)t.remove();return;}' +
 	'var w=d.createTreeWalker(d.body||d.documentElement,128),c;' +

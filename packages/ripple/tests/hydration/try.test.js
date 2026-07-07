@@ -82,7 +82,7 @@ describe('hydration > root try boundary', () => {
 			({ container, body }) => {
 				expect(body).toContain('<!--[-->');
 				expect(body).toContain('<!--]-->');
-				expect(body).toContain('__tsrx_ta_');
+				expect(body).toContain('__ripple_ta_');
 
 				ssrValue = container.querySelector('.root-async-value');
 			},
@@ -92,7 +92,7 @@ describe('hydration > root try boundary', () => {
 		expect(ssrValue?.textContent).toBe('root async value');
 		expect(container.querySelector('.root-pending')).toBeNull();
 		expect(container.querySelector('.root-catch')).toBeNull();
-		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 
 	it('hydrates root catch content from a rejected server trackAsync result', async () => {
@@ -111,7 +111,7 @@ describe('hydration > root try boundary', () => {
 			({ container, body }) => {
 				expect(body).toContain('<!--[-->');
 				expect(body).toContain('<!--]-->');
-				expect(body).toContain('__tsrx_ta_');
+				expect(body).toContain('__ripple_ta_');
 
 				ssrCatch = container.querySelector('.root-catch');
 				ssrError = container.querySelector('.root-error');
@@ -125,7 +125,7 @@ describe('hydration > root try boundary', () => {
 		expect(ssrError?.textContent).toBe(ROOT_TRACK_ASYNC_ERROR_MESSAGE);
 		expect(container.querySelector('.root-async-value')).toBeNull();
 		expect(container.querySelector('.root-pending')).toBeNull();
-		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 });
 

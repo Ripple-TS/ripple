@@ -133,7 +133,11 @@ export function hydrate(component, options) {
 	try {
 		while (
 			anchor &&
-			(anchor.nodeType !== COMMENT_NODE || /** @type {Comment} */ (anchor).data !== HYDRATION_START)
+			(anchor.nodeType !== COMMENT_NODE ||
+				// any `[`-prefixed marker anchors the root boundary — a streamed
+				// shell whose root suspended starts with a `<!--[?N-->` slot
+				// marker instead of a plain `<!--[-->`
+				!(/** @type {Comment} */ (anchor).data.startsWith(HYDRATION_START)))
 		) {
 			anchor = get_next_sibling(anchor);
 		}

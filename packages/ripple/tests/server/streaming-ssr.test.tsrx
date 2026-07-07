@@ -46,13 +46,13 @@ function applyStream(chunks: string[]): string {
 	let html = chunks.join('');
 	const templates = new Map<string, string>();
 	html = html.replace(
-		/<template data-tsrx-chunk="(\d+)">([\s\S]*?)<\/template>/g,
+		/<template data-ripple-chunk="(\d+)">([\s\S]*?)<\/template>/g,
 		(_m, id, content) => {
 			templates.set(id, content);
 			return '';
 		},
 	);
-	html = html.replace(/<script>__TSRX_S__\((\d+)(,1)?\)<\/script>/g, '');
+	html = html.replace(/<script>__RIPPLE_S__\((\d+)(,1)?\)<\/script>/g, '');
 	html = html.replace(/<script>\(function\(\)[\s\S]*?<\/script>/g, '');
 
 	let match: RegExpMatchArray | null;
@@ -92,7 +92,7 @@ function applyStream(chunks: string[]): string {
 
 function normalize(html: string): string {
 	return html.replace(
-		/<script id="__tsrx_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>/g,
+		/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>/g,
 		'',
 	).replace(/<style data-ripple-ssr>[\s\S]*?<\/style>/g, '');
 }
@@ -148,7 +148,7 @@ describe('create_ssr_stream', () => {
 		await render(App, { stream: sink });
 
 		expect(chunks).toHaveLength(1);
-		expect(chunks[0]).not.toContain('__TSRX_S__');
+		expect(chunks[0]).not.toContain('__RIPPLE_S__');
 		expect(chunks[0]).not.toContain('[?');
 		expect(isClosed()).toBe(true);
 	});
@@ -187,7 +187,7 @@ describe('streaming try/pending boundaries', () => {
 		expect(shell).toContain('<p class="loading">loading...</p>');
 		expect(shell).toMatch(SLOT_OPEN_RE);
 		// the swap runtime ships with the shell when open slots remain
-		expect(shell).toContain('__TSRX_S__');
+		expect(shell).toContain('__RIPPLE_S__');
 		// nothing of the real body may leak into the shell
 		expect(shell).not.toContain('static-after');
 
@@ -201,15 +201,15 @@ describe('streaming try/pending boundaries', () => {
 		expect(slot_match).not.toBeNull();
 		const id = slot_match![1];
 		const chunk = chunks[1];
-		expect(chunk).toContain(`<template data-tsrx-chunk="${id}">`);
+		expect(chunk).toContain(`<template data-ripple-chunk="${id}">`);
 		expect(chunk).toContain('<p>async-data</p>');
 		// static markup after the suspension point belongs to the chunk
 		// (regression: it used to be lost when the boundary cleared its buffer)
 		expect(chunk).toContain('<footer>static-after</footer>');
-		expect(chunk).toContain(`<script>__TSRX_S__(${id})</script>`);
+		expect(chunk).toContain(`<script>__RIPPLE_S__(${id})</script>`);
 		// the trackAsync envelope ships in the same chunk, ahead of the template
 		expect(chunk).toMatch(
-			/<script id="__tsrx_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>[\s\S]*<template data-tsrx-chunk/,
+			/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>[\s\S]*<template data-ripple-chunk/,
 		);
 	});
 
@@ -272,11 +272,11 @@ describe('streaming try/pending boundaries', () => {
 		const all = chunks.join('');
 		const chunk = chunks[chunks.length - 1];
 		expect(chunk).toContain('<em>boom</em>');
-		expect(chunk).toContain('<template data-tsrx-chunk=');
+		expect(chunk).toContain('<template data-ripple-chunk=');
 		// the rejected trackAsync envelope reaches the wire before the chunk
 		// that hydrates the catch branch from it
-		const envelope_index = all.indexOf('__tsrx_ta_');
-		const template_index = all.indexOf('<template data-tsrx-chunk=');
+		const envelope_index = all.indexOf('__ripple_ta_');
+		const template_index = all.indexOf('<template data-ripple-chunk=');
 		expect(envelope_index).toBeGreaterThan(-1);
 		expect(envelope_index).toBeLessThan(template_index);
 	});
@@ -321,9 +321,9 @@ describe('streaming try/pending boundaries', () => {
 		expect(topLevelError).toBe(null);
 		const all = chunks.join('');
 		expect(all).not.toContain('root caught');
-		expect(all).toContain(`<script id="__tsrx_te_${id}" type="application/json">`);
+		expect(all).toContain(`<script id="__ripple_te_${id}" type="application/json">`);
 		expect(all).toContain('no local catch');
-		expect(all).toContain(`__TSRX_S__(${id},1)`);
+		expect(all).toContain(`__RIPPLE_S__(${id},1)`);
 	});
 });
 
@@ -646,7 +646,7 @@ describe('streaming CSS', () => {
 		expect(chunks).toHaveLength(2);
 		// the chunk carries the style it needs, ahead of its template
 		const style_index = chunks[1].indexOf('.late-styled');
-		const template_index = chunks[1].indexOf('<template data-tsrx-chunk=');
+		const template_index = chunks[1].indexOf('<template data-ripple-chunk=');
 		expect(style_index).toBeGreaterThan(-1);
 		expect(style_index).toBeLessThan(template_index);
 

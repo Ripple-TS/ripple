@@ -17,7 +17,7 @@ describe('trackAsync serialization (server)', () => {
 		const { body } = await render(App);
 		expect(body).toContain('hello world');
 		// Should contain a serialization script tag
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('type="application/json"');
 	});
 
@@ -33,7 +33,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		expect(body).toContain('42');
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 	});
 
 	it('serializes object trackAsync data correctly', async () => {
@@ -48,7 +48,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		expect(body).toContain('Alice');
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 	});
 
 	it('serializes array trackAsync data correctly', async () => {
@@ -67,7 +67,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		expect(body).toContain('<li>a</li>');
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 	});
 
 	it('serializes rejected trackAsync as error envelope', async () => {
@@ -85,7 +85,7 @@ describe('trackAsync serialization (server)', () => {
 		const { body } = await render(App);
 		const public_message = DEV ? 'fetch failed' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
 		expect(body).toContain(`<p class="error">${public_message}</p>`);
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
 	});
@@ -111,7 +111,7 @@ describe('trackAsync serialization (server)', () => {
 		const { body } = await render(Parent);
 		const public_message = DEV ? 'child error' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
 		expect(body).toContain(`<p class="parent-error">${public_message}</p>`);
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
 	});
@@ -133,7 +133,7 @@ describe('trackAsync serialization (server)', () => {
 		const { body } = await render(App);
 		const public_message = DEV ? 'sync failure' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
 		expect(body).toContain(`<p class="error">${public_message}</p>`);
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
 		expect(body).not.toContain('Error thrown during trackAsync execution');
@@ -154,7 +154,7 @@ describe('trackAsync serialization (server)', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toContain('__tsrx_ta_');
+		expect(body).toContain('__ripple_ta_');
 		if (DEV) {
 			expect(body).toContain('\\u003c/script\\u003e');
 			expect(body).not.toContain(
@@ -179,7 +179,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		// Find all script tag IDs
-		const matches = [...body.matchAll(/id="(__tsrx_ta_[a-f0-9]+)"/g)];
+		const matches = [...body.matchAll(/id="(__ripple_ta_[a-f0-9]+)"/g)];
 		expect(matches.length).toBe(2);
 		// Hashes should be different
 		expect(matches[0][1]).not.toBe(matches[1][1]);

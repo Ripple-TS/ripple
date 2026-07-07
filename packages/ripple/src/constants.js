@@ -22,9 +22,9 @@ export const HYDRATION_ERROR = {};
 export const HYDRATION_START_PENDING = '[?';
 export const HYDRATION_START_ERRORED = '[!';
 
-export const STREAM_CHUNK_ATTR = 'data-tsrx-chunk';
-export const STREAM_HEAD_ATTR = 'data-tsrx-head';
-export const STREAM_ERROR_SCRIPT_PREFIX = '__tsrx_te_';
+export const STREAM_CHUNK_ATTR = 'data-ripple-chunk';
+export const STREAM_HEAD_ATTR = 'data-ripple-head';
+export const STREAM_ERROR_SCRIPT_PREFIX = '__ripple_te_';
 
 export const BLOCK_OPEN = `<!--${HYDRATION_START}-->`;
 export const BLOCK_CLOSE = `<!--${HYDRATION_END}-->`;

@@ -9,7 +9,21 @@ import {
 	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
-import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
+import {
+	COMMENT_NODE,
+	HYDRATION_START,
+	HYDRATION_START_PENDING,
+	HYDRATION_START_ERRORED,
+	STREAM_ERROR_SCRIPT_PREFIX,
+} from '../../../constants.js';
+import {
+	hydrate_next,
+	hydrate_node,
+	hydrating,
+	set_hydrate_node,
+	set_hydrating,
+	skip_to_hydration_end,
+} from './hydration.js';
 import { append } from './template.js';
 import {
 	active_block,
@@ -60,6 +74,14 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 	var pending_deferreds = new Map();
 	/** @type {Set<Block>} */
 	var paused_blocks = new Set();
+	/** @type {string | null} */
+	var streamed_id = null;
+	var streamed_errored = false;
+	var streamed_fallback = false;
+	/** @type {Comment | null} */
+	var slot_open = null;
+	/** @type {Comment | null} */
+	var slot_close = null;
 
 	function clear_paused_blocks() {
 		paused_blocks.clear();
@@ -218,6 +240,96 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		destroy_resolved();
 	}
 
+	/**
+	 * Reads the streamed unit error envelope for this slot and routes the
+	 * error into this boundary, or the nearest catch boundary above it.
+	 * @param {string} id
+	 * @returns {void}
+	 */
+	function route_streamed_error(id) {
+		if (try_block === null || is_destroyed(try_block)) {
+			return;
+		}
+		var message = 'An error occurred during server rendering';
+		var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
+		if (script !== null) {
+			try {
+				message = JSON.parse(/** @type {string} */ (script.textContent)).message ?? message;
+			} catch {
+				// keep the generic message
+			}
+			script.remove();
+		}
+		var error = new Error(message);
+		if (catch_fn !== null) {
+			handle_error(error);
+			return;
+		}
+		var outer = get_boundary_with_catch(/** @type {Block} */ (try_block));
+		if (outer === null) {
+			throw error;
+		}
+		outer.s.c(error);
+	}
+
+	/**
+	 * Empties the streamed slot: destroys the hydrated fallback branch and
+	 * sweeps whatever remains between the wrapper comments (leftover marker
+	 * comments included).
+	 * @returns {void}
+	 */
+	function clear_streamed_slot() {
+		destroy_pending();
+		var node = /** @type {ChildNode} */ (slot_open).nextSibling;
+		while (node !== null && node !== slot_close) {
+			var next = node.nextSibling;
+			/** @type {ChildNode} */ (node).remove();
+			node = next;
+		}
+	}
+
+	/**
+	 * Called by the inline stream runtime when this slot's chunk arrives after
+	 * hydration: swaps the fallback for the streamed content and claims the
+	 * new DOM through a boundary-scoped hydration walk (trackAsync inside the
+	 * body picks its serialized envelope up from the same chunk).
+	 * @param {HTMLTemplateElement | null} template
+	 * @param {number | undefined} [errored]
+	 * @returns {void}
+	 */
+	function activate_streamed_chunk(template, errored) {
+		if (try_block === null || is_destroyed(try_block)) {
+			return;
+		}
+		var id = /** @type {string} */ (streamed_id);
+		streamed_id = null;
+		if (errored) {
+			clear_streamed_slot();
+			route_streamed_error(id);
+			return;
+		}
+		clear_streamed_slot();
+		if (template !== null) {
+			/** @type {ChildNode} */ (slot_close).before(template.content);
+		}
+		var first = /** @type {ChildNode} */ (slot_open).nextSibling;
+		if (first === null || first === slot_close) {
+			return;
+		}
+		var previous_hydrating = hydrating;
+		var previous_hydrate_node = hydrate_node;
+		set_hydrating(true);
+		set_hydrate_node(first);
+		hydrate_next(); // consume the streamed body's <!--[-->
+		try {
+			has_resolved = true;
+			render_resolved();
+		} finally {
+			set_hydrating(previous_hydrating);
+			set_hydrate_node(previous_hydrate_node, true);
+		}
+	}
+
 	function begin_request() {
 		var request_id = ++request_version;
 		active_requests.add(request_id);
@@ -312,22 +424,77 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 	};
 
 	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
-		// Server wraps try_fn body with <!--[-->...<!--]--> markers when pending or catch is present.
-		// Server resolves all async content fully (pending is only for future streaming SSR),
-		// so the SSR HTML contains resolved content.
-		// Mark as already resolved so begin_request's microtask won't transition to pending.
-		if (pending_fn !== null) {
-			has_resolved = true;
-		}
+		// Server wraps a settled try body with <!--[-->...<!--]--> markers when
+		// pending or catch is present, and the boundary hydrates as resolved.
+		// Streaming SSR instead emits a slot wrapper around the fallback:
+		// <!--[?N--> while unit N's content is still on its way, or
+		// <!--[!N--> when the unit errored after its region was already sent.
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
-		hydrate_next(); // consume <!--[-->
+
+		var marker = /** @type {Comment} */ (hydrate_node);
+		var data = marker.nodeType === COMMENT_NODE ? marker.data : '';
+
+		// a slot marker at the boundary's own anchor always belongs to this
+		// boundary — the root boundary included: when the root suspends, the
+		// server emits its slot as the whole body, so the marker doubles as
+		// the hydration anchor
+		if (data.startsWith(HYDRATION_START_PENDING) || data.startsWith(HYDRATION_START_ERRORED)) {
+			// live streamed slot
+			streamed_id = data.slice(HYDRATION_START_PENDING.length);
+			streamed_errored = data.startsWith(HYDRATION_START_ERRORED);
+			slot_open = marker;
+			hydrate_next(); // consume the slot wrapper open
+			slot_close = /** @type {Comment} */ (skip_to_hydration_end());
+			var fallback_start = /** @type {Comment} */ (hydrate_node);
+			streamed_fallback =
+				!streamed_errored &&
+				pending_fn !== null &&
+				fallback_start.nodeType === COMMENT_NODE &&
+				fallback_start.data === HYDRATION_START;
+			if (streamed_fallback) {
+				hydrate_next(); // consume the fallback's <!--[-->
+			}
+		} else {
+			// settled content: mark as already resolved so begin_request's
+			// microtask won't transition to pending
+			if (pending_fn !== null) {
+				has_resolved = true;
+			}
+			hydrate_next(); // consume <!--[-->
+		}
 	}
 
 	try_block = create_try_block(() => {
+		if (streamed_id !== null) {
+			// the streamed body hasn't arrived yet — hydrate the fallback (if
+			// any) as the pending branch and wait for the chunk to activate us
+			if (streamed_fallback) {
+				mode = 'pending';
+				pending_branch = boundary_fn_running_block(() => {
+					/** @type {PendingFunction} */ (pending_fn)(anchor);
+				});
+			}
+			return;
+		}
 		resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
 	}, state);
+
+	if (streamed_id !== null) {
+		// continue the outer hydration walk after the slot
+		set_hydrate_node(slot_close);
+
+		var registry = /** @type {any} */ ((window).__RIPPLE_B__ ??= {});
+		var unit_id = streamed_id;
+		if (streamed_errored) {
+			// the inline runtime already emptied the slot and marked it errored
+			// — route the error once the surrounding hydration has finished
+			queue_microtask(() => route_streamed_error(unit_id));
+		} else {
+			registry[unit_id] = { a: activate_streamed_chunk };
+		}
+	}
 
 	if (hydrating && root_controlled) {
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));

@@ -26,7 +26,7 @@ Compiler facts that constrain the design:
 - Async-ness is **not known at compile time**: `await` is a compile error in
   components; asyncness flows only through `trackAsync`, which carries a
   compile-time hash used for SSR result serialization
-  (`<script id="__tsrx_ta_<hash>" type="application/json">` envelopes) and
+  (`<script id="__ripple_ta_<hash>" type="application/json">` envelopes) and
   client-side hydration lookup (`client/runtime.js:611`).
 - Client `@try` compiles to `_$_.try(anchor, try_fn, catch_fn, pending_fn)`;
   during hydration the boundary consumes the opening `<!--[-->` and marks
@@ -163,22 +163,22 @@ Chunk framing:
 
 ```html
 <style data-ripple-ssr>…new css…</style>                        <!-- if any -->
-<script id="__tsrx_ta_<hash>" type="application/json">…</script> <!-- envelopes -->
-<template data-tsrx-chunk="N">…content…</template>
-<script>__TSRX_S__(N)</script>
+<script id="__ripple_ta_<hash>" type="application/json">…</script> <!-- envelopes -->
+<template data-ripple-chunk="N">…content…</template>
+<script>__RIPPLE_S__(N)</script>
 ```
 
-`__TSRX_S__` is a ~300-byte inline runtime emitted once at the end of the
+`__RIPPLE_S__` is a ~300-byte inline runtime emitted once at the end of the
 shell. Behavior in §3.
 
 Error path: if a unit's body ultimately errors, the server renders the catch
 branch into the unit (existing `route_error_to_catch_block` machinery) and
 flushes the same framing. `trackAsync` failures already serialize an error
-envelope (`__tsrx_ta_<hash>` with `ok:false`), which is what drives the client
+envelope (`__ripple_ta_<hash>` with `ok:false`), which is what drives the client
 to hydrate the catch branch (it re-throws during the try-body walk —
 `client/runtime.js:624` — and `handle_error` claims the streamed catch DOM).
 For non-trackAsync errors (rare: block fn throws post-resolve), add a
-unit-level error envelope `<script id="__tsrx_te_N">` so activation can route
+unit-level error envelope `<script id="__ripple_te_N">` so activation can route
 to the catch branch deterministically instead of relying on the client
 re-throwing the same way.
 
@@ -211,7 +211,7 @@ re-throwing the same way.
   synchronous `getElementById` lookup.
 - `<head>`-targeted output produced after the shell (`set_output_target('head')`)
   can't be appended to the real head as raw HTML. Emit it as
-  `<template data-tsrx-head="N">`; the swap runtime moves its content into
+  `<template data-ripple-head="N">`; the swap runtime moves its content into
   `document.head`.
 
 ### 2.7 Backpressure / cancellation (design now, ship later)
@@ -229,7 +229,7 @@ without it.
 
 A chunk arrives either before or after `hydrate()` has walked its slot:
 
-- **Before hydration**: `__TSRX_S__` swaps pure DOM — find comment `[?N`,
+- **Before hydration**: `__RIPPLE_S__` swaps pure DOM — find comment `[?N`,
   depth-aware scan to its wrapper `]`, remove fallback range and both wrapper
   comments, insert template content, record N as done. The DOM is now
   byte-identical to non-streamed SSR; hydration later needs zero new logic.
@@ -237,9 +237,9 @@ A chunk arrives either before or after `hydrate()` has walked its slot:
   `client/try.js` hydration setup: hydrate the **fallback** as the pending
   branch (`has_resolved = false`, `mode = 'pending'` — today's code instead
   forces `has_resolved = true`), register
-  `{ activate(template) }` in `window.__TSRX_B__[N]` (registry shared with the
+  `{ activate(template) }` in `window.__RIPPLE_B__[N]` (registry shared with the
   inline runtime), and `skip_to_hydration_end()` past the slot. When the chunk
-  arrives, `__TSRX_S__` sees the registry entry and calls `activate` instead
+  arrives, `__RIPPLE_S__` sees the registry entry and calls `activate` instead
   of touching DOM itself.
 
 ### 3.2 `activate(template)` — boundary-scoped hydration
@@ -305,13 +305,13 @@ string replacement into `index.html`. Streaming mode:
   - randomized resolution order (N boundaries) → concatenated stream, after
     applying swaps, equals the non-streaming render byte-for-byte.
 - `tests/hydration/`:
-  - pre-hydration swap: apply `__TSRX_S__` to shell DOM, then `hydrate()` —
+  - pre-hydration swap: apply `__RIPPLE_S__` to shell DOM, then `hydrate()` —
     passes through the existing resolved path.
   - post-hydration: hydrate shell with live `[?N`, assert pending branch is
     interactive; simulate chunk arrival (insert framing nodes + call
-    `__TSRX_S__(N)`), assert activation claims DOM (no node recreation),
+    `__RIPPLE_S__(N)`), assert activation claims DOM (no node recreation),
     events work, trackAsync consumed envelope, nested `[?M` registered.
-  - catch: `ok:false` envelope and `__tsrx_te_N` both hydrate the catch
+  - catch: `ok:false` envelope and `__ripple_te_N` both hydrate the catch
     branch.
 
 ## 7. Sequencing
@@ -320,7 +320,7 @@ string replacement into `index.html`. Streaming mode:
    ids, detach-not-clear (§2.3), per-unit counters, `flush_unit` with framing
    + `sent_css`, catch-only sentinel fix, wrapper markers. Behind
    `options.stream` only — non-streaming path byte-identical.
-2. **Inline swap runtime** (`__TSRX_S__` string constant + shell emission) and
+2. **Inline swap runtime** (`__RIPPLE_S__` string constant + shell emission) and
    `hydration.js` prefix-matching. At this point pre-hydration streaming works
    end-to-end with zero client-package changes.
 3. **Client** (`client/try.js`): `[?N` hydration branch, registry,

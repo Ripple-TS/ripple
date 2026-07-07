@@ -5,5 +5,5 @@
  * @returns {string}
  */
 export function get_track_async_script_id(hash) {
-	return `__tsrx_ta_${hash}`;
+	return `__ripple_ta_${hash}`;
 }

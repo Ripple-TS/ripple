@@ -73,6 +73,9 @@ export function pop(node) {
  * Scans forward from the current hydrate_node to find the matching HYDRATION_END
  * comment, handling nested blocks by tracking depth.
  * Should be called after hydrate_next() has consumed the opening HYDRATION_START.
+ * Any `[`-prefixed comment opens a nested region — this includes the plain
+ * `<!--[-->` markers as well as streaming slot markers (`<!--[?N-->`,
+ * `<!--[!N-->`), which always pair with a `<!--]-->`.
  * @returns {Node} The HYDRATION_END comment node.
  */
 export function skip_to_hydration_end() {
@@ -84,7 +87,7 @@ export function skip_to_hydration_end() {
 			if (data === HYDRATION_END) {
 				if (depth === 0) return node;
 				depth -= 1;
-			} else if (data === HYDRATION_START) {
+			} else if (data.startsWith(HYDRATION_START)) {
 				depth += 1;
 			}
 		}

@@ -19,7 +19,7 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.loading')).toBeNull();
 
 		// Serialization script tags should be removed after hydration
-		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 
 	it('hydrates numeric value from serialized trackAsync', async () => {
@@ -43,7 +43,7 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.error')?.textContent).toBe(TRACK_ASYNC_ERROR_MESSAGE);
 		expect(container.querySelector('.result')).toBeNull();
 		expect(container.querySelector('.loading')).toBeNull();
-		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 
 	it('hydrates child trackAsync error bubbled to parent catch', async () => {
@@ -54,7 +54,7 @@ describe('hydration > trackAsync serialization', () => {
 		);
 		expect(container.querySelector('.result')).toBeNull();
 		expect(container.querySelector('.pending')).toBeNull();
-		expect(container.querySelector('script[id^="__tsrx_ta_"]')).toBeNull();
+		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 
 	it('reruns trackAsync when a dependency changes after hydration', async () => {
