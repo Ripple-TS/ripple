@@ -31,10 +31,13 @@ function createRuntime() {
 
 function createHandlerOptions() {
 	return {
-		render: async (Component) => {
-			Component({ fromRender: true });
-			return { head: '', body: '<div>ok</div>', css: new Set() };
-		},
+		// test double for the buffered overload only — streaming stays off here
+		render: /** @type {import('../types/production.d.ts').RenderFunction} */ (
+			async (/** @type {Function} */ Component) => {
+				Component({ fromRender: true });
+				return { head: '', body: '<div>ok</div>', css: new Set() };
+			}
+		),
 		getCss: () => '',
 		htmlTemplate: '<html><head><!--ssr-head--></head><body><!--ssr-body--></body></html>',
 		executeServerFunction: async () => '',

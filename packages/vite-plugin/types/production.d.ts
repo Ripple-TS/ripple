@@ -61,15 +61,32 @@ export interface StreamSink {
 	error(reason: unknown): void;
 }
 
-export interface HandlerOptions {
-	render: (
+/**
+ * Overloaded like ripple/server's `render`: without a `stream` sink it
+ * resolves to the buffered {@link RenderResult}, with one it streams into the
+ * sink and resolves to the stream handle.
+ */
+export interface RenderFunction {
+	(
 		component: Function,
 		options?: {
 			rootBoundary?: RootBoundaryOptions;
-			stream?: StreamSink;
+			stream?: undefined;
 			streamTemplate?: StreamTemplate;
 		},
-	) => Promise<RenderResult | { stream: StreamSink }>;
+	): Promise<RenderResult>;
+	(
+		component: Function,
+		options: {
+			rootBoundary?: RootBoundaryOptions;
+			stream: StreamSink;
+			streamTemplate?: StreamTemplate;
+		},
+	): Promise<{ stream: StreamSink }>;
+}
+
+export interface HandlerOptions {
+	render: RenderFunction;
 	getCss: (css: Set<string>) => string;
 	htmlTemplate: string;
 	executeServerFunction: (fn: Function, body: string) => Promise<string>;

@@ -33,7 +33,6 @@ export { resolveRippleConfig } from '../load-config.js';
 /**
 @import {
 	ServerManifest,
-	RenderResult,
 	HandlerOptions,
 	ClientAssetEntry,
 } from '../../types/production.d.ts';
@@ -138,7 +137,7 @@ export function createHandler(manifest, options) {
  * @param {import('@ripple-ts/vite-plugin').Context} context
  * @param {ServerManifest} manifest
  * @param {Middleware[]} globalMiddlewares
- * @param {(component: Function, options?: { rootBoundary?: import('@ripple-ts/vite-plugin').RootBoundaryOptions }) => Promise<RenderResult>} render
+ * @param {import('../../types/production.d.ts').RenderFunction} render
  * @param {(css: Set<string>) => string} getCss
  * @param {string} htmlTemplate
  * @param {Record<string, ClientAssetEntry>} clientAssets
