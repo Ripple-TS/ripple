@@ -1,6 +1,16 @@
 # Ripple SSR Streaming — Design & Implementation Plan
 
-Status: DRAFT (design)
+Status: IMPLEMENTED (branch `stream`, July 2026) — commits ce86ac880 (server
+core), 7e24765e7 (client activation), f2bb54572 (head streaming), 81dbc2df4
+(vite-plugin `ssr.streaming`), cc2ec91a5 (benchmarks vs React 19).
+Deviations from the draft: no rethrow-based suspension detection (boundaries
+check for async ops registered on them after the body runs, preserving the
+non-streaming "holes" model); the root boundary's slot is emitted as the whole
+body so slot markers are always owned by the boundary at the anchor; runtime
+prefixes are ripple-branded (`__RIPPLE_S__`, `__RIPPLE_B__`,
+`data-ripple-chunk`, `__ripple_ta_`). Remaining follow-ups: §2.7
+abort/timeout + client takeover, route-level CSS manifest, `remove_ssr_css`
+late-style pass, playground/e2e run.
 Scope: `packages/ripple` (server runtime, client runtime, hydration) and
 streaming plumbing in `packages/vite-plugin`. **No compiler changes required**
 — the tsrx-ripple transforms are streaming-agnostic (verified below).
