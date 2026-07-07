@@ -338,51 +338,14 @@ export function get_attribute_name(attr) {
 }
 
 /**
- * @param {ESTreeJSX.JSXAttribute} attr
- * @returns {number}
- */
-function attribute_name_end(attr) {
-	return /** @type {number} */ (
-		attr.name.end && attr.name.end > /** @type {number} */ (attr.name.start)
-			? attr.name.end
-			: /** @type {number} */ (attr.end) - 1
-	);
-}
-
-/**
- * @param {ESTreeJSX.JSXAttribute} attr
- * @returns {AST.Position | undefined}
- */
-function attribute_shorthand_end_loc(attr) {
-	return attr.loc?.end && attr.loc.end.column > 0
-		? { ...attr.loc.end, column: attr.loc.end.column - 1 }
-		: attr.loc?.end;
-}
-
-/**
- * Synthesize a plain `Identifier` spanning the attribute's name (for a
- * shorthand attribute, the name inside the braces).
- * @param {ESTreeJSX.JSXAttribute} attr
- * @returns {AST.Identifier}
- */
-function attribute_identifier(attr) {
-	const node = b.id(get_attribute_name(attr));
-	node.start = attr.name.start;
-	node.end = attribute_name_end(attr);
-	node.loc = /** @type {AST.SourceLocation} */ ({
-		start: attr.name.loc?.start ?? attr.loc?.start,
-		end: attr.name.loc?.end ?? attribute_shorthand_end_loc(attr),
-	});
-	return node;
-}
-
-/**
- * The attribute's name as a plain `Identifier`.
+ * The attribute's name as a plain `Identifier` spanning the name node (for a
+ * shorthand attribute, the name inside the braces — the parser always gives
+ * it a real span, even in loose mode).
  * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {AST.Identifier}
  */
 export function get_attribute_name_node(attr) {
-	return attribute_identifier(attr);
+	return b.id(get_attribute_name(attr), /** @type {AST.NodeWithLocation} */ (attr.name));
 }
 
 /**
@@ -395,7 +358,7 @@ export function get_attribute_name_node(attr) {
  */
 export function get_attribute_value(attr) {
 	if (attr.shorthand === true) {
-		return attribute_identifier(attr);
+		return get_attribute_name_node(attr);
 	}
 	if (attr.value == null) {
 		return null;
