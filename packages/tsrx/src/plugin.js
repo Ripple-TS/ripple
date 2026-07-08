@@ -2888,9 +2888,18 @@ export function TSRXPlugin(config) {
 					this.exprAllowed = false;
 				}
 
+				// A `/` or `#` in template TEXT position joins the text run as a
+				// literal character (`<div>5/2</div>`, `<div>#tag</div>`). This must
+				// not fire in the JS positions that can sit under a template element
+				// on the path: inside a `{ … }` expression container (an attribute or
+				// child expression — `<rect x={a / 2}/>`, `{this.#x}`) or inside a
+				// control-flow directive header (`@if (a / 2 > 1)`), where `/` is
+				// division and `#` is a private-field access.
 				if (
 					(code === CharCode.numberSign || code === CharCode.slash) &&
 					this.#functionBodyDepth === 0 &&
+					this.#jsxExpressionContainerDepth === 0 &&
+					!this.#readingJSXControlFlowHeader &&
 					this.#isNativeTemplateNode(this.#path.at(-1)) &&
 					!(
 						code === CharCode.slash &&
