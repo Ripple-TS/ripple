@@ -53,7 +53,8 @@ function applyStream(chunks: string[]): string {
 		},
 	);
 	html = html.replace(/<script>__RIPPLE_S__\((\d+)(,1)?\)<\/script>/g, '');
-	html = html.replace(/<script>\(function\(\)[\s\S]*?<\/script>/g, '');
+	// the inline swap runtime (serialized function, minified or not)
+	html = html.replace(/<script>\(function[\s\S]*?<\/script>/g, '');
 
 	let match: RegExpMatchArray | null;
 	while (match = html.match(SLOT_OPEN_RE)) {
