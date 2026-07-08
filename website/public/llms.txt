@@ -478,6 +478,87 @@ export function Form() @{
 }
 ```
 
+## Server-Side Rendering
+
+`ripple/server` renders components to HTML on the server; the client makes the
+result interactive with `hydrate()`.
+
+- `render(component, options?)` — renders to completion and resolves
+  `{ head, body, css, topLevelError }`. `head` and `body` are HTML strings for
+  the document's head and body insertion points; `css` is a `Set` of scoped
+  style hashes.
+- `create_ssr_stream()` — returns `{ stream, sink }`: a web `ReadableStream`
+  for the HTTP response and the sink that `render` writes into.
+- `get_css_for_hashes(css)` — returns the CSS text for a set of hashes; emit it
+  in a `<style data-ripple-ssr>` tag so hydration can replace it with client
+  styles.
+
+`render` options:
+
+- `rootBoundary` — `{ pending?, catch? }` components wrapped around the app
+  root; used when no user `@try` boundary handles a suspension or error.
+- `stream` — a sink from `create_ssr_stream()`; switches to streaming SSR and
+  resolves `{ stream, topLevelError }` instead of HTML strings.
+- `streamTemplate` — `{ before, between, after }` document scaffold for
+  streaming: `before` + SSR head content + `between` + shell body go out in the
+  first push, `after` is pushed when the stream closes.
+- `closeStream` — set `false` to keep the sink open for further writes;
+  defaults to `true` when `stream` is set.
+
+Buffered rendering:
+
+```ts
+import { render, get_css_for_hashes } from 'ripple/server';
+
+const { head, body, css } = await render(App);
+const html = template
+	.replace('<!--ssr-head-->', `${head}<style data-ripple-ssr>${get_css_for_hashes(css)}</style>`)
+	.replace('<!--ssr-body-->', body);
+```
+
+### Streaming SSR
+
+With `stream` set, `render` flushes a shell immediately: all synchronous
+content, each suspended `@try` boundary showing its `@pending` fallback, and
+all CSS registered so far. As each boundary's async work settles, its HTML
+streams as a self-contained chunk — carrying its own CSS, serialized
+`trackAsync` results, and `<head>` content — and an inline runtime swaps it
+into place. Chunks arrive out of order, parents always before children.
+Catch-only boundaries stream an empty slot that later resolves to the body or
+the server-rendered `@catch` HTML. `hydrate()` handles both arrival orders:
+content swapped before hydration hydrates normally, and later chunks activate
+their boundary in place without re-rendering.
+
+```ts
+import { render, create_ssr_stream } from 'ripple/server';
+
+const { stream, sink } = create_ssr_stream();
+render(App, {
+	stream: sink,
+	rootBoundary: { pending: Loading },
+	streamTemplate: {
+		before: '<!doctype html><html><head>',
+		between: '</head><body><div id="app">',
+		after: '</div></body></html>',
+	},
+});
+return new Response(stream, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+```
+
+Apps built on `@ripple-ts/vite-plugin` enable streaming for render routes in
+`ripple.config.ts` instead of calling `render` directly:
+
+```ts
+export default {
+	ssr: {
+		streaming: true,
+	},
+};
+```
+
+`index.html` must keep the `<!--ssr-head-->` and `<!--ssr-body-->` markers;
+the plugin falls back to buffered SSR with a warning when they are missing.
+
 ## Raw HTML
 
 Use `innerHTML={trustedHtml}` for trusted markup. Do not pass untrusted strings to

@@ -37,7 +37,8 @@ Created by [@trueadm](https://github.com/trueadm), who has contributed to
 - Template-native `@if`, `@for`, `@switch`, and `@try`.
 - Local TypeScript setup with JSX statement containers (`@{...}`).
 - Scoped `<style>` blocks with automatic class hashing.
-- Vite, editor, Prettier, ESLint, SSR, and hydration support.
+- Vite, editor, Prettier, ESLint, SSR (buffered and streaming), and hydration
+  support.
 
 ## Quick Start
 
