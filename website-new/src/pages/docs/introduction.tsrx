@@ -155,7 +155,11 @@ export function IntroductionPage() {
 			<DocHeading level={2} id="server-side-rendering">Server-Side Rendering</DocHeading>
 
 			<p>
-				{'Ripple supports server-side rendering (SSR) with full hydration support. See the '}
+				{'Ripple supports server-side rendering (SSR) — buffered or streaming, where suspended '}
+				<code>@try</code>
+				{' boundaries show their '}
+				<code>@pending</code>
+				{' fallback and stream their content as it settles — with full hydration support. See the '}
 				<a href="/docs/guide/application">Application Guide</a>
 				{' for details on using '}
 				<code>mount()</code>
