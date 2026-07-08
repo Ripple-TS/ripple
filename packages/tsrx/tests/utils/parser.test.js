@@ -2927,3 +2927,73 @@ foo();`;
 		expect(block.render.type).toBe('JSXFragment');
 	});
 });
+
+describe('division and private fields in template JS positions', () => {
+	// `/` and `#` in template TEXT are literal characters, which the tokenizer
+	// special-cases. That special case must not swallow the JS positions that sit
+	// under a template element on the node path: expression containers (attribute
+	// and child) and control-flow directive headers, where `/` is division and
+	// `#` is a private-field access.
+
+	it('parses `/` as division in a NESTED element attribute expression', () => {
+		const rect = findElement(
+			`function App(p) { return @{ <g id={p.id}><rect x={p.left - p.dotSize / 2} /></g> }; }`,
+			'rect',
+		);
+		const x = rect.openingElement.attributes[0].value.expression;
+		expect(x.type).toBe('BinaryExpression');
+		expect(x.operator).toBe('-');
+		expect(x.right.type).toBe('BinaryExpression');
+		expect(x.right.operator).toBe('/');
+	});
+
+	it('parses `/` as division in a child expression container', () => {
+		const g = findElement(`function App(p) { return @{ <g>{p.a / 2}</g> }; }`, 'g');
+		const expr = g.children.find((c) => c.type === 'JSXExpressionContainer').expression;
+		expect(expr.type).toBe('BinaryExpression');
+		expect(expr.operator).toBe('/');
+	});
+
+	it('parses `#` as a private-field access in a child expression container', () => {
+		const g = findElement(`class C { #x = 1; m() { return @{ <g>{this.#x}</g> }; } }`, 'g');
+		const expr = g.children.find((c) => c.type === 'JSXExpressionContainer').expression;
+		expect(expr.type).toBe('MemberExpression');
+		expect(expr.property.type).toBe('PrivateIdentifier');
+		expect(expr.property.name).toBe('x');
+	});
+
+	it('parses `/` as division in a directive header nested inside an element', () => {
+		const node = findNode(
+			`function App(p) { return @{ <g>@if (p.a / 2 > 1) { <rect /> }</g> }; }`,
+			'JSXIfExpression',
+		);
+		expect(node.test.type).toBe('BinaryExpression');
+		expect(node.test.operator).toBe('>');
+		expect(node.test.left.type).toBe('BinaryExpression');
+		expect(node.test.left.operator).toBe('/');
+	});
+
+	it('parses a regex literal inside a nested element attribute expression', () => {
+		const rect = findElement(
+			`function App(p) { return @{ <g><rect x={String(p.a).replace(/x/g, String(2 / p.b))} /></g> }; }`,
+			'rect',
+		);
+		const x = rect.openingElement.attributes[0].value.expression;
+		expect(x.type).toBe('CallExpression');
+		expect(x.arguments[0].type).toBe('Literal');
+		expect(x.arguments[0].regex).toEqual({ pattern: 'x', flags: 'g' });
+	});
+
+	it('still reads a literal `/` and `#` in template text as text', () => {
+		const div = findElement(
+			`function App(p) { return @{ <div>5/2 #tag {p.a}/{p.b}</div> }; }`,
+			'div',
+		);
+		const text = div.children
+			.filter((c) => c.type === 'JSXText')
+			.map((c) => c.value)
+			.join('|');
+		expect(text).toContain('5/2 #tag ');
+		expect(text).toContain('/');
+	});
+});
