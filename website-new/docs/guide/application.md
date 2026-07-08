@@ -220,6 +220,25 @@ markers to build the stream scaffold, so both markers must stay in the
 template. When they are missing, the plugin falls back to buffered SSR and
 logs a warning.
 
+Root boundaries are configured the same way — set `rootBoundary` in
+`ripple.config.ts` and the plugin applies it to the server render and to
+client hydration for every render route:
+
+```ts
+import { LoadingScreen } from './src/LoadingScreen.tsrx';
+import { ErrorScreen } from './src/ErrorScreen.tsrx';
+
+export default {
+  rootBoundary: {
+    pending: LoadingScreen,
+    catch: ErrorScreen,
+  },
+  ssr: {
+    streaming: true,
+  },
+};
+```
+
 ### Cleanup
 
 Both `mount()` and `hydrate()` return a cleanup function that unmounts the
