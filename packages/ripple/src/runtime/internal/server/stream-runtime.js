@@ -52,7 +52,6 @@ function stream_runtime(
 	comment_node,
 ) {
 	var doc = document;
-	// window.__RIPPLE_B__ / __RIPPLE_S__ are typed globally in client/types.d.ts
 	var registry = window.__RIPPLE_B__ || (window.__RIPPLE_B__ = {});
 
 	/**
