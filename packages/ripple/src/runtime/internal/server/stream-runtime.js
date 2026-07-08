@@ -52,17 +52,14 @@ function stream_runtime(
 	comment_node,
 ) {
 	var doc = document;
-	var win =
-		/** @type {Window & { __RIPPLE_B__?: Record<string | number, 1 | { a: (template: HTMLTemplateElement | null, errored?: number) => void }>, __RIPPLE_S__?: (id: number, errored?: number) => void }} */ (
-			window
-		);
-	var registry = win.__RIPPLE_B__ || (win.__RIPPLE_B__ = {});
+	// window.__RIPPLE_B__ / __RIPPLE_S__ are typed globally in client/types.d.ts
+	var registry = window.__RIPPLE_B__ || (window.__RIPPLE_B__ = {});
 
 	/**
 	 * @param {number} id
 	 * @param {number} [errored]
 	 */
-	win.__RIPPLE_S__ = function (id, errored) {
+	window.__RIPPLE_S__ = function (id, errored) {
 		var head_template = doc.querySelector('template[' + head_attr + '="' + id + '"]');
 		if (head_template) {
 			doc.head.appendChild(/** @type {HTMLTemplateElement} */ (head_template).content);

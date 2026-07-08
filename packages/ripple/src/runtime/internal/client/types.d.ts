@@ -68,7 +68,32 @@ export type RootBoundaryOptions = {
 	catch?: (anchor: Node, props: { error: unknown; reset: () => void }, block: Block | null) => void;
 };
 
+/**
+ * Called by the inline stream runtime when a boundary's chunk arrives after
+ * hydration: receives the chunk template (null for error-only chunks) and a
+ * truthy flag when the unit errored server-side.
+ */
+export type StreamBoundaryActivator = (
+	template: HTMLTemplateElement | null,
+	errored?: number,
+) => void;
+
+/**
+ * `window.__RIPPLE_B__` — shared between the inline stream runtime and
+ * hydrated try boundaries. A boundary that hydrated a still-pending slot
+ * registers `{ a: activator }` under its unit id; the runtime stores `1`
+ * once the slot has been swapped or handed over.
+ */
+export type StreamBoundaryRegistry = Record<string | number, 1 | { a: StreamBoundaryActivator }>;
+
 declare global {
+	interface Window {
+		/** streamed-boundary registry, see {@link StreamBoundaryRegistry} */
+		__RIPPLE_B__?: StreamBoundaryRegistry;
+		/** inline stream runtime entry point: swaps unit `id`'s chunk into its slot */
+		__RIPPLE_S__?: (id: number, errored?: number) => void;
+	}
+
 	interface Element {
 		__attributes?: {
 			checked?: boolean;
