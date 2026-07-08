@@ -93,6 +93,8 @@ needed. Prior experience with other frameworks is helpful but not required.
 
 ## Server-Side Rendering
 
-Ripple supports server-side rendering (SSR) with full hydration support. See the
+Ripple supports server-side rendering (SSR) — buffered or streaming, where
+suspended `@try` boundaries show their `@pending` fallback and stream their
+content as it settles — with full hydration support. See the
 [Application Guide](/docs/guide/application) for details on using `mount()` for
 client-side rendering and `hydrate()` for SSR hydration.
