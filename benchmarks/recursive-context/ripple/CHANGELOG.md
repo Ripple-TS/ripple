@@ -1,5 +1,13 @@
 # ripple-recursive-bench
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies
+  [[`9db5a49`](https://github.com/Ripple-TS/ripple/commit/9db5a49e45c2eb3bb4f6b46c65c0aaf9016633ad)]:
+  - ripple@0.3.93
+
 ## 0.0.9
 
 ### Patch Changes

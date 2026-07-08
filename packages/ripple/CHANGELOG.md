@@ -1,5 +1,16 @@
 # ripple
 
+## 0.3.93
+
+### Patch Changes
+
+- [`9db5a49`](https://github.com/Ripple-TS/ripple/commit/9db5a49e45c2eb3bb4f6b46c65c0aaf9016633ad)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Rename the `ripple/server`
+  helper exports to camelCase: `create_ssr_stream` is now `createStream` and
+  `get_css_for_hashes` is now `getCss` (returning the CSS text for the scoped
+  style hashes collected by `render()`). The old snake_case exports are removed;
+  update imports accordingly. The vite plugin consumes the new names internally.
+
 ## 0.3.92
 
 ### Patch Changes
