@@ -44,6 +44,10 @@ module.exports = grammar({
 		$._jsx_statement_container_output,
 	],
 
+	precedences: ($) => [
+		['call', 'ternary', $.arrow_function],
+	],
+
 	word: ($) => $.identifier,
 
 	conflicts: ($) => [
@@ -97,6 +101,9 @@ module.exports = grammar({
 		[$.method_definition, $.property_signature],
 		[$.required_parameter, $.primary_expression, $.type, $.type_identifier],
 		[$.pattern, $.primary_expression, $.type, $.type_identifier],
+		[$.as_expression, $.primary_expression],
+		[$.as_expression, $.type, $.type_identifier],
+		[$.array_pattern, $.primary_expression],
 		[$.primary_expression, $.jsx_element_name, $.type_parameter],
 		[$.spread_element, $.jsx_expression],
 		[$.if_statement],
@@ -118,6 +125,13 @@ module.exports = grammar({
 		[$.declaration, $.jsx_statement_container],
 		[$.jsx_statement_container, $.object],
 		[$.jsx_try_expression],
+		[$.type, $.type_identifier, $.generic_type],
+		[$.type, $.type_identifier, $.nested_type_identifier],
+		[$.type, $.generic_type],
+		[$.type, $.nested_type_identifier],
+		[$._type_annotation, $.array_type],
+		[$.empty_statement, $.object_type],
+		[$.call_expression, $.ternary_expression],
 	],
 
 	rules: {
@@ -395,6 +409,8 @@ module.exports = grammar({
 				$.class_declaration,
 				$.lexical_declaration,
 				$.variable_declaration,
+				$.interface_declaration,
+				$.type_alias_declaration,
 			),
 
 		fragment_declaration: ($) =>
@@ -810,7 +826,13 @@ module.exports = grammar({
 		array_pattern: ($) =>
 			seq(
 				'[',
-				commaSep(choice($.pattern, $.assignment_pattern, $.rest_pattern)),
+				commaSep(choice(
+					$.pattern,
+					$.assignment_pattern,
+					$.rest_pattern,
+					$.member_expression,
+					$.subscript_expression,
+				)),
 				optional(','),
 				']',
 			),
@@ -832,6 +854,7 @@ module.exports = grammar({
 				$.new_expression,
 				$.yield_expression,
 				$.parenthesized_expression,
+				$.as_expression,
 			),
 
 		primary_expression: ($) =>
@@ -926,10 +949,10 @@ module.exports = grammar({
 
 		ternary_expression: ($) =>
 			prec.right(
-				PREC.TERNARY,
+				'ternary',
 				seq(
 					field('condition', $.expression),
-					$._ternary_qmark,
+					alias($._ternary_qmark, '?'),
 					field('consequence', $.expression),
 					':',
 					field('alternative', $.expression),
@@ -1008,7 +1031,7 @@ module.exports = grammar({
 
 		call_expression: ($) =>
 			prec(
-				PREC.CALL,
+				'call',
 				seq(
 					field('function', choice($.expression, $.import)),
 					field('arguments', choice($.arguments, $.template_string)),
@@ -1020,8 +1043,9 @@ module.exports = grammar({
 				PREC.NEW,
 				seq(
 					'new',
-					field('constructor', $.primary_expression),
-					optional(field('arguments', $.arguments)),
+				field('constructor', $.primary_expression),
+				optional(field('type_arguments', $.type_arguments)),
+				optional(field('arguments', $.arguments)),
 				),
 			),
 
@@ -1355,7 +1379,7 @@ module.exports = grammar({
 
 		type_arguments: ($) => seq('<', commaSep1($.type), optional(','), '>'),
 
-		object_type: ($) => seq('{', commaSep($.property_signature), optional(','), '}'),
+		object_type: ($) => seq('{', sepBy($.property_signature, choice(';', ',')), optional(choice(';', ',')), '}'),
 
 		property_signature: ($) =>
 			seq(optional('readonly'), field('name', $.property_name), optional('?'), $._type_annotation),
@@ -1374,11 +1398,77 @@ module.exports = grammar({
 
 		parenthesized_type: ($) => seq('(', $.type, ')'),
 
+		// TypeScript interface declarations
+		interface_declaration: ($) =>
+			seq(
+				'interface',
+				field('name', $.type_identifier),
+				optional(field('type_parameters', $.type_parameters)),
+				optional(seq('extends', commaSep1($.type))),
+				field('body', $.interface_body),
+			),
+
+		interface_body: ($) =>
+			seq(
+				'{',
+				repeat(seq(
+					choice($.property_signature, $.method_signature, $.index_signature),
+					optional(choice($._semicolon, ',')),
+				)),
+				'}',
+			),
+
+
+		method_signature: ($) =>
+			seq(
+				field('name', $.property_name),
+				optional('?'),
+				optional(field('type_parameters', $.type_parameters)),
+				field('parameters', $.formal_parameters),
+				optional($._type_annotation),
+			),
+
+		index_signature: ($) =>
+			seq(
+				'[',
+				field('name', $.identifier),
+				':',
+				field('index_type', $.type),
+				']',
+				$._type_annotation,
+			),
+
+		// TypeScript type alias declarations
+		type_alias_declaration: ($) =>
+			seq(
+				'type',
+				field('name', $.type_identifier),
+				optional(field('type_parameters', $.type_parameters)),
+				'=',
+				field('value', $.type),
+				$._semicolon,
+			),
+
+		// TypeScript 'as' type assertion / cast
+		as_expression: ($) =>
+			prec.left(
+				PREC.REL,
+				seq(
+					field('expression', $.expression),
+					'as',
+					field('type', choice($.type, 'const')),
+				),
+			),
+
 		initializer: ($) => seq('=', choice($.expression, $.style_element)),
 
 		_semicolon: ($) => choice($._automatic_semicolon, ';'),
 	},
 });
+
+function sepBy(rule, sep) {
+	return optional(seq(rule, repeat(seq(sep, rule))));
+}
 
 function commaSep(rule) {
 	return optional(commaSep1(rule));
