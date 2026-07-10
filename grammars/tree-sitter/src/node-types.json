@@ -522,6 +522,10 @@
             "named": true
           },
           {
+            "type": "script_element",
+            "named": true
+          },
+          {
             "type": "style_element",
             "named": true
           }
@@ -2076,6 +2080,10 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        },
+        {
+          "type": "script_element",
           "named": true
         },
         {

@@ -967,3 +967,32 @@ function App() @{
         (jsx_closing_element
           (jsx_element_name
             (identifier)))))))
+
+==================
+Script Element Expression
+==================
+
+const inline = <script>if (a < b) { go(); }</script>;
+let assigned;
+assigned = <script type="text/typescript">const n: number = 1;</script>;
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (initializer
+        (script_element
+          (raw_text)))))
+  (variable_declaration
+    (variable_declarator
+      (identifier)))
+  (expression_statement
+    (assignment_expression
+      (identifier)
+      (script_element
+        (jsx_attribute
+          (identifier)
+          (string))
+        (raw_text)))))

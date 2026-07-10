@@ -4681,6 +4681,10 @@
                 {
                   "type": "SYMBOL",
                   "name": "style_element"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "script_element"
                 }
               ]
             }
@@ -8708,6 +8712,10 @@
             {
               "type": "SYMBOL",
               "name": "style_element"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "script_element"
             }
           ]
         }

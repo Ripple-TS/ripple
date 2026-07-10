@@ -918,7 +918,7 @@ module.exports = grammar({
 						),
 					),
 					'=',
-					field('right', choice($.expression, $.style_element)),
+					field('right', choice($.expression, $.style_element, $.script_element)),
 				),
 			),
 
@@ -1402,7 +1402,7 @@ module.exports = grammar({
 
 		parenthesized_type: ($) => seq('(', $.type, ')'),
 
-		initializer: ($) => seq('=', choice($.expression, $.style_element)),
+		initializer: ($) => seq('=', choice($.expression, $.style_element, $.script_element)),
 
 		_semicolon: ($) => choice($._automatic_semicolon, ';'),
 	},

@@ -121,9 +121,9 @@ export const printers = {
 						// Return the formatted CSS
 						// Note: printElement will wrap this in indent(), so we don't add indent here
 						return body;
-					} catch (error) {
-						// If CSS has syntax errors, return original unformatted content
-						console.error('Error formatting CSS:', error);
+					} catch {
+						// A stylesheet that doesn't parse (e.g. mid-edit code) is an expected
+						// state, not an error: keep it verbatim and stay quiet.
 						return node.source;
 					}
 				};
@@ -144,9 +144,9 @@ export const printers = {
 							// Drop the program's trailing hardline; printElement places the
 							// closing tag on its own line already.
 							return stripTrailingHardline(body);
-						} catch (error) {
-							// If the script has syntax errors, return original unformatted content
-							console.error('Error formatting script:', error);
+						} catch {
+							// A body that doesn't parse (e.g. mid-edit code) is an expected
+							// state, not an error: keep it verbatim and stay quiet.
 							return replaceEndOfLine(node.value);
 						}
 					};
