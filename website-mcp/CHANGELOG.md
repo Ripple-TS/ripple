@@ -1,5 +1,18 @@
 # website-mcp
 
+## 0.0.55
+
+### Patch Changes
+
+- Updated dependencies
+  [[`78502e4`](https://github.com/Ripple-TS/ripple/commit/78502e46929df2165d288dbb2483f48e9254ef35)]:
+  - @tsrx/ripple@0.1.39
+  - @tsrx/mcp@0.0.55
+  - @tsrx/preact@0.1.38
+  - @tsrx/react@0.2.38
+  - @tsrx/solid@0.1.38
+  - @tsrx/vue@0.1.38
+
 ## 0.0.54
 
 ### Patch Changes

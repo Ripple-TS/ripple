@@ -1,5 +1,13 @@
 # @tsrx/preact
 
+## 0.1.38
+
+### Patch Changes
+
+- Updated dependencies
+  [[`78502e4`](https://github.com/Ripple-TS/ripple/commit/78502e46929df2165d288dbb2483f48e9254ef35)]:
+  - @tsrx/core@0.1.38
+
 ## 0.1.37
 
 ### Patch Changes

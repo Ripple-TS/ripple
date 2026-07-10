@@ -1,5 +1,12 @@
 # ripple-website
 
+## 0.1.96
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter-node@0.3.94
+
 ## 0.1.95
 
 ### Patch Changes
