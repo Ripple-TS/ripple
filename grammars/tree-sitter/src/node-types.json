@@ -1154,6 +1154,10 @@
           "named": true
         },
         {
+          "type": "script_element",
+          "named": true
+        },
+        {
           "type": "style_element",
           "named": true
         },
@@ -2258,6 +2262,10 @@
             "named": true
           },
           {
+            "type": "script_element",
+            "named": true
+          },
+          {
             "type": "style_element",
             "named": true
           }
@@ -2361,6 +2369,10 @@
             "named": true
           },
           {
+            "type": "script_element",
+            "named": true
+          },
+          {
             "type": "style_element",
             "named": true
           }
@@ -2420,6 +2432,10 @@
           },
           {
             "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "script_element",
             "named": true
           },
           {
@@ -2608,6 +2624,10 @@
             "named": true
           },
           {
+            "type": "script_element",
+            "named": true
+          },
+          {
             "type": "style_element",
             "named": true
           }
@@ -2702,6 +2722,10 @@
           },
           {
             "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "script_element",
             "named": true
           },
           {
@@ -2894,6 +2918,10 @@
           },
           {
             "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "script_element",
             "named": true
           },
           {
@@ -3247,6 +3275,10 @@
           },
           {
             "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "script_element",
             "named": true
           },
           {
@@ -4273,6 +4305,29 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "script_element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "jsx_attribute",
+          "named": true
+        },
+        {
+          "type": "jsx_expression",
+          "named": true
+        },
+        {
+          "type": "raw_text",
           "named": true
         }
       ]
@@ -5445,6 +5500,10 @@
   },
   {
     "type": "return",
+    "named": false
+  },
+  {
+    "type": "script",
     "named": false
   },
   {

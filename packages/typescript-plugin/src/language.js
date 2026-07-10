@@ -138,6 +138,36 @@ export function getRippleLanguagePlugin() {
 				}
 				return undefined;
 			},
+			/**
+			 * Register each embedded `<script>` body as its own TypeScript service
+			 * script so volar-service-typescript's semantic features (type-aware
+			 * completions, hover, go-to-definition, diagnostics, imports) run against it
+			 * and map back to the `.tsrx` source — the same way `<style>` bodies get CSS
+			 * intellisense, except semantic TS additionally requires a service-script
+			 * registration (a self-contained languageId is not enough).
+			 *
+			 * The returned `code` must be the exact same instance stored in the root's
+			 * `embeddedCodes` (volar matches it by identity), and each `fileName` must be
+			 * unique. Only honored on the language-server (`createTypeScriptProject`)
+			 * path, not the tsserver-plugin path.
+			 * @param {string} fileName
+			 * @param {VirtualCode} ripple_code
+			 */
+			getExtraServiceScripts(fileName, ripple_code) {
+				/** @type {Array<{ fileName: string, code: VirtualCode, extension: string, scriptKind: number }>} */
+				const scripts = [];
+				for (const code of forEachEmbeddedCode(ripple_code)) {
+					if (code.languageId === 'typescript') {
+						scripts.push({
+							fileName: `${fileName}.${code.id}.ts`,
+							code,
+							extension: '.ts',
+							scriptKind: ts.ScriptKind.TS,
+						});
+					}
+				}
+				return scripts;
+			},
 		},
 	};
 }
@@ -317,30 +347,29 @@ export class TSRXVirtualCode {
 			}
 
 			const cssMappings = transpiled.cssMappings;
-			if (cssMappings.length > 0) {
-				log('Creating', cssMappings.length, 'CSS embedded codes');
+			const scriptMappings = transpiled.scriptMappings ?? [];
+			if (cssMappings.length > 0 || scriptMappings.length > 0) {
+				log(
+					'Creating',
+					cssMappings.length,
+					'CSS and',
+					scriptMappings.length,
+					'script embedded codes',
+				);
 
-				this.embeddedCodes = cssMappings.map((mapping, index) => {
-					const cssContent = /** @type {string} */ (mapping.data?.customData?.content);
-					log(
-						`CSS region ${index}: \
-						offset ${mapping.sourceOffsets[0]}-${mapping.sourceOffsets[0] + mapping.lengths[0]}, \
-						length ${mapping.lengths[0]}`,
-					);
-
-					return {
-						id: /** @type {string}  */ (mapping.data?.customData?.embeddedId),
-						languageId: 'css',
-						snapshot: {
-							getText: (/** @type {number} */ start, /** @type {number} */ end) =>
-								cssContent.substring(start, end),
-							getLength: () => mapping.lengths[0],
-							getChangeRange: () => undefined,
-						},
-						mappings: [mapping],
-						embeddedCodes: [],
-					};
-				});
+				/** @type {VirtualCode[]} */
+				const embedded = [];
+				for (const mapping of cssMappings) {
+					embedded.push(create_embedded_code_from_mapping(mapping, 'css'));
+				}
+				for (const mapping of scriptMappings) {
+					// Every script body is treated as TypeScript in the editor — TS is a
+					// superset of JS, and this matches the TextMate/tree-sitter/prettier
+					// treatment. The `type` attribute only matters to the runtime
+					// transforms, which read it off the AST.
+					embedded.push(create_embedded_code_from_mapping(mapping, 'typescript'));
+				}
+				this.embeddedCodes = embedded;
 			} else {
 				this.embeddedCodes = [];
 			}
@@ -405,8 +434,10 @@ export class TSRXVirtualCode {
 				},
 			];
 
-			// Extract CSS from <style>...</style> tags for embedded codes
-			this.embeddedCodes = extractCssFromSource(newCode);
+			// Extract CSS from <style> and JS/TS from <script> tags for embedded codes,
+			// so CSS and script intellisense keep working while the file has a transient
+			// compile error elsewhere.
+			this.embeddedCodes = [...extractCssFromSource(newCode), ...extractScriptFromSource(newCode)];
 
 			this.snapshot = /** @type {IScriptSnapshot} */ ({
 				getText: (start, end) => this.generatedCode.substring(start, end),
@@ -609,6 +640,95 @@ function extractCssFromSource(code) {
 
 	if (embeddedCodes.length > 0) {
 		log(`Extracted ${embeddedCodes.length} CSS embedded codes from style tags`);
+	}
+
+	return embeddedCodes;
+}
+
+/**
+ * Build an embedded virtual code from a single mapping produced by the compiler
+ * (`cssMappings` / `scriptMappings`). The embedded document text is the region's
+ * `customData.content`; `languageId` selects which Volar service handles it
+ * (`css`, `typescript`, or `javascript`).
+ * @param {CodeMapping} mapping
+ * @param {string} languageId
+ * @returns {VirtualCode}
+ */
+function create_embedded_code_from_mapping(mapping, languageId) {
+	const content = /** @type {string} */ (mapping.data?.customData?.content ?? '');
+	return {
+		id: /** @type {string} */ (mapping.data?.customData?.embeddedId),
+		languageId,
+		snapshot: {
+			getText: (/** @type {number} */ start, /** @type {number} */ end) =>
+				content.substring(start, end),
+			getLength: () => mapping.lengths[0],
+			getChangeRange: () => undefined,
+		},
+		mappings: [mapping],
+		embeddedCodes: [],
+	};
+}
+
+/**
+ * Extract raw script content from `<script>...</script>` tags in source code, used
+ * as a fallback for script intellisense while the file has a fatal compile error
+ * (no AST available — the normal path derives regions from the compiler's
+ * `scriptMappings` instead). Parallels {@link extractCssFromSource}.
+ * Every body is treated as TypeScript (a superset of JS), so the attributes are
+ * never inspected. The opening-tag pattern refuses to match self-closing
+ * `<script src=... />` tags (the `/` before `>` must not close the tag), so they
+ * can't swallow a later real script's body.
+ * @param {string} code - The source code to extract scripts from
+ * @returns {VirtualCode[]} Array of embedded TypeScript virtual codes
+ */
+function extractScriptFromSource(code) {
+	/** @type {VirtualCode[]} */
+	const embeddedCodes = [];
+	const scriptRegex = /<script\b((?:[^>"'/]|"[^"]*"|'[^']*'|\/(?!>))*)>([\s\S]*?)<\/script>/gi;
+	let match;
+	let index = 0;
+
+	while ((match = scriptRegex.exec(code)) !== null) {
+		const attrs = match[1];
+		const scriptContent = match[2];
+		const scriptTagStart = match.index;
+		// `<script` + attrs + `>`; attrs may contain a quoted `>`, so derive the
+		// opening tag's end from the match structure rather than searching for `>`.
+		const openTagEnd = '<script'.length + attrs.length + 1;
+		const scriptStart = scriptTagStart + openTagEnd;
+		const scriptLength = scriptContent.length;
+		const id = `script_${index}`;
+
+		log(`Extracted script region ${index}: offset ${scriptStart}, length ${scriptLength}`);
+
+		/** @type {CodeMapping} */
+		const mapping = {
+			sourceOffsets: [scriptStart],
+			generatedOffsets: [0],
+			lengths: [scriptLength],
+			generatedLengths: [scriptLength],
+			data: {
+				verification: true,
+				completion: true,
+				semantic: true,
+				navigation: true,
+				structure: true,
+				format: false,
+				customData: {
+					content: scriptContent,
+					embeddedId: id,
+				},
+			},
+		};
+
+		embeddedCodes.push(create_embedded_code_from_mapping(mapping, 'typescript'));
+
+		index++;
+	}
+
+	if (embeddedCodes.length > 0) {
+		log(`Extracted ${embeddedCodes.length} script embedded codes from script tags`);
 	}
 
 	return embeddedCodes;

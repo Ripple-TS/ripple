@@ -37,7 +37,7 @@ const {
 	lineSuffix,
 	align,
 } = builders;
-const { replaceEndOfLine, willBreak } = utils;
+const { replaceEndOfLine, stripTrailingHardline, willBreak } = utils;
 
 /** @type {import('prettier').Plugin['languages']} */
 export const languages = [
@@ -129,6 +129,30 @@ export const printers = {
 				};
 			}
 
+			// Raw-text `<script>` bodies: the parser mirrors the element's `content` as
+			// a single JSXText child. Format it with Prettier's TypeScript parser (a
+			// superset of JS, so plain bodies format identically) the same way <style>
+			// bodies are formatted as CSS above.
+			if (node.type === 'JSXText') {
+				const parent = /** @type {AST.TSRXJSXElement | null} */ (path.getParentNode());
+				if (isRawScriptElement(parent)) {
+					return async (textToDoc) => {
+						try {
+							const body = await textToDoc(node.value, {
+								parser: 'typescript',
+							});
+							// Drop the program's trailing hardline; printElement places the
+							// closing tag on its own line already.
+							return stripTrailingHardline(body);
+						} catch (error) {
+							// If the script has syntax errors, return original unformatted content
+							console.error('Error formatting script:', error);
+							return replaceEndOfLine(node.value);
+						}
+					};
+				}
+			}
+
 			return null;
 		},
 		/**
@@ -160,6 +184,23 @@ export const printers = {
 		},
 	},
 };
+
+/**
+ * Raw-text `<script>` element: the parser stores the verbatim JS/TS body on
+ * `content` and mirrors it as a single JSXText child. Checking the tag name
+ * alongside `content` matches the other raw-aware consumers (the Ripple
+ * transforms, the compiler's script regions).
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement | null | undefined} node
+ * @returns {boolean}
+ */
+function isRawScriptElement(node) {
+	return (
+		node?.type === 'JSXElement' &&
+		node.openingElement?.name?.type === 'JSXIdentifier' &&
+		node.openingElement.name.name === 'script' &&
+		typeof node.content === 'string'
+	);
+}
 
 /**
  * Format a string literal according to Prettier options
@@ -5860,6 +5901,24 @@ function printJSXElement(node, path, options, print) {
 		],
 		{ shouldBreak: shouldForceBreak },
 	);
+
+	// Raw-text `<script>` element: the body lives on `node.content`, mirrored as a
+	// single JSXText child (see the parser's `#parseScriptElement`). Print that
+	// child — embed() formats it as TypeScript — in a block layout, bypassing the
+	// generic children path so the body is never whitespace-merged as markup text.
+	if (isRawScriptElement(node)) {
+		if (!hasChildren) {
+			return [openingTag, '</', tagName, '>'];
+		}
+		return group([
+			openingTag,
+			indent([hardline, path.call(print, 'children', 0)]),
+			hardline,
+			'</',
+			tagName,
+			'>',
+		]);
+	}
 
 	// Comments before `</tag>` and the comments of a comment-only element.
 	const { closingCommentDocs, innerCommentDocs } = collectElementBodyCommentDocs(

@@ -24,7 +24,13 @@ const PREC = {
 module.exports = grammar({
 	name: 'ripple',
 
-	externals: ($) => [$._automatic_semicolon, $._template_chars, $._ternary_qmark, $.jsx_text],
+	externals: ($) => [
+		$._automatic_semicolon,
+		$._template_chars,
+		$._ternary_qmark,
+		$.jsx_text,
+		$._script_content,
+	],
 
 	extras: ($) => [/\s/, $.comment],
 
@@ -425,6 +431,7 @@ module.exports = grammar({
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
 				prec(2, $.style_element),
+				prec(2, $.script_element),
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -521,6 +528,7 @@ module.exports = grammar({
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
 				prec(2, $.style_element),
+				prec(2, $.script_element),
 			),
 
 		jsx_statement_container: ($) =>
@@ -692,6 +700,25 @@ module.exports = grammar({
 			),
 
 		_style_content: ($) => /[^<]+/,
+
+		// Raw-text `<script>` element: the body is verbatim JS/TS (scanned by the
+		// external scanner up to the literal `</script>`), never template markup.
+		// The self-closing form (`<script src={...} />`) has no body; it is matched
+		// here too because the `<script` literal takes lexical priority over the
+		// generic element path.
+		script_element: ($) =>
+			prec(
+				1,
+				seq(
+					'<',
+					'script',
+					repeat($._jsx_attribute),
+					choice(
+						'/>',
+						seq('>', optional(alias($._script_content, $.raw_text)), '</', 'script', '>'),
+					),
+				),
+			),
 
 		function_declaration: ($) =>
 			prec.dynamic(
@@ -1217,6 +1244,7 @@ module.exports = grammar({
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
 				prec(2, $.style_element),
+				prec(2, $.script_element),
 				$.jsx_text,
 				$.jsx_element,
 				$.jsx_fragment,

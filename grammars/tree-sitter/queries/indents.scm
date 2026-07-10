@@ -17,6 +17,7 @@
   (jsx_fragment)
   (jsx_self_closing_element)
   (style_element)
+  (script_element)
   (jsx_statement_container)
   (module_body)
 ] @indent
@@ -27,6 +28,8 @@
   ")"
   "</style>"
 ] @outdent
+
+(script_element "</" @outdent)
 
 (jsx_closing_element) @outdent
 (jsx_closing_fragment) @outdent

@@ -206,6 +206,44 @@ describe('head elements', () => {
 		}
 	});
 
+	it('renders an inline raw-text <script> body as script text content', () => {
+		function App() @{
+			<head>
+				<script>
+					const value = 1 < 2 ? 'a' : 'b';
+					window.__ripple_script_test = value;
+				</script>
+			</head>
+		}
+
+		const added: HTMLScriptElement[] = [];
+		try {
+			render(App);
+			flushSync();
+
+			const inline_scripts = Array.from(
+				document.head.querySelectorAll('script:not([src])'),
+			) as HTMLScriptElement[];
+
+			for (const node of inline_scripts) {
+				if (node.textContent?.includes('__ripple_script_test')) {
+					added.push(node);
+				}
+			}
+
+			expect(added).toHaveLength(1);
+			// The body is injected verbatim, including the authored indentation, so
+			// assert on the statements rather than the exact whitespace.
+			const body = added[0].textContent ?? '';
+			expect(body).toContain('const value = 1 < 2 ? \'a\' : \'b\';');
+			expect(body).toContain('window.__ripple_script_test = value;');
+		} finally {
+			for (const node of added) {
+				node.remove();
+			}
+		}
+	});
+
 	it('renders title with conditional content', () => {
 		function App() @{
 			let &[showPrefix] = track(true);

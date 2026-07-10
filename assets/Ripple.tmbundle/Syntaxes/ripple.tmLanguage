@@ -4937,6 +4937,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-script</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-fragment</string>
 				</dict>
 				<dict>
@@ -4968,6 +4972,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-script-in-expression</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5022,6 +5030,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-script</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5732,6 +5744,99 @@
 				</dict>
 			</array>
 		</dict>
+		<key>jsx-tag-script</key>
+		<dict>
+			<key>begin</key>
+			<string>(&lt;)\s*(script)\b(?![^&gt;]*/&gt;)(?=[^&gt;]*&gt;)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.begin.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.tag.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(&lt;/)(script)(&gt;)</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.begin.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.tag.js</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.end.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>script.tag.js</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(&gt;)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.tag.end.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>source.ts</string>
+					<key>end</key>
+					<string>(?=&lt;/script&gt;)</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>source.ts</string>
+						</dict>
+					</array>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>(?&lt;=&lt;script)(?![^&gt;]*/&gt;)</string>
+					<key>end</key>
+					<string>(?=&gt;)</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#jsx-tag-attributes</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-tag-script-in-expression</key>
+		<dict>
+			<key>begin</key>
+			<string>(?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*(?=(&lt;)\s*(script)\b(?![^&gt;]*/&gt;)(?=[^&gt;]*&gt;))</string>
+			<key>end</key>
+			<string>(?!(&lt;)\s*(script)\b(?![^&gt;]*/&gt;)(?=[^&gt;]*&gt;))</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-script</string>
+				</dict>
+			</array>
+		</dict>
 		<key>jsx-tag-style</key>
 		<dict>
 			<key>begin</key>
@@ -6365,6 +6470,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-script-in-expression</string>
 				</dict>
 				<dict>
 					<key>include</key>

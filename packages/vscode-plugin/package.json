@@ -120,7 +120,8 @@
         "embeddedLanguages": {
           "source.js.embedded.tsrx": "javascriptreact",
           "source.js.embedded.tsrx-isolated": "javascript",
-          "source.css": "css"
+          "source.css": "css",
+          "source.ts": "typescript"
         }
       }
     ],

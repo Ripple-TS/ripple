@@ -23,6 +23,12 @@
 	id: string,
 }} CssSourceRegion;
 @typedef {{
+	start: number,
+	end: number,
+	content: string,
+	id: string,
+}} ScriptSourceRegion;
+@typedef {{
 	source: string | null | undefined;
 	generated: string;
 	loc: AST.SourceLocation;
@@ -130,12 +136,40 @@ function get_style_region_id(hash, fallback) {
  * @param {{
  * 	regions: CssSourceRegion[],
  * 	css_element_info: CssElementInfo,
+ * 	script_regions: ScriptSourceRegion[],
  * }} param2
  * @returns {void}
  */
-function visit_source_ast(ast, src_line_offsets, { regions, css_element_info }) {
+function visit_source_ast(ast, src_line_offsets, { regions, css_element_info, script_regions }) {
 	let region_id = 0;
+	let script_region_id = 0;
 	walk(ast, null, {
+		JSXElement(node, context) {
+			// Raw-text `<script>` elements carry their body verbatim on `node.content`
+			// (see the parser's `#parseScriptElement`). Expose that body as an embedded
+			// TypeScript region so the editor can offer intellisense inside it,
+			// mirroring how `<style>` bodies become embedded CSS regions below. The
+			// editor treats every script body as TypeScript (a superset of JS, matching
+			// the TextMate/tree-sitter/prettier treatment); the `type` attribute only
+			// matters to the runtime transforms, which read it off the AST.
+			const element_name = node.openingElement?.name;
+			const content = node.content;
+			if (
+				element_name?.type === 'JSXIdentifier' &&
+				element_name.name === 'script' &&
+				typeof content === 'string'
+			) {
+				const start = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
+				script_regions.push({
+					start,
+					end: start + content.length,
+					content,
+					id: `script_${script_region_id++}`,
+				});
+			}
+
+			context.next();
+		},
 		JSXStyleElement(node, context) {
 			if (node.css) {
 				const openLoc = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
@@ -370,10 +404,13 @@ export function convert_source_map_to_mappings(
 	const css_regions = [];
 	/** @type {CssElementInfo} */
 	const css_element_info = new Map();
+	/** @type {ScriptSourceRegion[]} */
+	const script_regions = [];
 
 	visit_source_ast(ast_from_source, src_line_offsets, {
 		regions: css_regions,
 		css_element_info,
+		script_regions,
 	});
 
 	/** @type {Map<string, number>} */
@@ -2320,10 +2357,30 @@ export function convert_source_map_to_mappings(
 		});
 	}
 
+	/** @type {CodeMapping[]} */
+	const scriptMappings = [];
+	for (let i = 0; i < script_regions.length; i++) {
+		const region = script_regions[i];
+		scriptMappings.push({
+			sourceOffsets: [region.start],
+			generatedOffsets: [0],
+			lengths: [region.content.length],
+			generatedLengths: [region.content.length],
+			data: {
+				...mapping_data,
+				customData: {
+					embeddedId: region.id,
+					content: region.content,
+				},
+			},
+		});
+	}
+
 	return {
 		code: generated_code,
 		mappings,
 		cssMappings,
+		scriptMappings,
 	};
 }
 

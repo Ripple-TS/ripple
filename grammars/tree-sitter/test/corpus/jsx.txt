@@ -730,3 +730,164 @@ function App() @{
                 (jsx_closing_fragment)))))
         (jsx_text)
         (jsx_closing_fragment)))))
+
+==================
+Script Element Raw Text Body
+==================
+
+function App() @{
+  <head>
+    <script>const n = 1 < 2 ? 3 : 4; if (n < 2) { go(); }</script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (raw_text))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element TypeScript Body
+==================
+
+function App() @{
+  <head>
+    <script type="text/typescript">const n: number = 1;</script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (jsx_attribute
+            (identifier)
+            (string))
+          (raw_text))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element Self Closing
+==================
+
+function App() @{
+  <head>
+    <script src={url} />
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (jsx_attribute
+            (identifier)
+            (jsx_expression
+              (component_statement
+                (expression_statement
+                  (identifier))))))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element Empty Body
+==================
+
+function App() @{
+  <head>
+    <script></script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element)
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Element Named Like Script Stays Generic
+==================
+
+function App() @{
+  <div>
+    <scripts>{'x'}</scripts>
+  </div>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (jsx_element
+          (jsx_opening_element
+            (jsx_element_name
+              (identifier)))
+          (jsx_expression
+            (component_statement
+              (expression_statement
+                (string))))
+          (jsx_closing_element
+            (jsx_element_name
+              (identifier))))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))

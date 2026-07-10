@@ -2997,3 +2997,59 @@ describe('division and private fields in template JS positions', () => {
 		expect(text).toContain('/');
 	});
 });
+
+describe('raw-text <script> elements', () => {
+	it('captures the body verbatim as `content` and mirrors it as a single JSXText child', () => {
+		const script = findElement(
+			`function App() @{ <head><script>const x = 1; foo();</script></head> }`,
+			'script',
+		);
+		expect(script.type).toBe('JSXElement');
+		expect(script.content).toBe('const x = 1; foo();');
+		// The body is mirrored as one JSXText child (like JSXStyleElement's css +
+		// parsed children) so generic element consumers emit it verbatim.
+		expect(script.children).toHaveLength(1);
+		expect(script.children[0].type).toBe('JSXText');
+		expect(script.children[0].value).toBe('const x = 1; foo();');
+	});
+
+	it('reads JS with markup-significant characters (`<`, `{`, `}`) that would otherwise break parsing', () => {
+		const script = findElement(
+			`function App() @{ <head><script>if (a < b) { arr.map(x => x < 2); }</script></head> }`,
+			'script',
+		);
+		expect(script.content).toBe('if (a < b) { arr.map(x => x < 2); }');
+	});
+
+	it('preserves TypeScript syntax and the `type` attribute', () => {
+		const script = findElement(
+			`function App() @{ <head><script type="text/typescript">const n: number = 1;</script></head> }`,
+			'script',
+		);
+		expect(script.content).toBe('const n: number = 1;');
+		const typeAttr = script.openingElement.attributes.find((a) => a.name?.name === 'type');
+		expect(typeAttr?.value?.value).toBe('text/typescript');
+	});
+
+	it('exposes body offsets that match `content` (opening tag end -> closing tag start)', () => {
+		const source = `function App() @{ <head><script>const y = 2;</script></head> }`;
+		const script = findElement(source, 'script');
+		const start = script.openingElement.end;
+		const end = script.closingElement.start;
+		expect(source.slice(start, end)).toBe(script.content);
+	});
+
+	it('leaves self-closing `<script src=... />` as an ordinary element with no raw content', () => {
+		const script = findElement(`function App() @{ <head><script src={url} /></head> }`, 'script');
+		expect(script.openingElement.selfClosing).toBe(true);
+		expect(script.content).toBeUndefined();
+	});
+
+	it('keeps a multi-line body verbatim including newlines', () => {
+		const script = findElement(
+			`function App() @{ <head><script>\nconst a = 1;\nconst b = a < 2;\n</script></head> }`,
+			'script',
+		);
+		expect(script.content).toBe('\nconst a = 1;\nconst b = a < 2;\n');
+	});
+});

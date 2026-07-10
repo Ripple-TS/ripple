@@ -2493,6 +2493,23 @@ const visitors = {
 				);
 			}
 
+			// Raw-text `<script>…</script>` body: emit the verbatim `node.content`
+			// (see the parser's `#parseScriptElement`) between the tags. Script content
+			// is raw text/CDATA, so it is not HTML-escaped, matching the client's
+			// `_$_.script` injection. The parser also mirrors the body as a JSXText
+			// child for generic consumers; skip it here so the body isn't emitted twice
+			// (and never HTML-escaped).
+			const script_content = /** @type {AST.TSRXJSXElement} */ (node).content;
+			const has_raw_script_content =
+				element_id.type === 'Identifier' &&
+				element_id.name === 'script' &&
+				typeof script_content === 'string' &&
+				script_content.length > 0;
+			const element_children = has_raw_script_content ? [] : node.children;
+			if (has_raw_script_content) {
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(script_content))));
+			}
+
 			if (!is_void) {
 				if (inner_html_expression !== null) {
 					push_inner_html_expression(inner_html_expression, state);
@@ -2505,7 +2522,7 @@ const visitors = {
 					/** @type {AST.Statement[]} */
 					const init = [];
 					transform_children(
-						node.children,
+						element_children,
 						/** @type {TransformServerContext} */ ({
 							visit,
 							state: {
@@ -2532,7 +2549,7 @@ const visitors = {
 					/** @type {AST.Statement[]} */
 					const init = [];
 					transform_children(
-						node.children,
+						element_children,
 						/** @type {TransformServerContext} */ ({
 							visit,
 							state: {

@@ -2004,7 +2004,13 @@ function inject_solid_imports(program, transform_context) {
 function to_jsx_element(node, transform_context) {
 	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx) return node;
 
-	const walked_children = node.children || [];
+	// A raw-text `<script>` body (mirrored by the parser as a JSXText child of
+	// `node.content`) must not appear in the type-only editor TSX: raw JS/TS
+	// (`{`, `<`) doesn't lex as JSX text there and would surface bogus syntactic
+	// diagnostics. The embedded TS document built from `scriptMappings` covers
+	// the body in the editor; runtime output keeps the text child.
+	const walked_children =
+		transform_context.typeOnly && typeof node.content === 'string' ? [] : node.children || [];
 
 	if (!node.openingElement?.name) {
 		return tsrx_node_to_jsx_expression(node, transform_context, true);

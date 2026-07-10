@@ -141,6 +141,20 @@
 (style_element
   (raw_text) @string.special)
 
+; Script elements. The `script` tag name and the surrounding punctuation are
+; separate tokens (unlike style's single `<style` token); the raw JS/TS body is
+; left uncaptured so the TypeScript injection colors it.
+(script_element
+  "script" @tag)
+
+(script_element
+  [
+    "<"
+    "</"
+    ">"
+    "/>"
+  ] @tag.delimiter)
+
 (jsx_if_expression
   "@" @keyword.control
   "if" @keyword.control)

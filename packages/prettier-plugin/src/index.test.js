@@ -5583,11 +5583,47 @@ render(App);`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should preserve <script> tags', async () => {
-			const expected = `<script>const i = 2;</script>`;
+		it('should format <script> bodies as JS in a block layout', async () => {
+			const expected = `<script>
+  const i = 2;
+</script>`;
+
+			const result = await format(`<script>const i = 2;</script>`, {
+				singleQuote: true,
+				printWidth: 100,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format a TypeScript <script> body with prettier options applied', async () => {
+			const expected = `<script type="text/typescript">
+  const n: number = 1 < 2 ? 3 : 4;
+  if (n < 2) {
+    go('now');
+  }
+</script>`;
+
+			const source = `<script type="text/typescript">const n:number=1<2?3:4;
+if(n<2){go("now")}</script>`;
+
+			const result = await format(source, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should be idempotent when reformatting a formatted <script> body', async () => {
+			const once = await format(`<script>const i = 2;</script>`, {
+				singleQuote: true,
+				printWidth: 100,
+			});
+			const twice = await format(once, { singleQuote: true, printWidth: 100 });
+			expect(twice).toBe(once);
+		});
+
+		it('should keep an unparseable <script> body verbatim', async () => {
+			const expected = `<script>const broken = ;</script>`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
+			expect(result).toContain('const broken = ;');
 		});
 
 		it('should preserve the blank line between a function and text literal sibling inside element', async () => {

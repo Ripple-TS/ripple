@@ -3634,7 +3634,16 @@ function to_jsx_element(
 		transform_context,
 		node,
 	);
-	const walked_children = node.children || [];
+	let walked_children = node.children || [];
+	// A raw-text `<script>` body (mirrored by the parser as a JSXText child of
+	// `node.content`) must not appear in the type-only editor TSX: raw JS/TS
+	// (`{`, `<`) doesn't lex as JSX text there and would surface bogus syntactic
+	// diagnostics. The embedded TS document built from `scriptMappings` covers
+	// the body in the editor; runtime output keeps the text child.
+	if (transform_context.typeOnly && typeof node.content === 'string') {
+		walked_children = [];
+		raw_children = [];
+	}
 	let selfClosing = !!source_opening.selfClosing;
 	let children;
 	const child_transform = transform_context.platform.hooks?.transformElementChildren?.(

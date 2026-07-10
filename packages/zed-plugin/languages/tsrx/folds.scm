@@ -20,6 +20,9 @@
 ; Fold style elements
 (style_element) @fold
 
+; Fold script elements
+(script_element) @fold
+
 ; Fold submodules
 (module_declaration) @fold
 

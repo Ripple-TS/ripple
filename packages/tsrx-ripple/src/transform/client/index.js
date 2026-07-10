@@ -2649,26 +2649,21 @@ const visitors = {
 		}
 
 		if (context.state.inside_head) {
-			// Inline scripts (`<script>{code}</script>`) are rendered by injecting
-			// the child content as the script's text. Scripts with no inline body
-			// (e.g. `<script src={...} />`) carry their behavior in attributes, so
-			// they fall through to generic element handling instead.
+			// Inline scripts (`<script>…raw JS/TS…</script>`) are raw-text elements: the
+			// body is captured verbatim on `node.content` (see the parser's
+			// `#parseScriptElement`) and injected as the script's text content. Scripts
+			// with no inline body (e.g. `<script src={...} />`) carry their behavior in
+			// attributes, so they fall through to generic element handling instead.
+			const script_content = /** @type {AST.TSRXJSXElement} */ (node).content;
 			if (
 				element_id.type === 'Identifier' &&
 				element_id.name === 'script' &&
-				node.children.length > 0
+				typeof script_content === 'string' &&
+				script_content.length > 0
 			) {
 				const id = state.flush_node?.();
 				state.template?.push('<!>');
-				context.state.init?.push(
-					b.stmt(
-						b.call(
-							'_$_.script',
-							id,
-							/** @type {AST.Literal} */ (visit(/** @type {AST.Node} */ (node.children[0]), state)),
-						),
-					),
-				);
+				context.state.init?.push(b.stmt(b.call('_$_.script', id, b.literal(script_content))));
 				return;
 			}
 		}

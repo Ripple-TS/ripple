@@ -15,6 +15,7 @@
   (parenthesized_expression ")" @end)
   (jsx_expression "}" @end)
   (style_element "</style>" @end)
+  (script_element "</" @end)
   (jsx_statement_container "}" @end)
   (module_body "}" @end)
   (jsx_self_closing_element "/>" @end)

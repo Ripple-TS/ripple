@@ -328,6 +328,15 @@ declare module 'estree' {
 		/** Loose-mode recovery: the element was never closed. */
 		unclosed?: boolean;
 		/**
+		 * Raw-text `<script>` body captured verbatim by the parser's
+		 * `#parseScriptElement` (analogous to {@link JSXStyleElement.css}). Present only
+		 * on `<script>` elements that have a body. The parser also mirrors the body as
+		 * a single `JSXText` child so generic element consumers emit it; consumers that
+		 * handle `content` directly (the Ripple transforms, the prettier plugin, the
+		 * type-only editor output) skip the children instead of emitting both.
+		 */
+		content?: string;
+		/**
 		 * The parser emits {@link TSRXJSXChild}; the compile pre-passes lower
 		 * template children in place (retyped directives, code-block IIFEs,
 		 * merged text runs), so any node can appear here by transform time.
@@ -1687,6 +1696,14 @@ export interface VolarMappingsResult {
 	code: string;
 	mappings: CodeMapping[];
 	cssMappings: CodeMapping[];
+	/**
+	 * Embedded raw-text `<script>` body regions, each mapped to its source range so
+	 * the editor can treat the body as an embedded TypeScript document (TS is a
+	 * superset of JS, so every body is treated as TypeScript regardless of the
+	 * `type` attribute — that attribute only matters to the runtime transforms).
+	 * Mirrors {@link cssMappings} for `<style>` bodies.
+	 */
+	scriptMappings: CodeMapping[];
 	errors: CompileError[];
 	sourceAst: AST.Program;
 }

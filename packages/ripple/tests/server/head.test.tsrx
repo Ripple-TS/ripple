@@ -113,6 +113,23 @@ describe('head elements', () => {
 		expect(srcs).toEqual(['/a.js', '/b.js']);
 	});
 
+	it('renders an inline raw-text <script> body verbatim', async () => {
+		function App() @{
+			<head>
+				<script>
+					const value = 1 < 2 ? 'a' : 'b';
+				</script>
+			</head>
+		}
+
+		const { head } = await render(App);
+
+		// The body is emitted verbatim (unescaped), including the authored
+		// indentation, so match the statement inside the tags rather than the
+		// exact whitespace.
+		expect(head).toMatch(/<script>[\s\S]*const value = 1 < 2 \? 'a' : 'b';[\s\S]*<\/script>/);
+	});
+
 	it('renders title with conditional content', async () => {
 		function App() @{
 			let &[showPrefix] = track(true);

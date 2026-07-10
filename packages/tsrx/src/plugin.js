@@ -465,12 +465,17 @@ export function TSRXPlugin(config) {
 				return !!node && node.metadata?.templateMode !== 'template';
 			}
 
-			#isStyleOpeningTagStart() {
+			/**
+			 * Whether the `<` token at `this.start` opens the given raw-text element
+			 * (`<style` or `<script` followed by `>`, `/`, or whitespace).
+			 * @param {string} tagName
+			 */
+			#isRawTextOpeningTagStart(tagName) {
 				let index = this.start + 1;
 				if (this.input.charCodeAt(index) === CharCode.slash) return false;
-				if (this.input.slice(index, index + 'style'.length) !== 'style') return false;
+				if (this.input.slice(index, index + tagName.length) !== tagName) return false;
 
-				const after = this.input.charCodeAt(index + 'style'.length);
+				const after = this.input.charCodeAt(index + tagName.length);
 				return (
 					after === CharCode.greaterThan ||
 					after === CharCode.slash ||
@@ -2051,34 +2056,22 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Read a raw-text element body: capture everything between the opening `>`
+			 * and the literal `</tagName>` verbatim (never as template markup),
+			 * synthesize the closing element, and restore the tokenizer state past it.
+			 * Shared by `<style>` and `<script>`.
+			 *
 			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
-			 * @param {AST.JSXStyleElement} node
-			 * @param {boolean} insideHead
+			 * @param {AST.JSXStyleElement | AST.TSRXJSXElement} node
+			 * @param {'style' | 'script'} tagName
+			 * @returns {string} The raw body text
 			 */
-			#parseStyleElement(open, node, insideHead) {
-				const filename = this.#filename;
-				if (!filename) {
-					throw new Error(
-						'<style> elements require a filename: pass one to parse so style scope hashes are unique per file.',
-					);
-				}
+			#parseRawTextElement(open, node, tagName) {
+				const closeTag = `</${tagName}>`;
 				const contentStart = open.end;
 				const input = this.input.slice(contentStart);
-				const relativeCloseStart = input.indexOf('</style>');
+				const relativeCloseStart = input.indexOf(closeTag);
 				const content = relativeCloseStart === -1 ? input : input.slice(0, relativeCloseStart);
-				const parsedCss = parse_style(
-					content,
-					{
-						filename,
-						line: open.loc.start.line,
-						column: open.loc.start.column,
-					},
-					{ loose: this.#loose },
-				);
-
-				if (!insideHead) {
-					node.metadata.styleScopeHash = parsedCss.hash;
-				}
 
 				const newLines = content.match(regex_newline_characters)?.length;
 				if (newLines) {
@@ -2091,7 +2084,7 @@ export function TSRXPlugin(config) {
 					const closingLineInfo = acorn.getLineInfo(this.input, closingStart);
 					const closingStartLoc = new acorn.Position(closingLineInfo.line, closingLineInfo.column);
 					const nameStart = closingStart + 2;
-					const nameEnd = nameStart + 'style'.length;
+					const nameEnd = nameStart + tagName.length;
 					const nameStartInfo = acorn.getLineInfo(this.input, nameStart);
 					const nameEndInfo = acorn.getLineInfo(this.input, nameEnd);
 					const name = /** @type {ESTreeJSX.JSXIdentifier} */ (
@@ -2100,14 +2093,14 @@ export function TSRXPlugin(config) {
 							new acorn.Position(nameStartInfo.line, nameStartInfo.column),
 						)
 					);
-					name.name = 'style';
+					name.name = tagName;
 					this.finishNodeAt(
 						name,
 						'JSXIdentifier',
 						nameEnd,
 						new acorn.Position(nameEndInfo.line, nameEndInfo.column),
 					);
-					const closingEnd = closingStart + '</style>'.length;
+					const closingEnd = closingStart + closeTag.length;
 					const closingEndInfo = acorn.getLineInfo(this.input, closingEnd);
 					const closingElement =
 						/** @type {ESTreeJSX.TSRXJSXClosingElement & AST.NodeWithLocation} */ (
@@ -2131,8 +2124,8 @@ export function TSRXPlugin(config) {
 					this.curLine = closingEndInfo.line;
 					this.lineStart = closingEnd - closingEndInfo.column;
 					if (insideTemplate && relativeCloseStart === 0) {
-						// Acorn has already tokenized the adjacent </style>; TSRX synthesizes
-						// that close manually, so drop the stale style tag context.
+						// Acorn has already tokenized the adjacent closing tag; TSRX
+						// synthesizes that close manually, so drop the stale tag context.
 						if (this.curContext() === tstc.tc_oTag) {
 							this.context.pop();
 						}
@@ -2153,13 +2146,83 @@ export function TSRXPlugin(config) {
 				} else {
 					this.#report_broken_markup_error(
 						open.end,
-						"Unclosed tag '<style>'. Expected '</style>' before end of template.",
+						`Unclosed tag '<${tagName}>'. Expected '${closeTag}' before end of template.`,
 					);
 					node.unclosed = true;
 				}
 
+				return content;
+			}
+
+			/**
+			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {AST.JSXStyleElement} node
+			 * @param {boolean} insideHead
+			 */
+			#parseStyleElement(open, node, insideHead) {
+				const filename = this.#filename;
+				if (!filename) {
+					throw new Error(
+						'<style> elements require a filename: pass one to parse so style scope hashes are unique per file.',
+					);
+				}
+				const content = this.#parseRawTextElement(open, node, 'style');
+				const parsedCss = parse_style(
+					content,
+					{
+						filename,
+						line: open.loc.start.line,
+						column: open.loc.start.column,
+					},
+					{ loose: this.#loose },
+				);
+
+				if (!insideHead) {
+					node.metadata.styleScopeHash = parsedCss.hash;
+				}
+
 				node.css = content;
 				node.children = [parsedCss];
+			}
+
+			/**
+			 * Parse a `<script>` element as a raw-text element, exactly like `<style>`:
+			 * the body is captured verbatim as `node.content`, letting authors write real
+			 * JS/TS (with `<`, `{`, `}`) and letting the editor treat the body as an
+			 * embedded TypeScript/JavaScript document.
+			 *
+			 * Mirroring `JSXStyleElement` (raw `css` string + parsed children), the body
+			 * is exposed twice: verbatim on `content`, and as a single `JSXText` child so
+			 * generic element paths (factory targets, static hoisting, printers) emit the
+			 * body without knowing about raw-text elements. Consumers that handle
+			 * `content` directly (the Ripple transforms, the prettier plugin) must skip
+			 * the children instead of emitting both.
+			 *
+			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {AST.TSRXJSXElement} node
+			 */
+			#parseScriptElement(open, node) {
+				const content = this.#parseRawTextElement(open, node, 'script');
+				node.content = content;
+				node.children = [];
+
+				if (content.length > 0) {
+					const bodyStartInfo = acorn.getLineInfo(this.input, open.end);
+					const text = /** @type {ESTreeJSX.JSXText} */ (
+						this.startNodeAt(open.end, new acorn.Position(bodyStartInfo.line, bodyStartInfo.column))
+					);
+					text.value = content;
+					text.raw = content;
+					const bodyEnd = open.end + content.length;
+					const bodyEndInfo = acorn.getLineInfo(this.input, bodyEnd);
+					this.finishNodeAt(
+						text,
+						'JSXText',
+						bodyEnd,
+						new acorn.Position(bodyEndInfo.line, bodyEndInfo.column),
+					);
+					node.children = [/** @type {AST.Node} */ (text)];
+				}
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -4170,7 +4233,7 @@ export function TSRXPlugin(config) {
 			 */
 			jsx_parseElement() {
 				if (this.#forceScriptJSXElementDepth > 0 || this.#isInsideNativeTemplateScriptSection()) {
-					if (this.#isStyleOpeningTagStart()) {
+					if (this.#isRawTextOpeningTagStart('style') || this.#isRawTextOpeningTagStart('script')) {
 						this.next();
 						return /** @type {ESTreeJSX.JSXElement | AST.JSXStyleElement} */ (
 							/** @type {unknown} */ (this.parseElement())
@@ -4303,6 +4366,7 @@ export function TSRXPlugin(config) {
 				const tag_name = open.name ? this.getElementName(open.name) : null;
 				const is_dynamic = this.#isDynamicJSXElementName(open.name);
 				const is_style = tag_name === 'style';
+				const is_script = tag_name === 'script';
 				const inside_head = this.#path.findLast((n) => this.#isNativeElementNamed(n, 'head'));
 
 				// Fragments (<>) produce JSXOpeningFragment with no `name` property
@@ -4357,6 +4421,9 @@ export function TSRXPlugin(config) {
 				} else if (is_style) {
 					this.#parseStyleElement(open, /** @type {AST.JSXStyleElement} */ (node), !!inside_head);
 					this.#path.pop();
+				} else if (is_script) {
+					this.#parseScriptElement(open, /** @type {AST.TSRXJSXElement} */ (node));
+					this.#path.pop();
 				} else {
 					this.#parseNativeTemplateBody(node, /** @type {AST.Node[]} */ (node.children), {
 						enterScope: true,
@@ -4400,7 +4467,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (is_style && /** @type {AST.JSXStyleElement} */ (node).closingElement) {
+				if ((is_style || is_script) && /** @type {AST.JSXStyleElement} */ (node).closingElement) {
 					const closing = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
 						/** @type {AST.JSXStyleElement} */ (node).closingElement
 					);

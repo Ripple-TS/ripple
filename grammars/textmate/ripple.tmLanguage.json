@@ -6450,6 +6450,9 @@
           "include": "#jsx-tag-style"
         },
         {
+          "include": "#jsx-tag-script"
+        },
+        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6653,12 +6656,71 @@
         }
       ]
     },
+    "jsx-tag-script": {
+      "name": "script.tag.js",
+      "begin": "(<)\\s*(script)\\b(?![^>]*/>)(?=[^>]*>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        }
+      },
+      "end": "(</)(script)(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "entity.name.tag.js"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.js"
+            }
+          },
+          "end": "(?=</script>)",
+          "contentName": "source.ts",
+          "patterns": [
+            {
+              "include": "source.ts"
+            }
+          ]
+        },
+        {
+          "begin": "(?<=<script)(?![^>]*/>)",
+          "end": "(?=>)",
+          "patterns": [
+            {
+              "include": "#jsx-tag-attributes"
+            }
+          ]
+        }
+      ]
+    },
     "jsx-tag-style-in-expression": {
       "begin": "(?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?=(<)\\s*(style)\\b(?![^>]*/>)(?=[^>]*>))",
       "end": "(?!(<)\\s*(style)\\b(?![^>]*/>)(?=[^>]*>))",
       "patterns": [
         {
           "include": "#jsx-tag-style"
+        }
+      ]
+    },
+    "jsx-tag-script-in-expression": {
+      "begin": "(?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?=(<)\\s*(script)\\b(?![^>]*/>)(?=[^>]*>))",
+      "end": "(?!(<)\\s*(script)\\b(?![^>]*/>)(?=[^>]*>))",
+      "patterns": [
+        {
+          "include": "#jsx-tag-script"
         }
       ]
     },
@@ -6874,6 +6936,9 @@
           "include": "#jsx-tag-style"
         },
         {
+          "include": "#jsx-tag-script"
+        },
+        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6909,6 +6974,9 @@
         },
         {
           "include": "#jsx-tag-style-in-expression"
+        },
+        {
+          "include": "#jsx-tag-script-in-expression"
         },
         {
           "include": "#jsx-tag-fragment"
@@ -6949,6 +7017,9 @@
         },
         {
           "include": "#jsx-tag-style-in-expression"
+        },
+        {
+          "include": "#jsx-tag-script-in-expression"
         },
         {
           "include": "#jsx-tag-fragment"

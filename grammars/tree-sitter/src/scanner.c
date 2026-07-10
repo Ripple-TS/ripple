@@ -7,6 +7,7 @@ enum TokenType {
   TEMPLATE_CHARS,
   TERNARY_QMARK,
   JSX_TEXT,
+  SCRIPT_CONTENT,
 };
 
 void *tree_sitter_ripple_external_scanner_create() { return NULL; }
@@ -270,8 +271,48 @@ static bool scan_jsx_text(TSLexer *lexer) {
   }
 }
 
+// Raw `<script>` body: consume everything verbatim (including `<`, `{`, quotes
+// and comments) up to, but not including, the literal closing `</script>` tag.
+// Mirrors how tree-sitter-html scans raw text, so JS/TS bodies never parse as
+// template markup. Returns false for an empty body (the grammar's `optional`
+// handles that) or an unterminated element.
+static bool scan_script_content(TSLexer *lexer) {
+  lexer->result_symbol = SCRIPT_CONTENT;
+  const char *end_tag = "</script>";
+  bool has_content = false;
+
+  for (;;) {
+    lexer->mark_end(lexer);
+    if (lexer->lookahead == 0) {
+      return false;
+    }
+    if (lexer->lookahead == '<') {
+      unsigned matched = 0;
+      while (end_tag[matched] != '\0' && lexer->lookahead == end_tag[matched]) {
+        advance(lexer);
+        matched++;
+      }
+      if (end_tag[matched] == '\0') {
+        // Full `</script>` seen; mark_end above already excluded it.
+        return has_content;
+      }
+      has_content = true;
+    } else {
+      advance(lexer);
+      has_content = true;
+    }
+  }
+}
+
 bool tree_sitter_ripple_external_scanner_scan(void *payload, TSLexer *lexer,
                                                 const bool *valid_symbols) {
+  // In error recovery every external token is marked valid at once; the
+  // AUTOMATIC_SEMICOLON check filters that out, since it is never valid in the
+  // one real state where SCRIPT_CONTENT is (right after `<script ...>`).
+  if (valid_symbols[SCRIPT_CONTENT] && !valid_symbols[AUTOMATIC_SEMICOLON]) {
+    return scan_script_content(lexer);
+  }
+
   if (valid_symbols[TEMPLATE_CHARS]) {
     return scan_template_chars(lexer);
   }
