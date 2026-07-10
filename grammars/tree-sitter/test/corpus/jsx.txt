@@ -891,3 +891,79 @@ function App() @{
         (jsx_closing_element
           (jsx_element_name
             (identifier)))))))
+
+==================
+Script Remains A Valid Identifier
+==================
+
+const script = 1;
+const obj = { script };
+const src = obj.script;
+const cmp = src < script && script > 0;
+function App() @{
+  <head>
+    @for (const script of [obj]) {
+      <script src={script.src} />
+    }
+  </head>
+}
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (initializer
+        (number))))
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (initializer
+        (object
+          (shorthand_property_identifier
+            (shorthand_property_identifier_pattern))))))
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (initializer
+        (member_expression
+          (identifier)
+          (identifier)))))
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (initializer
+        (binary_expression
+          (binary_expression
+            (identifier)
+            (identifier))
+          (binary_expression
+            (identifier)
+            (number))))))
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_for_expression
+          (identifier)
+          (array
+            (identifier))
+          (jsx_template_block
+            (script_element
+              (jsx_attribute
+                (identifier)
+                (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (member_expression
+                        (identifier)
+                        (identifier))))))))
+          (jsx_text))
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
