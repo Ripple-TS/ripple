@@ -1,5 +1,7 @@
 # ripple
 
+## 0.3.95
+
 ## 0.3.94
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @tsrx/prettier-plugin
 
+## 0.3.95
+
+### Patch Changes
+
+- [#1335](https://github.com/Ripple-TS/ripple/pull/1335)
+  [`2b12d08`](https://github.com/Ripple-TS/ripple/commit/2b12d08af0bf9494c684340eb7c22b5febe02328)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix(prettier-plugin): keep
+  author parens on same-precedence, same-operator right operands — `a - (b - c)`,
+  `a / (b / c)`, and `'x' + (n + 1)` no longer reformat to a regrouped
+  (semantics-changing) chain; `(a ** b) ** c` keeps its left-operand parens since
+  `**` is right-associative
+
 ## 0.3.94
 
 ### Patch Changes
