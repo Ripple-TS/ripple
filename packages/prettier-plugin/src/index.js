@@ -403,6 +403,16 @@ function binaryExpressionNeedsParens(node, parent) {
 		if (nodePrecedence === parentPrecedence && node.operator !== parent.operator) {
 			return true;
 		}
+		if (nodePrecedence === parentPrecedence) {
+			// Same precedence, same operator: dropping the parens regroups a
+			// left-associative chain (`a - (b - c)` !== `a - b - c`; even `+` is
+			// non-associative once strings are involved), so the RIGHT operand
+			// keeps its parens. `**` is right-associative — there it's the LEFT
+			// operand that must keep them.
+			if (parent.operator === '**' ? parent.left === node : parent.right === node) {
+				return true;
+			}
+		}
 	}
 
 	return false;

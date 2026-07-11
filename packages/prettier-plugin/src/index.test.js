@@ -2285,6 +2285,42 @@ const program =
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep parens around the right operand of a same-operator subtraction', async () => {
+			const expected = `const d = a - (b - c);`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep parens around the right operand of a same-operator division', async () => {
+			const expected = `const d = a / (b / c);`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep parens around a right-side addition under string concatenation', async () => {
+			const expected = `const s = 'x' + (n + 1);`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should drop redundant parens around the left operand of a same-operator addition', async () => {
+			const input = `const s = (a + b) + c;`;
+			const expected = `const s = a + b + c;`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep parens around the left operand of exponentiation', async () => {
+			const expected = `const p = (a ** b) ** c;`;
+
+			const result = await format(expected, { singleQuote: true, printWidth: 100 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should have parents around low-precedence logical expression', async () => {
 			const input = `files = [...files ?? [], ...dt.files];
 files = [...(files ?? []), ...dt.files];`;
