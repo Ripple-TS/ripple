@@ -185,6 +185,17 @@ export function tsx_with_ts_locations() {
 			}
 			context.write('>');
 		},
+		// esrap's TSExpressionWithTypeArguments printer only emits `expression`,
+		// dropping interface heritage arguments such as the `<T>` in
+		// `interface Foo<T> extends Bar<T> {}`. Besides changing the declaration's
+		// semantics, that leaves segments.js unable to map the omitted node.
+		TSExpressionWithTypeArguments: (node, context) => {
+			context.visit(node.expression);
+			const type_arguments = node.typeParameters ?? node.typeArguments;
+			if (type_arguments) {
+				context.visit(type_arguments);
+			}
+		},
 		TSModuleDeclaration: (node, context) => {
 			context.write(node.metadata?.module_keyword ?? 'module');
 			context.write(' ');

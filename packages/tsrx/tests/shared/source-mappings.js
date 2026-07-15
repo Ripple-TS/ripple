@@ -140,6 +140,19 @@ export function runSharedSourceMappingTests({
 			expect_maps(
 				`function assert(x: any): asserts x { if (!x) throw new Error(); } function C() @{}`,
 			));
+		it.each([
+			'interface Foo<T> extends Bar<T> {}',
+			'interface Foo extends Bar<string> {}',
+			'interface Foo<T, U> extends Bar<T>, Baz<U> {}',
+			'interface Foo<T> extends Namespace.Bar<Array<T>> {}',
+			'export interface Foo<T extends object> extends Bar<Readonly<T>> {}',
+		])('preserves generic interface heritage arguments: %s', (source) => {
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.code).toContain(source);
+			expect(result.errors).toEqual([]);
+			expect(result.mappings.length).toBeGreaterThan(0);
+		});
 
 		// JSX: esrap prints `<`, `>`, `</`, ` /` without location markers.
 		// Combined with hoisting to module-level statics, the opening
