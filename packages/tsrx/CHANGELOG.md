@@ -1,5 +1,17 @@
 # @tsrx/core
 
+## 0.1.40
+
+### Patch Changes
+
+- [#1339](https://github.com/Ripple-TS/ripple/pull/1339)
+  [`586c6df`](https://github.com/Ripple-TS/ripple/commit/586c6df1dfe52f098d6b48fd94414f69d5e2020d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fixed parsing multiline
+  self-closing JSX expressions when whitespace follows `/>`, including
+  parenthesized return expressions and ternaries whose other branch is a fragment
+  or array. The tokenizer now uses the preceding token boundary when deciding
+  whether the following source is template text.
+
 ## 0.1.39
 
 ### Patch Changes
