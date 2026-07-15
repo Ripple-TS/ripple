@@ -1000,13 +1000,15 @@ export function TSRXPlugin(config) {
 				// following raw text belongs to an enclosing template, not to it. With no
 				// enclosing template (e.g. a top-level `return <div />`), the trailing
 				// text is plain JS and must not be read as template raw text.
+				// Inter-token whitespace has already advanced `pos`; `lastTokEnd` still
+				// identifies the consumed `/>` boundary.
 				const opening = this.#openingNativeTemplateNode;
 				if (
 					opening &&
 					current_template_node === opening &&
 					/** @type {any} */ (opening).openingElement?.selfClosing &&
-					this.input.charCodeAt(this.pos - 1) === CharCode.greaterThan &&
-					this.input.charCodeAt(this.pos - 2) === CharCode.slash
+					this.input.charCodeAt(this.lastTokEnd - 1) === CharCode.greaterThan &&
+					this.input.charCodeAt(this.lastTokEnd - 2) === CharCode.slash
 				) {
 					const enclosing = this.#path.findLast(
 						(node) => node !== opening && this.#isNativeTemplateNode(node),

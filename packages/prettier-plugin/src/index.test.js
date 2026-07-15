@@ -510,6 +510,54 @@ function App() {
 }`);
 	});
 
+	it('formats a multiline parenthesized self-closing expression', async () => {
+		const result = await format(`const value = (
+  <Item />
+);`);
+
+		expect(result).toBeWithNewline('const value = <Item />;');
+	});
+
+	it('formats a return ternary from a self-closing element to a fragment', async () => {
+		const input = `function ElementToFragment(condition) {
+  return condition ? (
+    <Item />
+  ) : (
+    <>
+      <Item />
+    </>
+  );
+}`;
+		const expected = `function ElementToFragment(condition) {
+  return condition
+    ? <Item />
+    : <>
+        <Item />
+      </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+		expect(await format(result)).toBe(result);
+	});
+
+	it('formats a return ternary from a self-closing element to an array', async () => {
+		const input = `function ElementToArray(condition) {
+  return condition ? (
+    <Item />
+  ) : (
+    [<Item />]
+  );
+}`;
+		const expected = `function ElementToArray(condition) {
+  return condition ? <Item /> : [<Item />];
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+		expect(await format(result)).toBe(result);
+	});
+
 	it('hugs a `@{ }` code block to an element body', async () => {
 		const input = `function App(){return <div>@{const x=1;<span>{x}</span>}</div>}`;
 		const expected = `function App() {

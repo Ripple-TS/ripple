@@ -500,6 +500,72 @@ abc
 		expect(span.children[0].value).toBe('   keep');
 	});
 
+	it('parses a multiline parenthesized self-closing element in an expression', () => {
+		const ast = parseModule(
+			`const value = (
+				<Item />
+			);
+			const after = true;`,
+			'App.tsrx',
+		);
+
+		const [valueDeclaration, afterDeclaration] = ast.body;
+		const value = valueDeclaration.declarations[0].init;
+		expect(value.type).toBe('JSXElement');
+		expect(value.openingElement.name.name).toBe('Item');
+		expect(afterDeclaration.declarations[0].init.value).toBe(true);
+	});
+
+	it('parses a return ternary from a self-closing element to a fragment', () => {
+		const returned = getReturned(
+			`function App(condition) {
+				return condition ? (
+					<Item />
+				) : (
+					<>
+						<Item />
+					</>
+				);
+			}`,
+		);
+
+		expect(returned.type).toBe('ConditionalExpression');
+		expect(returned.consequent.type).toBe('JSXElement');
+		expect(returned.alternate.type).toBe('JSXFragment');
+		expect(returned.alternate.children.map((child) => child.type)).toEqual(['JSXElement']);
+	});
+
+	it('parses a return ternary from a self-closing element to an array', () => {
+		const returned = getReturned(
+			`function App(condition) {
+				return condition ? (
+					<Item />
+				) : (
+					[<Item />]
+				);
+			}`,
+		);
+
+		expect(returned.type).toBe('ConditionalExpression');
+		expect(returned.consequent.type).toBe('JSXElement');
+		expect(returned.alternate.type).toBe('ArrayExpression');
+		expect(returned.alternate.elements.map((element) => element.type)).toEqual(['JSXElement']);
+	});
+
+	it('preserves template text after a self-closing child', () => {
+		const returned = getReturned(
+			`function App() {
+				return <div>
+					<Item />
+					tail
+				</div>;
+			}`,
+		);
+
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXText']);
+		expect(returned.children[1].value).toContain('tail');
+	});
+
 	it('parses a ternary with JSX element branches inside an expression container', () => {
 		const returned = getReturned(
 			`function App() {
