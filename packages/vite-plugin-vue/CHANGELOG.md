@@ -1,5 +1,12 @@
 # @tsrx/vite-plugin-vue
 
+## 0.0.55
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/vue@0.1.39
+
 ## 0.0.54
 
 ### Patch Changes

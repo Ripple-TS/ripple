@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.1.39
+
+### Patch Changes
+
+- [#1337](https://github.com/Ripple-TS/ripple/pull/1337)
+  [`09efc09`](https://github.com/Ripple-TS/ripple/commit/09efc09d5149b8ffe9b6334c48ea6b2b4a1795dc)
+  Thanks [@crutchcorn](https://github.com/crutchcorn)! - Preserve generic type
+  arguments in interface heritage clauses in type-only output and Volar mappings.
+
 ## 0.1.38
 
 ### Patch Changes

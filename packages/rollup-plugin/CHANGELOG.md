@@ -1,5 +1,12 @@
 # @ripple-ts/rollup-plugin
 
+## 0.3.96
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/ripple@0.1.40
+
 ## 0.3.95
 
 ## 0.3.94
