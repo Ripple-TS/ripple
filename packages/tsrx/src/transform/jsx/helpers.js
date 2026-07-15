@@ -191,9 +191,8 @@ export function tsx_with_ts_locations() {
 		// semantics, that leaves segments.js unable to map the omitted node.
 		TSExpressionWithTypeArguments: (node, context) => {
 			context.visit(node.expression);
-			const type_arguments = node.typeParameters ?? node.typeArguments;
-			if (type_arguments) {
-				context.visit(type_arguments);
+			if (node.typeParameters) {
+				context.visit(node.typeParameters);
 			}
 		},
 		TSModuleDeclaration: (node, context) => {
