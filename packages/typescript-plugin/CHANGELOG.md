@@ -1,5 +1,19 @@
 # @tsrx/typescript-plugin
 
+## 0.3.98
+
+### Patch Changes
+
+- [#1348](https://github.com/Ripple-TS/ripple/pull/1348)
+  [`4fe5134`](https://github.com/Ripple-TS/ripple/commit/4fe5134732d7a222425cf73a1d31b815384e9202)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support the octane tsrx
+  target: resolve octane projects to the compiler entry inside the `octane`
+  package (`src/compiler/volar.js`, via a new optional per-candidate entry path),
+  and normalize its camelCase `compileToVolarMappings` export to the plugin's
+  `compile_to_volar_mappings` contract so already-published octane versions work
+  in both the editor plugin and `tsrx-tsc`. Also stop `tsrx-tsc` runs from warning
+  `getExtraServiceScripts() is not available` once per file.
+
 ## 0.3.97
 
 ### Patch Changes

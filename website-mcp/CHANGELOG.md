@@ -1,5 +1,12 @@
 # website-mcp
 
+## 0.0.59
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/mcp@0.0.59
+
 ## 0.0.58
 
 ### Patch Changes
