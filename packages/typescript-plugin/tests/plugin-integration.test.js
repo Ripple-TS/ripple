@@ -109,6 +109,30 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).toContain('compiler:react');
 	});
 
+	// Octane exercises BOTH octane-specific paths at once: the package-internal
+	// compiler entry (src/compiler/volar.js instead of the @tsrx/* layout) and
+	// the camelCase `compileToVolarMappings` module-shape normalization.
+	it('creates virtual code with the octane compiler in an octane project', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('octane-only');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:octane');
+		expect(virtual_code.generatedCode).toContain(file_name);
+	});
+
+	it('prefers the octane compiler when other compilers also exist in an octane project', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('both-octane');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:octane');
+	});
+
 	it('creates virtual code with the vue compiler in a vue-only project', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('vue-only');

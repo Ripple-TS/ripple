@@ -41,7 +41,8 @@
     "@tsrx/ripple": "workspace:*",
     "@tsrx/solid": "workspace:*",
     "@tsrx/preact": "workspace:*",
-    "@tsrx/vue": "workspace:*"
+    "@tsrx/vue": "workspace:*",
+    "octane": "*"
   },
   "peerDependenciesMeta": {
     "@tsrx/react": {
@@ -57,6 +58,9 @@
       "optional": true
     },
     "@tsrx/vue": {
+      "optional": true
+    },
+    "octane": {
       "optional": true
     }
   },

@@ -115,6 +115,38 @@ const COMPILER_STUBS = {
 	},
 };
 `,
+	// Octane ships its compiler inside the `octane` package at
+	// `src/compiler/volar.js` and exports the contract under a camelCase name —
+	// this stub mirrors the real published shape so the tests cover the
+	// plugin's entry-path override AND its module-shape normalization.
+	octane: `module.exports = {
+	compileToVolarMappings(source, filename) {
+		const code = \`/* compiler:octane */\\nexport const filename = \${JSON.stringify(filename)};\\nexport default \${JSON.stringify(source)};\`;
+		return {
+			code,
+			mappings: [
+				{
+					sourceOffsets: [0],
+					generatedOffsets: [0],
+					lengths: [source.length],
+					generatedLengths: [source.length],
+					data: {
+						verification: false,
+						completion: true,
+						semantic: true,
+						navigation: true,
+						structure: true,
+						format: true,
+						customData: {},
+					},
+				},
+			],
+			cssMappings: [],
+			errors: [],
+		};
+	},
+};
+`,
 	vue: `module.exports = {
 	compile_to_volar_mappings(source, filename) {
 		const code = \`/* compiler:vue */\\nexport const filename = \${JSON.stringify(filename)};\\nexport default \${JSON.stringify(source)};\`;
@@ -203,6 +235,28 @@ export const WORKSPACE_CONFIGS = {
 		},
 		compilers: ['vue'],
 	},
+	'octane-only': {
+		package_json: {
+			name: '@octanejs/fixture-octane-only-project',
+			private: true,
+			devDependencies: {
+				octane: 'workspace:*',
+				'@octanejs/vite-plugin': 'workspace:*',
+			},
+		},
+		compilers: ['octane'],
+	},
+	'both-octane': {
+		package_json: {
+			name: '@octanejs/fixture-octane-project',
+			private: true,
+			devDependencies: {
+				octane: 'workspace:*',
+				'@octanejs/vite-plugin': 'workspace:*',
+			},
+		},
+		compilers: ['ripple', 'react', 'octane'],
+	},
 	both: {
 		package_json: {
 			name: '@ripple-ts/fixture-ripple-project',
@@ -259,6 +313,13 @@ const created_workspaces = [];
  * @param {keyof typeof COMPILER_STUBS} compiler_name
  */
 function write_compiler_stub(workspace_dir, compiler_name) {
+	if (compiler_name === 'octane') {
+		// Octane's layout: the compiler entry lives INSIDE the octane package.
+		const compiler_dir = path.join(workspace_dir, 'node_modules', 'octane', 'src', 'compiler');
+		fs.mkdirSync(compiler_dir, { recursive: true });
+		fs.writeFileSync(path.join(compiler_dir, 'volar.js'), COMPILER_STUBS[compiler_name]);
+		return;
+	}
 	const compiler_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name, 'src');
 	fs.mkdirSync(compiler_dir, { recursive: true });
 	fs.writeFileSync(path.join(compiler_dir, 'index.js'), COMPILER_STUBS[compiler_name]);

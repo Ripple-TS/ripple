@@ -30,7 +30,7 @@ const { log, logWarning, logError } = createLogging('[Ripple Language]');
 /** @type {Set<string>} */
 const loggedCompilationFailures = new Set();
 export const RIPPLE_EXTENSIONS = ['.tsrx'];
-/** @typedef {[string, string[], string[], string[]]} CompilerCandidate */
+/** @typedef {[string, string[], string[], string[], string[]?]} CompilerCandidate */
 /** @type {CompilerCandidate[]} */
 export const COMPILER_CANDIDATES = [
 	[
@@ -63,7 +63,16 @@ export const COMPILER_CANDIDATES = [
 		['.tsrx'],
 		['@tsrx/vue', '@tsrx/vite-plugin-vue'],
 	],
+	[
+		'octane',
+		['node_modules', 'octane'],
+		['.tsrx'],
+		['octane', '@octanejs/vite-plugin'],
+		['src', 'compiler', 'volar.js'],
+	],
 ];
+
+const DEFAULT_COMPILER_ENTRY_PARTS = ['src', 'index.js'];
 
 /**
  * @param {string} file_name
@@ -138,36 +147,44 @@ export function getRippleLanguagePlugin() {
 				}
 				return undefined;
 			},
-			/**
-			 * Register each embedded `<script>` body as its own TypeScript service
-			 * script so volar-service-typescript's semantic features (type-aware
-			 * completions, hover, go-to-definition, diagnostics, imports) run against it
-			 * and map back to the `.tsrx` source — the same way `<style>` bodies get CSS
-			 * intellisense, except semantic TS additionally requires a service-script
-			 * registration (a self-contained languageId is not enough).
-			 *
-			 * The returned `code` must be the exact same instance stored in the root's
-			 * `embeddedCodes` (volar matches it by identity), and each `fileName` must be
-			 * unique. Only honored on the language-server (`createTypeScriptProject`)
-			 * path, not the tsserver-plugin path.
-			 * @param {string} fileName
-			 * @param {VirtualCode} ripple_code
-			 */
-			getExtraServiceScripts(fileName, ripple_code) {
-				/** @type {Array<{ fileName: string, code: VirtualCode, extension: string, scriptKind: number }>} */
-				const scripts = [];
-				for (const code of forEachEmbeddedCode(ripple_code)) {
-					if (code.languageId === 'typescript') {
-						scripts.push({
-							fileName: `${fileName}.${code.id}.ts`,
-							code,
-							extension: '.ts',
-							scriptKind: ts.ScriptKind.TS,
-						});
-					}
-				}
-				return scripts;
-			},
+			// Volar's tsc program proxy (`proxyCreateProgram`) does not support
+			// extra service scripts and warns ONCE PER PARSED FILE when the hook
+			// is merely present — omit it entirely under tsrx-tsc (the bin sets
+			// TSRX_TSC before loading this module).
+			...(process.env.TSRX_TSC === 'true'
+				? null
+				: {
+						/**
+						 * Register each embedded `<script>` body as its own TypeScript service
+						 * script so volar-service-typescript's semantic features (type-aware
+						 * completions, hover, go-to-definition, diagnostics, imports) run against it
+						 * and map back to the `.tsrx` source — the same way `<style>` bodies get CSS
+						 * intellisense, except semantic TS additionally requires a service-script
+						 * registration (a self-contained languageId is not enough).
+						 *
+						 * The returned `code` must be the exact same instance stored in the root's
+						 * `embeddedCodes` (volar matches it by identity), and each `fileName` must be
+						 * unique. Only honored on the language-server (`createTypeScriptProject`)
+						 * path, not the tsserver-plugin path.
+						 * @param {string} fileName
+						 * @param {VirtualCode} ripple_code
+						 */
+						getExtraServiceScripts(fileName, ripple_code) {
+							/** @type {Array<{ fileName: string, code: VirtualCode, extension: string, scriptKind: number }>} */
+							const scripts = [];
+							for (const code of forEachEmbeddedCode(ripple_code)) {
+								if (code.languageId === 'typescript') {
+									scripts.push({
+										fileName: `${fileName}.${code.id}.ts`,
+										code,
+										extension: '.ts',
+										scriptKind: ts.ScriptKind.TS,
+									});
+								}
+							}
+							return scripts;
+						},
+					}),
 		},
 	};
 }
@@ -979,7 +996,20 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 function get_tsrx_compiler(normalized_file_name) {
 	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
 	if (compiler_path) {
-		return require(compiler_path);
+		const compiler_module = require(compiler_path);
+		if (
+			typeof compiler_module?.compile_to_volar_mappings !== 'function' &&
+			typeof compiler_module?.compileToVolarMappings === 'function'
+		) {
+			// Octane's volar entry exports the same contract under a camelCase
+			// name (`compileToVolarMappings`); normalize so already-published
+			// octane versions work without an octane-side release.
+			return {
+				...compiler_module,
+				compile_to_volar_mappings: compiler_module.compileToVolarMappings,
+			};
+		}
+		return compiler_module;
 	}
 }
 
@@ -1009,11 +1039,12 @@ export function find_workspace_compiler_entry_for_file(
 				compiler_dir_parts,
 				supported_extensions,
 				package_hints,
+				entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
 			] of COMPILER_CANDIDATES) {
 				if (!supported_extensions.includes(ext)) {
 					continue;
 				}
-				const full_path = [dir, ...compiler_dir_parts, 'src', 'index.js'].join('/');
+				const full_path = [dir, ...compiler_dir_parts, ...entry_parts].join('/');
 				if (exists_sync(full_path)) {
 					available_candidates.push([compiler_name, full_path, package_hints]);
 				}
@@ -1065,12 +1096,13 @@ export function get_compiler_entry_for_file(normalized_file_name) {
 			compiler_dir_parts,
 			supported_extensions,
 			package_hints,
+			entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
 		] of COMPILER_CANDIDATES) {
 			if (!supported_extensions.includes(ext)) {
 				continue;
 			}
 			const full_path = path.join(current_dir, ...compiler_dir_parts);
-			const entry_path = path.join(full_path, 'src', 'index.js');
+			const entry_path = path.join(full_path, ...entry_parts);
 			if (fs.existsSync(entry_path)) {
 				available_candidates.push([compiler_name, entry_path, package_hints]);
 			}
@@ -1111,8 +1143,14 @@ export function get_tsrx_compiler_name_for_file(file_name) {
 	}
 
 	const normalized_entry = entry.replace(/\\/g, '/');
-	for (const [compiler_name, compiler_dir_parts] of COMPILER_CANDIDATES) {
-		const suffix = '/' + [...compiler_dir_parts, 'src', 'index.js'].join('/');
+	for (const [
+		compiler_name,
+		compiler_dir_parts,
+		,
+		,
+		entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
+	] of COMPILER_CANDIDATES) {
+		const suffix = '/' + [...compiler_dir_parts, ...entry_parts].join('/');
 		if (normalized_entry.endsWith(suffix)) {
 			return compiler_name;
 		}

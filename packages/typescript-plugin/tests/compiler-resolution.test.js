@@ -39,6 +39,9 @@ describe('typescript-plugin compiler resolution', () => {
 			const vue_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/vue',
 			);
+			const octane_candidate = COMPILER_CANDIDATES.find(
+				([package_name]) => package_name === 'octane',
+			);
 			const solid_candidate = COMPILER_CANDIDATES.find(
 				([package_name]) => package_name === '@tsrx/solid',
 			);
@@ -51,7 +54,8 @@ describe('typescript-plugin compiler resolution', () => {
 				!react_candidate ||
 				!solid_candidate ||
 				!preact_candidate ||
-				!vue_candidate
+				!vue_candidate ||
+				!octane_candidate
 			) {
 				throw new Error('Missing compiler candidates');
 			}
@@ -61,6 +65,7 @@ describe('typescript-plugin compiler resolution', () => {
 			expect(vue_candidate[2]).toEqual(['.tsrx']);
 			expect(solid_candidate[2]).toEqual(['.tsrx']);
 			expect(preact_candidate[2]).toEqual(['.tsrx']);
+			expect(octane_candidate[2]).toEqual(['.tsrx']);
 		});
 	});
 
@@ -125,6 +130,40 @@ describe('typescript-plugin compiler resolution', () => {
 			const workspace = create_fixture_workspace('vue-only');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(workspace, 'node_modules', '@tsrx', 'vue', 'src', 'index.js');
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		it('selects the octane compiler (package-internal entry path) in an octane-only project', () => {
+			const workspace = create_fixture_workspace('octane-only');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(
+				workspace,
+				'node_modules',
+				'octane',
+				'src',
+				'compiler',
+				'volar.js',
+			);
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		it('prefers the octane compiler when multiple compilers exist in an octane project', () => {
+			const workspace = create_fixture_workspace('both-octane');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(
+				workspace,
+				'node_modules',
+				'octane',
+				'src',
+				'compiler',
+				'volar.js',
+			);
 
 			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
 				expected,
@@ -227,10 +266,12 @@ describe('typescript-plugin compiler resolution', () => {
 			{ name: 'solid-only', expected: ['@tsrx', 'solid'] },
 			{ name: 'preact-only', expected: ['@tsrx', 'preact'] },
 			{ name: 'vue-only', expected: ['@tsrx', 'vue'] },
+			{ name: 'octane-only', expected: ['octane', 'src', 'compiler', 'volar.js'] },
 			{ name: 'both', expected: ['@tsrx', 'ripple'] },
 			{ name: 'both-react', expected: ['@tsrx', 'react'] },
 			{ name: 'both-preact', expected: ['@tsrx', 'preact'] },
 			{ name: 'both-vue', expected: ['@tsrx', 'vue'] },
+			{ name: 'both-octane', expected: ['octane', 'src', 'compiler', 'volar.js'] },
 		];
 
 		for (const test_case of cases) {
@@ -260,6 +301,8 @@ describe('typescript-plugin compiler resolution', () => {
 			{ name: 'vue-only', compiler: '@tsrx/vue', is_ripple: false },
 			{ name: 'both', compiler: '@tsrx/ripple', is_ripple: true },
 			{ name: 'both-react', compiler: '@tsrx/react', is_ripple: false },
+			{ name: 'octane-only', compiler: 'octane', is_ripple: false },
+			{ name: 'both-octane', compiler: 'octane', is_ripple: false },
 		];
 
 		for (const test_case of cases) {
