@@ -19,7 +19,7 @@ There are numerous ways to contribute to Ripple, and many don't require writing
 code. Here are some ideas to get started:
 
 - **Start experimenting with Ripple**: Try out the
-  [Ripple Playground](https://www.ripplejs.com/playground) and see how it works.
+  [Ripple Playground](https://www.ripple-ts.com/playground) and see how it works.
   If you encounter issues or unexpected behavior, we'd love to hear about it
   through [opening an issue](#reporting-issues).
 - **Browse existing issues**: Check out our

@@ -1,6 +1,6 @@
 # @ripple-ts/tree-sitter
 
-Tree-sitter grammar for [Ripple](https://www.ripplejs.com).
+Tree-sitter grammar for [Ripple](https://www.ripple-ts.com).
 
 ## Overview
 

@@ -1,4 +1,4 @@
-<a href="https://ripplejs.com">
+<a href="https://www.ripple-ts.com">
   <picture>
     <source media="(min-width: 768px)" srcset="assets/ripple-desktop.png">
     <img src="assets/ripple-mobile.png" alt="Ripple - the elegant TypeScript UI framework" />
