@@ -64,7 +64,7 @@ A minimal Ripple application with:
 
 ## Requirements
 
-- Node.js 20.0.0 or higher
+- Node.js 22.0.0 or higher
 
 ## License
 
