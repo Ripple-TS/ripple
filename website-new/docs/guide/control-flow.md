@@ -61,7 +61,7 @@ to render inline.
 ## Switch statements
 
 Use `@switch` to conditionally render content based on a value. It works with
-both static and reactive values. Each `and` has its own `{...}`
+both static and reactive values. Each `case` has its own `{...}`
 body. Cases do not fall through, and `break`/`return` are not used inside `@switch`.
 
 <Code>

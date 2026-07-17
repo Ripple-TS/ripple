@@ -227,7 +227,7 @@ Unlike using `addEventListener`, `on()` guarantees proper execution order with
 respect to attribute-based handlers such as `onClick`, and is also optimized with
 event delegation for events that support it.
 
-The options, exluding `customName`, that can be passed in to `on()` are the same
+The options, excluding `customName`, that can be passed in to `on()` are the same
 ones that can be used for event attributes with the object syntax.
 
 <Code console>

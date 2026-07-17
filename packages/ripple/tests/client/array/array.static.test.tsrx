@@ -110,7 +110,7 @@ describe('RippleArray > static', () => {
 			expect(container.querySelector('pre').textContent).toBe('[2,4,6,8]');
 		});
 
-		// TODO: Fix this test case, needs some async love around try statements being using in a not template way
+		// TODO: Fix this test case, needs some async love around try statements being used in a non-template way
 		('fromAsync' in Array.prototype ? it : it.skip)(
 			'handles error in fromAsync method',
 			async () => {
