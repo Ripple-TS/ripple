@@ -3839,7 +3839,7 @@ function create_local_statement_component_name(transform_context) {
  * into their own component boundary to satisfy the Rules of Hooks.
  *
  * @param {any[]} body_nodes
- * @param {any} key_expression - Optional key expression to add to the component element (for for-of loops)
+ * @param {any} key_expression - Optional key expression to add to the component element (for `for-of` loops)
  * @param {TransformContext} transform_context
  * @returns {any[]}
  */

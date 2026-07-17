@@ -6289,7 +6289,7 @@ function Child({ something }) {
 			expect(resultPrintWidth40).toBeWithNewline(expectedPrintWidth40);
 		});
 
-		it('properly formats components markup and new lines and leaves one new line between components and <style> if one or more exits', async () => {
+		it('properly formats components markup and new lines and leaves one new line between components and <style> if one or more exists', async () => {
 			const expected = `export function App() {
   return <div>
     <RowList rows={[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}>@{
