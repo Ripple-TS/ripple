@@ -2428,7 +2428,7 @@ const visitors = {
 					if (children.length !== 1 || !is_template_text_or_expression(children[0])) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(
-							'<title> must have only contain text nodes',
+							'<title> must contain only text nodes',
 							state.analysis.module.filename,
 							node,
 						);

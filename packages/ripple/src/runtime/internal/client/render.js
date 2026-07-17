@@ -175,7 +175,7 @@ export function set_class(dom, value, hash, is_html = true) {
 
 	// Removing the attribute when the value is only an empty string causes
 	// performance issues vs simply making the className an empty string. So
-	// we should only remove the class if the the value is nullish.
+	// we should only remove the class if the value is nullish.
 	if (value == null && hash === undefined) {
 		dom.removeAttribute('class');
 	} else {

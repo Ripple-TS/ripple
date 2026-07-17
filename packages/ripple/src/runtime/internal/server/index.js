@@ -1150,8 +1150,8 @@ export async function render(component, passed_in_options = {}) {
 			output._finishSyncRun();
 		},
 		(error) => {
-			// We're not going to send the error in the stream stream.error()
-			// as we should send sent the error template
+			// We're not going to send the error in the stream via stream.error()
+			// as we should send the error template
 
 			// store the error to be returned
 			top_level_error = error;
