@@ -26,15 +26,14 @@ createRoot(target).render(
 ```tsrx
 import { useState, useEffect } from 'react';
 
-function Child() {
-  return <div>
-    const x = 1;
+function Child() @{
+  const x = 1;
+  console.log(x);
 
-    console.log(x);
-  </div>;
+  <div>Child component</div>
 }
 
-export function App() {
+export function App() @{
   const [count, setCount] = useState(0);
   const items = [1, 2, 3];
 
@@ -42,35 +41,32 @@ export function App() {
     console.log(count);
   }, [count]);
 
-  return <>
-    <Child />
-    <h1>
-      {'Hello World'}
-      if (count > 1) {
-        return null;
-      }
-    </h1>
-    if (count > 1) {
-      <div>
-        const [x] = useState(1);
+  if (count > 2) {
+    return null;
+  }
 
-        {'Count is more than ' + x}
-      </div>
+  <Child />
+  <h1>
+    {'Hello World'}
+    @if (count > 1) {
+      <span> (Expanded)</span>
     }
-    <button onClick={() => setCount(count + 1)}>{count}</button>
-    if (count > 2) {
-      return null;
+  </h1>
+  @if (count > 1) {
+    const [x] = useState(1);
+
+    <div>{'Count is more than ' + x}</div>
+  }
+  <button onClick={() => setCount(count + 1)}>{count}</button>
+  @for (const item of items; index i) {
+    <div key={i}>{item}</div>
+  }
+  <style>
+    button {
+      border: 0;
+      color: red;
     }
-    for (const item of items; index i) {
-      <div key={i}>{item}</div>
-    }
-    <style>
-      button {
-        border: 0;
-        color: red;
-      }
-    </style>
-  </>;
+  </style>
 }
 ```
 
