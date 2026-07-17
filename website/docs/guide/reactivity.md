@@ -53,7 +53,7 @@ console.log(count.value); // 1
 ```
 
 Using `&[...]` lazy destructuring is typically preferred in most cases because it produces
-cleaner, more readable code. However, `.value` is useful when need top performance,
+cleaner, more readable code. However, `.value` is useful when you need top performance,
 especially in hot paths, or to keep the `Tracked<V>` object around — for example,
 when storing tracked values in data structures, passing them as props typed as `Tracked<T>`,
 or when you need both the tracked object and its value in different contexts.
