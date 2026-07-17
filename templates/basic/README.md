@@ -45,5 +45,5 @@ For the best development experience, install the [Prettier VS Code plugin](https
 
 ## Learn More
 
-- [Ripple Documentation](https://github.com/Ripple-TS/ripple)
+- [Ripple Documentation](https://www.ripple-ts.com)
 - [Vite Documentation](https://vitejs.dev/)

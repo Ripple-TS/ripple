@@ -78,7 +78,7 @@ npm install -g '@ripple-ts/language-server' // [!=npm auto]
 2. Press <kbd>Ctrl/Cmd+Shift+P</kbd>, type `Install Package Control`, and press
    <kbd>Enter</kbd>.
 3. Restart Sublime Text.
-4. Press <kbd>Ctrl/Cmd+Shift+P</kbd>, type `Upgrade Package`, and press
+4. Press <kbd>Ctrl/Cmd+Shift+P</kbd>, type `Install Package`, and press
    <kbd>Enter</kbd>.
 5. Type `Package Control` and press <kbd>Enter</kbd>.
 6. Restart Sublime Text.

@@ -2,7 +2,7 @@
 
 Ripple is a TypeScript UI framework that combines the best parts of React, Solid,
 and Svelte into one cohesive package. Built as a love letter to frontend
-development, Ripple introduces a JS/TS-first approach with `.ripple` modules that
+development, Ripple introduces a JS/TS-first approach with `.tsrx` modules that
 provide an excellent developer experience for both humans and LLMs.
 
 The [Open Source Guides](https://opensource.guide/) website offers valuable

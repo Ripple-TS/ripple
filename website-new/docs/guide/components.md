@@ -217,7 +217,7 @@ export function App() @{
 
 ## Reactive Props
 
-See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
+See [Reactivity](/docs/guide/reactivity).
 
 ## Prop Shorthands
 
