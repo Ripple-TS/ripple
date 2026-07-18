@@ -191,6 +191,27 @@ export function usePos(
 			expect(result.mappings.length).toBeGreaterThan(0);
 		});
 
+		// The typeOnly output is real TS: an ambient module must keep `declare`
+		// (`module 'name' { … }` alone is TS1035) and type-only import/export
+		// specifiers must survive verbatim for the language service.
+		it('preserves declare on ambient modules and type-only specifiers', () => {
+			const source = `import { type Local } from './local.js';
+export type { Config } from './types.js';
+export { type Extra, realValue } from './mixed.js';
+declare module 'some-module' {
+	interface Thing {
+		x: number;
+	}
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.code).toContain(`import { type Local } from './local.js';`);
+			expect(result.code).toContain(`export type { Config } from './types.js';`);
+			expect(result.code).toContain(`export { type Extra, realValue } from './mixed.js';`);
+			expect(result.code).toContain(`declare module 'some-module'`);
+			expect(result.errors).toEqual([]);
+		});
+
 		// JSX: esrap prints `<`, `>`, `</`, ` /` without location markers.
 		// Combined with hoisting to module-level statics, the opening
 		// element's start/end positions wouldn't otherwise resolve.

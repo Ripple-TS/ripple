@@ -162,6 +162,11 @@ export function tsx_with_ts_locations(boundary_tokens = false) {
 			}
 		},
 		TSModuleDeclaration: (node, context) => {
+			// Ambient `declare module '…' { … }` must keep its `declare` — the
+			// typeOnly/volar output is real TS and `module '…' { … }` alone is a
+			// syntax error (TS1035). Non-ambient `module name { }` blocks have no
+			// `declare` and print unchanged.
+			if (node.declare) context.write('declare ');
 			context.write(node.metadata?.module_keyword ?? 'module');
 			context.write(' ');
 			context.visit(node.id);
