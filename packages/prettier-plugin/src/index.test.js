@@ -1507,6 +1507,36 @@ import { Something, type Props, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		// Regressed in 0.3.97: the printer dropped the `type` keyword from
+		// type-only re-exports and inline export specifiers, turning them into
+		// runtime re-exports of bindings that only exist as types (a module-load
+		// failure once compiled).
+		it('should keep the type keyword on export type statements', async () => {
+			const input = `export type { Config } from './types.js';
+export { type Extra, realValue } from './mixed.js';`;
+			const expected = `export type { Config } from './types.js';
+export { type Extra, realValue } from './mixed.js';`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		// Regressed in 0.3.97: `declare module 'name' { … }` lost its `declare`
+		// keyword, leaving invalid `module 'name' { … }` output.
+		it('should keep the declare keyword on ambient module declarations', async () => {
+			const input = `declare module 'some-module' {
+  interface Thing {
+    x: number;
+  }
+}`;
+			const expected = `declare module 'some-module' {
+  interface Thing {
+    x: number;
+  }
+}`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format long import statements correctly', async () => {
 			const input = `import { flushSync, track, effect, bindValue, bindChecked, bindGroup, bindClientWidth, bindClientHeight, bindOffsetWidth, bindOffsetHeight, bindContentRect, bindContentBoxSize, bindBorderBoxSize, bindDevicePixelContentBoxSize, bindInnerHTML, bindInnerText, bindTextContent, bindNode } from 'ripple';`;
 			const expected = `import {
