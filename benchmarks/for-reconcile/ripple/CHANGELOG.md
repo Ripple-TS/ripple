@@ -1,5 +1,13 @@
 # ripple-for-reconcile-bench
 
+## 0.0.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b36ec19`](https://github.com/Ripple-TS/ripple/commit/b36ec1930764f447585a6c31c17bc63b3596511a)]:
+  - ripple@0.3.100
+
 ## 0.0.14
 
 ### Patch Changes

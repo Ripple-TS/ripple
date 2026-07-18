@@ -1,5 +1,22 @@
 # @tsrx/prettier-plugin
 
+## 0.3.100
+
+### Patch Changes
+
+- [#1352](https://github.com/Ripple-TS/ripple/pull/1352)
+  [`b36ec19`](https://github.com/Ripple-TS/ripple/commit/b36ec1930764f447585a6c31c17bc63b3596511a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep the `type` keyword when
+  printing `export type { X } from '…'` and inline `export { type X, y }`
+  specifiers, and the `declare` keyword on ambient `declare module '…' { … }`
+  declarations. Previously formatting stripped them, turning type-only re-exports
+  into runtime re-exports of nonexistent bindings and leaving invalid
+  `module '…' { … }` output.
+
+- Updated dependencies
+  [[`b36ec19`](https://github.com/Ripple-TS/ripple/commit/b36ec1930764f447585a6c31c17bc63b3596511a)]:
+  - @tsrx/core@0.1.42
+
 ## 0.3.99
 
 ### Patch Changes

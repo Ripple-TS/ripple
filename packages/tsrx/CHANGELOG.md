@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.1.42
+
+### Patch Changes
+
+- [#1352](https://github.com/Ripple-TS/ripple/pull/1352)
+  [`b36ec19`](https://github.com/Ripple-TS/ripple/commit/b36ec1930764f447585a6c31c17bc63b3596511a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Upgrade acorn to ^8.17.0 for
+  improved stack overflow handling in the parser
+
 ## 0.1.41
 
 ### Patch Changes
