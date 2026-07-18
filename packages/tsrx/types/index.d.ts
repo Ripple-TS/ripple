@@ -486,6 +486,9 @@ declare module 'estree' {
 	interface ExportNamedDeclaration {
 		exportKind: TSESTree.ExportNamedDeclaration['exportKind'];
 	}
+	interface ExportSpecifier {
+		exportKind: TSESTree.ExportSpecifier['exportKind'];
+	}
 
 	interface BaseNodeWithoutComments {
 		// Adding start, end for now as always there

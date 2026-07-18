@@ -4698,7 +4698,9 @@ function printJSXSwitchCase(node, path, options, print, index) {
 		if (!child || child.type === 'EmptyStatement') {
 			continue;
 		}
-		printedConsequents.push(path.call(print, 'cases', index, 'consequent', i));
+		printedConsequents.push(
+			path.call((casePath) => casePath.call(print, 'consequent', i), 'cases', index),
+		);
 	}
 
 	const bodyDoc =
