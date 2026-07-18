@@ -93,7 +93,7 @@ catalogs:
     '@volar/typescript': ~2.4.28
     '@volar/vscode': ~2.4.28
     '@vscode/vsce': ^3.9.1
-    acorn: ^8.16.0
+    acorn: ^8.17.0
     adm-zip: ^0.5.17
     babel-preset-solid: '2.0.0-beta.15'
     clsx: ^2.1.1

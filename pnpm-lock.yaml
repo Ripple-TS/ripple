@@ -100,8 +100,8 @@ catalogs:
       specifier: ^3.9.1
       version: 3.9.1
     acorn:
-      specifier: ^8.16.0
-      version: 8.16.0
+      specifier: ^8.17.0
+      version: 8.17.0
     adm-zip:
       specifier: ^0.5.17
       version: 0.5.17
@@ -1048,7 +1048,7 @@ importers:
         version: 2.2.0
       '@sveltejs/acorn-typescript':
         specifier: catalog:default
-        version: 1.0.11(acorn@8.16.0)
+        version: 1.0.11(acorn@8.17.0)
       '@types/estree':
         specifier: catalog:default
         version: 1.0.8
@@ -1057,7 +1057,7 @@ importers:
         version: 1.0.5
       acorn:
         specifier: catalog:default
-        version: 8.16.0
+        version: 8.17.0
       esrap:
         specifier: ^2.3.0
         version: 2.3.0(@typescript-eslint/types@8.56.1)
@@ -4130,6 +4130,11 @@ packages:
 
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
+  acorn@8.17.0:
+    resolution: {integrity: sha512-xRQbDb9BnwDafYNn6Vwl839DYVjqXYb1XVGtWAZ1kcDc6iwAL4hg3B1dZlRiuENFeO2H53gFG3in621AdERVAg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
 
@@ -9016,9 +9021,9 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
-  '@sveltejs/acorn-typescript@1.0.11(acorn@8.16.0)':
+  '@sveltejs/acorn-typescript@1.0.11(acorn@8.17.0)':
     dependencies:
-      acorn: 8.16.0
+      acorn: 8.17.0
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -9846,6 +9851,8 @@ snapshots:
       acorn: 8.16.0
 
   acorn@8.16.0: {}
+
+  acorn@8.17.0: {}
 
   adm-zip@0.5.16: {}
 
