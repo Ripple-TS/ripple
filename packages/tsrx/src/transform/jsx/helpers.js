@@ -51,11 +51,13 @@ export function set_node_path_metadata(node, path) {
 }
 
 /**
- * Wrap esrap's `tsx()` printer with location markers for nodes whose spans
- * (e.g. the leading `new ` of a NewExpression or the angle-bracket delimiters
- * around generic arguments) are otherwise invisible to the source map.
- * Without these markers, Volar mapping collection in `segments.js` throws
- * when looking up the node's start/end positions.
+ * Wrap esrap's `tsx()` printer with location markers for the remaining nodes
+ * whose spans are invisible to the source map (e.g. `class`, template-literal
+ * backticks, JSX angle brackets, generic-argument delimiters). Without these
+ * markers, Volar mapping collection in `segments.js` throws when looking up
+ * the node's start/end positions. esrap ≥2.3.0 (keyword writes +
+ * `boundaryTokens`) covers most starts, but not statement ends — see the
+ * list below for what each entry still compensates.
  *
  * Shared across all JSX-producing targets (React, Preact, Solid).
  *
@@ -89,15 +91,6 @@ export function tsx_with_ts_locations(boundary_tokens = false) {
 	const wrappers = {
 		ArrayPattern: (node, context) => {
 			base.ArrayPattern(node, context);
-			if (node.typeAnnotation) {
-				context.visit(node.typeAnnotation);
-			}
-		},
-		Identifier: (node, context) => {
-			context.write(node.name, node);
-			if (node.optional) {
-				context.write('?');
-			}
 			if (node.typeAnnotation) {
 				context.visit(node.typeAnnotation);
 			}
@@ -139,39 +132,6 @@ export function tsx_with_ts_locations(boundary_tokens = false) {
 			if (value.returnType) context.visit(value.returnType);
 			context.write(' ');
 			context.visit(value.body);
-		},
-		// esrap's ArrowFunctionExpression printer ignores `typeParameters` and
-		// `returnType`, so an annotated arrow like `(): Record<...> => ...`
-		// prints as `() => ...` and segments.js can't resolve the return-type
-		// nodes' positions in the generated output.
-		ArrowFunctionExpression: (node, context) => {
-			if (node.async) context.write('async ');
-			if (node.typeParameters) {
-				context.visit(node.typeParameters);
-			}
-			context.write('(');
-			for (let i = 0; i < node.params.length; i++) {
-				if (i > 0) context.write(', ');
-				context.visit(node.params[i]);
-			}
-			context.write(')');
-			if (node.returnType) {
-				context.visit(node.returnType);
-			}
-			context.write(' => ');
-			const body = node.body;
-			const wrap_body =
-				body.type === 'ObjectExpression' ||
-				(body.type === 'AssignmentExpression' && body.left.type === 'ObjectPattern') ||
-				(body.type === 'LogicalExpression' && body.left.type === 'ObjectExpression') ||
-				(body.type === 'ConditionalExpression' && body.test.type === 'ObjectExpression');
-			if (wrap_body) {
-				context.write('(');
-				context.visit(body);
-				context.write(')');
-			} else {
-				context.visit(body);
-			}
 		},
 
 		// esrap's JSXOpeningElement printer doesn't emit `typeArguments`, so generic
@@ -215,9 +175,14 @@ export function tsx_with_ts_locations(boundary_tokens = false) {
 	// on the whole node, only then duplicate it here
 	// e.g. JSXOpeningElement is such a case
 	for (const type of [
-		// JS nodes whose esrap printer emits no location marker, causing
-		// segments.js get_mapping_from_node() to throw when it asks for the
-		// generated position of the node's start (or end).
+		// JS nodes with boundary positions esrap still cannot map. Keyword
+		// writes (if/new/return/for/switch/await) and `boundaryTokens`
+		// anchors (brackets, braces, parens, computed/call closers) cover
+		// many STARTS, but statement ENDS land on unanchored characters
+		// (`;`, a block's `}`), `class` is not a keyword-write, template
+		// literals' backticks carry no location, and an arrow's span can
+		// start at a bare `(` — so these node-level markers remain the
+		// source of both boundaries until esrap can anchor them.
 		'ClassDeclaration',
 		'ClassExpression',
 		'IfStatement',

@@ -6964,47 +6964,15 @@ function create_tsx_with_typescript_support(comments) {
 				context.visit(node.typeArguments);
 			}
 		},
-		// esrap's ArrowFunctionExpression printer ignores `typeParameters` and
-		// `returnType`, so an annotated arrow like `(): Record<...> => ...`
-		// prints as `() => ...` and segments.js can't resolve the return-type
-		// nodes' positions in the generated output.
+		// esrap ≥2.3.0 prints arrows fully (async/typeParameters/returnType and
+		// `{`-first body wrapping); keep only the boundary markers — an arrow's
+		// span can start at a bare `(`, which boundaryTokens does not anchor.
 		ArrowFunctionExpression(node, context) {
 			if (node.loc) context.location(node.loc.start.line, node.loc.start.column);
-
-			if (node.async) context.write('async ');
-
-			if (node.typeParameters) {
-				context.visit(node.typeParameters);
-			}
-
-			context.write('(');
-			// Visit each parameter
-			for (let i = 0; i < node.params.length; i++) {
-				if (i > 0) context.write(', ');
-				context.visit(node.params[i]);
-			}
-			context.write(')');
-
-			// Add TypeScript return type annotation if present
-			if (node.returnType) {
-				context.visit(node.returnType);
-			}
-
-			context.write(' => ');
-
-			if (
-				node.body.type === 'ObjectExpression' ||
-				(node.body.type === 'AssignmentExpression' && node.body.left.type === 'ObjectPattern') ||
-				(node.body.type === 'LogicalExpression' && node.body.left.type === 'ObjectExpression') ||
-				(node.body.type === 'ConditionalExpression' && node.body.test.type === 'ObjectExpression')
-			) {
-				context.write('(');
-				context.visit(node.body);
-				context.write(')');
-			} else {
-				context.visit(node.body);
-			}
-
+			/** @type {(node: any, context: any) => void} */ (base_tsx.ArrowFunctionExpression)(
+				node,
+				context,
+			);
 			if (node.loc) context.location(node.loc.end.line, node.loc.end.column);
 		},
 		ClassDeclaration(node, context) {
