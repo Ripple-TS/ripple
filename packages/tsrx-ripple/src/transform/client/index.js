@@ -6166,52 +6166,14 @@ function create_tsx_with_typescript_support(comments) {
 	 * @param {TransformClientContext} context
 	 */
 	const handle_function = (node, context) => {
-		const loc = /** @type {AST.SourceLocation} */ (node.loc);
-		const start_pos = /** @type {AST.Position} */ ({
-			line: loc.start.line,
-			column: loc.start.column,
-		});
-
-		if (node.async) {
-			context.location(loc.start.line, loc.start.column);
-			context.write('async ');
-			context.location(loc.start.line, loc.start.column + 'async '.length);
-			start_pos.column += 'async '.length;
-		}
-
-		context.location(start_pos.line, start_pos.column);
-		context.write('function');
-		context.location(start_pos.line, start_pos.column + 'function'.length);
-
-		if (node.generator) {
-			context.write('*');
-		}
-
-		const id = /** @type {AST.FunctionExpression | AST.FunctionDeclaration} */ (node).id;
-
-		// FunctionDeclaration always has a space before id, FunctionExpression only if id exists
-		if (node.type === 'FunctionDeclaration' || id) {
-			context.write(' ');
-		}
-		if (id) {
-			context.visit(id);
-		}
-		if (node.typeParameters) {
-			context.visit(node.typeParameters);
-		}
-		context.write('(');
-		for (let i = 0; i < node.params.length; i++) {
-			if (i > 0) context.write(', ');
-			context.visit(node.params[i]);
-		}
-		context.write(')');
-		if (node.returnType) {
-			context.visit(node.returnType);
-		}
-		context.write(' ');
-		if (node.body) {
-			context.visit(node.body);
-		}
+		// esrap ≥2.3.0 prints function-like nodes fully (mapped async/function
+		// keywords, generator star, id, typeParameters, params, returnType,
+		// body); keep only the node-boundary markers so segments.js can resolve
+		// the whole span (see ReturnStatement).
+		const loc = node.loc;
+		if (loc) context.location(loc.start.line, loc.start.column);
+		/** @type {(node: any, context: any) => void} */ (base_tsx[node.type])(node, context);
+		if (loc) context.location(loc.end.line, loc.end.column);
 	};
 
 	return /** @type {Visitors<AST.Node, TransformClientState>} */ ({
@@ -6431,16 +6393,11 @@ function create_tsx_with_typescript_support(comments) {
 			context.location(end.line, end.column);
 		},
 		AwaitExpression(node, context) {
+			// esrap ≥2.3.0 maps the await keyword; keep only boundary markers.
 			const loc = /** @type {AST.SourceLocation} */ (node.loc);
-			// the start needs to be covered as we don't cover it in visitors
-			context.location(loc.start.line, loc.start.column);
-			context.write('await');
-			// cover the 'await' end
-			context.location(loc.start.line, loc.start.column + 'await'.length);
-			context.write(' ');
-			context.visit(node.argument);
-			// cover the end of the expression
-			context.location(loc.end.line, loc.end.column);
+			if (loc) context.location(loc.start.line, loc.start.column);
+			/** @type {(node: any, context: any) => void} */ (base_tsx.AwaitExpression)(node, context);
+			if (loc) context.location(loc.end.line, loc.end.column);
 		},
 		Property(node, context) {
 			let start_pos = node.loc?.start;

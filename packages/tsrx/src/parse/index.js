@@ -219,12 +219,37 @@ export function createParser(...plugins) {
 		/** @type {AST.Program} */
 		let ast;
 
+		// Lexer-authoritative keyword positions (volar opt-in): the mapping
+		// collector needs the SOURCE spans of `async`/`function`, which no AST
+		// node records. The tokenizer is the only correct source — offset
+		// arithmetic breaks on extra whitespace, and text search breaks on
+		// comments (`async /* function */ function`).
+		/** @type {Array<{ value: string, start: number, end: number, loc: AST.SourceLocation }> | undefined} */
+		const keyword_tokens = options?.keywordTokens ? [] : undefined;
+		/** @type {Parse.Options['onToken'] | undefined} */
+		const onToken = keyword_tokens
+			? (token) => {
+					const t = /** @type {any} */ (token);
+					const is_function_keyword = t.type?.keyword === 'function';
+					const is_async_name = t.type?.label === 'name' && t.value === 'async';
+					if (is_function_keyword || is_async_name) {
+						keyword_tokens.push({
+							value: is_function_keyword ? 'function' : 'async',
+							start: t.start,
+							end: t.end,
+							loc: t.loc,
+						});
+					}
+				}
+			: undefined;
+
 		try {
 			ast = parser.parse(source, {
 				sourceType: 'module',
 				ecmaVersion: 13,
 				allowReturnOutsideFunction: true,
 				locations: true,
+				onToken,
 				preserveParens: !!options?.preserveParens,
 				onComment,
 				tsrxOptions: {
@@ -245,6 +270,10 @@ export function createParser(...plugins) {
 		}
 
 		add_comments(ast);
+
+		if (keyword_tokens) {
+			/** @type {any} */ (ast).tsrx_keyword_tokens = keyword_tokens;
+		}
 
 		return ast;
 	};

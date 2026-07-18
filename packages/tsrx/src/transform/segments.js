@@ -962,19 +962,12 @@ export function convert_source_map_to_mappings(
 				const is_method = node.metadata?.is_method;
 
 				if (node.type === 'ArrowFunctionExpression' && node.loc) {
-					const start_key = `${node.loc.start.line}:${node.loc.start.column}`;
-					const end_key = `${node.loc.end.line}:${node.loc.end.column}`;
-
-					if (src_to_gen_map.has(start_key) && src_to_gen_map.has(end_key)) {
-						mappings.push(
-							get_mapping_from_node(
-								node,
-								src_to_gen_map,
-								gen_line_offsets,
-								mapping_data_verify_only,
-							),
-						);
-					}
+					// The printer emits node-level boundary markers for arrows (their
+					// span can start at a bare `(`), so the strict lookup always
+					// resolves — no defensive has() guard.
+					mappings.push(
+						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
+					);
 				}
 
 				// Add the function keyword token.
@@ -987,41 +980,68 @@ export function convert_source_map_to_mappings(
 					const function_hover = create_function_hover_replacement(
 						/** @type {AST.Parameter[]} */ (node.params),
 					);
-					let start_col = node_fn.loc.start.column;
-					let start = node_fn.start;
-					const async_keyword = 'async';
+					// Keyword SOURCE spans come from the LEXER (parse-time
+					// `tsrx_keyword_tokens`, opt-in via ParseOptions.keywordTokens):
+					// no AST node records them, offset arithmetic breaks on extra
+					// whitespace, and text search breaks on comments. Fall back to
+					// node-start-anchored arithmetic when tokens were not collected.
+					const keyword_bound =
+						node_fn.id?.start ?? node_fn.params?.[0]?.start ?? node_fn.body?.start ?? node_fn.end;
+					/** @type {Array<{ value: string, start: number, end: number, loc: AST.SourceLocation }>} */
+					const lexer_tokens = /** @type {any} */ (ast_from_source).tsrx_keyword_tokens ?? [];
+					/**
+					 * @param {'async' | 'function'} keyword
+					 * @param {number} from
+					 * @returns {AST.SourceLocation | null}
+					 */
+					const keyword_loc = (keyword, from) => {
+						const token = lexer_tokens.find(
+							(candidate) =>
+								candidate.value === keyword &&
+								candidate.start >= from &&
+								candidate.start < keyword_bound,
+						);
+						if (token) return token.loc;
+						if (lexer_tokens.length > 0) return null;
+						// Arithmetic fallback (callers that do not collect tokens):
+						// assumes the historical `async` + one-space + `function`
+						// single-line layout.
+						const offset =
+							keyword === 'function' && node_fn.async
+								? node_fn.start + 'async '.length
+								: node_fn.start;
+						const start_pos = offset_to_line_col(offset, src_line_offsets);
+						const end_pos = offset_to_line_col(offset + keyword.length, src_line_offsets);
+						return { start: start_pos, end: end_pos };
+					};
 
+					let function_from = node_fn.start;
 					if (node_fn.async) {
-						// We explicitly mapped async and function in esrap
-						tokens.push({
-							source: async_keyword,
-							generated: async_keyword,
-							loc: {
-								start: { line: node_fn.loc.start.line, column: start_col },
-								end: {
-									line: node_fn.loc.start.line,
-									column: start_col + async_keyword.length,
-								},
-							},
-							metadata: {},
-						});
-
-						start_col += async_keyword.length + 1; // +1 for space
-						start += async_keyword.length + 1;
+						const async_loc = keyword_loc('async', node_fn.start);
+						if (async_loc) {
+							tokens.push({
+								source: 'async',
+								generated: 'async',
+								loc: async_loc,
+								metadata: {},
+							});
+							function_from = loc_to_offset(
+								async_loc.end.line,
+								async_loc.end.column,
+								src_line_offsets,
+							);
+						}
 					}
 
-					tokens.push({
-						source: 'function',
-						generated: 'function',
-						loc: {
-							start: { line: node_fn.loc.start.line, column: start_col },
-							end: {
-								line: node_fn.loc.start.line,
-								column: start_col + 'function'.length,
-							},
-						},
-						metadata: function_hover ? { hover: function_hover } : {},
-					});
+					const function_loc = keyword_loc('function', function_from);
+					if (function_loc) {
+						tokens.push({
+							source: 'function',
+							generated: 'function',
+							loc: function_loc,
+							metadata: function_hover ? { hover: function_hover } : {},
+						});
+					}
 				}
 
 				// Visit in source order: id, params, body

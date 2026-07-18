@@ -3147,3 +3147,71 @@ describe('raw-text <script> elements', () => {
 		expect(script.content).toBe('\nconst a = 1;\nconst b = a < 2;\n');
 	});
 });
+
+describe('acorn-typescript ≥1.0.11 constructs parse through the TSRX parser', () => {
+	// Pins for upstream fixes the tsrx parser inherits (the plugin overrides
+	// parseForStatement for indexed for-of, but paren/expression parsing is
+	// inherited, so these verify the fixes actually reach us).
+
+	it('allows the `in` operator inside a parenthesized `for` initializer', () => {
+		const ast = parseModule(`for ((('a' in {}) ? 1 : 2);;) break;`, 'App.ts');
+		const [statement] = ast.body;
+		expect(statement.type).toBe('ForStatement');
+		expect(statement.init.type).toBe('ConditionalExpression');
+	});
+
+	it('allows a const initializer in an ambient context', () => {
+		const ast = parseModule(`declare const VERSION = '1.0';`, 'App.ts');
+		const [statement] = ast.body;
+		expect(statement.type).toBe('VariableDeclaration');
+		expect(statement.declare).toBe(true);
+		expect(statement.declarations[0].init.value).toBe('1.0');
+	});
+
+	it('collects each comment exactly once', () => {
+		const comments = [];
+		parseModule(
+			`// leading
+interface Point {
+	// inside
+	x: number;
+}
+const p: Point = { x: 1 }; // trailing`,
+			'App.ts',
+			{ collect: true, comments },
+		);
+		const starts = comments.map((comment) => comment.start);
+		expect(new Set(starts).size).toBe(starts.length);
+		expect(comments.length).toBe(3);
+	});
+});
+
+describe('keywordTokens parse option', () => {
+	it('collects async/function keyword tokens from the lexer', () => {
+		const source = `async function load() {}\nfunction plain() {}`;
+		const ast = parseModule(source, 'App.ts', { keywordTokens: true });
+		const tokens = ast.tsrx_keyword_tokens;
+		expect(tokens.map((t) => [t.value, t.start])).toEqual([
+			['async', source.indexOf('async')],
+			['function', source.indexOf('function')],
+			['function', source.lastIndexOf('function')],
+		]);
+	});
+
+	it('is immune to comments and irregular spacing between keywords', () => {
+		// Offset arithmetic assumed one space; text search would match the
+		// keyword inside the comment. The lexer sees through both.
+		const source = `async /* function */   function load() {}`;
+		const ast = parseModule(source, 'App.ts', { keywordTokens: true });
+		const tokens = ast.tsrx_keyword_tokens;
+		expect(tokens.map((t) => [t.value, t.start])).toEqual([
+			['async', 0],
+			['function', source.lastIndexOf('function')],
+		]);
+	});
+
+	it('does not collect tokens without the option', () => {
+		const ast = parseModule(`function f() {}`, 'App.ts');
+		expect(ast.tsrx_keyword_tokens).toBeUndefined();
+	});
+});

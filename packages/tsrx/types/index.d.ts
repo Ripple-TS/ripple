@@ -1234,6 +1234,12 @@ export interface ParseOptions {
 	collect?: boolean;
 	loose?: boolean;
 	preserveParens?: boolean;
+	/**
+	 * Collect `async`/`function` keyword tokens from the lexer onto the
+	 * returned program (`tsrx_keyword_tokens`) so mapping collection can span
+	 * keywords exactly. Volar/typeOnly parses opt in.
+	 */
+	keywordTokens?: boolean;
 	errors?: CompileError[];
 	comments?: AST.CommentWithLocation[];
 }

@@ -1294,4 +1294,52 @@ function App() @{
 			},
 		);
 	});
+	describe(`[${name}] keyword token spans`, () => {
+		it('maps async and function keywords at their true source spans', () => {
+			const source = `async function load() {\n\treturn 1;\n}\nfunction C() @{}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			for (const keyword of ['async', 'function']) {
+				const source_offset = source.indexOf(keyword);
+				const generated_offset = result.code.indexOf(keyword);
+				const mapping = find_exact_mapping(
+					result.mappings,
+					source_offset,
+					generated_offset,
+					keyword.length,
+				);
+				expect(mapping, keyword).toBeTruthy();
+			}
+		});
+
+		it('never emits a garbled keyword span for irregular async/function spacing', () => {
+			// The old fixed-offset arithmetic assumed `async` + ONE space, so
+			// `async   function` produced a span over "nction f…". The source
+			// scan either maps the true span or omits the token.
+			const source = `async   function load() {\n\treturn 1;\n}\nfunction C() @{}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const wrong_offset = source.indexOf('async') + 'async'.length + 1;
+			const garbled = result.mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets[0] === wrong_offset && mapping.lengths[0] === 'function'.length,
+			);
+			expect(garbled).toBeUndefined();
+			// The token's SOURCE span is now found by scanning, so it is either
+			// mapped at the true keyword offset or omitted (esrap's generated
+			// keyword segment still assumes single-space layout — once esrap
+			// scans its `sourceMapContent` instead, the mapping returns).
+			const true_offset = source.indexOf('function');
+			const function_keyword_mappings = result.mappings.filter(
+				(mapping) =>
+					mapping.lengths[0] === 'function'.length &&
+					mapping.generatedLengths[0] === 'function'.length &&
+					result.code.slice(
+						mapping.generatedOffsets[0],
+						mapping.generatedOffsets[0] + 'function'.length,
+					) === 'function',
+			);
+			for (const mapping of function_keyword_mappings) {
+				expect([true_offset, source.lastIndexOf('function')]).toContain(mapping.sourceOffsets[0]);
+			}
+		});
+	});
 }

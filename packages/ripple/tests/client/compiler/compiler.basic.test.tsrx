@@ -706,7 +706,7 @@ const Inline = function(props: { x: string }) @{
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
-		expect(result).toContain('const Inline = function(props: { x: string }) {');
+		expect(result).toContain('const Inline = function (props: { x: string }) {');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('const Inline = (props: { x: string }) => {');
 	});
