@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { identifier_to_jsx_name } from '@tsrx/core';
+import { identifier_to_jsx_name, parseModule } from '@tsrx/core';
 import {
 	build_line_offsets,
 	build_src_to_gen_map,
@@ -1341,5 +1341,166 @@ function App() @{
 				expect([true_offset, source.lastIndexOf('function')]).toContain(mapping.sourceOffsets[0]);
 			}
 		});
+	});
+	describe(`[${name}] input AST immutability`, () => {
+		/**
+		 * Structural snapshot of an AST node graph. `metadata` is the sanctioned
+		 * mutable side-channel (memoization, paths, flags) and is excluded;
+		 * everything else — including locations — must survive a transform
+		 * untouched, because the SAME object graph is walked afterwards as
+		 * `ast_from_source` by the mapping collector.
+		 * @param {any} value
+		 * @returns {any}
+		 */
+		const structural = (value) => {
+			if (Array.isArray(value)) return value.map(structural);
+			if (value && typeof value === 'object') {
+				/** @type {Record<string, any>} */
+				const out = {};
+				for (const key of Object.keys(value).sort()) {
+					if (key === 'metadata') continue;
+					const child = value[key];
+					if (typeof child === 'function') continue;
+					out[key] = structural(child);
+				}
+				return out;
+			}
+			return value;
+		};
+
+		/**
+		 * @param {any} before
+		 * @param {any} after
+		 * @param {string} path
+		 * @returns {string | null} first differing path
+		 */
+		const first_difference = (before, after, path) => {
+			if (Array.isArray(before) || Array.isArray(after)) {
+				if (!Array.isArray(before) || !Array.isArray(after) || before.length !== after.length) {
+					return path;
+				}
+				for (let i = 0; i < before.length; i++) {
+					const diff = first_difference(before[i], after[i], `${path}[${i}]`);
+					if (diff) return diff;
+				}
+				return null;
+			}
+			if (before && after && typeof before === 'object' && typeof after === 'object') {
+				const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+				for (const key of keys) {
+					const diff = first_difference(before[key], after[key], `${path}.${key}`);
+					if (diff) return diff;
+				}
+				return null;
+			}
+			return Object.is(before, after) ? null : path;
+		};
+
+		const SOURCES = {
+			'component with template control flow': `function App(props: { items: string[] }) @{
+	<div>
+		@if (props.items.length) {
+			<ul>
+				@for (const item of props.items; key item) {
+					<li>{item}</li>
+				}
+			</ul>
+		} @else {
+			<p>empty</p>
+		}
+	</div>
+}`,
+			'setup code, styles, and nested components': `import { useState } from 'react';
+
+function Child(props: { label: string }) @{
+	<span>{props.label}</span>
+}
+
+export function App() @{
+	const [n, setN] = useState(0);
+	const grow = () => setN((v) => v + 1);
+	<>
+		<button onClick={grow}>{'n: ' + n}</button>
+		<Child label={'count ' + n} />
+		<style>
+			button {
+				color: red;
+			}
+		</style>
+	</>
+}`,
+			'directives combined into value positions': `function App(props: { on: boolean; mode: string }) @{
+	const badge = (@if (props.on) { <b>on</b> }) || 'off';
+	const fallback = (@if (props.mode === 'a') { <i>A</i> }) ?? (@if (props.on) { <i>?</i> });
+	<div>
+		{badge}
+		{fallback}
+	</div>
+}`,
+			'keyed loops, try blocks, and styles in branches': `function App(props: { items: { id: string; name: string }[] }) @{
+	<section>
+		@try {
+			@for (const item of props.items; key item.id) {
+				<article>{item.name}</article>
+			}
+		} @pending {
+			<p>loading</p>
+		} @catch (error) {
+			<p>failed</p>
+		}
+		<style>
+			article {
+				color: blue;
+			}
+		</style>
+	</section>
+}`,
+			'code blocks, hooks in loops, and keyed fragments': `import { useState } from 'react';
+
+export function App(props: { items: { id: string; name: string }[] }) @{
+	<ul>
+		@{
+			const heading = 'Items';
+			<li>{heading}</li>
+		}
+		@for (const item of props.items; key item.id) {
+			const [open] = useState(false);
+			<>
+				<li>{item.name}</li>
+				<li>{open ? 'open' : 'closed'}</li>
+			</>
+		}
+	</ul>
+}`,
+			'plain module without templates': `export async function load(url: string) {
+	const res = await fetch(url);
+	return res.json();
+}
+export const config = { retries: [1, 2, 3] };`,
+		};
+
+		for (const [label, source] of Object.entries(SOURCES)) {
+			it(`does not mutate the parsed program: ${label}`, () => {
+				// `result.sourceAst` is the exact instance the transform consumed
+				// (and that mapping collection then walks). A fresh parse with the
+				// same options is the pristine reference — parsing is
+				// deterministic, so any structural difference is transform-made.
+				const pristine = parseModule(source, 'App.tsrx', {
+					collect: true,
+					loose: true,
+					preserveParens: true,
+					keywordTokens: true,
+					errors: [],
+					comments: [],
+				});
+				const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+				const diff = first_difference(
+					structural(pristine),
+					structural(result.sourceAst),
+					'program',
+				);
+				expect(diff, diff ? `transform mutated ${diff}` : undefined).toBeNull();
+			});
+		}
 	});
 }

@@ -214,32 +214,53 @@ function lower_code_block_child(block) {
  * `lower_code_block_child`). This is the element-scoped equivalent of
  * `transform_function`'s body lowering — function and arrow bodies are never
  * element children, so they are untouched here.
+ *
+ * The input tree is never mutated: replacements land on a shallow copy of the
+ * owning node (or array), so the return value must be used in place of the
+ * argument. Untouched subtrees are shared by reference with the input.
  * @param {any} node
  * @param {Set<any>} [seen]
- * @returns {void}
+ * @returns {any}
  */
 function expand_child_code_blocks(node, seen = new Set()) {
-	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	if (!node || typeof node !== 'object' || seen.has(node)) return node;
 	seen.add(node);
 
 	if (Array.isArray(node)) {
-		for (const item of node) expand_child_code_blocks(item, seen);
-		return;
+		let changed = false;
+		const result = node.map((item) => {
+			const walked = expand_child_code_blocks(item, seen);
+			if (walked !== item) changed = true;
+			return walked;
+		});
+		return changed ? result : node;
 	}
+
+	let out = node;
+	const set = (/** @type {string} */ key, /** @type {any} */ value) => {
+		if (out[key] === value) return;
+		if (out === node) out = { ...node };
+		out[key] = value;
+	};
 
 	if (
 		Array.isArray(node.children) &&
 		node.children.some((/** @type {any} */ c) => c?.type === 'JSXCodeBlock')
 	) {
-		node.children = node.children.flatMap((/** @type {any} */ child) =>
-			child?.type === 'JSXCodeBlock' ? lower_code_block_child(child) : [child],
+		set(
+			'children',
+			node.children.flatMap((/** @type {any} */ child) =>
+				child?.type === 'JSXCodeBlock' ? lower_code_block_child(child) : [child],
+			),
 		);
 	}
 
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(out)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-		expand_child_code_blocks(node[key], seen);
+		set(key, expand_child_code_blocks(out[key], seen));
 	}
+
+	return out;
 }
 
 /**
@@ -418,13 +439,17 @@ function wrap_lowered_value_in_fragment(expression, source) {
  * its rendered value. Either way nothing leaks to the printer as a raw
  * `JSX…Expression`.
  *
+ * The input tree is never mutated: every replacement lands on a shallow copy of
+ * the owning node (or array), so the return value must be used in place of the
+ * argument. Untouched subtrees are shared by reference with the input.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @param {Set<any>} [seen]
- * @returns {void}
+ * @returns {any}
  */
 function wrap_control_flow_expression_values(node, transform_context, seen = new Set()) {
-	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	if (!node || typeof node !== 'object' || seen.has(node)) return node;
 	seen.add(node);
 
 	// Dynamic tags on factory platforms must lower before control-flow
@@ -454,11 +479,17 @@ function wrap_control_flow_expression_values(node, transform_context, seen = new
 			: value;
 
 	if (Array.isArray(node)) {
-		for (let i = 0; i < node.length; i++) {
-			node[i] = lower_child(node[i]);
-			wrap_control_flow_expression_values(node[i], transform_context, seen);
-		}
-		return;
+		let changed = false;
+		const result = node.map((entry) => {
+			const walked = wrap_control_flow_expression_values(
+				lower_child(entry),
+				transform_context,
+				seen,
+			);
+			if (walked !== entry) changed = true;
+			return walked;
+		});
+		return changed ? result : node;
 	}
 
 	// Wrap a bare control-flow directive that is the sole value of a render-output
@@ -469,50 +500,72 @@ function wrap_control_flow_expression_values(node, transform_context, seen = new
 	const wrap_value = (/** @type {any} */ value) =>
 		is_jsx_control_flow_expression(value) ? wrap_in_native_tsrx_fragment(value) : value;
 
+	// All replacements land on `out`, a shallow copy made on first write; the
+	// input node's fields are never reassigned.
+	let out = node;
+	const set = (/** @type {string} */ key, /** @type {any} */ value) => {
+		if (out[key] === value) return;
+		if (out === node) out = { ...node };
+		out[key] = value;
+	};
+
 	if (
 		node.type === 'ArrowFunctionExpression' &&
 		node.body?.type !== 'BlockStatement' &&
 		is_jsx_control_flow_expression(node.body)
 	) {
-		node.body = wrap_in_native_tsrx_fragment(node.body);
+		set('body', wrap_in_native_tsrx_fragment(node.body));
 	} else if (node.type === 'ReturnStatement' && is_jsx_control_flow_expression(node.argument)) {
-		node.argument = wrap_in_native_tsrx_fragment(node.argument);
+		set('argument', wrap_in_native_tsrx_fragment(node.argument));
 	} else if (
 		node.type === 'ExpressionStatement' &&
 		is_jsx_control_flow_expression(node.expression)
 	) {
-		node.expression = wrap_in_native_tsrx_fragment(node.expression);
+		set('expression', wrap_in_native_tsrx_fragment(node.expression));
 	} else if (node.type === 'VariableDeclarator' && is_jsx_control_flow_expression(node.init)) {
-		node.init = wrap_in_native_tsrx_fragment(node.init);
+		set('init', wrap_in_native_tsrx_fragment(node.init));
 	} else if (node.type === 'AssignmentExpression' && is_jsx_control_flow_expression(node.right)) {
-		node.right = wrap_in_native_tsrx_fragment(node.right);
+		set('right', wrap_in_native_tsrx_fragment(node.right));
 	} else if (
 		(node.type === 'CallExpression' || node.type === 'NewExpression') &&
 		Array.isArray(node.arguments)
 	) {
-		node.arguments = node.arguments.map(wrap_value);
+		const wrapped = node.arguments.map(wrap_value);
+		if (
+			wrapped.some(
+				(/** @type {any} */ argument, /** @type {number} */ i) => argument !== node.arguments[i],
+			)
+		) {
+			set('arguments', wrapped);
+		}
 	}
 
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(out)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
 		// A directive is allowed as a render child/statement, and as the sole value
 		// of a render-output slot (handled above for control flow; `@{ … }` blocks
 		// self-lower). Everywhere else it is combined into an expression — wrap it.
 		const allowed_slot =
 			is_statement_or_template_slot(node, key) || is_render_output_value_slot(node, key);
-		const value = node[key];
+		const value = out[key];
 		if (Array.isArray(value)) {
-			for (let i = 0; i < value.length; i++) {
-				value[i] = lower_child(value[i]);
-				if (!allowed_slot) value[i] = wrap_directive_in_expression(value[i]);
-				wrap_control_flow_expression_values(value[i], transform_context, seen);
-			}
+			let changed = false;
+			const result = value.map((entry) => {
+				let next = lower_child(entry);
+				if (!allowed_slot) next = wrap_directive_in_expression(next);
+				next = wrap_control_flow_expression_values(next, transform_context, seen);
+				if (next !== entry) changed = true;
+				return next;
+			});
+			if (changed) set(key, result);
 		} else {
-			node[key] = lower_child(node[key]);
-			if (!allowed_slot) node[key] = wrap_directive_in_expression(node[key]);
-			wrap_control_flow_expression_values(node[key], transform_context, seen);
+			let next = lower_child(value);
+			if (!allowed_slot) next = wrap_directive_in_expression(next);
+			set(key, wrap_control_flow_expression_values(next, transform_context, seen));
 		}
 	}
+
+	return out;
 }
 
 /**
@@ -578,8 +631,8 @@ export function createJsxTransform(platform) {
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
 
-		expand_child_code_blocks(/** @type {any} */ (ast));
-		wrap_control_flow_expression_values(/** @type {any} */ (ast), transform_context);
+		ast = expand_child_code_blocks(/** @type {any} */ (ast));
+		ast = wrap_control_flow_expression_values(/** @type {any} */ (ast), transform_context);
 
 		if (!transform_context.typeOnly) {
 			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
@@ -735,7 +788,15 @@ export function createJsxTransform(platform) {
 			},
 		});
 
-		const transformed_program = /** @type {AST.Program} */ (transformed);
+		let transformed_program = /** @type {AST.Program} */ (transformed);
+		// The walk returns the input program unchanged when no visitor replaced
+		// anything beneath it. The post-passes below (style anchors, helper
+		// expansion, import injection) write into the program's `body`, so
+		// detach from the caller's AST first; a changed program is already a
+		// fresh walk-owned node with a fresh `body` array.
+		if (/** @type {any} */ (transformed_program) === /** @type {any} */ (ast)) {
+			transformed_program = { ...transformed_program, body: [...transformed_program.body] };
+		}
 		if (type_only_style_anchors.length > 0) {
 			transformed_program.body.unshift(...type_only_style_anchors);
 		}
@@ -751,7 +812,7 @@ export function createJsxTransform(platform) {
 		// lazy transform runs, so every `@{ … }` block / `@`-directive has already
 		// been lowered to its final closure / block shape. The lazy transform can
 		// then walk the complete function structure in one pass.
-		lower_remaining_jsx_code_blocks(expanded, transform_context);
+		const lowered_program = lower_remaining_jsx_code_blocks(expanded, transform_context);
 
 		// Apply lazy destructuring transforms to module-level code (top-level function
 		// declarations, arrow functions, etc.).
@@ -772,12 +833,12 @@ export function createJsxTransform(platform) {
 		// so lazy bindings declared inside a nested block or directive body are
 		// rewritten just like a flat function body.
 		if (!transform_context.typeOnly) {
-			preallocate_lazy_ids(/** @type {any} */ (expanded), transform_context);
+			preallocate_lazy_ids(/** @type {any} */ (lowered_program), transform_context);
 		}
 		const final_program = /** @type {any} */ (
 			transform_context.typeOnly
-				? expanded
-				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
+				? lowered_program
+				: apply_lazy_transforms(/** @type {any} */ (lowered_program), new Map())
 		);
 
 		const result = print(final_program, tsx_with_ts_locations(transform_context.typeOnly), {
@@ -1707,7 +1768,7 @@ function get_active_native_tsrx_function(path) {
 
 /**
  * @param {any} node
- * @param {{ next: () => any, state: TransformContext, path: AST.Node[] }} context
+ * @param {{ next: () => any, visit: (node: any, state?: TransformContext) => any, state: TransformContext, path: AST.Node[] }} context
  * @returns {any}
  */
 function transform_function(node, context) {
@@ -1717,15 +1778,26 @@ function transform_function(node, context) {
 	// from here it flows through the existing native-component machinery exactly
 	// like the older fenced `{ return <> … </> }` shape.
 	const has_jsx_code_block_body = node.body?.type === 'JSXCodeBlock';
-	lower_jsx_code_block_function_body(node);
+	const lowered = lower_jsx_code_block_function_body(node);
+	if (lowered !== node) {
+		// The lowering produced a COPY; carry the native-body fact through the
+		// sanctioned metadata channel and re-dispatch so the walker transforms
+		// the lowered tree (terminates: the copy's body is a BlockStatement).
+		lowered.metadata = { ...(lowered.metadata || {}), native_tsrx_body: true };
+		return context.visit(lowered);
+	}
 
 	if (
 		has_jsx_code_block_body ||
 		node.metadata?.native_tsrx_function ||
+		node.metadata?.native_tsrx_body ||
 		function_has_native_tsrx_return(node)
 	) {
 		return transform_native_tsrx_function(node, context, {
-			nativeBody: has_jsx_code_block_body || !!node.metadata?.native_tsrx_function,
+			nativeBody:
+				has_jsx_code_block_body ||
+				!!node.metadata?.native_tsrx_function ||
+				!!node.metadata?.native_tsrx_body,
 		});
 	}
 
@@ -1733,11 +1805,14 @@ function transform_function(node, context) {
 }
 
 /**
+ * Lower a `@{ … }` body (JSXCodeBlock) to an ordinary block on a COPY built
+ * with the AST builders — the source function node is never mutated. Returns
+ * the input node unchanged when there is nothing to lower.
  * @param {any} node
- * @returns {void}
+ * @returns {any}
  */
 function lower_jsx_code_block_function_body(node) {
-	if (node.body?.type !== 'JSXCodeBlock') return;
+	if (node.body?.type !== 'JSXCodeBlock') return node;
 
 	const code_block = node.body;
 	const statements = [...code_block.body];
@@ -1758,10 +1833,11 @@ function lower_jsx_code_block_function_body(node) {
 		}
 		statements.push(b.return(render, code_block.render));
 	}
-	node.body = b.block(statements, code_block);
-	if (node.type === 'ArrowFunctionExpression') {
-		node.expression = false;
-	}
+	return {
+		...node,
+		body: b.block(statements, code_block),
+		...(node.type === 'ArrowFunctionExpression' ? { expression: false } : null),
+	};
 }
 
 /**
@@ -3039,46 +3115,62 @@ function expand_component_helpers(program) {
  * If one of those helpers contains a statement-container body, lower it before
  * the printer sees the helper subtree.
  *
+ * The tree is never mutated: replacements land on a shallow copy of the owning
+ * node (or array), so the return value must be used in place of the argument.
+ * Untouched subtrees are shared by reference with the input.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @param {Set<any>} [seen]
- * @returns {void}
+ * @returns {any}
  */
 function lower_remaining_jsx_code_blocks(node, transform_context, seen = new Set()) {
-	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	if (!node || typeof node !== 'object' || seen.has(node)) return node;
 	seen.add(node);
 
-	if (is_function_or_class_boundary(node)) {
-		lower_jsx_code_block_function_body(node);
-	}
+	// A code-block function body lowers to a fresh copy of the function node;
+	// its children are then walked below like any other node's.
+	let out = is_function_or_class_boundary(node) ? lower_jsx_code_block_function_body(node) : node;
+	const set = (/** @type {string} */ key, /** @type {any} */ value) => {
+		if (out[key] === value) return;
+		if (out === node) out = { ...node };
+		out[key] = value;
+	};
 
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(out)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-		let value = node[key];
+		const value = out[key];
 		if (!value || typeof value !== 'object') continue;
 
 		if (Array.isArray(value)) {
-			if (key === 'body') {
-				value = node[key] = value.flatMap((child) => {
-					if (child?.type !== 'JSXCodeBlock') return [child];
-					const body_nodes = get_jsx_code_block_body_nodes(child, transform_context);
-					return mark_native_pretransformed_jsx(
-						build_render_statements(
-							body_nodes,
-							true,
-							transform_context,
-							is_authored_native_fragment(child.render) ? child.render : null,
-						),
-					);
-				});
-			}
-			for (const child of value) {
-				lower_remaining_jsx_code_blocks(child, transform_context, seen);
-			}
+			const expanded =
+				key === 'body' && value.some((child) => child?.type === 'JSXCodeBlock')
+					? value.flatMap((child) => {
+							if (child?.type !== 'JSXCodeBlock') return [child];
+							const body_nodes = get_jsx_code_block_body_nodes(child, transform_context);
+							return mark_native_pretransformed_jsx(
+								build_render_statements(
+									body_nodes,
+									true,
+									transform_context,
+									is_authored_native_fragment(child.render) ? child.render : null,
+								),
+							);
+						})
+					: value;
+			let changed = expanded !== value;
+			const result = expanded.map((child) => {
+				const walked = lower_remaining_jsx_code_blocks(child, transform_context, seen);
+				if (walked !== child) changed = true;
+				return walked;
+			});
+			if (changed) set(key, result);
 		} else {
-			lower_remaining_jsx_code_blocks(value, transform_context, seen);
+			set(key, lower_remaining_jsx_code_blocks(value, transform_context, seen));
 		}
 	}
+
+	return out;
 }
 
 /**
@@ -3202,9 +3294,8 @@ function get_loop_skip_if_consequent_body(node) {
  */
 function create_component_loop_skip_if_statement(node, render_nodes, transform_context) {
 	const consequent_body = /** @type {any[]} */ (get_loop_skip_if_consequent_body(node));
-	const branch_statements = build_render_statements(consequent_body, true, transform_context);
-	prepend_render_nodes_to_return_statements(
-		branch_statements,
+	const branch_statements = prepend_render_nodes_to_return_statements(
+		build_render_statements(consequent_body, true, transform_context),
 		render_nodes,
 		transform_context.typeOnly,
 	);
@@ -3221,19 +3312,23 @@ function create_component_loop_skip_if_statement(node, render_nodes, transform_c
 }
 
 /**
+ * Statements can be passed through `build_render_statements` by reference, so
+ * rewritten returns land on shallow copies; the returned array must be used in
+ * place of the argument.
+ *
  * @param {any[]} statements
  * @param {any[]} render_nodes
  * @param {boolean} [type_only]
- * @returns {void}
+ * @returns {any[]}
  */
 function prepend_render_nodes_to_return_statements(statements, render_nodes, type_only = false) {
 	if (render_nodes.length === 0) {
-		return;
+		return statements;
 	}
 
-	for (const statement of statements) {
-		prepend_render_nodes_to_return_statement(statement, render_nodes, false, type_only);
-	}
+	return /** @type {any[]} */ (
+		prepend_render_nodes_to_return_statement(statements, render_nodes, false, type_only)
+	);
 }
 
 /**
@@ -3241,7 +3336,7 @@ function prepend_render_nodes_to_return_statements(statements, render_nodes, typ
  * @param {any[]} render_nodes
  * @param {boolean} inside_nested_function
  * @param {boolean} [type_only]
- * @returns {void}
+ * @returns {any}
  */
 function prepend_render_nodes_to_return_statement(
 	node,
@@ -3250,7 +3345,7 @@ function prepend_render_nodes_to_return_statement(
 	type_only = false,
 ) {
 	if (!node || typeof node !== 'object') {
-		return;
+		return node;
 	}
 
 	if (
@@ -3262,33 +3357,44 @@ function prepend_render_nodes_to_return_statement(
 	}
 
 	if (!inside_nested_function && node.type === 'ReturnStatement') {
-		node.argument = combine_render_return_argument(render_nodes, node.argument, type_only);
-		return;
+		return {
+			...node,
+			argument: combine_render_return_argument(render_nodes, node.argument, type_only),
+		};
 	}
 
 	if (Array.isArray(node)) {
-		for (const child of node) {
-			prepend_render_nodes_to_return_statement(
+		let changed = false;
+		const result = node.map((child) => {
+			const walked = prepend_render_nodes_to_return_statement(
 				child,
 				render_nodes,
 				inside_nested_function,
 				type_only,
 			);
-		}
-		return;
+			if (walked !== child) changed = true;
+			return walked;
+		});
+		return changed ? result : node;
 	}
 
+	let out = node;
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		prepend_render_nodes_to_return_statement(
+		const walked = prepend_render_nodes_to_return_statement(
 			node[key],
 			render_nodes,
 			inside_nested_function,
 			type_only,
 		);
+		if (walked !== node[key]) {
+			if (out === node) out = { ...node };
+			out[key] = walked;
+		}
 	}
+	return out;
 }
 
 /**
@@ -4733,9 +4839,16 @@ function continue_to_bare_return(source_node) {
  */
 export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 	if (Array.isArray(node)) {
-		return node.map((child) =>
-			rewrite_loop_continues_to_bare_returns(child, is_root && !is_loop_statement(child)),
-		);
+		let changed = false;
+		const result = node.map((child) => {
+			const walked = rewrite_loop_continues_to_bare_returns(
+				child,
+				is_root && !is_loop_statement(child),
+			);
+			if (walked !== child) changed = true;
+			return walked;
+		});
+		return changed ? result : node;
 	}
 
 	if (!node || typeof node !== 'object') {
@@ -4750,14 +4863,19 @@ export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 		return node;
 	}
 
+	let out = node;
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		node[key] = rewrite_loop_continues_to_bare_returns(node[key], false);
+		const walked = rewrite_loop_continues_to_bare_returns(node[key], false);
+		if (walked !== node[key]) {
+			if (out === node) out = { ...node };
+			out[key] = walked;
+		}
 	}
 
-	return node;
+	return out;
 }
 
 /**
@@ -4921,7 +5039,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	const loop_body = /** @type {any[]} */ (
+	let loop_body = /** @type {any[]} */ (
 		node.body.type === 'BlockStatement' ? node.body.body : [node.body]
 	);
 	validate_for_body_control_flow(loop_body, transform_context);
@@ -4952,10 +5070,10 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	if (implicit_non_hook_key_expression && should_apply_key_to_loop_body(loop_body)) {
-		apply_key_to_loop_body(loop_body, implicit_non_hook_key_expression);
+		loop_body = apply_key_to_loop_body(loop_body, implicit_non_hook_key_expression);
 	}
 
-	const body_statements = has_hooks
+	let body_statements = has_hooks
 		? hook_safe_render_statements(loop_body, key_expression, transform_context)
 		: build_render_statements(loop_body, true, transform_context);
 
@@ -4972,7 +5090,11 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const non_hook_key_expression = key_expression ?? implicit_non_hook_key_expression;
 	if (!has_hooks && non_hook_key_expression) {
-		apply_key_to_render_statements(body_statements, non_hook_key_expression, transform_context);
+		body_statements = apply_key_to_render_statements(
+			body_statements,
+			non_hook_key_expression,
+			transform_context,
+		);
 	}
 
 	// Restore bindings
@@ -5025,32 +5147,40 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 }
 
 /**
+ * Returns a copy of `body_nodes` where the first keyable element carries the
+ * key attribute on a rebuilt opening element — the source nodes are never
+ * mutated (they may belong to the caller's parsed AST).
  * @param {any[]} body_nodes
  * @param {any} key_expression
- * @returns {void}
+ * @returns {any[]}
  */
 function apply_key_to_loop_body(body_nodes, key_expression) {
-	for (const node of body_nodes) {
-		if (node.type === 'JSXElement') {
-			const attributes = node.openingElement?.attributes || [];
-			const has_key = attributes.some(
-				(/** @type {any} */ attr) =>
-					attr.type === 'JSXAttribute' &&
-					attr.name?.type === 'JSXIdentifier' &&
-					attr.name.name === 'key',
-			);
-
-			if (!has_key) {
-				attributes.push(
+	let applied = false;
+	return body_nodes.map((node) => {
+		if (applied || node.type !== 'JSXElement') return node;
+		applied = true;
+		const attributes = node.openingElement?.attributes || [];
+		const has_key = attributes.some(
+			(/** @type {any} */ attr) =>
+				attr.type === 'JSXAttribute' &&
+				attr.name?.type === 'JSXIdentifier' &&
+				attr.name.name === 'key',
+		);
+		if (has_key) return node;
+		return {
+			...node,
+			openingElement: {
+				...node.openingElement,
+				attributes: [
+					...attributes,
 					b.jsx_attribute(
 						b.jsx_id('key'),
 						to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
 					),
-				);
-			}
-			return;
-		}
-	}
+				],
+			},
+		};
+	});
 }
 
 /**
@@ -5068,10 +5198,14 @@ function should_apply_key_to_loop_body(body_nodes) {
 }
 
 /**
+ * Statement entries can be shared with the source tree, so the keyed return
+ * lands on shallow copies; the returned array must be used in place of the
+ * argument.
+ *
  * @param {any[]} statements
  * @param {any} key_expression
  * @param {TransformContext} transform_context
- * @returns {void}
+ * @returns {any[]}
  */
 function apply_key_to_render_statements(statements, key_expression, transform_context) {
 	for (let i = statements.length - 1; i >= 0; i -= 1) {
@@ -5080,21 +5214,29 @@ function apply_key_to_render_statements(statements, key_expression, transform_co
 			continue;
 		}
 
-		if (statement.argument.type === 'JSXElement') {
-			apply_key_to_jsx_element(statement.argument, key_expression);
-		} else if (statement.argument.type === 'JSXFragment') {
+		let argument = statement.argument;
+		if (argument.type === 'JSXElement') {
+			argument = apply_key_to_jsx_element(argument, key_expression);
+		} else if (argument.type === 'JSXFragment') {
 			transform_context.needs_fragment = true;
-			statement.argument = keyed_fragment_to_jsx_element(statement.argument, key_expression);
+			argument = keyed_fragment_to_jsx_element(argument, key_expression);
 		}
 
-		return;
+		if (argument === statement.argument) {
+			return statements;
+		}
+		const result = [...statements];
+		result[i] = { ...statement, argument };
+		return result;
 	}
+	return statements;
 }
 
 /**
  * @param {any} element
  * @param {any} key_expression
- * @returns {void}
+ * @returns {any} the element itself when it already has a `key`, otherwise a
+ * shallow copy with the key attribute appended.
  */
 function apply_key_to_jsx_element(element, key_expression) {
 	const attributes = element.openingElement?.attributes || [];
@@ -5104,15 +5246,21 @@ function apply_key_to_jsx_element(element, key_expression) {
 			attr.name?.type === 'JSXIdentifier' &&
 			attr.name.name === 'key',
 	);
+	if (has_key) return element;
 
-	if (!has_key) {
-		attributes.push(
-			b.jsx_attribute(
-				b.jsx_id('key'),
-				to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
-			),
-		);
-	}
+	return {
+		...element,
+		openingElement: {
+			...element.openingElement,
+			attributes: [
+				...attributes,
+				b.jsx_attribute(
+					b.jsx_id('key'),
+					to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+				),
+			],
+		},
+	};
 }
 
 /**
