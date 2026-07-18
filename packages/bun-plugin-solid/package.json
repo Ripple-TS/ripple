@@ -3,7 +3,7 @@
   "description": "Bun plugin for @tsrx/solid (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "type": "module",
   "publishConfig": {
     "access": "public"

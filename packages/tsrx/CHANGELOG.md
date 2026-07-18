@@ -1,5 +1,15 @@
 # @tsrx/core
 
+## 0.1.41
+
+### Patch Changes
+
+- [#1350](https://github.com/Ripple-TS/ripple/pull/1350)
+  [`5f5726d`](https://github.com/Ripple-TS/ripple/commit/5f5726d164926f480454143895bf035c9c30929b)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fixed parsing multiple paired
+  JSX elements on the same line after a comma, including array literals nested in
+  JSX expression children.
+
 ## 0.1.40
 
 ### Patch Changes
