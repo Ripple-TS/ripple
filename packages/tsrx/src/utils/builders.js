@@ -252,6 +252,22 @@ export function export_default(declaration) {
 }
 
 /**
+ * @param {string | AST.Identifier} local
+ * @param {string | AST.Identifier} [exported]
+ * @param {AST.ExportSpecifier['exportKind']} [exportKind]
+ * @returns {AST.ExportSpecifier}
+ */
+export function export_specifier(local, exported = local, exportKind = 'value') {
+	return {
+		type: 'ExportSpecifier',
+		local: typeof local === 'string' ? id(local) : local,
+		exported: typeof exported === 'string' ? id(exported) : exported,
+		exportKind,
+		metadata: { path: [] },
+	};
+}
+
+/**
  * @param {AST.Declaration | null} declaration
  * @param {AST.ExportSpecifier[]} [specifiers]
  * @param {AST.ImportAttribute[]} [attributes]

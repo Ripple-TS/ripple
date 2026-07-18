@@ -7162,16 +7162,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 					// Add: ComponentName = _$_.hmr(ComponentName);
 					hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
 					// Re-export as named export
-					hmr_body.push(
-						b.export_builder(null, [
-							{
-								type: 'ExportSpecifier',
-								local: b.id(name),
-								exported: b.id(name),
-								metadata: { path: [] },
-							},
-						]),
-					);
+					hmr_body.push(b.export_builder(null, [b.export_specifier(name)]));
 				}
 			} else if (
 				node.type === 'FunctionExpression' &&
