@@ -6969,10 +6969,7 @@ function create_tsx_with_typescript_support(comments) {
 		// span can start at a bare `(`, which boundaryTokens does not anchor.
 		ArrowFunctionExpression(node, context) {
 			if (node.loc) context.location(node.loc.start.line, node.loc.start.column);
-			/** @type {(node: any, context: any) => void} */ (base_tsx.ArrowFunctionExpression)(
-				node,
-				context,
-			);
+			base_tsx.ArrowFunctionExpression?.(node, context);
 			if (node.loc) context.location(node.loc.end.line, node.loc.end.column);
 		},
 		ClassDeclaration(node, context) {
