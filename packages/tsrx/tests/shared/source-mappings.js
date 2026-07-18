@@ -51,6 +51,43 @@ export function runSharedSourceMappingTests({
 			expect_maps(`function C() @{
 	const x = foo[bar];
 }`));
+		// The index expression's acorn location starts at the `(` of its
+		// parenthesized left operand — a position the printer emits no marker
+		// for; the verify mapping is skipped instead of failing the file.
+		it('computed MemberExpression with parenthesized binary index', () =>
+			expect_maps(`const C = ['a', 'b'];
+function F(props: { n: number }) @{
+	const x = { fill: C[(props.n - 1) % C.length] };
+}`));
+		// The synthesized `[key]` bracket span starts one column before the key —
+		// unmarked in some object-literal contexts; skipped, not fatal.
+		it('computed object key', () =>
+			expect_maps(`function F(props: { k: string }) @{
+	const merge = (current: object) => ({ ...current, [props.k]: '' });
+}`));
+		// AssignmentPattern spans reaching into marker-less literal tokens.
+		it('parameter default array literal', () =>
+			expect_maps(`function parse(points = []) {
+	return points.length;
+}`));
+		// The pattern's span ends at a call's closing paren.
+		it('parameter default ending in a call', () =>
+			expect_maps(`const use = ({ dir = getDocumentDirection() } = {}) => dir;`));
+		// A statement/property span ending at a computed member's closing bracket.
+		it('computed member access at span end', () =>
+			expect_maps(`function next(items: string[], index: number) {
+	return { value: items[index++], done: false };
+}`));
+		it('destructured parameter defaults', () =>
+			expect_maps(`const use = ({ a = 1 } = {}) => a;
+export function usePos(
+	{
+		x = 0,
+		y = 0,
+	}: { x?: number; y?: number } = {},
+) {
+	return x + y;
+}`));
 		it('empty ObjectExpression', () =>
 			expect_maps(`function C() @{
 	const x = {};

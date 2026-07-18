@@ -24,7 +24,7 @@ allowBuilds:
 prettier_common: &prettier_common ^3.8.4
 ts_common: &ts_common ^5.9.3
 ts_eslint_parser: &ts_eslint_parser ^8.56.1
-esrap_common: &esrap_common ^2.2.8
+esrap_common: &esrap_common ^2.3.0
 
 packages:
   - packages/*

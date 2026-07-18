@@ -780,7 +780,7 @@ export function createJsxTransform(platform) {
 				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
 
-		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
+		const result = print(final_program, tsx_with_ts_locations(transform_context.typeOnly), {
 			sourceMapSource: filename,
 			sourceMapContent: source,
 		});

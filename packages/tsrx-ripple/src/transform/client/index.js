@@ -683,10 +683,23 @@ function visit_function(node, context) {
 	// mutated) and replace lazy destructuring params with generated identifiers
 	const transformed_params = node.params.map((param) => {
 		/** @type {AST.Pattern} */
-		let param_out = param.typeAnnotation ? { ...param, typeAnnotation: undefined } : param;
+		let param_out =
+			param.typeAnnotation || /** @type {any} */ (param).optional
+				? /** @type {AST.Pattern} */ (
+						/** @type {unknown} */ ({ ...param, typeAnnotation: undefined, optional: false })
+					)
+				: param;
 		// Handle AssignmentPattern (parameters with default values)
-		if (param_out.type === 'AssignmentPattern' && param_out.left?.typeAnnotation) {
-			param_out = { ...param_out, left: { ...param_out.left, typeAnnotation: undefined } };
+		if (
+			param_out.type === 'AssignmentPattern' &&
+			(param_out.left?.typeAnnotation || /** @type {any} */ (param_out.left)?.optional)
+		) {
+			param_out = /** @type {AST.AssignmentPattern} */ (
+				/** @type {unknown} */ ({
+					...param_out,
+					left: { ...param_out.left, typeAnnotation: undefined, optional: false },
+				})
+			);
 		}
 		const pattern = param_out.type === 'AssignmentPattern' ? param_out.left : param_out;
 		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
@@ -2294,6 +2307,23 @@ const visitors = {
 	ClassExpression(node, context) {
 		if (!context.state.to_ts) {
 			return strip_class_typescript_syntax(node, context);
+		}
+		return context.next();
+	},
+
+	ParenthesizedExpression(node, context) {
+		// Only volar/to_ts parses preserve source parens (build compiles fold
+		// them). A lowered fragment/element is self-delimiting — parens around
+		// it are redundant in the type view and the JS targets never print
+		// them, so drop the wrapper and keep the lowered child.
+		if (context.state.to_ts) {
+			const expression = /** @type {AST.Expression} */ (context.visit(node.expression));
+			if (expression.type === 'JSXFragment' || expression.type === 'JSXElement') {
+				return expression;
+			}
+			if (expression !== node.expression) {
+				return { ...node, expression };
+			}
 		}
 		return context.next();
 	},
@@ -5164,14 +5194,30 @@ function is_authored_native_fragment(node) {
  * @returns {boolean}
  */
 function is_combined_expression_position(path, node) {
-	let parent = path.at(-1);
+	let depth = path.length - 1;
+	let parent = path[depth];
 	let slot_node = node;
-	// A generated value wrapper is visited FROM its directive's visitor, so the
-	// directive sits atop the path — the wrapper stands in the directive's
-	// slot, so judge the position against the directive's own parent.
-	if (parent?.metadata?.tsrx_value_wrapper === node) {
-		slot_node = parent;
-		parent = path.at(-2);
+	// Walk up through transparent stand-ins, in whatever order they nest:
+	//  - preserved source parentheses (volar/to_ts parses only) — the wrapped
+	//    expression stands in the paren's slot (`(@if (…) { … }) || x` judges
+	//    against the `||`, not the paren);
+	//  - a generated value wrapper, visited FROM its directive's visitor, so
+	//    the directive sits atop the path and stands in the wrapper's slot.
+	while (parent) {
+		if (parent.type === 'ParenthesizedExpression') {
+			slot_node = parent;
+			parent = path[--depth];
+			continue;
+		}
+		if (
+			parent.metadata?.tsrx_value_wrapper === slot_node ||
+			parent.metadata?.tsrx_value_wrapper === node
+		) {
+			slot_node = parent;
+			parent = path[--depth];
+			continue;
+		}
+		break;
 	}
 	if (!parent || !isTemplateValuePosition(parent, slot_node)) return false;
 	switch (parent.type) {
@@ -6067,7 +6113,11 @@ function create_tsx_with_typescript_support(comments) {
 	const preserved_comments = comments?.filter(shouldPreserveComment) ?? [];
 	// Don't pass comments to esrap - we handle them manually via flush_comments_before
 	// because esrap's built-in comment handling requires all intermediate nodes to have loc
-	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (tsx());
+	// boundaryTokens: this language only prints the to_ts (volar) view — maps
+	// are consumed positionally by the language tooling, never shipped.
+	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (
+		tsx({ boundaryTokens: true })
+	);
 
 	// Track which comments have been written (by index)
 	let comment_index = 0;

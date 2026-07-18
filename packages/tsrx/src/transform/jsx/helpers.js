@@ -61,8 +61,14 @@ export function set_node_path_metadata(node, path) {
  *
  * @returns {any}
  */
-export function tsx_with_ts_locations() {
-	const base = /** @type {any} */ (tsx());
+/**
+ * @param {boolean} [boundary_tokens] Enable esrap's `boundaryTokens` anchors
+ * (structural tokens carry one-character source locations). typeOnly/volar
+ * prints opt in — their maps are consumed positionally by the language
+ * tooling and never shipped; build prints stay sparse.
+ */
+export function tsx_with_ts_locations(boundary_tokens = false) {
+	const base = /** @type {any} */ (tsx({ boundaryTokens: boundary_tokens }));
 
 	/**
 	 * @param {any} node

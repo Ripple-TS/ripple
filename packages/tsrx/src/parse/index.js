@@ -225,6 +225,7 @@ export function createParser(...plugins) {
 				ecmaVersion: 13,
 				allowReturnOutsideFunction: true,
 				locations: true,
+				preserveParens: !!options?.preserveParens,
 				onComment,
 				tsrxOptions: {
 					filename,

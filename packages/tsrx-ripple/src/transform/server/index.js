@@ -1375,10 +1375,23 @@ function transform_native_tsrx_function(node, context) {
  */
 function strip_function_params(params) {
 	return params.map((param) => {
-		let stripped = param.typeAnnotation ? { ...param, typeAnnotation: undefined } : param;
+		let stripped =
+			param.typeAnnotation || /** @type {any} */ (param).optional
+				? /** @type {AST.Pattern} */ (
+						/** @type {unknown} */ ({ ...param, typeAnnotation: undefined, optional: false })
+					)
+				: param;
 		// Handle AssignmentPattern (parameters with default values)
-		if (stripped.type === 'AssignmentPattern' && stripped.left?.typeAnnotation) {
-			stripped = { ...stripped, left: { ...stripped.left, typeAnnotation: undefined } };
+		if (
+			stripped.type === 'AssignmentPattern' &&
+			(stripped.left?.typeAnnotation || /** @type {any} */ (stripped.left)?.optional)
+		) {
+			stripped = /** @type {AST.AssignmentPattern} */ (
+				/** @type {unknown} */ ({
+					...stripped,
+					left: { ...stripped.left, typeAnnotation: undefined, optional: false },
+				})
+			);
 		}
 		// Replace lazy destructuring params with generated identifiers
 		const pattern = stripped.type === 'AssignmentPattern' ? stripped.left : stripped;

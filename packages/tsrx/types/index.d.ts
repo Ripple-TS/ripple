@@ -230,12 +230,14 @@ declare module 'estree' {
 	interface MethodDefinition {
 		typeParameters?: TSTypeParameterDeclaration;
 		accessibility?: Accessibility;
+		optional?: boolean;
 	}
 
 	interface PropertyDefinition {
 		accessibility?: Accessibility;
 		readonly?: boolean;
 		optional?: boolean;
+		definite?: boolean;
 	}
 
 	interface ClassDeclaration {
@@ -1231,6 +1233,7 @@ export interface ParseError {
 export interface ParseOptions {
 	collect?: boolean;
 	loose?: boolean;
+	preserveParens?: boolean;
 	errors?: CompileError[];
 	comments?: AST.CommentWithLocation[];
 }

@@ -2733,10 +2733,29 @@ export function strip_class_typescript_syntax(node, context) {
 		superClass = /** @type {AST.Expression} */ ({ ...superClass, typeArguments: undefined });
 	}
 
+	// Method/property-level type syntax lives on the MEMBER node (acorn-typescript
+	// puts a method's type parameters on the MethodDefinition, not its value, and
+	// `m?()` / `x?: T` optionality on the member) — esrap ≥2.2.9 prints these
+	// faithfully, so plain-JS emit must clear them. Copies only, like the rest.
+	const class_body = node.body;
+	const members = class_body.body.map((member) => {
+		if (member.type === 'MethodDefinition') {
+			if (!member.typeParameters && !member.optional) return member;
+			return { ...member, typeParameters: undefined, optional: false };
+		}
+		if (member.type === 'PropertyDefinition') {
+			if (!member.optional && !member.definite) return member;
+			return { ...member, optional: false, definite: false };
+		}
+		return member;
+	});
+	const body_changed = members.some((member, index) => member !== class_body.body[index]);
+
 	/** @type {AST.ClassDeclaration | AST.ClassExpression} */
 	let source = node;
-	if (superClass !== node.superClass) {
+	if (superClass !== node.superClass || body_changed) {
 		source = { ...node, superClass };
+		if (body_changed) source = { ...source, body: { ...class_body, body: members } };
 		const scopes = context.state.scopes;
 		const scope = scopes?.get(node);
 		if (scope) scopes.set(source, scope);
