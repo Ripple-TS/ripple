@@ -552,6 +552,34 @@ abc
 		expect(returned.alternate.elements.map((element) => element.type)).toEqual(['JSXElement']);
 	});
 
+	it('parses same-line JSX elements in an array expression', () => {
+		const ast = parseModule(
+			'const fruits = [<Item key="apple">Apple</Item>, <Item key="banana">Banana</Item>];',
+			'App.tsx',
+		);
+
+		const fruits = ast.body[0].declarations[0].init;
+		expect(fruits.type).toBe('ArrayExpression');
+		expect(fruits.elements.map((element) => element.type)).toEqual(['JSXElement', 'JSXElement']);
+		expect(fruits.elements.map((element) => element.children[0].value)).toEqual([
+			'Apple',
+			'Banana',
+		]);
+	});
+
+	it('parses a same-line JSX array inside an expression child', () => {
+		const returned = getReturned(
+			`function App() {
+				return <Item title="Root">{[<Item key="c1">A</Item>, <Item key="c2">B</Item>] as any}</Item>;
+			}`,
+		);
+
+		const array = returned.children[0].expression.expression;
+		expect(array.type).toBe('ArrayExpression');
+		expect(array.elements.map((element) => element.type)).toEqual(['JSXElement', 'JSXElement']);
+		expect(array.elements.map((element) => element.children[0].value)).toEqual(['A', 'B']);
+	});
+
 	it('preserves template text after a self-closing child', () => {
 		const returned = getReturned(
 			`function App() {

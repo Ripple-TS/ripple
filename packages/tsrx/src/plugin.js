@@ -2381,6 +2381,14 @@ export function TSRXPlugin(config) {
 				const top = ctx[ci];
 				const second = ctx[ci - 1];
 
+				// A paired JSX element/fragment finishes on the closing tag's `>`, which
+				// leaves `exprAllowed` false even when the already-read next token is a
+				// comma. Re-arm expression mode for the value after that comma, matching
+				// the tokenizer state produced by a self-closing JSX element.
+				if (this.type === tt.comma) {
+					this.exprAllowed = true;
+				}
+
 				// Expression-bodied templates (no statement child) followed by `,`
 				// in an object/array literal need surgical fixups; statement-bodied
 				// templates fall through to the JSX-expression-container strip.
