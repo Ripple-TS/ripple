@@ -2240,6 +2240,16 @@ export function convert_source_map_to_mappings(
 					visit(node.expression);
 				}
 				return;
+			} else if (node.type === 'TSImportEqualsDeclaration') {
+				// TypeScript import alias: import foo = ns.bar;
+				// Visit in source order: id, then the referenced entity name
+				if (node.id) {
+					visit(node.id);
+				}
+				if (node.moduleReference) {
+					visit(node.moduleReference);
+				}
+				return;
 			} else if (node.type === 'TSInstantiationExpression') {
 				// TypeScript instantiation expression: new Foo<T>()
 				if (node.expression) {

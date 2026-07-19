@@ -979,7 +979,13 @@ declare module 'estree' {
 		typeParameters: TSTypeParameterDeclaration | undefined;
 		parameters: Parameter[];
 	}
-	interface TSImportEqualsDeclaration extends AcornTSNode<TSESTree.TSImportEqualsDeclaration> {}
+	interface TSImportEqualsDeclaration extends Omit<
+		AcornTSNode<TSESTree.TSImportEqualsDeclaration>,
+		'id' | 'moduleReference'
+	> {
+		id: AST.Identifier;
+		moduleReference: EntityName | TSExternalModuleReference;
+	}
 	interface TSImportType extends Omit<
 		AcornTSNode<TSESTree.TSImportType>,
 		'argument' | 'qualifier' | 'typeParameters'

@@ -46,14 +46,24 @@
  * (the compiler's isolation rule stops the server block from referencing
  * client bindings, but nothing stops both sides from importing — or
  * referencing a global named — `db`), hoisting it verbatim would collide or
- * shadow. Those imports hoist as a mangled namespace import instead and are
- * re-bound inside the namespace: `const { db } = __tsrx_server_import$0;`
- * for value specifiers and `type T = __tsrx_server_import$0.T;` for
- * type-only ones. (An `import db = …` alias would preserve dual
- * value+type meanings, but the mapping walker rejects
- * TSImportEqualsDeclaration; a colliding CLASS import therefore keeps
- * only its value meaning — an acceptable corner, since a collision
- * already requires the client half to use the same name.)
+ * shadow. Those imports hoist as a mangled namespace import instead —
+ * always a VALUE import keeping the authored `with { … }` attributes,
+ * because an import-equals alias cannot reference a type-only import
+ * (TS1380) — and each original binding is rebuilt inside the namespace:
+ * `import db = __tsrx_server_import$0.db;` for value specifiers (the one
+ * alias form that keeps EVERY meaning, so a colliding class import stays
+ * usable as a type) and `type T = __tsrx_server_import$0.T;` for type-only
+ * ones. Three corners cannot use import-equals: a string-named import
+ * (`'x y' as db`) keeps a value-only destructure (a string can never
+ * appear in an entity name); a value DEFAULT import hoists an extra
+ * mangled DEFAULT specifier rebound with `const` (no entity name reaches
+ * a default — `import db = ns.default` is TS1359 and the default binding
+ * itself has no namespace meaning — so a colliding default CLASS import
+ * keeps only its value meaning, while a type-only default becomes
+ * `type x = ns.default`); and a type-only NAMESPACE import rebinds as a
+ * plain import-equals, which adds a value meaning the authored form
+ * lacked. Each is an acceptable corner — a collision already requires the
+ * client half to use the same name.
  *
  * The rewrite is copy-on-write: every replacement node is built with
  * spreads/builders and carries the ORIGINAL node's start/end/loc wherever it
@@ -244,23 +254,37 @@ function build_destructure(specifiers, make_init, loc_node) {
 }
 
 /**
- * `type <local> = <left>.<imported>;` for a type-only import specifier.
+ * `<left>.<right>` qualified name. Callers pass a `right` that carries the
+ * authored specifier span, so hover / rename on the imported name resolve.
+ *
+ * @param {AST.Identifier} left
+ * @param {any} right
+ */
+function qualified_name(left, right) {
+	return {
+		type: 'TSQualifiedName',
+		left,
+		right,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * `type <local> = <left>.<right>;` for a type-only import specifier.
+ * `right` defaults to the specifier's imported name; a DEFAULT import
+ * passes `default` (which has no authored span of its own).
  *
  * @param {any} specifier
  * @param {() => AST.Identifier} make_left
+ * @param {any} [right]
  */
-function build_type_alias(specifier, make_left) {
+function build_type_alias(specifier, make_left, right = { ...specifier.imported }) {
 	return with_location(
 		b.ts_type_alias(
 			{ ...specifier.local },
 			/** @type {any} */ ({
 				type: 'TSTypeReference',
-				typeName: {
-					type: 'TSQualifiedName',
-					left: make_left(),
-					right: { ...specifier.imported },
-					metadata: { path: [] },
-				},
+				typeName: qualified_name(make_left(), right),
 				metadata: { path: [] },
 			}),
 		),
@@ -269,58 +293,116 @@ function build_type_alias(specifier, make_left) {
 }
 
 /**
+ * `import <local> = <reference>;` — an import-equals alias, the one form
+ * that preserves every meaning (value, type, namespace) of the referenced
+ * binding, where a `const` keeps only the value and a `type` alias only
+ * the type.
+ *
+ * @param {any} specifier
+ * @param {any} module_reference
+ */
+function build_import_equals(specifier, module_reference) {
+	return with_location(
+		/** @type {any} */ ({
+			type: 'TSImportEqualsDeclaration',
+			id: { ...specifier.local },
+			moduleReference: module_reference,
+			importKind: 'value',
+			metadata: { path: [] },
+		}),
+		specifier,
+	);
+}
+
+/**
  * Lower one block import whose local name(s) collide with outside code:
- * hoist as a mangled namespace import and rebuild each original binding
- * inside the namespace body. Value specifiers destructure the namespace
- * object; type-only specifiers become `type` aliases; default imports
- * bind `<ns>.default`; a namespace specifier rebinds the whole object.
+ * hoist under mangled names as a VALUE import (an import-equals alias
+ * cannot reference a type-only import — TS1380) and rebuild each original
+ * binding inside the namespace body. Named value specifiers and namespace
+ * specifiers become `import x = …` aliases keeping every meaning of the
+ * mangled namespace specifier; type-only specifiers become `type` aliases
+ * (`<ns>.default` for a type-only default); string-named imports
+ * destructure the namespace object (a string cannot appear in an entity
+ * name). A value DEFAULT import has no entity-name path at all
+ * (`import x = <ns>.default` is TS1359, and a default-import binding has
+ * no namespace meaning), so it hoists an extra mangled DEFAULT specifier
+ * and rebinds it with `const` — exact default-import semantics, which
+ * `<ns>.default` is not (a JSON module's namespace has no `default`
+ * member under bundler resolution).
  *
  * @param {any} statement
  * @param {string} hoisted_name
  */
 function lower_colliding_import(statement, hoisted_name) {
+	const default_name = hoisted_name + '_default';
+	const aliases = [];
+	const destructured_specifiers = [];
+	let needs_default_hoist = false;
+	let needs_namespace_hoist = false;
+	for (const specifier of statement.specifiers) {
+		const type_only = statement.importKind === 'type' || specifier.importKind === 'type';
+		if (specifier.type === 'ImportNamespaceSpecifier') {
+			needs_namespace_hoist = true;
+			aliases.push(build_import_equals(specifier, b.id(hoisted_name)));
+		} else if (specifier.type === 'ImportDefaultSpecifier') {
+			if (type_only) {
+				needs_namespace_hoist = true;
+				aliases.push(build_type_alias(specifier, () => b.id(hoisted_name), b.id('default')));
+			} else {
+				needs_default_hoist = true;
+				const declarator = with_location(
+					b.declarator({ ...specifier.local }, b.id(default_name)),
+					specifier,
+				);
+				aliases.push(with_location(b.declaration('const', [declarator]), specifier));
+			}
+		} else if (type_only) {
+			needs_namespace_hoist = true;
+			aliases.push(build_type_alias(specifier, () => b.id(hoisted_name)));
+		} else if (specifier.imported?.type === 'Identifier') {
+			needs_namespace_hoist = true;
+			aliases.push(
+				build_import_equals(
+					specifier,
+					qualified_name(b.id(hoisted_name), { ...specifier.imported }),
+				),
+			);
+		} else {
+			needs_namespace_hoist = true;
+			destructured_specifiers.push(specifier);
+		}
+	}
+	if (destructured_specifiers.length > 0) {
+		aliases.push(build_destructure(destructured_specifiers, () => b.id(hoisted_name), statement));
+	}
+
+	// Only the specifiers the aliases reference — an unreferenced mangled
+	// specifier would draw a spurious `noUnusedLocals` diagnostic.
+	const hoist_specifiers = [];
+	if (needs_default_hoist) {
+		hoist_specifiers.push({
+			type: 'ImportDefaultSpecifier',
+			local: b.id(default_name),
+			metadata: { path: [] },
+		});
+	}
+	if (needs_namespace_hoist) {
+		hoist_specifiers.push({
+			type: 'ImportNamespaceSpecifier',
+			local: b.id(hoisted_name),
+			metadata: { path: [] },
+		});
+	}
 	const hoisted = with_location(
 		{
 			type: 'ImportDeclaration',
-			specifiers: [
-				{
-					type: 'ImportNamespaceSpecifier',
-					local: b.id(hoisted_name),
-					metadata: { path: [] },
-				},
-			],
+			specifiers: hoist_specifiers,
 			source: with_location({ ...statement.source }, statement.source),
-			importKind: statement.importKind,
+			importKind: 'value',
+			attributes: statement.attributes,
 		},
 		statement,
 	);
-
-	const aliases = [];
-	const value_specifiers = [];
-	for (const specifier of statement.specifiers) {
-		const type_only = statement.importKind === 'type' || specifier.importKind === 'type';
-		if (
-			specifier.type === 'ImportNamespaceSpecifier' ||
-			specifier.type === 'ImportDefaultSpecifier'
-		) {
-			const is_default = specifier.type === 'ImportDefaultSpecifier';
-			const declarator = with_location(
-				b.declarator(
-					{ ...specifier.local },
-					is_default ? b.member(b.id(hoisted_name), 'default') : b.id(hoisted_name),
-				),
-				specifier,
-			);
-			aliases.push(with_location(b.declaration('const', [declarator]), specifier));
-		} else if (type_only) {
-			aliases.push(build_type_alias(specifier, () => b.id(hoisted_name)));
-		} else {
-			value_specifiers.push(specifier);
-		}
-	}
-	if (value_specifiers.length > 0) {
-		aliases.push(build_destructure(value_specifiers, () => b.id(hoisted_name), statement));
-	}
 	return { hoisted, aliases };
 }
 

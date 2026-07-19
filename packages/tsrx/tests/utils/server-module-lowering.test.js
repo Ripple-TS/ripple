@@ -143,16 +143,81 @@ describe('server-module type-only lowering', () => {
 		expect(result.code).not.toContain('module server');
 		// The client import hoists untouched; the colliding block import hoists
 		// under a mangled namespace and is re-bound inside the namespace with
-		// BOTH meanings preserved: a value destructure and a type alias.
+		// BOTH meanings preserved: an import-equals alias and a type alias.
 		expect(result.code).toContain("import { commitOrder } from './client-domain.ts';");
 		expect(result.code).toContain("import * as __tsrx_server_import$0 from './server-domain.ts';");
-		expect(result.code).toContain('const { commitOrder } = __tsrx_server_import$0;');
+		expect(result.code).toContain('import commitOrder = __tsrx_server_import$0.commitOrder');
 		expect(result.code).toContain('type Money = __tsrx_server_import$0.Money;');
 		// The verbatim block import must NOT be hoisted (it would be a TS2300
 		// duplicate of the client import).
 		expect(result.code).not.toContain(
 			"import { commitOrder, type Money } from './server-domain.ts';",
 		);
+	});
+
+	it('rebinds a colliding namespace import as an import-equals alias keeping both meanings', () => {
+		const source =
+			"import { api } from './client-api.ts';\n" +
+			'module server {\n' +
+			"\timport * as api from './server-api.ts';\n" +
+			'\texport type Names = api.Names;\n' +
+			'\texport const list = () => api.names;\n' +
+			'}\n' +
+			"import { list } from 'server';\n" +
+			'export const start = () => [api, list];\n';
+		const result = compile_to_volar_mappings(source);
+		expect(result.errors).toEqual([]);
+		// A `const api = …` alias would keep only the value meaning; the
+		// import-equals alias keeps `api.Names` checkable in type position too.
+		expect(result.code).toContain('import api = __tsrx_server_import$0');
+		expect(result.code).not.toContain('const api');
+	});
+
+	it('rebinds colliding type-only default and namespace imports through a value hoist', () => {
+		const source =
+			"import { Config, api } from './client.ts';\n" +
+			'module server {\n' +
+			"\timport type Config from './server-config.ts';\n" +
+			"\timport type * as api from './server-api.ts';\n" +
+			'\texport type Snapshot = { config: Config; names: api.Names };\n' +
+			'}\n' +
+			"import { type Snapshot } from 'server';\n" +
+			'export const start = (): Snapshot | null => null;\n';
+		const result = compile_to_volar_mappings(source);
+		expect(result.errors).toEqual([]);
+		// The mangled hoists must be VALUE imports (an import-equals alias of a
+		// type-only import is TS1380), and the type-only default must rebind as
+		// a type alias — a `const` alias would be type-only-used-as-value
+		// (TS1361) at the editor.
+		expect(result.code).not.toContain('import type * as');
+		expect(result.code).toContain("import * as __tsrx_server_import$0 from './server-config.ts';");
+		expect(result.code).toContain("import * as __tsrx_server_import$1 from './server-api.ts';");
+		expect(result.code).toContain('type Config = __tsrx_server_import$0.default;');
+		expect(result.code).toContain('import api = __tsrx_server_import$1');
+		expect(result.code).not.toContain('const Config');
+	});
+
+	it('keeps import attributes on the mangled hoist of a colliding import', () => {
+		const source =
+			"import config from './client-config.json' with { type: 'json' };\n" +
+			'module server {\n' +
+			"\timport config from './server-config.json' with { type: 'json' };\n" +
+			'\texport const read = () => config;\n' +
+			'}\n' +
+			"import { read } from 'server';\n" +
+			'export const start = () => [config, read];\n';
+		const result = compile_to_volar_mappings(source);
+		expect(result.errors).toEqual([]);
+		// Dropping the `with { … }` clause would break resolution for
+		// attribute-sensitive modules such as JSON imports. The default rebinds
+		// off a mangled DEFAULT specifier — a JSON module's namespace has no
+		// `default` member under bundler resolution — and no unreferenced
+		// namespace specifier is hoisted (`noUnusedLocals` would flag it).
+		expect(result.code).toContain(
+			"import __tsrx_server_import$0_default from './server-config.json' with { type: 'json' };",
+		);
+		expect(result.code).toContain('const config = __tsrx_server_import$0_default;');
+		expect(result.code).not.toContain('import * as __tsrx_server_import$0 ');
 	});
 
 	it('renames imported-as bindings through the destructure', () => {
@@ -305,10 +370,12 @@ describe('server-module type-only lowering', () => {
 				"import { db } from './client.ts';\n" +
 					'module server {\n' +
 					"\timport { db, type T } from './server.ts';\n" +
-					'\texport const use = () => db;\n' +
+					"\timport type * as util from './server-util.ts';\n" +
+					"\timport settings from './settings.json' with { type: 'json' };\n" +
+					'\texport const use = (): [T, util.X] => [db, settings];\n' +
 					'}\n' +
 					"import { use } from 'server';\n" +
-					'export const start = () => [db, use];\n',
+					'export const start = () => [db, use, util, settings];\n',
 			],
 		]) {
 			it(`does not mutate the parsed program: ${label}`, () => {
