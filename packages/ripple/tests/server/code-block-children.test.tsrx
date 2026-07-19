@@ -24,9 +24,7 @@ describe('code blocks in template children position', () => {
 					@{
 						const y = 2;
 						@{
-							<span class="sum">
-								{x + y}
-							</span>
+							<span class="sum">{x + y}</span>
 						}
 					}
 				}
@@ -87,9 +85,7 @@ describe('code blocks in template children position', () => {
 					@{
 						const x = 2;
 						@{
-							<span class="sum">
-								{x + y}
-							</span>
+							<span class="sum">{x + y}</span>
 						}
 					}
 				}
@@ -110,9 +106,7 @@ describe('code blocks in template children position', () => {
 					@{
 						const y = 2;
 						@{
-							<span class="sum">
-								{x + y}
-							</span>
+							<span class="sum">{x + y}</span>
 						}
 					}
 				}

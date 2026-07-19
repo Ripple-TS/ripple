@@ -299,9 +299,7 @@ describe('streaming try/pending boundaries', () => {
 		}
 
 		function RootCatch({ error }: { error: unknown }) @{
-			<h2>
-				{'root caught: ' + (error instanceof Error ? error.message : String(error))}
-			</h2>
+			<h2>{'root caught: ' + (error instanceof Error ? error.message : String(error))}</h2>
 		}
 
 		const { chunks, sink } = recordingSink();
@@ -423,16 +421,12 @@ describe('streaming nested and sibling boundaries', () => {
 
 		function First() @{
 			let &[data] = trackAsync(() => d_first.promise);
-			<p>
-				{'first: ' + data}
-			</p>
+			<p>{'first: ' + data}</p>
 		}
 
 		function Second() @{
 			let &[data] = trackAsync(() => d_second.promise);
-			<p>
-				{'second: ' + data}
-			</p>
+			<p>{'second: ' + data}</p>
 		}
 
 		function App() @{
@@ -475,21 +469,15 @@ describe('streaming nested and sibling boundaries', () => {
 			function makeApp(ds: Deferred<string>[]) {
 				function A() @{
 					let &[data] = trackAsync(() => ds[0].promise);
-					<p>
-						{'A:' + data}
-					</p>
+					<p>{'A:' + data}</p>
 				}
 				function B() @{
 					let &[data] = trackAsync(() => ds[1].promise);
-					<p>
-						{'B:' + data}
-					</p>
+					<p>{'B:' + data}</p>
 				}
 				function C() @{
 					let &[data] = trackAsync(() => ds[2].promise);
-					<p>
-						{'C:' + data}
-					</p>
+					<p>{'C:' + data}</p>
 				}
 
 				function App() @{
@@ -553,9 +541,7 @@ describe('streaming root boundary', () => {
 
 		function App() @{
 			let &[data] = trackAsync(() => d.promise);
-			<p>
-				{'app: ' + data}
-			</p>
+			<p>{'app: ' + data}</p>
 		}
 
 		function RootPending() @{
@@ -631,9 +617,7 @@ describe('streaming head content', () => {
 				@if (data) {
 					<>
 						<head>
-							<title>
-								{'title:' + data}
-							</title>
+							<title>{'title:' + data}</title>
 						</head>
 						<p class="has-head">{data}</p>
 					</>

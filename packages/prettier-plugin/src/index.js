@@ -20,6 +20,7 @@
 
 import { parseModule } from '@tsrx/core';
 import { doc } from 'prettier';
+import postcssPlugin from 'prettier/parser-postcss.js';
 
 const { builders, utils } = doc;
 const {
@@ -51,6 +52,9 @@ export const languages = [
 
 /** @type {import('prettier').Plugin['parsers']} */
 export const parsers = {
+	// Carry the embedded stylesheet parsers with the TSRX plugin so browser
+	// consumers of prettier/standalone do not need to register PostCSS separately.
+	...postcssPlugin.parsers,
 	tsrx: {
 		astFormat: 'ripple-ast',
 		/**
@@ -82,6 +86,7 @@ export const parsers = {
 
 /** @type {import('prettier').Plugin['printers']} */
 export const printers = {
+	...postcssPlugin.printers,
 	'ripple-ast': {
 		/**
 		 * @param {AstPath<AST.Node | AST.CSS.StyleSheet>} path
@@ -123,8 +128,8 @@ export const printers = {
 						return body;
 					} catch {
 						// A stylesheet that doesn't parse (e.g. mid-edit code) is an expected
-						// state, not an error: keep it verbatim and stay quiet.
-						return node.source;
+						// state, not an error: keep its authored lines and stay quiet.
+						return replaceEndOfLine(node.source.trim());
 					}
 				};
 			}
@@ -1664,7 +1669,8 @@ function printRippleNode(node, path, options, print, args) {
 			if (!node.source || !node.source.trim()) {
 				nodeContent = '';
 			} else {
-				nodeContent = node.source.trim();
+				// Preserve authored lines when embedded-language formatting is disabled.
+				nodeContent = replaceEndOfLine(node.source.trim());
 			}
 			break;
 		}
@@ -5820,10 +5826,10 @@ function isSimpleJSXExpressionChild(child) {
 		expression?.type === 'Identifier' ||
 		expression?.type === 'Literal' ||
 		expression?.type === 'TemplateLiteral' ||
-		// Stock Prettier keeps a single `{expr}` child inline regardless of the
-		// expression kind (member access, calls, etc.); only multiple children break.
 		expression?.type === 'MemberExpression' ||
-		expression?.type === 'CallExpression'
+		expression?.type === 'CallExpression' ||
+		expression?.type === 'BinaryExpression' ||
+		expression?.type === 'LogicalExpression'
 	);
 }
 
@@ -6091,6 +6097,21 @@ function printJSXElement(node, path, options, print) {
 		(child) => child.type !== 'JSXText' || child.value.trim(),
 	);
 	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
+	const singleExpression =
+		singleMeaningfulChild?.type === 'JSXExpressionContainer'
+			? singleMeaningfulChild.expression
+			: null;
+	if (
+		!forceMultiline &&
+		childrenDocs.length === 1 &&
+		(singleExpression?.type === 'BinaryExpression' ||
+			singleExpression?.type === 'LogicalExpression')
+	) {
+		// Keep a short operation against its tags, but give a wrapping operation
+		// an indented element body instead of aligning continuations after `{`.
+		// Group the opening tag with that body so wrapped attributes break both.
+		return group([openingTag, indent([softline, childrenDocs[0]]), softline, '</', tagName, '>']);
+	}
 	if (
 		!forceMultiline &&
 		childrenDocs.length === 1 &&

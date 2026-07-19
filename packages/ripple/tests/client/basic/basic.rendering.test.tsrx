@@ -411,12 +411,8 @@ second
 			const staticMessage = 'Welcome to Ripple!';
 			<div class="mixed-content">
 				<h1>{staticMessage}</h1>
-				<p class="greeting">
-					{'Hello, ' + name + '!'}
-				</p>
-				<p class="notifications">
-					{'You have ' + count + ' notifications'}
-				</p>
+				<p class="greeting">{'Hello, ' + name + '!'}</p>
+				<p class="notifications">{'You have ' + count + ' notifications'}</p>
 				<button
 					onClick={() => {
 						count++;

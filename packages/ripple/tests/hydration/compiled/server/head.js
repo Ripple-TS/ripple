@@ -168,7 +168,7 @@ export function MultipleHeadBlocks() {
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
-			__out += '<!--9a44f25d--><title>First Head</title><!--0873e476--><meta name="author" content="Test Author" />';
+			__out += '<!--e50b427b--><title>First Head</title><!--68467dce--><meta name="author" content="Test Author" />';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target(null);
@@ -186,7 +186,7 @@ export function HeadWithStyle() {
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
-			__out += '<!--d75c5358--><title>Styled Page</title>';
+			__out += '<!--3a8578a5--><title>Styled Page</title>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target(null);

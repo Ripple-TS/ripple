@@ -37,9 +37,7 @@ export function Page() @{
 			@try {
 				<AsyncSection index={index} />
 			} @pending {
-				<p class="loading">
-					{'loading ' + index}
-				</p>
+				<p class="loading">{'loading ' + index}</p>
 			}
 		}
 	</main>

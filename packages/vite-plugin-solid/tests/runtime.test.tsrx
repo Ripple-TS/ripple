@@ -753,9 +753,7 @@ function SignalClosingOverScopeApp() @{
 		@if (multiplier() > 0) {
 			const [base, setBase] = createSignal(5);
 			<>
-				<p class="scope-result">
-					{base() * multiplier()}
-				</p>
+				<p class="scope-result">{base() * multiplier()}</p>
 				<button class="scope-inc-base" onClick={() => setBase(base() + 1)}>{'inc base'}</button>
 			</>
 		}
@@ -777,9 +775,7 @@ function SignalInForApp() @{
 			const item_value = (item as unknown as () => string)();
 			const [clicked, setClicked] = createSignal(false);
 			<div class="sig-for-item">
-				<span>
-					{item_value + (clicked() ? '!' : '')}
-				</span>
+				<span>{item_value + (clicked() ? '!' : '')}</span>
 				<button
 					class={'sig-for-click-' + item_value}
 					onClick={() => setClicked(true)}

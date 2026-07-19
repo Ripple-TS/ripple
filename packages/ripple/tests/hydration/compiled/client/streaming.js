@@ -308,7 +308,7 @@ function HeadContent() {
 							_$_.pop(p_7);
 						}
 
-						_$_.head('e957a664', (__anchor) => {
+						_$_.head('814bacd9', (__anchor) => {
 							_$_.render(() => {
 								_$_.document.title = 'title:' + lazy_5.value;
 							});

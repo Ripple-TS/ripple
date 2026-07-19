@@ -198,9 +198,7 @@ describe('composite > reactivity', () => {
 			effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
-			<div>
-				{a + ' ' + b + ' ' + c}
-			</div>
+			<div>{a + ' ' + b + ' ' + c}</div>
 		}
 
 		render(App);

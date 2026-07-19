@@ -111,9 +111,7 @@ function ForOverMapApp() @{
 		['c', 3],
 	]);
 	@for (const [key, value] of entries) {
-		<li class="map-item" {key}>
-			{key + ':' + value}
-		</li>
+		<li class="map-item" {key}>{key + ':' + value}</li>
 	}
 }
 

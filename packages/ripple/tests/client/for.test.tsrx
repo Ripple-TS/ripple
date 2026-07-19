@@ -136,9 +136,7 @@ describe('for statements', () => {
 			<>
 				<div>
 					@for (let item of items; index i) {
-						<div>
-							{i + ' : ' + item}
-						</div>
+						<div>{i + ' : ' + item}</div>
 					}
 				</div>
 				<button
@@ -174,9 +172,7 @@ describe('for statements', () => {
 			]);
 			<>
 				@for (let item of items; index i; key item.id) {
-					<div>
-						{i + ':' + item.text}
-					</div>
+					<div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {
@@ -243,9 +239,7 @@ describe('for statements', () => {
 			<>
 				<div>
 					@for (let item of items; index idx; key item.id) {
-						<span class="item">
-							{idx + ':' + item.text}
-						</span>
+						<span class="item">{idx + ':' + item.text}</span>
 					}
 				</div>
 				<button
@@ -279,9 +273,7 @@ describe('for statements', () => {
 			]);
 			<>
 				@for (let item of items; index i; key item.id) {
-					<div>
-						{i + ':' + item.text}
-					</div>
+					<div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {

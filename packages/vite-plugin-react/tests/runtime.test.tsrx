@@ -444,9 +444,7 @@ function ForOverMapApp() @{
 	]);
 
 	@for (const [key, value] of entries) {
-		<li className="map-item" {key}>
-			{key + ':' + value}
-		</li>
+		<li className="map-item" {key}>{key + ':' + value}</li>
 	}
 }
 
@@ -872,9 +870,7 @@ function ExplicitHookPanel(props: { multiplier: number }) {
 	const [base, setBase] = useState(5);
 
 	return <>
-		<p className="explicit-hook-result">
-			{base * props.multiplier}
-		</p>
+		<p className="explicit-hook-result">{base * props.multiplier}</p>
 		<button className="explicit-hook-inc" onClick={() => setBase(base + 1)}>{'inc base'}</button>
 	</>;
 }

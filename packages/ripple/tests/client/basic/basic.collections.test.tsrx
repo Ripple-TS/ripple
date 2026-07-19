@@ -86,9 +86,7 @@ describe('basic client > collections', () => {
 			<>
 				<pre>{String(array[3])}</pre>
 				<pre>{array[0]}</pre>
-				<pre>
-					{TRACKED_ARRAY in array}
-				</pre>
+				<pre>{TRACKED_ARRAY in array}</pre>
 				<button
 					onClick={() => {
 						array.push(array.length + 1);

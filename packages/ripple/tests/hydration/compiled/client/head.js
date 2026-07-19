@@ -253,11 +253,11 @@ export function MultipleHeadBlocks() {
 		_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
 			var div_8 = root_19();
 
-			_$_.head('9a44f25d', (__anchor) => {
+			_$_.head('e50b427b', (__anchor) => {
 				_$_.document.title = 'First Head';
 			});
 
-			_$_.head('0873e476', (__anchor) => {
+			_$_.head('68467dce', (__anchor) => {
 				var meta_1 = root_20();
 
 				_$_.append(__anchor, meta_1);
@@ -278,7 +278,7 @@ export function HeadWithStyle() {
 		_$_.expression(node_9, () => _$_.tsrx_element((__anchor, __block) => {
 			var div_9 = root_22();
 
-			_$_.head('d75c5358', (__anchor) => {
+			_$_.head('3a8578a5', (__anchor) => {
 				_$_.document.title = 'Styled Page';
 			});
 

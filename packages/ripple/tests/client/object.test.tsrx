@@ -59,9 +59,7 @@ describe('RippleObject', () => {
 		function ObjectTest() @{
 			const obj = new RippleObject({ a: -1, b: 1 });
 			obj.a = 0;
-			<pre>
-				{'a' in obj && 'b' in obj}
-			</pre>
+			<pre>{'a' in obj && 'b' in obj}</pre>
 		}
 
 		render(ObjectTest);
@@ -165,9 +163,7 @@ describe('RippleObject', () => {
 			const obj = new RippleObject({ a: 0, b: 1, c: { d: { e: 8 } } });
 			<>
 				<pre>{obj.a}</pre>
-				<pre>
-					{TRACKED_OBJECT in obj}
-				</pre>
+				<pre>{TRACKED_OBJECT in obj}</pre>
 				<pre>{JSON.stringify(obj)}</pre>
 				<button
 					onClick={() => {

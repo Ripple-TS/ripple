@@ -88,9 +88,7 @@ export function ComputedTitle() @{
 	let prefix = 'Count: ';
 	<>
 		<head>
-			<title>
-				{prefix + count}
-			</title>
+			<title>{prefix + count}</title>
 		</head>
 		<div>
 			<span>{count}</span>

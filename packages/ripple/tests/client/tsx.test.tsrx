@@ -164,9 +164,7 @@ describe('tsx expression', () => {
 		function App() @{
 			let &[count] = track(0);
 			const el = <>
-				<div>
-					{'count: ' + count}
-				</div>
+				<div>{'count: ' + count}</div>
 			</>;
 			<>
 				{el}
@@ -740,9 +738,7 @@ describe('tsrx expression', () => {
 		function App() @{
 			let &[count] = track(0);
 			const el = <>
-				<div>
-					{'count: ' + count}
-				</div>
+				<div>{'count: ' + count}</div>
 			</>;
 			<>
 				{el}

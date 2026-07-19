@@ -92,9 +92,7 @@ describe('basic client > reactivity', () => {
 			let &[count] = track(5);
 			<>
 				<div class="count">{count}</div>
-				<div class="doubled">
-					{count * 2}
-				</div>
+				<div class="doubled">{count * 2}</div>
 				<div class="is-even">
 					{count % 2 === 0 ? 'Even' : 'Odd'}
 				</div>
@@ -162,18 +160,10 @@ describe('basic client > reactivity', () => {
 				>
 					{'second: ' + second.value}
 				</button>
-				<div>
-					{'Sum: ' + total.value}
-				</div>
-				<div>
-					{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}
-				</div>
-				<div>
-					{'Number to string: ' + arr.map((a) => String(a.value))}
-				</div>
-				<div>
-					{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}
-				</div>
+				<div>{'Sum: ' + total.value}</div>
+				<div>{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}</div>
+				<div>{'Number to string: ' + arr.map((a) => String(a.value))}</div>
+				<div>{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}</div>
 			</>
 		}
 
@@ -381,9 +371,7 @@ describe('basic client > reactivity', () => {
 		function App() @{
 			const t = track({ a: 1, b: 2, c: 3 });
 			const doublet = track(t);
-			<pre>
-				{t === doublet}
-			</pre>
+			<pre>{t === doublet}</pre>
 		}
 
 		render(App);

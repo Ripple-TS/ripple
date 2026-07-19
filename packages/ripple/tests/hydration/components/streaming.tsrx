@@ -35,9 +35,7 @@ function BasicContent() @{
 	let &[data] = trackAsync(() => controls.basic.promise);
 	let &[count] = track(0);
 	<div class="resolved">
-		<span class="value">
-			{data + ':' + count}
-		</span>
+		<span class="value">{data + ':' + count}</span>
 		<button class="inc" onClick={() => count++}>{'inc'}</button>
 	</div>
 }
@@ -115,9 +113,7 @@ function HeadContent() @{
 		@if (data) {
 			<>
 				<head>
-					<title>
-						{'title:' + data}
-					</title>
+					<title>{'title:' + data}</title>
 				</head>
 				<p class="head-content">{data}</p>
 			</>

@@ -361,9 +361,7 @@ describe('async suspense', () => {
 				});
 				// this is to make the times_rendered render together with double
 				<>
-					<div class="double">
-						{double + (++times_rendered - times_rendered)}
-					</div>
+					<div class="double">{double + (++times_rendered - times_rendered)}</div>
 					<div class="quadruple">{quadruple}</div>
 				</>
 			}
@@ -456,9 +454,7 @@ describe('async suspense', () => {
 				});
 				// this is to make the times_rendered render together with double
 				<>
-					<div class="double">
-						{double + (++times_rendered - times_rendered)}
-					</div>
+					<div class="double">{double + (++times_rendered - times_rendered)}</div>
 					<div class="quadruple">{quadruple}</div>
 				</>
 			}
@@ -541,9 +537,7 @@ describe('async suspense', () => {
 			});
 			// this is to make the times_rendered render together with double
 			<>
-				<div class="double">
-					{double + (++times_rendered - times_rendered)}
-				</div>
+				<div class="double">{double + (++times_rendered - times_rendered)}</div>
 				<div class="quadruple">{quadruple}</div>
 			</>
 		}

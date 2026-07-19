@@ -77,9 +77,7 @@ describe('switch statements', () => {
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				@switch (value) {
 					@default: {
-						<div>
-							{'Default for ' + value}
-						</div>
+						<div>{'Default for ' + value}</div>
 					}
 				}
 			</>
@@ -149,27 +147,19 @@ describe('switch statements', () => {
 				@switch (status) {
 					@case 'active': {
 						message = 'Currently active.';
-						<div>
-							{'Status: ' + message}
-						</div>
+						<div>{'Status: ' + message}</div>
 					}
 					@case 'pending': {
 						message = 'Waiting for completion.';
-						<div>
-							{'Status: ' + message}
-						</div>
+						<div>{'Status: ' + message}</div>
 					}
 					@case 'completed': {
 						message = 'Task finished!';
-						<div class="success">
-							{'Status: ' + message}
-						</div>
+						<div class="success">{'Status: ' + message}</div>
 					}
 					@default: {
 						message = 'An error occurred.';
-						<div class="error">
-							{'Status: ' + message}
-						</div>
+						<div class="error">{'Status: ' + message}</div>
 					}
 				}
 			</>
@@ -285,9 +275,7 @@ describe('switch statements', () => {
 							<div>{' Case A'}</div>
 						}
 						@case 'x': {
-							<div>
-								{' Default Case for ' + value}
-							</div>
+							<div>{' Default Case for ' + value}</div>
 						}
 						@case 'b': {
 							<div>{' Case B'}</div>

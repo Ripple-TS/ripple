@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
+import standalonePrettier from 'prettier/standalone';
+import estreePlugin from 'prettier/plugins/estree';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { languages, parsers } from './index.js';
+import { languages, parsers, printers } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -292,6 +294,61 @@ const items=[1,2,3];
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('formats style tags with standalone Prettier', async () => {
+		const input = `export default function App() @{
+	<style>
+		.demo { display: grid; gap: 0.5rem; justify-items: start; }
+		button { padding: 0.4rem 0.9rem; color: inherit; }
+	</style>
+}`;
+		const expected = `export default function App() @{
+	<style>
+		.demo {
+			display: grid;
+			gap: 0.5rem;
+			justify-items: start;
+		}
+		button {
+			padding: 0.4rem 0.9rem;
+			color: inherit;
+		}
+	</style>
+}`;
+		const options = {
+			parser: 'tsrx',
+			plugins: [{ languages, parsers, printers }, estreePlugin],
+			useTabs: true,
+			tabWidth: 2,
+			singleQuote: true,
+			printWidth: 100,
+		};
+
+		const result = await standalonePrettier.format(input, options);
+		expect(result).toBeWithNewline(expected);
+		expect(await standalonePrettier.format(result, options)).toBe(result);
+	});
+
+	it('preserves style lines when embedded formatting is disabled', async () => {
+		const input = `export default function App() @{
+	<style>
+		.demo {
+			display: grid;
+			gap: 0.5rem;
+		}
+		button {
+			color: inherit;
+		}
+	</style>
+}`;
+
+		const result = await format(input, {
+			useTabs: true,
+			singleQuote: true,
+			embeddedLanguageFormatting: 'off',
+		});
+		expect(result).toBeWithNewline(input);
+	});
+
 	it('formats setup statements before the TSRX return', async () => {
 		const input = `function Counter(){let count=track(0);const increment=()=>count++;return <button onClick={increment}>{count}</button>}`;
 		const expected = `function Counter() {
@@ -323,6 +380,51 @@ const items=[1,2,3];
 }`;
 
 		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps a lone binary expression child inline when it fits', async () => {
+		const input = `export function App() @{
+  <h2>{'Count: ' + count}</h2>
+}`;
+		const expected = `export function App() @{
+  <h2>{'Count: ' + count}</h2>
+}`;
+
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('indents a lone binary expression child when it wraps', async () => {
+		const input = `export function App() @{
+  <h2>{firstLongIdentifier + secondLongIdentifier + thirdLongIdentifier}</h2>
+}`;
+		const expected = `export function App() @{
+  <h2>
+    {firstLongIdentifier +
+      secondLongIdentifier +
+      thirdLongIdentifier}
+  </h2>
+}`;
+
+		const result = await format(input, { printWidth: 40 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('indents a lone binary expression child after wrapped attributes', async () => {
+		const input = `export function App() @{
+  <h2 firstLongAttributeName={firstLongAttributeValue} secondLongAttributeName={secondLongAttributeValue}>{a + b}</h2>
+}`;
+		const expected = `export function App() @{
+  <h2
+    firstLongAttributeName={firstLongAttributeValue}
+    secondLongAttributeName={secondLongAttributeValue}
+  >
+    {a + b}
+  </h2>
+}`;
+
+		const result = await format(input, { printWidth: 50 });
 		expect(result).toBeWithNewline(expected);
 	});
 
@@ -5360,9 +5462,7 @@ const foo = <><Bar {...props} /></>;`;
 			const expected = `export function Test() {
   const a = 1
   const b = 2
-  <div>
-    {a + b}
-  </div>
+  <div>{a + b}</div>
 }`;
 			const result = await format(input, { singleQuote: true, semi: false });
 			expect(result).toBeWithNewline(expected);
@@ -5377,9 +5477,7 @@ const foo = <><Bar {...props} /></>;`;
 			const expected = `export function Test() {
   const a = 1;
   const b = 2;
-  <div>
-    {a + b}
-  </div>
+  <div>{a + b}</div>
 }`;
 			const result = await format(input, { singleQuote: true, semi: true });
 			expect(result).toBeWithNewline(expected);
