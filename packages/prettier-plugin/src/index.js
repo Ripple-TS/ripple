@@ -2297,6 +2297,20 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'TSTypePredicate': {
+			/** @type {Doc[]} */
+			const predicateParts = [];
+			if (node.asserts) predicateParts.push('asserts ');
+			predicateParts.push(
+				node.parameterName.type === 'TSThisType' ? 'this' : node.parameterName.name,
+			);
+			if (node.typeAnnotation) {
+				predicateParts.push(' is ', path.call(print, 'typeAnnotation'));
+			}
+			nodeContent = predicateParts;
+			break;
+		}
+
 		case 'TSTypeLiteral':
 			nodeContent = printTSTypeLiteral(node, path, options, print);
 			break;

@@ -1522,6 +1522,26 @@ export { type Extra, realValue } from './mixed.js';`;
 
 		// Regressed in 0.3.97: `declare module 'name' { … }` lost its `declare`
 		// keyword, leaving invalid `module 'name' { … }` output.
+		// Regression: TSTypePredicate had no printer case, so predicate return
+		// types (`(v): v is string =>`, `asserts x is T`) printed as
+		// `/* Unknown: TSTypePredicate */`.
+		it('should print type predicate return types', async () => {
+			const input = `const isString = (value: unknown): value is string => typeof value === 'string';
+function assertUser(x: unknown): asserts x is User {}
+function isSelf(this: Node): this is Element {
+  return true;
+}
+function assertTruthy(x: unknown): asserts x {}`;
+			const expected = `const isString = (value: unknown): value is string => typeof value === 'string';
+function assertUser(x: unknown): asserts x is User {}
+function isSelf(this: Node): this is Element {
+  return true;
+}
+function assertTruthy(x: unknown): asserts x {}`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should keep the declare keyword on ambient module declarations', async () => {
 			const input = `declare module 'some-module' {
   interface Thing {
