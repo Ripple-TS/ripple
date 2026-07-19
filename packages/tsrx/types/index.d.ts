@@ -79,6 +79,14 @@ interface BaseNodeMetaData {
 	source_name?: string;
 	source_length?: number;
 	module_keyword?: 'module' | 'namespace';
+	/**
+	 * Generated identifier whose SOURCE span sits inside an authored string
+	 * literal (e.g. a server-module lowering's namespace reference carrying
+	 * the `'server'` import specifier). The mapping collector serves
+	 * hover/navigation from it but disables semantic tokens so the span
+	 * keeps its string coloring.
+	 */
+	string_literal_source_span?: boolean;
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;

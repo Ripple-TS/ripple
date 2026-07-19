@@ -62,6 +62,24 @@ export const mapping_data_completion_only = {
 };
 
 /**
+ * Full language support minus editor repainting, for a generated IDENTIFIER
+ * whose SOURCE span sits inside a string literal (e.g. the namespace
+ * reference a server-module lowering derives from the authored `'server'`
+ * import specifier). Hover, go-to-def, references, and diagnostics resolve
+ * through the mapping — `semantic` stays truthy via the object form, which
+ * Volar's `isHoverEnabled` accepts — but semantic TOKENS are suppressed with
+ * `shouldHighlight: () => false` so the span keeps its authored TextMate
+ * (string) coloring instead of being repainted as a variable. Completion is
+ * off: identifier completions inside a string literal are never valid.
+ * @type {Partial<VolarCodeMapping['data']>}
+ */
+export const mapping_data_string_span = {
+	...mapping_data,
+	completion: false,
+	semantic: { shouldHighlight: () => false },
+};
+
+/**
  * Convert byte offset to line/column
  * @param {number} offset
  * @param {LineOffsets} line_offsets

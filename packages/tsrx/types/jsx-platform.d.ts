@@ -435,6 +435,26 @@ export interface JsxPlatform {
 	};
 
 	/**
+	 * Opt-in lowering for a platform's file-local server-module dialect in
+	 * TYPE-ONLY output. When set, a non-ambient `module <blockName> { … }`
+	 * block and its companion `import { x } from '<importSpecifier>'`
+	 * statements are rewritten into plain checkable TS (block imports hoisted
+	 * to module scope, the block itself lowered to a namespace keeping the
+	 * authored name, boundary imports lowered to destructures / `type`
+	 * aliases on that namespace) before the type-only transform prints them.
+	 * Verbatim, the dialect can never typecheck: a static import inside a
+	 * namespace body is TS1147 and the boundary import is TS2307. Runtime /
+	 * build output is untouched — the platform's own compiler owns the
+	 * dialect's real codegen. When absent, the pre-pass is skipped entirely.
+	 */
+	serverModule?: {
+		/** Authored block name (`module server { … }` → `'server'`). */
+		blockName: string;
+		/** Boundary import's module specifier (`from 'server'` → `'server'`). */
+		importSpecifier: string;
+	};
+
+	/**
 	 * Optional overrides for parts of the transform that diverge substantially
 	 * between platforms (control flow, component lowering, imports, element
 	 * attributes). When absent, each hook falls back to the React/Preact-style

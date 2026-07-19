@@ -60,6 +60,7 @@ import {
 	capture_jsx_child as captureJsxChild,
 } from '../jsx-interleave.js';
 import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
+import { lower_server_module_for_types } from './server-module.js';
 
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
@@ -630,6 +631,19 @@ export function createJsxTransform(platform) {
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
+
+		// Opt-in server-module dialect (`module <name> { … }` plus its boundary
+		// `import … from '<specifier>'`): lower to plain checkable TS before any
+		// other pass sees the program. TYPE-ONLY output only — the runtime/build
+		// emit never reaches this branch, because the platform's own compiler
+		// owns the dialect's real codegen (isolation validation, RPC stubs).
+		// Copy-on-write: a program without a server block passes through as the
+		// same object.
+		if (transform_context.typeOnly && platform.serverModule) {
+			ast = /** @type {any} */ (
+				lower_server_module_for_types(/** @type {any} */ (ast), platform.serverModule)
+			);
+		}
 
 		ast = expand_child_code_blocks(/** @type {any} */ (ast));
 		ast = wrap_control_flow_expression_values(/** @type {any} */ (ast), transform_context);
