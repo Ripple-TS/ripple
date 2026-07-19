@@ -1,5 +1,13 @@
 # @tsrx/mcp
 
+## 0.0.65
+
+### Patch Changes
+
+- Updated dependencies
+  [[`fdd492d`](https://github.com/Ripple-TS/ripple/commit/fdd492d8c0e48714c48aa74902f297b135145da0)]:
+  - @tsrx/prettier-plugin@0.3.104
+
 ## 0.0.64
 
 ### Patch Changes

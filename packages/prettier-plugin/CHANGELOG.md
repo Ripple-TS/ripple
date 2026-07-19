@@ -1,5 +1,15 @@
 # @tsrx/prettier-plugin
 
+## 0.3.104
+
+### Patch Changes
+
+- [#1360](https://github.com/Ripple-TS/ripple/pull/1360)
+  [`fdd492d`](https://github.com/Ripple-TS/ripple/commit/fdd492d8c0e48714c48aa74902f297b135145da0)
+  Thanks [@trueadm](https://github.com/trueadm)! - Format embedded `<style>`
+  blocks in standalone Prettier, preserve CSS lines when embedding is unavailable,
+  and keep fitting binary or logical JSX children inline.
+
 ## 0.3.103
 
 ### Patch Changes
