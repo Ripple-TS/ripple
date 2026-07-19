@@ -1,5 +1,18 @@
 # @tsrx/core
 
+## 0.1.43
+
+### Patch Changes
+
+- [#1354](https://github.com/Ripple-TS/ripple/pull/1354)
+  [`73f7eb4`](https://github.com/Ripple-TS/ripple/commit/73f7eb457dd9cc37364ba49b2ddfd56995fd07b0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Re-emit preserved leading
+  comments in typeOnly output: `@jsxImportSource`/`@jsxRuntime`/`@jsxFrag`/`@jsx`
+  pragmas join the preserved-comment set, and the shared tsx printer now writes
+  preserved comments that lead the program at the top of the virtual TSX.
+  Previously comment stripping silently dropped them, retyping a file's JSX or
+  re-enabling checking a leading `@ts-nocheck` had disabled.
+
 ## 0.1.42
 
 ### Patch Changes
