@@ -148,12 +148,17 @@ function with_location(node, source) {
 /**
  * A namespace reference standing in for an authored STRING-LITERAL span (the
  * `'server'` import source, or a string-named block id). It carries the
- * literal's INNER span — the text between the quotes — so the mapping is
- * exactly identifier-shaped, plus the `string_literal_source_span` metadata
- * flag the mapping collector turns into hover/navigation WITHOUT semantic
- * tokens: repainting part of an authored string literal as a namespace
- * token breaks the editor's string coloring (the quotes stay outside the
- * mapping for the same reason).
+ * literal's INNER span — the text between the quotes — as its source
+ * mapping: `source_length` pins the mapped length to that inner text, since
+ * the GENERATED identifier is the block name, whose length the authored
+ * specifier need not share (`blockName` and `importSpecifier` may differ).
+ * The `string_literal_source_span` metadata flag makes the mapping
+ * collector serve hover/navigation WITHOUT semantic tokens: repainting part
+ * of an authored string literal as a namespace token breaks the editor's
+ * string coloring (the quotes stay outside the mapping for the same
+ * reason). A literal without usable positions gets NO loc at all — the
+ * collector then skips the mapping entirely rather than deriving a span
+ * from the wrong length.
  *
  * @param {string} name
  * @param {any} literal
@@ -165,19 +170,20 @@ function string_span_namespace_ref(name, literal) {
 	if (
 		typeof literal?.start === 'number' &&
 		typeof literal?.end === 'number' &&
-		literal.end - literal.start >= name.length + 2
+		literal.end - literal.start >= 2
 	) {
 		node.start = literal.start + 1;
 		node.end = literal.end - 1;
-	}
-	if (literal?.loc != null) {
-		// Fresh position objects: the authored literal's own loc must survive
-		// the transform untouched (copy-on-write), and a module specifier is
-		// always single-line, so shifting columns inside it is safe.
-		node.loc = {
-			start: { line: literal.loc.start.line, column: literal.loc.start.column + 1 },
-			end: { line: literal.loc.end.line, column: literal.loc.end.column - 1 },
-		};
+		node.metadata.source_length = literal.end - literal.start - 2;
+		if (literal.loc != null) {
+			// Fresh position objects: the authored literal's own loc must survive
+			// the transform untouched (copy-on-write), and a module specifier is
+			// always single-line, so shifting columns inside it is safe.
+			node.loc = {
+				start: { line: literal.loc.start.line, column: literal.loc.start.column + 1 },
+				end: { line: literal.loc.end.line, column: literal.loc.end.column - 1 },
+			};
+		}
 	}
 	return node;
 }

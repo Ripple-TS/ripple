@@ -360,6 +360,41 @@ describe('server-module type-only lowering', () => {
 			}
 		});
 
+		it('maps the full specifier span when blockName and importSpecifier differ in length', () => {
+			// The generated identifier is always the block name; the mapped
+			// SOURCE span must still be the authored specifier's inner text —
+			// longer or shorter — and never run past the literal's quotes.
+			for (const specifier of ['server:module', 'srv']) {
+				const platform = {
+					...SERVER_MODULE_PLATFORM,
+					serverModule: { blockName: 'server', importSpecifier: specifier },
+				};
+				const source =
+					'module server {\n\texport const x = 1;\n}\n' +
+					`import { x } from '${specifier}';\n` +
+					'export const start = () => x;\n';
+				const result = compile_to_volar_mappings(source, { platform });
+				expect(result.errors).toEqual([]);
+				const literal_start = source.indexOf(`'${specifier}'`);
+				const inner_start = literal_start + 1;
+				const span_mappings = result.mappings.filter((m) => m.sourceOffsets[0] === inner_start);
+				expect(span_mappings.length).toBeGreaterThanOrEqual(1);
+				for (const mapping of span_mappings) {
+					expect(mapping.lengths[0]).toBe(specifier.length);
+					expect(mapping.generatedLengths[0]).toBe('server'.length);
+				}
+				// Nothing may cross the quotes into surrounding source.
+				const literal_end = literal_start + specifier.length + 2;
+				for (const mapping of result.mappings) {
+					const start = mapping.sourceOffsets[0];
+					const end = start + mapping.lengths[0];
+					if (end <= literal_start || start >= literal_end) continue;
+					expect(start).toBeGreaterThanOrEqual(inner_start);
+					expect(end).toBeLessThanOrEqual(inner_start + specifier.length);
+				}
+			}
+		});
+
 		it('keeps default full-feature mapping data on ordinary identifier mappings', () => {
 			const result = compile_to_volar_mappings(DIALECT_SOURCE);
 			const place_order_offset = DIALECT_SOURCE.indexOf('placeOrder, type Receipt');
