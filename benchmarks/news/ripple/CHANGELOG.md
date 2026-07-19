@@ -1,5 +1,12 @@
 # ripple-news-bench
 
+## 0.0.18
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.102
+
 ## 0.0.17
 
 ### Patch Changes

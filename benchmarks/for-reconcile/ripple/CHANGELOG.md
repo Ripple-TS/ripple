@@ -1,5 +1,12 @@
 # ripple-for-reconcile-bench
 
+## 0.0.17
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.102
+
 ## 0.0.16
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @tsrx/prettier-plugin
 
+## 0.3.102
+
+### Patch Changes
+
+- [#1356](https://github.com/Ripple-TS/ripple/pull/1356)
+  [`26ff327`](https://github.com/Ripple-TS/ripple/commit/26ff327d1223dbc51ced0dd3dd365dd430a173fd)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Print TypeScript
+  type-predicate return types (`value is string`, `asserts x is T`, `asserts x`,
+  `this is Element`). Previously `TSTypePredicate` had no printer case and
+  formatted as `/* Unknown: TSTypePredicate */`, corrupting the file.
+
 ## 0.3.101
 
 ### Patch Changes
