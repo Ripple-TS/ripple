@@ -223,6 +223,33 @@ describe('server-module type-only lowering', () => {
 		expect(result.code).not.toContain('import * as __tsrx_server_import$0 ');
 	});
 
+	it('destructures string-named imports — type-only included — in both lowering paths', () => {
+		// The inline `{ type 'c d' as T }` form is a parse error upstream; the
+		// statement-level `import type { … }` form is how a string-named
+		// specifier reaches the lowering as type-only.
+		const source =
+			"import { db, T } from './client.ts';\n" +
+			'module server {\n' +
+			"\timport { 'a b' as db } from './server.ts';\n" +
+			"\timport type { 'c d' as T } from './server-types.ts';\n" +
+			'\texport const use = (): T => db;\n' +
+			'}\n' +
+			"import { 'weird name' as use } from 'server';\n" +
+			"import type { 'o k' as OK } from 'server';\n" +
+			'export const start = (): OK | null => [db, T, use] && null;\n';
+		const result = compile_to_volar_mappings(source);
+		expect(result.errors).toEqual([]);
+		// A string can appear in neither an entity name nor a qualified type
+		// reference — `type T = ns.'c d'` would not even parse, breaking the
+		// whole virtual file. The destructure is the one parseable fallback,
+		// binding only a value.
+		expect(result.code).toContain("const { 'a b': db } = __tsrx_server_import$0;");
+		expect(result.code).toContain("const { 'c d': T } = __tsrx_server_import$1;");
+		expect(result.code).toContain("const { 'weird name': use } = server;");
+		expect(result.code).toContain("const { 'o k': OK } = server;");
+		expect(result.code).not.toContain(".'");
+	});
+
 	it('renames imported-as bindings through the import-equals alias', () => {
 		const source =
 			'module server {\n' +

@@ -57,8 +57,10 @@
  * alias form that keeps EVERY meaning, so a colliding class import stays
  * usable as a type) and `type T = __tsrx_server_import$0.T;` for type-only
  * ones. Three corners cannot use import-equals: a string-named import
- * (`'x y' as db`) keeps a value-only destructure (a string can never
- * appear in an entity name); a value DEFAULT import hoists an extra
+ * (`'x y' as db`) keeps a value-only destructure even when type-only — a
+ * string can never appear in an entity name OR a qualified type
+ * reference, so the destructure is the one parseable fallback; a value
+ * DEFAULT import hoists an extra
  * mangled DEFAULT specifier rebound with `const` (no entity name reaches
  * a default — `import db = ns.default` is TS1359 and the default binding
  * itself has no namespace meaning — so a colliding default CLASS import
@@ -324,9 +326,9 @@ function build_import_equals(specifier, module_reference) {
  * binding inside the namespace body. Named value specifiers and namespace
  * specifiers become `import x = …` aliases keeping every meaning of the
  * mangled namespace specifier; type-only specifiers become `type` aliases
- * (`<ns>.default` for a type-only default); string-named imports
- * destructure the namespace object (a string cannot appear in an entity
- * name). A value DEFAULT import has no entity-name path at all
+ * (`<ns>.default` for a type-only default); string-named imports — even
+ * type-only ones — destructure the namespace object (a string cannot
+ * appear in an entity name or qualified type reference). A value DEFAULT import has no entity-name path at all
  * (`import x = <ns>.default` is TS1359, and a default-import binding has
  * no namespace meaning), so it hoists an extra mangled DEFAULT specifier
  * and rebinds it with `const` — exact default-import semantics, which
@@ -359,10 +361,17 @@ function lower_colliding_import(statement, hoisted_name) {
 				);
 				aliases.push(with_location(b.declaration('const', [declarator]), specifier));
 			}
+		} else if (specifier.imported?.type !== 'Identifier') {
+			// String-named — neither an entity name nor a qualified type
+			// reference can hold a string, so type-only ones land here too:
+			// the destructure is the one PARSEABLE fallback, at the cost of
+			// binding only a value.
+			needs_namespace_hoist = true;
+			destructured_specifiers.push(specifier);
 		} else if (type_only) {
 			needs_namespace_hoist = true;
 			aliases.push(build_type_alias(specifier, () => b.id(hoisted_name)));
-		} else if (specifier.imported?.type === 'Identifier') {
+		} else {
 			needs_namespace_hoist = true;
 			aliases.push(
 				build_import_equals(
@@ -370,9 +379,6 @@ function lower_colliding_import(statement, hoisted_name) {
 					qualified_name(b.id(hoisted_name), { ...specifier.imported }),
 				),
 			);
-		} else {
-			needs_namespace_hoist = true;
-			destructured_specifiers.push(specifier);
 		}
 	}
 	if (destructured_specifiers.length > 0) {
@@ -468,8 +474,9 @@ function lower_declaration(declaration, outside_names, block_name) {
  * `import x = <ns>.x;` aliases — the authored import carries EVERY
  * meaning of the export, so a `const { x } = <ns>;` destructure would
  * strip the type meaning of a class or enum. Type-only specifiers become
- * `type T = <ns>.T;` aliases; a string-named import (which no entity name
- * can express) falls back to a value-only destructure. A specifier-less
+ * `type T = <ns>.T;` aliases; a string-named import — even a type-only
+ * one, since neither an entity name nor a qualified type reference can
+ * express it — falls back to a value-only destructure. A specifier-less
  * boundary import binds nothing and is dropped (the runtime compiler
  * accepts and elides it), while non-named specifiers (default / namespace
  * imports) are a hard compile error in the dialect — those statements
@@ -492,14 +499,16 @@ function lower_server_import(statement, block_name) {
 	const lowered = [];
 	const destructured_specifiers = [];
 	for (const specifier of specifiers) {
-		if (statement.importKind === 'type' || specifier.importKind === 'type') {
+		if (specifier.imported?.type !== 'Identifier') {
+			// String-named — inexpressible in an entity name or qualified type
+			// reference alike, so type-only ones fall back here too.
+			destructured_specifiers.push(specifier);
+		} else if (statement.importKind === 'type' || specifier.importKind === 'type') {
 			lowered.push(build_type_alias(specifier, namespace_ref));
-		} else if (specifier.imported?.type === 'Identifier') {
+		} else {
 			lowered.push(
 				build_import_equals(specifier, qualified_name(namespace_ref(), { ...specifier.imported })),
 			);
-		} else {
-			destructured_specifiers.push(specifier);
 		}
 	}
 	if (destructured_specifiers.length > 0) {
