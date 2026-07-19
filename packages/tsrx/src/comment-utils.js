@@ -59,13 +59,28 @@ export function is_jsdoc_ts_annotation(comment) {
 }
 
 /**
+ * Check if a comment is a TypeScript JSX pragma (`@jsxImportSource`,
+ * `@jsxRuntime`, `@jsxFrag`, `@jsx`). TS reads these from a file's LEADING
+ * comments to pick that file's JSX type source/factory, overriding tsconfig —
+ * dropping one silently retypes every JSX expression in the file.
+ * @param {AST.CommentWithLocation} comment
+ * @returns {boolean}
+ */
+export function is_jsx_pragma(comment) {
+	return /@jsx(ImportSource|Runtime|Frag)?\b/.test(comment.value);
+}
+
+/**
  * Check if a comment should be preserved in to_ts mode
  * @param {AST.CommentWithLocation} comment
  * @returns {boolean}
  */
 export function should_preserve_comment(comment) {
 	return (
-		is_ts_pragma(comment) || is_triple_slash_directive(comment) || is_jsdoc_ts_annotation(comment)
+		is_ts_pragma(comment) ||
+		is_triple_slash_directive(comment) ||
+		is_jsdoc_ts_annotation(comment) ||
+		is_jsx_pragma(comment)
 	);
 }
 

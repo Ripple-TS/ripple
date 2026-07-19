@@ -841,10 +841,20 @@ export function createJsxTransform(platform) {
 				: apply_lazy_transforms(/** @type {any} */ (lowered_program), new Map())
 		);
 
-		const result = print(final_program, tsx_with_ts_locations(transform_context.typeOnly), {
-			sourceMapSource: filename,
-			sourceMapContent: source,
-		});
+		const result = print(
+			final_program,
+			// typeOnly output is real TS input: re-emit preserved leading comments
+			// (@jsxImportSource / @ts-nocheck / triple-slash references) so TS
+			// semantics survive the comment-stripping print.
+			tsx_with_ts_locations(
+				transform_context.typeOnly,
+				transform_context.typeOnly ? transform_context.comments : undefined,
+			),
+			{
+				sourceMapSource: filename,
+				sourceMapContent: source,
+			},
+		);
 
 		const { css, cssHash } = render_css_result(/** @type {any} */ (stylesheets));
 

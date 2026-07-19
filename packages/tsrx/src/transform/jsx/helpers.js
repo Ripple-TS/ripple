@@ -2,6 +2,7 @@
 /** @import { Visitors } from 'zimmerframe' */
 
 import tsx from 'esrap/languages/tsx';
+import { should_preserve_comment, format_comment } from '../../comment-utils.js';
 
 /**
  * Zimmerframe provides `path` as the ancestor chain. A native template node in
@@ -68,9 +69,28 @@ export function set_node_path_metadata(node, path) {
  * (structural tokens carry one-character source locations). typeOnly/volar
  * prints opt in — their maps are consumed positionally by the language
  * tooling and never shipped; build prints stay sparse.
+ * @param {AST.CommentWithLocation[]} [comments] Source comments; the ones
+ * `should_preserve_comment` classifies as semantic-to-TS (`@ts-nocheck`,
+ * `@jsxImportSource`, triple-slash references, …) and that LEAD the program
+ * are re-emitted at the top of the printed output. The generated TSX is real
+ * TS input — dropping a leading pragma changes how the whole file checks.
  */
-export function tsx_with_ts_locations(boundary_tokens = false) {
+export function tsx_with_ts_locations(boundary_tokens = false, comments = undefined) {
 	const base = /** @type {any} */ (tsx({ boundaryTokens: boundary_tokens }));
+
+	const leading_preserved = (/** @type {any} */ program) => {
+		if (!comments?.length) return [];
+		const first = program.body?.[0];
+		return comments.filter(
+			(/** @type {any} */ comment) =>
+				should_preserve_comment(comment) &&
+				(first?.loc == null ||
+					(comment.loc &&
+						(comment.loc.end.line < first.loc.start.line ||
+							(comment.loc.end.line === first.loc.start.line &&
+								comment.loc.end.column <= first.loc.start.column)))),
+		);
+	};
 
 	/**
 	 * @param {any} node
@@ -89,6 +109,15 @@ export function tsx_with_ts_locations(boundary_tokens = false) {
 
 	/** @type {Record<string, (node: any, context: any) => void>} */
 	const wrappers = {
+		Program: (node, context) => {
+			for (const comment of leading_preserved(node)) {
+				if (comment.loc) context.location(comment.loc.start.line, comment.loc.start.column);
+				context.write(format_comment(comment));
+				if (comment.loc) context.location(comment.loc.end.line, comment.loc.end.column);
+				context.newline();
+			}
+			base.Program(node, context);
+		},
 		ArrayPattern: (node, context) => {
 			base.ArrayPattern(node, context);
 			if (node.typeAnnotation) {
