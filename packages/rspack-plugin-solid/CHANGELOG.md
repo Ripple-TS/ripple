@@ -1,5 +1,12 @@
 # @tsrx/rspack-plugin-solid
 
+## 0.0.57
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/solid@0.1.44
+
 ## 0.0.56
 
 ### Patch Changes
