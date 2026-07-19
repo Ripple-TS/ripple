@@ -341,12 +341,30 @@ const items=[1,2,3];
 	</style>
 }`;
 
-		const result = await format(input, {
+		const options = {
 			useTabs: true,
 			singleQuote: true,
 			embeddedLanguageFormatting: 'off',
-		});
+		};
+		const result = await format(input, options);
+
 		expect(result).toBeWithNewline(input);
+		expect(await format(result, options)).toBe(result);
+	});
+
+	it('preserves style lines when embedded formatting fails', async () => {
+		const input = `export default function App() @{
+	<style>
+		.demo {
+			color red;
+		}
+	</style>
+}`;
+		const options = { useTabs: true, singleQuote: true };
+		const result = await format(input, options);
+
+		expect(result).toBeWithNewline(input);
+		expect(await format(result, options)).toBe(result);
 	});
 
 	it('formats setup statements before the TSRX return', async () => {
