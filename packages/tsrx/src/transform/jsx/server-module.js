@@ -22,11 +22,11 @@
  *     import { db } from './db.ts';      namespace server {
  *     export function f() { … }     →      export function f() { … }
  *   }                                    }
- *   import { f } from 'server';          const { f } = server;
+ *   import { f } from 'server';          import f = server.f;
  *
  * The lowered namespace keeps the AUTHORED name and identifier location, so
- * hovering the block's name resolves, and the destructure's namespace
- * reference marks the namespace as used (a server block nobody imports from
+ * hovering the block's name resolves, and the aliases' namespace
+ * references mark the namespace as used (a server block nobody imports from
  * is the ONE case `noUnusedLocals` still flags — on the authored name, which
  * is the correct signal). A `declare module '<specifier>'` bridge (which
  * would have let the authored import statement survive verbatim) is NOT
@@ -34,14 +34,17 @@
  * a module AUGMENTATION — TS2664 when no module 'server' exists, and TS2666
  * for the `export =` even when a global stub supplies one; augmentations
  * also merge program-wide, which would break the dialect's file-local
- * semantics. The destructure keeps the import's specifier locations, so
+ * semantics. Each lowered alias keeps the import's specifier locations, so
  * hover/rename on the imported names and on the `'<specifier>'` source
  * still resolve.
  *
  * Block imports hoist to module top level (namespaces close over module
  * scope, so the body still resolves them — `noUnusedLocals` counts those
- * uses), and each boundary import becomes a destructure of the namespace
- * value (type-only specifiers become `type x = server.x` aliases). When a
+ * uses), and each boundary import becomes `import x = server.x` aliases
+ * that keep every meaning of the export — an authored named import binds
+ * value AND type, so a class or enum stays usable as a type (type-only
+ * specifiers become `type x = server.x` aliases; a string-named import
+ * falls back to a value-only destructure). When a
  * hoisted import's local name is also used anywhere in the client module
  * (the compiler's isolation rule stops the server block from referencing
  * client bindings, but nothing stops both sides from importing — or
@@ -461,13 +464,16 @@ function lower_declaration(declaration, outside_names, block_name) {
 
 /**
  * Rewrite one `import { x, type T } from '<specifier>'` statement into
- * bindings on the lowered namespace. Value specifiers become one
- * `const { x } = <ns>;` destructure; type-only specifiers become
- * `type T = <ns>.T;` aliases. A specifier-less boundary import binds
- * nothing and is dropped (the runtime compiler accepts and elides it),
- * while non-named specifiers (default / namespace imports) are a hard
- * compile error in the dialect — those statements stay verbatim so the
- * editor's TS2307 mirrors the build error.
+ * bindings on the lowered namespace. Value specifiers become
+ * `import x = <ns>.x;` aliases — the authored import carries EVERY
+ * meaning of the export, so a `const { x } = <ns>;` destructure would
+ * strip the type meaning of a class or enum. Type-only specifiers become
+ * `type T = <ns>.T;` aliases; a string-named import (which no entity name
+ * can express) falls back to a value-only destructure. A specifier-less
+ * boundary import binds nothing and is dropped (the runtime compiler
+ * accepts and elides it), while non-named specifiers (default / namespace
+ * imports) are a hard compile error in the dialect — those statements
+ * stay verbatim so the editor's TS2307 mirrors the build error.
  *
  * @param {any} statement
  * @param {string} block_name
@@ -478,26 +484,26 @@ function lower_server_import(statement, block_name) {
 	if (specifiers.some((/** @type {any} */ s) => s.type !== 'ImportSpecifier')) {
 		return [statement];
 	}
-	const type_specifiers = [];
-	const value_specifiers = [];
-	for (const specifier of specifiers) {
-		if (statement.importKind === 'type' || specifier.importKind === 'type') {
-			type_specifiers.push(specifier);
-		} else {
-			value_specifiers.push(specifier);
-		}
-	}
 
 	// Each reference to the namespace carries the authored import source's
 	// inner span, so hover / go-to-def on the module name resolves to the
 	// lowered block while the literal keeps its string coloring.
 	const namespace_ref = () => string_span_namespace_ref(block_name, statement.source);
 	const lowered = [];
-	if (value_specifiers.length > 0) {
-		lowered.push(build_destructure(value_specifiers, namespace_ref, statement));
+	const destructured_specifiers = [];
+	for (const specifier of specifiers) {
+		if (statement.importKind === 'type' || specifier.importKind === 'type') {
+			lowered.push(build_type_alias(specifier, namespace_ref));
+		} else if (specifier.imported?.type === 'Identifier') {
+			lowered.push(
+				build_import_equals(specifier, qualified_name(namespace_ref(), { ...specifier.imported })),
+			);
+		} else {
+			destructured_specifiers.push(specifier);
+		}
 	}
-	for (const specifier of type_specifiers) {
-		lowered.push(build_type_alias(specifier, namespace_ref));
+	if (destructured_specifiers.length > 0) {
+		lowered.push(build_destructure(destructured_specifiers, namespace_ref, statement));
 	}
 	return lowered;
 }

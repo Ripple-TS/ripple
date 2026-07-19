@@ -116,11 +116,14 @@ describe('server-module type-only lowering', () => {
 		expect(mapped_source_offsets.has(DIALECT_SOURCE.indexOf('placeOrder'))).toBe(true);
 	});
 
-	it("lowers `import { x } from 'server'` to a destructure and type-only specifiers to type aliases", () => {
+	it("lowers `import { x } from 'server'` to import-equals aliases and type-only specifiers to type aliases", () => {
 		const result = compile_to_volar_mappings(DIALECT_SOURCE);
 		expect(result.errors).toEqual([]);
-		expect(result.code).toContain('const { placeOrder } = server;');
+		// import-equals keeps every meaning of the export — a destructure would
+		// strip the type meaning of a class or enum exported from the block.
+		expect(result.code).toContain('import placeOrder = server.placeOrder');
 		expect(result.code).toContain('type Receipt = server.Receipt;');
+		expect(result.code).not.toContain('const { placeOrder }');
 	});
 
 	it('aliases hoisted block imports whose local names the client half also uses', () => {
@@ -220,7 +223,7 @@ describe('server-module type-only lowering', () => {
 		expect(result.code).not.toContain('import * as __tsrx_server_import$0 ');
 	});
 
-	it('renames imported-as bindings through the destructure', () => {
+	it('renames imported-as bindings through the import-equals alias', () => {
 		const source =
 			'module server {\n' +
 			'\texport function placeOrder(request: unknown) {\n' +
@@ -231,7 +234,7 @@ describe('server-module type-only lowering', () => {
 			'export const start = () => sendOrder(1);\n';
 		const result = compile_to_volar_mappings(source);
 		expect(result.errors).toEqual([]);
-		expect(result.code).toContain('const { placeOrder: sendOrder } = server;');
+		expect(result.code).toContain('import sendOrder = server.placeOrder');
 	});
 
 	describe('degenerate inputs pass through verbatim', () => {
