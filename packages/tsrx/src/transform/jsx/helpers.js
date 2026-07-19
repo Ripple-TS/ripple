@@ -80,7 +80,10 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 
 	const leading_preserved = (/** @type {any} */ program) => {
 		if (!comments?.length) return [];
-		const first = program.body?.[0];
+		// Injected statements (dynamic-import/try-import prepends) carry no
+		// loc; anchor "leading" on the first statement that maps to source,
+		// else every preserved comment in the file would hoist to the top.
+		const first = program.body?.find((/** @type {any} */ node) => node.loc);
 		return comments.filter(
 			(/** @type {any} */ comment) =>
 				should_preserve_comment(comment) &&

@@ -233,6 +233,23 @@ function App() @{
 			expect(result.errors).toEqual([]);
 		});
 
+		// Synthetic prepends (e.g. the injected Dynamic import for `<{tag}>`)
+		// have no loc. The "leading" check must anchor on the first statement
+		// that maps back to source — otherwise every preservable comment hoists
+		// to the top, and a trailing @ts-nocheck would silence checking for the
+		// whole virtual file.
+		it('does not hoist non-leading pragmas past synthetic loc-less prepends', () => {
+			const source = `/** @jsxImportSource custom-source */
+function App({ tag }: { tag: string }) @{
+	<{tag} class="a">{'x'}</{tag}>
+}
+// @ts-nocheck`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			expect(result.code).toContain('@jsxImportSource custom-source');
+			expect(result.code).not.toContain('@ts-nocheck');
+			expect(result.errors).toEqual([]);
+		});
+
 		// JSX: esrap prints `<`, `>`, `</`, ` /` without location markers.
 		// Combined with hoisting to module-level statics, the opening
 		// element's start/end positions wouldn't otherwise resolve.
