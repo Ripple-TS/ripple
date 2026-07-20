@@ -1170,11 +1170,24 @@ export function is_ripple_platform_file(file_name) {
 }
 
 /**
+ * Create a stable key for filesystem caches. Windows paths are case-insensitive
+ * to TypeScript, while file URIs conventionally lowercase their drive letter.
+ * @param {string} file_name
+ */
+function getPathCacheKey(file_name) {
+	const is_windows_path =
+		process.platform === 'win32' || /^[a-z]:[\\/]/i.test(file_name) || file_name.startsWith('\\\\');
+	const path_api = is_windows_path ? path.win32 : path;
+	const normalized = path_api.normalize(file_name);
+	return is_windows_path ? normalized.toLowerCase() : normalized;
+}
+
+/**
  * @param {string} typesFilePath
  * @returns {string | undefined}
  */
 export function getCachedTypeDefinitionFile(typesFilePath) {
-	const cache_key = path.normalize(typesFilePath);
+	const cache_key = getPathCacheKey(typesFilePath);
 
 	let stat;
 	try {
@@ -1214,7 +1227,7 @@ export function getCachedTypeDefinitionFile(typesFilePath) {
  * @returns {RegExpMatchArray | undefined}
  */
 export function getCachedTypeMatches(typeName, text, sourceKey = text) {
-	const cache_key = sourceKey === text ? text : path.normalize(sourceKey);
+	const cache_key = sourceKey === text ? text : getPathCacheKey(sourceKey);
 	let source_cache = typeNameMatchCache.get(cache_key);
 	if (!source_cache || source_cache.text !== text) {
 		source_cache = {
@@ -1274,7 +1287,7 @@ export function invalidateCompilerResolutionCaches() {
  */
 export function invalidateTypeDefinitionCaches(typesFilePath) {
 	if (typesFilePath) {
-		const cache_key = path.normalize(typesFilePath);
+		const cache_key = getPathCacheKey(typesFilePath);
 		pathToTypesCache.delete(cache_key);
 		typeNameMatchCache.delete(cache_key);
 		return;

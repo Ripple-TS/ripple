@@ -127,6 +127,30 @@ describe('language-server workspace state', () => {
 		);
 	});
 
+	it('matches Windows config dependencies regardless of path casing', () => {
+		const tracked_config_files = new Set();
+		trackTypeScriptConfigDependencies(tracked_config_files, {
+			configFileName: 'C:\\Workspace\\tsconfig.json',
+			compilerOptions: {
+				configFile: {
+					extendedSourceFiles: ['C:\\Workspace\\Configs\\shared-options.json'],
+				},
+			},
+		});
+
+		const effects = classifyWorkspaceChanges(
+			[
+				{
+					uri: 'file:///c:/workspace/configs/shared-options.json',
+					type: CHANGED,
+				},
+			],
+			tracked_config_files,
+		);
+
+		expect(effects.reloadProjects).toBe(true);
+	});
+
 	it('restarts the language server when package state changes', () => {
 		const calls = [];
 		const hooks = {

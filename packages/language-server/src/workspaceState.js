@@ -61,7 +61,11 @@ export function isPackageStateFile(file_name) {
  * @param {string} file_name
  */
 function normalizeFileName(file_name) {
-	return path.normalize(path.resolve(file_name));
+	const is_windows_path =
+		process.platform === 'win32' || /^[a-z]:[\\/]/i.test(file_name) || file_name.startsWith('\\\\');
+	const path_api = is_windows_path ? path.win32 : path;
+	const normalized = path_api.normalize(path_api.resolve(file_name));
+	return is_windows_path ? normalized.toLowerCase() : normalized;
 }
 
 /**

@@ -66,4 +66,14 @@ describe('typescript-plugin cache invalidation', () => {
 		invalidateTypeDefinitionCaches(source_key);
 		expect(getCachedTypeMatches('Shared', first, source_key)?.index).toBe(0);
 	});
+
+	it('invalidates Windows definition caches regardless of path casing', () => {
+		const text = 'export declare class Shared {}\n';
+		const first_match = getCachedTypeMatches('Shared', text, 'C:\\Workspace\\Types\\runtime.d.ts');
+
+		invalidateTypeDefinitionCaches('c:\\workspace\\types\\runtime.d.ts');
+
+		const second_match = getCachedTypeMatches('Shared', text, 'C:\\Workspace\\Types\\runtime.d.ts');
+		expect(second_match).not.toBe(first_match);
+	});
 });
