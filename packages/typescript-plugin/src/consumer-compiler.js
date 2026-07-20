@@ -8,8 +8,9 @@ import ts from 'typescript';
 import { createLogging } from './utils.js';
 
 const { log, logError, logWarning } = createLogging('[Ripple Language]');
+// npm scope/package names stay lowercase-strict; case-sensitive export subpaths may use capitals.
 const bare_package_specifier_pattern =
-	/^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*(?:\/[a-z0-9][a-z0-9._~-]*)*$/;
+	/^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*(?:\/[A-Za-z0-9][A-Za-z0-9._~-]*)*$/;
 const tsrx_key_pattern = /["']tsrx["']\s*:/;
 /** @type {Map<string, ConsumerTsconfig | null>} */
 const path_to_consumer_tsconfig_cache = new Map();

@@ -186,6 +186,11 @@ describe('typescript-plugin language plugin integration', () => {
 		['whitespace-padded scoped package', 'declared-scoped-whitespace', 'compiler:scoped'],
 		['package subpath', 'declared-subpath', 'compiler:subpath'],
 		['scoped package subpath', 'declared-scoped-subpath', 'compiler:scoped-subpath'],
+		[
+			'mixed-case scoped package subpath',
+			'declared-mixed-case-subpath',
+			'compiler:mixed-case-subpath',
+		],
 	])('accepts a declared compiler using a %s specifier', (_, workspace_name, marker) => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace(
@@ -350,41 +355,47 @@ describe('typescript-plugin language plugin integration', () => {
 		);
 	});
 
-	it.each(['.', '..', '.\\evil', '..\\evil', '#internal'])(
-		'rejects the non-package declaration %j before module resolution',
-		async (specifier) => {
-			vi.stubEnv('RIPPLE_DEBUG', 'true');
-			vi.resetModules();
-			const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-			const { getRippleLanguagePlugin: create_debug_plugin, _reset_for_test: reset_debug_plugin } =
-				await import('../src/language.js');
-			const workspace = create_fixture_workspace('invalid-declared-specifier');
-			const tsconfig_path = path.join(workspace, 'tsconfig.json');
-			const file_name = path.join(workspace, 'src', 'App.tsrx');
-			fs.writeFileSync(
-				tsconfig_path,
-				JSON.stringify({ tsrx: { compiler: specifier }, compilerOptions: {} }, null, 2) + '\n',
-			);
-			reset_debug_plugin();
+	it.each([
+		'.',
+		'..',
+		'.\\evil',
+		'..\\evil',
+		'#internal',
+		'@Consumer/tsrx-compiler',
+		'@consumer/TSRX-compiler',
+		'consumer-tsrx-compiler/.hidden',
+	])('rejects the disallowed declaration %j before module resolution', async (specifier) => {
+		vi.stubEnv('RIPPLE_DEBUG', 'true');
+		vi.resetModules();
+		const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { getRippleLanguagePlugin: create_debug_plugin, _reset_for_test: reset_debug_plugin } =
+			await import('../src/language.js');
+		const workspace = create_fixture_workspace('invalid-declared-specifier');
+		const tsconfig_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		fs.writeFileSync(
+			tsconfig_path,
+			JSON.stringify({ tsrx: { compiler: specifier }, compilerOptions: {} }, null, 2) + '\n',
+		);
+		reset_debug_plugin();
 
-			expect(
-				create_debug_plugin().createVirtualCode?.(
-					file_name,
-					'ripple',
-					create_snapshot('export default <div>Hello</div>;'),
-					/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
-						getAssociatedScript: () => undefined,
-					}),
-				),
-			).toBeUndefined();
-			expect(error_spy).toHaveBeenCalledWith(
-				'[Ripple Language]',
-				expect.stringContaining('must be a bare package specifier'),
-				expect.stringContaining(specifier),
-				expect.stringContaining(tsconfig_path),
-			);
-		},
-	);
+		expect(
+			create_debug_plugin().createVirtualCode?.(
+				file_name,
+				'ripple',
+				create_snapshot('export default <div>Hello</div>;'),
+				/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
+					getAssociatedScript: () => undefined,
+				}),
+			),
+		).toBeUndefined();
+		expect(error_spy).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('must be a bare package specifier'),
+			expect.stringContaining(specifier),
+			expect.stringContaining(tsconfig_path),
+		);
+	});
 
 	it('does not execute a package imports target declared with a hash specifier', async () => {
 		vi.stubEnv('RIPPLE_DEBUG', 'true');

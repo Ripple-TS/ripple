@@ -396,6 +396,24 @@ export const WORKSPACE_CONFIGS = {
 			{ specifier: '@consumer/tsrx-compiler/compiler/volar', marker: 'scoped-subpath' },
 		],
 	},
+	'declared-mixed-case-subpath': {
+		package_json: {
+			name: '@tsrx/fixture-declared-mixed-case-subpath-project',
+			private: true,
+		},
+		tsconfig_json: {
+			tsrx: { compiler: '@consumer/tsrx-compiler/compileToVolar' },
+			compilerOptions: {},
+		},
+		compilers: [],
+		declared_compilers: [
+			{
+				specifier: '@consumer/tsrx-compiler/compileToVolar',
+				marker: 'mixed-case-subpath',
+				export_subpath: true,
+			},
+		],
+	},
 	'declared-beats-candidates': {
 		package_json: {
 			name: '@tsrx/fixture-declared-priority-project',
@@ -550,6 +568,7 @@ function write_compiler_stub(workspace_dir, compiler_name) {
  * @param {string} marker
  * @param {string} [directory]
  * @param {string[]} [entry_parts]
+ * @param {boolean} [export_subpath]
  */
 function write_declared_compiler_stub(
 	workspace_dir,
@@ -557,17 +576,26 @@ function write_declared_compiler_stub(
 	marker,
 	directory = '',
 	entry_parts,
+	export_subpath = false,
 ) {
 	const specifier_parts = specifier.split('/');
 	const package_part_count = specifier.startsWith('@') ? 2 : 1;
 	const package_name = specifier_parts.slice(0, package_part_count).join('/');
 	const subpath_parts = specifier_parts.slice(package_part_count);
+	const subpath = subpath_parts.join('/');
 	const compiler_dir = path.join(workspace_dir, directory, 'node_modules', package_name);
 	fs.mkdirSync(compiler_dir, { recursive: true });
 	fs.writeFileSync(
 		path.join(compiler_dir, 'package.json'),
-		JSON.stringify({ name: package_name, main: entry_parts?.join('/') ?? 'index.cjs' }, null, 2) +
-			'\n',
+		JSON.stringify(
+			{
+				name: package_name,
+				main: entry_parts?.join('/') ?? 'index.cjs',
+				...(export_subpath ? { exports: { [`./${subpath}`]: `./${subpath}.js` } } : {}),
+			},
+			null,
+			2,
+		) + '\n',
 	);
 	const compiler_path =
 		entry_parts !== undefined
@@ -623,6 +651,7 @@ export function create_fixture_workspace(name) {
 			declared_compiler.marker,
 			declared_compiler.directory,
 			declared_compiler.entry_parts,
+			declared_compiler.export_subpath,
 		);
 	}
 	if (config.relative_compiler) {
