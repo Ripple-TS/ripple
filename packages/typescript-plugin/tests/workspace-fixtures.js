@@ -402,6 +402,39 @@ export const WORKSPACE_CONFIGS = {
 		compilers: ['ripple'],
 		declared_compilers: [{ specifier: 'consumer-tsrx-compiler', marker: 'declared' }],
 	},
+	'malformed-tsconfig-without-tsrx': {
+		package_json: {
+			name: '@tsrx/fixture-malformed-tsconfig-without-tsrx-project',
+			private: true,
+			devDependencies: { '@tsrx/ripple': 'workspace:*' },
+		},
+		tsconfig_source: '{ "compilerOptions": {\n',
+		compilers: ['ripple'],
+	},
+	'invalid-compiler-type': {
+		package_json: {
+			name: '@tsrx/fixture-invalid-compiler-type-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: 42 }, compilerOptions: {} },
+		compilers: ['ripple'],
+	},
+	'empty-compiler': {
+		package_json: {
+			name: '@tsrx/fixture-empty-compiler-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: '' }, compilerOptions: {} },
+		compilers: ['ripple'],
+	},
+	'invalid-tsrx-type': {
+		package_json: {
+			name: '@tsrx/fixture-invalid-tsrx-type-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: 'string', compilerOptions: {} },
+		compilers: ['ripple'],
+	},
 	'relative-declared': {
 		package_json: {
 			name: '@tsrx/fixture-relative-declared-project',

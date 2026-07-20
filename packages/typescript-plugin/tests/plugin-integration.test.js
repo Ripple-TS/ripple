@@ -200,7 +200,27 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).not.toContain('compiler:ripple');
 	});
 
-	it('reports a malformed nearest tsconfig and does not fall back to an installed candidate', async () => {
+	it('warns for a malformed tsconfig without tsrx and falls back to an installed candidate', async () => {
+		vi.stubEnv('RIPPLE_DEBUG', 'true');
+		vi.resetModules();
+		const warning_spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const { getRippleLanguagePlugin: create_debug_plugin } = await import('../src/language.js');
+		const workspace = create_fixture_workspace('malformed-tsconfig-without-tsrx');
+		const tsconfig_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const plugin = create_debug_plugin();
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code.generatedCode).toContain('compiler:ripple');
+		expect(warning_spy).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('Unable to parse nearest tsconfig'),
+			expect.stringContaining(tsconfig_path),
+			expect.any(String),
+		);
+	});
+
+	it('reports a malformed nearest tsconfig containing tsrx text and does not fall back', async () => {
 		vi.stubEnv('RIPPLE_DEBUG', 'true');
 		vi.resetModules();
 		const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -227,6 +247,43 @@ describe('typescript-plugin language plugin integration', () => {
 			expect.any(String),
 		);
 	});
+
+	it.each([
+		['a non-string compiler', 'invalid-compiler-type', 'number', '42'],
+		['an empty compiler string', 'empty-compiler', 'string', '""'],
+		['a non-object tsrx value', 'invalid-tsrx-type', 'string', '"string"'],
+	])(
+		'rejects %s and does not fall back to an installed candidate',
+		async (_, workspace_name, type, value) => {
+			vi.stubEnv('RIPPLE_DEBUG', 'true');
+			vi.resetModules();
+			const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+			const { getRippleLanguagePlugin: create_debug_plugin } = await import('../src/language.js');
+			const workspace = create_fixture_workspace(
+				/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
+			);
+			const tsconfig_path = path.join(workspace, 'tsconfig.json');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+
+			expect(
+				create_debug_plugin().createVirtualCode?.(
+					file_name,
+					'ripple',
+					create_snapshot('export default <div>Hello</div>;'),
+					/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
+						getAssociatedScript: () => undefined,
+					}),
+				),
+			).toBeUndefined();
+			expect(error_spy).toHaveBeenCalledWith(
+				'[Ripple Language]',
+				expect.stringContaining('Invalid TSRX'),
+				expect.stringContaining(type),
+				expect.stringContaining(value),
+				expect.stringContaining(tsconfig_path),
+			);
+		},
+	);
 
 	it('rejects a relative declaration and does not fall back to an installed candidate', async () => {
 		vi.stubEnv('RIPPLE_DEBUG', 'true');
