@@ -19,6 +19,8 @@
   "js/ts.experimental.useTsgo": true,
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
 
+  "githubPullRequests.commentExpandState": "expandUnresolved",
+
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.insertSpaces": true
