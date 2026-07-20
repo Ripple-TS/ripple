@@ -3,7 +3,12 @@ import fs from 'fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
 import * as ts from 'typescript';
-import { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } from '../src/language.js';
+import {
+	getRippleLanguagePlugin,
+	getRippleDirForFile,
+	TSRXVirtualCode,
+	_reset_for_test,
+} from '../src/language.js';
 
 /**
  * @param {string} source
@@ -147,7 +152,38 @@ describe('typescript-plugin language plugin integration', () => {
 	});
 
 	it.each([
+		['candidate src entry', 'ripple-only', ['node_modules', '@tsrx', 'ripple']],
+		['octane nested entry', 'octane-only', ['node_modules', 'octane']],
+		['declared package-root entry', 'declared-only', ['node_modules', 'consumer-tsrx-compiler']],
+		['declared dist entry', 'declared-dist', ['node_modules', 'consumer-dist-compiler']],
+	])('returns the compiler package root for %s', (_, workspace_name, compiler_parts) => {
+		const workspace = create_fixture_workspace(
+			/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
+		);
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+
+		expect(fs.realpathSync(/** @type {string} */ (getRippleDirForFile(file_name)))).toBe(
+			fs.realpathSync(path.join(workspace, ...compiler_parts)),
+		);
+	});
+
+	it('does not escape node_modules when a compiler package has no package.json', () => {
+		const workspace = create_fixture_workspace('ripple-only');
+		const compiler_package_json = path.join(
+			workspace,
+			'node_modules',
+			'@tsrx',
+			'ripple',
+			'package.json',
+		);
+		fs.unlinkSync(compiler_package_json);
+
+		expect(getRippleDirForFile(path.join(workspace, 'src', 'App.tsrx'))).toBeUndefined();
+	});
+
+	it.each([
 		['scoped package', 'declared-scoped', 'compiler:scoped'],
+		['whitespace-padded scoped package', 'declared-scoped-whitespace', 'compiler:scoped'],
 		['package subpath', 'declared-subpath', 'compiler:subpath'],
 		['scoped package subpath', 'declared-scoped-subpath', 'compiler:scoped-subpath'],
 	])('accepts a declared compiler using a %s specifier', (_, workspace_name, marker) => {
@@ -251,6 +287,7 @@ describe('typescript-plugin language plugin integration', () => {
 	it.each([
 		['a non-string compiler', 'invalid-compiler-type', 'number', '42'],
 		['an empty compiler string', 'empty-compiler', 'string', '""'],
+		['a whitespace-only compiler string', 'whitespace-only-compiler', 'string', '"   "'],
 		['a non-object tsrx value', 'invalid-tsrx-type', 'string', '"string"'],
 	])(
 		'rejects %s and does not fall back to an installed candidate',

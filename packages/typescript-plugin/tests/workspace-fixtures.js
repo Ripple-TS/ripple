@@ -349,6 +349,30 @@ export const WORKSPACE_CONFIGS = {
 		compilers: [],
 		declared_compilers: [{ specifier: '@consumer/tsrx-compiler', marker: 'scoped' }],
 	},
+	'declared-scoped-whitespace': {
+		package_json: {
+			name: '@tsrx/fixture-declared-scoped-whitespace-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: ' @consumer/tsrx-compiler ' }, compilerOptions: {} },
+		compilers: [],
+		declared_compilers: [{ specifier: '@consumer/tsrx-compiler', marker: 'scoped' }],
+	},
+	'declared-dist': {
+		package_json: {
+			name: '@tsrx/fixture-declared-dist-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: 'consumer-dist-compiler' }, compilerOptions: {} },
+		compilers: [],
+		declared_compilers: [
+			{
+				specifier: 'consumer-dist-compiler',
+				marker: 'dist',
+				entry_parts: ['dist', 'volar.cjs'],
+			},
+		],
+	},
 	'declared-subpath': {
 		package_json: {
 			name: '@tsrx/fixture-declared-subpath-project',
@@ -427,6 +451,14 @@ export const WORKSPACE_CONFIGS = {
 		tsconfig_json: { tsrx: { compiler: '' }, compilerOptions: {} },
 		compilers: ['ripple'],
 	},
+	'whitespace-only-compiler': {
+		package_json: {
+			name: '@tsrx/fixture-whitespace-only-compiler-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: '   ' }, compilerOptions: {} },
+		compilers: ['ripple'],
+	},
 	'invalid-tsrx-type': {
 		package_json: {
 			name: '@tsrx/fixture-invalid-tsrx-type-project',
@@ -492,13 +524,23 @@ const created_workspaces = [];
 function write_compiler_stub(workspace_dir, compiler_name) {
 	if (compiler_name === 'octane') {
 		// Octane's layout: the compiler entry lives INSIDE the octane package.
-		const compiler_dir = path.join(workspace_dir, 'node_modules', 'octane', 'src', 'compiler');
+		const package_dir = path.join(workspace_dir, 'node_modules', 'octane');
+		const compiler_dir = path.join(package_dir, 'src', 'compiler');
 		fs.mkdirSync(compiler_dir, { recursive: true });
+		fs.writeFileSync(
+			path.join(package_dir, 'package.json'),
+			JSON.stringify({ name: 'octane' }, null, 2) + '\n',
+		);
 		fs.writeFileSync(path.join(compiler_dir, 'volar.js'), COMPILER_STUBS[compiler_name]);
 		return;
 	}
-	const compiler_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name, 'src');
+	const package_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name);
+	const compiler_dir = path.join(package_dir, 'src');
 	fs.mkdirSync(compiler_dir, { recursive: true });
+	fs.writeFileSync(
+		path.join(package_dir, 'package.json'),
+		JSON.stringify({ name: `@tsrx/${compiler_name}` }, null, 2) + '\n',
+	);
 	fs.writeFileSync(path.join(compiler_dir, 'index.js'), COMPILER_STUBS[compiler_name]);
 }
 
@@ -507,8 +549,15 @@ function write_compiler_stub(workspace_dir, compiler_name) {
  * @param {string} specifier
  * @param {string} marker
  * @param {string} [directory]
+ * @param {string[]} [entry_parts]
  */
-function write_declared_compiler_stub(workspace_dir, specifier, marker, directory = '') {
+function write_declared_compiler_stub(
+	workspace_dir,
+	specifier,
+	marker,
+	directory = '',
+	entry_parts,
+) {
 	const specifier_parts = specifier.split('/');
 	const package_part_count = specifier.startsWith('@') ? 2 : 1;
 	const package_name = specifier_parts.slice(0, package_part_count).join('/');
@@ -517,12 +566,15 @@ function write_declared_compiler_stub(workspace_dir, specifier, marker, director
 	fs.mkdirSync(compiler_dir, { recursive: true });
 	fs.writeFileSync(
 		path.join(compiler_dir, 'package.json'),
-		JSON.stringify({ name: package_name, main: 'index.cjs' }, null, 2) + '\n',
+		JSON.stringify({ name: package_name, main: entry_parts?.join('/') ?? 'index.cjs' }, null, 2) +
+			'\n',
 	);
 	const compiler_path =
-		subpath_parts.length === 0
-			? path.join(compiler_dir, 'index.cjs')
-			: path.join(compiler_dir, ...subpath_parts) + '.js';
+		entry_parts !== undefined
+			? path.join(compiler_dir, ...entry_parts)
+			: subpath_parts.length === 0
+				? path.join(compiler_dir, 'index.cjs')
+				: path.join(compiler_dir, ...subpath_parts) + '.js';
 	fs.mkdirSync(path.dirname(compiler_path), { recursive: true });
 	fs.writeFileSync(
 		compiler_path,
@@ -570,6 +622,7 @@ export function create_fixture_workspace(name) {
 			declared_compiler.specifier,
 			declared_compiler.marker,
 			declared_compiler.directory,
+			declared_compiler.entry_parts,
 		);
 	}
 	if (config.relative_compiler) {

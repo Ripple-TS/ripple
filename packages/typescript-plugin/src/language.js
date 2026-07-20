@@ -1276,9 +1276,24 @@ export function getCachedTypeMatches(typeName, text, sourceKey = text) {
  */
 export function get_compiler_dir_for_file(normalized_file_name) {
 	const entry = get_compiler_entry_for_file(normalized_file_name);
-	if (entry) {
-		// Walk up from .../src/index.js to the package root
-		return path.dirname(path.dirname(entry));
+	if (!entry) {
+		return undefined;
+	}
+
+	let current_dir = path.dirname(entry);
+	while (current_dir) {
+		if (fs.existsSync(path.join(current_dir, 'package.json'))) {
+			return current_dir;
+		}
+		if (path.basename(current_dir) === 'node_modules') {
+			return undefined;
+		}
+
+		const parent_dir = path.dirname(current_dir);
+		if (parent_dir === current_dir) {
+			return undefined;
+		}
+		current_dir = parent_dir;
 	}
 }
 

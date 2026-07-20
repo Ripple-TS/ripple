@@ -52,7 +52,7 @@ function get_compiler_declaration(config) {
 
 	const compiler = tsrx_config.compiler;
 	if (typeof compiler === 'string' && compiler.trim() !== '') {
-		return { state: 'declared', value: compiler };
+		return { state: 'declared', value: compiler.trim() };
 	}
 	return { state: 'invalid', target: 'compiler', ...describe_config_value(compiler) };
 }
