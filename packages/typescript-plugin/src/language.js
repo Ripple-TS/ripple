@@ -29,6 +29,8 @@ const root_dirname = path.dirname(fileURLToPath(import.meta.url));
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
 /** @type {Set<string>} */
 const loggedCompilationFailures = new Set();
+/** @type {Set<string>} */
+const loadedCompilerPaths = new Set();
 export const RIPPLE_EXTENSIONS = ['.tsrx'];
 /** @typedef {[string, string[], string[], string[], string[]?]} CompilerCandidate */
 /** @type {CompilerCandidate[]} */
@@ -878,9 +880,9 @@ export const resolveConfig = (config) => {
 
 /** @type {Map<string, string | null>} */
 export const path2RipplePathMap = new Map();
-/** @type {Map<string, string>} */
+/** @type {Map<string, { mtimeMs: number, size: number, content: string }>} */
 const pathToTypesCache = new Map();
-/** @type {Map<string, RegExpMatchArray>} */
+/** @type {Map<string, { text: string, matches: Map<string, RegExpMatchArray> }>} */
 const typeNameMatchCache = new Map();
 /** @type {Map<string, { name: string | null, dependencies: Set<string> } | null>} */
 const pathToPackageManifestCache = new Map();
@@ -996,6 +998,7 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 function get_tsrx_compiler(normalized_file_name) {
 	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
 	if (compiler_path) {
+		loadedCompilerPaths.add(compiler_path);
 		const compiler_module = require(compiler_path);
 		if (
 			typeof compiler_module?.compile_to_volar_mappings !== 'function' &&
@@ -1174,14 +1177,19 @@ export function is_ripple_platform_file(file_name) {
  * @returns {string | undefined}
  */
 export function getCachedTypeDefinitionFile(typesFilePath) {
-	const cached = pathToTypesCache.get(typesFilePath);
-	if (cached) {
-		return cached;
-	}
+	const cache_key = path.normalize(typesFilePath);
 
-	if (!fs.existsSync(typesFilePath)) {
+	let stat;
+	try {
+		stat = fs.statSync(typesFilePath);
+	} catch {
 		logWarning(`Types file does not exist at path: ${typesFilePath}`);
 		return;
+	}
+
+	const cached = pathToTypesCache.get(cache_key);
+	if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+		return cached.content;
 	}
 
 	log(`Found ripple types at: ${typesFilePath}`);
@@ -1194,17 +1202,32 @@ export function getCachedTypeDefinitionFile(typesFilePath) {
 		return;
 	}
 
-	pathToTypesCache.set(typesFilePath, fileContent);
+	pathToTypesCache.set(cache_key, {
+		mtimeMs: stat.mtimeMs,
+		size: stat.size,
+		content: fileContent,
+	});
 	return fileContent;
 }
 
 /**
  * @param {string} typeName
  * @param {string} text
+ * @param {string} [sourceKey]
  * @returns {RegExpMatchArray | undefined}
  */
-export function getCachedTypeMatches(typeName, text) {
-	const cached = typeNameMatchCache.get(typeName);
+export function getCachedTypeMatches(typeName, text, sourceKey = text) {
+	const cache_key = sourceKey === text ? text : path.normalize(sourceKey);
+	let source_cache = typeNameMatchCache.get(cache_key);
+	if (!source_cache || source_cache.text !== text) {
+		source_cache = {
+			text,
+			matches: new Map(),
+		};
+		typeNameMatchCache.set(cache_key, source_cache);
+	}
+
+	const cached = source_cache.matches.get(typeName);
 	if (cached) {
 		return cached;
 	}
@@ -1216,7 +1239,7 @@ export function getCachedTypeMatches(typeName, text) {
 	const match = text.match(searchPattern);
 
 	if (match && match.index !== undefined) {
-		typeNameMatchCache.set(typeName, match);
+		source_cache.matches.set(typeName, match);
 		return match;
 	}
 
@@ -1237,8 +1260,43 @@ export function get_compiler_dir_for_file(normalized_file_name) {
 
 export { get_compiler_dir_for_file as getRippleDirForFile };
 
-/** Reset module-level state used in tests. */
-export function _reset_for_test() {
+/**
+ * Drop compiler selection and loaded-entry state after package manifests or
+ * installed compiler packages change.
+ */
+export function invalidateCompilerResolutionCaches() {
+	for (const compiler_path of loadedCompilerPaths) {
+		try {
+			delete require.cache[require.resolve(compiler_path)];
+		} catch {
+			// The compiler may have been removed as part of the package change.
+		}
+	}
+	loadedCompilerPaths.clear();
 	path2RipplePathMap.clear();
 	pathToPackageManifestCache.clear();
+	loggedCompilationFailures.clear();
+}
+
+/**
+ * Drop cached definition-file content and matches. A path invalidates only one
+ * file; omitting it clears all definition state.
+ * @param {string} [typesFilePath]
+ */
+export function invalidateTypeDefinitionCaches(typesFilePath) {
+	if (typesFilePath) {
+		const cache_key = path.normalize(typesFilePath);
+		pathToTypesCache.delete(cache_key);
+		typeNameMatchCache.delete(cache_key);
+		return;
+	}
+
+	pathToTypesCache.clear();
+	typeNameMatchCache.clear();
+}
+
+/** Reset all module-level state used in tests. */
+export function _reset_for_test() {
+	invalidateCompilerResolutionCaches();
+	invalidateTypeDefinitionCaches();
 }

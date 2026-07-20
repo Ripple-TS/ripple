@@ -12,6 +12,7 @@ const {
 	is_ripple_platform_file,
 	COMPILER_CANDIDATES,
 	RIPPLE_EXTENSIONS,
+	invalidateCompilerResolutionCaches,
 	_reset_for_test,
 } = require('../src/language.js');
 
@@ -255,6 +256,38 @@ describe('typescript-plugin compiler resolution', () => {
 				),
 			).toBe(expected);
 			expect(exists_sync_calls).toBeGreaterThan(0);
+		});
+
+		it('re-resolves the target after package state is invalidated', () => {
+			const workspace = create_fixture_workspace('both');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const package_json_path = path.join(workspace, 'package.json');
+
+			expect(get_tsrx_compiler_name_for_file(file_name)).toBe('@tsrx/ripple');
+
+			fs.writeFileSync(
+				package_json_path,
+				JSON.stringify(
+					{
+						name: '@tsrx/fixture-switched-project',
+						private: true,
+						devDependencies: {
+							'@tsrx/react': 'workspace:*',
+							'@tsrx/vite-plugin-react': 'workspace:*',
+						},
+					},
+					null,
+					2,
+				) + '\n',
+			);
+
+			// Both path and manifest results are intentionally sticky until the
+			// package watcher invalidates them.
+			expect(get_tsrx_compiler_name_for_file(file_name)).toBe('@tsrx/ripple');
+
+			invalidateCompilerResolutionCaches();
+
+			expect(get_tsrx_compiler_name_for_file(file_name)).toBe('@tsrx/react');
 		});
 	});
 
