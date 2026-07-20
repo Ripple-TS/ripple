@@ -29,8 +29,6 @@ const root_dirname = path.dirname(fileURLToPath(import.meta.url));
 const { log, logWarning, logError } = createLogging('[Ripple Language]');
 /** @type {Set<string>} */
 const loggedCompilationFailures = new Set();
-/** @type {Set<string>} */
-const loadedCompilerPaths = new Set();
 export const RIPPLE_EXTENSIONS = ['.tsrx'];
 /** @typedef {[string, string[], string[], string[], string[]?]} CompilerCandidate */
 /** @type {CompilerCandidate[]} */
@@ -998,7 +996,6 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 function get_tsrx_compiler(normalized_file_name) {
 	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
 	if (compiler_path) {
-		loadedCompilerPaths.add(compiler_path);
 		const compiler_module = require(compiler_path);
 		if (
 			typeof compiler_module?.compile_to_volar_mappings !== 'function' &&
@@ -1261,18 +1258,10 @@ export function get_compiler_dir_for_file(normalized_file_name) {
 export { get_compiler_dir_for_file as getRippleDirForFile };
 
 /**
- * Drop compiler selection and loaded-entry state after package manifests or
- * installed compiler packages change.
+ * Drop compiler-selection state. Loaded ESM compiler graphs cannot be evicted
+ * safely in-process; language-server package watchers restart the process.
  */
 export function invalidateCompilerResolutionCaches() {
-	for (const compiler_path of loadedCompilerPaths) {
-		try {
-			delete require.cache[require.resolve(compiler_path)];
-		} catch {
-			// The compiler may have been removed as part of the package change.
-		}
-	}
-	loadedCompilerPaths.clear();
 	path2RipplePathMap.clear();
 	pathToPackageManifestCache.clear();
 	loggedCompilationFailures.clear();

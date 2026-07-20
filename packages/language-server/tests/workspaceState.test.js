@@ -61,9 +61,8 @@ describe('language-server workspace state', () => {
 		]);
 
 		expect(effects).toEqual({
+			restartLanguageServer: false,
 			reloadProjects: true,
-			invalidateCompilerResolution: false,
-			invalidateAllTypeDefinitions: false,
 			changedTypeDefinitions: [],
 		});
 	});
@@ -99,10 +98,39 @@ describe('language-server workspace state', () => {
 		).toBe(false);
 	});
 
-	it('invalidates package/compiler and definition state before reloading projects', () => {
+	it('retains prior config dependencies while projects are lazily recreated', () => {
+		const tracked_config_files = new Set();
+		trackTypeScriptConfigDependencies(tracked_config_files, {
+			configFileName: '/workspace/tsconfig.json',
+			compilerOptions: {
+				configFile: {
+					extendedSourceFiles: ['/workspace/configs/previous-options.json'],
+				},
+			},
+		});
+
+		trackTypeScriptConfigDependencies(tracked_config_files, {
+			configFileName: '/workspace/tsconfig.json',
+			compilerOptions: {
+				configFile: {
+					extendedSourceFiles: ['/workspace/configs/current-options.json'],
+				},
+			},
+		});
+
+		expect(tracked_config_files).toEqual(
+			new Set([
+				path.resolve('/workspace/tsconfig.json'),
+				path.resolve('/workspace/configs/previous-options.json'),
+				path.resolve('/workspace/configs/current-options.json'),
+			]),
+		);
+	});
+
+	it('restarts the language server when package state changes', () => {
 		const calls = [];
 		const hooks = {
-			invalidateCompilerResolution: vi.fn(() => calls.push('compiler')),
+			restartLanguageServer: vi.fn(() => calls.push('restart')),
 			invalidateTypeDefinitions: vi.fn((file_name) =>
 				calls.push(file_name ? `types:${file_name}` : 'types:all'),
 			),
@@ -119,16 +147,17 @@ describe('language-server workspace state', () => {
 			hooks,
 		);
 
-		expect(effects.reloadProjects).toBe(true);
-		expect(hooks.invalidateTypeDefinitions).toHaveBeenCalledWith();
-		expect(hooks.invalidateTypeDefinitions).toHaveBeenCalledTimes(1);
-		expect(hooks.requestRefresh).toHaveBeenCalledWith(true);
-		expect(calls).toEqual(['compiler', 'types:all', 'reload', 'refresh']);
+		expect(effects).toEqual({
+			restartLanguageServer: true,
+			reloadProjects: false,
+			changedTypeDefinitions: [],
+		});
+		expect(calls).toEqual(['restart']);
 	});
 
 	it('invalidates only changed definition files without rebuilding projects', () => {
 		const hooks = {
-			invalidateCompilerResolution: vi.fn(),
+			restartLanguageServer: vi.fn(),
 			invalidateTypeDefinitions: vi.fn(),
 			reloadProjects: vi.fn(),
 			requestRefresh: vi.fn(),
@@ -147,7 +176,7 @@ describe('language-server workspace state', () => {
 			['/workspace/types/a.d.ts'],
 			['/workspace/types/b.d.mts'],
 		]);
-		expect(hooks.invalidateCompilerResolution).not.toHaveBeenCalled();
+		expect(hooks.restartLanguageServer).not.toHaveBeenCalled();
 		expect(hooks.reloadProjects).not.toHaveBeenCalled();
 		expect(hooks.requestRefresh).not.toHaveBeenCalled();
 	});

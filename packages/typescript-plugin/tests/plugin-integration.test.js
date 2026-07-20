@@ -1,14 +1,8 @@
-import fs from 'node:fs';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
 import * as ts from 'typescript';
-import {
-	getRippleLanguagePlugin,
-	invalidateCompilerResolutionCaches,
-	TSRXVirtualCode,
-	_reset_for_test,
-} from '../src/language.js';
+import { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } from '../src/language.js';
 
 /**
  * @param {string} source
@@ -89,33 +83,6 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain('compiler:ripple');
 		expect(virtual_code.generatedCode).toContain(file_name);
-	});
-
-	it('reloads an already-required compiler entry after package invalidation', () => {
-		const workspace = create_fixture_workspace('ripple-only');
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const compiler_entry = path.join(
-			workspace,
-			'node_modules',
-			'@tsrx',
-			'ripple',
-			'src',
-			'index.js',
-		);
-
-		const first = create_virtual_code(create_plugin(), file_name, '<div>Hello</div>');
-		expect(first.generatedCode).toContain('compiler:ripple');
-
-		const compiler_source = fs.readFileSync(compiler_entry, 'utf8');
-		fs.writeFileSync(
-			compiler_entry,
-			compiler_source.replace('compiler:ripple', 'compiler:updated'),
-		);
-
-		invalidateCompilerResolutionCaches();
-
-		const second = create_virtual_code(create_plugin(), file_name, '<div>Hello</div>');
-		expect(second.generatedCode).toContain('compiler:updated');
 	});
 
 	it('creates virtual code with the react compiler in a react project when both compilers exist', () => {

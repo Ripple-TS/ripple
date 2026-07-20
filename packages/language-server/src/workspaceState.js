@@ -66,8 +66,10 @@ function normalizeFileName(file_name) {
 
 /**
  * Record every config file that contributed to a parsed TypeScript project.
- * TypeScript allows both `extends` and project-reference configs to use names
- * other than tsconfig.json, so filename matching alone is not sufficient.
+ * This set is intentionally additive across project reloads because Volar
+ * recreates projects lazily. TypeScript allows both `extends` and
+ * project-reference configs to use names other than tsconfig.json, so filename
+ * matching alone is not sufficient.
  * @param {Set<string>} config_files
  * @param {{
  *   configFileName?: string,
@@ -93,16 +95,15 @@ export function trackTypeScriptConfigDependencies(config_files, project) {
 }
 
 /**
- * Classify watched changes before mutating project state. Package changes are
- * broader than config changes: they can change both the selected TSRX compiler
- * and the compiler module loaded at that path.
+ * Classify watched changes before mutating project state. Package changes need
+ * a process restart because Node does not expose a supported way to evict a
+ * loaded ESM compiler and its transitive module graph.
  * @param {import('@volar/language-server').FileEvent[]} changes
  * @param {ReadonlySet<string>} [tracked_config_files]
  */
 export function classifyWorkspaceChanges(changes, tracked_config_files = new Set()) {
 	let reloadProjects = false;
-	let invalidateCompilerResolution = false;
-	let invalidateAllTypeDefinitions = false;
+	let restartLanguageServer = false;
 	/** @type {Set<string>} */
 	const changedTypeDefinitions = new Set();
 
@@ -118,28 +119,25 @@ export function classifyWorkspaceChanges(changes, tracked_config_files = new Set
 		}
 
 		if (isPackageStateFile(file_name)) {
-			reloadProjects = true;
-			invalidateCompilerResolution = true;
-			invalidateAllTypeDefinitions = true;
+			restartLanguageServer = true;
 		} else if (isTypeDefinitionFile(file_name)) {
 			changedTypeDefinitions.add(file_name);
 		}
 	}
 
 	return {
-		reloadProjects,
-		invalidateCompilerResolution,
-		invalidateAllTypeDefinitions,
-		changedTypeDefinitions: [...changedTypeDefinitions],
+		restartLanguageServer,
+		reloadProjects: reloadProjects && !restartLanguageServer,
+		changedTypeDefinitions: restartLanguageServer ? [] : [...changedTypeDefinitions],
 	};
 }
 
 /**
  * @param {import('@volar/language-server').FileEvent[]} changes
  * @param {{
+ *   restartLanguageServer: () => void,
  *   reloadProjects: () => void,
  *   requestRefresh: (clearDiagnostics: boolean) => unknown,
- *   invalidateCompilerResolution: () => void,
  *   invalidateTypeDefinitions: (file_name?: string) => void,
  * }} hooks
  * @param {ReadonlySet<string>} [tracked_config_files]
@@ -147,16 +145,13 @@ export function classifyWorkspaceChanges(changes, tracked_config_files = new Set
 export function handleWorkspaceChanges(changes, hooks, tracked_config_files) {
 	const effects = classifyWorkspaceChanges(changes, tracked_config_files);
 
-	if (effects.invalidateCompilerResolution) {
-		hooks.invalidateCompilerResolution();
+	if (effects.restartLanguageServer) {
+		hooks.restartLanguageServer();
+		return effects;
 	}
 
-	if (effects.invalidateAllTypeDefinitions) {
-		hooks.invalidateTypeDefinitions();
-	} else {
-		for (const file_name of effects.changedTypeDefinitions) {
-			hooks.invalidateTypeDefinitions(file_name);
-		}
+	for (const file_name of effects.changedTypeDefinitions) {
+		hooks.invalidateTypeDefinitions(file_name);
 	}
 
 	if (effects.reloadProjects) {

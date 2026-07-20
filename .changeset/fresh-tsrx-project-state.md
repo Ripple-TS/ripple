@@ -3,4 +3,4 @@
 "@tsrx/typescript-plugin": patch
 ---
 
-Reload Volar projects for nested and shared TypeScript config changes, and invalidate compiler and definition caches when their workspace inputs change.
+Reload Volar projects for nested and shared TypeScript config changes, restart the language server when package state can replace the ESM compiler graph, and refresh cached type definitions when they change.

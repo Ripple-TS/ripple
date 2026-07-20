@@ -16,7 +16,6 @@ import { createDocumentHighlightPlugin } from './documentHighlightPlugin.js';
 import { createDocumentSymbolPlugin } from './documentSymbolPlugin.js';
 import {
 	getRippleLanguagePlugin,
-	invalidateCompilerResolutionCaches,
 	invalidateTypeDefinitionCaches,
 	resolveConfig,
 } from '@tsrx/typescript-plugin/src/language.js';
@@ -66,6 +65,17 @@ export function createRippleLanguageServer() {
 	const wrappedFunctions = new WeakSet();
 	/** @type {Set<string>} */
 	const trackedTypeScriptConfigFiles = new Set();
+	let restartScheduled = false;
+
+	/** Restart the process so Node drops the complete ESM compiler graph. */
+	function restartLanguageServer() {
+		if (restartScheduled) {
+			return;
+		}
+		restartScheduled = true;
+		log('Restarting after package state changed.');
+		setTimeout(() => process.exit(0), 50);
+	}
 
 	/**
 	 * Ensure TypeScript hosts always see compiler options with Ripple defaults.
@@ -165,10 +175,12 @@ export function createRippleLanguageServer() {
 			const effects = handleWorkspaceChanges(
 				changes,
 				{
-					invalidateCompilerResolution: invalidateCompilerResolutionCaches,
+					restartLanguageServer,
 					invalidateTypeDefinitions: invalidateTypeDefinitionCaches,
 					reloadProjects: () => {
-						trackedTypeScriptConfigFiles.clear();
+						// Volar recreates disposed projects lazily, so retain the
+						// previously discovered dependency paths until process restart.
+						// New project setups extend this set with their current paths.
 						server.project.reload();
 					},
 					requestRefresh: (clearDiagnostics) =>
