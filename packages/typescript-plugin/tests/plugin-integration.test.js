@@ -1,5 +1,6 @@
 import path from 'path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import fs from 'fs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup_fixture_workspaces, create_fixture_workspace } from './workspace-fixtures.js';
 import * as ts from 'typescript';
 import { getRippleLanguagePlugin, TSRXVirtualCode, _reset_for_test } from '../src/language.js';
@@ -63,6 +64,8 @@ describe('typescript-plugin language plugin integration', () => {
 
 	afterEach(() => {
 		cleanup_fixture_workspaces();
+		vi.restoreAllMocks();
+		vi.unstubAllEnvs();
 	});
 
 	it('recognizes only .tsrx through the language plugin', () => {
@@ -131,6 +134,159 @@ describe('typescript-plugin language plugin integration', () => {
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain('compiler:octane');
+	});
+
+	it('uses a declared module compiler when no built-in candidate package is installed', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('declared-only');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:declared');
+	});
+
+	it('accepts comments and trailing commas in a compiler-declaring tsconfig', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('jsonc-declared');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:declared');
+	});
+
+	it('caches a declared compiler resolution for repeated edits in the tsconfig directory', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('declared-only');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		create_virtual_code(plugin, file_name, 'export default <div>First</div>;');
+		const exists_spy = vi.spyOn(fs, 'existsSync');
+
+		const virtual_code = create_virtual_code(
+			plugin,
+			file_name,
+			'export default <div>Second</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:declared');
+		expect(exists_spy).not.toHaveBeenCalled();
+	});
+
+	it('prefers a declared compiler over installed built-in candidates', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('declared-beats-candidates');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+
+		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+		expect(virtual_code.generatedCode).toContain('compiler:declared');
+		expect(virtual_code.generatedCode).not.toContain('compiler:ripple');
+	});
+
+	it('reports a malformed nearest tsconfig and does not fall back to an installed candidate', async () => {
+		vi.stubEnv('RIPPLE_DEBUG', 'true');
+		vi.resetModules();
+		const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { getRippleLanguagePlugin: create_debug_plugin } = await import('../src/language.js');
+		const workspace = create_fixture_workspace('malformed-tsconfig');
+		const tsconfig_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const plugin = create_debug_plugin();
+
+		expect(
+			plugin.createVirtualCode?.(
+				file_name,
+				'ripple',
+				create_snapshot('export default <div>Hello</div>;'),
+				/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
+					getAssociatedScript: () => undefined,
+				}),
+			),
+		).toBeUndefined();
+		expect(error_spy).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('Unable to parse nearest tsconfig'),
+			expect.stringContaining(tsconfig_path),
+			expect.any(String),
+		);
+	});
+
+	it('rejects a relative declaration and does not fall back to an installed candidate', async () => {
+		vi.stubEnv('RIPPLE_DEBUG', 'true');
+		vi.resetModules();
+		const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { getRippleLanguagePlugin: create_debug_plugin } = await import('../src/language.js');
+		const workspace = create_fixture_workspace('relative-declared');
+		const tsconfig_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'nested', 'components', 'App.tsrx');
+		const plugin = create_debug_plugin();
+
+		expect(
+			plugin.createVirtualCode?.(
+				file_name,
+				'ripple',
+				create_snapshot('export default <div>Hello</div>;'),
+				/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
+					getAssociatedScript: () => undefined,
+				}),
+			),
+		).toBeUndefined();
+		expect(error_spy).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('must be a bare package specifier'),
+			expect.stringContaining('./compiler.cjs'),
+			expect.stringContaining(tsconfig_path),
+		);
+	});
+
+	it('reports an unresolvable declaration and does not fall back to an installed candidate', async () => {
+		vi.stubEnv('RIPPLE_DEBUG', 'true');
+		vi.resetModules();
+		const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { getRippleLanguagePlugin: create_debug_plugin } = await import('../src/language.js');
+		const workspace = create_fixture_workspace('unresolvable-declared');
+		const tsconfig_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const plugin = create_debug_plugin();
+		const create_virtual_code_fn = plugin.createVirtualCode;
+
+		expect(typeof create_virtual_code_fn).toBe('function');
+		expect(
+			create_virtual_code_fn?.(
+				file_name,
+				'ripple',
+				create_snapshot('export default <div>Hello</div>;'),
+				/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
+					getAssociatedScript: () => undefined,
+				}),
+			),
+		).toBeUndefined();
+		expect(error_spy).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('missing-tsrx-compiler'),
+			expect.stringContaining(tsconfig_path),
+		);
+	});
+
+	it('uses the nearest tsconfig declaration for a nested sub-project', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('nearest-tsconfig');
+		const root_file_name = path.join(workspace, 'src', 'App.tsrx');
+		const nested_file_name = path.join(workspace, 'nested', 'src', 'App.tsrx');
+		const root_virtual_code = create_virtual_code(
+			plugin,
+			root_file_name,
+			'export default <div>Root</div>;',
+		);
+		const nested_virtual_code = create_virtual_code(
+			plugin,
+			nested_file_name,
+			'export default <div>Nested</div>;',
+		);
+
+		expect(root_virtual_code.generatedCode).toContain('compiler:declared');
+		expect(nested_virtual_code.generatedCode).toContain('compiler:nested');
 	});
 
 	it('creates virtual code with the vue compiler in a vue-only project', () => {

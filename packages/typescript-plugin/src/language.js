@@ -884,6 +884,11 @@ const pathToTypesCache = new Map();
 const typeNameMatchCache = new Map();
 /** @type {Map<string, { name: string | null, dependencies: Set<string> } | null>} */
 const pathToPackageManifestCache = new Map();
+/** @typedef {{ path: string, dir: string, compiler: string | null, error: import('typescript').Diagnostic | null }} ConsumerTsconfig */
+/** @type {Map<string, ConsumerTsconfig | null>} */
+const path_to_consumer_tsconfig_cache = new Map();
+/** @type {Map<string, string | null>} */
+const declared_compiler_path_map = new Map();
 
 /**
  * @param {ScriptId} fileNameOrUri
@@ -893,6 +898,99 @@ export function normalizeFileNameOrUri(fileNameOrUri) {
 	return typeof fileNameOrUri === 'string'
 		? fileNameOrUri
 		: fileNameOrUri.fsPath.replace(/\\/g, '/');
+}
+
+/**
+ * Find and parse the nearest tsconfig.json that can declare a TSRX compiler.
+ * Only that file's own top-level `tsrx` entry counts in v1; `extends` chains are
+ * intentionally not resolved.
+ * @param {string} start_dir
+ * @returns {ConsumerTsconfig | null}
+ */
+function get_nearest_consumer_tsconfig(start_dir) {
+	let current_dir = start_dir;
+	/** @type {string[]} */
+	const visited_dirs = [];
+
+	while (current_dir) {
+		if (path_to_consumer_tsconfig_cache.has(current_dir)) {
+			const cached_tsconfig = path_to_consumer_tsconfig_cache.get(current_dir) ?? null;
+			for (const visited_dir of visited_dirs) {
+				path_to_consumer_tsconfig_cache.set(visited_dir, cached_tsconfig);
+			}
+			return cached_tsconfig;
+		}
+
+		visited_dirs.push(current_dir);
+		const tsconfig_path = path.join(current_dir, 'tsconfig.json');
+		if (fs.existsSync(tsconfig_path)) {
+			const tsconfig_source = fs.readFileSync(tsconfig_path, 'utf8');
+			const parsed_tsconfig = ts.parseConfigFileTextToJson(tsconfig_path, tsconfig_source);
+			const compiler =
+				typeof parsed_tsconfig.config?.tsrx?.compiler === 'string'
+					? parsed_tsconfig.config.tsrx.compiler
+					: null;
+			const tsconfig = {
+				path: tsconfig_path,
+				dir: current_dir,
+				compiler,
+				error: parsed_tsconfig.error ?? null,
+			};
+			for (const visited_dir of visited_dirs) {
+				path_to_consumer_tsconfig_cache.set(visited_dir, tsconfig);
+			}
+			return tsconfig;
+		}
+
+		const parent_dir = path.dirname(current_dir);
+		if (parent_dir === current_dir) {
+			break;
+		}
+		current_dir = parent_dir;
+	}
+
+	for (const visited_dir of visited_dirs) {
+		path_to_consumer_tsconfig_cache.set(visited_dir, null);
+	}
+	return null;
+}
+
+/**
+ * Resolve the compiler explicitly selected by a consumer tsconfig. A null cache
+ * entry records a hard resolution failure and prevents candidate fallback.
+ * @param {ConsumerTsconfig} tsconfig
+ * @returns {string | null}
+ */
+function resolve_declared_compiler(tsconfig) {
+	if (declared_compiler_path_map.has(tsconfig.dir)) {
+		return declared_compiler_path_map.get(tsconfig.dir) ?? null;
+	}
+
+	const specifier = /** @type {string} */ (tsconfig.compiler);
+	if (specifier.startsWith('./') || specifier.startsWith('../') || path.isAbsolute(specifier)) {
+		declared_compiler_path_map.set(tsconfig.dir, null);
+		logError(
+			'Declared TSRX compiler must be a bare package specifier:',
+			specifier,
+			`in ${tsconfig.path}`,
+		);
+		return null;
+	}
+
+	try {
+		const tsconfig_require = createRequire(tsconfig.path);
+		const compiler_path = tsconfig_require.resolve(specifier);
+		declared_compiler_path_map.set(tsconfig.dir, compiler_path);
+		log('Found declared tsrx compiler at:', compiler_path, 'from tsconfig:', tsconfig.path);
+		return compiler_path;
+	} catch {
+		declared_compiler_path_map.set(tsconfig.dir, null);
+		logError(
+			`Unable to resolve declared TSRX compiler "${specifier}" from tsconfig`,
+			tsconfig.path,
+		);
+		return null;
+	}
 }
 
 /**
@@ -997,20 +1095,26 @@ function get_tsrx_compiler(normalized_file_name) {
 	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
 	if (compiler_path) {
 		const compiler_module = require(compiler_path);
-		if (
-			typeof compiler_module?.compile_to_volar_mappings !== 'function' &&
-			typeof compiler_module?.compileToVolarMappings === 'function'
-		) {
-			// Octane's volar entry exports the same contract under a camelCase
-			// name (`compileToVolarMappings`); normalize so already-published
-			// octane versions work without an octane-side release.
-			return {
-				...compiler_module,
-				compile_to_volar_mappings: compiler_module.compileToVolarMappings,
-			};
-		}
-		return compiler_module;
+		return normalize_tsrx_compiler_module(compiler_module);
 	}
+}
+
+/**
+ * Normalize the compiler contract used by Octane and consumer-declared modules.
+ * @param {TSRXCompilerModule & { compileToVolarMappings?: TSRXCompilerModule['compile_to_volar_mappings'] }} compiler_module
+ * @returns {TSRXCompilerModule}
+ */
+function normalize_tsrx_compiler_module(compiler_module) {
+	if (
+		typeof compiler_module?.compile_to_volar_mappings !== 'function' &&
+		typeof compiler_module?.compileToVolarMappings === 'function'
+	) {
+		return {
+			...compiler_module,
+			compile_to_volar_mappings: compiler_module.compileToVolarMappings,
+		};
+	}
+	return compiler_module;
 }
 
 /**
@@ -1076,6 +1180,18 @@ export function find_workspace_compiler_entry_for_file(
  */
 export function get_compiler_entry_for_file(normalized_file_name) {
 	const ext = path.extname(normalized_file_name);
+	const consumer_tsconfig = get_nearest_consumer_tsconfig(path.dirname(normalized_file_name));
+	if (consumer_tsconfig?.error) {
+		logError(
+			'Unable to parse nearest tsconfig:',
+			consumer_tsconfig.path,
+			ts.flattenDiagnosticMessageText(consumer_tsconfig.error.messageText, '\n'),
+		);
+		return undefined;
+	}
+	if (consumer_tsconfig?.compiler !== null && consumer_tsconfig?.compiler !== undefined) {
+		return resolve_declared_compiler(consumer_tsconfig) ?? undefined;
+	}
 	const package_manifest = get_nearest_package_manifest(path.dirname(normalized_file_name));
 
 	const workspace_compiler_path = find_workspace_compiler_entry_for_file(normalized_file_name);
@@ -1241,4 +1357,6 @@ export { get_compiler_dir_for_file as getRippleDirForFile };
 export function _reset_for_test() {
 	path2RipplePathMap.clear();
 	pathToPackageManifestCache.clear();
+	path_to_consumer_tsconfig_cache.clear();
+	declared_compiler_path_map.clear();
 }
