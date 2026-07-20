@@ -882,9 +882,9 @@ export const resolveConfig = (config) => {
 
 /** @type {Map<string, string | null>} */
 export const path2RipplePathMap = new Map();
-/** @type {Map<string, string>} */
+/** @type {Map<string, { mtimeMs: number, size: number, content: string }>} */
 const pathToTypesCache = new Map();
-/** @type {Map<string, RegExpMatchArray>} */
+/** @type {Map<string, { text: string, matches: Map<string, RegExpMatchArray> }>} */
 const typeNameMatchCache = new Map();
 /** @type {Map<string, { name: string | null, dependencies: Set<string> } | null>} */
 const pathToPackageManifestCache = new Map();
@@ -1184,18 +1184,36 @@ export function is_ripple_platform_file(file_name) {
 }
 
 /**
+ * Create a stable key for filesystem caches. Windows paths are case-insensitive
+ * to TypeScript, while file URIs conventionally lowercase their drive letter.
+ * @param {string} file_name
+ */
+function getPathCacheKey(file_name) {
+	const is_windows_path =
+		process.platform === 'win32' || /^[a-z]:[\\/]/i.test(file_name) || file_name.startsWith('\\\\');
+	const path_api = is_windows_path ? path.win32 : path;
+	const normalized = path_api.normalize(file_name);
+	return is_windows_path ? normalized.toLowerCase() : normalized;
+}
+
+/**
  * @param {string} typesFilePath
  * @returns {string | undefined}
  */
 export function getCachedTypeDefinitionFile(typesFilePath) {
-	const cached = pathToTypesCache.get(typesFilePath);
-	if (cached) {
-		return cached;
-	}
+	const cache_key = getPathCacheKey(typesFilePath);
 
-	if (!fs.existsSync(typesFilePath)) {
+	let stat;
+	try {
+		stat = fs.statSync(typesFilePath);
+	} catch {
 		logWarning(`Types file does not exist at path: ${typesFilePath}`);
 		return;
+	}
+
+	const cached = pathToTypesCache.get(cache_key);
+	if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+		return cached.content;
 	}
 
 	log(`Found ripple types at: ${typesFilePath}`);
@@ -1208,17 +1226,32 @@ export function getCachedTypeDefinitionFile(typesFilePath) {
 		return;
 	}
 
-	pathToTypesCache.set(typesFilePath, fileContent);
+	pathToTypesCache.set(cache_key, {
+		mtimeMs: stat.mtimeMs,
+		size: stat.size,
+		content: fileContent,
+	});
 	return fileContent;
 }
 
 /**
  * @param {string} typeName
  * @param {string} text
+ * @param {string} [sourceKey]
  * @returns {RegExpMatchArray | undefined}
  */
-export function getCachedTypeMatches(typeName, text) {
-	const cached = typeNameMatchCache.get(typeName);
+export function getCachedTypeMatches(typeName, text, sourceKey = text) {
+	const cache_key = sourceKey === text ? text : getPathCacheKey(sourceKey);
+	let source_cache = typeNameMatchCache.get(cache_key);
+	if (!source_cache || source_cache.text !== text) {
+		source_cache = {
+			text,
+			matches: new Map(),
+		};
+		typeNameMatchCache.set(cache_key, source_cache);
+	}
+
+	const cached = source_cache.matches.get(typeName);
 	if (cached) {
 		return cached;
 	}
@@ -1230,7 +1263,7 @@ export function getCachedTypeMatches(typeName, text) {
 	const match = text.match(searchPattern);
 
 	if (match && match.index !== undefined) {
-		typeNameMatchCache.set(typeName, match);
+		source_cache.matches.set(typeName, match);
 		return match;
 	}
 
@@ -1251,9 +1284,36 @@ export function get_compiler_dir_for_file(normalized_file_name) {
 
 export { get_compiler_dir_for_file as getRippleDirForFile };
 
-/** Reset module-level state used in tests. */
-export function _reset_for_test() {
+/**
+ * Drop compiler-selection state. Loaded ESM compiler graphs cannot be evicted
+ * safely in-process; language-server package watchers restart the process.
+ */
+export function invalidateCompilerResolutionCaches() {
 	path2RipplePathMap.clear();
 	pathToPackageManifestCache.clear();
 	reset_consumer_compiler_for_test();
+	loggedCompilationFailures.clear();
+}
+
+/**
+ * Drop cached definition-file content and matches. A path invalidates only one
+ * file; omitting it clears all definition state.
+ * @param {string} [typesFilePath]
+ */
+export function invalidateTypeDefinitionCaches(typesFilePath) {
+	if (typesFilePath) {
+		const cache_key = getPathCacheKey(typesFilePath);
+		pathToTypesCache.delete(cache_key);
+		typeNameMatchCache.delete(cache_key);
+		return;
+	}
+
+	pathToTypesCache.clear();
+	typeNameMatchCache.clear();
+}
+
+/** Reset all module-level state used in tests. */
+export function _reset_for_test() {
+	invalidateCompilerResolutionCaches();
+	invalidateTypeDefinitionCaches();
 }

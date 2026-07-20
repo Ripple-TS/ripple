@@ -14,9 +14,18 @@ import { createAutoInsertPlugin } from './autoInsertPlugin.js';
 import { createTypeScriptDiagnosticFilterPlugin } from './typescriptDiagnosticPlugin.js';
 import { createDocumentHighlightPlugin } from './documentHighlightPlugin.js';
 import { createDocumentSymbolPlugin } from './documentSymbolPlugin.js';
-import { getRippleLanguagePlugin, resolveConfig } from '@tsrx/typescript-plugin/src/language.js';
+import {
+	getRippleLanguagePlugin,
+	invalidateTypeDefinitionCaches,
+	resolveConfig,
+} from '@tsrx/typescript-plugin/src/language.js';
 import { createTypeScriptServices } from './typescriptService.js';
 import { create as createCssService } from 'volar-service-css';
+import {
+	handleWorkspaceChanges,
+	trackTypeScriptConfigDependencies,
+	WORKSPACE_FILE_PATTERNS,
+} from './workspaceState.js';
 
 const { log, logError } = createLogging('[Ripple Language Server]');
 
@@ -52,13 +61,21 @@ export function createRippleLanguageServer() {
 
 	connection.listen();
 
-	// Create language plugin instance once and reuse it
-	// This prevents creating multiple instances if the callback is called multiple times
-	const rippleLanguagePlugin = getRippleLanguagePlugin();
-	log('Language plugin instance created');
-
 	/** @type {WeakSet<Function>} */
 	const wrappedFunctions = new WeakSet();
+	/** @type {Set<string>} */
+	const trackedTypeScriptConfigFiles = new Set();
+	let restartScheduled = false;
+
+	/** Restart the process so Node drops the complete ESM compiler graph. */
+	function restartLanguageServer() {
+		if (restartScheduled) {
+			return;
+		}
+		restartScheduled = true;
+		log('Restarting after package state changed.');
+		setTimeout(() => process.exit(0), 50);
+	}
 
 	/**
 	 * Ensure TypeScript hosts always see compiler options with Ripple defaults.
@@ -105,16 +122,23 @@ export function createRippleLanguageServer() {
 
 			const initResult = server.initialize(
 				params,
-				createTypeScriptProject(ts, undefined, ({ projectHost }) => {
+				createTypeScriptProject(ts, undefined, ({ configFileName, projectHost }) => {
 					wrapCompilerOptionsProvider(projectHost, 'getCompilationSettings');
 
 					return {
-						languagePlugins: [rippleLanguagePlugin],
+						// Keep language-plugin identity aligned with Volar's project
+						// lifecycle. Nested tsconfigs are separate configured projects.
+						languagePlugins: [getRippleLanguagePlugin()],
 						setup({ project }) {
 							wrapCompilerOptionsProvider(
 								project?.typescript?.languageServiceHost,
 								'getCompilationSettings',
 							);
+							trackTypeScriptConfigDependencies(trackedTypeScriptConfigFiles, {
+								configFileName,
+								compilerOptions: projectHost.getCompilationSettings(),
+								projectReferences: projectHost.getProjectReferences?.(),
+							});
 						},
 					};
 				}),
@@ -147,25 +171,34 @@ export function createRippleLanguageServer() {
 		log('Server initialized.');
 		server.initialized();
 
-		// Register file watchers for TypeScript/JavaScript files so the language
-		// server is notified when they change on disk. Without this, changes to
-		// .ts files that are imported by .tsrx files are not detected, causing
-		// stale diagnostics until the server is restarted.
+		server.fileWatcher.onDidChangeWatchedFiles(({ changes }) => {
+			const effects = handleWorkspaceChanges(
+				changes,
+				{
+					restartLanguageServer,
+					invalidateTypeDefinitions: invalidateTypeDefinitionCaches,
+					reloadProjects: () => {
+						// Volar recreates disposed projects lazily, so retain the
+						// previously discovered dependency paths until process restart.
+						// New project setups extend this set with their current paths.
+						server.project.reload();
+					},
+					requestRefresh: (clearDiagnostics) =>
+						server.languageFeatures.requestRefresh(clearDiagnostics),
+				},
+				trackedTypeScriptConfigFiles,
+			);
+
+			if (effects.reloadProjects) {
+				log('Reloaded TypeScript projects after workspace configuration changed.');
+			}
+		});
+
+		// Register file watchers for source files, nested/shared TypeScript
+		// configs, and package state that affects compiler selection.
 		try {
-			await server.fileWatcher.watchFiles([
-				'**/*.ts',
-				'**/*.tsx',
-				'**/*.cts',
-				'**/*.mts',
-				'**/*.js',
-				'**/*.jsx',
-				'**/*.cjs',
-				'**/*.mjs',
-				'**/*.d.ts',
-				'**/tsconfig.json',
-				'**/jsconfig.json',
-			]);
-			log('File watchers registered for TypeScript/JavaScript files.');
+			await server.fileWatcher.watchFiles(WORKSPACE_FILE_PATTERNS);
+			log('Workspace file watchers registered.');
 		} catch (err) {
 			logError('Failed to register file watchers:', err);
 		}

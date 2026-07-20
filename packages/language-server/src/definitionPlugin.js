@@ -12,8 +12,6 @@ import {
 } from '@tsrx/typescript-plugin/src/language.js';
 
 const { log } = createLogging('[Ripple Definition Plugin]');
-/** @type {string | undefined} */
-let ripple_dir;
 
 /**
  * @returns {LanguageServicePlugin}
@@ -69,7 +67,7 @@ export function createDefinitionPlugin() {
 						log(`Found replace definition for ${typeName}`);
 
 						const filePath = sourceUri.fsPath || sourceUri.path;
-						ripple_dir = ripple_dir ?? getRippleDirForFile(normalizeFileNameOrUri(filePath));
+						const ripple_dir = getRippleDirForFile(normalizeFileNameOrUri(filePath));
 
 						if (!ripple_dir) {
 							log(`Could not determine Ripple source directory for file: ${filePath}`);
@@ -85,7 +83,7 @@ export function createDefinitionPlugin() {
 							return;
 						}
 
-						const match = getCachedTypeMatches(typeName, fileContent);
+						const match = getCachedTypeMatches(typeName, fileContent, typesFilePath);
 
 						if (match && match.index !== undefined) {
 							const classStart = match.index + match[0].indexOf(typeName);
