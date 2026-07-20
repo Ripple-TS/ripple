@@ -340,6 +340,38 @@ export const WORKSPACE_CONFIGS = {
 		compilers: [],
 		declared_compilers: [{ specifier: 'consumer-tsrx-compiler', marker: 'declared' }],
 	},
+	'declared-scoped': {
+		package_json: {
+			name: '@tsrx/fixture-declared-scoped-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: '@consumer/tsrx-compiler' }, compilerOptions: {} },
+		compilers: [],
+		declared_compilers: [{ specifier: '@consumer/tsrx-compiler', marker: 'scoped' }],
+	},
+	'declared-subpath': {
+		package_json: {
+			name: '@tsrx/fixture-declared-subpath-project',
+			private: true,
+		},
+		tsconfig_json: { tsrx: { compiler: 'consumer-tsrx-compiler/volar' }, compilerOptions: {} },
+		compilers: [],
+		declared_compilers: [{ specifier: 'consumer-tsrx-compiler/volar', marker: 'subpath' }],
+	},
+	'declared-scoped-subpath': {
+		package_json: {
+			name: '@tsrx/fixture-declared-scoped-subpath-project',
+			private: true,
+		},
+		tsconfig_json: {
+			tsrx: { compiler: '@consumer/tsrx-compiler/compiler/volar' },
+			compilerOptions: {},
+		},
+		compilers: [],
+		declared_compilers: [
+			{ specifier: '@consumer/tsrx-compiler/compiler/volar', marker: 'scoped-subpath' },
+		],
+	},
 	'declared-beats-candidates': {
 		package_json: {
 			name: '@tsrx/fixture-declared-priority-project',
@@ -389,6 +421,16 @@ export const WORKSPACE_CONFIGS = {
 		tsconfig_json: { tsrx: { compiler: 'missing-tsrx-compiler' }, compilerOptions: {} },
 		compilers: ['ripple'],
 	},
+	'invalid-declared-specifier': {
+		package_json: {
+			name: '@tsrx/fixture-invalid-declared-project',
+			private: true,
+			imports: { '#internal': './escape.cjs' },
+		},
+		tsconfig_json: { tsrx: { compiler: '#internal' }, compilerOptions: {} },
+		compilers: ['ripple'],
+		imports_escape: true,
+	},
 	'nearest-tsconfig': {
 		package_json: {
 			name: '@tsrx/fixture-nearest-tsconfig-project',
@@ -434,14 +476,23 @@ function write_compiler_stub(workspace_dir, compiler_name) {
  * @param {string} [directory]
  */
 function write_declared_compiler_stub(workspace_dir, specifier, marker, directory = '') {
-	const compiler_dir = path.join(workspace_dir, directory, 'node_modules', specifier);
+	const specifier_parts = specifier.split('/');
+	const package_part_count = specifier.startsWith('@') ? 2 : 1;
+	const package_name = specifier_parts.slice(0, package_part_count).join('/');
+	const subpath_parts = specifier_parts.slice(package_part_count);
+	const compiler_dir = path.join(workspace_dir, directory, 'node_modules', package_name);
 	fs.mkdirSync(compiler_dir, { recursive: true });
 	fs.writeFileSync(
 		path.join(compiler_dir, 'package.json'),
-		JSON.stringify({ name: specifier, main: 'index.cjs' }, null, 2) + '\n',
+		JSON.stringify({ name: package_name, main: 'index.cjs' }, null, 2) + '\n',
 	);
+	const compiler_path =
+		subpath_parts.length === 0
+			? path.join(compiler_dir, 'index.cjs')
+			: path.join(compiler_dir, ...subpath_parts) + '.js';
+	fs.mkdirSync(path.dirname(compiler_path), { recursive: true });
 	fs.writeFileSync(
-		path.join(compiler_dir, 'index.cjs'),
+		compiler_path,
 		COMPILER_STUBS.declared.replace('compiler:declared', `compiler:${marker}`),
 	);
 }
@@ -490,6 +541,12 @@ export function create_fixture_workspace(name) {
 	}
 	if (config.relative_compiler) {
 		fs.writeFileSync(path.join(workspace_dir, 'compiler.cjs'), COMPILER_STUBS.declared);
+	}
+	if (config.imports_escape) {
+		fs.writeFileSync(
+			path.join(workspace_dir, 'escape.cjs'),
+			`require('fs').writeFileSync(__dirname + '/escape-executed', 'executed');\n${COMPILER_STUBS.declared}`,
+		);
 	}
 
 	return workspace_dir;
