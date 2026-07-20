@@ -4,6 +4,7 @@ import standalonePrettier from 'prettier/standalone';
 import estreePlugin from 'prettier/plugins/estree';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { parseModule } from '@tsrx/core';
 import { languages, parsers, printers } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -506,16 +507,19 @@ const items=[1,2,3];
   </div>;
 }`;
 
+		// Rendered text is whitespace-significant: the authored line breaks and
+		// blank lines inside each text child are part of its rendered value and
+		// must survive formatting byte-for-byte.
 		const expected = `function Test() {
   return <div>
-    <p class="status">
-      Visible:
+    <p class="status">Visible:
+
       {String(visible)}
     </p>
     <p>
       {name}
-      is visible
-    </p>
+
+      is visible</p>
     <p>Hello {name}!</p>
   </div>;
 }`;
@@ -624,9 +628,22 @@ function App() {
 	});
 
 	it('formats returned TSRX fragments', async () => {
+		// The single spaces around <div /> are rendered text nodes (whitespace-only
+		// runs WITHOUT a newline are kept by the compiler), so they must survive.
 		const result = await format('function App() { return <> <div /> </>; }');
 		expect(result).toBeWithNewline(`function App() {
-  return <><div /></>;
+  return <> <div /> </>;
+}`);
+	});
+
+	it('drops fragment whitespace that contains a newline', async () => {
+		// Whitespace-only runs WITH a newline never reach the AST, so this
+		// fragment has a lone element child and lays out freely.
+		const result = await format('function App() { return <>\n<div />\n</>; }');
+		expect(result).toBeWithNewline(`function App() {
+  return <>
+    <div />
+  </>;
 }`);
 	});
 
@@ -5671,7 +5688,10 @@ const foo = <><Bar {...props} /></>;`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should break long direct text children after inline attributes', async () => {
+		it('should break attributes instead of long direct text children', async () => {
+			// The text hugs its tags in source, so it must stay glued: moving it onto
+			// its own line would add a rendered newline+indent to the text value.
+			// Overflow is absorbed by breaking the opening tag's attributes instead.
 			const input = `function App() {
   return <span
       class={styles.notificationMessage}
@@ -5679,9 +5699,9 @@ const foo = <><Bar {...props} /></>;`;
 }`;
 
 			const expected = `function App() {
-  return <span class={styles.notificationMessage}>
-    The report is ready. Review the summary before sharing it with the team.
-  </span>;
+  return <span
+    class={styles.notificationMessage}
+  >The report is ready. Review the summary before sharing it with the team.</span>;
 }`;
 
 			const result = await format(input, { printWidth: 80 });
@@ -6402,7 +6422,12 @@ function Child({ something }) {
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should wrap direct double-quoted text children idempotently', async () => {
+		it('should keep direct text children byte-stable and idempotent', async () => {
+			// Rendered text is never re-wrapped to printWidth — inserting a line
+			// break inside a text child would change its rendered value — so the
+			// over-long first line survives. The seam after </code> is elastic (the
+			// tokenizer skips a newline-bearing run after a closing tag), so the
+			// following text keeps its own line.
 			const input = `function App() {
   return <p class="lede">
     Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes
@@ -6413,8 +6438,7 @@ function Child({ something }) {
 
 			const expected = `function App() {
   return <p class="lede">
-    Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that
-    makes
+    Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes
     <code class="inline-code">.tsrx</code>
     files feel native in the rest of your repo.
   </p>;
@@ -6427,32 +6451,24 @@ function Child({ something }) {
 			expect(secondResult).toBeWithNewline(expected);
 		});
 
-		it('should wrap long direct text children when elements break', async () => {
+		it('should keep long direct text children unwrapped when the element overflows', async () => {
+			// A single-line text body must stay glued to its tags whatever the print
+			// width; only the opening tag's attributes may break to absorb overflow.
 			const input = `function App() {
   return <span class={styles.notificationMessage}>The report is ready. Review the summary before sharing it with the team.</span>
 }`;
 
-			const expectedPrintWidth70 = `function App() {
-  return <span class={styles.notificationMessage}>
-    The report is ready. Review the summary before sharing it with the
-    team.
-  </span>;
-}`;
-			const expectedPrintWidth40 = `function App() {
+			const expectedOverflow = `function App() {
   return <span
     class={styles.notificationMessage}
-  >
-    The report is ready. Review the
-    summary before sharing it with the
-    team.
-  </span>;
+  >The report is ready. Review the summary before sharing it with the team.</span>;
 }`;
 
 			const resultPrintWidth70 = await format(input, { printWidth: 70 });
-			expect(resultPrintWidth70).toBeWithNewline(expectedPrintWidth70);
+			expect(resultPrintWidth70).toBeWithNewline(expectedOverflow);
 
 			const resultPrintWidth40 = await format(input, { printWidth: 40 });
-			expect(resultPrintWidth40).toBeWithNewline(expectedPrintWidth40);
+			expect(resultPrintWidth40).toBeWithNewline(expectedOverflow);
 		});
 
 		it('properly formats components markup and new lines and leaves one new line between components and <style> if one or more exists', async () => {
@@ -6491,6 +6507,214 @@ function RowList({ rows, Row }) {
 				printWidth: 100,
 			});
 			expect(result).toBeWithNewline(expected);
+		});
+	});
+
+	// Rendered JSX text is whitespace-significant: the compilers keep a rendered
+	// text child's value verbatim (only whitespace-only-with-newline runs are
+	// dropped, and those never reach the AST), so formatting must never change
+	// any parsed text-node value. These tests parse the source before and after
+	// formatting with @tsrx/core and require the rendered text values to be
+	// byte-identical, and formatting to be idempotent.
+	describe('JSX text semantics preservation', () => {
+		/**
+		 * Collect every rendered JSXText value in source order.
+		 * @param {string} code
+		 * @returns {string[]}
+		 */
+		const collectRenderedText = (code) => {
+			const ast = parseModule(code, 'SemanticsTest.tsrx');
+			/** @type {string[]} */
+			const values = [];
+			(function walk(node) {
+				if (!node || typeof node !== 'object') return;
+				if (Array.isArray(node)) {
+					for (const item of node) walk(item);
+					return;
+				}
+				if (node.type === 'JSXText') {
+					// Whitespace-only-with-newline runs render nothing on every target.
+					if (!(/[\r\n]/u.test(node.value) && !/\S/u.test(node.value))) {
+						values.push(node.value);
+					}
+				}
+				for (const key of Object.keys(node)) {
+					if (key !== 'loc' && typeof node[key] === 'object') walk(node[key]);
+				}
+			})(ast);
+			return values;
+		};
+
+		/**
+		 * @param {string} input
+		 * @param {import('prettier').Options} [options]
+		 */
+		const expectTextPreserved = async (input, options = {}) => {
+			const result = await format(input, options);
+			expect(collectRenderedText(result)).toEqual(collectRenderedText(input));
+			const secondResult = await format(result, options);
+			expect(secondResult).toBe(result);
+			return result;
+		};
+
+		it('keeps a multi-line text child verbatim (react-aria textValue case)', async () => {
+			const input = `export function App() {
+  return <ListBoxItem>
+    Kangaroo
+  </ListBoxItem>;
+}
+`;
+			const result = await expectTextPreserved(input);
+			// The body must not collapse to <ListBoxItem>Kangaroo</ListBoxItem>:
+			// the rendered text is "\n    Kangaroo\n  ", not "Kangaroo".
+			expect(result).toBe(input);
+		});
+
+		it('keeps an inline text child inline', async () => {
+			const input = `export function App() {
+  return <ListBoxItem>Kangaroo</ListBoxItem>;
+}
+`;
+			const result = await expectTextPreserved(input);
+			expect(result).toBe(input);
+		});
+
+		it('never merges or splits text at frozen boundaries', async () => {
+			await expectTextPreserved(`function App() {
+  return <div>Hello <b>world</b>!</div>;
+}`);
+			await expectTextPreserved(`function App() {
+  return <div>
+    Items: <b>{n}</b>
+  </div>;
+}`);
+			await expectTextPreserved(`function App() {
+  return <p>before <br /> after</p>;
+}`);
+		});
+
+		it('preserves internal newlines, blank lines, and repeated spaces', async () => {
+			await expectTextPreserved(`function App() {
+  return <pre>
+    line one
+      line two   spaced
+
+    line four
+  </pre>;
+}`);
+			await expectTextPreserved(`function App() {
+  return <div>a  b   c</div>;
+}`);
+		});
+
+		it('preserves kept whitespace-only text (no newline) around children', async () => {
+			await expectTextPreserved(`function App() {
+  return <div><a href="/x">one</a> <a href="/y">two</a></div>;
+}`);
+			await expectTextPreserved(`function App() {
+  return <> <div /> </>;
+}`);
+			await expectTextPreserved(`function App() {
+  return <span> {value} </span>;
+}`);
+		});
+
+		it('preserves text around expression holes', async () => {
+			await expectTextPreserved(`function App() {
+  return <p>Count: {count} items</p>;
+}`);
+			// Text directly after an {expr} keeps its leading whitespace.
+			await expectTextPreserved(`function Test() {
+  return <p>{name}
+
+      is visible</p>;
+}`);
+		});
+
+		it('still re-wraps expression-only bodies (droppable seams)', async () => {
+			const input = `function App() {
+  return <span>
+    {'Source · ' + (activeFile || 'x')}
+  </span>;
+}`;
+			const result = await expectTextPreserved(input);
+			expect(result).toContain(`<span>{"Source · " + (activeFile || "x")}</span>`);
+		});
+
+		it('does not wrap long text to printWidth', async () => {
+			await expectTextPreserved(
+				`function App() {
+  return <p>This line of rendered text is far longer than forty characters and must never be wrapped.</p>;
+}`,
+				{ printWidth: 40 },
+			);
+		});
+
+		it('preserves text through the elastic seam after a closing tag', async () => {
+			// The tokenizer skips a newline-bearing whitespace run after </code>, so
+			// the following text's value starts at "files" and the formatter may
+			// keep the authored line break without changing the program.
+			await expectTextPreserved(`function App() {
+  return <p>
+    prose before
+    <code>.tsrx</code>
+    files feel native.
+  </p>;
+}`);
+			// Glued form parses to the same values and must also round-trip.
+			await expectTextPreserved(`function App() {
+  return <p>
+    prose before
+    <code>.tsrx</code>files feel native.
+  </p>;
+}`);
+		});
+
+		it('preserves text in fragments and nested elements', async () => {
+			await expectTextPreserved(`function App() {
+  return <>
+    Loose text
+    <div>
+      nested <em>emphasis</em> tail
+    </div>
+  </>;
+}`);
+		});
+
+		it('preserves text when the opening tag has to break', async () => {
+			await expectTextPreserved(
+				`function App() {
+  return <span class={styles.notificationMessage} data-state={state}>The report is ready.</span>;
+}`,
+				{ printWidth: 40 },
+			);
+		});
+
+		it('keeps tsx-expression element text on its own line (elastic opening tag)', async () => {
+			// In tsx-expression position the tokenizer also skips the newline run
+			// after the opening tag, so the authored layout parses identically to
+			// the glued form and must be kept as authored.
+			const input = `function App() @{
+  const el = <div id="my-id" class="my-class" data-testid="test" aria-label="label">
+    content
+  </div>;
+  <>
+    {el}
+  </>
+}
+`;
+			const result = await expectTextPreserved(input, { printWidth: 100 });
+			expect(result).toBe(input);
+		});
+
+		it('preserves text mixed with template control flow', async () => {
+			await expectTextPreserved(`function App() {
+  return <div>
+    Status: @if (ready) {
+      <b>ready</b>
+    }
+  </div>;
+}`);
 		});
 	});
 });

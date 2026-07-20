@@ -2484,7 +2484,11 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'JSXText':
-			nodeContent = printRawText(node.value);
+			// Rendered text is whitespace-significant: reproduce it byte-for-byte.
+			// Droppable whitespace runs render nothing and print nothing (this path
+			// is reached for comment-bearing text children; the comment machinery
+			// around printRippleNode still emits their comments).
+			nodeContent = isDroppableJSXText(node) ? '' : printVerbatimJSXText(node.value);
 			break;
 
 		case 'JSXEmptyExpression':
@@ -5762,54 +5766,30 @@ function printTSIndexedAccessType(node, path, options, print) {
 }
 
 /**
- * Print direct TSRX text so it can wrap like JSX text when an element body breaks.
+ * Whether a JSX text child is dropped by the compilers: whitespace-only AND
+ * containing a newline. The Ripple target trims newline-bearing text runs (so
+ * these collapse to '' and render nothing) and Octane drops whitespace-only
+ * runs. Every other text child renders — verbatim on targets like Octane, and
+ * with only its outer edges trimmed on the Ripple target when it contains a
+ * newline — so the formatter must reproduce its value byte-for-byte and never
+ * merge, wrap, or re-indent through it.
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+function isDroppableJSXText(child) {
+	return child.type === 'JSXText' && /[\r\n]/u.test(child.value) && !/\S/u.test(child.value);
+}
+
+/**
+ * Print a rendered JSX text child byte-for-byte. Newlines become literal lines
+ * so the doc printer neither re-indents the text's continuation lines nor
+ * trims their trailing whitespace — the compiled output contains this text
+ * verbatim.
  * @param {string} raw
  * @returns {Doc}
  */
-function printRawText(raw) {
-	const text = raw.trim().replace(/(?:\r\n|\r|\n)[^\S\r\n]+/gu, ' ');
-	if (!text) {
-		return '';
-	}
-
-	return fill(
-		text
-			.split(/([^\S\r\n]+)/u)
-			.filter(Boolean)
-			.map((part) => {
-				return /^[^\S\r\n]+$/u.test(part) ? line : replaceEndOfLine(part);
-			}),
-	);
-}
-
-/**
- * @param {string} raw
- * @returns {Doc | Doc[] | string}
- */
-function printJSXTextChild(raw) {
-	const text = raw.trim();
-	if (!text) {
-		return '';
-	}
-
-	const lines = text
-		.split(/\r\n|\r|\n/u)
-		.map((line) => line.trim())
-		.filter(Boolean);
-	if (lines.length <= 1) {
-		return lines[0] ?? '';
-	}
-
-	return join(hardline, lines);
-}
-
-/**
- * @param {string} raw
- * @returns {string}
- */
-function normalizeInlineJSXText(raw) {
-	const text = raw.replace(/[^\S\r\n]+/gu, ' ');
-	return text.trim() || !/[\r\n]/u.test(text) ? text : '';
+function printVerbatimJSXText(raw) {
+	return replaceEndOfLine(raw);
 }
 
 /**
@@ -5831,6 +5811,217 @@ function isSimpleJSXExpressionChild(child) {
 		expression?.type === 'BinaryExpression' ||
 		expression?.type === 'LogicalExpression'
 	);
+}
+
+/**
+ * Whether the boundary before a rendered text child is elastic: in some
+ * positions (after a `</…>` closing tag, and after the opening tag of a
+ * tsx-expression element) the tokenizer skips a newline-bearing whitespace run
+ * before starting the JSX text token, so the text's parsed value never
+ * includes that run. There the formatter may emit (or omit) a line break
+ * without changing the program. The tokenizer's decision is visible as a
+ * source-position gap: the text token starting after the previous node's end
+ * means whitespace was skipped. Where nothing was skipped — after self-closing
+ * elements, `{expr}` containers, `@if`/`@for` blocks, `@{ … }` code blocks —
+ * the text's value owns everything from the boundary on, and it is frozen.
+ * @param {AST.NodeWithLocation | { end?: number }} previousNode - previous sibling or opening tag
+ * @param {AST.Node} textNode
+ * @returns {boolean}
+ */
+function isElasticTextBoundary(previousNode, textNode) {
+	const previousEnd = /** @type {AST.NodeWithLocation} */ (previousNode)?.end;
+	const textStart = /** @type {AST.NodeWithLocation} */ (textNode)?.start;
+	return (
+		typeof previousEnd === 'number' && typeof textStart === 'number' && textStart > previousEnd
+	);
+}
+
+/**
+ * When comments were authored inside a rendered text run, print the run's raw
+ * source slice (which still contains the comment bytes) so the text stays
+ * byte-identical, and detach the comments from their owners so they don't
+ * print twice. Returns null when the text has no in-span comments — or when a
+ * comment attached to it lies outside its span, which the generic comment
+ * machinery must handle instead.
+ * @param {ESTreeJSX.JSXText & AST.NodeWithMaybeComments} child
+ * @param {(AST.Node & AST.NodeWithMaybeComments) | undefined} nextChild
+ * @param {RippleFormatOptions} options
+ * @returns {Doc | null}
+ */
+function printJSXTextSliceWithComments(child, nextChild, options) {
+	const start = /** @type {number} */ (child.start);
+	const end = /** @type {number} */ (child.end);
+	const inSpan = (/** @type {AST.Comment} */ comment) =>
+		typeof comment.start === 'number' &&
+		typeof comment.end === 'number' &&
+		comment.start >= start &&
+		comment.end <= end;
+
+	const own = [
+		...(child.leadingComments ?? []),
+		...(child.trailingComments ?? []),
+		...(child.innerComments ?? []),
+	];
+	if (own.some((comment) => !inSpan(comment))) {
+		return null;
+	}
+	const nextLeading = nextChild?.leadingComments ?? [];
+	const consumedFromNext = nextLeading.filter(inSpan);
+	if (own.length === 0 && consumedFromNext.length === 0) {
+		return null;
+	}
+	if (typeof options.originalText !== 'string') {
+		return null;
+	}
+
+	if (own.length > 0) {
+		child.leadingComments = undefined;
+		child.trailingComments = undefined;
+		child.innerComments = undefined;
+	}
+	if (consumedFromNext.length > 0 && nextChild) {
+		const remaining = nextLeading.filter((comment) => !inSpan(comment));
+		nextChild.leadingComments = remaining.length > 0 ? remaining : undefined;
+	}
+	return printVerbatimJSXText(options.originalText.slice(start, end));
+}
+
+/**
+ * @typedef {{ doc: Doc, node: AST.Node, index: number, isText: boolean }} JSXChildItem
+ * @typedef {{ items: JSXChildItem[] }} JSXChildSegment
+ */
+
+/**
+ * Collect an element/fragment's rendered children and group them into "glued"
+ * segments the formatter must not rewrap through.
+ *
+ * JSX text is whitespace-significant in TSRX: compiled output keeps a rendered
+ * text child's value verbatim, and only whitespace-only-with-newline runs are
+ * dropped (see isDroppableJSXText). Layout is therefore only free to change at
+ * boundaries where the source had such a droppable run — or no text at all —
+ * between two non-text children; any boundary that touches rendered text is
+ * frozen, because adding or removing a line break there rewrites the text.
+ * Each returned segment is a maximal run of children joined by frozen
+ * boundaries and is printed with nothing between its items; the seams BETWEEN
+ * segments are the only safe places to add or remove line breaks.
+ *
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement | AST.TSRXJSXFragment} node
+ * @param {AstPath<any>} path
+ * @param {RippleFormatOptions} options
+ * @param {PrintFn} print
+ * @param {Doc} tagName - the element's tag name ('' for fragments)
+ * @returns {JSXChildSegment[]}
+ */
+function collectJSXChildSegments(node, path, options, print, tagName) {
+	/** @type {JSXChildItem[]} */
+	const kept = [];
+	const children = node.children;
+
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
+
+		if (child.type === 'JSXText') {
+			if (isDroppableJSXText(child)) {
+				if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
+					const printedChild = path.call(print, 'children', i);
+					if (printedChild !== '') {
+						kept.push({ doc: printedChild, node: child, index: i, isText: false });
+					}
+				}
+				continue;
+			}
+			// A comment written inside a rendered text run is carved out of the
+			// text's value by the parser (leaving the run's whitespace behind) and
+			// attached to the text itself or to the following child. Reprinting the
+			// comment on its own line would add bytes to the text, so instead print
+			// the text's raw source slice — which still contains the comment — and
+			// consume the attachment so it isn't printed twice.
+			const sliceDoc = printJSXTextSliceWithComments(
+				child,
+				/** @type {(AST.Node & AST.NodeWithMaybeComments) | undefined} */ (children[i + 1]),
+				options,
+			);
+			if (sliceDoc !== null) {
+				kept.push({ doc: sliceDoc, node: child, index: i, isText: true });
+				continue;
+			}
+			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
+				const printedChild = path.call(print, 'children', i);
+				if (printedChild !== '') {
+					kept.push({ doc: printedChild, node: child, index: i, isText: true });
+				}
+				continue;
+			}
+			// `<tsrx>` docs sugar: `text= <El/> ;` renders as an assignment-like row.
+			const nextChild = children[i + 1];
+			const afterNextChild = children[i + 2];
+			const nextText = afterNextChild?.type === 'JSXText' ? afterNextChild.value.trim() : '';
+			if (
+				tagName === 'tsrx' &&
+				child.value.trim() &&
+				child.value.trimEnd().endsWith('=') &&
+				nextChild?.type === 'JSXElement' &&
+				nextText === ';'
+			) {
+				kept.push({
+					doc: [child.value.trim(), ' ', path.call(print, 'children', i + 1), ';'],
+					node: child,
+					index: i + 2,
+					isText: false,
+				});
+				i += 2;
+				continue;
+			}
+			kept.push({ doc: printVerbatimJSXText(child.value), node: child, index: i, isText: true });
+		} else if (child.type === 'JSXExpressionContainer') {
+			kept.push({
+				doc: [
+					...printTemplateChildLeadingComments(child),
+					'{',
+					path.call(print, 'children', i, 'expression'),
+					'}',
+					...printTemplateChildTrailingComments(child),
+				],
+				node: child,
+				index: i,
+				isText: false,
+			});
+		} else {
+			const printed = path.call(print, 'children', i);
+			// A child that prints nothing (e.g. an empty <style> body's stylesheet)
+			// contributes no segment.
+			if (printed === '' || (Array.isArray(printed) && printed.length === 0)) {
+				continue;
+			}
+			kept.push({ doc: printed, node: /** @type {AST.Node} */ (child), index: i, isText: false });
+		}
+	}
+
+	/** @type {JSXChildSegment[]} */
+	const segments = [];
+	/** @type {JSXChildSegment | null} */
+	let current = null;
+	for (const item of kept) {
+		const previous = current ? current.items[current.items.length - 1] : null;
+		// A source-adjacent boundary that touches rendered text is frozen unless
+		// the tokenizer already skipped whitespace there (see
+		// isElasticTextBoundary). Everything else starts a new, breakable segment.
+		let frozen = false;
+		if (previous && previous.index === item.index - 1) {
+			if (previous.isText) {
+				frozen = true;
+			} else if (item.isText) {
+				frozen = !isElasticTextBoundary(previous.node, item.node);
+			}
+		}
+		if (frozen && current) {
+			current.items.push(item);
+		} else {
+			current = { items: [item] };
+			segments.push(current);
+		}
+	}
+	return segments;
 }
 
 /**
@@ -5975,94 +6166,20 @@ function printJSXElement(node, path, options, print) {
 		return group([openingTag, path.call(print, 'children', 0), '</', tagName, '>']);
 	}
 
-	// Format children - filter out empty text nodes and merge adjacent text nodes.
-	// childNodes tracks the source node behind each doc (a text run is a single
-	// JSXText) so the join can preserve authored blank lines.
-	const childrenDocs = [];
-	const childNodes = [];
-	let currentText = '';
-	let currentTextNode = null;
+	// Collect rendered children into glued segments: JSX text is
+	// whitespace-significant (the compiler keeps a rendered text child's value
+	// verbatim; only whitespace-only-with-newline runs are dropped), so line
+	// breaks may only be added or removed at seams between segments, never
+	// inside one.
+	const segments = collectJSXChildSegments(node, path, options, print, tagName);
 
-	for (let i = 0; i < node.children.length; i++) {
-		const child = node.children[i];
-
-		if (child.type === 'JSXText') {
-			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
-				if (currentText) {
-					childrenDocs.push(currentText);
-					childNodes.push(currentTextNode);
-					currentText = '';
-					currentTextNode = null;
-				}
-				const printedChild = path.call(print, 'children', i);
-				if (printedChild !== '') {
-					childrenDocs.push(printedChild);
-					childNodes.push(child);
-				}
-				continue;
-			}
-			// Accumulate text content, preserving meaningful boundary spaces.
-			const text = normalizeInlineJSXText(child.value);
-			if (text) {
-				const nextChild = node.children[i + 1];
-				const afterNextChild = node.children[i + 2];
-				const nextText = afterNextChild?.type === 'JSXText' ? afterNextChild.value.trim() : '';
-				if (
-					tagName === 'tsrx' &&
-					text.trimEnd().endsWith('=') &&
-					nextChild?.type === 'JSXElement' &&
-					nextText === ';'
-				) {
-					if (currentText) {
-						childrenDocs.push(currentText);
-						childNodes.push(currentTextNode);
-						currentText = '';
-						currentTextNode = null;
-					}
-					childrenDocs.push([text.trim(), ' ', path.call(print, 'children', i + 1), ';']);
-					childNodes.push(child);
-					i += 2;
-					continue;
-				}
-
-				if (currentText) {
-					currentText += currentText.endsWith(' ') || text.startsWith(' ') ? text : ' ' + text;
-				} else {
-					currentText = text;
-					currentTextNode = child;
-				}
-			}
-		} else {
-			// If we have accumulated text, push it before the non-text node
-			if (currentText) {
-				childrenDocs.push(currentText);
-				childNodes.push(currentTextNode);
-				currentText = '';
-				currentTextNode = null;
-			}
-
-			if (child.type === 'JSXExpressionContainer') {
-				// Handle JSX expression containers
-				childrenDocs.push([
-					...printTemplateChildLeadingComments(child),
-					'{',
-					path.call(print, 'children', i, 'expression'),
-					'}',
-					...printTemplateChildTrailingComments(child),
-				]);
-				childNodes.push(child);
-			} else {
-				// Handle nested JSX elements
-				childrenDocs.push(path.call(print, 'children', i));
-				childNodes.push(child);
-			}
+	// Only droppable whitespace children: print as an empty element.
+	if (segments.length === 0) {
+		const bodyComments = [...innerCommentDocs, ...closingCommentDocs];
+		if (bodyComments.length > 0) {
+			return group([openingTag, indent(bodyComments), hardline, '</', tagName, '>']);
 		}
-	}
-
-	// Don't forget any remaining text
-	if (currentText) {
-		childrenDocs.push(currentText);
-		childNodes.push(currentTextNode);
+		return [openingTag, '</', tagName, '>'];
 	}
 
 	// A child with leading comments must break onto its own line, so the comment
@@ -6072,89 +6189,90 @@ function printJSXElement(node, path, options, print) {
 		return Array.isArray(leadingComments) && leadingComments.length > 0;
 	});
 	const forceMultiline = hasClosingComments || hasChildLeadingComments;
-	const singleChildNode = childNodes.length === 1 ? childNodes[0] : null;
-	const hasAuthoredMultilineSingleTextChild =
-		singleChildNode?.type === 'JSXText' && /[\r\n]/u.test(singleChildNode.value);
 
-	// Check if content can be inlined (single text node or single expression).
-	// Trailing or child-leading comments force the multi-line layout. A single
-	// text child stays inline when it fits and otherwise fills/wraps to printWidth.
-	if (
-		!forceMultiline &&
-		!hasAuthoredMultilineSingleTextChild &&
-		childrenDocs.length === 1 &&
-		typeof childrenDocs[0] === 'string'
-	) {
-		// The open tag breaks for attributes independently; the text+closing get
-		// their own group so the text only drops to its own (filled) lines when it
-		// itself overflows — otherwise it hugs `>text</tag>`.
-		return [
-			openingTag,
-			group([indent([softline, printRawText(childrenDocs[0])]), softline, '</', tagName, '>']),
-		];
-	}
-	const meaningfulChildren = node.children.filter(
-		(child) => child.type !== 'JSXText' || child.value.trim(),
-	);
-	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
-	const singleExpression =
-		singleMeaningfulChild?.type === 'JSXExpressionContainer'
-			? singleMeaningfulChild.expression
-			: null;
-	if (
-		!forceMultiline &&
-		childrenDocs.length === 1 &&
-		(singleExpression?.type === 'BinaryExpression' ||
-			singleExpression?.type === 'LogicalExpression')
-	) {
-		// Keep a short operation against its tags, but give a wrapping operation
-		// an indented element body instead of aligning continuations after `{`.
-		// Group the opening tag with that body so wrapped attributes break both.
-		return group([openingTag, indent([softline, childrenDocs[0]]), softline, '</', tagName, '>']);
-	}
-	if (
-		!forceMultiline &&
-		childrenDocs.length === 1 &&
-		singleMeaningfulChild?.type === 'JSXExpressionContainer' &&
-		isSimpleJSXExpressionChild(/** @type {AST.Node} */ (singleMeaningfulChild))
-	) {
-		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
-	}
-	if (
-		!forceMultiline &&
-		childrenDocs.length > 1 &&
-		wasOriginallySingleLine(node) &&
-		node.children.some((child) => child.type === 'JSXText') &&
-		node.children.every(
-			(child) =>
-				child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
-		)
-	) {
-		return group([openingTag, ...childrenDocs, '</', tagName, '>']);
-	}
+	const firstSegment = segments[0];
+	const lastSegment = segments[segments.length - 1];
+	const gluedToClose = lastSegment.items[lastSegment.items.length - 1].isText;
+	const onlyItem =
+		segments.length === 1 && firstSegment.items.length === 1 ? firstSegment.items[0] : null;
 
-	// Multiple children or complex children - format with line breaks. Text runs
-	// fill/wrap to printWidth.
-	const formattedChildren = [];
-	for (let i = 0; i < childrenDocs.length; i++) {
-		const childDoc = childrenDocs[i];
-		formattedChildren.push(typeof childDoc === 'string' ? printRawText(childDoc) : childDoc);
-		if (i < childrenDocs.length - 1) {
-			// Preserve a single authored blank line between children (2+ collapse to 1).
-			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
-			formattedChildren.push(blank ? [hardline, hardline] : hardline);
+	// A single expression-container body surrounded only by droppable whitespace
+	// re-wraps safely: keep the existing width-driven layouts.
+	if (!forceMultiline && onlyItem !== null && onlyItem.node.type === 'JSXExpressionContainer') {
+		const expression = /** @type {ESTreeJSX.JSXExpressionContainer} */ (onlyItem.node).expression;
+		if (expression?.type === 'BinaryExpression' || expression?.type === 'LogicalExpression') {
+			// Keep a short operation against its tags, but give a wrapping operation
+			// an indented element body instead of aligning continuations after `{`.
+			// Group the opening tag with that body so wrapped attributes break both.
+			return group([openingTag, indent([softline, onlyItem.doc]), softline, '</', tagName, '>']);
+		}
+		if (isSimpleJSXExpressionChild(/** @type {AST.Node} */ (onlyItem.node))) {
+			return group([openingTag, onlyItem.doc, '</', tagName, '>']);
 		}
 	}
 
-	// Build the final element
-	return group([
-		openingTag,
-		indent([hardline, ...formattedChildren, ...closingCommentDocs]),
-		hardline,
-		'</',
-		tagName,
-		'>',
-	]);
+	// A body that involves rendered text and was authored on a single line keeps
+	// that form: frozen boundaries must not break, and the elastic seams are
+	// printed glued (which parses identically). (A multi-line text child takes
+	// the generic path below and reproduces its lines verbatim.)
+	const hasRenderedText = segments.some((segment) => segment.items.some((item) => item.isText));
+	if (!forceMultiline && hasRenderedText && wasOriginallySingleLine(node)) {
+		return group([
+			openingTag,
+			...segments.flatMap((segment) => segment.items.map((item) => item.doc)),
+			'</',
+			tagName,
+			'>',
+		]);
+	}
+
+	// Multi-line layout. Segments break onto their own indented lines at the
+	// breakable seams; rendered text at the body's edges stays glued to its tag,
+	// with the text's own verbatim newlines providing any line structure.
+	/** @type {Doc[]} */
+	const parts = [openingTag];
+	/** @type {Doc[]} */
+	const indented = [];
+	/** @type {JSXChildSegment | null} */
+	let previousSegment = null;
+	for (const segment of segments) {
+		const docs = segment.items.map((item) => item.doc);
+		if (
+			previousSegment === null &&
+			segment.items[0].isText &&
+			!isElasticTextBoundary(
+				/** @type {AST.NodeWithLocation} */ (openingElement),
+				segment.items[0].node,
+			)
+		) {
+			// Rendered text that starts at the opening tag's `>` glues to it. The
+			// indent wrapper leaves the verbatim text alone (its newlines are
+			// literal) but keeps any hardlines from nested children at the body's
+			// indent level.
+			parts.push(indent(docs));
+		} else {
+			/** @type {Doc[]} */
+			const separator = [hardline];
+			if (previousSegment !== null) {
+				const previousNode = previousSegment.items[previousSegment.items.length - 1].node;
+				// Preserve a single authored blank line between segments (2+ collapse to 1).
+				if (getBlankLinesBetweenNodes(previousNode, leadingAnchor(segment.items[0].node)) > 0) {
+					separator.push(hardline);
+				}
+			}
+			indented.push(...separator, ...docs);
+		}
+		previousSegment = segment;
+	}
+	indented.push(...closingCommentDocs);
+	if (indented.length > 0) {
+		parts.push(indent(indented));
+	}
+	if (!gluedToClose || closingCommentDocs.length > 0) {
+		parts.push(hardline);
+	}
+	parts.push('</', tagName, '>');
+	return group(parts);
 }
 
 /**
@@ -6188,91 +6306,101 @@ function printJSXFragment(node, path, options, print) {
 		return group(['<>', path.call(print, 'children', 0), '</>']);
 	}
 
-	// Format children - filter out empty text nodes. childNodes tracks the source
-	// node behind each doc so the join can preserve authored blank lines.
-	const childrenDocs = [];
-	const childNodes = [];
-	for (let i = 0; i < node.children.length; i++) {
-		const child = node.children[i];
+	// Collect rendered children into glued segments (see collectJSXChildSegments):
+	// JSX text is whitespace-significant, so line breaks may only be added or
+	// removed at seams between segments, never inside one.
+	const segments = collectJSXChildSegments(node, path, options, print, '');
 
-		if (child.type === 'JSXText') {
-			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
-				const printedChild = path.call(print, 'children', i);
-				if (printedChild !== '') {
-					childrenDocs.push(printedChild);
-					childNodes.push(child);
-				}
-				continue;
-			}
-			// Handle JSX text nodes - trim whitespace and only include if not empty
-			const text = printJSXTextChild(child.value);
-			if (text) {
-				childrenDocs.push(text);
-				childNodes.push(child);
-			}
-		} else if (child.type === 'JSXExpressionContainer') {
-			// Handle JSX expression containers
-			childrenDocs.push([
-				...printTemplateChildLeadingComments(child),
-				'{',
-				path.call(print, 'children', i, 'expression'),
-				'}',
-				...printTemplateChildTrailingComments(child),
-			]);
-			childNodes.push(child);
-		} else {
-			// Handle nested JSX elements and fragments
-			childrenDocs.push(path.call(print, 'children', i));
-			childNodes.push(child);
+	// Only droppable whitespace children: print as an empty fragment.
+	if (segments.length === 0) {
+		const bodyComments = [...innerCommentDocs, ...closingCommentDocs];
+		if (bodyComments.length > 0) {
+			return group(['<>', indent(bodyComments), hardline, '</>']);
 		}
+		return '<></>';
 	}
 
-	// Check if content can be inlined (single text node or single expression)
+	const firstSegment = segments[0];
+	const lastSegment = segments[segments.length - 1];
+	const gluedToClose = lastSegment.items[lastSegment.items.length - 1].isText;
+	const onlyItem =
+		segments.length === 1 && firstSegment.items.length === 1 ? firstSegment.items[0] : null;
+
 	if (
-		childrenDocs.length === 1 &&
-		typeof childrenDocs[0] === 'string' &&
-		closingCommentDocs.length === 0
-	) {
-		return ['<>', childrenDocs[0], '</>'];
-	}
-	const meaningfulChildren = node.children.filter(
-		(child) => child.type !== 'JSXText' || child.value.trim(),
-	);
-	if (
-		childrenDocs.length === 1 &&
-		meaningfulChildren.length === 1 &&
-		meaningfulChildren[0].type === 'JSXElement' &&
+		onlyItem !== null &&
+		onlyItem.node.type === 'JSXElement' &&
 		wasOriginallySingleLine(node) &&
 		closingCommentDocs.length === 0 &&
-		!willBreak(childrenDocs[0])
+		!willBreak(onlyItem.doc)
 	) {
 		// Keep the fragment inline when it fits; otherwise expand `<>` onto its own
 		// lines so a breaking single child reads as `<>\n  <Child …/>\n</>` rather than
 		// `<><Child` with only the child's attributes broken.
 		return conditionalGroup([
-			['<>', childrenDocs[0], '</>'],
-			group(['<>', indent([hardline, childrenDocs[0]]), hardline, '</>']),
+			['<>', onlyItem.doc, '</>'],
+			group(['<>', indent([hardline, onlyItem.doc]), hardline, '</>']),
 		]);
 	}
 
-	// Multiple children or complex children - format with line breaks
-	const formattedChildren = [];
-	for (let i = 0; i < childrenDocs.length; i++) {
-		formattedChildren.push(childrenDocs[i]);
-		if (i < childrenDocs.length - 1) {
-			// Preserve a single authored blank line between children (2+ collapse to 1).
-			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
-			formattedChildren.push(blank ? [hardline, hardline] : hardline);
-		}
+	// A body that involves rendered text and was authored on a single line keeps
+	// that form: frozen boundaries must not break, and the elastic seams are
+	// printed glued (which parses identically).
+	const hasRenderedText = segments.some((segment) => segment.items.some((item) => item.isText));
+	if (hasRenderedText && wasOriginallySingleLine(node) && closingCommentDocs.length === 0) {
+		return group([
+			'<>',
+			...segments.flatMap((segment) => segment.items.map((item) => item.doc)),
+			'</>',
+		]);
 	}
 
-	// Build the final fragment
-	return group([
-		'<>',
-		indent([hardline, ...formattedChildren, ...closingCommentDocs]),
-		hardline,
-		'</>',
-	]);
+	// Multi-line layout. Segments break onto their own indented lines at the
+	// breakable seams; rendered text at the body's edges stays glued to its tag,
+	// with the text's own verbatim newlines providing any line structure.
+	/** @type {Doc[]} */
+	const parts = ['<>'];
+	/** @type {Doc[]} */
+	const indented = [];
+	/** @type {JSXChildSegment | null} */
+	let previousSegment = null;
+	for (const segment of segments) {
+		const docs = segment.items.map((item) => item.doc);
+		if (
+			previousSegment === null &&
+			segment.items[0].isText &&
+			!isElasticTextBoundary(
+				/** @type {AST.NodeWithLocation} */ (node.openingFragment),
+				segment.items[0].node,
+			)
+		) {
+			// Rendered text that starts at the opening tag's `>` glues to it. The
+			// indent wrapper leaves the verbatim text alone (its newlines are
+			// literal) but keeps any hardlines from nested children at the body's
+			// indent level.
+			parts.push(indent(docs));
+		} else {
+			/** @type {Doc[]} */
+			const separator = [hardline];
+			if (previousSegment !== null) {
+				const previousNode = previousSegment.items[previousSegment.items.length - 1].node;
+				// Preserve a single authored blank line between segments (2+ collapse to 1).
+				if (getBlankLinesBetweenNodes(previousNode, leadingAnchor(segment.items[0].node)) > 0) {
+					separator.push(hardline);
+				}
+			}
+			indented.push(...separator, ...docs);
+		}
+		previousSegment = segment;
+	}
+	indented.push(...closingCommentDocs);
+	if (indented.length > 0) {
+		parts.push(indent(indented));
+	}
+	if (!gluedToClose || closingCommentDocs.length > 0) {
+		parts.push(hardline);
+	}
+	parts.push('</>');
+	return group(parts);
 }
 
 /**
