@@ -6,6 +6,7 @@ import * as ts from 'typescript';
 import {
 	getRippleLanguagePlugin,
 	getRippleDirForFile,
+	get_tsrx_compiler_name_for_file,
 	TSRXVirtualCode,
 	_reset_for_test,
 } from '../src/language.js';
@@ -46,11 +47,15 @@ function create_virtual_code(plugin, file_name, source) {
 	);
 }
 
-/**
- * @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name
- * @param {(workspace: string, tsconfig_path: string) => void} [configure]
- * @param {string[]} [file_parts]
- */
+/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] */
+function prepare_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx']) {
+	const workspace = create_fixture_workspace(workspace_name);
+	const config_path = path.join(workspace, 'tsconfig.json');
+	configure?.(workspace, config_path);
+	return { workspace, config_path, file_name: path.join(workspace, ...file_parts) };
+}
+
+/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] */
 async function compile_debug_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx']) {
 	vi.stubEnv('RIPPLE_DEBUG', 'true');
 	vi.resetModules();
@@ -58,36 +63,25 @@ async function compile_debug_fixture(workspace_name, configure, file_parts = ['s
 	const warning_spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	const { getRippleLanguagePlugin: create_debug_plugin, _reset_for_test: reset_debug_plugin } =
 		await import('../src/language.js');
-	const workspace = create_fixture_workspace(workspace_name);
-	const tsconfig_path = path.join(workspace, 'tsconfig.json');
-	configure?.(workspace, tsconfig_path);
-	reset_debug_plugin();
-	const create_virtual_code_fn = create_debug_plugin().createVirtualCode;
-	const virtual_code = create_virtual_code_fn?.(
-		path.join(workspace, ...file_parts),
-		'ripple',
-		create_snapshot('export default <div>Hello</div>;'),
-		/** @type {import('@volar/language-core').CodegenContext<string>} */ ({
-			getAssociatedScript: () => undefined,
-		}),
+	const { workspace, config_path, file_name } = prepare_fixture(
+		workspace_name,
+		configure,
+		file_parts,
 	);
-
-	return { workspace, tsconfig_path, error_spy, warning_spy, create_virtual_code_fn, virtual_code };
+	reset_debug_plugin();
+	const plugin = create_debug_plugin();
+	const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+	// prettier-ignore
+	return { workspace, tsconfig_path: config_path, error_spy, warning_spy, create_virtual_code_fn: plugin.createVirtualCode, virtual_code };
 }
 
-/**
- * @param {string} file_name
- * @param {unknown} config
- */
+/** @param {string} file_name @param {unknown} config */
 function write_config(file_name, config) {
 	fs.mkdirSync(path.dirname(file_name), { recursive: true });
 	fs.writeFileSync(file_name, JSON.stringify(config, null, 2) + '\n');
 }
 
-/**
- * @param {string} workspace
- * @param {Record<string, unknown>} files
- */
+/** @param {string} workspace @param {Record<string, unknown>} files */
 function write_inheritance_files(workspace, files) {
 	for (const [relative_path, config] of Object.entries(files)) {
 		const file_name = path.join(workspace, relative_path);
@@ -97,6 +91,84 @@ function write_inheritance_files(workspace, files) {
 			typeof config === 'string' ? config : JSON.stringify(config, null, 2) + '\n',
 		);
 	}
+}
+
+/** @param {unknown} compiler */
+function compiler_declaration(compiler) {
+	return { tsrx: { compiler } };
+}
+
+/** @param {string | string[]} extends_value @param {unknown} [tsrx] */
+function project_config(extends_value, tsrx) {
+	return {
+		extends: extends_value,
+		...(tsrx === undefined ? {} : { tsrx }),
+		compilerOptions: {},
+	};
+}
+
+/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] @param {Parameters<typeof create_plugin>[0] | ((config_path: string) => Parameters<typeof create_plugin>[0])} [options] */
+function compile_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx'], options) {
+	// prettier-ignore
+	const { workspace, config_path, file_name } = prepare_fixture(workspace_name, configure, file_parts);
+	const virtual_code = create_virtual_code(
+		create_plugin(typeof options === 'function' ? options(config_path) : options),
+		file_name,
+		'export default <div>Hello</div>;',
+	);
+	return { workspace, config_path, file_name, virtual_code };
+}
+
+const COMPILER_A = 'inherited-compiler-a';
+const COMPILER_B = 'inherited-compiler-b';
+
+/** @param {{ base?: unknown, child?: unknown, middle?: boolean, branches?: unknown[], jsonc?: boolean, package_base?: unknown }} scenario */
+function inheritance_files(scenario) {
+	if (scenario.jsonc) {
+		return {
+			'base.json': `{\n\t// inherited compiler\n\t"tsrx": { "compiler": "${COMPILER_A}", },\n}\n`,
+			'tsconfig.json': '{\n\t// root config\n\t"extends": "./base.json",\n}\n',
+		};
+	}
+	if (scenario.package_base !== undefined) {
+		return {
+			'node_modules/@consumer/tsconfig/package.json': {
+				name: '@consumer/tsconfig',
+				version: '1.0.0',
+			},
+			'node_modules/@consumer/tsconfig/base.json': compiler_declaration(scenario.package_base),
+			'tsconfig.json': project_config('@consumer/tsconfig/base.json'),
+		};
+	}
+	if (scenario.branches) {
+		const [first, second] = scenario.branches;
+		return {
+			'a.json': compiler_declaration(first),
+			'b.json': second === undefined ? {} : compiler_declaration(second),
+			'tsconfig.json': project_config(['./a.json', './b.json']),
+		};
+	}
+	const root_base = scenario.middle ? './middle.json' : './base.json';
+	return {
+		'base.json': compiler_declaration(scenario.base),
+		...(scenario.middle ? { 'middle.json': { extends: './base.json' } } : {}),
+		'tsconfig.json': project_config(root_base, scenario.child),
+	};
+}
+
+/** @param {{ root?: string, base?: string, child?: unknown }} scenario */
+function malformed_files(scenario) {
+	if (scenario.root) return { 'tsconfig.json': scenario.root };
+	return {
+		'base.json': scenario.base,
+		'tsconfig.json': project_config('./base.json', scenario.child),
+	};
+}
+
+/** @param {Awaited<ReturnType<typeof compile_debug_fixture>>} result @param {'error_spy' | 'warning_spy'} method @param {...unknown} parts */
+function expect_log(result, method, ...parts) {
+	// prettier-ignore
+	expect(result[method]).toHaveBeenCalledWith('[Ripple Language]', ...parts.map((part) => typeof part === 'string' ? expect.stringContaining(part) : part));
 }
 
 /**
@@ -195,14 +267,27 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).toContain('compiler:octane');
 	});
 
-	it('uses a declared module compiler when no built-in candidate package is installed', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('declared-only');
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+	// prettier-ignore
+	it.each([
+		['uses a declared module compiler when no built-in candidate package is installed', 'declared-only', 'declared'],
+		['accepts a declared compiler using a scoped package specifier', 'declared-scoped', 'scoped'],
+		['accepts a declared compiler using a whitespace-padded scoped package specifier', 'declared-scoped-whitespace', 'scoped'],
+		['accepts a declared compiler using a package subpath specifier', 'declared-subpath', 'subpath'],
+		['accepts a declared compiler using a scoped package subpath specifier', 'declared-scoped-subpath', 'scoped-subpath'],
+		['accepts a declared compiler using a mixed-case scoped package subpath specifier', 'declared-mixed-case-subpath', 'mixed-case-subpath'],
+		['prefers a declared compiler over installed built-in candidates', 'declared-beats-candidates', 'declared', undefined, 'ripple'],
+		[
+			'accepts comments and trailing commas in a compiler-declaring tsconfig',
+			'inherited-declaration',
+			'inherited-a',
+			(workspace) => fs.writeFileSync(path.join(workspace, 'tsconfig.json'), `{\n\t// Consumer compiler.\n\t"tsrx": { "compiler": "${COMPILER_A}", },\n}\n`),
+		],
+	])('%s', (_, workspace_name, marker, configure, rejected = 'never-selected') => {
+		const { virtual_code } = compile_fixture(/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name), configure);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
-		expect(virtual_code.generatedCode).toContain('compiler:declared');
+		expect(virtual_code.generatedCode).toContain(`compiler:${marker}`);
+		expect(virtual_code.generatedCode).not.toContain(`compiler:${rejected}`);
 	});
 
 	it.each([
@@ -235,38 +320,6 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(getRippleDirForFile(path.join(workspace, 'src', 'App.tsrx'))).toBeUndefined();
 	});
 
-	it.each([
-		['scoped package', 'declared-scoped', 'compiler:scoped'],
-		['whitespace-padded scoped package', 'declared-scoped-whitespace', 'compiler:scoped'],
-		['package subpath', 'declared-subpath', 'compiler:subpath'],
-		['scoped package subpath', 'declared-scoped-subpath', 'compiler:scoped-subpath'],
-		[
-			'mixed-case scoped package subpath',
-			'declared-mixed-case-subpath',
-			'compiler:mixed-case-subpath',
-		],
-	])('accepts a declared compiler using a %s specifier', (_, workspace_name, marker) => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace(
-			/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
-		);
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
-
-		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
-		expect(virtual_code.generatedCode).toContain(marker);
-	});
-
-	it('accepts comments and trailing commas in a compiler-declaring tsconfig', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('jsonc-declared');
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
-
-		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
-		expect(virtual_code.generatedCode).toContain('compiler:declared');
-	});
-
 	it('caches a declared compiler resolution for repeated edits in the tsconfig directory', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('declared-only');
@@ -284,136 +337,22 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(exists_spy).not.toHaveBeenCalled();
 	});
 
-	it('prefers a declared compiler over installed built-in candidates', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('declared-beats-candidates');
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
-
-		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
-		expect(virtual_code.generatedCode).toContain('compiler:declared');
-		expect(virtual_code.generatedCode).not.toContain('compiler:ripple');
-	});
-
-	it.each([
-		[
-			'warns for a malformed tsconfig without tsrx and falls back to an installed candidate',
-			'malformed-tsconfig-without-tsrx',
-			'warning_spy',
-			'compiler:ripple',
-		],
-		[
-			'reports a malformed nearest tsconfig containing tsrx text and does not fall back',
-			'malformed-tsconfig',
-			'error_spy',
-			undefined,
-		],
-	])('%s', async (_, workspace_name, log_method, compiler_marker) => {
-		const result = await compile_debug_fixture(
-			/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
-		);
-
-		if (compiler_marker) {
-			expect(result.virtual_code?.generatedCode).toContain(compiler_marker);
-		} else {
-			expect(result.virtual_code).toBeUndefined();
-		}
-		expect(result[log_method]).toHaveBeenCalledWith(
-			'[Ripple Language]',
-			expect.stringContaining('Unable to parse tsconfig layer'),
-			expect.stringContaining(result.tsconfig_path),
-			expect.any(String),
-		);
-	});
-
-	it.each([
-		[
-			'warns and falls back when a malformed base and the chain have no tsrx intent',
-			'{ "compilerOptions": {\n',
-			{ extends: './base.json', compilerOptions: {} },
-			'warning_spy',
-			'compiler:ripple',
-		],
-		[
-			'hard-stops when a malformed base contains textual tsrx intent',
-			'{ "tsrx": { "compiler": "inherited-compiler-a" },\n',
-			{ extends: './base.json', compilerOptions: {} },
-			'error_spy',
-			undefined,
-		],
-		[
-			'hard-stops when a parsed child shows tsrx intent beside a malformed silent base',
-			'{ "compilerOptions": {\n',
-			{
-				extends: './base.json',
-				tsrx: { compiler: 'inherited-compiler-a' },
-				compilerOptions: {},
-			},
-			'error_spy',
-			undefined,
-		],
-	])('%s', async (_, base_source, root_config, log_method, compiler_marker) => {
-		const result = await compile_debug_fixture('inherited-declaration', (workspace) => {
-			write_inheritance_files(workspace, {
-				'base.json': base_source,
-				'tsconfig.json': root_config,
-			});
-		});
-
-		if (compiler_marker) {
-			expect(result.virtual_code?.generatedCode).toContain(compiler_marker);
-		} else {
-			expect(result.virtual_code).toBeUndefined();
-		}
-		expect(result[log_method]).toHaveBeenCalledWith(
-			'[Ripple Language]',
-			expect.stringContaining('Unable to parse tsconfig layer'),
-			expect.stringContaining(path.join(result.workspace, 'base.json')),
-			expect.any(String),
-		);
-	});
-
-	it.each([
-		['a non-string compiler', 'invalid-compiler-type', 'number', '42'],
-		['an empty compiler string', 'empty-compiler', 'string', '""'],
-		['a whitespace-only compiler string', 'whitespace-only-compiler', 'string', '"   "'],
-		['a non-object tsrx value', 'invalid-tsrx-type', 'string', '"string"'],
-	])(
-		'rejects %s and does not fall back to an installed candidate',
-		async (_, workspace_name, type, value) => {
-			const result = await compile_debug_fixture(
-				/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
-			);
-
-			expect(result.virtual_code).toBeUndefined();
-			expect(result.error_spy).toHaveBeenCalledWith(
-				'[Ripple Language]',
-				expect.stringContaining('Invalid TSRX'),
-				expect.stringContaining(type),
-				expect.stringContaining(value),
-				expect.stringContaining(result.tsconfig_path),
-			);
-		},
-	);
-
-	it('rejects a relative declaration and does not fall back to an installed candidate', async () => {
-		const result = await compile_debug_fixture('relative-declared', undefined, [
-			'src',
-			'nested',
-			'components',
-			'App.tsrx',
-		]);
-
-		expect(result.virtual_code).toBeUndefined();
-		expect(result.error_spy).toHaveBeenCalledWith(
-			'[Ripple Language]',
-			expect.stringContaining('must be a bare package specifier'),
-			expect.stringContaining('./compiler.cjs'),
-			expect.stringContaining(result.tsconfig_path),
-		);
-	});
-
-	it.each([
+	// prettier-ignore
+	const malformed_cases = [
+		['warns for a malformed tsconfig without tsrx and falls back to an installed candidate', { files: malformed_files({ root: '{ "compilerOptions": {\n' }), marker: 'compiler:ripple', log_method: 'warning_spy', log_parts: (result) => ['Unable to parse tsconfig layer', result.tsconfig_path, expect.any(String)] }],
+		['reports a malformed nearest tsconfig containing tsrx text and does not fall back', { files: malformed_files({ root: `{ "tsrx": { "compiler": "${COMPILER_A}" },\n` }), log_method: 'error_spy', log_parts: (result) => ['Unable to parse tsconfig layer', result.tsconfig_path, expect.any(String)] }],
+		['warns and falls back when a malformed base and the chain have no tsrx intent', { files: malformed_files({ base: '{ "compilerOptions": {\n' }), marker: 'compiler:ripple', log_method: 'warning_spy', log_parts: (result) => ['Unable to parse tsconfig layer', path.join(result.workspace, 'base.json'), expect.any(String)] }],
+		['hard-stops when a malformed base contains textual tsrx intent', { files: malformed_files({ base: `{ "tsrx": { "compiler": "${COMPILER_A}" },\n` }), log_method: 'error_spy', log_parts: (result) => ['Unable to parse tsconfig layer', path.join(result.workspace, 'base.json'), expect.any(String)] }],
+		['hard-stops when a parsed child shows tsrx intent beside a malformed silent base', { files: malformed_files({ base: '{ "compilerOptions": {\n', child: { compiler: COMPILER_A } }), log_method: 'error_spy', log_parts: (result) => ['Unable to parse tsconfig layer', path.join(result.workspace, 'base.json'), expect.any(String)] }],
+];
+	// prettier-ignore
+	const invalid_value_cases = [
+		['rejects a non-string compiler and does not fall back to an installed candidate', { tsrx: { compiler: 42 }, log_method: 'error_spy', log_parts: (result) => ['Invalid TSRX', 'number', '42', result.tsconfig_path] }],
+		['rejects an empty compiler string and does not fall back to an installed candidate', { tsrx: { compiler: '' }, log_method: 'error_spy', log_parts: (result) => ['Invalid TSRX', 'string', '""', result.tsconfig_path] }],
+		['rejects a whitespace-only compiler string and does not fall back to an installed candidate', { tsrx: { compiler: '   ' }, log_method: 'error_spy', log_parts: (result) => ['Invalid TSRX', 'string', '"   "', result.tsconfig_path] }],
+		['rejects a non-object tsrx value and does not fall back to an installed candidate', { tsrx: 'string', log_method: 'error_spy', log_parts: (result) => ['Invalid TSRX', 'string', '"string"', result.tsconfig_path] }],
+];
+	const disallowed_specifiers = [
 		'.',
 		'..',
 		'.\\evil',
@@ -422,43 +361,57 @@ describe('typescript-plugin language plugin integration', () => {
 		'@Consumer/tsrx-compiler',
 		'@consumer/TSRX-compiler',
 		'consumer-tsrx-compiler/.hidden',
-	])('rejects the disallowed declaration %j before module resolution', async (specifier) => {
-		const result = await compile_debug_fixture(
-			'invalid-declared-specifier',
-			(_workspace, tsconfig_path) => {
-				fs.writeFileSync(
-					tsconfig_path,
-					JSON.stringify({ tsrx: { compiler: specifier }, compilerOptions: {} }, null, 2) + '\n',
-				);
+	];
+	// The generated labels preserve each allowlist proof in runner output.
+	// prettier-ignore
+	const specifier_cases = [
+		['rejects a relative declaration and does not fall back to an installed candidate', { compiler: './compiler.cjs', workspace_name: 'inherited-declaration', file_parts: ['src', 'nested', 'components', 'App.tsrx'], log_method: 'error_spy', log_parts: (result) => ['must be a bare package specifier', './compiler.cjs', result.tsconfig_path] }],
+		...disallowed_specifiers.map((compiler) => [`rejects the disallowed declaration ${JSON.stringify(compiler)} before module resolution`, { compiler, workspace_name: 'invalid-declared-specifier', log_method: 'error_spy', log_parts: (result) => ['must be a bare package specifier', compiler, result.tsconfig_path] }]),
+];
+	// These are the three inheritance positions required by the matrix.
+	// prettier-ignore
+	const inherited_value_cases = [
+		['applies effective-value semantics for an invalid base declaration without an override', { files: inheritance_files({ base: 42 }), log_method: 'error_spy', log_parts: () => ['Invalid TSRX', expect.anything(), expect.anything(), expect.anything()] }],
+		['applies effective-value semantics for an invalid child declaration over a valid base', { files: inheritance_files({ base: COMPILER_A, child: { compiler: 42 } }), log_method: 'error_spy', log_parts: () => ['Invalid TSRX', expect.anything(), expect.anything(), expect.anything()] }],
+		['applies effective-value semantics for an valid child declaration over an invalid base', { files: inheritance_files({ base: 42, child: { compiler: COMPILER_B } }), marker: 'compiler:inherited-b', no_error: true }],
+];
+
+	it.each([
+		...malformed_cases,
+		...invalid_value_cases,
+		...specifier_cases,
+		[
+			'does not execute a package imports target declared with a hash specifier',
+			{ workspace_name: 'invalid-declared-specifier', escape_proof: true },
+		],
+		[
+			'reports an unresolvable declaration and does not fall back to an installed candidate',
+			{
+				compiler: 'missing-tsrx-compiler',
+				log_method: 'error_spy',
+				log_parts: (result) => ['missing-tsrx-compiler', result.tsconfig_path],
+				create_proof: true,
 			},
+		],
+		...inherited_value_cases,
+	])('%s', async (_, options) => {
+		const result = await compile_debug_fixture(
+			options.workspace_name ?? 'inherited-declaration',
+			(workspace, config_path) => {
+				if (options.files) write_inheritance_files(workspace, options.files);
+				if ('tsrx' in options) write_config(config_path, { tsrx: options.tsrx });
+				if (options.compiler) write_config(config_path, compiler_declaration(options.compiler));
+			},
+			options.file_parts,
 		);
-
-		expect(result.virtual_code).toBeUndefined();
-		expect(result.error_spy).toHaveBeenCalledWith(
-			'[Ripple Language]',
-			expect.stringContaining('must be a bare package specifier'),
-			expect.stringContaining(specifier),
-			expect.stringContaining(result.tsconfig_path),
+		expect(result.virtual_code?.generatedCode).toEqual(
+			options.marker ? expect.stringContaining(options.marker) : undefined,
 		);
-	});
-
-	it('does not execute a package imports target declared with a hash specifier', async () => {
-		const result = await compile_debug_fixture('invalid-declared-specifier');
-
-		expect(result.virtual_code).toBeUndefined();
-		expect(fs.existsSync(path.join(result.workspace, 'escape-executed'))).toBe(false);
-	});
-
-	it('reports an unresolvable declaration and does not fall back to an installed candidate', async () => {
-		const result = await compile_debug_fixture('unresolvable-declared');
-
-		expect(typeof result.create_virtual_code_fn).toBe('function');
-		expect(result.virtual_code).toBeUndefined();
-		expect(result.error_spy).toHaveBeenCalledWith(
-			'[Ripple Language]',
-			expect.stringContaining('missing-tsrx-compiler'),
-			expect.stringContaining(result.tsconfig_path),
-		);
+		if (options.log_method) expect_log(result, options.log_method, ...options.log_parts(result));
+		if (options.no_error) expect(result.error_spy).not.toHaveBeenCalled();
+		if (options.escape_proof)
+			expect(fs.existsSync(path.join(result.workspace, 'escape-executed'))).toBe(false);
+		if (options.create_proof) expect(typeof result.create_virtual_code_fn).toBe('function');
 	});
 
 	it('uses the nearest tsconfig declaration for a nested sub-project', () => {
@@ -481,236 +434,90 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(nested_virtual_code.generatedCode).toContain('compiler:nested');
 	});
 
-	it('uses a provided project config instead of walking to a nearer nested config', () => {
-		const workspace = create_fixture_workspace('inherited-declaration');
-		const root_config_path = path.join(workspace, 'tsconfig.json');
-		write_config(root_config_path, {
-			tsrx: { compiler: 'inherited-compiler-a' },
-			compilerOptions: {},
-		});
-		write_config(path.join(workspace, 'nested', 'tsconfig.json'), {
-			tsrx: { compiler: 'inherited-compiler-b' },
-			compilerOptions: {},
-		});
-		const plugin = create_plugin({
-			ts,
-			configFileName: root_config_path,
-			configHost: ts.sys,
-		});
-		const virtual_code = create_virtual_code(
-			plugin,
-			path.join(workspace, 'nested', 'src', 'App.tsrx'),
-			'export default <div>Hello</div>;',
-		);
-
-		expect(virtual_code.generatedCode).toContain('compiler:inherited-a');
-		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-b');
-	});
-
-	it('keeps nearest-config selection when no project config is provided', () => {
-		const workspace = create_fixture_workspace('inherited-declaration');
-		write_config(path.join(workspace, 'tsconfig.json'), {
-			tsrx: { compiler: 'inherited-compiler-a' },
-			compilerOptions: {},
-		});
-		write_config(path.join(workspace, 'nested', 'tsconfig.json'), {
-			tsrx: { compiler: 'inherited-compiler-b' },
-			compilerOptions: {},
-		});
-		const plugin = create_plugin();
-		const virtual_code = create_virtual_code(
-			plugin,
-			path.join(workspace, 'nested', 'src', 'App.tsrx'),
-			'export default <div>Hello</div>;',
-		);
-
-		expect(virtual_code.generatedCode).toContain('compiler:inherited-b');
-		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-a');
-	});
-
 	it.each([
-		[
-			'base declaration when the child omits tsrx',
-			{
-				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'tsconfig.json': { extends: './base.json', compilerOptions: {} },
+		['uses a provided project config instead of walking to a nearer nested config', true, 'a', 'b'],
+		['keeps nearest-config selection when no project config is provided', false, 'b', 'a'],
+	])('%s', (_, use_project_config, expected, rejected) => {
+		const { virtual_code } = compile_fixture(
+			'inherited-declaration',
+			(workspace, config_path) => {
+				write_config(config_path, compiler_declaration(COMPILER_A));
+				write_config(
+					path.join(workspace, 'nested', 'tsconfig.json'),
+					compiler_declaration(COMPILER_B),
+				);
 			},
-			'compiler:inherited-a',
-		],
-		[
-			'base declaration when the child has an empty tsrx object',
-			{
-				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'tsconfig.json': { extends: './base.json', tsrx: {}, compilerOptions: {} },
-			},
-			'compiler:inherited-a',
-		],
-		[
-			'child declaration over its base',
-			{
-				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'tsconfig.json': {
-					extends: './base.json',
-					tsrx: { compiler: 'inherited-compiler-b' },
-					compilerOptions: {},
-				},
-			},
-			'compiler:inherited-b',
-		],
-		[
-			'transitive base declaration',
-			{
-				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'middle.json': { extends: './base.json' },
-				'tsconfig.json': { extends: './middle.json', compilerOptions: {} },
-			},
-			'compiler:inherited-a',
-		],
-		[
-			'later declaration in an extends array',
-			{
-				'a.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'b.json': { tsrx: { compiler: 'inherited-compiler-b' } },
-				'tsconfig.json': { extends: ['./a.json', './b.json'], compilerOptions: {} },
-			},
-			'compiler:inherited-b',
-		],
-		[
-			'earlier declaration when a later extends entry is silent',
-			{
-				'a.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'b.json': { compilerOptions: {} },
-				'tsconfig.json': { extends: ['./a.json', './b.json'], compilerOptions: {} },
-			},
-			'compiler:inherited-a',
-		],
-		[
-			'JSONC root and extended configs',
-			{
-				'base.json':
-					'{\n\t// inherited compiler\n\t"tsrx": { "compiler": "inherited-compiler-a", },\n}\n',
-				'tsconfig.json':
-					'{\n\t// root config\n\t"extends": "./base.json",\n\t"compilerOptions": {},\n}\n',
-			},
-			'compiler:inherited-a',
-		],
-		[
-			'package-based extends declaration',
-			{
-				'node_modules/@consumer/tsconfig/package.json': {
-					name: '@consumer/tsconfig',
-					version: '1.0.0',
-				},
-				'node_modules/@consumer/tsconfig/base.json': {
-					tsrx: { compiler: 'inherited-compiler-a' },
-				},
-				'tsconfig.json': {
-					extends: '@consumer/tsconfig/base.json',
-					compilerOptions: {},
-				},
-			},
-			'compiler:inherited-a',
-		],
-	])('uses the %s', (_, files, marker) => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('inherited-declaration');
-		write_inheritance_files(workspace, files);
-		const virtual_code = create_virtual_code(
-			plugin,
-			path.join(workspace, 'src', 'App.tsrx'),
-			'export default <div>Hello</div>;',
+			['nested', 'src', 'App.tsrx'],
+			(config_path) =>
+				use_project_config ? { ts, configFileName: config_path, configHost: ts.sys } : undefined,
 		);
 
-		expect(virtual_code.generatedCode).toContain(marker);
+		expect(virtual_code.generatedCode).toContain(`compiler:inherited-${expected}`);
+		expect(virtual_code.generatedCode).not.toContain(`compiler:inherited-${rejected}`);
+	});
+
+	it('uses the provided project config for compiler selection and compiler lookups', () => {
+		let context;
+		const { workspace, file_name, virtual_code } = compile_fixture(
+			'both',
+			(workspace, config_path) => {
+				write_config(config_path, compiler_declaration('@tsrx/ripple/src/index.js'));
+				write_config(
+					path.join(workspace, 'nested', 'tsconfig.json'),
+					compiler_declaration('@tsrx/react/src/index.js'),
+				);
+			},
+			['nested', 'src', 'App.tsrx'],
+			(config_path) => (context = { ts, configFileName: config_path, configHost: ts.sys }),
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:ripple');
+		expect(get_tsrx_compiler_name_for_file(file_name, context)).toBe('@tsrx/ripple');
+		expect(fs.realpathSync(/** @type {string} */ (getRippleDirForFile(file_name, context)))).toBe(
+			fs.realpathSync(path.join(workspace, 'node_modules', '@tsrx', 'ripple')),
+		);
+	});
+
+	// prettier-ignore
+	it.each([
+		['base declaration when the child omits tsrx', { base: COMPILER_A }, 'a'],
+		['base declaration when the child has an empty tsrx object', { base: COMPILER_A, child: {} }, 'a'],
+		['child declaration over its base', { base: COMPILER_A, child: { compiler: COMPILER_B } }, 'b'],
+		['transitive base declaration', { base: COMPILER_A, middle: true }, 'a'],
+		['later declaration in an extends array', { branches: [COMPILER_A, COMPILER_B] }, 'b'],
+		['earlier declaration when a later extends entry is silent', { branches: [COMPILER_A, undefined] }, 'a'],
+		['JSONC root and extended configs', { jsonc: true }, 'a'],
+		['package-based extends declaration', { package_base: COMPILER_A }, 'a'],
+	])('uses the %s', (_, scenario, marker) => {
+		const { virtual_code } = compile_fixture('inherited-declaration', (workspace) => {
+			write_inheritance_files(workspace, inheritance_files(scenario));
+		});
+
+		expect(virtual_code.generatedCode).toContain(`compiler:inherited-${marker}`);
 	});
 
 	it('does not inherit from a root config that the nested project does not extend', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('inherited-declaration');
-		write_config(path.join(workspace, 'tsconfig.json'), {
-			tsrx: { compiler: 'inherited-compiler-a' },
-			compilerOptions: {},
-		});
-		write_config(path.join(workspace, 'nested', 'tsconfig.json'), { compilerOptions: {} });
-		const virtual_code = create_virtual_code(
-			plugin,
-			path.join(workspace, 'nested', 'src', 'App.tsrx'),
-			'export default <div>Hello</div>;',
+		const { virtual_code } = compile_fixture(
+			'inherited-declaration',
+			(workspace, config_path) => {
+				write_config(config_path, compiler_declaration(COMPILER_A));
+				write_config(path.join(workspace, 'nested', 'tsconfig.json'), { compilerOptions: {} });
+			},
+			['nested', 'src', 'App.tsrx'],
 		);
 
 		expect(virtual_code.generatedCode).toContain('compiler:ripple');
 		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-a');
 	});
 
-	it.each([
-		[
-			'invalid base declaration without an override',
-			{
-				'base.json': { tsrx: { compiler: 42 } },
-				'tsconfig.json': { extends: './base.json', compilerOptions: {} },
-			},
-			undefined,
-		],
-		[
-			'invalid child declaration over a valid base',
-			{
-				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
-				'tsconfig.json': { extends: './base.json', tsrx: { compiler: 42 } },
-			},
-			undefined,
-		],
-		[
-			'valid child declaration over an invalid base',
-			{
-				'base.json': { tsrx: { compiler: 42 } },
-				'tsconfig.json': {
-					extends: './base.json',
-					tsrx: { compiler: 'inherited-compiler-b' },
-				},
-			},
-			'compiler:inherited-b',
-		],
-	])('applies effective-value semantics for an %s', async (_, files, marker) => {
-		const result = await compile_debug_fixture('inherited-declaration', (workspace) => {
-			write_inheritance_files(workspace, files);
-		});
-
-		if (marker) {
-			expect(result.virtual_code?.generatedCode).toContain(marker);
-			expect(result.error_spy).not.toHaveBeenCalledWith(
-				'[Ripple Language]',
-				expect.stringContaining('Invalid TSRX'),
-				expect.anything(),
-				expect.anything(),
-				expect.anything(),
-			);
-		} else {
-			expect(result.virtual_code).toBeUndefined();
-			expect(result.error_spy).toHaveBeenCalledWith(
-				'[Ripple Language]',
-				expect.stringContaining('Invalid TSRX'),
-				expect.anything(),
-				expect.anything(),
-				expect.any(String),
-			);
-		}
-	});
-
 	it('resolves an inherited compiler from the config that declares it', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('inherited-declaration');
-		write_config(path.join(workspace, 'configs', 'base.json'), {
-			tsrx: { compiler: 'declaring-config-compiler' },
+		const { virtual_code } = compile_fixture('inherited-declaration', (workspace, config_path) => {
+			write_config(
+				path.join(workspace, 'configs', 'base.json'),
+				compiler_declaration('declaring-config-compiler'),
+			);
+			write_config(config_path, project_config('./configs/base.json'));
 		});
-		write_config(path.join(workspace, 'tsconfig.json'), {
-			extends: './configs/base.json',
-			compilerOptions: {},
-		});
-		const virtual_code = create_virtual_code(
-			plugin,
-			path.join(workspace, 'src', 'App.tsrx'),
-			'export default <div>Hello</div>;',
-		);
 
 		expect(virtual_code.generatedCode).toContain('compiler:declaring-config');
 	});

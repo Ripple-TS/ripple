@@ -30,6 +30,20 @@ import {
 const { log, logError } = createLogging('[Ripple Language Server]');
 
 /**
+ * @param {Set<string>} tracked_config_files
+ * @param {ReadonlySet<string>[]} dependency_sets
+ */
+export function track_compiler_resolution_dependencies(tracked_config_files, dependency_sets) {
+	for (const dependencies of dependency_sets) {
+		for (const dependency of dependencies) {
+			trackTypeScriptConfigDependencies(tracked_config_files, {
+				configFileName: dependency,
+			});
+		}
+	}
+}
+
+/**
  * Strip whole-document formatting capabilities from a Volar service plugin.
  *
  * The bundled TypeScript (`typescript-syntactic`) and CSS services advertise a
@@ -180,11 +194,10 @@ export function createRippleLanguageServer() {
 		server.initialized();
 
 		server.fileWatcher.onDidChangeWatchedFiles(({ changes }) => {
-			for (const dependencies of compilerResolutionDependencySets) {
-				for (const dependency of dependencies) {
-					trackedTypeScriptConfigFiles.add(dependency);
-				}
-			}
+			track_compiler_resolution_dependencies(
+				trackedTypeScriptConfigFiles,
+				compilerResolutionDependencySets,
+			);
 			const effects = handleWorkspaceChanges(
 				changes,
 				{

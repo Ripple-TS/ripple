@@ -10,6 +10,7 @@ import {
 	trackTypeScriptConfigDependencies,
 	WORKSPACE_FILE_PATTERNS,
 } from '../src/workspaceState.js';
+import { track_compiler_resolution_dependencies } from '../src/server.js';
 
 const CHANGED = 2;
 
@@ -142,6 +143,25 @@ describe('language-server workspace state', () => {
 			[
 				{
 					uri: 'file:///c:/workspace/configs/shared-options.json',
+					type: CHANGED,
+				},
+			],
+			tracked_config_files,
+		);
+
+		expect(effects.reloadProjects).toBe(true);
+	});
+
+	it('normalizes compiler resolver dependencies before matching workspace changes', () => {
+		const tracked_config_files = new Set();
+		track_compiler_resolution_dependencies(tracked_config_files, [
+			new Set(['C:\\Workspace\\Configs\\base.json']),
+		]);
+
+		const effects = classifyWorkspaceChanges(
+			[
+				{
+					uri: 'file:///c:/workspace/configs/base.json',
 					type: CHANGED,
 				},
 			],

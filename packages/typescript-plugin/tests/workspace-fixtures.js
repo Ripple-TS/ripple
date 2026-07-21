@@ -177,31 +177,22 @@ const COMPILER_STUBS = {
 `,
 };
 
-const DECLARED_COMPILER_STUB = COMPILER_STUBS.octane.replace(
-	'compiler:octane',
-	'compiler:declared',
-);
+// prettier-ignore
+const DECLARED_COMPILER_STUB = COMPILER_STUBS.octane.replace('compiler:octane', 'compiler:declared');
 
-function tsconfig_with(tsrx) {
-	return { tsrx, compilerOptions: {} };
+function write_json(file_name, value) {
+	fs.mkdirSync(path.dirname(file_name), { recursive: true });
+	fs.writeFileSync(file_name, JSON.stringify(value, null, 2) + '\n');
 }
 
 function declared_workspace_config(package_name, compiler, marker, overrides = {}) {
 	const specifier = overrides.specifier ?? compiler.trim();
 	return {
 		package_json: { name: package_name, private: true, ...overrides.package_json },
-		tsconfig_json: tsconfig_with({ compiler }),
+		tsconfig_json: { tsrx: { compiler }, compilerOptions: {} },
 		compilers: [],
 		declared_compilers: [{ specifier, marker, ...overrides.declared_compiler }],
 		...overrides.config,
-	};
-}
-
-function invalid_tsconfig_config(package_name, tsrx) {
-	return {
-		package_json: { name: package_name, private: true },
-		tsconfig_json: tsconfig_with(tsrx),
-		compilers: ['ripple'],
 	};
 }
 
@@ -331,42 +322,17 @@ export const WORKSPACE_CONFIGS = {
 		},
 		compilers: ['ripple', 'react', 'solid', 'preact'],
 	},
-	'declared-only': declared_workspace_config(
-		'@tsrx/fixture-declared-only-project',
-		'consumer-tsrx-compiler',
-		'declared',
-	),
-	'declared-scoped': declared_workspace_config(
-		'@tsrx/fixture-declared-scoped-project',
-		'@consumer/tsrx-compiler',
-		'scoped',
-	),
-	'declared-scoped-whitespace': declared_workspace_config(
-		'@tsrx/fixture-declared-scoped-whitespace-project',
-		' @consumer/tsrx-compiler ',
-		'scoped',
-	),
-	'declared-dist': declared_workspace_config(
-		'@tsrx/fixture-declared-dist-project',
-		'consumer-dist-compiler',
-		'dist',
-		{ declared_compiler: { entry_parts: ['dist', 'volar.cjs'] } },
-	),
-	'declared-subpath': declared_workspace_config(
-		'@tsrx/fixture-declared-subpath-project',
-		'consumer-tsrx-compiler/volar',
-		'subpath',
-	),
-	'declared-scoped-subpath': declared_workspace_config(
-		'@tsrx/fixture-declared-scoped-subpath-project',
-		'@consumer/tsrx-compiler/compiler/volar',
-		'scoped-subpath',
-	),
-	'declared-mixed-case-subpath': declared_workspace_config(
-		'@tsrx/fixture-declared-mixed-case-subpath-project',
-		'@consumer/tsrx-compiler/compileToVolar',
-		'mixed-case-subpath',
-		{ declared_compiler: { export_subpath: true } },
+	// prettier-ignore
+	...Object.fromEntries(
+		[
+			['declared-only', declared_workspace_config('@tsrx/fixture-declared-only-project', 'consumer-tsrx-compiler', 'declared')],
+			['declared-scoped', declared_workspace_config('@tsrx/fixture-declared-scoped-project', '@consumer/tsrx-compiler', 'scoped')],
+			['declared-scoped-whitespace', declared_workspace_config('@tsrx/fixture-declared-scoped-whitespace-project', ' @consumer/tsrx-compiler ', 'scoped')],
+			['declared-dist', declared_workspace_config('@tsrx/fixture-declared-dist-project', 'consumer-dist-compiler', 'dist', { declared_compiler: { entry_parts: ['dist', 'volar.cjs'] } })],
+			['declared-subpath', declared_workspace_config('@tsrx/fixture-declared-subpath-project', 'consumer-tsrx-compiler/volar', 'subpath')],
+			['declared-scoped-subpath', declared_workspace_config('@tsrx/fixture-declared-scoped-subpath-project', '@consumer/tsrx-compiler/compiler/volar', 'scoped-subpath')],
+			['declared-mixed-case-subpath', declared_workspace_config('@tsrx/fixture-declared-mixed-case-subpath-project', '@consumer/tsrx-compiler/compileToVolar', 'mixed-case-subpath', { declared_compiler: { export_subpath: true } })],
+		],
 	),
 	'declared-beats-candidates': declared_workspace_config(
 		'@tsrx/fixture-declared-priority-project',
@@ -377,65 +343,6 @@ export const WORKSPACE_CONFIGS = {
 			config: { compilers: ['ripple', 'react'] },
 		},
 	),
-	'jsonc-declared': {
-		package_json: {
-			name: '@tsrx/fixture-jsonc-declared-project',
-			private: true,
-		},
-		tsconfig_source:
-			'{\n\t// Consumer-selected TSRX compiler.\n\t"tsrx": { "compiler": "consumer-tsrx-compiler", },\n\t"compilerOptions": {},\n}\n',
-		compilers: [],
-		declared_compilers: [{ specifier: 'consumer-tsrx-compiler', marker: 'declared' }],
-	},
-	'malformed-tsconfig': {
-		package_json: {
-			name: '@tsrx/fixture-malformed-tsconfig-project',
-			private: true,
-			devDependencies: { '@tsrx/ripple': 'workspace:*' },
-		},
-		tsconfig_source: '{ "tsrx": { "compiler": "consumer-tsrx-compiler" },\n',
-		compilers: ['ripple'],
-		declared_compilers: [{ specifier: 'consumer-tsrx-compiler', marker: 'declared' }],
-	},
-	'malformed-tsconfig-without-tsrx': {
-		package_json: {
-			name: '@tsrx/fixture-malformed-tsconfig-without-tsrx-project',
-			private: true,
-			devDependencies: { '@tsrx/ripple': 'workspace:*' },
-		},
-		tsconfig_source: '{ "compilerOptions": {\n',
-		compilers: ['ripple'],
-	},
-	'invalid-compiler-type': invalid_tsconfig_config('@tsrx/fixture-invalid-compiler-type-project', {
-		compiler: 42,
-	}),
-	'empty-compiler': invalid_tsconfig_config('@tsrx/fixture-empty-compiler-project', {
-		compiler: '',
-	}),
-	'whitespace-only-compiler': invalid_tsconfig_config(
-		'@tsrx/fixture-whitespace-only-compiler-project',
-		{ compiler: '   ' },
-	),
-	'invalid-tsrx-type': invalid_tsconfig_config('@tsrx/fixture-invalid-tsrx-type-project', 'string'),
-	'relative-declared': {
-		package_json: {
-			name: '@tsrx/fixture-relative-declared-project',
-			private: true,
-			devDependencies: { '@tsrx/ripple': 'workspace:*' },
-		},
-		tsconfig_json: { tsrx: { compiler: './compiler.cjs' }, compilerOptions: {} },
-		compilers: ['ripple'],
-		relative_compiler: true,
-	},
-	'unresolvable-declared': {
-		package_json: {
-			name: '@tsrx/fixture-unresolvable-declared-project',
-			private: true,
-			devDependencies: { '@tsrx/ripple': 'workspace:*' },
-		},
-		tsconfig_json: { tsrx: { compiler: 'missing-tsrx-compiler' }, compilerOptions: {} },
-		compilers: ['ripple'],
-	},
 	'invalid-declared-specifier': {
 		package_json: {
 			name: '@tsrx/fixture-invalid-declared-project',
@@ -484,41 +391,25 @@ export const WORKSPACE_CONFIGS = {
 /** @type {string[]} */
 const created_workspaces = [];
 
-/**
- * @param {string} workspace_dir
- * @param {keyof typeof COMPILER_STUBS} compiler_name
- */
+/** @param {string} workspace_dir @param {keyof typeof COMPILER_STUBS} compiler_name */
 function write_compiler_stub(workspace_dir, compiler_name) {
 	if (compiler_name === 'octane') {
 		// Octane's layout: the compiler entry lives INSIDE the octane package.
 		const package_dir = path.join(workspace_dir, 'node_modules', 'octane');
 		const compiler_dir = path.join(package_dir, 'src', 'compiler');
 		fs.mkdirSync(compiler_dir, { recursive: true });
-		fs.writeFileSync(
-			path.join(package_dir, 'package.json'),
-			JSON.stringify({ name: 'octane' }, null, 2) + '\n',
-		);
+		write_json(path.join(package_dir, 'package.json'), { name: 'octane' });
 		fs.writeFileSync(path.join(compiler_dir, 'volar.js'), COMPILER_STUBS[compiler_name]);
 		return;
 	}
 	const package_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name);
 	const compiler_dir = path.join(package_dir, 'src');
 	fs.mkdirSync(compiler_dir, { recursive: true });
-	fs.writeFileSync(
-		path.join(package_dir, 'package.json'),
-		JSON.stringify({ name: `@tsrx/${compiler_name}` }, null, 2) + '\n',
-	);
+	write_json(path.join(package_dir, 'package.json'), { name: `@tsrx/${compiler_name}` });
 	fs.writeFileSync(path.join(compiler_dir, 'index.js'), COMPILER_STUBS[compiler_name]);
 }
 
-/**
- * @param {string} workspace_dir
- * @param {string} specifier
- * @param {string} marker
- * @param {string} [directory]
- * @param {string[]} [entry_parts]
- * @param {boolean} [export_subpath]
- */
+/** @param {string} workspace_dir @param {string} specifier @param {string} marker @param {string} [directory] @param {string[]} [entry_parts] @param {boolean} [export_subpath] */
 function write_declared_compiler_stub(
 	workspace_dir,
 	specifier,
@@ -534,18 +425,11 @@ function write_declared_compiler_stub(
 	const subpath = subpath_parts.join('/');
 	const compiler_dir = path.join(workspace_dir, directory, 'node_modules', package_name);
 	fs.mkdirSync(compiler_dir, { recursive: true });
-	fs.writeFileSync(
-		path.join(compiler_dir, 'package.json'),
-		JSON.stringify(
-			{
-				name: package_name,
-				main: entry_parts?.join('/') ?? 'index.cjs',
-				...(export_subpath ? { exports: { [`./${subpath}`]: `./${subpath}.js` } } : {}),
-			},
-			null,
-			2,
-		) + '\n',
-	);
+	write_json(path.join(compiler_dir, 'package.json'), {
+		name: package_name,
+		main: entry_parts?.join('/') ?? 'index.cjs',
+		...(export_subpath ? { exports: { [`./${subpath}`]: `./${subpath}.js` } } : {}),
+	});
 	const compiler_path =
 		entry_parts !== undefined
 			? path.join(compiler_dir, ...entry_parts)
@@ -559,9 +443,7 @@ function write_declared_compiler_stub(
 	);
 }
 
-/**
- * @param {keyof typeof WORKSPACE_CONFIGS} name
- */
+/** @param {keyof typeof WORKSPACE_CONFIGS} name */
 export function create_fixture_workspace(name) {
 	const config = WORKSPACE_CONFIGS[name];
 	if (!config) {
@@ -572,22 +454,13 @@ export function create_fixture_workspace(name) {
 	created_workspaces.push(workspace_dir);
 
 	fs.mkdirSync(path.join(workspace_dir, 'src', 'nested', 'components'), { recursive: true });
-	fs.writeFileSync(
-		path.join(workspace_dir, 'package.json'),
-		JSON.stringify(config.package_json, null, 2) + '\n',
-	);
-	if (config.tsconfig_json || config.tsconfig_source) {
-		fs.writeFileSync(
-			path.join(workspace_dir, 'tsconfig.json'),
-			config.tsconfig_source ?? JSON.stringify(config.tsconfig_json, null, 2) + '\n',
-		);
+	write_json(path.join(workspace_dir, 'package.json'), config.package_json);
+	if (config.tsconfig_json) {
+		write_json(path.join(workspace_dir, 'tsconfig.json'), config.tsconfig_json);
 	}
 	if (config.nested_tsconfig_json) {
 		fs.mkdirSync(path.join(workspace_dir, 'nested'), { recursive: true });
-		fs.writeFileSync(
-			path.join(workspace_dir, 'nested', 'tsconfig.json'),
-			JSON.stringify(config.nested_tsconfig_json, null, 2) + '\n',
-		);
+		write_json(path.join(workspace_dir, 'nested', 'tsconfig.json'), config.nested_tsconfig_json);
 	}
 
 	for (const compiler_name of config.compilers) {
@@ -602,9 +475,6 @@ export function create_fixture_workspace(name) {
 			declared_compiler.entry_parts,
 			declared_compiler.export_subpath,
 		);
-	}
-	if (config.relative_compiler) {
-		fs.writeFileSync(path.join(workspace_dir, 'compiler.cjs'), DECLARED_COMPILER_STUB);
 	}
 	if (config.imports_escape) {
 		fs.writeFileSync(

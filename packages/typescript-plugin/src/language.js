@@ -11,6 +11,7 @@
 /** @typedef {string | { fsPath: string }} ScriptId */
 // Side-effect import: augments @volar/language-core's LanguagePlugin with the `typescript` field.
 /** @typedef {typeof import('@volar/typescript')} _VolarTypeScriptAugmentation */
+/** @typedef {{ ts?: typeof import('typescript'), configFileName?: string, configHost?: import('./tsconfig-resolution.js').TsconfigHost }} CompilerResolutionContext */
 /** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode> & { compilerResolutionDependencies: Set<string> }} RippleLanguagePlugin */
 
 /** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
@@ -79,6 +80,23 @@ export const COMPILER_CANDIDATES = [
 const DEFAULT_COMPILER_ENTRY_PARTS = ['src', 'index.js'];
 
 /**
+ * @param {CompilerResolutionContext | undefined} context
+ * @param {Set<string>} [dependencies]
+ * @returns {Parameters<typeof resolve_consumer_compiler_for_file>[1]}
+ */
+function get_consumer_compiler_options(context, dependencies) {
+	if (!context && !dependencies) {
+		return undefined;
+	}
+	return {
+		ts: context?.ts,
+		config_file_name: context?.configFileName,
+		config_host: context?.configHost,
+		dependencies,
+	};
+}
+
+/**
  * @param {string} file_name
  * @returns {boolean}
  */
@@ -98,6 +116,11 @@ export function getRippleLanguagePlugin(options = {}) {
 	log('Creating Ripple language plugin...');
 	const typescript = options.ts ?? ts;
 	const config_host = options.configHost ?? typescript.sys;
+	const compiler_context = {
+		ts: typescript,
+		configFileName: options.configFileName,
+		configHost: config_host,
+	};
 	const compiler_resolution_dependencies = new Set();
 
 	return {
@@ -115,12 +138,10 @@ export function getRippleLanguagePlugin(options = {}) {
 		createVirtualCode(fileNameOrUri, languageId, snapshot) {
 			if (languageId === 'ripple') {
 				const file_name = normalizeFileNameOrUri(fileNameOrUri);
-				const ripple = get_tsrx_compiler(file_name, {
-					ts: typescript,
-					config_file_name: options.configFileName,
-					config_host,
-					dependencies: compiler_resolution_dependencies,
-				});
+				const ripple = get_tsrx_compiler(
+					file_name,
+					get_consumer_compiler_options(compiler_context, compiler_resolution_dependencies),
+				);
 				if (!ripple) {
 					logError(`Ripple compiler not found for file: ${file_name}`);
 					return undefined;
@@ -1164,10 +1185,14 @@ export function get_compiler_entry_for_file(normalized_file_name, options) {
  * it reuses the exact same resolution as compilation, so tooling and the compiler
  * always agree on the platform. Returns `undefined` when no compiler resolves.
  * @param {string} file_name
+ * @param {CompilerResolutionContext} [context]
  * @returns {string | undefined}
  */
-export function get_tsrx_compiler_name_for_file(file_name) {
-	const entry = get_compiler_entry_for_file(file_name.replace(/\\/g, '/'));
+export function get_tsrx_compiler_name_for_file(file_name, context) {
+	const entry = get_compiler_entry_for_file(
+		file_name.replace(/\\/g, '/'),
+		get_consumer_compiler_options(context),
+	);
 	if (!entry) {
 		return undefined;
 	}
@@ -1193,10 +1218,11 @@ export function get_tsrx_compiler_name_for_file(file_name) {
  * Whether a `.tsrx` file is compiled by the Ripple target (as opposed to
  * React/Solid/Preact/Vue). Used to gate Ripple-runtime-only editor suggestions.
  * @param {string} file_name
+ * @param {CompilerResolutionContext} [context]
  * @returns {boolean}
  */
-export function is_ripple_platform_file(file_name) {
-	return get_tsrx_compiler_name_for_file(file_name) === '@tsrx/ripple';
+export function is_ripple_platform_file(file_name, context) {
+	return get_tsrx_compiler_name_for_file(file_name, context) === '@tsrx/ripple';
 }
 
 /**
@@ -1288,10 +1314,14 @@ export function getCachedTypeMatches(typeName, text, sourceKey = text) {
 
 /**
  * @param {string} normalized_file_name
+ * @param {CompilerResolutionContext} [context]
  * @returns {string | undefined}
  */
-export function get_compiler_dir_for_file(normalized_file_name) {
-	const entry = get_compiler_entry_for_file(normalized_file_name);
+export function get_compiler_dir_for_file(normalized_file_name, context) {
+	const entry = get_compiler_entry_for_file(
+		normalized_file_name,
+		get_consumer_compiler_options(context),
+	);
 	if (!entry) {
 		return undefined;
 	}
