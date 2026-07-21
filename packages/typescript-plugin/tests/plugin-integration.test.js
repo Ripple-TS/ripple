@@ -19,10 +19,11 @@ function create_snapshot(source) {
 }
 
 /**
+ * @param {Parameters<typeof getRippleLanguagePlugin>[0]} [options]
  * @returns {ReturnType<typeof getRippleLanguagePlugin>}
  */
-function create_plugin() {
-	return getRippleLanguagePlugin();
+function create_plugin(options) {
+	return getRippleLanguagePlugin(options);
 }
 
 /**
@@ -478,6 +479,53 @@ describe('typescript-plugin language plugin integration', () => {
 
 		expect(root_virtual_code.generatedCode).toContain('compiler:declared');
 		expect(nested_virtual_code.generatedCode).toContain('compiler:nested');
+	});
+
+	it('uses a provided project config instead of walking to a nearer nested config', () => {
+		const workspace = create_fixture_workspace('inherited-declaration');
+		const root_config_path = path.join(workspace, 'tsconfig.json');
+		write_config(root_config_path, {
+			tsrx: { compiler: 'inherited-compiler-a' },
+			compilerOptions: {},
+		});
+		write_config(path.join(workspace, 'nested', 'tsconfig.json'), {
+			tsrx: { compiler: 'inherited-compiler-b' },
+			compilerOptions: {},
+		});
+		const plugin = create_plugin({
+			ts,
+			configFileName: root_config_path,
+			configHost: ts.sys,
+		});
+		const virtual_code = create_virtual_code(
+			plugin,
+			path.join(workspace, 'nested', 'src', 'App.tsrx'),
+			'export default <div>Hello</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:inherited-a');
+		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-b');
+	});
+
+	it('keeps nearest-config selection when no project config is provided', () => {
+		const workspace = create_fixture_workspace('inherited-declaration');
+		write_config(path.join(workspace, 'tsconfig.json'), {
+			tsrx: { compiler: 'inherited-compiler-a' },
+			compilerOptions: {},
+		});
+		write_config(path.join(workspace, 'nested', 'tsconfig.json'), {
+			tsrx: { compiler: 'inherited-compiler-b' },
+			compilerOptions: {},
+		});
+		const plugin = create_plugin();
+		const virtual_code = create_virtual_code(
+			plugin,
+			path.join(workspace, 'nested', 'src', 'App.tsrx'),
+			'export default <div>Hello</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:inherited-b');
+		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-a');
 	});
 
 	it.each([

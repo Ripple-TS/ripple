@@ -1,6 +1,5 @@
 /** @typedef {{ state: 'absent' } | { state: 'declared', value: string } | { state: 'invalid', target: 'tsrx' | 'compiler', actual_type: string, actual_value: string }} CompilerDeclaration */
 
-import fs from 'fs';
 import { createRequire } from 'module';
 import path from 'path';
 import ts from 'typescript';
@@ -64,9 +63,10 @@ function get_compiler_declaration(config) {
 /**
  * Find the nearest tsconfig.json to use as the root of inheritance resolution.
  * @param {string} start_dir
+ * @param {{fileExists(file_name: string): boolean}} host
  * @returns {string | null}
  */
-function get_nearest_root_tsconfig(start_dir) {
+function get_nearest_root_tsconfig(start_dir, host) {
 	let current_dir = start_dir;
 	/** @type {string[]} */
 	const visited_dirs = [];
@@ -82,7 +82,7 @@ function get_nearest_root_tsconfig(start_dir) {
 
 		visited_dirs.push(current_dir);
 		const tsconfig_path = path.join(current_dir, 'tsconfig.json');
-		if (fs.existsSync(tsconfig_path)) {
+		if (host.fileExists(tsconfig_path)) {
 			for (const visited_dir of visited_dirs) {
 				path_to_root_tsconfig_cache.set(visited_dir, tsconfig_path);
 			}
@@ -103,14 +103,16 @@ function get_nearest_root_tsconfig(start_dir) {
 }
 
 /**
+ * @param {typeof import('typescript')} typescript
+ * @param {import('./tsconfig-resolution.js').TsconfigHost} host
  * @param {string} root_config_path
  */
-function get_tsconfig_layers(root_config_path) {
+function get_tsconfig_layers(typescript, host, root_config_path) {
 	const cached_layers = root_tsconfig_to_layers_cache.get(root_config_path);
 	if (cached_layers) {
 		return cached_layers;
 	}
-	const layers = load_tsconfig_layers(ts, ts.sys, root_config_path);
+	const layers = load_tsconfig_layers(typescript, host, root_config_path);
 	root_tsconfig_to_layers_cache.set(root_config_path, layers);
 	return layers;
 }
@@ -155,14 +157,27 @@ function resolve_declared_compiler(config_path, specifier) {
  * Return undefined when there is no consumer declaration, null for a declared
  * hard stop, or the resolved compiler path for a valid declaration.
  * @param {string} normalized_file_name
+ * @param {{
+ *   ts?: typeof import('typescript'),
+ *   config_file_name?: string,
+ *   config_host?: import('./tsconfig-resolution.js').TsconfigHost,
+ *   dependencies?: Set<string>,
+ * }} [options]
  * @returns {string | null | undefined}
  */
-export function resolve_consumer_compiler_for_file(normalized_file_name) {
-	const root_config_path = get_nearest_root_tsconfig(path.dirname(normalized_file_name));
+export function resolve_consumer_compiler_for_file(normalized_file_name, options = {}) {
+	const typescript = options.ts ?? ts;
+	const config_host = options.config_host ?? typescript.sys;
+	const root_config_path =
+		options.config_file_name ??
+		get_nearest_root_tsconfig(path.dirname(normalized_file_name), config_host);
 	if (root_config_path === null) {
 		return undefined;
 	}
-	const resolved_layers = get_tsconfig_layers(root_config_path);
+	const resolved_layers = get_tsconfig_layers(typescript, config_host, root_config_path);
+	for (const dependency of resolved_layers.dependencies) {
+		options.dependencies?.add(dependency);
+	}
 	const malformed_layers = resolved_layers.layers.filter((layer) => layer.diagnostics.length > 0);
 	if (malformed_layers.length > 0) {
 		const has_tsrx_intent = resolved_layers.layers.some((layer) => {
@@ -182,7 +197,7 @@ export function resolve_consumer_compiler_for_file(normalized_file_name) {
 				log_parse_error(
 					'Unable to parse tsconfig layer:',
 					layer.path,
-					ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+					typescript.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
 				);
 			}
 		}

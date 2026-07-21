@@ -5,6 +5,15 @@ import { getRippleLanguagePlugin } from './language.js';
 // Note: When using the Ripple VS Code extension, the language server handles everything,
 // so this plugin is redundant but harmless (both instances work independently).
 // This plugin is useful for non-VS Code editors or when not using the language server.
-export default createLanguageServicePlugin(() => ({
-	languagePlugins: [getRippleLanguagePlugin()],
+export default createLanguageServicePlugin((ts, info) => ({
+	languagePlugins: [
+		getRippleLanguagePlugin({
+			ts,
+			configFileName:
+				info.project.projectKind === ts.server.ProjectKind.Configured
+					? info.project.getProjectName()
+					: undefined,
+			configHost: ts.sys,
+		}),
+	],
 }));

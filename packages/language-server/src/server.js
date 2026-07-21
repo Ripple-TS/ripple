@@ -65,6 +65,8 @@ export function createRippleLanguageServer() {
 	const wrappedFunctions = new WeakSet();
 	/** @type {Set<string>} */
 	const trackedTypeScriptConfigFiles = new Set();
+	/** @type {Set<string>[]} */
+	const compilerResolutionDependencySets = [];
 	let restartScheduled = false;
 
 	/** Restart the process so Node drops the complete ESM compiler graph. */
@@ -122,13 +124,19 @@ export function createRippleLanguageServer() {
 
 			const initResult = server.initialize(
 				params,
-				createTypeScriptProject(ts, undefined, ({ configFileName, projectHost }) => {
+				createTypeScriptProject(ts, undefined, ({ configFileName, projectHost, sys }) => {
 					wrapCompilerOptionsProvider(projectHost, 'getCompilationSettings');
+					const languagePlugin = getRippleLanguagePlugin({
+						ts,
+						configFileName,
+						configHost: sys,
+					});
+					compilerResolutionDependencySets.push(languagePlugin.compilerResolutionDependencies);
 
 					return {
 						// Keep language-plugin identity aligned with Volar's project
 						// lifecycle. Nested tsconfigs are separate configured projects.
-						languagePlugins: [getRippleLanguagePlugin()],
+						languagePlugins: [languagePlugin],
 						setup({ project }) {
 							wrapCompilerOptionsProvider(
 								project?.typescript?.languageServiceHost,
@@ -172,6 +180,11 @@ export function createRippleLanguageServer() {
 		server.initialized();
 
 		server.fileWatcher.onDidChangeWatchedFiles(({ changes }) => {
+			for (const dependencies of compilerResolutionDependencySets) {
+				for (const dependency of dependencies) {
+					trackedTypeScriptConfigFiles.add(dependency);
+				}
+			}
 			const effects = handleWorkspaceChanges(
 				changes,
 				{

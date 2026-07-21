@@ -11,7 +11,7 @@
 /** @typedef {string | { fsPath: string }} ScriptId */
 // Side-effect import: augments @volar/language-core's LanguagePlugin with the `typescript` field.
 /** @typedef {typeof import('@volar/typescript')} _VolarTypeScriptAugmentation */
-/** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
+/** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode> & { compilerResolutionDependencies: Set<string> }} RippleLanguagePlugin */
 
 /** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
 
@@ -87,12 +87,21 @@ export function is_ripple_file(file_name) {
 }
 
 /**
+ * @param {{
+ *   ts?: typeof import('typescript'),
+ *   configFileName?: string,
+ *   configHost?: import('./tsconfig-resolution.js').TsconfigHost,
+ * }} [options]
  * @returns {RippleLanguagePlugin}
  */
-export function getRippleLanguagePlugin() {
+export function getRippleLanguagePlugin(options = {}) {
 	log('Creating Ripple language plugin...');
+	const typescript = options.ts ?? ts;
+	const config_host = options.configHost ?? typescript.sys;
+	const compiler_resolution_dependencies = new Set();
 
 	return {
+		compilerResolutionDependencies: compiler_resolution_dependencies,
 		getLanguageId(fileNameOrUri) {
 			const file_name =
 				typeof fileNameOrUri === 'string'
@@ -106,7 +115,12 @@ export function getRippleLanguagePlugin() {
 		createVirtualCode(fileNameOrUri, languageId, snapshot) {
 			if (languageId === 'ripple') {
 				const file_name = normalizeFileNameOrUri(fileNameOrUri);
-				const ripple = get_tsrx_compiler(file_name);
+				const ripple = get_tsrx_compiler(file_name, {
+					ts: typescript,
+					config_file_name: options.configFileName,
+					config_host,
+					dependencies: compiler_resolution_dependencies,
+				});
 				if (!ripple) {
 					logError(`Ripple compiler not found for file: ${file_name}`);
 					return undefined;
@@ -995,10 +1009,11 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 
 /**
  * @param {string} normalized_file_name
+ * @param {Parameters<typeof resolve_consumer_compiler_for_file>[1]} [options]
  * @returns {TSRXCompilerModule | undefined}
  */
-function get_tsrx_compiler(normalized_file_name) {
-	const compiler_path = get_compiler_entry_for_file(normalized_file_name);
+function get_tsrx_compiler(normalized_file_name, options) {
+	const compiler_path = get_compiler_entry_for_file(normalized_file_name, options);
 	if (compiler_path) {
 		const compiler_module = require(compiler_path);
 		return normalize_tsrx_compiler_module(compiler_module);
@@ -1082,11 +1097,12 @@ export function find_workspace_compiler_entry_for_file(
 
 /**
  * @param {string} normalized_file_name
+ * @param {Parameters<typeof resolve_consumer_compiler_for_file>[1]} [options]
  * @returns {string | undefined}
  */
-export function get_compiler_entry_for_file(normalized_file_name) {
+export function get_compiler_entry_for_file(normalized_file_name, options) {
 	const ext = path.extname(normalized_file_name);
-	const consumer_compiler_path = resolve_consumer_compiler_for_file(normalized_file_name);
+	const consumer_compiler_path = resolve_consumer_compiler_for_file(normalized_file_name, options);
 	if (consumer_compiler_path !== undefined) {
 		return consumer_compiler_path ?? undefined;
 	}
