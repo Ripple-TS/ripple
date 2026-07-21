@@ -93,7 +93,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Render or retain template output',
 			message:
-				'Free-floating TSRX output in a normal function body is discarded. Return it, assign it to a value that is later rendered, or change the function body opening `{` to `@{` for implicit output.',
+				'Free-floating TSRX output in ordinary setup is discarded. Return it, assign it to a value that is later rendered, or make it part of the rendered output of a function `@{...}` body.',
 			documentation: ['tsrx://docs/components.md', 'tsrx://docs/expression-values.md'],
 		});
 	}

@@ -92,14 +92,15 @@ describe('function returns in client components', () => {
 		expect(
 			() => compile(
 				`
-					function App() @{
-						const items = [1, 2, 3];
+						function App() @{
+							const items = [1, 2, 3];
+							const content = [];
 							for (const item of items) {
-								<div>{item}</div>
+								content.push(<div>{item}</div>);
 							}
-							<></>
-					}
-				`,
+							<>{content}</>
+						}
+					`,
 				'test.tsrx',
 				{ mode: 'client' },
 			),

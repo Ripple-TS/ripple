@@ -36,40 +36,39 @@ function forgotten_output_errors(result) {
 describe('target-neutral TSRX analysis', () => {
 	describe('unused template output', () => {
 		it('reports free-floating output in every ordinary function form', () => {
-			for (const source of [
-				'function Test() { <div /> }',
-				'const Test = () => { <div /> };',
-				'const Test = function () { <div /> };',
-				'consume(function () { <div /> });',
-				'const object = { render() { <div /> } };',
-				'class Test { render() { <div /> } }',
-			]) {
-				const errors = forgotten_output_errors(analyze(source));
+			const result = analyze(
+				`function Declaration() { <div /> }
+				const Arrow = () => { <div /> };
+				const Expression = function () { <div /> };
+				consume(function () { <div /> });
+				const object = { render() { <div /> } };
+				class Component { render() { <div /> } }`,
+				{ collect: true },
+			);
+			const errors = forgotten_output_errors(result);
 
-				expect(errors, source).toHaveLength(1);
-				expect(errors[0].message).toBe(TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR);
-			}
+			expect(errors).toHaveLength(6);
+			expect(
+				errors.every((error) => error.message === TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR),
+			).toBe(true);
 		});
 
 		it('reports every free-floating TSRX output shape once', () => {
-			for (const output of [
-				'<div />',
-				'<><div /></>',
-				'<style>div { color: red; }</style>',
-				'@if (ok) { <div /> } @else { <span /> }',
-				'@for (const item of items) { <div>{item}</div> }',
-				'@switch (value) { @case 1: { <div /> } @default: { <span /> } }',
-				'@try { <div /> } @catch (error) { <span /> }',
-				'@{ <div /> }',
-			]) {
-				const errors = forgotten_output_errors(
-					analyze(`function Test() {
-						${output}
-					}`),
-				);
+			const result = analyze(
+				`function Test(ok, items, value) {
+					<div />;
+					<><div /></>;
+					<style>div { color: red; }</style>;
+					@if (ok) { <div /> } @else { <span /> };
+					@for (const item of items) { <div>{item}</div> };
+					@switch (value) { @case 1: { <div /> } @default: { <span /> } };
+					@try { <div /> } @catch (error) { <span /> };
+					@{ <div /> };
+				}`,
+				{ collect: true },
+			);
 
-				expect(errors, output).toHaveLength(1);
-			}
+			expect(forgotten_output_errors(result)).toHaveLength(8);
 		});
 
 		it('reports output nested in ordinary JavaScript blocks and output followed by setup', () => {
@@ -82,6 +81,72 @@ describe('target-neutral TSRX analysis', () => {
 				const value = 1;
 				console.log(value);
 			}`);
+
+			expect(forgotten_output_errors(result)).toHaveLength(2);
+		});
+
+		it('reports free-floating output in the setup portion of a function @{...} body', () => {
+			const result = analyze(
+				`function Test(enabled, ready, items, value) @{
+					if (enabled) {
+						<div />;
+						<><div /></>;
+						<style>div { color: red; }</style>;
+						@if (ready) { <div /> } @else { <span /> };
+						@for (const item of items) { <div>{item}</div> };
+						@switch (value) { @case 1: { <div /> } @default: { <span /> } };
+						@try { <div /> } @catch (error) { <span /> };
+						@{ <div /> };
+					}
+
+					<main />
+				}`,
+				{ collect: true },
+			);
+
+			expect(forgotten_output_errors(result)).toHaveLength(8);
+		});
+
+		it('reports free-floating output in ordinary setup loops', () => {
+			const result = analyze(`function Test() @{
+				const items = [1, 2, 3];
+				for (const item of items) {
+					<div>{item}</div>
+				}
+
+				<main />
+			}`);
+
+			expect(forgotten_output_errors(result)).toHaveLength(1);
+		});
+
+		it('reports free-floating setup output in retained and nested @{...} expressions', () => {
+			const result = analyze(
+				`function Retained(enabled) {
+					const content = @{
+						if (enabled) {
+							<aside />
+						}
+
+						<main />
+					};
+
+					return content;
+				}
+
+				function Nested(enabled) {
+					return <section>
+						@{
+							if (enabled) {
+								<aside />
+							}
+
+							<main />
+						}
+					</section>;
+				}`,
+				{ collect: true },
+			);
 
 			expect(forgotten_output_errors(result)).toHaveLength(2);
 		});
@@ -153,6 +218,24 @@ describe('target-neutral TSRX analysis', () => {
 			]) {
 				expect(forgotten_output_errors(analyze(source)), source).toEqual([]);
 			}
+		});
+
+		it('allows retained setup output before the rendered value of a function @{...} body', () => {
+			const result = analyze(`function Test(enabled) @{
+				let content = null;
+				if (enabled) {
+					content = <aside /> as JSX.Element;
+					renderPreview(<small />);
+				}
+
+				@if (content) {
+					<main>{content}</main>
+				} @else {
+					<main />
+				}
+			}`);
+
+			expect(forgotten_output_errors(result)).toEqual([]);
 		});
 
 		it('does not report nested output that belongs to another template', () => {

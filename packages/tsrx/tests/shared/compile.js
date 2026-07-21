@@ -2277,7 +2277,7 @@ export function runSharedCompileTests({
 			const { code } = compile(
 				`export function App(disabled: boolean) @{
 						if (disabled) {
-							<span>disabled</span>
+							return <span>disabled</span>;
 						}
 
 						<span>enabled</span>

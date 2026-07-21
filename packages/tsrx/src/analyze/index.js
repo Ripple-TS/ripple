@@ -98,7 +98,7 @@ function visit_render_output(node, { next, path, state }) {
 
 	if (
 		state.function &&
-		!state.function_body_is_code_block &&
+		!(state.function_body_is_code_block && state.function.body === node) &&
 		!state.inside_template_output &&
 		is_free_floating_template(node, path)
 	) {
@@ -110,7 +110,12 @@ function visit_render_output(node, { next, path, state }) {
 		);
 	}
 
-	next({ ...state, inside_template_output: true });
+	// A JSXCodeBlock contains ordinary setup statements in `body` as well as
+	// the retained output in `render`. Reset the template context while walking
+	// both fields so free-floating output in setup is still diagnosed. The
+	// render node itself is retained by the code block, and establishes template
+	// context for its own descendants when this visitor reaches it.
+	next({ ...state, inside_template_output: node.type !== 'JSXCodeBlock' });
 }
 
 /**

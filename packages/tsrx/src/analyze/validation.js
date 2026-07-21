@@ -29,7 +29,7 @@ export const TSRX_WHILE_STATEMENT_ERROR =
 export const TSRX_DO_WHILE_STATEMENT_ERROR =
 	'Do...while loops are not supported in TSRX templates. Move the do...while loop into a function.';
 export const TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR =
-	"This TSRX template output is unused because its function has a normal JavaScript body. Return it, assign it to a value that is rendered, or add '@' before the function body's opening brace.";
+	"This TSRX template output is unused. Return it, assign it to a value that is rendered, or make it part of the rendered output of a function '@{...}' body.";
 
 const invalid_nestings = {
 	// <p> cannot contain block-level elements

@@ -20,10 +20,11 @@ describe('for statements', () => {
 			() => compile(
 				`function App() @{
 					const items = [1, 2, 3];
+					const content = [];
 					for (const item of items) {
-						<div class="selected">{item}</div>
+						content.push(<div class="selected">{item}</div>);
 					}
-					<></>
+					<>{content}</>
 				}`,
 				'App.tsrx',
 				{ mode: 'client' },
@@ -49,7 +50,7 @@ describe('for statements', () => {
 
 	it('renders an empty fallback', () => {
 		function App() @{
-			const items = [];
+			const items: string[] = [];
 			@for (const item of items) {
 				<div class="item">{item}</div>
 			} @empty {

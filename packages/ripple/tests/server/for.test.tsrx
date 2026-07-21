@@ -18,9 +18,11 @@ describe('for statements in SSR', () => {
 			() => compile(
 				`function App() @{
 					const items = [1, 2, 3];
+					const content = [];
 					for (const item of items) {
-						<div class="selected">{item}</div>
+						content.push(<div class="selected">{item}</div>);
 					}
+					<>{content}</>
 				}`,
 				'App.tsrx',
 				{ mode: 'server' },
