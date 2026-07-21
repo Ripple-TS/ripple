@@ -1,5 +1,46 @@
 # @tsrx/prettier-plugin
 
+## 0.3.106
+
+### Patch Changes
+
+- [#1372](https://github.com/Ripple-TS/ripple/pull/1372)
+  [`2911cd8`](https://github.com/Ripple-TS/ripple/commit/2911cd80e12d3ade41c751025fbc2249ef3f53c4)
+  Thanks [@trueadm](https://github.com/trueadm)! - Break long type parameter lists
+  one per line with a trailing comma, like vanilla prettier, instead of emitting
+  one overlong line. The `<T,>` trailing-comma preservation now only applies to
+  single-param arrow function generics, where the comma is syntactically
+  meaningful. Function signatures group parameters with the return type so the
+  fitter prefers breaking the parameter list, and type reference arguments can now
+  break too, hugging a single object-type argument.
+
+- [#1369](https://github.com/Ripple-TS/ripple/pull/1369)
+  [`a1bc871`](https://github.com/Ripple-TS/ripple/commit/a1bc871a7eea6bd9b9273c8bbfccf84f4ff32e25)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep required parentheses
+  around low-precedence `as`/`satisfies` operands (`(a ?? b) as string` no longer
+  loses its cast grouping), print the definite-assignment assertion on variable
+  declarations (`let x!: T`), and make formatting single-pass idempotent: wrap
+  return/throw arguments that carry own-line leading comments in parentheses
+  instead of letting ASI detach them, decide arrow-body and array-element breaking
+  from the printed doc rather than the original source span, and keep simple
+  `as`-cast text holes inline in JSX. The test suite now formats every case twice
+  and asserts byte-equal output.
+
+- [#1370](https://github.com/Ripple-TS/ripple/pull/1370)
+  [`c4858d4`](https://github.com/Ripple-TS/ripple/commit/c4858d40c3ac578974ce06ac4051193fe66ade04)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep comments attached to their
+  TypeScript type arguments. `TSTypeReference` printed `<...>` type arguments as a
+  flat comma join, which jammed a param's leading and trailing comments together
+  inline (in reversed order) and needed two passes to converge. Type arguments now
+  print through `printTSTypeParameterInstantiation`, so the list breaks like
+  standard prettier: trailing comments stay on their param's line, own-line
+  leading comments stay above their param, and a lone object-type argument still
+  hugs the angle brackets (`Foo<{ ... }>`).
+
+- Updated dependencies
+  [[`e9e122f`](https://github.com/Ripple-TS/ripple/commit/e9e122f8620c4b52671b294364a12a65091e0c98)]:
+  - @tsrx/core@0.1.45
+
 ## 0.3.105
 
 ## 0.3.104

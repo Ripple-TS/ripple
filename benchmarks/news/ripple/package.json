@@ -2,7 +2,7 @@
   "name": "ripple-news-bench",
   "private": true,
   "type": "module",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "news-site SSR+hydration bench fixture for the original Ripple framework (authored in .tsrx, compiled via @tsrx/ripple).",
   "scripts": {
     "dev": "vite --host --port 5194 --strictPort"

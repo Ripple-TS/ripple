@@ -1,6 +1,6 @@
 {
   "name": "tsrx-website",
-  "version": "0.1.88",
+  "version": "0.1.89",
   "description": "Marketing site for TSRX built with Ripple SSR",
   "private": true,
   "type": "module",

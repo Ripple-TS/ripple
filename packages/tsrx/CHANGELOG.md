@@ -1,5 +1,19 @@
 # @tsrx/core
 
+## 0.1.45
+
+### Patch Changes
+
+- [#1368](https://github.com/Ripple-TS/ripple/pull/1368)
+  [`e9e122f`](https://github.com/Ripple-TS/ripple/commit/e9e122f8620c4b52671b294364a12a65091e0c98)
+  Thanks [@trueadm](https://github.com/trueadm)! - Tokenize a `/` in JSX text as
+  literal text when the element is nested inside a `{ … }` expression container.
+  Previously `{cond && (<a>x/y</a>)}` and adjacent expression children separated
+  by a slash (`{a}/{b}`) inside a nested element failed to parse with "Invalid
+  regular expression flag" or "Unterminated regular expression", because the
+  tokenizer left raw-text mode and read the slash as the start of a regular
+  expression.
+
 ## 0.1.44
 
 ### Patch Changes
