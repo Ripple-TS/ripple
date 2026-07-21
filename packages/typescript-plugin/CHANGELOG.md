@@ -1,5 +1,34 @@
 # @tsrx/typescript-plugin
 
+## 0.3.105
+
+### Patch Changes
+
+- [#1365](https://github.com/Ripple-TS/ripple/pull/1365)
+  [`8c7ffb6`](https://github.com/Ripple-TS/ripple/commit/8c7ffb6cdbd81f8c730a9467806b03462b009800)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Reload Volar projects for
+  nested and shared TypeScript config changes, restart the language server when
+  package state can replace the ESM compiler graph, and refresh cached type
+  definitions when they change.
+
+- [#1364](https://github.com/Ripple-TS/ripple/pull/1364)
+  [`8ed16ac`](https://github.com/Ripple-TS/ripple/commit/8ed16ac57a3fa30c0d0ec81729dd2d64df0e6f1b)
+  Thanks [@thejackshelton](https://github.com/thejackshelton)! - Resolve
+  bare-package TSRX compiler declarations through the active TypeScript project's
+  explicit `extends` chain, including transitive, array, JSONC, and package-based
+  configs. The nearest tsconfig is used only when project context is unavailable.
+  Child and later declarations override inherited values, resolution starts from
+  the config that supplied the effective declaration, and nested projects do not
+  inherit unrelated ancestor configs. Compiler declarations remain trimmed and
+  protected by the fail-closed npm package specifier allowlist. Unresolved
+  inheritance hard-stops unless a valid declaration in the owning or a
+  higher-precedence config overrides the missing base; malformed or effectively
+  invalid declarations also hard-stop, while malformed readable config chains
+  without `tsrx` intent warn and preserve candidate resolution. Missing relative
+  bases are tracked so creating them refreshes the project automatically, and
+  missing declared compiler packages are retried so tsserver can recover after
+  installation.
+
 ## 0.3.104
 
 ## 0.3.103

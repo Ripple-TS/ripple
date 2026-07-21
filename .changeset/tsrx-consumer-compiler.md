@@ -1,5 +1,0 @@
----
-'@tsrx/typescript-plugin': patch
----
-
-Resolve bare-package TSRX compiler declarations through the active TypeScript project's explicit `extends` chain, including transitive, array, JSONC, and package-based configs. The nearest tsconfig is used only when project context is unavailable. Child and later declarations override inherited values, resolution starts from the config that supplied the effective declaration, and nested projects do not inherit unrelated ancestor configs. Compiler declarations remain trimmed and protected by the fail-closed npm package specifier allowlist. Unresolved inheritance hard-stops unless a valid declaration in the owning or a higher-precedence config overrides the missing base; malformed or effectively invalid declarations also hard-stop, while malformed readable config chains without `tsrx` intent warn and preserve candidate resolution. Missing relative bases are tracked so creating them refreshes the project automatically, and missing declared compiler packages are retried so tsserver can recover after installation.

@@ -1,5 +1,7 @@
 # @tsrx/prettier-plugin
 
+## 0.3.105
+
 ## 0.3.104
 
 ### Patch Changes

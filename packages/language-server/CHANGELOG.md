@@ -1,5 +1,21 @@
 # @ripple-ts/language-server
 
+## 0.3.105
+
+### Patch Changes
+
+- [#1365](https://github.com/Ripple-TS/ripple/pull/1365)
+  [`8c7ffb6`](https://github.com/Ripple-TS/ripple/commit/8c7ffb6cdbd81f8c730a9467806b03462b009800)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Reload Volar projects for
+  nested and shared TypeScript config changes, restart the language server when
+  package state can replace the ESM compiler graph, and refresh cached type
+  definitions when they change.
+
+- Updated dependencies
+  [[`8c7ffb6`](https://github.com/Ripple-TS/ripple/commit/8c7ffb6cdbd81f8c730a9467806b03462b009800),
+  [`8ed16ac`](https://github.com/Ripple-TS/ripple/commit/8ed16ac57a3fa30c0d0ec81729dd2d64df0e6f1b)]:
+  - @tsrx/typescript-plugin@0.3.105
+
 ## 0.3.104
 
 ### Patch Changes
