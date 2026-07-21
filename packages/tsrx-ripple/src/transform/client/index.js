@@ -3271,9 +3271,7 @@ const visitors = {
 						),
 					);
 				} else {
-					throw new Error(
-						'Unexpected attribute type encountered during client transformation',
-					);
+					throw new Error('Unexpected attribute type encountered during client transformation');
 				}
 			}
 
