@@ -55,15 +55,23 @@ describe('prettier-plugin', () => {
 	});
 
 	/**
+	 * Format tsrx source. Every call also verifies the output is a fixpoint:
+	 * formatting must be single-pass idempotent (a second pass may not change
+	 * a single byte), so the whole suite doubles as an idempotence corpus.
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]
 	 */
 	const format = async (code, options = {}) => {
-		return await prettier.format(code, {
+		/** @type {import('prettier').Options} */
+		const resolvedOptions = {
 			parser: 'tsrx',
 			plugins: [join(__dirname, 'index.js')],
 			...options,
-		});
+		};
+		const once = await prettier.format(code, resolvedOptions);
+		const twice = await prettier.format(once, resolvedOptions);
+		expect(twice, 'formatting must be idempotent (second pass changed the output)').toBe(once);
+		return once;
 	};
 
 	it('formats functions that return native elements', async () => {
@@ -888,8 +896,7 @@ const items=[1,2,3];
   <List
     items={props.items}
     renderItem={(item) =>
-      <><ItemView {item} onSelect={props.onSelect} /></>
-    }
+      <><ItemView {item} onSelect={props.onSelect} /></>}
   />
 }`;
 		const result = await format(input, { singleQuote: true, printWidth: 60 });
@@ -1243,7 +1250,8 @@ const items=[1,2,3];
 		it('should format destructured dynamic import() in Promise.all', async () => {
 			const input = `const [{ EditorState }, { oneDark }] = await Promise.all([import('@codemirror/state'), import('@codemirror/theme-one-dark')]);`;
 			const expected = `const [{ EditorState }, { oneDark }] = await Promise.all([
-  import("@codemirror/state"), import("@codemirror/theme-one-dark"),
+  import("@codemirror/state"),
+  import("@codemirror/theme-one-dark"),
 ]);`;
 			const result = await format(input);
 			expect(result).toBeWithNewline(expected);
@@ -3377,7 +3385,8 @@ function test() {
 
 			const expected = `const arr = [
   1, /* comment 1 */
-  2, 3,
+  2,
+  3,
   // comment 2
 ];`;
 
@@ -6491,6 +6500,127 @@ function RowList({ rows, Row }) {
 				printWidth: 100,
 			});
 			expect(result).toBeWithNewline(expected);
+		});
+	});
+
+	describe('parens around as-cast operands', () => {
+		it('keeps parens around a nullish coalescing operand of an as-cast', async () => {
+			const input = `function App() {
+  return <span>{(activeAuthor ?? "All authors") as string}</span>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('keeps parens around logical and equality operands of as-casts', async () => {
+			const input = `function App() {
+  const a = (x || y) as string;
+  const b = (x == y) as boolean;
+  const c = (x ?? y) satisfies string;
+  return <div>{a}</div>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('does not add parens around higher-precedence operands of as-casts', async () => {
+			const input = `function App() {
+  const a = x + y as string;
+  const b = x < y as unknown;
+  return <div>{a}</div>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+	});
+
+	describe('definite assignment assertions', () => {
+		it('keeps the definite assignment assertion on variable declarations', async () => {
+			const input = `function App() {
+  let cleanup!: () => void;
+  var count!: number;
+  return <div />;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+	});
+
+	describe('idempotence', () => {
+		/**
+		 * @param {string} code
+		 * @param {import('prettier').Options} [options]
+		 */
+		const expectStable = async (code, options = {}) => {
+			const once = await format(code, options);
+			const twice = await format(once, options);
+			expect(twice).toBe(once);
+			return once;
+		};
+
+		it('keeps a return argument with leading line comments after the return keyword', async () => {
+			const input = `function isXOrYInValid(xOrY: string | number | undefined) {
+	return (
+		// number that is not NaN or Infinity
+		(typeof xOrY === 'number' && Number.isFinite(xOrY)) ||
+		// for percentage
+		typeof xOrY === 'string'
+	);
+}`;
+
+			const once = await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+			// The argument must stay attached to the return; printing the comment
+			// between `return` and the expression triggers ASI and returns undefined.
+			expect(once).not.toMatch(/return[;\s]*\/\//);
+		});
+
+		it('stabilizes long arrow bodies with logical expressions in one pass', async () => {
+			const input = `function useStack() {
+	return horizontal
+		? {
+				defined: (d: AreaStackDatum<XScale, YScale>) =>
+					isValidNumber(yScale(getStackValue(d.data))) && isValidNumber(xScale(getSecondItem(d))),
+			}
+		: null;
+}`;
+
+			await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+		});
+
+		it('stabilizes deeply nested JSX attribute arrows returning JSX in one pass', async () => {
+			const input = `function Parent() {
+	return <div>
+		<section>
+			<article>
+				<fieldset>
+					<group.Subscribe
+						children={(state) => (
+							<span data-testid="state-lastName">{state.values.lastName}</span>
+						)}
+					/>
+				</fieldset>
+			</article>
+		</section>
+	</div>;
+}`;
+
+			await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
 		});
 	});
 });

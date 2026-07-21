@@ -424,6 +424,27 @@ function binaryExpressionNeedsParens(node, parent) {
 }
 
 /**
+ * Check whether the operand of an `as`/`satisfies` cast must stay parenthesized.
+ * The cast binds at relational precedence, so lower-precedence operands parse
+ * differently without their parens: `a ?? b as string` is `a ?? (b as string)`,
+ * and mixing `??` with an unparenthesized cast operand is a TS syntax error.
+ * @param {AST.Node} expression - The cast operand
+ * @returns {boolean} - True if parentheses are required
+ */
+function castOperandNeedsParens(expression) {
+	switch (expression.type) {
+		case 'LogicalExpression':
+		case 'ArrowFunctionExpression':
+		case 'YieldExpression':
+			return true;
+		case 'BinaryExpression':
+			return getPrecedence(expression.operator) < PRECEDENCE['<'];
+		default:
+			return false;
+	}
+}
+
+/**
  * Check if a parenthesized AssignmentExpression needs its parentheses preserved.
  * @param {AST.AssignmentExpression} node - The expression node
  * @param {AST.Node | null} parent - The parent node
@@ -1413,7 +1434,10 @@ function printRippleNode(node, path, options, print, args) {
 				}
 
 				const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
-				nodeContent = group(['[', indent([softline, fill(fillParts), trailingDoc]), softline, ']']);
+				// All-or-nothing group instead of fill(): packing several elements
+				// per wrapped line is never a fixpoint — the repacked output reparses
+				// as a multiline array and would then break one element per line.
+				nodeContent = group(['[', indent([softline, fillParts, trailingDoc]), softline, ']']);
 				break;
 			}
 
@@ -1688,10 +1712,14 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
+			const expressionDoc = path.call(print, 'expression');
+			const operand = castOperandNeedsParens(node.expression)
+				? ['(', expressionDoc, ')']
+				: expressionDoc;
 			nodeContent =
 				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
-					? [path.call(print, 'expression'), ' as', indent([line, typeAnnotation])]
-					: [path.call(print, 'expression'), ' as ', typeAnnotation];
+					? [operand, ' as', indent([line, typeAnnotation])]
+					: [operand, ' as ', typeAnnotation];
 			break;
 		}
 
@@ -1700,10 +1728,14 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
+			const expressionDoc = path.call(print, 'expression');
+			const operand = castOperandNeedsParens(node.expression)
+				? ['(', expressionDoc, ')']
+				: expressionDoc;
 			nodeContent =
 				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
-					? [path.call(print, 'expression'), ' satisfies', indent([line, typeAnnotation])]
-					: [path.call(print, 'expression'), ' satisfies ', typeAnnotation];
+					? [operand, ' satisfies', indent([line, typeAnnotation])]
+					: [operand, ' satisfies ', typeAnnotation];
 			break;
 		}
 
@@ -1892,17 +1924,28 @@ function printRippleNode(node, path, options, print, args) {
 		}
 		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
+			const parent = path.getParentNode();
+			// The definite-assignment assertion (`let x!: T`) lives on the declarator
+			const definiteMarker =
+				parent && parent.type === 'VariableDeclarator' && parent.id === node && parent.definite
+					? '!'
+					: '';
 			let identifierContent;
 			if (node.typeAnnotation) {
 				const optionalMarker = node.optional ? '?' : '';
-				identifierContent = [node.name, optionalMarker, ': ', path.call(print, 'typeAnnotation')];
+				identifierContent = [
+					node.name,
+					definiteMarker,
+					optionalMarker,
+					': ',
+					path.call(print, 'typeAnnotation'),
+				];
 			} else {
-				identifierContent = node.name;
+				identifierContent = definiteMarker ? [node.name, definiteMarker] : node.name;
 			}
 			// Preserve parentheses for type-cast identifiers, but only if:
 			// 1. The identifier itself is marked as parenthesized
 			// 2. The parent is NOT handling parentheses itself (MemberExpression, AssignmentExpression, etc.)
-			const parent = path.getParentNode();
 			const parentHandlesParens =
 				parent &&
 				(parent.type === 'MemberExpression' ||
@@ -2068,8 +2111,14 @@ function printRippleNode(node, path, options, print, args) {
 			/** @type {Doc[]} */
 			const parts = ['return'];
 			if (node.argument) {
-				parts.push(' ');
-				parts.push(path.call(print, 'argument'));
+				if (argumentHasOwnLineLeadingComment(node.argument)) {
+					// The comment prints on its own line, which would separate `return`
+					// from its argument and trigger ASI — keep the argument in parens.
+					parts.push(' (', indent([hardline, path.call(print, 'argument')]), hardline, ')');
+				} else {
+					parts.push(' ');
+					parts.push(path.call(print, 'argument'));
+				}
 			}
 			parts.push(semi(options));
 			nodeContent = parts;
@@ -2808,7 +2857,6 @@ function printArrowFunction(node, path, options, print, args) {
 		// to avoid ambiguity with block statements or to clarify intent
 		const bodyDoc = path.call(print, 'body');
 		const groupId = Symbol('arrow');
-		const shouldBreakBody = shouldBreakArrowExpressionBody(node.body, options, args);
 		/** @type {Doc | Doc[]} */
 		let bodyContent;
 		if (
@@ -2820,21 +2868,24 @@ function printArrowFunction(node, path, options, print, args) {
 		} else {
 			bodyContent = bodyDoc;
 		}
-		if (shouldBreakBody) {
-			parts.push(' =>', indent([hardline, bodyContent]));
-		} else {
-			if (isTemplateExpression(node.body)) {
-				return conditionalGroup([
-					group([...parts, ' => ', bodyContent]),
-					group([...parts, ' =>', indent([hardline, bodyContent])]),
-				]);
-			}
-			parts.push(
-				' =>',
-				group(indent(line), { id: groupId }),
-				indentIfBreak(bodyContent, { groupId }),
-			);
+		if (
+			isTemplateExpression(node.body) ||
+			node.body.type === 'BinaryExpression' ||
+			node.body.type === 'LogicalExpression'
+		) {
+			// Try the body inline; otherwise break right after `=>` so the body
+			// starts on its own line. Deciding this from the printed doc (instead
+			// of the original source span) keeps formatting idempotent.
+			return conditionalGroup([
+				group([...parts, ' => ', bodyContent]),
+				group([...parts, ' =>', indent([hardline, bodyContent])]),
+			]);
 		}
+		parts.push(
+			' =>',
+			group(indent(line), { id: groupId }),
+			indentIfBreak(bodyContent, { groupId }),
+		);
 	}
 
 	return group(parts);
@@ -2847,25 +2898,6 @@ function printArrowFunction(node, path, options, print, args) {
  */
 function isTemplateExpression(node) {
 	return node.type === 'JSXElement' || node.type === 'JSXFragment';
-}
-
-/**
- * Check whether a braced attribute expression should close on its own line.
- * @param {AST.Node} node - The expression inside the attribute braces
- * @param {RippleFormatOptions} options
- * @param {AST.Node} [attributeNode]
- * @returns {boolean}
- */
-function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode = node) {
-	return (
-		node.type === 'ArrowFunctionExpression' &&
-		node.body &&
-		isTemplateExpression(node.body) &&
-		sourceSpanExceedsPrintWidth(
-			/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (attributeNode ?? node)),
-			options,
-		)
-	);
 }
 
 /**
@@ -3058,34 +3090,6 @@ function shouldHugArrowFunctions(args) {
 	}
 
 	return firstBlockIndex === 0;
-}
-
-/**
- * Check whether a node's original source span exceeds the configured print width.
- * @param {AST.NodeWithLocation} node - The node to check
- * @param {RippleFormatOptions} options - Prettier options
- * @returns {boolean}
- */
-function sourceSpanExceedsPrintWidth(node, options) {
-	const printWidth = options.printWidth ?? 80;
-	if (!options.originalText || node.start === undefined || node.end === undefined) {
-		return false;
-	}
-	return options.originalText.slice(node.start, node.end).length > printWidth;
-}
-
-/**
- * Check if an arrow expression body should break immediately after `=>`.
- * @param {AST.Expression} node - The arrow body expression
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintArgs} [args] - Additional context arguments
- * @returns {boolean}
- */
-function shouldBreakArrowExpressionBody(node, options, args) {
-	return (
-		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
-		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
-	);
 }
 
 /**
@@ -4323,10 +4327,39 @@ function printTaggedTemplateExpression(node, path, options, print) {
 function printThrowStatement(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	parts.push('throw ');
-	parts.push(path.call(print, 'argument'));
+	if (argumentHasOwnLineLeadingComment(node.argument)) {
+		// Same ASI hazard as `return`: keep the argument attached via parens.
+		parts.push('throw (', indent([hardline, path.call(print, 'argument')]), hardline, ')');
+	} else {
+		parts.push('throw ');
+		parts.push(path.call(print, 'argument'));
+	}
 	parts.push(semi(options));
 	return parts;
+}
+
+/**
+ * Check whether a return/throw argument has a leading comment that prints on
+ * its own line (line comments always do; block comments only when they did not
+ * share a line with the argument in the source).
+ * @param {AST.Node | null | undefined} argument - The statement argument
+ * @returns {boolean}
+ */
+function argumentHasOwnLineLeadingComment(argument) {
+	if (!argument) {
+		return false;
+	}
+	const comments = /** @type {AST.NodeWithMaybeComments} */ (argument).leadingComments;
+	if (!comments) {
+		return false;
+	}
+	return comments.some(
+		(comment) =>
+			comment.type === 'Line' ||
+			!comment.loc ||
+			!argument.loc ||
+			comment.loc.end.line !== argument.loc.start.line,
+	);
 }
 
 /**
@@ -5829,7 +5862,9 @@ function isSimpleJSXExpressionChild(child) {
 		expression?.type === 'MemberExpression' ||
 		expression?.type === 'CallExpression' ||
 		expression?.type === 'BinaryExpression' ||
-		expression?.type === 'LogicalExpression'
+		expression?.type === 'LogicalExpression' ||
+		// Text holes like `{expr as string}` are as simple as their operand
+		expression?.type === 'TSAsExpression'
 	);
 }
 
@@ -6548,9 +6583,6 @@ function printJSXAttribute(attr, path, options, print) {
 			'value',
 			'expression',
 		);
-		if (shouldBreakAttributeExpressionClosingBrace(expression, options, attr)) {
-			return [name, '={', exprDoc, hardline, '}'];
-		}
 		return [name, '={', exprDoc, '}'];
 	}
 
