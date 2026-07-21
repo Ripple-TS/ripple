@@ -157,6 +157,24 @@ describe('load_tsconfig_layers', () => {
 		expect(result.diagnostics).toEqual(
 			expect.arrayContaining([expect.objectContaining({ code: 5024 })]),
 		);
+		expect(result.extends_failures).toHaveLength(1);
+	});
+
+	it('tracks the JSON candidate for an unresolved extensionless relative base', () => {
+		const config_path = write_config('tsconfig.json', { extends: './configs/base' });
+		const result = load_tsconfig_layers(ts, ts.sys, config_path);
+
+		expect(result.dependencies).toEqual([
+			config_path,
+			path.join(directory, 'configs', 'base.json'),
+		]);
+		expect(result.extends_failures).toEqual([
+			expect.objectContaining({
+				config_path,
+				extends_value: './configs/base',
+				resolved_path: path.join(directory, 'configs', 'base.json'),
+			}),
+		]);
 	});
 
 	it('lists every participating config dependency once', () => {

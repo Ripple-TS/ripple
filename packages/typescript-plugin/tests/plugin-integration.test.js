@@ -10,6 +10,7 @@ import {
 	TSRXVirtualCode,
 	_reset_for_test,
 } from '../src/language.js';
+import { resolve_consumer_compiler_for_file } from '../src/consumer-compiler.js';
 
 /** @import {WORKSPACE_CONFIGS} from './workspace-fixtures.js' */
 /** @typedef {keyof typeof WORKSPACE_CONFIGS} WorkspaceName */
@@ -663,6 +664,25 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(
 			create_virtual_code(plugin, file_name, 'export default <div>Second</div>;').generatedCode,
 		).toContain('compiler:inherited-b');
+	});
+
+	it('hard-stops on an unresolved base and refreshes when the tracked base is created', () => {
+		const workspace = create_fixture_workspace('inherited-declaration');
+		const config_path = path.join(workspace, 'tsconfig.json');
+		const missing_base_path = path.join(workspace, 'configs', 'base.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		/** @type {Set<string>} */
+		const dependencies = new Set();
+		write_config(config_path, { extends: './configs/base' });
+		const options = { ts, configFileName: config_path, configHost: ts.sys, dependencies };
+
+		expect(resolve_consumer_compiler_for_file(file_name, options)).toBeNull();
+		expect(dependencies).toContain(missing_base_path);
+
+		write_config(missing_base_path, compiler_declaration(COMPILER_A));
+		expect(resolve_consumer_compiler_for_file(file_name, options)).toContain(
+			path.join('node_modules', COMPILER_A),
+		);
 	});
 
 	it('creates virtual code with the vue compiler in a vue-only project', () => {

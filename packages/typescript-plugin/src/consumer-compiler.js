@@ -253,6 +253,36 @@ export function resolve_consumer_compiler_for_file(normalized_file_name, options
 	for (const dependency of resolved_layers.dependencies) {
 		options.dependencies?.add(dependency);
 	}
+	if (resolved_layers.extends_failures.length > 0) {
+		for (const failure of resolved_layers.extends_failures) {
+			if (failure.diagnostics.length === 0) {
+				logError(
+					'Unable to resolve tsconfig extends entry:',
+					JSON.stringify(failure.extends_value),
+					`in ${failure.config_path}`,
+				);
+				continue;
+			}
+			for (const diagnostic of failure.diagnostics) {
+				logError(
+					'Unable to resolve tsconfig extends entry:',
+					JSON.stringify(failure.extends_value),
+					`in ${failure.config_path}`,
+					typescript.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+				);
+			}
+		}
+		return null;
+	}
+	const unreadable_layers = resolved_layers.layers.filter(
+		(layer) => layer.raw_source === undefined,
+	);
+	if (unreadable_layers.length > 0) {
+		for (const layer of unreadable_layers) {
+			logError('Unable to read tsconfig layer:', layer.path);
+		}
+		return null;
+	}
 	const malformed_layers = resolved_layers.layers.filter(
 		(layer) => layer.parse_diagnostics.length > 0,
 	);

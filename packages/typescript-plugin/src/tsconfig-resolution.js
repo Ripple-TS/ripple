@@ -21,10 +21,19 @@ import path from 'node:path';
 /** @typedef {TsconfigLayer & { extends_values: unknown[] }} ParsedTsconfigLayer */
 
 /**
+ * @typedef {object} TsconfigExtendsFailure
+ * @property {string} config_path
+ * @property {unknown} extends_value
+ * @property {string | undefined} resolved_path
+ * @property {import('typescript').Diagnostic[]} diagnostics
+ */
+
+/**
  * @typedef {object} ResolvedTsconfigLayers
  * @property {TsconfigLayer[]} layers
  * @property {string[]} dependencies
  * @property {import('typescript').Diagnostic[]} diagnostics
+ * @property {TsconfigExtendsFailure[]} extends_failures
  */
 
 /**
@@ -35,6 +44,7 @@ import path from 'node:path';
 /** @typedef {{config_path: string, config_dir: string}} TsconfigValueOrigin */
 
 const no_inputs_found_diagnostic_code = 18003;
+const circularity_diagnostic_code = 18000;
 
 /**
  * Load a tsconfig and its explicit inheritance graph from lowest to highest
@@ -56,6 +66,8 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 	const dependency_keys = new Set();
 	/** @type {import('typescript').Diagnostic[]} */
 	const diagnostics = [];
+	/** @type {TsconfigExtendsFailure[]} */
+	const extends_failures = [];
 	const diagnostic_keys = new Set();
 	const active_stack = new Set();
 	const use_case_sensitive_file_names =
@@ -102,6 +114,24 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 			dependency_keys.add(key);
 			dependencies.push(normalized_path);
 		}
+	}
+
+	/**
+	 * TypeScript does not expose a failed lookup path for extensionless relative
+	 * extends entries. Preserve the conventional JSON candidate so creating it
+	 * later invalidates both the mtime cache and the language-server project.
+	 * @param {ParsedTsconfigLayer} parsed
+	 * @param {unknown} extends_value
+	 */
+	function get_unresolved_relative_dependency(parsed, extends_value) {
+		if (
+			typeof extends_value !== 'string' ||
+			(!path.isAbsolute(extends_value) && !extends_value.startsWith('.'))
+		) {
+			return undefined;
+		}
+		const candidate_path = path.resolve(parsed.dir, extends_value);
+		return path.extname(candidate_path) === '' ? `${candidate_path}.json` : candidate_path;
 	}
 
 	/** @param {string} file_name */
@@ -165,12 +195,30 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 			{},
 			parsed.path,
 		);
-		add_diagnostics(
-			parsed_command_line.errors.filter(
-				(diagnostic) => diagnostic.code !== no_inputs_found_diagnostic_code,
-			),
+		const edge_diagnostics = parsed_command_line.errors.filter(
+			(diagnostic) => diagnostic.code !== no_inputs_found_diagnostic_code,
 		);
-		return source_file.extendedSourceFiles?.[0];
+		add_diagnostics(edge_diagnostics);
+		const resolved_path = source_file.extendedSourceFiles?.[0];
+		const dependency_path =
+			resolved_path ?? get_unresolved_relative_dependency(parsed, extends_value);
+		if (dependency_path !== undefined) {
+			add_dependency(dependency_path);
+		}
+
+		const has_cycle = edge_diagnostics.some(
+			(diagnostic) => diagnostic.code === circularity_diagnostic_code,
+		);
+		const is_unresolved = resolved_path === undefined || !host.fileExists(resolved_path);
+		if (is_unresolved || has_cycle) {
+			extends_failures.push({
+				config_path: parsed.path,
+				extends_value,
+				resolved_path: dependency_path,
+				diagnostics: edge_diagnostics,
+			});
+		}
+		return is_unresolved ? undefined : resolved_path;
 	}
 
 	/** @param {string} file_name */
@@ -201,7 +249,7 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 	}
 
 	visit(config_file_name);
-	return { layers, dependencies, diagnostics };
+	return { layers, dependencies, diagnostics, extends_failures };
 }
 
 /**
