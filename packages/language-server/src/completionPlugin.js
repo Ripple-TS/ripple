@@ -8,6 +8,7 @@ import {
 	isInsideExport,
 	is_ripple_document,
 	is_ripple_platform_document,
+	get_compiler_resolution_options,
 } from './utils.js';
 
 const { log } = createLogging('[Ripple Completion Plugin]');
@@ -491,8 +492,8 @@ export function createCompletionPlugin() {
 				resolveProvider: false,
 			},
 		},
-		// leaving context for future use
 		create(context) {
+			const compiler_resolution_options = get_compiler_resolution_options(context);
 			return {
 				// Mark this as providing additional completions, not replacing existing ones
 				// This ensures TypeScript/JavaScript completions are still shown alongside Ripple snippets
@@ -543,7 +544,7 @@ export function createCompletionPlugin() {
 					// belongs to. Ripple-runtime suggestions (`track`/`effect`/`RippleMap`/
 					// `import … from 'ripple'`, …) are only offered for Ripple files; TSRX
 					// authoring snippets (`@if`/`@for`/`@{ }`/component shape) are offered for all.
-					const is_ripple = is_ripple_platform_document(document.uri);
+					const is_ripple = is_ripple_platform_document(document.uri, compiler_resolution_options);
 
 					if (isInsideImport(fullText, cursorOffset)) {
 						if (is_ripple) {

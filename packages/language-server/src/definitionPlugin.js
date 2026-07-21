@@ -2,7 +2,12 @@
 /** @import { DefinitionLocation } from '@tsrx/core/types'; */
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { getVirtualCode, createLogging, getWordFromPosition } from './utils.js';
+import {
+	getVirtualCode,
+	createLogging,
+	getWordFromPosition,
+	get_compiler_resolution_options,
+} from './utils.js';
 import path from 'path';
 import {
 	normalizeFileNameOrUri,
@@ -23,6 +28,7 @@ export function createDefinitionPlugin() {
 			definitionProvider: true,
 		},
 		create(context) {
+			const compiler_resolution_options = get_compiler_resolution_options(context);
 			return {
 				async provideDefinition(document, position, token) {
 					// Get TypeScript definition from typescript-semantic service
@@ -67,7 +73,10 @@ export function createDefinitionPlugin() {
 						log(`Found replace definition for ${typeName}`);
 
 						const filePath = sourceUri.fsPath || sourceUri.path;
-						const ripple_dir = getRippleDirForFile(normalizeFileNameOrUri(filePath));
+						const ripple_dir = getRippleDirForFile(
+							normalizeFileNameOrUri(filePath),
+							compiler_resolution_options,
+						);
 
 						if (!ripple_dir) {
 							log(`Could not determine Ripple source directory for file: ${filePath}`);

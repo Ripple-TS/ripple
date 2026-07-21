@@ -31,20 +31,6 @@ import {
 const { log, logError } = createLogging('[Ripple Language Server]');
 
 /**
- * @param {Set<string>} tracked_config_files
- * @param {ReadonlySet<string>[]} dependency_sets
- */
-export function track_compiler_resolution_dependencies(tracked_config_files, dependency_sets) {
-	for (const dependencies of dependency_sets) {
-		for (const dependency of dependencies) {
-			trackTypeScriptConfigDependencies(tracked_config_files, {
-				configFileName: dependency,
-			});
-		}
-	}
-}
-
-/**
  * Strip whole-document formatting capabilities from a Volar service plugin.
  *
  * The bundled TypeScript (`typescript-syntactic`) and CSS services advertise a
@@ -80,8 +66,8 @@ export function createRippleLanguageServer() {
 	const wrappedFunctions = new WeakSet();
 	/** @type {Set<string>} */
 	const trackedTypeScriptConfigFiles = new Set();
-	/** @type {Set<string>[]} */
-	const compilerResolutionDependencySets = [];
+	/** @type {Set<Set<string>>} */
+	const compilerResolutionDependencySets = new Set();
 	let restartScheduled = false;
 
 	/** Restart the process so Node drops the complete ESM compiler graph. */
@@ -141,12 +127,14 @@ export function createRippleLanguageServer() {
 				params,
 				createTypeScriptProject(ts, undefined, ({ configFileName, projectHost, sys }) => {
 					wrapCompilerOptionsProvider(projectHost, 'getCompilationSettings');
+					const compilerResolutionDependencies = new Set();
 					const languagePlugin = getRippleLanguagePlugin({
 						ts,
 						configFileName,
 						configHost: sys,
+						dependencies: compilerResolutionDependencies,
 					});
-					compilerResolutionDependencySets.push(languagePlugin.compilerResolutionDependencies);
+					compilerResolutionDependencySets.add(compilerResolutionDependencies);
 
 					return {
 						// Keep language-plugin identity aligned with Volar's project
@@ -195,10 +183,9 @@ export function createRippleLanguageServer() {
 		server.initialized();
 
 		server.fileWatcher.onDidChangeWatchedFiles(({ changes }) => {
-			track_compiler_resolution_dependencies(
-				trackedTypeScriptConfigFiles,
-				compilerResolutionDependencySets,
-			);
+			for (const configDependencies of compilerResolutionDependencySets) {
+				trackTypeScriptConfigDependencies(trackedTypeScriptConfigFiles, { configDependencies });
+			}
 			const effects = handleWorkspaceChanges(
 				changes,
 				{

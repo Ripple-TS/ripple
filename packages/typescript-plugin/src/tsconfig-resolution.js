@@ -6,6 +6,7 @@ import path from 'node:path';
  * @property {(file_name: string) => string | undefined} readFile
  * @property {import('typescript').ParseConfigHost['readDirectory']} readDirectory
  * @property {boolean | (() => boolean)} useCaseSensitiveFileNames
+ * @property {import('typescript').System['getModifiedTime']} [getModifiedTime]
  */
 
 /**
@@ -14,8 +15,10 @@ import path from 'node:path';
  * @property {string} dir
  * @property {Record<string, unknown>} config
  * @property {string | undefined} raw_source
- * @property {import('typescript').Diagnostic[]} diagnostics
+ * @property {import('typescript').Diagnostic[]} parse_diagnostics
  */
+
+/** @typedef {TsconfigLayer & { extends_values: unknown[] }} ParsedTsconfigLayer */
 
 /**
  * @typedef {object} ResolvedTsconfigLayers
@@ -25,15 +28,11 @@ import path from 'node:path';
  */
 
 /**
- * @typedef {{
- * 	path: string,
- * 	dir: string,
- * 	config: Record<string, unknown>,
- * 	raw_source: string | undefined,
- * 	diagnostics: import('typescript').Diagnostic[],
- * 	extends_values: string[],
- * }} ParsedTsconfig
+ * @template TValue
+ * @typedef {{state: 'absent'} | {state: 'found', value: TValue}} ConfigValueResult
  */
+
+/** @typedef {{config_path: string, config_dir: string}} TsconfigValueOrigin */
 
 const no_inputs_found_diagnostic_code = 18003;
 
@@ -48,7 +47,7 @@ const no_inputs_found_diagnostic_code = 18003;
  * @returns {ResolvedTsconfigLayers}
  */
 export function load_tsconfig_layers(ts, host, config_file_name) {
-	/** @type {Map<string, ParsedTsconfig>} */
+	/** @type {Map<string, ParsedTsconfigLayer>} */
 	const parsed_file_cache = new Map();
 	/** @type {TsconfigLayer[]} */
 	const layers = [];
@@ -120,16 +119,18 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 		 * 	parseDiagnostics: readonly import('typescript').Diagnostic[],
 		 * }} */ (source_file);
 		/** @type {import('typescript').Diagnostic[]} */
-		const layer_diagnostics = [...source_file_with_diagnostics.parseDiagnostics];
-		const converted_config = ts.convertToObject(source_file, layer_diagnostics);
+		const parse_diagnostics = [...source_file_with_diagnostics.parseDiagnostics];
+		const converted_config = ts.convertToObject(source_file, parse_diagnostics);
 		const config =
-			converted_config !== null && typeof converted_config === 'object'
+			converted_config !== null &&
+			typeof converted_config === 'object' &&
+			!Array.isArray(converted_config)
 				? /** @type {Record<string, unknown>} */ (converted_config)
 				: {};
 		const extends_value = config.extends;
 		const extends_values = Array.isArray(extends_value)
-			? extends_value.filter((value) => typeof value === 'string')
-			: typeof extends_value === 'string'
+			? extends_value
+			: extends_value !== undefined
 				? [extends_value]
 				: [];
 		const parsed = {
@@ -137,11 +138,11 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 			dir: path.dirname(normalized_path),
 			config,
 			raw_source,
-			diagnostics: layer_diagnostics,
+			parse_diagnostics,
 			extends_values,
 		};
 		parsed_file_cache.set(key, parsed);
-		add_diagnostics(layer_diagnostics);
+		add_diagnostics(parse_diagnostics);
 		return parsed;
 	}
 
@@ -151,11 +152,11 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 	 * TypeScript so relative, absolute, package, optional-suffix, and cycle
 	 * semantics stay aligned with parseJsonSourceFileConfigFileContent.
 	 *
-	 * @param {ParsedTsconfig} parsed
-	 * @param {string} extends_value
+	 * @param {ParsedTsconfigLayer} parsed
+	 * @param {unknown} extends_value
 	 */
 	function resolve_extends_path(parsed, extends_value) {
-		const synthetic_source = `{"extends":${JSON.stringify(extends_value)}}`;
+		const synthetic_source = JSON.stringify({ extends: extends_value, files: [] });
 		const source_file = ts.readJsonConfigFile(parsed.path, () => synthetic_source);
 		const parsed_command_line = ts.parseJsonSourceFileConfigFileContent(
 			source_file,
@@ -169,11 +170,7 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 				(diagnostic) => diagnostic.code !== no_inputs_found_diagnostic_code,
 			),
 		);
-		const config_file = /** @type {{extendedSourceFiles?: string[]} | undefined} */ (
-			parsed_command_line.options.configFile
-		);
-		const extended_source_files = config_file?.extendedSourceFiles;
-		return extended_source_files?.[0];
+		return source_file.extendedSourceFiles?.[0];
 	}
 
 	/** @param {string} file_name */
@@ -198,7 +195,7 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
 			dir: parsed.dir,
 			config: parsed.config,
 			raw_source: parsed.raw_source,
-			diagnostics: parsed.diagnostics,
+			parse_diagnostics: parsed.parse_diagnostics,
 		});
 		active_stack.delete(key);
 	}
@@ -211,8 +208,8 @@ export function load_tsconfig_layers(ts, host, config_file_name) {
  * Read a nested config value only when every segment is an own property.
  *
  * @param {unknown} config
- * @param {PropertyKey[]} path_parts
- * @returns {{state: 'absent'} | {state: 'found', value: unknown}}
+ * @param {readonly PropertyKey[]} path_parts
+ * @returns {ConfigValueResult<unknown>}
  */
 export function get_own_config_value(config, path_parts) {
 	let current = config;
@@ -234,12 +231,12 @@ export function get_own_config_value(config, path_parts) {
  * not absent wins and is annotated with the config that declared it.
  *
  * @template {{state: string}} TResult
- * @param {TsconfigLayer[]} layers
+ * @param {readonly TsconfigLayer[]} layers
  * @param {(layer: TsconfigLayer) => TResult} read_layer
- * @returns {{state: 'absent'} | (TResult & {config_path: string, config_dir: string})}
+ * @returns {{state: 'absent'} | (TResult & TsconfigValueOrigin)}
  */
 export function resolve_inherited_config_value(layers, read_layer) {
-	/** @type {{state: 'absent'} | (TResult & {config_path: string, config_dir: string})} */
+	/** @type {{state: 'absent'} | (TResult & TsconfigValueOrigin)} */
 	let resolved = { state: 'absent' };
 	for (const layer of layers) {
 		const value = read_layer(layer);

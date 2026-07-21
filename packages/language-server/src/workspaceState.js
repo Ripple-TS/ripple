@@ -79,6 +79,7 @@ function normalizeFileName(file_name) {
  *   configFileName?: string,
  *   compilerOptions?: import('typescript').CompilerOptions,
  *   projectReferences?: readonly import('typescript').ProjectReference[],
+ *   configDependencies?: Iterable<string>,
  * }} project
  */
 export function trackTypeScriptConfigDependencies(config_files, project) {
@@ -95,6 +96,10 @@ export function trackTypeScriptConfigDependencies(config_files, project) {
 
 	for (const reference of project.projectReferences ?? []) {
 		config_files.add(normalizeFileName(reference.path));
+	}
+
+	for (const dependency of project.configDependencies ?? []) {
+		config_files.add(normalizeFileName(dependency));
 	}
 }
 
@@ -140,7 +145,7 @@ export function classifyWorkspaceChanges(changes, tracked_config_files = new Set
  * @param {import('@volar/language-server').FileEvent[]} changes
  * @param {{
  *   restartLanguageServer: () => void,
- *   invalidateCompilerResolutionCaches: () => void,
+ *   invalidateCompilerResolutionCaches?: () => void,
  *   reloadProjects: () => void,
  *   requestRefresh: (clearDiagnostics: boolean) => unknown,
  *   invalidateTypeDefinitions: (file_name?: string) => void,
@@ -160,7 +165,7 @@ export function handleWorkspaceChanges(changes, hooks, tracked_config_files) {
 	}
 
 	if (effects.reloadProjects) {
-		hooks.invalidateCompilerResolutionCaches();
+		hooks.invalidateCompilerResolutionCaches?.();
 		hooks.reloadProjects();
 		void hooks.requestRefresh(true);
 	}

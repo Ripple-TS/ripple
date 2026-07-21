@@ -161,15 +161,33 @@ export function is_ripple_document(document_uri) {
 }
 
 /**
+ * Reuse the TypeScript project selected by Volar when language-service plugins
+ * perform compiler-dependent lookups outside virtual-code generation.
+ * @param {LanguageServiceContext} context
+ * @returns {import('@tsrx/typescript-plugin/src/consumer-compiler.js').CompilerResolutionOptions | undefined}
+ */
+export function get_compiler_resolution_options(context) {
+	const typescript_project = context.project.typescript;
+	if (!typescript_project) {
+		return undefined;
+	}
+	return {
+		configFileName: typescript_project.configFileName,
+		configHost: typescript_project.sys,
+	};
+}
+
+/**
  * Whether a `.tsrx` document is compiled by the Ripple target (vs React/Solid/
  * Preact/Vue). All targets share the `.tsrx` extension, so this resolves the
- * platform from the nearest `package.json` — used to gate Ripple-runtime-only
+ * platform from the active TypeScript project — used to gate Ripple-runtime-only
  * editor suggestions.
  * @param {string} document_uri
+ * @param {import('@tsrx/typescript-plugin/src/consumer-compiler.js').CompilerResolutionOptions} [options]
  * @returns {boolean}
  */
-export function is_ripple_platform_document(document_uri) {
-	return is_ripple_platform_file(URI.parse(document_uri).fsPath);
+export function is_ripple_platform_document(document_uri, options) {
+	return is_ripple_platform_file(URI.parse(document_uri).fsPath, options);
 }
 
 export { createLogging, getWordFromPosition, DEBUG };

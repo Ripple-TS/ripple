@@ -11,8 +11,8 @@
 /** @typedef {string | { fsPath: string }} ScriptId */
 // Side-effect import: augments @volar/language-core's LanguagePlugin with the `typescript` field.
 /** @typedef {typeof import('@volar/typescript')} _VolarTypeScriptAugmentation */
-/** @typedef {{ ts?: typeof import('typescript'), configFileName?: string, configHost?: import('./tsconfig-resolution.js').TsconfigHost }} CompilerResolutionContext */
-/** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode> & { compilerResolutionDependencies: Set<string> }} RippleLanguagePlugin */
+/** @typedef {import('./consumer-compiler.js').CompilerResolutionOptions} CompilerResolutionOptions */
+/** @typedef {import('@volar/language-core').LanguagePlugin<ScriptId, VirtualCode>} RippleLanguagePlugin */
 
 /** @typedef {InstanceType<typeof import('./language.js')["TSRXVirtualCode"]>} TSRXVirtualCodeInstance */
 
@@ -23,7 +23,7 @@ import path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import {
-	reset_consumer_compiler_for_test,
+	reset_consumer_compiler_resolution_caches,
 	resolve_consumer_compiler_for_file,
 } from './consumer-compiler.js';
 import { createLogging, DEBUG } from './utils.js';
@@ -80,23 +80,6 @@ export const COMPILER_CANDIDATES = [
 const DEFAULT_COMPILER_ENTRY_PARTS = ['src', 'index.js'];
 
 /**
- * @param {CompilerResolutionContext | undefined} context
- * @param {Set<string>} [dependencies]
- * @returns {Parameters<typeof resolve_consumer_compiler_for_file>[1]}
- */
-function get_consumer_compiler_options(context, dependencies) {
-	if (!context && !dependencies) {
-		return undefined;
-	}
-	return {
-		ts: context?.ts,
-		config_file_name: context?.configFileName,
-		config_host: context?.configHost,
-		dependencies,
-	};
-}
-
-/**
  * @param {string} file_name
  * @returns {boolean}
  */
@@ -105,26 +88,20 @@ export function is_ripple_file(file_name) {
 }
 
 /**
- * @param {{
- *   ts?: typeof import('typescript'),
- *   configFileName?: string,
- *   configHost?: import('./tsconfig-resolution.js').TsconfigHost,
- * }} [options]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {RippleLanguagePlugin}
  */
 export function getRippleLanguagePlugin(options = {}) {
 	log('Creating Ripple language plugin...');
 	const typescript = options.ts ?? ts;
-	const config_host = options.configHost ?? typescript.sys;
-	const compiler_context = {
+	/** @type {CompilerResolutionOptions} */
+	const compiler_resolution_options = {
+		...options,
 		ts: typescript,
-		configFileName: options.configFileName,
-		configHost: config_host,
+		configHost: options.configHost ?? typescript.sys,
 	};
-	const compiler_resolution_dependencies = new Set();
 
 	return {
-		compilerResolutionDependencies: compiler_resolution_dependencies,
 		getLanguageId(fileNameOrUri) {
 			const file_name =
 				typeof fileNameOrUri === 'string'
@@ -138,10 +115,7 @@ export function getRippleLanguagePlugin(options = {}) {
 		createVirtualCode(fileNameOrUri, languageId, snapshot) {
 			if (languageId === 'ripple') {
 				const file_name = normalizeFileNameOrUri(fileNameOrUri);
-				const ripple = get_tsrx_compiler(
-					file_name,
-					get_consumer_compiler_options(compiler_context, compiler_resolution_dependencies),
-				);
+				const ripple = get_tsrx_compiler(file_name, compiler_resolution_options);
 				if (!ripple) {
 					logError(`Ripple compiler not found for file: ${file_name}`);
 					return undefined;
@@ -1030,7 +1004,7 @@ function package_manifest_matches_compiler(package_manifest, compiler_name, pack
 
 /**
  * @param {string} normalized_file_name
- * @param {Parameters<typeof resolve_consumer_compiler_for_file>[1]} [options]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {TSRXCompilerModule | undefined}
  */
 function get_tsrx_compiler(normalized_file_name, options) {
@@ -1118,7 +1092,7 @@ export function find_workspace_compiler_entry_for_file(
 
 /**
  * @param {string} normalized_file_name
- * @param {Parameters<typeof resolve_consumer_compiler_for_file>[1]} [options]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {string | undefined}
  */
 export function get_compiler_entry_for_file(normalized_file_name, options) {
@@ -1180,23 +1154,26 @@ export function get_compiler_entry_for_file(normalized_file_name, options) {
 
 /**
  * Resolve the tsrx compiler package that owns a `.tsrx` file (e.g. `'@tsrx/ripple'`,
- * `'@tsrx/react'`), based on the nearest `package.json` dependencies. All targets
- * share the `.tsrx` extension, so this is how the editor layer tells them apart —
- * it reuses the exact same resolution as compilation, so tooling and the compiler
- * always agree on the platform. Returns `undefined` when no compiler resolves.
+ * `'@tsrx/react'`) from the exact compiler entry selected for compilation. All
+ * targets share the `.tsrx` extension, so this is how the editor layer tells them
+ * apart. Returns `undefined` for an unresolved or unknown third-party compiler.
  * @param {string} file_name
- * @param {CompilerResolutionContext} [context]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {string | undefined}
  */
-export function get_tsrx_compiler_name_for_file(file_name, context) {
-	const entry = get_compiler_entry_for_file(
-		file_name.replace(/\\/g, '/'),
-		get_consumer_compiler_options(context),
-	);
+export function get_tsrx_compiler_name_for_file(file_name, options) {
+	const entry = get_compiler_entry_for_file(file_name.replace(/\\/g, '/'), options);
 	if (!entry) {
 		return undefined;
 	}
 
+	const package_name = get_nearest_package_manifest(path.dirname(entry))?.name;
+	if (COMPILER_CANDIDATES.some(([compiler_name]) => compiler_name === package_name)) {
+		return package_name ?? undefined;
+	}
+
+	// Compatibility fallback for unpackaged compiler fixtures and historical
+	// source layouts that do not include a readable package manifest.
 	const normalized_entry = entry.replace(/\\/g, '/');
 	for (const [
 		compiler_name,
@@ -1218,11 +1195,11 @@ export function get_tsrx_compiler_name_for_file(file_name, context) {
  * Whether a `.tsrx` file is compiled by the Ripple target (as opposed to
  * React/Solid/Preact/Vue). Used to gate Ripple-runtime-only editor suggestions.
  * @param {string} file_name
- * @param {CompilerResolutionContext} [context]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {boolean}
  */
-export function is_ripple_platform_file(file_name, context) {
-	return get_tsrx_compiler_name_for_file(file_name, context) === '@tsrx/ripple';
+export function is_ripple_platform_file(file_name, options) {
+	return get_tsrx_compiler_name_for_file(file_name, options) === '@tsrx/ripple';
 }
 
 /**
@@ -1314,14 +1291,11 @@ export function getCachedTypeMatches(typeName, text, sourceKey = text) {
 
 /**
  * @param {string} normalized_file_name
- * @param {CompilerResolutionContext} [context]
+ * @param {CompilerResolutionOptions} [options]
  * @returns {string | undefined}
  */
-export function get_compiler_dir_for_file(normalized_file_name, context) {
-	const entry = get_compiler_entry_for_file(
-		normalized_file_name,
-		get_consumer_compiler_options(context),
-	);
+export function get_compiler_dir_for_file(normalized_file_name, options) {
+	const entry = get_compiler_entry_for_file(normalized_file_name, options);
 	if (!entry) {
 		return undefined;
 	}
@@ -1352,7 +1326,7 @@ export { get_compiler_dir_for_file as getRippleDirForFile };
 export function invalidateCompilerResolutionCaches() {
 	path2RipplePathMap.clear();
 	pathToPackageManifestCache.clear();
-	reset_consumer_compiler_for_test();
+	reset_consumer_compiler_resolution_caches();
 	loggedCompilationFailures.clear();
 }
 

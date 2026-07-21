@@ -180,11 +180,45 @@ const COMPILER_STUBS = {
 // prettier-ignore
 const DECLARED_COMPILER_STUB = COMPILER_STUBS.octane.replace('compiler:octane', 'compiler:declared');
 
+/**
+ * @typedef {object} DeclaredCompilerFixture
+ * @property {string} specifier
+ * @property {string} marker
+ * @property {string} [directory]
+ * @property {string[]} [entry_parts]
+ * @property {boolean} [export_subpath]
+ */
+
+/**
+ * @typedef {object} DeclaredWorkspaceOverrides
+ * @property {string} [specifier]
+ * @property {Record<string, unknown>} [package_json]
+ * @property {Partial<DeclaredCompilerFixture>} [declared_compiler]
+ * @property {Partial<WorkspaceFixtureConfig>} [config]
+ */
+
+/**
+ * @typedef {object} WorkspaceFixtureConfig
+ * @property {Record<string, unknown>} package_json
+ * @property {unknown} [tsconfig_json]
+ * @property {unknown} [nested_tsconfig_json]
+ * @property {(keyof typeof COMPILER_STUBS)[]} compilers
+ * @property {DeclaredCompilerFixture[]} [declared_compilers]
+ * @property {boolean} [imports_escape]
+ */
+
+/** @param {string} file_name @param {unknown} value */
 function write_json(file_name, value) {
 	fs.mkdirSync(path.dirname(file_name), { recursive: true });
 	fs.writeFileSync(file_name, JSON.stringify(value, null, 2) + '\n');
 }
 
+/**
+ * @param {string} package_name
+ * @param {string} compiler
+ * @param {string} marker
+ * @param {DeclaredWorkspaceOverrides} [overrides]
+ */
 function declared_workspace_config(package_name, compiler, marker, overrides = {}) {
 	const specifier = overrides.specifier ?? compiler.trim();
 	return {
@@ -196,6 +230,7 @@ function declared_workspace_config(package_name, compiler, marker, overrides = {
 	};
 }
 
+/** @satisfies {Record<string, WorkspaceFixtureConfig>} */
 export const WORKSPACE_CONFIGS = {
 	'ripple-only': {
 		package_json: {
@@ -322,17 +357,42 @@ export const WORKSPACE_CONFIGS = {
 		},
 		compilers: ['ripple', 'react', 'solid', 'preact'],
 	},
-	// prettier-ignore
-	...Object.fromEntries(
-		[
-			['declared-only', declared_workspace_config('@tsrx/fixture-declared-only-project', 'consumer-tsrx-compiler', 'declared')],
-			['declared-scoped', declared_workspace_config('@tsrx/fixture-declared-scoped-project', '@consumer/tsrx-compiler', 'scoped')],
-			['declared-scoped-whitespace', declared_workspace_config('@tsrx/fixture-declared-scoped-whitespace-project', ' @consumer/tsrx-compiler ', 'scoped')],
-			['declared-dist', declared_workspace_config('@tsrx/fixture-declared-dist-project', 'consumer-dist-compiler', 'dist', { declared_compiler: { entry_parts: ['dist', 'volar.cjs'] } })],
-			['declared-subpath', declared_workspace_config('@tsrx/fixture-declared-subpath-project', 'consumer-tsrx-compiler/volar', 'subpath')],
-			['declared-scoped-subpath', declared_workspace_config('@tsrx/fixture-declared-scoped-subpath-project', '@consumer/tsrx-compiler/compiler/volar', 'scoped-subpath')],
-			['declared-mixed-case-subpath', declared_workspace_config('@tsrx/fixture-declared-mixed-case-subpath-project', '@consumer/tsrx-compiler/compileToVolar', 'mixed-case-subpath', { declared_compiler: { export_subpath: true } })],
-		],
+	'declared-only': declared_workspace_config(
+		'@tsrx/fixture-declared-only-project',
+		'consumer-tsrx-compiler',
+		'declared',
+	),
+	'declared-scoped': declared_workspace_config(
+		'@tsrx/fixture-declared-scoped-project',
+		'@consumer/tsrx-compiler',
+		'scoped',
+	),
+	'declared-scoped-whitespace': declared_workspace_config(
+		'@tsrx/fixture-declared-scoped-whitespace-project',
+		' @consumer/tsrx-compiler ',
+		'scoped',
+	),
+	'declared-dist': declared_workspace_config(
+		'@tsrx/fixture-declared-dist-project',
+		'consumer-dist-compiler',
+		'dist',
+		{ declared_compiler: { entry_parts: ['dist', 'volar.cjs'] } },
+	),
+	'declared-subpath': declared_workspace_config(
+		'@tsrx/fixture-declared-subpath-project',
+		'consumer-tsrx-compiler/volar',
+		'subpath',
+	),
+	'declared-scoped-subpath': declared_workspace_config(
+		'@tsrx/fixture-declared-scoped-subpath-project',
+		'@consumer/tsrx-compiler/compiler/volar',
+		'scoped-subpath',
+	),
+	'declared-mixed-case-subpath': declared_workspace_config(
+		'@tsrx/fixture-declared-mixed-case-subpath-project',
+		'@consumer/tsrx-compiler/compileToVolar',
+		'mixed-case-subpath',
+		{ declared_compiler: { export_subpath: true } },
 	),
 	'declared-beats-candidates': declared_workspace_config(
 		'@tsrx/fixture-declared-priority-project',
@@ -405,7 +465,10 @@ function write_compiler_stub(workspace_dir, compiler_name) {
 	const package_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name);
 	const compiler_dir = path.join(package_dir, 'src');
 	fs.mkdirSync(compiler_dir, { recursive: true });
-	write_json(path.join(package_dir, 'package.json'), { name: `@tsrx/${compiler_name}` });
+	write_json(path.join(package_dir, 'package.json'), {
+		name: `@tsrx/${compiler_name}`,
+		main: './src/index.js',
+	});
 	fs.writeFileSync(path.join(compiler_dir, 'index.js'), COMPILER_STUBS[compiler_name]);
 }
 
@@ -445,6 +508,7 @@ function write_declared_compiler_stub(
 
 /** @param {keyof typeof WORKSPACE_CONFIGS} name */
 export function create_fixture_workspace(name) {
+	/** @type {WorkspaceFixtureConfig | undefined} */
 	const config = WORKSPACE_CONFIGS[name];
 	if (!config) {
 		throw new Error(`Unknown fixture workspace: ${name}`);
@@ -464,7 +528,7 @@ export function create_fixture_workspace(name) {
 	}
 
 	for (const compiler_name of config.compilers) {
-		write_compiler_stub(workspace_dir, /** @type {keyof typeof COMPILER_STUBS} */ (compiler_name));
+		write_compiler_stub(workspace_dir, compiler_name);
 	}
 	for (const declared_compiler of config.declared_compilers ?? []) {
 		write_declared_compiler_stub(

@@ -11,6 +11,27 @@ import {
 	_reset_for_test,
 } from '../src/language.js';
 
+/** @import {WORKSPACE_CONFIGS} from './workspace-fixtures.js' */
+/** @typedef {keyof typeof WORKSPACE_CONFIGS} WorkspaceName */
+/** @typedef {(workspace: string, config_path: string) => void} FixtureConfigurator */
+
+/**
+ * @typedef {object} DebugFixtureOptions
+ * @property {WorkspaceName} [workspace_name]
+ * @property {Record<string, unknown>} [files]
+ * @property {unknown} [tsrx]
+ * @property {string} [compiler]
+ * @property {string[]} [file_parts]
+ * @property {string} [marker]
+ * @property {'error_spy' | 'warning_spy'} [log_method]
+ * @property {(result: Awaited<ReturnType<typeof compile_debug_fixture>>) => unknown[]} [log_parts]
+ * @property {boolean} [no_error]
+ * @property {boolean} [escape_proof]
+ * @property {boolean} [create_proof]
+ */
+
+/** @typedef {[name: string, options: DebugFixtureOptions]} DebugFixtureCase */
+
 /**
  * @param {string} source
  * @returns {import('typescript').IScriptSnapshot}
@@ -47,7 +68,7 @@ function create_virtual_code(plugin, file_name, source) {
 	);
 }
 
-/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] */
+/** @param {WorkspaceName} workspace_name @param {FixtureConfigurator} [configure] @param {string[]} [file_parts] */
 function prepare_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx']) {
 	const workspace = create_fixture_workspace(workspace_name);
 	const config_path = path.join(workspace, 'tsconfig.json');
@@ -55,7 +76,7 @@ function prepare_fixture(workspace_name, configure, file_parts = ['src', 'App.ts
 	return { workspace, config_path, file_name: path.join(workspace, ...file_parts) };
 }
 
-/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] */
+/** @param {WorkspaceName} workspace_name @param {FixtureConfigurator} [configure] @param {string[]} [file_parts] */
 async function compile_debug_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx']) {
 	vi.stubEnv('RIPPLE_DEBUG', 'true');
 	vi.resetModules();
@@ -79,6 +100,24 @@ async function compile_debug_fixture(workspace_name, configure, file_parts = ['s
 function write_config(file_name, config) {
 	fs.mkdirSync(path.dirname(file_name), { recursive: true });
 	fs.writeFileSync(file_name, JSON.stringify(config, null, 2) + '\n');
+}
+
+/**
+ * @param {string} config_path
+ * @param {unknown} config
+ * @returns {import('../src/tsconfig-resolution.js').TsconfigHost}
+ */
+function create_config_host(config_path, config) {
+	const normalized_config_path = path.resolve(config_path);
+	return {
+		...ts.sys,
+		/** @param {string} file_name */
+		readFile(file_name) {
+			return path.resolve(file_name) === normalized_config_path
+				? JSON.stringify(config)
+				: ts.sys.readFile(file_name);
+		},
+	};
 }
 
 /** @param {string} workspace @param {Record<string, unknown>} files */
@@ -107,7 +146,7 @@ function project_config(extends_value, tsrx) {
 	};
 }
 
-/** @param {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} workspace_name @param {(workspace: string, config_path: string) => void} [configure] @param {string[]} [file_parts] @param {Parameters<typeof create_plugin>[0] | ((config_path: string) => Parameters<typeof create_plugin>[0])} [options] */
+/** @param {WorkspaceName} workspace_name @param {FixtureConfigurator} [configure] @param {string[]} [file_parts] @param {Parameters<typeof create_plugin>[0] | ((config_path: string) => Parameters<typeof create_plugin>[0])} [options] */
 function compile_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx'], options) {
 	// prettier-ignore
 	const { workspace, config_path, file_name } = prepare_fixture(workspace_name, configure, file_parts);
@@ -267,44 +306,96 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).toContain('compiler:octane');
 	});
 
-	// prettier-ignore
-	it.each([
-		['uses a declared module compiler when no built-in candidate package is installed', 'declared-only', 'declared'],
-		['accepts a declared compiler using a scoped package specifier', 'declared-scoped', 'scoped'],
-		['accepts a declared compiler using a whitespace-padded scoped package specifier', 'declared-scoped-whitespace', 'scoped'],
-		['accepts a declared compiler using a package subpath specifier', 'declared-subpath', 'subpath'],
-		['accepts a declared compiler using a scoped package subpath specifier', 'declared-scoped-subpath', 'scoped-subpath'],
-		['accepts a declared compiler using a mixed-case scoped package subpath specifier', 'declared-mixed-case-subpath', 'mixed-case-subpath'],
-		['prefers a declared compiler over installed built-in candidates', 'declared-beats-candidates', 'declared', undefined, 'ripple'],
+	/** @type {Array<[string, WorkspaceName, string, FixtureConfigurator | undefined, string | undefined]>} */
+	const declared_compiler_cases = [
+		[
+			'uses a declared module compiler when no built-in candidate package is installed',
+			'declared-only',
+			'declared',
+			undefined,
+			undefined,
+		],
+		[
+			'accepts a declared compiler using a scoped package specifier',
+			'declared-scoped',
+			'scoped',
+			undefined,
+			undefined,
+		],
+		[
+			'accepts a declared compiler using a whitespace-padded scoped package specifier',
+			'declared-scoped-whitespace',
+			'scoped',
+			undefined,
+			undefined,
+		],
+		[
+			'accepts a declared compiler using a package subpath specifier',
+			'declared-subpath',
+			'subpath',
+			undefined,
+			undefined,
+		],
+		[
+			'accepts a declared compiler using a scoped package subpath specifier',
+			'declared-scoped-subpath',
+			'scoped-subpath',
+			undefined,
+			undefined,
+		],
+		[
+			'accepts a declared compiler using a mixed-case scoped package subpath specifier',
+			'declared-mixed-case-subpath',
+			'mixed-case-subpath',
+			undefined,
+			undefined,
+		],
+		[
+			'prefers a declared compiler over installed built-in candidates',
+			'declared-beats-candidates',
+			'declared',
+			undefined,
+			'ripple',
+		],
 		[
 			'accepts comments and trailing commas in a compiler-declaring tsconfig',
 			'inherited-declaration',
 			'inherited-a',
-			(workspace) => fs.writeFileSync(path.join(workspace, 'tsconfig.json'), `{\n\t// Consumer compiler.\n\t"tsrx": { "compiler": "${COMPILER_A}", },\n}\n`),
+			(workspace) =>
+				fs.writeFileSync(
+					path.join(workspace, 'tsconfig.json'),
+					`{\n\t// Consumer compiler.\n\t"tsrx": { "compiler": "${COMPILER_A}", },\n}\n`,
+				),
+			undefined,
 		],
-	])('%s', (_, workspace_name, marker, configure, rejected = 'never-selected') => {
-		const { virtual_code } = compile_fixture(/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name), configure);
+	];
+	// prettier-ignore
+	it.each(declared_compiler_cases)('%s', (_, workspace_name, marker, configure, rejected = 'never-selected') => {
+		const { virtual_code } = compile_fixture(workspace_name, configure);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain(`compiler:${marker}`);
 		expect(virtual_code.generatedCode).not.toContain(`compiler:${rejected}`);
 	});
 
-	it.each([
+	/** @type {Array<[string, WorkspaceName, string[]]>} */
+	const compiler_root_cases = [
 		['candidate src entry', 'ripple-only', ['node_modules', '@tsrx', 'ripple']],
 		['octane nested entry', 'octane-only', ['node_modules', 'octane']],
 		['declared package-root entry', 'declared-only', ['node_modules', 'consumer-tsrx-compiler']],
 		['declared dist entry', 'declared-dist', ['node_modules', 'consumer-dist-compiler']],
-	])('returns the compiler package root for %s', (_, workspace_name, compiler_parts) => {
-		const workspace = create_fixture_workspace(
-			/** @type {keyof import('./workspace-fixtures.js').WORKSPACE_CONFIGS} */ (workspace_name),
-		);
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
+	];
+	it.each(compiler_root_cases)(
+		'returns the compiler package root for %s',
+		(_, workspace_name, compiler_parts) => {
+			const workspace = create_fixture_workspace(workspace_name);
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
 
-		expect(fs.realpathSync(/** @type {string} */ (getRippleDirForFile(file_name)))).toBe(
-			fs.realpathSync(path.join(workspace, ...compiler_parts)),
-		);
-	});
+			expect(fs.realpathSync(/** @type {string} */ (getRippleDirForFile(file_name)))).toBe(
+				fs.realpathSync(path.join(workspace, ...compiler_parts)),
+			);
+		},
+	);
 
 	it('does not escape node_modules when a compiler package has no package.json', () => {
 		const workspace = create_fixture_workspace('ripple-only');
@@ -337,6 +428,7 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(exists_spy).not.toHaveBeenCalled();
 	});
 
+	/** @type {DebugFixtureCase[]} */
 	// prettier-ignore
 	const malformed_cases = [
 		['warns for a malformed tsconfig without tsrx and falls back to an installed candidate', { files: malformed_files({ root: '{ "compilerOptions": {\n' }), marker: 'compiler:ripple', log_method: 'warning_spy', log_parts: (result) => ['Unable to parse tsconfig layer', result.tsconfig_path, expect.any(String)] }],
@@ -345,6 +437,7 @@ describe('typescript-plugin language plugin integration', () => {
 		['hard-stops when a malformed base contains textual tsrx intent', { files: malformed_files({ base: `{ "tsrx": { "compiler": "${COMPILER_A}" },\n` }), log_method: 'error_spy', log_parts: (result) => ['Unable to parse tsconfig layer', path.join(result.workspace, 'base.json'), expect.any(String)] }],
 		['hard-stops when a parsed child shows tsrx intent beside a malformed silent base', { files: malformed_files({ base: '{ "compilerOptions": {\n', child: { compiler: COMPILER_A } }), log_method: 'error_spy', log_parts: (result) => ['Unable to parse tsconfig layer', path.join(result.workspace, 'base.json'), expect.any(String)] }],
 ];
+	/** @type {DebugFixtureCase[]} */
 	// prettier-ignore
 	const invalid_value_cases = [
 		['rejects a non-string compiler and does not fall back to an installed candidate', { tsrx: { compiler: 42 }, log_method: 'error_spy', log_parts: (result) => ['Invalid TSRX', 'number', '42', result.tsconfig_path] }],
@@ -363,12 +456,14 @@ describe('typescript-plugin language plugin integration', () => {
 		'consumer-tsrx-compiler/.hidden',
 	];
 	// The generated labels preserve each allowlist proof in runner output.
+	/** @type {DebugFixtureCase[]} */
 	// prettier-ignore
 	const specifier_cases = [
 		['rejects a relative declaration and does not fall back to an installed candidate', { compiler: './compiler.cjs', workspace_name: 'inherited-declaration', file_parts: ['src', 'nested', 'components', 'App.tsrx'], log_method: 'error_spy', log_parts: (result) => ['must be a bare package specifier', './compiler.cjs', result.tsconfig_path] }],
-		...disallowed_specifiers.map((compiler) => [`rejects the disallowed declaration ${JSON.stringify(compiler)} before module resolution`, { compiler, workspace_name: 'invalid-declared-specifier', log_method: 'error_spy', log_parts: (result) => ['must be a bare package specifier', compiler, result.tsconfig_path] }]),
-];
+		...disallowed_specifiers.map((compiler) => /** @type {DebugFixtureCase} */ ([`rejects the disallowed declaration ${JSON.stringify(compiler)} before module resolution`, { compiler, workspace_name: 'invalid-declared-specifier', log_method: 'error_spy', log_parts: (result) => ['must be a bare package specifier', compiler, result.tsconfig_path] }])),
+	];
 	// These are the three inheritance positions required by the matrix.
+	/** @type {DebugFixtureCase[]} */
 	// prettier-ignore
 	const inherited_value_cases = [
 		['applies effective-value semantics for an invalid base declaration without an override', { files: inheritance_files({ base: 42 }), log_method: 'error_spy', log_parts: () => ['Invalid TSRX', expect.anything(), expect.anything(), expect.anything()] }],
@@ -376,7 +471,8 @@ describe('typescript-plugin language plugin integration', () => {
 		['applies effective-value semantics for an valid child declaration over an invalid base', { files: inheritance_files({ base: 42, child: { compiler: COMPILER_B } }), marker: 'compiler:inherited-b', no_error: true }],
 ];
 
-	it.each([
+	/** @type {DebugFixtureCase[]} */
+	const debug_fixture_cases = [
 		...malformed_cases,
 		...invalid_value_cases,
 		...specifier_cases,
@@ -394,7 +490,9 @@ describe('typescript-plugin language plugin integration', () => {
 			},
 		],
 		...inherited_value_cases,
-	])('%s', async (_, options) => {
+	];
+
+	it.each(debug_fixture_cases)('%s', async (_, options) => {
 		const result = await compile_debug_fixture(
 			options.workspace_name ?? 'inherited-declaration',
 			(workspace, config_path) => {
@@ -407,7 +505,9 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(result.virtual_code?.generatedCode).toEqual(
 			options.marker ? expect.stringContaining(options.marker) : undefined,
 		);
-		if (options.log_method) expect_log(result, options.log_method, ...options.log_parts(result));
+		if (options.log_method && options.log_parts) {
+			expect_log(result, options.log_method, ...options.log_parts(result));
+		}
 		if (options.no_error) expect(result.error_spy).not.toHaveBeenCalled();
 		if (options.escape_proof)
 			expect(fs.existsSync(path.join(result.workspace, 'escape-executed'))).toBe(false);
@@ -456,15 +556,36 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).not.toContain(`compiler:inherited-${rejected}`);
 	});
 
+	it('isolates resolved config layers between hosts with different project snapshots', () => {
+		const { config_path, file_name } = prepare_fixture('inherited-declaration');
+		const plugin_a = create_plugin({
+			ts,
+			configFileName: config_path,
+			configHost: create_config_host(config_path, compiler_declaration(COMPILER_A)),
+		});
+		const plugin_b = create_plugin({
+			ts,
+			configFileName: config_path,
+			configHost: create_config_host(config_path, compiler_declaration(COMPILER_B)),
+		});
+
+		expect(
+			create_virtual_code(plugin_a, file_name, 'export default <div>A</div>;').generatedCode,
+		).toContain('compiler:inherited-a');
+		expect(
+			create_virtual_code(plugin_b, file_name, 'export default <div>B</div>;').generatedCode,
+		).toContain('compiler:inherited-b');
+	});
+
 	it('uses the provided project config for compiler selection and compiler lookups', () => {
 		let context;
 		const { workspace, file_name, virtual_code } = compile_fixture(
 			'both',
 			(workspace, config_path) => {
-				write_config(config_path, compiler_declaration('@tsrx/ripple/src/index.js'));
+				write_config(config_path, compiler_declaration('@tsrx/ripple'));
 				write_config(
 					path.join(workspace, 'nested', 'tsconfig.json'),
-					compiler_declaration('@tsrx/react/src/index.js'),
+					compiler_declaration('@tsrx/react'),
 				);
 			},
 			['nested', 'src', 'App.tsrx'],
@@ -522,7 +643,7 @@ describe('typescript-plugin language plugin integration', () => {
 		expect(virtual_code.generatedCode).toContain('compiler:declaring-config');
 	});
 
-	it('picks up a changed inherited compiler after resetting resolution caches', () => {
+	it('refreshes inherited config layers when a dependency changes', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('inherited-declaration');
 		const base_path = path.join(workspace, 'base.json');
@@ -537,7 +658,8 @@ describe('typescript-plugin language plugin integration', () => {
 			create_virtual_code(plugin, file_name, 'export default <div>First</div>;').generatedCode,
 		).toContain('compiler:inherited-a');
 		write_config(base_path, { tsrx: { compiler: 'inherited-compiler-b' } });
-		_reset_for_test();
+		const changed_time = new Date(Date.now() + 10_000);
+		fs.utimesSync(base_path, changed_time, changed_time);
 		expect(
 			create_virtual_code(plugin, file_name, 'export default <div>Second</div>;').generatedCode,
 		).toContain('compiler:inherited-b');

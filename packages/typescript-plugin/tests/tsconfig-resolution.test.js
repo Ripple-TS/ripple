@@ -9,7 +9,10 @@ import {
 	resolve_inherited_config_value,
 } from '../src/tsconfig-resolution.js';
 
+/** @type {string} */
 let directory;
+
+/** @typedef {[name: string, files: Array<[string, string | object]>, expected_layers: string[], diagnostic_code?: number, expected_value?: string]} LayerResolutionCase */
 
 /** @param {string} relative_path @param {string | object} config */
 function write_config(relative_path, config) {
@@ -52,25 +55,63 @@ describe('load_tsconfig_layers', () => {
 	});
 
 	// Each row is one layer-shape scenario.
-	it.each(
-		// prettier-ignore
+	/** @type {LayerResolutionCase[]} */
+	const layer_resolution_cases = [
 		[
-			['loads a transitive extends chain from lowest to highest precedence', [['base.json', {}], ['middle.json', { extends: './base' }], ['tsconfig.json', { extends: './middle.json' }]], ['base.json', 'middle.json', 'tsconfig.json']],
-			['terminates an extends cycle and reports a diagnostic', [['a.json', { extends: './tsconfig' }], ['tsconfig.json', { extends: './a' }]], ['a.json', 'tsconfig.json'], 18000],
-			['resolves package-based extends with an optional json suffix', [['node_modules/@consumer/tsconfig/package.json', { name: '@consumer/tsconfig' }], ['node_modules/@consumer/tsconfig/base.json', { custom: { value: 'package' } }], ['tsconfig.json', { extends: '@consumer/tsconfig/base' }]], ['base.json', 'tsconfig.json'], undefined, 'package'],
-			['parses JSONC comments and trailing commas in root and extended configs', [['base.json', '{ "custom": { "value": "base", }, // trailing\n}'], ['tsconfig.json', '{ "extends": "./base", }']], ['base.json', 'tsconfig.json'], undefined, 'base'],
+			'loads a transitive extends chain from lowest to highest precedence',
+			[
+				['base.json', {}],
+				['middle.json', { extends: './base' }],
+				['tsconfig.json', { extends: './middle.json' }],
+			],
+			['base.json', 'middle.json', 'tsconfig.json'],
 		],
-	)('%s', (_, files, expected_layers, diagnostic_code, expected_value) => {
-		const result = load(files);
+		[
+			'terminates an extends cycle and reports a diagnostic',
+			[
+				['a.json', { extends: './tsconfig' }],
+				['tsconfig.json', { extends: './a' }],
+			],
+			['a.json', 'tsconfig.json'],
+			18000,
+		],
+		[
+			'resolves package-based extends with an optional json suffix',
+			[
+				['node_modules/@consumer/tsconfig/package.json', { name: '@consumer/tsconfig' }],
+				['node_modules/@consumer/tsconfig/base.json', { custom: { value: 'package' } }],
+				['tsconfig.json', { extends: '@consumer/tsconfig/base' }],
+			],
+			['base.json', 'tsconfig.json'],
+			undefined,
+			'package',
+		],
+		[
+			'parses JSONC comments and trailing commas in root and extended configs',
+			[
+				['base.json', '{ "custom": { "value": "base", }, // trailing\n}'],
+				['tsconfig.json', '{ "extends": "./base", }'],
+			],
+			['base.json', 'tsconfig.json'],
+			undefined,
+			'base',
+		],
+	];
+	it.each(layer_resolution_cases)(
+		'%s',
+		(_, files, expected_layers, diagnostic_code, expected_value) => {
+			const result = load(files);
 
-		expect(result.layers.map(({ path: file_name }) => path.basename(file_name))).toEqual(
-			expected_layers,
-		);
-		expect(result.diagnostics.some(({ code }) => code === diagnostic_code)).toBe(
-			diagnostic_code !== undefined,
-		);
-		expect(result.layers[0].config.custom?.value).toBe(expected_value);
-	});
+			expect(result.layers.map(({ path: file_name }) => path.basename(file_name))).toEqual(
+				expected_layers,
+			);
+			expect(result.diagnostics.some(({ code }) => code === diagnostic_code)).toBe(
+				diagnostic_code !== undefined,
+			);
+			const custom_value = get_own_config_value(result.layers[0].config, ['custom', 'value']);
+			expect(custom_value.state === 'found' ? custom_value.value : undefined).toBe(expected_value);
+		},
+	);
 
 	it('preserves extends-array precedence and reapplies a shared base per branch', () => {
 		const result = load([
@@ -99,8 +140,23 @@ describe('load_tsconfig_layers', () => {
 		const result = load([['tsconfig.json', { extends: './malformed' }]]);
 
 		expect(result.layers[0]).toMatchObject({ path: malformed_path, raw_source: malformed_source });
-		expect(result.layers[0].diagnostics.length).toBeGreaterThan(0);
+		expect(result.layers[0].parse_diagnostics.length).toBeGreaterThan(0);
 		expect(result.diagnostics.length).toBeGreaterThan(0);
+	});
+
+	it('keeps valid extends entries and reports invalid entries in the same array', () => {
+		const result = load([
+			['base.json', { custom: { value: 'base' } }],
+			['tsconfig.json', { extends: ['./base.json', 42] }],
+		]);
+
+		expect(result.layers.map(({ path: file_name }) => path.basename(file_name))).toEqual([
+			'base.json',
+			'tsconfig.json',
+		]);
+		expect(result.diagnostics).toEqual(
+			expect.arrayContaining([expect.objectContaining({ code: 5024 })]),
+		);
 	});
 
 	it('lists every participating config dependency once', () => {
@@ -132,10 +188,29 @@ describe('config value resolution', () => {
 	});
 
 	it('returns the last non-absent value with declaring-config annotation', () => {
+		/** @type {import('../src/tsconfig-resolution.js').TsconfigLayer[]} */
 		const layers = [
-			{ path: '/project/base.json', dir: '/project', config: { custom: { value: 'base' } } },
-			{ path: '/project/middle.json', dir: '/project', config: {} },
-			{ path: '/project/child.json', dir: '/project', config: { custom: { value: 'child' } } },
+			{
+				path: '/project/base.json',
+				dir: '/project',
+				config: { custom: { value: 'base' } },
+				raw_source: undefined,
+				parse_diagnostics: [],
+			},
+			{
+				path: '/project/middle.json',
+				dir: '/project',
+				config: {},
+				raw_source: undefined,
+				parse_diagnostics: [],
+			},
+			{
+				path: '/project/child.json',
+				dir: '/project',
+				config: { custom: { value: 'child' } },
+				raw_source: undefined,
+				parse_diagnostics: [],
+			},
 		];
 		const result = resolve_inherited_config_value(layers, ({ config }) =>
 			get_own_config_value(config, ['custom', 'value']),
