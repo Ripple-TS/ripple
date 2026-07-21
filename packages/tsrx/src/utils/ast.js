@@ -105,6 +105,39 @@ export function is_code_block_function_body(node, parent) {
 }
 
 /**
+ * Returns whether `child` directly occupies a statement slot of `parent`.
+ * Parser-native TSRX output nodes can appear in these slots without an
+ * `ExpressionStatement` wrapper, notably as braceless control-flow bodies.
+ *
+ * @param {AST.Node} parent
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+export function is_statement_position(parent, child) {
+	switch (parent.type) {
+		case 'Program':
+		case 'BlockStatement':
+			return parent.body.includes(/** @type {AST.Statement} */ (child));
+		case 'SwitchCase':
+			return parent.consequent.includes(/** @type {AST.Statement} */ (child));
+		case 'JSXCodeBlock':
+			return parent.body.includes(/** @type {AST.Statement} */ (child));
+		case 'IfStatement':
+			return parent.consequent === child || parent.alternate === child;
+		case 'ForStatement':
+		case 'ForInStatement':
+		case 'ForOfStatement':
+		case 'WhileStatement':
+		case 'DoWhileStatement':
+		case 'LabeledStatement':
+		case 'WithStatement':
+			return parent.body === child;
+		default:
+			return false;
+	}
+}
+
+/**
  * Returns the closest native TSRX function in an ancestry path. By default,
  * function and class boundaries stop the search so callers only match direct
  * native TSRX function body/control-flow nodes.

@@ -93,6 +93,7 @@ export {
 	is_template_directive as isTemplateDirective,
 	is_tsrx_render_output_node as isTsrxRenderOutputNode,
 	is_code_block_function_body as isCodeBlockFunctionBody,
+	is_statement_position as isStatementPosition,
 } from './utils/ast.js';
 
 // Shared TSRX semantic analysis

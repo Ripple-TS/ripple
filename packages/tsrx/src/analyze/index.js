@@ -4,7 +4,11 @@
  */
 
 import { walk } from 'zimmerframe';
-import { is_code_block_function_body, is_tsrx_render_output_node } from '../utils/ast.js';
+import {
+	is_code_block_function_body,
+	is_statement_position,
+	is_tsrx_render_output_node,
+} from '../utils/ast.js';
 import { validate_forgotten_statement_container } from './validation.js';
 
 /**
@@ -53,17 +57,7 @@ function is_free_floating_template(node, path) {
 			return true;
 		}
 
-		if (
-			parent.type === 'BlockStatement' &&
-			parent.body.includes(/** @type {AST.Statement} */ (child))
-		) {
-			return true;
-		}
-
-		if (
-			parent.type === 'SwitchCase' &&
-			parent.consequent.includes(/** @type {AST.Statement} */ (child))
-		) {
+		if (is_statement_position(parent, child)) {
 			return true;
 		}
 
