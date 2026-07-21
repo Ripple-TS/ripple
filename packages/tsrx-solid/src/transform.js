@@ -36,6 +36,7 @@ import {
 	isTemplateForOfNode as is_template_for_of_node,
 	isTemplateSwitchNode as is_template_switch_node,
 	isTemplateTryNode as is_template_try_node,
+	isFunctionOrClassNode as is_function_or_class_boundary,
 } from '@tsrx/core';
 
 import { builders as b } from '@tsrx/core';
@@ -446,20 +447,6 @@ function get_if_consequent_body(node) {
 function body_has_loop_skip(body_nodes) {
 	return body_nodes.some(
 		(node) => is_bare_return_statement(node) || get_returning_if_info(node) !== null,
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_function_or_class_boundary(node) {
-	return (
-		node?.type === 'FunctionDeclaration' ||
-		node?.type === 'FunctionExpression' ||
-		node?.type === 'ArrowFunctionExpression' ||
-		node?.type === 'ClassDeclaration' ||
-		node?.type === 'ClassExpression'
 	);
 }
 

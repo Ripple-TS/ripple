@@ -15,6 +15,7 @@ import {
 	isDomProperty,
 	isNonDelegated,
 	isVoidElement,
+	isCodeBlockFunctionBody,
 	normalizeEventName,
 	setLocation,
 	simpleHash,
@@ -43,6 +44,7 @@ export const is_boolean_attribute = isBooleanAttribute;
 export const is_dom_property = isDomProperty;
 export const simple_hash = simpleHash;
 export const strong_hash = strongHash;
+export const is_code_block_function_body = isCodeBlockFunctionBody;
 
 /**
  * @param {AST.Node | null | undefined} node
@@ -365,20 +367,6 @@ export function unwrap_single_return_iife(call) {
 		}
 	}
 	return call;
-}
-
-/**
- * @param {AST.JSXCodeBlock} node
- * @param {AST.Node | undefined} parent
- * @returns {boolean}
- */
-export function is_code_block_function_body(node, parent) {
-	return (
-		(parent?.type === 'ArrowFunctionExpression' ||
-			parent?.type === 'FunctionDeclaration' ||
-			parent?.type === 'FunctionExpression') &&
-		parent.body === node
-	);
 }
 
 /**

@@ -11,8 +11,10 @@
  * transforms — which walk the same tree — always agree on node identity.
  */
 
-import { builders } from '@tsrx/core';
+import { builders, isTemplateDirective as is_template_directive } from '@tsrx/core';
 const b = builders;
+
+export { is_template_directive };
 
 /**
  * @param {string} value
@@ -132,23 +134,6 @@ export function get_template_expression(node, to_ts) {
  */
 export function is_empty_expression_container(node) {
 	return node.type === 'JSXExpressionContainer' && node.expression?.type === 'JSXEmptyExpression';
-}
-
-/**
- * A `@if`/`@for`/`@switch`/`@try` template control-flow directive — the
- * parser's expression-form nodes. Directives keep these forms end to end; a
- * plain `IfStatement`/`ForOfStatement`/… is always ordinary JavaScript, except
- * the `@else if` chain links detected by {@link is_template_else_if}.
- * @param {AST.Node | null | undefined} node
- * @returns {node is AST.JSXTemplateDirective}
- */
-export function is_template_directive(node) {
-	return (
-		node?.type === 'JSXIfExpression' ||
-		node?.type === 'JSXForExpression' ||
-		node?.type === 'JSXSwitchExpression' ||
-		node?.type === 'JSXTryExpression'
-	);
 }
 
 /**

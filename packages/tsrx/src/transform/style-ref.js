@@ -1,6 +1,7 @@
 /** @import * as AST from 'estree' */
 
 import * as b from '../utils/builders.js';
+import { is_function_or_class_node as is_function_or_class_boundary } from '../utils/ast.js';
 import { clone_expression_node, clone_identifier } from './jsx/ast-builders.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
@@ -234,20 +235,6 @@ function is_ref_attribute(attr) {
  */
 function is_style_element(node) {
 	return !!node && node.type === 'JSXStyleElement';
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_function_or_class_boundary(node) {
-	return (
-		node?.type === 'FunctionDeclaration' ||
-		node?.type === 'FunctionExpression' ||
-		node?.type === 'ArrowFunctionExpression' ||
-		node?.type === 'ClassDeclaration' ||
-		node?.type === 'ClassExpression'
-	);
 }
 
 /**

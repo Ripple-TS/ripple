@@ -1,6 +1,10 @@
 import type { Program } from 'estree';
 import type { Linter } from 'eslint';
-import { DIAGNOSTIC_CODES, parseModule as parse_module } from '@tsrx/core';
+import {
+	analyzeTsrx as analyze_tsrx,
+	DIAGNOSTIC_CODES,
+	parseModule as parse_module,
+} from '@tsrx/core';
 
 interface ParseResult {
 	ast: Program;
@@ -151,14 +155,21 @@ function to_eslint_parse_error(error: any): SyntaxError {
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
 	try {
 		const errors: any[] = [];
+		const comments: any[] = [];
 		// Parse the TSRX source code using the shared TSRX parser. ESLint passes
 		// `<input>` for in-memory sources (e.g. RuleTester), so a real filename is
 		// only missing when the parser is invoked directly.
 		const ast = parse_module(code, options?.filePath || 'ESLintParser.tsrx', {
 			collect: true,
 			errors,
+			comments,
 		}) as any;
 		if (!ast) throw new Error('Parser returned null or undefined AST');
+		analyze_tsrx(ast, options?.filePath || 'ESLintParser.tsrx', {
+			collect: true,
+			errors,
+			comments,
+		});
 
 		const fatal_error = errors.find(is_fatal_parser_diagnostic);
 		if (fatal_error) {

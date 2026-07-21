@@ -3,7 +3,7 @@
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 /** @import { CompileOptions } from './transform.js' */
 
-import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
+import { analyzeTsrx, createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { DEFAULT_SUSPENSE_SOURCE, transform } from './transform.js';
 
 export { DEFAULT_SUSPENSE_SOURCE };
@@ -40,6 +40,18 @@ export function compile(source, filename, compile_options) {
 		filename,
 		collect ? { collect: true, loose: !!compile_options?.loose, errors, comments } : undefined,
 	);
+	analyzeTsrx(
+		ast,
+		filename,
+		collect
+			? {
+					collect: true,
+					loose: !!compile_options?.loose,
+					errors,
+					comments,
+				}
+			: undefined,
+	);
 	const { ast: _ast, ...result } = transform(
 		ast,
 		source,
@@ -69,6 +81,13 @@ export function compile_to_volar_mappings(source, filename, options) {
 		loose: !!options?.loose,
 		preserveParens: true,
 		keywordTokens: true,
+		errors,
+		comments,
+	});
+	analyzeTsrx(ast, filename, {
+		collect: true,
+		loose: !!options?.loose,
+		typeOnly: true,
 		errors,
 		comments,
 	});

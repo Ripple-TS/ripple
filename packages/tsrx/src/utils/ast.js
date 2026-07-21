@@ -22,7 +22,7 @@ import * as b from './builders.js';
 
 /**
  * @param {AST.Node} node
- * @returns {boolean}
+ * @returns {node is AST.Function}
  */
 export function is_function_node(node) {
 	return (
@@ -30,6 +30,14 @@ export function is_function_node(node) {
 		node.type === 'ArrowFunctionExpression' ||
 		node.type === 'FunctionDeclaration'
 	);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.Function | AST.ClassDeclaration | AST.ClassExpression}
+ */
+export function is_function_or_class_node(node) {
+	return !!node && (is_function_node(node) || is_class_node(node));
 }
 
 /**
@@ -46,6 +54,54 @@ export function is_function_or_component_node(node) {
  */
 export function is_class_node(node) {
 	return node.type === 'ClassExpression' || node.type === 'ClassDeclaration';
+}
+
+/**
+ * A parsed `@if`/`@for`/`@switch`/`@try` control-flow directive.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.JSXTemplateDirective}
+ */
+export function is_template_directive(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'JSXSwitchExpression' ||
+		node?.type === 'JSXTryExpression'
+	);
+}
+
+/**
+ * Any source AST node that can be the rendered output of a TSRX template or
+ * statement container.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.TSRXRenderOutput}
+ */
+export function is_tsrx_render_output_node(node) {
+	return !!(
+		node &&
+		(node.type === 'JSXElement' ||
+			node.type === 'JSXFragment' ||
+			node.type === 'JSXStyleElement' ||
+			node.type === 'JSXCodeBlock' ||
+			is_template_directive(node))
+	);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @param {AST.Node | null | undefined} parent
+ * @returns {node is AST.JSXCodeBlock}
+ */
+export function is_code_block_function_body(node, parent) {
+	return !!(
+		node &&
+		node.type === 'JSXCodeBlock' &&
+		parent &&
+		is_function_node(parent) &&
+		parent.body === node
+	);
 }
 
 /**

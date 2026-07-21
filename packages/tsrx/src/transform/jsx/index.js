@@ -61,6 +61,10 @@ import {
 } from '../jsx-interleave.js';
 import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 import { lower_server_module_for_types } from './server-module.js';
+import {
+	is_function_or_class_node as is_function_or_class_boundary,
+	is_template_directive as is_jsx_control_flow_expression,
+} from '../../utils/ast.js';
 
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
@@ -113,20 +117,6 @@ function report_jsx_fragment_in_tsrx_error(node, transform_context) {
 /**
  * @typedef {{ source_name: string, read: () => any }} LazyBinding
  */
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_function_or_class_boundary(node) {
-	return (
-		node?.type === 'FunctionDeclaration' ||
-		node?.type === 'FunctionExpression' ||
-		node?.type === 'ArrowFunctionExpression' ||
-		node?.type === 'ClassDeclaration' ||
-		node?.type === 'ClassExpression'
-	);
-}
 
 /**
  * @param {any} node
@@ -262,22 +252,6 @@ function expand_child_code_blocks(node, seen = new Set()) {
 	}
 
 	return out;
-}
-
-/**
- * A `@`-prefixed JSX control-flow expression (`@if`/`@for`/`@switch`/`@try`).
- * These are the only control-flow nodes that can appear in expression position;
- * the plain statement forms (`IfStatement`, `SwitchStatement`, …) never do.
- * @param {any} node
- * @returns {boolean}
- */
-function is_jsx_control_flow_expression(node) {
-	return (
-		node?.type === 'JSXIfExpression' ||
-		node?.type === 'JSXForExpression' ||
-		node?.type === 'JSXSwitchExpression' ||
-		node?.type === 'JSXTryExpression'
-	);
 }
 
 /**

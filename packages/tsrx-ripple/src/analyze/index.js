@@ -40,6 +40,7 @@ import {
 	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
 	isTemplateValuePosition,
+	isFunctionOrClassNode as is_function_or_class_boundary,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -300,20 +301,6 @@ function mark_control_flow_has_template(path, node) {
  */
 function is_script_only_control_flow_body(node) {
 	return node?.metadata?.script_only === true;
-}
-
-/**
- * @param {AST.Node} node
- * @returns {boolean}
- */
-function is_function_or_class_boundary(node) {
-	return (
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'ClassExpression' ||
-		node.type === 'ClassDeclaration'
-	);
 }
 
 /**

@@ -1,0 +1,172 @@
+import { describe, expect, it } from 'vitest';
+import { analyzeTsrx, DIAGNOSTIC_CODES, parseModule } from '../../src/index.js';
+import { TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR } from '../../src/analyze/validation.js';
+
+const filename = 'App.tsrx';
+
+/**
+ * Parse and run the target-neutral analysis in diagnostic-collection mode.
+ * Keeping this below the target compilers ensures the semantic rules are
+ * exercised once rather than repeated by every lowering target.
+ *
+ * @param {string} source
+ * @param {import('../../types/index.d.ts').TSRXAnalysisOptions} [options]
+ */
+function analyze(source, options = { collect: true }) {
+	const parse_errors = [];
+	const comments = [];
+	const ast = parseModule(source, filename, {
+		collect: true,
+		errors: parse_errors,
+		comments,
+	});
+
+	expect(parse_errors).toEqual([]);
+
+	return analyzeTsrx(ast, filename, { ...options, comments });
+}
+
+/** @param {ReturnType<typeof analyze>} result */
+function forgotten_output_errors(result) {
+	return result.errors.filter(
+		(error) => error.code === DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+	);
+}
+
+describe('target-neutral TSRX analysis', () => {
+	describe('unused template output', () => {
+		it('reports free-floating output in every ordinary function form', () => {
+			for (const source of [
+				'function Test() { <div /> }',
+				'const Test = () => { <div /> };',
+				'const Test = function () { <div /> };',
+				'consume(function () { <div /> });',
+				'const object = { render() { <div /> } };',
+				'class Test { render() { <div /> } }',
+			]) {
+				const errors = forgotten_output_errors(analyze(source));
+
+				expect(errors, source).toHaveLength(1);
+				expect(errors[0].message).toBe(TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR);
+			}
+		});
+
+		it('reports every free-floating TSRX output shape once', () => {
+			for (const output of [
+				'<div />',
+				'<><div /></>',
+				'<style>div { color: red; }</style>',
+				'@if (ok) { <div /> } @else { <span /> }',
+				'@for (const item of items) { <div>{item}</div> }',
+				'@switch (value) { @case 1: { <div /> } @default: { <span /> } }',
+				'@try { <div /> } @catch (error) { <span /> }',
+				'@{ <div /> }',
+			]) {
+				const errors = forgotten_output_errors(
+					analyze(`function Test() {
+						${output}
+					}`),
+				);
+
+				expect(errors, output).toHaveLength(1);
+			}
+		});
+
+		it('reports output nested in ordinary JavaScript blocks and output followed by setup', () => {
+			const result = analyze(`function Test() {
+				if (ready) {
+					<div />
+				}
+
+				<span />;
+				const value = 1;
+				console.log(value);
+			}`);
+
+			expect(forgotten_output_errors(result)).toHaveLength(2);
+		});
+
+		it('looks through value-transparent expression wrappers', () => {
+			const result = analyze(`function Test() {
+				(<div />);
+				(<span /> as JSX.Element);
+			}`);
+
+			expect(forgotten_output_errors(result)).toHaveLength(2);
+		});
+
+		it('throws during strict analysis', () => {
+			const ast = parseModule('function Test() { <div /> }', filename);
+
+			expect(() => analyzeTsrx(ast, filename)).toThrow(TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR);
+		});
+
+		it('collects and continues for editor and type-only analysis modes', () => {
+			for (const options of [
+				{ collect: true },
+				{ loose: true },
+				{ typeOnly: true },
+				{ to_ts: true },
+			]) {
+				const result = analyze('function Test() { <div /> }', options);
+
+				expect(forgotten_output_errors(result), options).toHaveLength(1);
+			}
+		});
+	});
+
+	describe('rendered or retained template output', () => {
+		it('allows every function form to use a direct @{...} body', () => {
+			for (const source of [
+				'function Test() @{ <div /> }',
+				'const Test = () => @{ <div /> };',
+				'const Test = function () @{ <div /> };',
+				'consume(function () @{ <div /> });',
+				'const object = { render() @{ <div /> } };',
+				'class Test { render() @{ <div /> } }',
+			]) {
+				expect(forgotten_output_errors(analyze(source)), source).toEqual([]);
+			}
+		});
+
+		it('still checks ordinary nested functions inside a function @{...} body', () => {
+			const result = analyze(`function App() @{
+				const render = function () {
+					<span />
+				};
+
+				<div>{render()}</div>
+			}`);
+
+			expect(forgotten_output_errors(result)).toHaveLength(1);
+		});
+
+		it('allows returned, retained, passed, and expression-bodied output', () => {
+			for (const source of [
+				'function Test() { return <div />; }',
+				'function Test() { const view = <div />; return view; }',
+				'function Test() { render(<div />); }',
+				'function Test() { return ready && <div />; }',
+				'const Test = () => <div />;',
+				'function Test() { const view = @if (ready) { <div /> }; return view; }',
+				'function Test() { const view = @{ <div /> }; return view; }',
+			]) {
+				expect(forgotten_output_errors(analyze(source)), source).toEqual([]);
+			}
+		});
+
+		it('does not report nested output that belongs to another template', () => {
+			const result = analyze(`function Test() {
+				return <section>
+					@if (ready) { <div /> } @else { <span /> }
+				</section>;
+			}`);
+
+			expect(forgotten_output_errors(result)).toEqual([]);
+		});
+
+		it('does not apply function-body semantics at module scope', () => {
+			expect(forgotten_output_errors(analyze('<div />'))).toEqual([]);
+		});
+	});
+});

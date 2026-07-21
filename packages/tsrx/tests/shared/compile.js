@@ -37,8 +37,6 @@ function diagnostic_codes(result) {
 
 const TSRX_TEMPLATE_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
-const TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR =
-	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
 
 /**
  * Shared compile/editor diagnostics. These do not assert source-map structure;
@@ -59,13 +57,13 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(result.errors).toEqual([]);
-			expect(result.code).toContain('{a} {a}');
+			expect(count_substring(result.code, '{a}')).toBeGreaterThanOrEqual(2);
 			expect(result.code).not.toContain('<>{a}a</>');
 		});
 
 		it('keeps a single text child faithful instead of promoting it to a string literal', () => {
 			const result = compile_to_volar_mappings(
-				`export function App() {
+				`export function App() @{
 					<>@</>
 				}`,
 				'App.tsrx',
@@ -80,7 +78,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 
 		it('does not promote ordinary single-text output into a string literal', () => {
 			const result = compile_to_volar_mappings(
-				`export function App() {
+				`export function App() @{
 					<>Hello</>
 				}`,
 				'App.tsrx',
@@ -195,87 +193,6 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).toContain('return [<>Delete</>, <>Edit</>];');
 			expect(result.code).toContain('return [<>View</>];');
 			expect(result.code).toContain('bySwitch: (role) => {');
-		});
-
-		it('reports function bodies that look like forgotten statement containers', () => {
-			const result = compile_to_volar_mappings(
-				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
-					if (!user) {
-						return <span class="muted">Signed out</span>;
-					}
-
-					const initials = user.name.slice(0, 2).toUpperCase();
-
-					<button title={user.name}>{initials}</button>
-				}`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER);
-			expect(result.errors.map((error) => error.message)).toContain(
-				TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR,
-			);
-		});
-
-		it('reports arrow function bodies that look like forgotten statement containers', () => {
-			const result = compile_to_volar_mappings(
-				`const UserBadge = ({ user }: UserBadgeProps): JSX.Element => {
-					const initials = user.name.slice(0, 2).toUpperCase();
-
-					<button title={user.name}>{initials}</button>
-				};`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER);
-		});
-
-		it('does not report forgotten statement containers when setup follows template output', () => {
-			const result = compile_to_volar_mappings(
-				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
-					<span>{user.name}</span>;
-
-					const initials = user.name.slice(0, 2).toUpperCase();
-					console.log(initials);
-				}`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).not.toContain(
-				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
-			);
-		});
-
-		it('does not report ordinary returned JSX', () => {
-			const result = compile_to_volar_mappings(
-				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
-					return <span>{user.name}</span>;
-				}`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).not.toContain(
-				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
-			);
-		});
-
-		it('does not report explicit nested statement containers in ordinary function bodies', () => {
-			const result = compile_to_volar_mappings(
-				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
-					const badge = @{
-						const initials = user.name.slice(0, 2).toUpperCase();
-
-						<button title={user.name}>{initials}</button>
-					};
-
-					return badge;
-				}`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).not.toContain(
-				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
-			);
 		});
 
 		it('allows return statements in localized setup before a template fence', () => {
@@ -710,73 +627,6 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 			expect(code).toContain('const count = 2;');
 			expect(code).toContain('<span>{count}</span>');
 			expect(code).not.toContain('JSXCodeBlock');
-		});
-
-		it('lowers a dangling @if expression statement', () => {
-			const { code } = compile(
-				`function StatusBadge({ status }: { status: string }) {
-							@if (status === 'active') {
-								<span class="badge active">Online</span>
-							} @else if (status === 'idle') {
-								<span class="badge idle">Away</span>
-							} @else {
-								<span class="badge">Offline</span>
-							}
-						}`,
-				'App.tsrx',
-			);
-			expect(code).toContain('Online');
-			expect(code).toContain('Away');
-			expect(code).toContain('Offline');
-			expect(code).not.toContain('@if');
-			expect(code).not.toContain('JSXIfExpression');
-		});
-
-		it('lowers dangling @ control expressions and code blocks as expression statements', () => {
-			const cases = [
-				[
-					`function App() {
-								@for (const item of items) {
-									<li>{item}</li>
-								}
-							}`,
-					['<li>', '@for', 'JSXForExpression'],
-				],
-				[
-					`function App() {
-								@switch (status) {
-									@case 'loading': { <p>Loading...</p> }
-									@default: { <p>Unknown status.</p> }
-								}
-							}`,
-					['Loading...', '@switch', 'JSXSwitchExpression'],
-				],
-				[
-					`function App() {
-								@try {
-									<p>Loaded</p>
-								} @catch (error) {
-									<p>Failed</p>
-								}
-							}`,
-					['Loaded', '@try', 'JSXTryExpression'],
-				],
-				[
-					`function App() {
-								@{
-									const count = 2;
-									<span>{count}</span>
-								}
-							}`,
-					['const count = 2;', 'JSXCodeBlock', 'JSXCodeBlock'],
-				],
-			];
-			for (const [source, [expected, rawSyntax, rawNode]] of cases) {
-				const { code } = compile(source, 'App.tsrx');
-				expect(code, source).toContain(expected);
-				expect(code, source).not.toContain(rawSyntax);
-				expect(code, source).not.toContain(rawNode);
-			}
 		});
 
 		it('lowers @if as the left operand of a logical expression', () => {

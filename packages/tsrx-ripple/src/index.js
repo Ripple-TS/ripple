@@ -2,7 +2,7 @@
 /** @import { CompileOptions, CompileError, ParseOptions } from '../types/index' */
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
-import { createVolarMappingsResult, parseModule } from '@tsrx/core';
+import { analyzeTsrx, createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
@@ -34,6 +34,11 @@ export function compile(source, filename, options = {}) {
 		source,
 		filename,
 		collect ? { ...options, collect, errors, comments } : undefined,
+	);
+	analyzeTsrx(
+		ast,
+		filename,
+		collect ? { collect, loose: !!options.loose, errors, comments } : undefined,
 	);
 	const analysis = analyze(
 		ast,
@@ -85,6 +90,13 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		loose: !!options?.loose,
 		preserveParens: true,
 		keywordTokens: true,
+		errors,
+		comments,
+	});
+	analyzeTsrx(ast, filename, {
+		collect: true,
+		loose: !!options?.loose,
+		to_ts: true,
 		errors,
 		comments,
 	});

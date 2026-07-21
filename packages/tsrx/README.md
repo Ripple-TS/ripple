@@ -27,9 +27,10 @@ pnpm add @tsrx/core
 ## Usage
 
 ```js
-import { parseModule } from '@tsrx/core';
+import { analyzeTsrx, parseModule } from '@tsrx/core';
 
 const ast = parseModule(source, 'App.tsrx');
+const analysis = analyzeTsrx(ast, 'App.tsrx');
 ```
 
 The parser produces an ESTree-compatible AST, augmented with the TSRX node types
@@ -54,6 +55,10 @@ here and keeps package docs focused on the core parser API.
 
 - **`parseModule(source, filename, options?)`** — parse a TSRX module into an
   ESTree AST.
+- **`analyzeTsrx(ast, filename, options?)`** — run target-neutral semantic
+  validation before framework analysis or transformation. Pass `collect: true`,
+  `typeOnly: true`, or `to_ts: true` to collect non-fatal diagnostics for
+  editor/type-only output.
 - **Scope analysis** — `createScopes`, `Scope`, `ScopeRoot`, binding tracking
   (`import`, `prop`, `let`, `const`, `function`, `for_pattern`, …).
 - **AST utilities** — pattern walkers, identifier extraction, builders, location

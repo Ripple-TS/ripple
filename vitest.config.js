@@ -433,6 +433,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'tsrx-analyze',
+					include: ['packages/tsrx/tests/analyze/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'ripple-hydration',
 					include: ['packages/ripple/tests/hydration/**/*.test.js'],
 					environment: 'jsdom',

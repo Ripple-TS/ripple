@@ -445,6 +445,14 @@ declare module 'estree' {
 		| JSXSwitchExpression
 		| JSXTryExpression;
 
+	/** Any node that can be the rendered output of a TSRX template or statement container. */
+	type TSRXRenderOutput =
+		| ESTreeJSX.JSXElement
+		| ESTreeJSX.JSXFragment
+		| JSXStyleElement
+		| JSXCodeBlock
+		| JSXTemplateDirective;
+
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';
 		expression: AST.Expression;
@@ -1267,6 +1275,30 @@ export interface ParseOptions {
 export interface AnalyzeOptions extends ParseOptions, Pick<CompileOptions, 'mode'> {
 	errors?: CompileError[];
 	to_ts?: boolean;
+}
+
+/** Options for the target-neutral TSRX semantic analysis pass. */
+export interface TSRXAnalysisOptions extends ParseOptions {
+	typeOnly?: boolean;
+	to_ts?: boolean;
+}
+
+/** Traversal state used by the target-neutral TSRX semantic analysis pass. */
+export interface TSRXAnalysisState {
+	filename: string | null;
+	collect: boolean;
+	errors: CompileError[];
+	comments: AST.CommentWithLocation[];
+	function: AST.Function | null;
+	function_body_is_code_block: boolean;
+	inside_template_output: boolean;
+}
+
+/** Result of target-neutral TSRX semantic analysis. */
+export interface TSRXAnalysisResult {
+	ast: AST.Program;
+	errors: CompileError[];
+	comments: AST.CommentWithLocation[];
 }
 
 /**

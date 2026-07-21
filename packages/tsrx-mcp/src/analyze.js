@@ -91,9 +91,9 @@ function create_advice(input) {
 		advice.push({
 			kind: 'forgotten-statement-container',
 			severity: 'error',
-			title: 'Add @ before statement-container braces',
+			title: 'Render or retain template output',
 			message:
-				'A function body with TypeScript setup followed by bare TSRX output must use a JSX statement container. Change the opening `{` to `@{`, or use an ordinary `return` when the function only returns JSX.',
+				'Free-floating TSRX output in a normal function body is discarded. Return it, assign it to a value that is later rendered, or change the function body opening `{` to `@{` for implicit output.',
 			documentation: ['tsrx://docs/components.md', 'tsrx://docs/expression-values.md'],
 		});
 	}

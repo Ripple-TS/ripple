@@ -87,9 +87,16 @@ export {
 	build_assignment_value as buildAssignmentValue,
 	is_class_node as isClassNode,
 	is_function_node as isFunctionNode,
+	is_function_or_class_node as isFunctionOrClassNode,
 	is_function_or_component_node as isFunctionOrComponentNode,
 	is_inside_component as isInsideComponent,
+	is_template_directive as isTemplateDirective,
+	is_tsrx_render_output_node as isTsrxRenderOutputNode,
+	is_code_block_function_body as isCodeBlockFunctionBody,
 } from './utils/ast.js';
+
+// Shared TSRX semantic analysis
+export { analyze_tsrx as analyzeTsrx } from './analyze/index.js';
 
 // Builders (namespace re-export — members mirror AST node kinds)
 export * as builders from './utils/builders.js';
@@ -244,6 +251,7 @@ export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
 export { prune_css as pruneCss } from './analyze/prune.js';
 export {
 	TSRX_DO_WHILE_STATEMENT_ERROR,
+	TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR,
 	TSRX_FOR_IN_STATEMENT_ERROR,
 	TSRX_FOR_STATEMENT_ERROR,
 	TSRX_IF_BREAK_ERROR,
@@ -264,6 +272,7 @@ export {
 	validate_tsrx_loop_return_statement as validateTsrxLoopReturnStatement,
 	validate_tsrx_return_statement as validateTsrxReturnStatement,
 	validate_tsrx_unsupported_loop_statement as validateTsrxUnsupportedLoopStatement,
+	validate_forgotten_statement_container as validateForgottenStatementContainer,
 	validate_nesting as validateNesting,
 	is_template_value_position as isTemplateValuePosition,
 } from './analyze/validation.js';

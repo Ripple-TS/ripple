@@ -11,8 +11,7 @@ import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
 import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
-const FORGOTTEN_STATEMENT_CONTAINER_ERROR =
-	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
+import { is_tsrx_render_output_node } from './utils/ast.js';
 
 const CharCode = Object.freeze({
 	tab: 9,
@@ -1163,104 +1162,6 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {AST.Node | null | undefined} node
-			 */
-			#isRenderOutputNode(node) {
-				if (!node) return false;
-				switch (node.type) {
-					case 'JSXElement':
-					case 'JSXFragment':
-					case 'JSXStyleElement':
-					case 'JSXCodeBlock':
-					case 'JSXIfExpression':
-					case 'JSXForExpression':
-					case 'JSXSwitchExpression':
-					case 'JSXTryExpression':
-						return true;
-				}
-				return false;
-			}
-
-			/**
-			 * @param {AST.Node | null | undefined} node
-			 */
-			#isForgottenStatementContainerOutputNode(node) {
-				return this.#isRenderOutputNode(node) && node?.type !== 'JSXCodeBlock';
-			}
-
-			/**
-			 * @param {AST.Node | null | undefined} node
-			 */
-			#isIgnoredForgottenStatementContainerStatement(node) {
-				return !node || node.type === 'EmptyStatement';
-			}
-
-			/**
-			 * A normal function body that directly contains a bare JSX/control-flow node
-			 * almost always means the author wrote `{ ... <div /> }` but intended
-			 * `@{ ... <div /> }`. Only report when adding `@` would produce a valid
-			 * statement container: setup statements first, followed by one final render
-			 * output. Report only direct body children so ordinary nested callbacks/branches
-			 * are diagnosed by their own function body, not their parent.
-			 * @param {AST.Node} node
-			 */
-			#reportForgottenStatementContainerBody(node) {
-				if (!this.#collect) {
-					return;
-				}
-
-				const body = /** @type {{ body?: AST.Node }} */ (node).body;
-				if (body?.type !== 'BlockStatement') {
-					return;
-				}
-
-				const statements = /** @type {AST.BlockStatement} */ (body).body || [];
-				const has_return_type = Boolean(/** @type {{ returnType?: AST.Node }} */ (node).returnType);
-				if (!has_return_type) {
-					return;
-				}
-
-				let target = null;
-				let target_index = -1;
-				for (let index = 0; index < statements.length; index++) {
-					const statement = statements[index];
-					const output =
-						this.#isForgottenStatementContainerOutputNode(statement) ||
-						(statement.type === 'ExpressionStatement' &&
-							this.#isForgottenStatementContainerOutputNode(statement.expression))
-							? statement
-							: null;
-
-					if (!output) {
-						continue;
-					}
-
-					if (target_index !== -1) {
-						return;
-					}
-					target_index = index;
-					target = output;
-				}
-
-				if (!target) {
-					return;
-				}
-
-				for (const statement of statements.slice(target_index + 1)) {
-					if (!this.#isIgnoredForgottenStatementContainerStatement(statement)) {
-						return;
-					}
-				}
-
-				this.#report_recoverable_error_range(
-					/** @type {number} */ (target.start),
-					/** @type {number} */ (target.end),
-					FORGOTTEN_STATEMENT_CONTAINER_ERROR,
-					DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
-				);
-			}
-
-			/**
 			 * Inside a code block (`@{ … }` or a directive's `{ }`), decides whether the
 			 * next thing is the single bare render node (`<tag …>`, `<>…</>`, or an
 			 * `@if`/`@for`/`@switch`/`@try` directive) rather than a setup statement.
@@ -1500,7 +1401,7 @@ export function TSRXPlugin(config) {
 				}
 
 				const last = flat[flat.length - 1];
-				if (this.#isRenderOutputNode(last)) {
+				if (is_tsrx_render_output_node(last)) {
 					node.render = last;
 					node.body = /** @type {AST.Statement[]} */ (flat.slice(0, -1));
 				} else {
@@ -3455,9 +3356,7 @@ export function TSRXPlugin(config) {
 						this.exitScope();
 						return node;
 					}
-					const parsed = super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
-					this.#reportForgottenStatementContainerBody(parsed);
-					return parsed;
+					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
 				} finally {
 					this.#functionBodyDepth--;
 				}

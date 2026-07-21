@@ -199,7 +199,7 @@ export default function A() @{
 	});
 
 	it('does not merge adjacent call-containing children into stringified text in SSR output', () => {
-		const setup = `function child(label) {
+		const setup = `function child(label) @{
 	<span>{label}</span>
 }
 function Constructed(label) {

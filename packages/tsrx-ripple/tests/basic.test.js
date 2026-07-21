@@ -21,7 +21,7 @@ runSharedComponentParamsTests({
 describe('@tsrx/ripple faithful text output', () => {
 	it("keeps a single `@` text child as `<>@</>` instead of `{'@'}` in type-only output", () => {
 		const { code, errors } = compile_to_volar_mappings(
-			`export function App() {
+			`export function App() @{
 				<>@</>
 			}`,
 			'App.tsrx',
@@ -35,7 +35,7 @@ describe('@tsrx/ripple faithful text output', () => {
 
 	it('does not promote ordinary single-text output into a string literal', () => {
 		const { code, errors } = compile_to_volar_mappings(
-			`export function App() {
+			`export function App() @{
 				<>Hello</>
 			}`,
 			'App.tsrx',
@@ -49,7 +49,7 @@ describe('@tsrx/ripple faithful text output', () => {
 
 	it('lowers a single `@` text child to a faithful runtime text node', () => {
 		const { code } = compile(
-			`export function App() {
+			`export function App() @{
 				<>@</>
 			}`,
 			'App.tsrx',
@@ -1788,20 +1788,6 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 			if (flag === 'undefined') return undefined;
 			return alt;
 		}`);
-	});
-
-	it('preserves plain ASI returns without component return guards', () => {
-		const source = `function Test() {
-			return;
-			<div>{"should not render"}</div>
-		}`;
-		const client = compile(source, 'App.tsrx');
-		const server = compile(source, 'App.tsrx', { mode: 'server' });
-
-		expect(client.code).toContain('return;');
-		expect(client.code).not.toContain('return_guard');
-		expect(server.code).toContain('return;');
-		expect(server.code).not.toContain('return_guard');
 	});
 
 	it('guards regular statements after conditional component returns', () => {
