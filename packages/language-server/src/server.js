@@ -16,6 +16,7 @@ import { createDocumentHighlightPlugin } from './documentHighlightPlugin.js';
 import { createDocumentSymbolPlugin } from './documentSymbolPlugin.js';
 import {
 	getRippleLanguagePlugin,
+	invalidateCompilerResolutionCaches,
 	invalidateTypeDefinitionCaches,
 	resolveConfig,
 } from '@tsrx/typescript-plugin/src/language.js';
@@ -202,6 +203,7 @@ export function createRippleLanguageServer() {
 				changes,
 				{
 					restartLanguageServer,
+					invalidateCompilerResolutionCaches,
 					invalidateTypeDefinitions: invalidateTypeDefinitionCaches,
 					reloadProjects: () => {
 						// Volar recreates disposed projects lazily, so retain the

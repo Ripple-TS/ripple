@@ -224,4 +224,32 @@ describe('language-server workspace state', () => {
 		expect(hooks.reloadProjects).not.toHaveBeenCalled();
 		expect(hooks.requestRefresh).not.toHaveBeenCalled();
 	});
+
+	it('invalidates compiler resolution caches before reloading a tracked config', () => {
+		const calls = [];
+		const hooks = {
+			restartLanguageServer: vi.fn(),
+			invalidateCompilerResolutionCaches: vi.fn(() => calls.push('invalidate compiler')),
+			invalidateTypeDefinitions: vi.fn(),
+			reloadProjects: vi.fn(() => calls.push('reload')),
+			requestRefresh: vi.fn(() => calls.push('refresh')),
+		};
+		const tracked_config_files = new Set();
+		trackTypeScriptConfigDependencies(tracked_config_files, {
+			configFileName: '/workspace/tsconfig.json',
+			compilerOptions: {
+				configFile: {
+					extendedSourceFiles: ['/workspace/configs/compiler-options.json'],
+				},
+			},
+		});
+
+		handleWorkspaceChanges(
+			[change('/workspace/configs/compiler-options.json')],
+			hooks,
+			tracked_config_files,
+		);
+
+		expect(calls).toEqual(['invalidate compiler', 'reload', 'refresh']);
+	});
 });
