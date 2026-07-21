@@ -75,6 +75,30 @@ async function compile_debug_fixture(workspace_name, configure, file_parts = ['s
 }
 
 /**
+ * @param {string} file_name
+ * @param {unknown} config
+ */
+function write_config(file_name, config) {
+	fs.mkdirSync(path.dirname(file_name), { recursive: true });
+	fs.writeFileSync(file_name, JSON.stringify(config, null, 2) + '\n');
+}
+
+/**
+ * @param {string} workspace
+ * @param {Record<string, unknown>} files
+ */
+function write_inheritance_files(workspace, files) {
+	for (const [relative_path, config] of Object.entries(files)) {
+		const file_name = path.join(workspace, relative_path);
+		fs.mkdirSync(path.dirname(file_name), { recursive: true });
+		fs.writeFileSync(
+			file_name,
+			typeof config === 'string' ? config : JSON.stringify(config, null, 2) + '\n',
+		);
+	}
+}
+
+/**
  * @param {number} sourceStart
  * @param {number} sourceLength
  * @param {number} generatedStart
@@ -295,8 +319,55 @@ describe('typescript-plugin language plugin integration', () => {
 		}
 		expect(result[log_method]).toHaveBeenCalledWith(
 			'[Ripple Language]',
-			expect.stringContaining('Unable to parse nearest tsconfig'),
+			expect.stringContaining('Unable to parse tsconfig layer'),
 			expect.stringContaining(result.tsconfig_path),
+			expect.any(String),
+		);
+	});
+
+	it.each([
+		[
+			'warns and falls back when a malformed base and the chain have no tsrx intent',
+			'{ "compilerOptions": {\n',
+			{ extends: './base.json', compilerOptions: {} },
+			'warning_spy',
+			'compiler:ripple',
+		],
+		[
+			'hard-stops when a malformed base contains textual tsrx intent',
+			'{ "tsrx": { "compiler": "inherited-compiler-a" },\n',
+			{ extends: './base.json', compilerOptions: {} },
+			'error_spy',
+			undefined,
+		],
+		[
+			'hard-stops when a parsed child shows tsrx intent beside a malformed silent base',
+			'{ "compilerOptions": {\n',
+			{
+				extends: './base.json',
+				tsrx: { compiler: 'inherited-compiler-a' },
+				compilerOptions: {},
+			},
+			'error_spy',
+			undefined,
+		],
+	])('%s', async (_, base_source, root_config, log_method, compiler_marker) => {
+		const result = await compile_debug_fixture('inherited-declaration', (workspace) => {
+			write_inheritance_files(workspace, {
+				'base.json': base_source,
+				'tsconfig.json': root_config,
+			});
+		});
+
+		if (compiler_marker) {
+			expect(result.virtual_code?.generatedCode).toContain(compiler_marker);
+		} else {
+			expect(result.virtual_code).toBeUndefined();
+		}
+		expect(result[log_method]).toHaveBeenCalledWith(
+			'[Ripple Language]',
+			expect.stringContaining('Unable to parse tsconfig layer'),
+			expect.stringContaining(path.join(result.workspace, 'base.json')),
 			expect.any(String),
 		);
 	});
@@ -407,6 +478,214 @@ describe('typescript-plugin language plugin integration', () => {
 
 		expect(root_virtual_code.generatedCode).toContain('compiler:declared');
 		expect(nested_virtual_code.generatedCode).toContain('compiler:nested');
+	});
+
+	it.each([
+		[
+			'base declaration when the child omits tsrx',
+			{
+				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'tsconfig.json': { extends: './base.json', compilerOptions: {} },
+			},
+			'compiler:inherited-a',
+		],
+		[
+			'base declaration when the child has an empty tsrx object',
+			{
+				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'tsconfig.json': { extends: './base.json', tsrx: {}, compilerOptions: {} },
+			},
+			'compiler:inherited-a',
+		],
+		[
+			'child declaration over its base',
+			{
+				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'tsconfig.json': {
+					extends: './base.json',
+					tsrx: { compiler: 'inherited-compiler-b' },
+					compilerOptions: {},
+				},
+			},
+			'compiler:inherited-b',
+		],
+		[
+			'transitive base declaration',
+			{
+				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'middle.json': { extends: './base.json' },
+				'tsconfig.json': { extends: './middle.json', compilerOptions: {} },
+			},
+			'compiler:inherited-a',
+		],
+		[
+			'later declaration in an extends array',
+			{
+				'a.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'b.json': { tsrx: { compiler: 'inherited-compiler-b' } },
+				'tsconfig.json': { extends: ['./a.json', './b.json'], compilerOptions: {} },
+			},
+			'compiler:inherited-b',
+		],
+		[
+			'earlier declaration when a later extends entry is silent',
+			{
+				'a.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'b.json': { compilerOptions: {} },
+				'tsconfig.json': { extends: ['./a.json', './b.json'], compilerOptions: {} },
+			},
+			'compiler:inherited-a',
+		],
+		[
+			'JSONC root and extended configs',
+			{
+				'base.json':
+					'{\n\t// inherited compiler\n\t"tsrx": { "compiler": "inherited-compiler-a", },\n}\n',
+				'tsconfig.json':
+					'{\n\t// root config\n\t"extends": "./base.json",\n\t"compilerOptions": {},\n}\n',
+			},
+			'compiler:inherited-a',
+		],
+		[
+			'package-based extends declaration',
+			{
+				'node_modules/@consumer/tsconfig/package.json': {
+					name: '@consumer/tsconfig',
+					version: '1.0.0',
+				},
+				'node_modules/@consumer/tsconfig/base.json': {
+					tsrx: { compiler: 'inherited-compiler-a' },
+				},
+				'tsconfig.json': {
+					extends: '@consumer/tsconfig/base.json',
+					compilerOptions: {},
+				},
+			},
+			'compiler:inherited-a',
+		],
+	])('uses the %s', (_, files, marker) => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('inherited-declaration');
+		write_inheritance_files(workspace, files);
+		const virtual_code = create_virtual_code(
+			plugin,
+			path.join(workspace, 'src', 'App.tsrx'),
+			'export default <div>Hello</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain(marker);
+	});
+
+	it('does not inherit from a root config that the nested project does not extend', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('inherited-declaration');
+		write_config(path.join(workspace, 'tsconfig.json'), {
+			tsrx: { compiler: 'inherited-compiler-a' },
+			compilerOptions: {},
+		});
+		write_config(path.join(workspace, 'nested', 'tsconfig.json'), { compilerOptions: {} });
+		const virtual_code = create_virtual_code(
+			plugin,
+			path.join(workspace, 'nested', 'src', 'App.tsrx'),
+			'export default <div>Hello</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:ripple');
+		expect(virtual_code.generatedCode).not.toContain('compiler:inherited-a');
+	});
+
+	it.each([
+		[
+			'invalid base declaration without an override',
+			{
+				'base.json': { tsrx: { compiler: 42 } },
+				'tsconfig.json': { extends: './base.json', compilerOptions: {} },
+			},
+			undefined,
+		],
+		[
+			'invalid child declaration over a valid base',
+			{
+				'base.json': { tsrx: { compiler: 'inherited-compiler-a' } },
+				'tsconfig.json': { extends: './base.json', tsrx: { compiler: 42 } },
+			},
+			undefined,
+		],
+		[
+			'valid child declaration over an invalid base',
+			{
+				'base.json': { tsrx: { compiler: 42 } },
+				'tsconfig.json': {
+					extends: './base.json',
+					tsrx: { compiler: 'inherited-compiler-b' },
+				},
+			},
+			'compiler:inherited-b',
+		],
+	])('applies effective-value semantics for an %s', async (_, files, marker) => {
+		const result = await compile_debug_fixture('inherited-declaration', (workspace) => {
+			write_inheritance_files(workspace, files);
+		});
+
+		if (marker) {
+			expect(result.virtual_code?.generatedCode).toContain(marker);
+			expect(result.error_spy).not.toHaveBeenCalledWith(
+				'[Ripple Language]',
+				expect.stringContaining('Invalid TSRX'),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+			);
+		} else {
+			expect(result.virtual_code).toBeUndefined();
+			expect(result.error_spy).toHaveBeenCalledWith(
+				'[Ripple Language]',
+				expect.stringContaining('Invalid TSRX'),
+				expect.anything(),
+				expect.anything(),
+				expect.any(String),
+			);
+		}
+	});
+
+	it('resolves an inherited compiler from the config that declares it', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('inherited-declaration');
+		write_config(path.join(workspace, 'configs', 'base.json'), {
+			tsrx: { compiler: 'declaring-config-compiler' },
+		});
+		write_config(path.join(workspace, 'tsconfig.json'), {
+			extends: './configs/base.json',
+			compilerOptions: {},
+		});
+		const virtual_code = create_virtual_code(
+			plugin,
+			path.join(workspace, 'src', 'App.tsrx'),
+			'export default <div>Hello</div>;',
+		);
+
+		expect(virtual_code.generatedCode).toContain('compiler:declaring-config');
+	});
+
+	it('picks up a changed inherited compiler after resetting resolution caches', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('inherited-declaration');
+		const base_path = path.join(workspace, 'base.json');
+		write_config(base_path, { tsrx: { compiler: 'inherited-compiler-a' } });
+		write_config(path.join(workspace, 'tsconfig.json'), {
+			extends: './base.json',
+			compilerOptions: {},
+		});
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+
+		expect(
+			create_virtual_code(plugin, file_name, 'export default <div>First</div>;').generatedCode,
+		).toContain('compiler:inherited-a');
+		write_config(base_path, { tsrx: { compiler: 'inherited-compiler-b' } });
+		_reset_for_test();
+		expect(
+			create_virtual_code(plugin, file_name, 'export default <div>Second</div>;').generatedCode,
+		).toContain('compiler:inherited-b');
 	});
 
 	it('creates virtual code with the vue compiler in a vue-only project', () => {

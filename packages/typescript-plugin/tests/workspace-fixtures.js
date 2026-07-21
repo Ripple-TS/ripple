@@ -462,6 +462,23 @@ export const WORKSPACE_CONFIGS = {
 			{ specifier: 'nested-tsrx-compiler', marker: 'nested', directory: 'nested' },
 		],
 	},
+	'inherited-declaration': {
+		package_json: {
+			name: '@tsrx/fixture-inherited-declaration-project',
+			private: true,
+			devDependencies: { '@tsrx/ripple': 'workspace:*' },
+		},
+		compilers: ['ripple'],
+		declared_compilers: [
+			{ specifier: 'inherited-compiler-a', marker: 'inherited-a' },
+			{ specifier: 'inherited-compiler-b', marker: 'inherited-b' },
+			{
+				specifier: 'declaring-config-compiler',
+				marker: 'declaring-config',
+				directory: 'configs',
+			},
+		],
+	},
 };
 
 /** @type {string[]} */

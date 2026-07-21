@@ -1,10 +1,14 @@
 /** @typedef {{ state: 'absent' } | { state: 'declared', value: string } | { state: 'invalid', target: 'tsrx' | 'compiler', actual_type: string, actual_value: string }} CompilerDeclaration */
-/** @typedef {{ path: string, dir: string, declaration: CompilerDeclaration, error: import('typescript').Diagnostic | null }} ConsumerTsconfig */
 
 import fs from 'fs';
 import { createRequire } from 'module';
 import path from 'path';
 import ts from 'typescript';
+import {
+	get_own_config_value,
+	load_tsconfig_layers,
+	resolve_inherited_config_value,
+} from './tsconfig-resolution.js';
 import { createLogging } from './utils.js';
 
 const { log, logError, logWarning } = createLogging('[Ripple Language]');
@@ -12,8 +16,10 @@ const { log, logError, logWarning } = createLogging('[Ripple Language]');
 const bare_package_specifier_pattern =
 	/^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*(?:\/[A-Za-z0-9][A-Za-z0-9._~-]*)*$/;
 const tsrx_key_pattern = /["']tsrx["']\s*:/;
-/** @type {Map<string, ConsumerTsconfig | null>} */
-const path_to_consumer_tsconfig_cache = new Map();
+/** @type {Map<string, string | null>} */
+const path_to_root_tsconfig_cache = new Map();
+/** @type {Map<string, ReturnType<typeof load_tsconfig_layers>>} */
+const root_tsconfig_to_layers_cache = new Map();
 /** @type {Map<string, string | null>} */
 const declared_compiler_path_map = new Map();
 
@@ -34,24 +40,21 @@ function describe_config_value(value) {
  * @returns {CompilerDeclaration}
  */
 function get_compiler_declaration(config) {
-	if (
-		config === null ||
-		typeof config !== 'object' ||
-		!Object.prototype.hasOwnProperty.call(config, 'tsrx')
-	) {
+	const tsrx_result = get_own_config_value(config, ['tsrx']);
+	if (tsrx_result.state === 'absent') {
 		return { state: 'absent' };
 	}
 
-	const tsrx_value = /** @type {{ tsrx: unknown }} */ (config).tsrx;
+	const tsrx_value = tsrx_result.value;
 	if (tsrx_value === null || typeof tsrx_value !== 'object' || Array.isArray(tsrx_value)) {
 		return { state: 'invalid', target: 'tsrx', ...describe_config_value(tsrx_value) };
 	}
-	const tsrx_config = /** @type {Record<string, unknown>} */ (tsrx_value);
-	if (!Object.prototype.hasOwnProperty.call(tsrx_config, 'compiler')) {
+	const compiler_result = get_own_config_value(tsrx_value, ['compiler']);
+	if (compiler_result.state === 'absent') {
 		return { state: 'absent' };
 	}
 
-	const compiler = tsrx_config.compiler;
+	const compiler = compiler_result.value;
 	if (typeof compiler === 'string' && compiler.trim() !== '') {
 		return { state: 'declared', value: compiler.trim() };
 	}
@@ -59,22 +62,20 @@ function get_compiler_declaration(config) {
 }
 
 /**
- * Find and parse the nearest tsconfig.json that can declare a TSRX compiler.
- * Only that file's own top-level `tsrx` entry counts in v1; `extends` chains are
- * intentionally not resolved.
+ * Find the nearest tsconfig.json to use as the root of inheritance resolution.
  * @param {string} start_dir
- * @returns {ConsumerTsconfig | null}
+ * @returns {string | null}
  */
-function get_nearest_consumer_tsconfig(start_dir) {
+function get_nearest_root_tsconfig(start_dir) {
 	let current_dir = start_dir;
 	/** @type {string[]} */
 	const visited_dirs = [];
 
 	while (current_dir) {
-		if (path_to_consumer_tsconfig_cache.has(current_dir)) {
-			const cached_tsconfig = path_to_consumer_tsconfig_cache.get(current_dir) ?? null;
+		if (path_to_root_tsconfig_cache.has(current_dir)) {
+			const cached_tsconfig = path_to_root_tsconfig_cache.get(current_dir) ?? null;
 			for (const visited_dir of visited_dirs) {
-				path_to_consumer_tsconfig_cache.set(visited_dir, cached_tsconfig);
+				path_to_root_tsconfig_cache.set(visited_dir, cached_tsconfig);
 			}
 			return cached_tsconfig;
 		}
@@ -82,34 +83,10 @@ function get_nearest_consumer_tsconfig(start_dir) {
 		visited_dirs.push(current_dir);
 		const tsconfig_path = path.join(current_dir, 'tsconfig.json');
 		if (fs.existsSync(tsconfig_path)) {
-			const tsconfig_source = fs.readFileSync(tsconfig_path, 'utf8');
-			const parsed_tsconfig = ts.parseConfigFileTextToJson(tsconfig_path, tsconfig_source);
-			/** @type {CompilerDeclaration} */
-			let declaration;
-			if (parsed_tsconfig.error) {
-				// A comment can cause a false positive and hard stop; that is safer than
-				// silently falling back when a malformed file may have declared a compiler.
-				declaration = tsrx_key_pattern.test(tsconfig_source)
-					? {
-							state: 'invalid',
-							target: 'tsrx',
-							actual_type: 'unknown',
-							actual_value: 'unparseable',
-						}
-					: { state: 'absent' };
-			} else {
-				declaration = get_compiler_declaration(parsed_tsconfig.config);
-			}
-			const tsconfig = {
-				path: tsconfig_path,
-				dir: current_dir,
-				declaration,
-				error: parsed_tsconfig.error ?? null,
-			};
 			for (const visited_dir of visited_dirs) {
-				path_to_consumer_tsconfig_cache.set(visited_dir, tsconfig);
+				path_to_root_tsconfig_cache.set(visited_dir, tsconfig_path);
 			}
-			return tsconfig;
+			return tsconfig_path;
 		}
 
 		const parent_dir = path.dirname(current_dir);
@@ -120,45 +97,56 @@ function get_nearest_consumer_tsconfig(start_dir) {
 	}
 
 	for (const visited_dir of visited_dirs) {
-		path_to_consumer_tsconfig_cache.set(visited_dir, null);
+		path_to_root_tsconfig_cache.set(visited_dir, null);
 	}
 	return null;
 }
 
 /**
+ * @param {string} root_config_path
+ */
+function get_tsconfig_layers(root_config_path) {
+	const cached_layers = root_tsconfig_to_layers_cache.get(root_config_path);
+	if (cached_layers) {
+		return cached_layers;
+	}
+	const layers = load_tsconfig_layers(ts, ts.sys, root_config_path);
+	root_tsconfig_to_layers_cache.set(root_config_path, layers);
+	return layers;
+}
+
+/**
  * Resolve the compiler explicitly selected by a consumer tsconfig. A null cache
  * entry records a hard resolution failure and prevents candidate fallback.
- * @param {ConsumerTsconfig} tsconfig
+ * @param {string} config_path
  * @param {string} specifier
  * @returns {string | null}
  */
-function resolve_declared_compiler(tsconfig, specifier) {
-	if (declared_compiler_path_map.has(tsconfig.dir)) {
-		return declared_compiler_path_map.get(tsconfig.dir) ?? null;
+function resolve_declared_compiler(config_path, specifier) {
+	const cache_key = `${config_path}\0${specifier}`;
+	if (declared_compiler_path_map.has(cache_key)) {
+		return declared_compiler_path_map.get(cache_key) ?? null;
 	}
 
 	if (!bare_package_specifier_pattern.test(specifier)) {
-		declared_compiler_path_map.set(tsconfig.dir, null);
+		declared_compiler_path_map.set(cache_key, null);
 		logError(
 			'Declared TSRX compiler must be a bare package specifier:',
 			specifier,
-			`in ${tsconfig.path}`,
+			`in ${config_path}`,
 		);
 		return null;
 	}
 
 	try {
-		const tsconfig_require = createRequire(tsconfig.path);
+		const tsconfig_require = createRequire(config_path);
 		const compiler_path = tsconfig_require.resolve(specifier);
-		declared_compiler_path_map.set(tsconfig.dir, compiler_path);
-		log('Found declared tsrx compiler at:', compiler_path, 'from tsconfig:', tsconfig.path);
+		declared_compiler_path_map.set(cache_key, compiler_path);
+		log('Found declared tsrx compiler at:', compiler_path, 'from tsconfig:', config_path);
 		return compiler_path;
 	} catch {
-		declared_compiler_path_map.set(tsconfig.dir, null);
-		logError(
-			`Unable to resolve declared TSRX compiler "${specifier}" from tsconfig`,
-			tsconfig.path,
-		);
+		declared_compiler_path_map.set(cache_key, null);
+		logError(`Unable to resolve declared TSRX compiler "${specifier}" from tsconfig`, config_path);
 		return null;
 	}
 }
@@ -170,34 +158,57 @@ function resolve_declared_compiler(tsconfig, specifier) {
  * @returns {string | null | undefined}
  */
 export function resolve_consumer_compiler_for_file(normalized_file_name) {
-	const consumer_tsconfig = get_nearest_consumer_tsconfig(path.dirname(normalized_file_name));
-	if (consumer_tsconfig?.error) {
-		const log_parse_error =
-			consumer_tsconfig.declaration.state === 'absent' ? logWarning : logError;
-		log_parse_error(
-			'Unable to parse nearest tsconfig:',
-			consumer_tsconfig.path,
-			ts.flattenDiagnosticMessageText(consumer_tsconfig.error.messageText, '\n'),
-		);
-		return consumer_tsconfig.declaration.state === 'absent' ? undefined : null;
+	const root_config_path = get_nearest_root_tsconfig(path.dirname(normalized_file_name));
+	if (root_config_path === null) {
+		return undefined;
 	}
-	if (consumer_tsconfig?.declaration.state === 'invalid') {
+	const resolved_layers = get_tsconfig_layers(root_config_path);
+	const malformed_layers = resolved_layers.layers.filter((layer) => layer.diagnostics.length > 0);
+	if (malformed_layers.length > 0) {
+		const has_tsrx_intent = resolved_layers.layers.some((layer) => {
+			if (get_own_config_value(layer.config, ['tsrx']).state === 'found') {
+				return true;
+			}
+			if (layer.diagnostics.length === 0 || layer.raw_source === undefined) {
+				return false;
+			}
+			// A comment can cause a false positive and hard stop; that fails safe when
+			// an unparseable layer may have declared a compiler.
+			return tsrx_key_pattern.test(layer.raw_source);
+		});
+		const log_parse_error = has_tsrx_intent ? logError : logWarning;
+		for (const layer of malformed_layers) {
+			for (const diagnostic of layer.diagnostics) {
+				log_parse_error(
+					'Unable to parse tsconfig layer:',
+					layer.path,
+					ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+				);
+			}
+		}
+		return has_tsrx_intent ? null : undefined;
+	}
+	const declaration = resolve_inherited_config_value(resolved_layers.layers, (layer) =>
+		get_compiler_declaration(layer.config),
+	);
+	if (declaration.state === 'invalid') {
 		logError(
-			`Invalid TSRX ${consumer_tsconfig.declaration.target} declaration:`,
-			consumer_tsconfig.declaration.actual_type,
-			consumer_tsconfig.declaration.actual_value,
-			`in ${consumer_tsconfig.path}`,
+			`Invalid TSRX ${declaration.target} declaration:`,
+			declaration.actual_type,
+			declaration.actual_value,
+			`in ${declaration.config_path}`,
 		);
 		return null;
 	}
-	if (consumer_tsconfig?.declaration.state === 'declared') {
-		return resolve_declared_compiler(consumer_tsconfig, consumer_tsconfig.declaration.value);
+	if (declaration.state === 'declared') {
+		return resolve_declared_compiler(declaration.config_path, declaration.value);
 	}
 	return undefined;
 }
 
 /** Reset consumer compiler state used in tests. */
 export function reset_consumer_compiler_for_test() {
-	path_to_consumer_tsconfig_cache.clear();
+	path_to_root_tsconfig_cache.clear();
+	root_tsconfig_to_layers_cache.clear();
 	declared_compiler_path_map.clear();
 }
