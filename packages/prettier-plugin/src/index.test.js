@@ -6493,4 +6493,133 @@ function RowList({ rows, Row }) {
 			expect(result).toBeWithNewline(expected);
 		});
 	});
+
+	describe('type parameter declarations', () => {
+		/**
+		 * Formats twice and asserts the output is stable (idempotent).
+		 * @param {string} code
+		 * @param {import('prettier').Options} [options]
+		 */
+		const formatStable = async (code, options = {}) => {
+			const once = await format(code, options);
+			const twice = await format(once, options);
+			expect(twice).toBe(once);
+			return once;
+		};
+
+		it('breaks long interface type parameter lists one per line with a trailing comma', async () => {
+			const input = `export interface WithFieldGroupProps<TFieldGroupData, TFieldComponents extends Record<string, HookComponentType<any>>, TFormComponents extends Record<string, HookComponentType<any>>, TSubmitMeta, TRenderProps extends object = Record<string, never>> extends BaseFormOptions<TFieldGroupData, TSubmitMeta> {
+	props?: TRenderProps;
+}`;
+			const expected = `export interface WithFieldGroupProps<
+	TFieldGroupData,
+	TFieldComponents extends Record<string, HookComponentType<any>>,
+	TFormComponents extends Record<string, HookComponentType<any>>,
+	TSubmitMeta,
+	TRenderProps extends object = Record<string, never>,
+> extends BaseFormOptions<TFieldGroupData, TSubmitMeta> {
+	props?: TRenderProps;
+}`;
+
+			const result = await formatStable(input, {
+				printWidth: 100,
+				useTabs: true,
+				singleQuote: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('prefers breaking the function parameter list over the type parameter list', async () => {
+			const input = `export default function useStateWithCallback<State>(initialState: State): [State, SetStateWithCallback<State>] {
+	return null;
+}`;
+			const expected = `export default function useStateWithCallback<State>(
+	initialState: State,
+): [State, SetStateWithCallback<State>] {
+	return null;
+}`;
+
+			const result = await formatStable(input, {
+				printWidth: 100,
+				useTabs: true,
+				singleQuote: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('breaks function type parameter lists that overflow on their own', async () => {
+			const input = `function useAppForm<TFormData, TOnMount extends undefined | FormValidateOrFn<TFormData>, TOnChange extends undefined | FormValidateOrFn<TFormData>, TSubmitMeta>(props: FormOptions<TFormData, TOnMount, TOnChange, TSubmitMeta>): void {
+	return;
+}`;
+			const expected = `function useAppForm<
+	TFormData,
+	TOnMount extends undefined | FormValidateOrFn<TFormData>,
+	TOnChange extends undefined | FormValidateOrFn<TFormData>,
+	TSubmitMeta,
+>(props: FormOptions<TFormData, TOnMount, TOnChange, TSubmitMeta>): void {
+	return;
+}`;
+
+			const result = await formatStable(input, {
+				printWidth: 100,
+				useTabs: true,
+				singleQuote: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('stays idempotent when a single type parameter has to break', async () => {
+			const input = `interface Container<TExtremelyLongParameterName extends Record<string, unknown>> {
+	value: TExtremelyLongParameterName;
+}`;
+			const expected = `interface Container<
+  TExtremelyLongParameterName extends Record<string, unknown>,
+> {
+  value: TExtremelyLongParameterName;
+}`;
+
+			const result = await formatStable(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('preserves the trailing comma of single-param arrow function generics', async () => {
+			const expected = `const identity = <T,>(value: T): T => value;`;
+
+			const result = await formatStable(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps single-param arrow function generics without a trailing comma as-is', async () => {
+			const expected = `const identity = <T>(value: T): T => value;`;
+
+			const result = await formatStable(expected);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('drops meaningless trailing commas from non-arrow type parameter lists', async () => {
+			const input = `function pick<State,>(value: State): State {
+	return value;
+}`;
+			const expected = `function pick<State>(value: State): State {
+  return value;
+}`;
+
+			const result = await formatStable(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('omits the trailing comma in broken type parameter lists when trailingComma is none', async () => {
+			const input = `interface Container<TExtremelyLongParameterName extends Record<string, unknown>> {
+	value: TExtremelyLongParameterName;
+}`;
+			const expected = `interface Container<
+  TExtremelyLongParameterName extends Record<string, unknown>
+> {
+  value: TExtremelyLongParameterName;
+}`;
+
+			const result = await formatStable(input, { trailingComma: 'none' });
+			expect(result).toBeWithNewline(expected);
+		});
+	});
 });
