@@ -55,15 +55,23 @@ describe('prettier-plugin', () => {
 	});
 
 	/**
+	 * Format tsrx source. Every call also verifies the output is a fixpoint:
+	 * formatting must be single-pass idempotent (a second pass may not change
+	 * a single byte), so the whole suite doubles as an idempotence corpus.
 	 * @param {string} code
 	 * @param {import('prettier').Options} [options]
 	 */
 	const format = async (code, options = {}) => {
-		return await prettier.format(code, {
+		/** @type {import('prettier').Options} */
+		const resolvedOptions = {
 			parser: 'tsrx',
 			plugins: [join(__dirname, 'index.js')],
 			...options,
-		});
+		};
+		const once = await prettier.format(code, resolvedOptions);
+		const twice = await prettier.format(once, resolvedOptions);
+		expect(twice, 'formatting must be idempotent (second pass changed the output)').toBe(once);
+		return once;
 	};
 
 	it('formats functions that return native elements', async () => {
@@ -888,8 +896,7 @@ const items=[1,2,3];
   <List
     items={props.items}
     renderItem={(item) =>
-      <><ItemView {item} onSelect={props.onSelect} /></>
-    }
+      <><ItemView {item} onSelect={props.onSelect} /></>}
   />
 }`;
 		const result = await format(input, { singleQuote: true, printWidth: 60 });
@@ -1243,7 +1250,8 @@ const items=[1,2,3];
 		it('should format destructured dynamic import() in Promise.all', async () => {
 			const input = `const [{ EditorState }, { oneDark }] = await Promise.all([import('@codemirror/state'), import('@codemirror/theme-one-dark')]);`;
 			const expected = `const [{ EditorState }, { oneDark }] = await Promise.all([
-  import("@codemirror/state"), import("@codemirror/theme-one-dark"),
+  import("@codemirror/state"),
+  import("@codemirror/theme-one-dark"),
 ]);`;
 			const result = await format(input);
 			expect(result).toBeWithNewline(expected);
@@ -3377,7 +3385,8 @@ function test() {
 
 			const expected = `const arr = [
   1, /* comment 1 */
-  2, 3,
+  2,
+  3,
   // comment 2
 ];`;
 
@@ -3761,6 +3770,45 @@ const deleteButton = container.querySelector(
 
 			const result = await format(input, { printWidth: 50 });
 			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep comments attached to their type arguments and stay idempotent', async () => {
+			const input = `interface Props {
+	form: AppFieldExtendedReactFormApi<
+		unknown,
+		| undefined
+		| FormAsyncValidateOrFn<unknown>, // this types it as 'never' in the render prop. It should prevent any
+		// untyped meta passed to the handleSubmit by accident.
+		NoInfer<TSubmitMeta>
+	>;
+}`;
+			// Matches vanilla prettier's typescript parser output for the same input.
+			const expected = `interface Props {
+	form: AppFieldExtendedReactFormApi<
+		unknown,
+		undefined | FormAsyncValidateOrFn<unknown>, // this types it as 'never' in the render prop. It should prevent any
+		// untyped meta passed to the handleSubmit by accident.
+		NoInfer<TSubmitMeta>
+	>;
+}`;
+			const options = { useTabs: true, tabWidth: 2, singleQuote: true, printWidth: 100 };
+			const result = await format(input, options);
+			expect(result).toBeWithNewline(expected);
+			expect(await format(result, options)).toBe(result);
+		});
+
+		it('should hug a lone object type argument against the angle brackets', async () => {
+			const input = `function Button(props: PropsWithExtras<{
+	variant: string;
+	label: string;
+	onClick: EventListener;
+}>) @{
+	<button class={props.variant} onClick={props.onClick}>{props.label}</button>
+}`;
+			const options = { useTabs: true, tabWidth: 2, singleQuote: true, printWidth: 100 };
+			const result = await format(input, options);
+			expect(result).toBeWithNewline(input);
+			expect(await format(result, options)).toBe(result);
 		});
 
 		it('should not overindent multiline object type aliases', async () => {
@@ -6491,6 +6539,170 @@ function RowList({ rows, Row }) {
 				printWidth: 100,
 			});
 			expect(result).toBeWithNewline(expected);
+		});
+	});
+
+	describe('parens around as-cast operands', () => {
+		it('keeps parens around a nullish coalescing operand of an as-cast', async () => {
+			const input = `function App() {
+  return <span>{(activeAuthor ?? "All authors") as string}</span>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('keeps parens around logical and equality operands of as-casts', async () => {
+			const input = `function App() {
+  const a = (x || y) as string;
+  const b = (x == y) as boolean;
+  const c = (x ?? y) satisfies string;
+  return <div>{a}</div>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('does not add parens around higher-precedence operands of as-casts', async () => {
+			const input = `function App() {
+  const a = x + y as string;
+  const b = x < y as unknown;
+  return <div>{a}</div>;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+	});
+
+	describe('definite assignment assertions', () => {
+		it('keeps the definite assignment assertion on variable declarations', async () => {
+			const input = `function App() {
+  let cleanup!: () => void;
+  var count!: number;
+  return <div />;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+	});
+
+	describe('idempotence', () => {
+		/**
+		 * @param {string} code
+		 * @param {import('prettier').Options} [options]
+		 */
+		const expectStable = async (code, options = {}) => {
+			const once = await format(code, options);
+			const twice = await format(once, options);
+			expect(twice).toBe(once);
+			return once;
+		};
+
+		it('keeps a return argument with leading line comments after the return keyword', async () => {
+			const input = `function isXOrYInValid(xOrY: string | number | undefined) {
+	return (
+		// number that is not NaN or Infinity
+		(typeof xOrY === 'number' && Number.isFinite(xOrY)) ||
+		// for percentage
+		typeof xOrY === 'string'
+	);
+}`;
+
+			const once = await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+			// The argument must stay attached to the return; printing the comment
+			// between `return` and the expression triggers ASI and returns undefined.
+			expect(once).not.toMatch(/return[;\s]*\/\//);
+		});
+
+		it('does not double-wrap self-parenthesizing return and throw arguments', async () => {
+			const input = `function f() {
+  return (
+    // pick the fallback
+    cond ? a : b
+  );
+}
+
+function g() {
+  throw (
+    // wrap the cause
+    makeError(cause)
+  );
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('breaks long logical arrow bodies after multiline type-literal params', async () => {
+			const input = `function f() {
+	const mapping = result.mappings.find(
+		(mapping: {
+			sourceOffsets: number[];
+			generatedOffsets: number[];
+		}) =>
+			mapping.sourceOffsets[0] === source_offset &&
+				mapping.generatedOffsets[0] === generated_offset &&
+				mapping.lengths[0] === identifier.length,
+	);
+}`;
+
+			// The multiline param type used to hide its hardlines from enclosing
+			// groups (fits() short-circuits on hardlines inside conditionalGroup
+			// states), so the body printed flat past printWidth.
+			const result = await format(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('stabilizes long arrow bodies with logical expressions in one pass', async () => {
+			const input = `function useStack() {
+	return horizontal
+		? {
+				defined: (d: AreaStackDatum<XScale, YScale>) =>
+					isValidNumber(yScale(getStackValue(d.data))) && isValidNumber(xScale(getSecondItem(d))),
+			}
+		: null;
+}`;
+
+			await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+		});
+
+		it('stabilizes deeply nested JSX attribute arrows returning JSX in one pass', async () => {
+			const input = `function Parent() {
+	return <div>
+		<section>
+			<article>
+				<fieldset>
+					<group.Subscribe
+						children={(state) => (
+							<span data-testid="state-lastName">{state.values.lastName}</span>
+						)}
+					/>
+				</fieldset>
+			</article>
+		</section>
+	</div>;
+}`;
+
+			await expectStable(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
 		});
 	});
 

@@ -16,7 +16,7 @@
 
 /** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText' | 'printWidth'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
 
-/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, noBreakInside?: boolean, expandLastArg?: boolean, preferInlineSimpleUnionType?: boolean }} PrintArgs */
+/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, suppressOwnParens?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, noBreakInside?: boolean, expandLastArg?: boolean, preferInlineSimpleUnionType?: boolean }} PrintArgs */
 
 import { parseModule } from '@tsrx/core';
 import { doc } from 'prettier';
@@ -421,6 +421,27 @@ function binaryExpressionNeedsParens(node, parent) {
 	}
 
 	return false;
+}
+
+/**
+ * Check whether the operand of an `as`/`satisfies` cast must stay parenthesized.
+ * The cast binds at relational precedence, so lower-precedence operands parse
+ * differently without their parens: `a ?? b as string` is `a ?? (b as string)`,
+ * and mixing `??` with an unparenthesized cast operand is a TS syntax error.
+ * @param {AST.Node} expression - The cast operand
+ * @returns {boolean} - True if parentheses are required
+ */
+function castOperandNeedsParens(expression) {
+	switch (expression.type) {
+		case 'LogicalExpression':
+		case 'ArrowFunctionExpression':
+		case 'YieldExpression':
+			return true;
+		case 'BinaryExpression':
+			return getPrecedence(expression.operator) < PRECEDENCE['<'];
+		default:
+			return false;
+	}
 }
 
 /**
@@ -1413,7 +1434,10 @@ function printRippleNode(node, path, options, print, args) {
 				}
 
 				const trailingDoc = shouldUseTrailingComma ? ifBreak(',', '') : '';
-				nodeContent = group(['[', indent([softline, fill(fillParts), trailingDoc]), softline, ']']);
+				// All-or-nothing group instead of fill(): packing several elements
+				// per wrapped line is never a fixpoint — the repacked output reparses
+				// as a multiline array and would then break one element per line.
+				nodeContent = group(['[', indent([softline, fillParts, trailingDoc]), softline, ']']);
 				break;
 			}
 
@@ -1578,7 +1602,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'MemberExpression':
-			nodeContent = printMemberExpression(node, path, options, print);
+			nodeContent = printMemberExpression(node, path, options, print, args);
 			break;
 
 		case 'MetaProperty':
@@ -1640,7 +1664,7 @@ function printRippleNode(node, path, options, print, args) {
 
 			// Preserve parentheses for type-annotated call expressions
 			// When parenthesized with leading comments, use grouping to allow breaking
-			if (node.metadata?.parenthesized) {
+			if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 				const hasLeadingComments = node.leadingComments && node.leadingComments.length > 0;
 				if (hasLeadingComments) {
 					// Group with softline to allow breaking after opening paren
@@ -1688,10 +1712,14 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
+			const expressionDoc = path.call(print, 'expression');
+			const operand = castOperandNeedsParens(node.expression)
+				? ['(', expressionDoc, ')']
+				: expressionDoc;
 			nodeContent =
 				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
-					? [path.call(print, 'expression'), ' as', indent([line, typeAnnotation])]
-					: [path.call(print, 'expression'), ' as ', typeAnnotation];
+					? [operand, ' as', indent([line, typeAnnotation])]
+					: [operand, ' as ', typeAnnotation];
 			break;
 		}
 
@@ -1700,10 +1728,14 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
+			const expressionDoc = path.call(print, 'expression');
+			const operand = castOperandNeedsParens(node.expression)
+				? ['(', expressionDoc, ')']
+				: expressionDoc;
 			nodeContent =
 				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
-					? [path.call(print, 'expression'), ' satisfies', indent([line, typeAnnotation])]
-					: [path.call(print, 'expression'), ' satisfies ', typeAnnotation];
+					? [operand, ' satisfies', indent([line, typeAnnotation])]
+					: [operand, ' satisfies ', typeAnnotation];
 			break;
 		}
 
@@ -1892,22 +1924,34 @@ function printRippleNode(node, path, options, print, args) {
 		}
 		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
+			const parent = path.getParentNode();
+			// The definite-assignment assertion (`let x!: T`) lives on the declarator
+			const definiteMarker =
+				parent && parent.type === 'VariableDeclarator' && parent.id === node && parent.definite
+					? '!'
+					: '';
 			let identifierContent;
 			if (node.typeAnnotation) {
 				const optionalMarker = node.optional ? '?' : '';
-				identifierContent = [node.name, optionalMarker, ': ', path.call(print, 'typeAnnotation')];
+				identifierContent = [
+					node.name,
+					definiteMarker,
+					optionalMarker,
+					': ',
+					path.call(print, 'typeAnnotation'),
+				];
 			} else {
-				identifierContent = node.name;
+				identifierContent = definiteMarker ? [node.name, definiteMarker] : node.name;
 			}
 			// Preserve parentheses for type-cast identifiers, but only if:
 			// 1. The identifier itself is marked as parenthesized
 			// 2. The parent is NOT handling parentheses itself (MemberExpression, AssignmentExpression, etc.)
-			const parent = path.getParentNode();
 			const parentHandlesParens =
 				parent &&
 				(parent.type === 'MemberExpression' ||
 					(parent.type === 'AssignmentExpression' && parent.left === node));
-			const shouldAddParens = node.metadata?.parenthesized && !parentHandlesParens;
+			const shouldAddParens =
+				node.metadata?.parenthesized && !parentHandlesParens && !args?.suppressOwnParens;
 			if (shouldAddParens) {
 				nodeContent = ['(', identifierContent, ')'];
 			} else {
@@ -2068,8 +2112,26 @@ function printRippleNode(node, path, options, print, args) {
 			/** @type {Doc[]} */
 			const parts = ['return'];
 			if (node.argument) {
-				parts.push(' ');
-				parts.push(path.call(print, 'argument'));
+				if (argumentHasOwnLineLeadingComment(node.argument)) {
+					// The comment prints on its own line, which would separate `return`
+					// from its argument and trigger ASI — keep the argument in parens.
+					// These parens replace any the argument would print for itself.
+					parts.push(
+						' (',
+						indent([
+							hardline,
+							path.call(
+								(argumentPath) => print(argumentPath, { suppressOwnParens: true }),
+								'argument',
+							),
+						]),
+						hardline,
+						')',
+					);
+				} else {
+					parts.push(' ');
+					parts.push(path.call(print, 'argument'));
+				}
 			}
 			parts.push(semi(options));
 			nodeContent = parts;
@@ -2247,7 +2309,7 @@ function printRippleNode(node, path, options, print, args) {
 			}
 
 			// Wrap in parentheses if metadata indicates they were present
-			if (node.metadata?.parenthesized) {
+			if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 				result = ['(', result, ')'];
 			}
 
@@ -2271,7 +2333,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'MemberExpression':
-			nodeContent = printMemberExpression(node, path, options, print);
+			nodeContent = printMemberExpression(node, path, options, print, args);
 			break;
 
 		case 'ObjectPattern':
@@ -2800,7 +2862,6 @@ function printArrowFunction(node, path, options, print, args) {
 		// to avoid ambiguity with block statements or to clarify intent
 		const bodyDoc = path.call(print, 'body');
 		const groupId = Symbol('arrow');
-		const shouldBreakBody = shouldBreakArrowExpressionBody(node.body, options, args);
 		/** @type {Doc | Doc[]} */
 		let bodyContent;
 		if (
@@ -2812,21 +2873,26 @@ function printArrowFunction(node, path, options, print, args) {
 		} else {
 			bodyContent = bodyDoc;
 		}
-		if (shouldBreakBody) {
-			parts.push(' =>', indent([hardline, bodyContent]));
-		} else {
-			if (isTemplateExpression(node.body)) {
-				return conditionalGroup([
-					group([...parts, ' => ', bodyContent]),
-					group([...parts, ' =>', indent([hardline, bodyContent])]),
-				]);
-			}
-			parts.push(
-				' =>',
-				group(indent(line), { id: groupId }),
-				indentIfBreak(bodyContent, { groupId }),
-			);
+		if (isTemplateExpression(node.body)) {
+			return conditionalGroup([
+				group([...parts, ' => ', bodyContent]),
+				group([...parts, ' =>', indent([hardline, bodyContent])]),
+			]);
 		}
+		if (node.body.type === 'BinaryExpression' || node.body.type === 'LogicalExpression') {
+			// Keep the body inline when it fits; otherwise break right after `=>`
+			// so the body starts on its own line. An inner group scoped to the body
+			// makes that call from the printed doc (not the original source span,
+			// which kept the two passes disagreeing) and still works when the
+			// parameter list itself breaks.
+			parts.push(' =>', group(indent([line, bodyContent])));
+			return group(parts);
+		}
+		parts.push(
+			' =>',
+			group(indent(line), { id: groupId }),
+			indentIfBreak(bodyContent, { groupId }),
+		);
 	}
 
 	return group(parts);
@@ -2839,25 +2905,6 @@ function printArrowFunction(node, path, options, print, args) {
  */
 function isTemplateExpression(node) {
 	return node.type === 'JSXElement' || node.type === 'JSXFragment';
-}
-
-/**
- * Check whether a braced attribute expression should close on its own line.
- * @param {AST.Node} node - The expression inside the attribute braces
- * @param {RippleFormatOptions} options
- * @param {AST.Node} [attributeNode]
- * @returns {boolean}
- */
-function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode = node) {
-	return (
-		node.type === 'ArrowFunctionExpression' &&
-		node.body &&
-		isTemplateExpression(node.body) &&
-		sourceSpanExceedsPrintWidth(
-			/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (attributeNode ?? node)),
-			options,
-		)
-	);
 }
 
 /**
@@ -3140,34 +3187,6 @@ function shouldHugArrowFunctions(args) {
 	}
 
 	return firstBlockIndex === 0;
-}
-
-/**
- * Check whether a node's original source span exceeds the configured print width.
- * @param {AST.NodeWithLocation} node - The node to check
- * @param {RippleFormatOptions} options - Prettier options
- * @returns {boolean}
- */
-function sourceSpanExceedsPrintWidth(node, options) {
-	const printWidth = options.printWidth ?? 80;
-	if (!options.originalText || node.start === undefined || node.end === undefined) {
-		return false;
-	}
-	return options.originalText.slice(node.start, node.end).length > printWidth;
-}
-
-/**
- * Check if an arrow expression body should break immediately after `=>`.
- * @param {AST.Expression} node - The arrow body expression
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintArgs} [args] - Additional context arguments
- * @returns {boolean}
- */
-function shouldBreakArrowExpressionBody(node, options, args) {
-	return (
-		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
-		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
-	);
 }
 
 /**
@@ -4189,9 +4208,10 @@ function printMethodDefinition(node, path, options, print) {
  * @param {AstPath<AST.MemberExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {PrintArgs} [args] - Additional context arguments
  * @returns {Doc}
  */
-function printMemberExpression(node, path, options, print) {
+function printMemberExpression(node, path, options, print, args) {
 	let objectPart = path.call(print, 'object');
 	// Preserve parentheses around the object when present
 	if (node.object.metadata?.parenthesized) {
@@ -4209,7 +4229,7 @@ function printMemberExpression(node, path, options, print) {
 	}
 
 	// Preserve parentheses around the entire member expression when present
-	if (node.metadata?.parenthesized) {
+	if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 		// Check if there are leading comments - if so, use group with softlines to allow breaking
 		const hasLeadingComments = node.leadingComments && node.leadingComments.length > 0;
 		if (hasLeadingComments) {
@@ -4393,10 +4413,48 @@ function printTaggedTemplateExpression(node, path, options, print) {
 function printThrowStatement(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	parts.push('throw ');
-	parts.push(path.call(print, 'argument'));
+	if (argumentHasOwnLineLeadingComment(node.argument)) {
+		// Same ASI hazard as `return`: keep the argument attached via parens.
+		// These parens replace any the argument would print for itself.
+		parts.push(
+			'throw (',
+			indent([
+				hardline,
+				path.call((argumentPath) => print(argumentPath, { suppressOwnParens: true }), 'argument'),
+			]),
+			hardline,
+			')',
+		);
+	} else {
+		parts.push('throw ');
+		parts.push(path.call(print, 'argument'));
+	}
 	parts.push(semi(options));
 	return parts;
+}
+
+/**
+ * Check whether a return/throw argument has a leading comment that prints on
+ * its own line (line comments always do; block comments only when they did not
+ * share a line with the argument in the source).
+ * @param {AST.Node | null | undefined} argument - The statement argument
+ * @returns {boolean}
+ */
+function argumentHasOwnLineLeadingComment(argument) {
+	if (!argument) {
+		return false;
+	}
+	const comments = /** @type {AST.NodeWithMaybeComments} */ (argument).leadingComments;
+	if (!comments) {
+		return false;
+	}
+	return comments.some(
+		(comment) =>
+			comment.type === 'Line' ||
+			!comment.loc ||
+			!argument.loc ||
+			comment.loc.end.line !== argument.loc.start.line,
+	);
 }
 
 /**
@@ -4659,23 +4717,17 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 
 	const paramList = path.map(print, 'params');
 
-	// Hug a single object-like type argument: Props<{ ... }> breaks inside the
-	// braces rather than around them, like vanilla prettier
-	if (node.params.length === 1 && isObjectType(node.params[0])) {
+	// Hug a lone object-type argument against the brackets: Foo<{ ... }>
+	if (
+		node.params.length === 1 &&
+		isObjectType(node.params[0]) &&
+		!hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (node.params[0]))
+	) {
 		return ['<', paramList[0], '>'];
 	}
 
 	// Check if any param has line breaks (e.g., contains object types)
 	const hasBreakingParam = paramList.some((param) => willBreak(param));
-
-	// Build inline version: <T, U>
-	/** @type {Doc[]} */
-	const inlineParts = ['<'];
-	for (let i = 0; i < paramList.length; i++) {
-		if (i > 0) inlineParts.push(', ');
-		inlineParts.push(paramList[i]);
-	}
-	inlineParts.push('>');
 
 	// If any param breaks, use the breaking version with proper indentation
 	if (hasBreakingParam) {
@@ -5434,9 +5486,16 @@ function printTSTypeLiteral(node, path, options, print) {
 		'}',
 	]);
 
-	return conditionalGroup(
-		wasOriginallySingleLine(node) ? [inlineDoc, multilineDoc] : [multilineDoc, inlineDoc],
-	);
+	if (!wasOriginallySingleLine(node)) {
+		// A hardline-first conditionalGroup always picks that state (fits()
+		// short-circuits to true on hardlines) while hiding the hardlines from
+		// enclosing groups' break propagation — ancestors then stay flat and
+		// print following siblings past printWidth. The multiline doc alone is
+		// equivalent and propagates its breaks correctly.
+		return multilineDoc;
+	}
+
+	return conditionalGroup([inlineDoc, multilineDoc]);
 }
 
 /**
@@ -5904,7 +5963,9 @@ function isSimpleJSXExpressionChild(child) {
 		expression?.type === 'MemberExpression' ||
 		expression?.type === 'CallExpression' ||
 		expression?.type === 'BinaryExpression' ||
-		expression?.type === 'LogicalExpression'
+		expression?.type === 'LogicalExpression' ||
+		// Text holes like `{expr as string}` are as simple as their operand
+		expression?.type === 'TSAsExpression'
 	);
 }
 
@@ -6623,9 +6684,6 @@ function printJSXAttribute(attr, path, options, print) {
 			'value',
 			'expression',
 		);
-		if (shouldBreakAttributeExpressionClosingBrace(expression, options, attr)) {
-			return [name, '={', exprDoc, hardline, '}'];
-		}
 		return [name, '={', exprDoc, '}'];
 	}
 
