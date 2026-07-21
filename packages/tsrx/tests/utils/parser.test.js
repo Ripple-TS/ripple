@@ -409,6 +409,108 @@ abc
 		expect(wrapped.children[0].value).toBe(bare.children[0].value);
 	});
 
+	// A `/` in element text must stay literal text — never the start of a regular
+	// expression — including when the element is nested inside a `{ … }`
+	// expression container.
+
+	it('treats a slash in element text as literal text for bare and expression-container elements', () => {
+		const bare = findElement(`function App() { return <a>x/y</a>; }`, 'a');
+		const wrapped = findElement(`function App(p) { return <div>{p.c && <a>x/y</a>}</div>; }`, 'a');
+
+		expect(bare.children.map((child) => child.type)).toEqual(['JSXText']);
+		expect(bare.children[0].value).toBe('x/y');
+		expect(wrapped.children.map((child) => child.type)).toEqual(['JSXText']);
+		expect(wrapped.children[0].value).toBe('x/y');
+	});
+
+	it('treats a slash in element text inside a parenthesized expression container as literal text', () => {
+		const a = findElement(`export function A(p) { return <div>{p.c && (<a>x/y</a>)}</div>; }`, 'a');
+
+		expect(a.children.map((child) => child.type)).toEqual(['JSXText']);
+		expect(a.children[0].value).toBe('x/y');
+	});
+
+	it('parses a slash between adjacent expression children at the top level', () => {
+		const span = findElement(`export function C(p) { return <span>{p.x}/{p.y}</span>; }`, 'span');
+
+		expect(span.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(span.children[1].value).toBe('/');
+	});
+
+	it('parses a slash between adjacent expression children in a nested element', () => {
+		const span = findElement(
+			`export function B(p) { return <div><span>{p.x}/{p.y}</span></div>; }`,
+			'span',
+		);
+
+		expect(span.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(span.children[1].value).toBe('/');
+	});
+
+	it('parses a slash between adjacent expression children inside an expression container', () => {
+		const span = findElement(
+			`export function B(p) { return <div>{p.c && <span>{p.x}/{p.y}</span>}</div>; }`,
+			'span',
+		);
+
+		expect(span.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(span.children[1].value).toBe('/');
+	});
+
+	it('parses a slash between adjacent expression children in a parenthesized expression container', () => {
+		const b = findElement(
+			`export function E(p) { return <div>{p.a && (<b>{p.x}/{p.y}</b>)}</div>; }`,
+			'b',
+		);
+
+		expect(b.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(b.children[1].value).toBe('/');
+	});
+
+	it('parses slashes in element text at deeper expression-container nesting', () => {
+		const em = findElement(
+			`export function F(p) {
+				return <div>{p.a && (<section>{p.b ? (<em>{p.x}/{p.y} m/s</em>) : null}</section>)}</div>;
+			}`,
+			'em',
+		);
+
+		expect(em.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+			'JSXText',
+		]);
+		expect(em.children[1].value).toBe('/');
+		expect(em.children[3].value).toBe(' m/s');
+	});
+
+	it('still parses division inside an expression container after a nested element', () => {
+		const container = findNode(
+			`export function G(p) { return <div>{p.c ? (<a>x</a>) : p.a / p.b}</div>; }`,
+			'ConditionalExpression',
+		);
+
+		expect(container.alternate.type).toBe('BinaryExpression');
+		expect(container.alternate.operator).toBe('/');
+	});
+
 	const inExpressionContainer = (body) => `function App() {
 			return <>{<div>${body}</div>}</>;
 		}`;

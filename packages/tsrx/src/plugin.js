@@ -4153,7 +4153,12 @@ export function TSRXPlugin(config) {
 								chunkStart = this.pos;
 								break;
 							}
-							if (this.#shouldReadTemplateRawTextToken()) {
+							// Like the default case below, a slash joins the raw text run even
+							// when the element is nested inside a `{ … }` expression container
+							// (`{cond && (<a>x/y</a>)}`, `{a}/{b}` between child expressions).
+							// Bailing to JS tokenization here would read the `/` as the start
+							// of a regular expression.
+							if (this.#shouldReadTemplateRawTextToken(true)) {
 								++this.pos;
 								break;
 							}
