@@ -4580,17 +4580,17 @@ function printTSTypeParameterInstantiation(node, path, options, print) {
 
 	const paramList = path.map(print, 'params');
 
+	// Hug a lone object-type argument against the brackets: Foo<{ ... }>
+	if (
+		node.params.length === 1 &&
+		(node.params[0].type === 'TSTypeLiteral' || node.params[0].type === 'TSMappedType') &&
+		!hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (node.params[0]))
+	) {
+		return ['<', paramList[0], '>'];
+	}
+
 	// Check if any param has line breaks (e.g., contains object types)
 	const hasBreakingParam = paramList.some((param) => willBreak(param));
-
-	// Build inline version: <T, U>
-	/** @type {Doc[]} */
-	const inlineParts = ['<'];
-	for (let i = 0; i < paramList.length; i++) {
-		if (i > 0) inlineParts.push(', ');
-		inlineParts.push(paramList[i]);
-	}
-	inlineParts.push('>');
 
 	// If any param breaks, use the breaking version with proper indentation
 	if (hasBreakingParam) {
@@ -5522,24 +5522,12 @@ function printTSTypeReference(node, path, options, print) {
 
 	// Handle both typeArguments and typeParameters (different AST variations)
 	if (node.typeArguments) {
-		parts.push('<');
-		const typeArgs = path.map(print, 'typeArguments', 'params');
-		for (let i = 0; i < typeArgs.length; i++) {
-			if (i > 0) parts.push(', ');
-			parts.push(typeArgs[i]);
-		}
-		parts.push('>');
+		parts.push(path.call(print, 'typeArguments'));
 		// @ts-expect-error - acorn-typescript uses typeParameters instead of typeArguments
 		// we normalize it in the analyze phase, but here we get the parser ast
 	} else if (node.typeParameters) {
-		parts.push('<');
 		// @ts-expect-error - acorn-typescript uses typeParameters instead of typeArguments
-		const typeParams = path.map(print, 'typeParameters', 'params');
-		for (let i = 0; i < typeParams.length; i++) {
-			if (i > 0) parts.push(', ');
-			parts.push(typeParams[i]);
-		}
-		parts.push('>');
+		parts.push(path.call(print, 'typeParameters'));
 	}
 
 	return parts;

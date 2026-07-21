@@ -3763,6 +3763,45 @@ const deleteButton = container.querySelector(
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep comments attached to their type arguments and stay idempotent', async () => {
+			const input = `interface Props {
+	form: AppFieldExtendedReactFormApi<
+		unknown,
+		| undefined
+		| FormAsyncValidateOrFn<unknown>, // this types it as 'never' in the render prop. It should prevent any
+		// untyped meta passed to the handleSubmit by accident.
+		NoInfer<TSubmitMeta>
+	>;
+}`;
+			// Matches vanilla prettier's typescript parser output for the same input.
+			const expected = `interface Props {
+	form: AppFieldExtendedReactFormApi<
+		unknown,
+		undefined | FormAsyncValidateOrFn<unknown>, // this types it as 'never' in the render prop. It should prevent any
+		// untyped meta passed to the handleSubmit by accident.
+		NoInfer<TSubmitMeta>
+	>;
+}`;
+			const options = { useTabs: true, tabWidth: 2, singleQuote: true, printWidth: 100 };
+			const result = await format(input, options);
+			expect(result).toBeWithNewline(expected);
+			expect(await format(result, options)).toBe(result);
+		});
+
+		it('should hug a lone object type argument against the angle brackets', async () => {
+			const input = `function Button(props: PropsWithExtras<{
+	variant: string;
+	label: string;
+	onClick: EventListener;
+}>) @{
+	<button class={props.variant} onClick={props.onClick}>{props.label}</button>
+}`;
+			const options = { useTabs: true, tabWidth: 2, singleQuote: true, printWidth: 100 };
+			const result = await format(input, options);
+			expect(result).toBeWithNewline(input);
+			expect(await format(result, options)).toBe(result);
+		});
+
 		it('should not overindent multiline object type aliases', async () => {
 			const input = `type ModuleShape = {
   default: ComponentType<{ value: string }>;
