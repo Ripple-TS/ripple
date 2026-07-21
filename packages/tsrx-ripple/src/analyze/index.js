@@ -39,6 +39,7 @@ import {
 	validateTsrxLoopReturnStatement,
 	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
+	validateTsrxUnreturnedTemplate,
 	isTemplateValuePosition,
 } from '@tsrx/core';
 const b = builders;
@@ -435,6 +436,87 @@ function mark_control_flow_has_continue(path) {
 			node.metadata.has_continue = true;
 		}
 	}
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {AnalysisContext} context
+ */
+function check_free_floating(node, context) {
+	let current = node;
+	for (let i = context.path.length - 1; i >= 0; i -= 1) {
+		const parent = context.path[i];
+
+		if (is_template_child_position(context.path.slice(0, i + 1), current)) {
+			return false; // Rendered as a child
+		}
+
+		if (
+			parent.type === 'ExpressionStatement' ||
+			parent.type === 'BlockStatement' ||
+			parent.type === 'Program' ||
+			parent.type === 'SwitchCase'
+		) {
+			// Check if this is the render node of any enclosing JSXCodeBlock
+			// The render node is the final expression in a code block that serves as output.
+			const enclosing_code_block = context.path.find((p) => p.type === 'JSXCodeBlock');
+			if (enclosing_code_block && enclosing_code_block.render === current) {
+				return false;
+			}
+
+			validateTsrxUnreturnedTemplate(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return true;
+		}
+
+		if (parent.type === 'SequenceExpression' && current !== parent.expressions.at(-1)) {
+			validateTsrxUnreturnedTemplate(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return true;
+		}
+
+		if (parent.type === 'ForStatement' && (current === parent.init || current === parent.update)) {
+			validateTsrxUnreturnedTemplate(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return true;
+		}
+
+		// If it's in a value position (assigned, returned, passed as argument, etc),
+		// it is consumed. We can stop checking.
+		if (
+			parent.type === 'VariableDeclarator' ||
+			parent.type === 'AssignmentExpression' ||
+			parent.type === 'Property' ||
+			parent.type === 'PropertyDefinition' ||
+			parent.type === 'ArrayExpression' ||
+			parent.type === 'CallExpression' ||
+			parent.type === 'NewExpression' ||
+			parent.type === 'ReturnStatement' ||
+			parent.type === 'ArrowFunctionExpression' ||
+			(parent.type === 'IfStatement' && parent.test === current) ||
+			(parent.type === 'WhileStatement' && parent.test === current) ||
+			(parent.type === 'SwitchStatement' && parent.discriminant === current)
+		) {
+			return false;
+		}
+
+		// For things like SequenceExpression or ConditionalExpression, the value flows outward,
+		// so we continue up the path.
+		current = parent;
+	}
+	return false;
 }
 
 /**
@@ -1944,6 +2026,7 @@ const visitors = {
 
 	SwitchStatement: visit_switch_statement,
 	JSXSwitchExpression(node, context) {
+		check_free_floating(node, context);
 		return analyze_directive_wrapping_values(node, context, visit_switch_statement);
 	},
 
@@ -1981,6 +2064,7 @@ const visitors = {
 	 * @param {AnalysisContext} context
 	 */
 	JSXForExpression(node, context) {
+		check_free_floating(node, context);
 		const wrapper = node.metadata?.tsrx_value_wrapper;
 		if (
 			(!wrapper || !context.path.includes(wrapper)) &&
@@ -2167,6 +2251,7 @@ const visitors = {
 
 	IfStatement: visit_if_statement,
 	JSXIfExpression(node, context) {
+		check_free_floating(node, context);
 		return analyze_directive_wrapping_values(node, context, visit_if_statement);
 	},
 
@@ -2322,6 +2407,7 @@ const visitors = {
 
 	TryStatement: visit_try_statement,
 	JSXTryExpression(node, context) {
+		check_free_floating(node, context);
 		return analyze_directive_wrapping_values(node, context, visit_try_statement);
 	},
 
@@ -2338,11 +2424,12 @@ const visitors = {
 	},
 
 	JSXFragment(node, context) {
-		if (context.state.regular_js) {
+		check_free_floating(node, context);
+
+		if (is_template_fragment(node)) {
+			mark_control_flow_has_template(context.path, node);
 			return context.next();
 		}
-
-		mark_control_flow_has_template(context.path, node);
 		return context.next();
 	},
 
@@ -2361,6 +2448,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
+		check_free_floating(node, context);
 		// A raw (non-template) element — an attribute value or other JSX that
 		// never entered the template traversal.
 		if (!is_template_element(node)) {
@@ -2675,6 +2763,7 @@ const visitors = {
 	},
 
 	JSXCodeBlock(node, context) {
+		check_free_floating(node, context);
 		const parent = context.path.at(-1);
 
 		// A `@{ … }` in a template-children slot, or the render slot of another

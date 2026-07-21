@@ -28,6 +28,8 @@ export const TSRX_WHILE_STATEMENT_ERROR =
 	'While loops are not supported in TSRX templates. Move the while loop into a function.';
 export const TSRX_DO_WHILE_STATEMENT_ERROR =
 	'Do...while loops are not supported in TSRX templates. Move the do...while loop into a function.';
+export const TSRX_UNRETURNED_TEMPLATE_ERROR =
+	'Free-floating TSRX fragments and directives (@if, @for, @switch, @try) must either be returned or used as a template output value. Remove them if unused, or render them in the template.';
 
 const invalid_nestings = {
 	// <p> cannot contain block-level elements
@@ -304,6 +306,16 @@ export function validate_tsrx_unsupported_loop_statement(node, filename, errors,
 	}
 
 	error(message, filename ?? null, node, errors, comments);
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_tsrx_unreturned_template(node, filename, errors, comments) {
+	error(TSRX_UNRETURNED_TEMPLATE_ERROR, filename ?? null, node, errors, comments);
 }
 
 /**
