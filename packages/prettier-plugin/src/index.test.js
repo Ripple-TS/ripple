@@ -6601,6 +6601,30 @@ function g() {
 			expect(result).toBeWithNewline(input);
 		});
 
+		it('breaks long logical arrow bodies after multiline type-literal params', async () => {
+			const input = `function f() {
+	const mapping = result.mappings.find(
+		(mapping: {
+			sourceOffsets: number[];
+			generatedOffsets: number[];
+		}) =>
+			mapping.sourceOffsets[0] === source_offset &&
+				mapping.generatedOffsets[0] === generated_offset &&
+				mapping.lengths[0] === identifier.length,
+	);
+}`;
+
+			// The multiline param type used to hide its hardlines from enclosing
+			// groups (fits() short-circuits on hardlines inside conditionalGroup
+			// states), so the body printed flat past printWidth.
+			const result = await format(input, {
+				useTabs: true,
+				singleQuote: true,
+				printWidth: 100,
+			});
+			expect(result).toBeWithNewline(input);
+		});
+
 		it('stabilizes long arrow bodies with logical expressions in one pass', async () => {
 			const input = `function useStack() {
 	return horizontal

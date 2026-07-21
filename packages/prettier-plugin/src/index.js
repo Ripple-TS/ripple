@@ -2881,18 +2881,20 @@ function printArrowFunction(node, path, options, print, args) {
 		} else {
 			bodyContent = bodyDoc;
 		}
-		if (
-			isTemplateExpression(node.body) ||
-			node.body.type === 'BinaryExpression' ||
-			node.body.type === 'LogicalExpression'
-		) {
-			// Try the body inline; otherwise break right after `=>` so the body
-			// starts on its own line. Deciding this from the printed doc (instead
-			// of the original source span) keeps formatting idempotent.
+		if (isTemplateExpression(node.body)) {
 			return conditionalGroup([
 				group([...parts, ' => ', bodyContent]),
 				group([...parts, ' =>', indent([hardline, bodyContent])]),
 			]);
+		}
+		if (node.body.type === 'BinaryExpression' || node.body.type === 'LogicalExpression') {
+			// Keep the body inline when it fits; otherwise break right after `=>`
+			// so the body starts on its own line. An inner group scoped to the body
+			// makes that call from the printed doc (not the original source span,
+			// which kept the two passes disagreeing) and still works when the
+			// parameter list itself breaks.
+			parts.push(' =>', group(indent([line, bodyContent])));
+			return group(parts);
 		}
 		parts.push(
 			' =>',
@@ -5405,9 +5407,16 @@ function printTSTypeLiteral(node, path, options, print) {
 		'}',
 	]);
 
-	return conditionalGroup(
-		wasOriginallySingleLine(node) ? [inlineDoc, multilineDoc] : [multilineDoc, inlineDoc],
-	);
+	if (!wasOriginallySingleLine(node)) {
+		// A hardline-first conditionalGroup always picks that state (fits()
+		// short-circuits to true on hardlines) while hiding the hardlines from
+		// enclosing groups' break propagation — ancestors then stay flat and
+		// print following siblings past printWidth. The multiline doc alone is
+		// equivalent and propagates its breaks correctly.
+		return multilineDoc;
+	}
+
+	return conditionalGroup([inlineDoc, multilineDoc]);
 }
 
 /**
