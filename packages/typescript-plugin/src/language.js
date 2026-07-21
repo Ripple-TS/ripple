@@ -709,6 +709,15 @@ function extractScriptFromSource(code) {
 	while ((match = scriptRegex.exec(code)) !== null) {
 		const attrs = match[1];
 		const scriptContent = match[2];
+		if (startsDynamicScriptBody(scriptContent)) {
+			// `{= ...}` belongs to the surrounding TSRX scope and is represented in
+			// the root TSX virtual code when compilation succeeds. During fatal-error
+			// recovery, only recognize the explicit prefix. Stop the regex fallback
+			// entirely: it cannot distinguish an authored `</script><script>` string
+			// inside the expression from real following markup, and must never invent
+			// embedded programs by attempting expression recovery.
+			break;
+		}
 		const scriptTagStart = match.index;
 		// `<script` + attrs + `>`; attrs may contain a quoted `>`, so derive the
 		// opening tag's end from the match structure rather than searching for `>`.
@@ -749,6 +758,22 @@ function extractScriptFromSource(code) {
 	}
 
 	return embeddedCodes;
+}
+
+/**
+ * Whether a raw script body starts with the explicit whole-body interpolation
+ * marker after the same ASCII whitespace accepted by the TSRX parser.
+ * @param {string} content
+ */
+function startsDynamicScriptBody(content) {
+	let index = 0;
+	while (index < content.length) {
+		const ch = content.charCodeAt(index);
+		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+		index++;
+	}
+
+	return content.charCodeAt(index) === 123 && content.charCodeAt(index + 1) === 61;
 }
 
 /**

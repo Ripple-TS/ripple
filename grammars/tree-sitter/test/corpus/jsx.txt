@@ -737,7 +737,7 @@ Script Element Raw Text Body
 
 function App() @{
   <head>
-    <script>const n = 1 < 2 ? 3 : 4; if (n < 2) { go(); }</script>
+    <script>{ const marker = "{= static }"; if (n < 2) { go(); } }</script>
   </head>
 }
 
@@ -791,6 +791,156 @@ function App() @{
         (jsx_closing_element
           (jsx_element_name
             (identifier)))))))
+
+==================
+Script Element Non-Opt-In Fences Stay Raw
+==================
+
+function App(source) @{
+  <head>
+    <script>{ = source }</script>
+    <script> {= source }</script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters
+      (required_parameter
+        (identifier)))
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (raw_text))
+        (jsx_text)
+        (script_element
+          (raw_text))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element Whole-Body Expression
+==================
+
+function App(value) @{
+  <head>
+    <script type="speculationrules">
+      {= JSON.stringify({ value, closing: "</script>", nested: { value } }) }
+    </script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters
+      (required_parameter
+        (identifier)))
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (jsx_attribute
+            (identifier)
+            (string))
+          (jsx_expression
+            (call_expression
+              (member_expression
+                (identifier)
+                (identifier))
+              (arguments
+                (object
+                  (shorthand_property_identifier
+                    (shorthand_property_identifier_pattern))
+                  (pair
+                    (property_name
+                      (identifier))
+                    (string))
+                  (pair
+                    (property_name
+                      (identifier))
+                    (object
+                      (shorthand_property_identifier
+                        (shorthand_property_identifier_pattern)))))))))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element Invalid Whole-Body Expressions
+==================
+
+function App(source) @{
+  <head>
+    <script>{= }</script>
+    <script>{= source } trailing</script>
+  </head>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters
+      (required_parameter
+        (identifier)))
+    (jsx_statement_container
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_text)
+        (script_element
+          (jsx_expression
+            (MISSING identifier)))
+        (jsx_text)
+        (script_element
+          (jsx_expression
+            (identifier))
+          (ERROR
+            (identifier)))
+        (jsx_text)
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Script Element Closing Tag Is Case Sensitive
+==================
+
+function App(source) @{
+  <script>{= source }</SCRIPT>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters
+      (required_parameter
+        (identifier)))
+    (jsx_statement_container
+      (ERROR
+        (jsx_expression
+          (identifier))
+        (identifier)))))
 
 ==================
 Script Element Self Closing

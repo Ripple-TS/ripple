@@ -85,6 +85,7 @@ import {
 	rendered_template_children,
 } from '../template-ast.js';
 import is_reference from 'is-reference';
+import { RIPPLE_DIAGNOSTIC_CODES } from '../diagnostics.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
@@ -2361,6 +2362,31 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
+		const element_id = get_element_id(node);
+		// @tsrx/core only assigns this discriminator to its explicit whole-body
+		// raw-script expression grammar. Do not let that expression reach Ripple's
+		// generic child transforms: the client path would create an inert script,
+		// while the server path would HTML-escape JavaScript/JSON. Supporting this
+		// requires one target primitive that also preserves attributes, execution,
+		// hydration, updates, and case-insensitive script-token breakout safety.
+		const dynamic_script_body =
+			element_id.type === 'Identifier' && element_id.name === 'script'
+				? node.children.find(
+						(child) => child.type === 'JSXExpressionContainer' && child.rawText === 'script',
+					)
+				: undefined;
+
+		if (dynamic_script_body) {
+			error(
+				'Dynamic whole-body <script>{= expression}</script> is not supported safely by @tsrx/ripple. Use a static inline <script> body, or load executable code from an external URL with <script src={url}></script>. Put dynamic data in an ordinary escaped element and read its textContent explicitly.',
+				context.state.analysis.module.filename,
+				dynamic_script_body,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				undefined,
+				RIPPLE_DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+			);
+		}
+
 		// A raw (non-template) element — an attribute value or other JSX that
 		// never entered the template traversal.
 		if (!is_template_element(node)) {
@@ -2372,7 +2398,6 @@ const visitors = {
 		}
 
 		const { state, visit, path } = context;
-		const element_id = get_element_id(node);
 		const element_attributes = get_element_attributes(node);
 		const is_dynamic = is_dynamic_element(node);
 		const is_dom_element = is_element_dom_element(node);

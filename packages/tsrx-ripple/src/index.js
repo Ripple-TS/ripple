@@ -7,6 +7,8 @@ import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
 
+export { RIPPLE_DIAGNOSTIC_CODES } from './diagnostics.js';
+
 /**
  * Parse Ripple source code to ESTree AST
  * @template {string} T

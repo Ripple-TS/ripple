@@ -2,7 +2,7 @@ import {
 	runSharedClassFunctionComponentTests,
 	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
-import { compile, compile_to_volar_mappings } from '../src/index.js';
+import { compile, compile_to_volar_mappings, RIPPLE_DIAGNOSTIC_CODES } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { find_exact_mapping } from '../../tsrx/src/source-map-utils.js';
 
@@ -16,6 +16,125 @@ runSharedComponentParamsTests({
 	compile,
 	compile_to_volar_mappings,
 	name: 'ripple',
+});
+
+describe('@tsrx/ripple dynamic whole-script bodies', () => {
+	const dynamic_script_source = (type = null, expression = 'props.source') => `
+		export function App(props: { source: string }) @{
+			<head>
+				<script${type === null ? '' : ` type="${type}"`} nonce="nonce-value">
+					{= ${expression}}
+				</script>
+			</head>
+		}`;
+
+	for (const [mode, options] of [
+		['client', {}],
+		['server', { mode: 'server' }],
+	]) {
+		for (const [kind, type] of [
+			['executable', null],
+			['application/json', 'application/json'],
+			['speculationrules', 'speculationrules'],
+		]) {
+			it(`rejects unsupported ${kind} interpolation in ${mode} output`, () => {
+				let thrown;
+				try {
+					compile(dynamic_script_source(type), 'App.tsrx', options);
+				} catch (error) {
+					thrown = error;
+				}
+
+				expect(thrown).toMatchObject({
+					code: RIPPLE_DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+					type: 'fatal',
+				});
+				expect(thrown.message).toContain(
+					'Dynamic whole-body <script>{= expression}</script> is not supported',
+				);
+			});
+		}
+	}
+
+	it('reports the diagnostic to editor tooling without hiding the expression', () => {
+		const source = dynamic_script_source();
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const diagnostic = result.errors.find(
+			(error) => error.code === RIPPLE_DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+		);
+
+		expect(diagnostic).toBeDefined();
+		expect(source.slice(diagnostic.pos, diagnostic.end)).toContain('{= props.source}');
+		expect(result.code).toContain('props.source');
+	});
+
+	it('does not let suppression comments hide the safety diagnostic', () => {
+		const source = `export function App(props: { source: string }) @{
+			// @tsrx-ignore
+			<head><script>{= props.source}</script></head>
+		}`;
+
+		for (const options of [{ collect: true }, { collect: true, mode: 'server' }]) {
+			const result = compile(source, 'App.tsrx', options);
+			expect(
+				result.errors.filter(
+					(error) => error.code === RIPPLE_DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+				),
+			).toHaveLength(1);
+		}
+
+		const editor = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		expect(
+			editor.errors.filter(
+				(error) => error.code === RIPPLE_DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+			),
+		).toHaveLength(1);
+	});
+
+	it('rejects case-varied script breakout tokens before either runtime can serialize them', () => {
+		const source = dynamic_script_source(
+			'application/json',
+			`'</ScRiPt><ScRiPt>alert(1)</sCrIpT>'`,
+		);
+
+		for (const options of [{}, { mode: 'server' }]) {
+			expect(() => compile(source, 'App.tsrx', options)).toThrow(
+				'Dynamic whole-body <script>{= expression}</script> is not supported',
+			);
+		}
+	});
+
+	it('continues to preserve valid static inline JavaScript containing braces', () => {
+		const source = `export function App() @{
+			<head>
+				<script>const payload = { nested: { ok: true } }; if (payload) { console.log(payload); }</script>
+			</head>
+		}`;
+
+		for (const options of [{}, { mode: 'server' }]) {
+			const result = compile(source, 'App.tsrx', options);
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain(
+				'const payload = { nested: { ok: true } }; if (payload) { console.log(payload); }',
+			);
+		}
+	});
+
+	it('does not change the existing style, title, or textarea contracts', () => {
+		const source = `export function App(props: { title: string; text: string }) @{
+			<>
+				<head>
+					<style>.item { color: red; }</style>
+					<title>{props.title}</title>
+				</head>
+				<textarea>{props.text}</textarea>
+			</>
+		}`;
+
+		for (const options of [{}, { mode: 'server' }]) {
+			expect(compile(source, 'App.tsrx', options).errors).toEqual([]);
+		}
+	});
 });
 
 describe('@tsrx/ripple faithful text output', () => {

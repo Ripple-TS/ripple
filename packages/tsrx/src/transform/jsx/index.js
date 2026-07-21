@@ -5,6 +5,7 @@
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
 import { error } from '../../errors.js';
+import { DIAGNOSTIC_CODES } from '../../diagnostics.js';
 import { is_template_value_position } from '../../analyze/validation.js';
 import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
@@ -86,6 +87,35 @@ const TRAILING_INLINE_WHITESPACE = /[ \t]+$/;
  */
 function is_newline_char(ch) {
 	return ch === '\n' || ch === '\r';
+}
+
+/**
+ * A whole-script lowering must consume the parser-only marker before the AST
+ * reaches the generic TSX printer, which cannot preserve scalar metadata.
+ * This check runs only on the result of an explicitly installed target hook.
+ *
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {boolean}
+ */
+function contains_raw_text_script_expression(node, seen = new Set()) {
+	if (!node || typeof node !== 'object') return false;
+	if (seen.has(node)) return false;
+	seen.add(node);
+
+	if (node.type === 'JSXExpressionContainer' && node.rawText === 'script') {
+		return true;
+	}
+
+	if (Array.isArray(node)) {
+		return node.some((child) => contains_raw_text_script_expression(child, seen));
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'metadata') continue;
+		if (contains_raw_text_script_expression(node[key], seen)) return true;
+	}
+	return false;
 }
 
 /**
@@ -712,6 +742,39 @@ export function createJsxTransform(platform) {
 			},
 
 			JSXElement(node, { next, path, state, visit }) {
+				const opening_name = node.openingElement?.name;
+				const is_static_script =
+					opening_name?.type === 'JSXIdentifier' && opening_name.name === 'script';
+				const raw_text_script_expression =
+					is_static_script &&
+					node.children?.length === 1 &&
+					node.children[0]?.type === 'JSXExpressionContainer' &&
+					node.children[0].rawText === 'script'
+						? node.children[0]
+						: undefined;
+
+				if (raw_text_script_expression) {
+					const hook = platform.hooks?.transformRawTextScriptExpression;
+					if (hook) {
+						const replacement = hook(node, raw_text_script_expression, state);
+						if (!replacement || contains_raw_text_script_expression(replacement)) {
+							throw new Error(
+								`${platform.name}'s transformRawTextScriptExpression hook must return a complete lowering with the parser-only rawText marker removed.`,
+							);
+						}
+						return /** @type {any} */ (replacement);
+					}
+
+					error(
+						`Dynamic whole-body <script>{= expression}</script> is not supported safely by the ${platform.name} JSX transform. Keep the script body static. If dynamic content is required, use a target-specific whole-script API that explicitly guarantees matching client, SSR, and hydration semantics with case-insensitive script-token escaping.`,
+						state.filename,
+						raw_text_script_expression,
+						state.errors,
+						undefined,
+						DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+					);
+				}
+
 				const lowered = lower_dynamic_jsx_element(node, state);
 				if (lowered) {
 					// Alias lowerings replace the element with a fragment; factory

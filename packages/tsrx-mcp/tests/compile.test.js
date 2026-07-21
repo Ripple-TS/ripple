@@ -344,6 +344,28 @@ describe('@tsrx/mcp compile helpers', () => {
 		},
 	);
 
+	it('does not report suppressed dynamic-script interpolation as compile-clean', async () => {
+		const result = await compile_tsrx({
+			code: `export function App(props: { source: string }) @{
+				// @tsrx-ignore
+				<script type="application/json">{= props.source}</script>
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.ok).toBe(false);
+		expect(result.errors).toEqual([
+			expect.objectContaining({
+				code: DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+				message: expect.stringContaining(
+					'Dynamic whole-body <script>{= expression}</script> is not supported safely',
+				),
+			}),
+		]);
+	});
+
 	it('reports unclosed tags as compile errors', async () => {
 		// Regression: this case must produce ok: false. Editor-style `loose`
 		// compilation can silently accept it, so the MCP defaults to `collect`

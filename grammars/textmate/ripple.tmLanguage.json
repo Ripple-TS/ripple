@@ -6691,6 +6691,35 @@
           "contentName": "source.ts",
           "patterns": [
             {
+              "begin": "\\G(?=[ \\t]*(?:$|\\{=))",
+              "end": "(?=</script>)|^(?![ \\t]*(?:$|\\{=))",
+              "patterns": [
+                {
+                  "begin": "(?:\\G|^)([ \\t]*)(\\{)(=)",
+                  "beginCaptures": {
+                    "2": {
+                      "name": "punctuation.section.embedded.begin.js"
+                    },
+                    "3": {
+                      "name": "punctuation.section.embedded.begin.js"
+                    }
+                  },
+                  "contentName": "meta.embedded.expression.js source.js.embedded.tsrx",
+                  "end": "(\\})(?=[^}\\r\\n]*(?:</script>|$))",
+                  "endCaptures": {
+                    "1": {
+                      "name": "punctuation.section.embedded.end.js"
+                    }
+                  },
+                  "patterns": [
+                    {
+                      "include": "#jsx-attribute-expression"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "include": "source.ts"
             }
           ]

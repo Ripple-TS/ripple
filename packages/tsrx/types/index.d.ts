@@ -24,6 +24,16 @@ export type {
 };
 export { createJsxTransform };
 
+export const DIAGNOSTIC_CODES: {
+	readonly JSX_EXPRESSION_VALUE: 'tsrx-jsx-expression-value';
+	readonly UNCLOSED_TAG: 'tsrx-unclosed-tag';
+	readonly MISMATCHED_CLOSING_TAG: 'tsrx-mismatched-closing-tag';
+	readonly TEMPLATE_EXPRESSION_TRAILING_SEMICOLON: 'tsrx-template-expression-trailing-semicolon';
+	readonly TEMPLATE_RETURN_STATEMENT: 'tsrx-template-return-statement';
+	readonly FORGOTTEN_STATEMENT_CONTAINER: 'tsrx-forgotten-statement-container';
+	readonly DYNAMIC_SCRIPT_UNSUPPORTED: 'tsrx-dynamic-script-unsupported';
+};
+
 export function collectStyleRefAttributes(node: any, refs?: any[]): any[];
 export function createStyleClassMap(component: any, css: any): AST.ObjectExpression;
 export function createStyleClassMapFromStylesheet(css: any): AST.ObjectExpression;
@@ -338,12 +348,15 @@ declare module 'estree' {
 		/** Loose-mode recovery: the element was never closed. */
 		unclosed?: boolean;
 		/**
-		 * Raw-text `<script>` body captured verbatim by the parser's
+		 * Static raw-text `<script>` body captured verbatim by the parser's
 		 * `#parseScriptElement` (analogous to {@link JSXStyleElement.css}). Present only
-		 * on `<script>` elements that have a body. The parser also mirrors the body as
-		 * a single `JSXText` child so generic element consumers emit it; consumers that
-		 * handle `content` directly (the Ripple transforms, the prettier plugin, the
-		 * type-only editor output) skip the children instead of emitting both.
+		 * on `<script>` elements that have a static body. An explicit whole-body
+		 * `<script>{= expression}</script>` instead has no `content` and carries one
+		 * `JSXExpressionContainer` child whose `rawText` discriminator is `script`.
+		 * The parser also mirrors a static body as a single `JSXText` child so generic
+		 * element consumers emit it. Consumers that handle `content` directly (the
+		 * Ripple transforms, the prettier plugin, and type-only editor output) skip the
+		 * children instead of emitting both.
 		 */
 		content?: string;
 		/**
@@ -760,6 +773,11 @@ declare module 'estree-jsx' {
 		text?: boolean;
 		style?: boolean;
 		isDynamic?: boolean;
+		/**
+		 * The expression supplies the complete raw-text body of this host. Currently
+		 * emitted only for the explicit `<script>{= expression}</script>` grammar.
+		 */
+		rawText?: 'script';
 	}
 
 	interface JSXMemberExpression {

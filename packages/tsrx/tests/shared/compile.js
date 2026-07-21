@@ -3,14 +3,14 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
 
 /**
  * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string }> },
+ *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string, pos?: number, end?: number }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
  *   generatedClassAttrName?: 'class' | 'className',
  * }} CompileHarness
  *
  * @typedef {{
- *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { code: string, errors: Array<{ code?: string }> },
+ *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { code: string, errors: Array<{ message: string, code?: string, pos?: number, end?: number }> },
  *   name: string,
  * }} CompileDiagnosticsHarness
  *
@@ -39,6 +39,26 @@ const TSRX_TEMPLATE_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
 const TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR =
 	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
+const TSRX_DYNAMIC_SCRIPT_UNSUPPORTED_ERROR =
+	'Dynamic whole-body <script>{= expression}</script> is not supported safely';
+
+/**
+ * @param {string | null} [type]
+ */
+function dynamic_script_source(type = null) {
+	return `export function App(props: { source: string }) @{
+		<script${type === null ? '' : ` type="${type}"`} nonce="nonce-value">
+			{= props.source}
+		</script>
+	}`;
+}
+
+function ignored_dynamic_script_source() {
+	return `export function App(props: { source: string }) @{
+		// @tsrx-ignore
+		<script type="application/json">{= props.source}</script>
+	}`;
+}
 
 /**
  * Shared compile/editor diagnostics. These do not assert source-map structure;
@@ -48,6 +68,20 @@ const TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR =
  */
 export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
 	describe(`[${name}] compile diagnostics`, () => {
+		it('reports unsupported dynamic whole-script bodies without hiding the expression', () => {
+			const source = ignored_dynamic_script_source();
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const diagnostics = result.errors.filter(
+				(error) => error.code === DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+			);
+			const diagnostic = diagnostics[0];
+
+			expect(diagnostics).toHaveLength(1);
+			expect(diagnostic?.message).toContain(TSRX_DYNAMIC_SCRIPT_UNSUPPORTED_ERROR);
+			expect(source.slice(diagnostic?.pos, diagnostic?.end)).toContain('{= props.source}');
+			expect(result.code).toContain('props.source');
+		});
+
 		it('keeps fragment expression children inside containers in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function StatusBadge() @{
@@ -2083,6 +2117,67 @@ export function runSharedCompileTests({
 	runSharedNestedLazyDestructuringTests({ compile, name });
 	runSharedLazyScopeNestingTests({ compile, name });
 	runSharedLazyJsxNameTests({ compile, name });
+
+	describe(`[${name}] dynamic whole-script bodies`, () => {
+		for (const [kind, type] of [
+			['executable', null],
+			['application/json', 'application/json'],
+			['speculationrules', 'speculationrules'],
+		]) {
+			it(`rejects unsupported ${kind} interpolation`, () => {
+				let thrown;
+				try {
+					compile(dynamic_script_source(type), 'App.tsrx');
+				} catch (error) {
+					thrown = error;
+				}
+
+				expect(thrown).toMatchObject({
+					code: DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+					type: 'fatal',
+				});
+				expect(thrown?.message).toContain(TSRX_DYNAMIC_SCRIPT_UNSUPPORTED_ERROR);
+			});
+		}
+
+		it('rejects the marked form in an ordinary TSX expression position', () => {
+			let thrown;
+			try {
+				compile('export const script = <script>{= source}</script>;', 'App.tsrx');
+			} catch (error) {
+				thrown = error;
+			}
+
+			expect(thrown).toMatchObject({
+				code: DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+				type: 'fatal',
+			});
+		});
+
+		it('does not let suppression comments hide the diagnostic in collect mode', () => {
+			const result = compile(ignored_dynamic_script_source(), 'App.tsrx', { collect: true });
+			const diagnostics = result.errors.filter(
+				(error) => error.code === DIAGNOSTIC_CODES.DYNAMIC_SCRIPT_UNSUPPORTED,
+			);
+
+			expect(diagnostics).toHaveLength(1);
+			expect(result.code).toContain('props.source');
+		});
+
+		it('preserves static inline JavaScript containing ordinary braces', () => {
+			const script =
+				'const payload = { nested: { ok: true } }; if (payload) { console.log(payload); }';
+			const result = compile(
+				`export function App() @{
+					<script>${script}</script>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain(script);
+		});
+	});
 
 	describe(`[${name}] fragment expression children`, () => {
 		// A bare expression placed directly as a JSX child reads as JSX text

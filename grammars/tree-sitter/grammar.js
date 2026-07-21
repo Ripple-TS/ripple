@@ -701,8 +701,10 @@ module.exports = grammar({
 
 		_style_content: ($) => /[^<]+/,
 
-		// Raw-text `<script>` element: the body is verbatim JS/TS (scanned by the
-		// external scanner up to the literal `</script>`), never template markup.
+		// A `<script>` body is raw JS/TS by default (scanned verbatim up to the
+		// literal `</script>`). The explicit whole-body `{= expression}` form is
+		// parsed in the surrounding TSRX scope instead; aliasing it to
+		// `jsx_expression` lets editor queries reuse the normal expression shape.
 		// The self-closing form (`<script src={...} />`) has no body; it is matched
 		// here too because the `<script` literal takes lexical priority over the
 		// generic element path.
@@ -715,7 +717,18 @@ module.exports = grammar({
 					repeat($._jsx_attribute),
 					choice(
 						'/>',
-						seq('>', optional(alias($._script_content, $.raw_text)), '</', 'script', '>'),
+						seq(
+							'>',
+							optional(
+								choice(
+									alias($._script_content, $.raw_text),
+									alias($._script_raw_text_expression, $.jsx_expression),
+								),
+							),
+							'</',
+							'script',
+							'>',
+						),
 					),
 				),
 			),
@@ -1403,6 +1416,10 @@ module.exports = grammar({
 		parenthesized_type: ($) => seq('(', $.type, ')'),
 
 		initializer: ($) => seq('=', choice($.expression, $.style_element, $.script_element)),
+
+		// The external script scanner only yields this branch for adjacent `{=`;
+		// spelling the fence with existing tokens keeps generated token ids stable.
+		_script_raw_text_expression: ($) => seq('{', '=', $.expression, '}'),
 
 		_semicolon: ($) => choice($._automatic_semicolon, ';'),
 	},

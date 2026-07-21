@@ -15,6 +15,10 @@ import type {
 
 export type * from '@tsrx/core/types';
 
+export const RIPPLE_DIAGNOSTIC_CODES: {
+	readonly DYNAMIC_SCRIPT_UNSUPPORTED: 'tsrx-ripple-dynamic-script-unsupported';
+};
+
 /**
  * Ripple's compile result extends the shared {@link CompileResult} with a
  * deprecated `js` field that mirrors the root-level `code`/`map`. Temporary

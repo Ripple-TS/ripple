@@ -306,6 +306,44 @@ function App({ tag }: { tag: string }) @{
 			expect(css_mapping).toBeDefined();
 			expect(css_mapping?.data.customData.embeddedId).toMatch(/^style-/);
 		});
+		it('exposes static script bodies as standalone TypeScript mappings', () => {
+			const body = 'if (a < b) { console.log({ a, b }); }';
+			const source = `function C() @{ <head><script>${body}</script></head> }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			expect(result.scriptMappings).toHaveLength(1);
+			expect(result.scriptMappings[0]).toMatchObject({
+				sourceOffsets: [source.indexOf(body)],
+				generatedOffsets: [0],
+				lengths: [body.length],
+				generatedLengths: [body.length],
+				data: {
+					customData: {
+						embeddedId: 'script_0',
+						content: body,
+					},
+				},
+			});
+		});
+		it('keeps dynamic script expressions in the root TSX mapping only', () => {
+			const source = `function C(props: { rules: unknown }) @{
+	<head>
+		<script type="speculationrules">{= JSON.stringify(props.rules) as string}</script>
+	</head>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const expression_offset = source.indexOf('props.rules');
+			const expression_mapping = result.mappings.find((mapping) => {
+				const start = mapping.sourceOffsets[0];
+				return expression_offset >= start && expression_offset < start + mapping.lengths[0];
+			});
+
+			expect(result.scriptMappings).toEqual([]);
+			expect(result.code).toContain('{JSON.stringify(props.rules) as string}');
+			expect(result.code).not.toContain('{=');
+			expect(expression_mapping).toBeDefined();
+			expect(expression_mapping?.data.verification).toBe(true);
+		});
 		it('keeps assigned style blocks anchored in type-only output', () => {
 			const source = `function C() @{
 		const styles = <style>

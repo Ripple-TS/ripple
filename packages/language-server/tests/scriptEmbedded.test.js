@@ -131,6 +131,26 @@ describe('embedded <script> virtual codes', () => {
 		);
 		expect(embedded_of(root, 'typescript')).toHaveLength(0);
 	});
+
+	it('keeps a dynamic script expression in the root TSX instead of an embedded document', () => {
+		const source = `function App(props: { rules: unknown }) @{
+	<head>
+		<script type="speculationrules">{= JSON.stringify(props.rules) as string}</script>
+	</head>
+}`;
+		const { root } = create_virtual_code(source);
+		const generated = root?.snapshot.getText(0, root.snapshot.getLength()) ?? '';
+		const expression_offset = source.indexOf('props.rules');
+		const expression_mapping = root?.mappings.find((mapping) => {
+			const start = mapping.sourceOffsets[0];
+			return expression_offset >= start && expression_offset < start + mapping.lengths[0];
+		});
+
+		expect(embedded_of(root, 'typescript')).toHaveLength(0);
+		expect(generated).toContain('{JSON.stringify(props.rules) as string}');
+		expect(generated).not.toContain('{=');
+		expect(expression_mapping).toBeDefined();
+	});
 });
 
 describe('embedded <script> compile-failure fallback', () => {
@@ -165,5 +185,21 @@ function App() @{
 		const ts_codes = embedded_of(root, 'typescript');
 		expect(ts_codes).toHaveLength(1);
 		expect(ts_codes[0].snapshot.getText(0, ts_codes[0].snapshot.getLength())).toBe('const x = 1;');
+	});
+
+	it('does not expose an opted dynamic script body as an embedded TypeScript document', () => {
+		const { root } = create_virtual_code(
+			`import { from 'x';
+function App(props: { rules: unknown }) @{
+	<head>
+		<script type="speculationrules">
+			{= JSON.stringify({ rules: props.rules, token: "</script><script>fake</script>" }) as string}
+		</script>
+		<script>const later = 'must not become a fallback mapping';</script>
+	</head>
+}`,
+		);
+
+		expect(embedded_of(root, 'typescript')).toHaveLength(0);
 	});
 });

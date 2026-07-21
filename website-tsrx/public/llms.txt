@@ -404,6 +404,39 @@ const Article = ({ markup }: { markup: string }) =>
 	<article innerHTML={markup} />;
 ```
 
+### Script bodies
+
+`<script>` is a raw-text element. Its ordinary body is preserved as authored
+JavaScript or TypeScript, so block and object braces are static script syntax,
+not TSRX expression holes.
+
+The parser's explicit opt-in is `{= expression}` when one expression supplies
+the complete script body. The adjacent `{=` marker must be the first content
+after optional ASCII layout whitespace (space, tab, carriage return, or line
+feed):
+
+```tsrx
+const DataScript = ({ data }: { data: unknown }) =>
+	<script type="application/json">{= JSON.stringify(data) }</script>;
+```
+
+This is parser grammar, not a target-independent serialization guarantee. A
+renderer or compiler must explicitly support the resulting whole-script
+expression node: the parser exposes it as the sole `JSXExpressionContainer`
+child with `rawText: "script"`. The bundled `@tsrx/react`, `@tsrx/preact`,
+`@tsrx/solid`, `@tsrx/vue`, and `@tsrx/ripple` transforms currently reject this
+form instead of emitting potentially unsafe or behaviorally inconsistent script
+content. Use a static inline body, an external
+`<script src={url}></script>`, or the target's documented safe dynamic-data path
+when it does not opt in. Use `{= expression}` only with a target that documents
+whole-script support.
+
+The container must be the only non-whitespace content in the script body. It is
+not mixed interpolation: construct the complete executable, JSON, or data-script
+text in the expression. Script raw text ends only at the literal, case-sensitive
+`</script>` delimiter. This form is specific to `<script>` and does not change
+the separate `<style>`, `<textarea>`, or `<title>` content rules.
+
 ### Lazy destructuring — `&{ ... }` / `&[ ... ]`
 
 Lazy destructuring defers property/index access until each binding is read.

@@ -5803,6 +5803,51 @@
 					<key>patterns</key>
 					<array>
 						<dict>
+							<key>begin</key>
+							<string>\G(?=[ \t]*(?:$|\{=))</string>
+							<key>end</key>
+							<string>(?=&lt;/script&gt;)|^(?![ \t]*(?:$|\{=))</string>
+							<key>patterns</key>
+							<array>
+								<dict>
+									<key>begin</key>
+									<string>(?:\G|^)([ \t]*)(\{)(=)</string>
+									<key>beginCaptures</key>
+									<dict>
+										<key>2</key>
+										<dict>
+											<key>name</key>
+											<string>punctuation.section.embedded.begin.js</string>
+										</dict>
+										<key>3</key>
+										<dict>
+											<key>name</key>
+											<string>punctuation.section.embedded.begin.js</string>
+										</dict>
+									</dict>
+									<key>contentName</key>
+									<string>meta.embedded.expression.js source.js.embedded.tsrx</string>
+									<key>end</key>
+									<string>(\})(?=[^}\r\n]*(?:&lt;/script&gt;|$))</string>
+									<key>endCaptures</key>
+									<dict>
+										<key>1</key>
+										<dict>
+											<key>name</key>
+											<string>punctuation.section.embedded.end.js</string>
+										</dict>
+									</dict>
+									<key>patterns</key>
+									<array>
+										<dict>
+											<key>include</key>
+											<string>#jsx-attribute-expression</string>
+										</dict>
+									</array>
+								</dict>
+							</array>
+						</dict>
+						<dict>
 							<key>include</key>
 							<string>source.ts</string>
 						</dict>

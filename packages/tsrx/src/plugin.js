@@ -267,6 +267,7 @@ export function TSRXPlugin(config) {
 			/** @type {number[]} */
 			#expressionContainerPathBaselines = [];
 			#consumeContainerBraceAfterScope = false;
+			#rawTextScriptExpression = false;
 			#scriptJSXElementDepth = 0;
 			#forceScriptJSXElementDepth = 0;
 			#suppressTemplateRawTextToken = false;
@@ -2193,17 +2194,77 @@ export function TSRXPlugin(config) {
 			 * JS/TS (with `<`, `{`, `}`) and letting the editor treat the body as an
 			 * embedded TypeScript/JavaScript document.
 			 *
-			 * Mirroring `JSXStyleElement` (raw `css` string + parsed children), the body
-			 * is exposed twice: verbatim on `content`, and as a single `JSXText` child so
-			 * generic element paths (factory targets, static hoisting, printers) emit the
-			 * body without knowing about raw-text elements. Consumers that handle
-			 * `content` directly (the Ripple transforms, the prettier plugin) must skip
-			 * the children instead of emitting both.
+			 * A body whose first content after optional ASCII layout whitespace (space, tab,
+			 * carriage return, or line feed) is `{=` instead opts into one whole-body
+			 * expression. `{=` cannot begin a valid JavaScript/TypeScript block, so this
+			 * branch is unambiguous with static scripts. The expression is parsed by this
+			 * parser in its original lexical context rather than recovered from raw text.
+			 *
+			 * Mirroring `JSXStyleElement` (raw `css` string + parsed children), a static
+			 * body is exposed twice: verbatim on `content`, and as a single `JSXText` child
+			 * so generic element paths (factory targets, static hoisting, printers) emit the
+			 * body without knowing about raw-text elements. The dynamic form leaves
+			 * `content` undefined and emits only its marked expression child. Consumers
+			 * that handle `content` directly (the Ripple transforms, the prettier plugin)
+			 * must skip the children instead of emitting both.
 			 *
 			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
 			 * @param {AST.TSRXJSXElement} node
+			 * @returns {boolean}
+			 * Whether template-body parsing already removed `node` from `#path`
 			 */
 			#parseScriptElement(open, node) {
+				const bodyStart = skip_whitespace_from(this.input, open.end);
+				const hasRawTextExpression =
+					this.input.charCodeAt(bodyStart) === CharCode.openBrace &&
+					this.input.charCodeAt(bodyStart + 1) === CharCode.equals;
+
+				if (hasRawTextExpression) {
+					this.#rawTextScriptExpression = true;
+					try {
+						this.#parseNativeTemplateBody(node, node.children, {
+							enterScope: true,
+							resetFunctionBodyDepth: true,
+						});
+					} finally {
+						this.#rawTextScriptExpression = false;
+					}
+
+					const significantChildren = node.children.filter(
+						(child) =>
+							child.type !== 'JSXText' ||
+							typeof (/** @type {ESTreeJSX.JSXText} */ (child).value) !== 'string' ||
+							/** @type {ESTreeJSX.JSXText} */ (child).value.trim() !== '',
+					);
+					const expression = /** @type {ESTreeJSX.JSXExpressionContainer | undefined} */ (
+						significantChildren[0]
+					);
+					if (
+						significantChildren.length !== 1 ||
+						expression?.type !== 'JSXExpressionContainer' ||
+						expression.rawText !== 'script'
+					) {
+						const invalidChild = significantChildren[1] ?? significantChildren[0];
+						this.raise(
+							invalidChild?.start ?? bodyStart,
+							"Dynamic <script> content must be exactly one whole-body '{= expression}' container.",
+						);
+					}
+					node.children = [/** @type {AST.Node} */ (expression)];
+
+					if (this.#path.at(-1) === node) {
+						this.#report_broken_markup_error(
+							this.start,
+							"Unclosed tag '<script>'. Expected '</script>' before end of template.",
+						);
+						node.unclosed = true;
+						/** @type {AST.NodeWithLocation} */ (node).loc.end = { ...open.loc.end };
+						node.end = open.end;
+						this.#path.pop();
+					}
+					return true;
+				}
+
 				const content = this.#parseRawTextElement(open, node, 'script');
 				node.content = content;
 				node.children = [];
@@ -2225,6 +2286,7 @@ export function TSRXPlugin(config) {
 					);
 					node.children = [/** @type {AST.Node} */ (text)];
 				}
+				return false;
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -3475,11 +3537,22 @@ export function TSRXPlugin(config) {
 				// never template text.
 				const consumeBraceAfterScope = this.#consumeContainerBraceAfterScope;
 				this.#consumeContainerBraceAfterScope = false;
+				const rawTextScriptExpression = this.#rawTextScriptExpression;
+				this.#rawTextScriptExpression = false;
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.#jsxExpressionContainerDepth++;
 				let pushed_context_baseline = false;
 				try {
 					this.next();
+					if (rawTextScriptExpression) {
+						this.expect(tt.eq);
+						if (this.type === tt.braceR) {
+							this.raise(
+								this.start,
+								"Expected an expression after '{=' in a dynamic <script> body.",
+							);
+						}
+					}
 
 					// Record the context-stack depth now that the container's `{` brace
 					// context is on the stack. A control-flow directive parsed inside this
@@ -3516,7 +3589,11 @@ export function TSRXPlugin(config) {
 					this.expect(tt.braceR);
 				}
 
-				return this.finishNode(node, 'JSXExpressionContainer');
+				const expressionContainer = this.finishNode(node, 'JSXExpressionContainer');
+				if (rawTextScriptExpression) {
+					expressionContainer.rawText = 'script';
+				}
+				return expressionContainer;
 			}
 
 			/**
@@ -4432,8 +4509,13 @@ export function TSRXPlugin(config) {
 					this.#parseStyleElement(open, /** @type {AST.JSXStyleElement} */ (node), !!inside_head);
 					this.#path.pop();
 				} else if (is_script) {
-					this.#parseScriptElement(open, /** @type {AST.TSRXJSXElement} */ (node));
-					this.#path.pop();
+					const pathWasConsumed = this.#parseScriptElement(
+						open,
+						/** @type {AST.TSRXJSXElement} */ (node),
+					);
+					if (!pathWasConsumed) {
+						this.#path.pop();
+					}
 				} else {
 					this.#parseNativeTemplateBody(node, /** @type {AST.Node[]} */ (node.children), {
 						enterScope: true,

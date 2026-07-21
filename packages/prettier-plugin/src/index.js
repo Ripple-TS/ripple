@@ -200,10 +200,36 @@ export const printers = {
  */
 function isRawScriptElement(node) {
 	return (
+		isScriptElement(node) && !isDynamicScriptElement(node) && typeof node?.content === 'string'
+	);
+}
+
+/**
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement | null | undefined} node
+ * @returns {boolean}
+ */
+function isScriptElement(node) {
+	return (
 		node?.type === 'JSXElement' &&
 		node.openingElement?.name?.type === 'JSXIdentifier' &&
-		node.openingElement.name.name === 'script' &&
-		typeof node.content === 'string'
+		node.openingElement.name.name === 'script'
+	);
+}
+
+/**
+ * Whole-body dynamic `<script>` expression. The parser marks the sole expression
+ * container instead of exposing it as raw `content`, keeping ordinary inline
+ * JavaScript (including braces) on the static raw-text path.
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement | null | undefined} node
+ * @returns {boolean}
+ */
+function isDynamicScriptElement(node) {
+	const child = node?.children?.[0];
+	return (
+		isScriptElement(node) &&
+		node?.children?.length === 1 &&
+		child?.type === 'JSXExpressionContainer' &&
+		child.rawText === 'script'
 	);
 }
 
@@ -1723,7 +1749,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'JSXExpressionContainer': {
-			nodeContent = ['{', path.call(print, 'expression'), '}'];
+			nodeContent = [node.rawText === 'script' ? '{= ' : '{', path.call(print, 'expression'), '}'];
 			break;
 		}
 
@@ -5944,6 +5970,20 @@ function printJSXElement(node, path, options, print) {
 		if (!hasChildren) {
 			return [openingTag, '</', tagName, '>'];
 		}
+		return group([
+			openingTag,
+			indent([hardline, path.call(print, 'children', 0)]),
+			hardline,
+			'</',
+			tagName,
+			'>',
+		]);
+	}
+
+	// A dynamic script is deliberately a whole-body expression. Keep the marker
+	// visible and the body on its own line, while formatting the expression through
+	// the normal TSRX expression printer (and never as an embedded TS program).
+	if (isDynamicScriptElement(node)) {
 		return group([
 			openingTag,
 			indent([hardline, path.call(print, 'children', 0)]),

@@ -155,9 +155,14 @@ function visit_source_ast(ast, src_line_offsets, { regions, css_element_info, sc
 			// matters to the runtime transforms, which read it off the AST.
 			const element_name = node.openingElement?.name;
 			const content = node.content;
+			const has_dynamic_script_expression =
+				node.children?.length === 1 &&
+				node.children[0].type === 'JSXExpressionContainer' &&
+				node.children[0].rawText === 'script';
 			if (
 				element_name?.type === 'JSXIdentifier' &&
 				element_name.name === 'script' &&
+				!has_dynamic_script_expression &&
 				typeof content === 'string'
 			) {
 				const start = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;

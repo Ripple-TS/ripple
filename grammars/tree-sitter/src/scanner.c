@@ -271,20 +271,36 @@ static bool scan_jsx_text(TSLexer *lexer) {
   }
 }
 
+static bool is_script_layout_whitespace(int32_t c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
 // Raw `<script>` body: consume everything verbatim (including `<`, `{`, quotes
 // and comments) up to, but not including, the literal closing `</script>` tag.
-// Mirrors how tree-sitter-html scans raw text, so JS/TS bodies never parse as
-// template markup. Returns false for an empty body (the grammar's `optional`
-// handles that) or an unterminated element.
+// A leading `{=` after ASCII layout whitespace (space, tab, LF, or CR) is the
+// explicit whole-body TSRX expression production, so leave it for the host
+// grammar. Ordinary script braces and non-ASCII whitespace remain raw. Returns
+// false for an empty body (the grammar's `optional` handles that), a dynamic
+// body, or an unterminated element.
 static bool scan_script_content(TSLexer *lexer) {
   lexer->result_symbol = SCRIPT_CONTENT;
   const char *end_tag = "</script>";
   bool has_content = false;
+  bool only_whitespace = true;
 
   for (;;) {
     lexer->mark_end(lexer);
     if (lexer->lookahead == 0) {
       return false;
+    }
+    if (only_whitespace && lexer->lookahead == '{') {
+      advance(lexer);
+      if (lexer->lookahead == '=') {
+        return false;
+      }
+      has_content = true;
+      only_whitespace = false;
+      continue;
     }
     if (lexer->lookahead == '<') {
       unsigned matched = 0;
@@ -297,7 +313,11 @@ static bool scan_script_content(TSLexer *lexer) {
         return has_content;
       }
       has_content = true;
+      only_whitespace = false;
     } else {
+      if (only_whitespace && !is_script_layout_whitespace(lexer->lookahead)) {
+        only_whitespace = false;
+      }
       advance(lexer);
       has_content = true;
     }

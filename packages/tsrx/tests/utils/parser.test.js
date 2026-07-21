@@ -3093,6 +3093,119 @@ describe('division and private fields in template JS positions', () => {
 });
 
 describe('raw-text <script> elements', () => {
+	it('parses an explicit whole-body raw-text expression in the surrounding lexical scope', () => {
+		const source = `function App(props: { rules: unknown }) @{ <head><script type="speculationrules">
+			{= JSON.stringify(props.rules) as string }
+		</script></head> }`;
+		const script = findElement(source, 'script');
+
+		expect(script.content).toBeUndefined();
+		expect(script.children).toHaveLength(1);
+		const container = script.children[0];
+		expect(container.type).toBe('JSXExpressionContainer');
+		expect(container.rawText).toBe('script');
+		expect(container.expression.type).toBe('TSAsExpression');
+		expect(source.slice(container.start, container.end)).toBe(
+			'{= JSON.stringify(props.rules) as string }',
+		);
+		expect(source.slice(container.expression.start, container.expression.end)).toBe(
+			'JSON.stringify(props.rules) as string',
+		);
+	});
+
+	it('parses closing-script text and nested braces inside a raw-text expression', () => {
+		const source = `function App(value: string) @{ <head><script>{= JSON.stringify({ value, closing: "</script>", nested: \`x\${value}\` }) }</script></head> }`;
+		const script = findElement(source, 'script');
+		const container = script.children[0];
+
+		expect(script.content).toBeUndefined();
+		expect(container.type).toBe('JSXExpressionContainer');
+		expect(container.rawText).toBe('script');
+		expect(container.expression.type).toBe('CallExpression');
+		expect(source.slice(container.expression.start, container.expression.end)).toBe(
+			'JSON.stringify({ value, closing: "</script>", nested: `x${value}` })',
+		);
+	});
+
+	it('restores script parsing after a raw-text expression element in JavaScript position', () => {
+		const source = 'const inline = <script>{= source }</script>; const after: number = 1;';
+		const ast = parseModule(source, 'App.tsrx');
+		const script = ast.body[0].declarations[0].init;
+
+		expect(script.type).toBe('JSXElement');
+		expect(script.children[0].rawText).toBe('script');
+		expect(ast.body[1].type).toBe('VariableDeclaration');
+		expect(ast.body[1].declarations[0].id.name).toBe('after');
+	});
+
+	it('restores the one-shot script marker across nested and sibling elements', () => {
+		const source = `
+			const nested = <script>{= String(<script>{= inner }</script>) }</script>;
+			const sibling = <script>{= after }</script>;
+			const tail = <div>{value}</div>;
+		`;
+		const ast = parseModule(source, 'App.tsrx');
+		const outer = ast.body[0].declarations[0].init;
+		const inner = outer.children[0].expression.arguments[0];
+		const sibling = ast.body[1].declarations[0].init;
+		const tail = ast.body[2].declarations[0].init;
+
+		expect(outer.children[0].rawText).toBe('script');
+		expect(inner.children[0].rawText).toBe('script');
+		expect(sibling.children[0].rawText).toBe('script');
+		expect(tail.children[0].rawText).toBeUndefined();
+		expect(tail.children[0].expression.name).toBe('value');
+	});
+
+	it('recognizes the marker only after ASCII layout whitespace', () => {
+		const dynamic = findElement(
+			'function App(source: string) @{ <head><script> \t\r\n{= source }</script></head> }',
+			'script',
+		);
+		expect(dynamic.children[0].rawText).toBe('script');
+
+		for (const body of ['\u00a0{= source }', '\f{= source }', '{ = source }']) {
+			const script = findElement(
+				`function App(source: string) @{ <head><script>${body}</script></head> }`,
+				'script',
+			);
+
+			expect(script.content).toBe(body);
+			expect(script.children[0].type).toBe('JSXText');
+			expect(script.children[0].value).toBe(body);
+		}
+	});
+
+	it('keeps an ordinary expression-shaped brace block as static script source', () => {
+		const body = '{JSON.stringify(props.rules) as string}';
+		const script = findElement(
+			`function App(props) @{ <head><script>${body}</script></head> }`,
+			'script',
+		);
+
+		expect(script.content).toBe(body);
+		expect(script.children).toHaveLength(1);
+		expect(script.children[0].type).toBe('JSXText');
+		expect(script.children[0].value).toBe(body);
+	});
+
+	it('rejects text mixed with an explicit raw-text expression', () => {
+		expect(() =>
+			parseModule(
+				`function App(source: string) @{ <head><script>{= source } trailing</script></head> }`,
+				'App.tsrx',
+			),
+		).toThrow(
+			"Dynamic <script> content must be exactly one whole-body '{= expression}' container.",
+		);
+	});
+
+	it('rejects an empty raw-text expression', () => {
+		expect(() =>
+			parseModule(`function App() @{ <head><script>{= }</script></head> }`, 'App.tsrx'),
+		).toThrow("Expected an expression after '{=' in a dynamic <script> body.");
+	});
+
 	it('captures the body verbatim as `content` and mirrors it as a single JSXText child', () => {
 		const script = findElement(
 			`function App() @{ <head><script>const x = 1; foo();</script></head> }`,

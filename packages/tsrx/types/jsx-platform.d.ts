@@ -238,6 +238,16 @@ export interface JsxPlatformHooks {
 	 */
 	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
 	/**
+	 * Completely lower the parser's marked whole-body
+	 * `<script>{= expression}</script>` node before generic TSX printing. The
+	 * returned replacement must consume the `rawText: "script"` marker. Install
+	 * this hook only when the target preserves script attributes, provides
+	 * matching client/SSR/hydration behavior, and escapes case-insensitive
+	 * script-token breakouts without changing JavaScript or JSON data. Without
+	 * this hook, the shared transform reports `tsrx-dynamic-script-unsupported`.
+	 */
+	transformRawTextScriptExpression?: (element: any, expression: any, ctx: any) => any;
+	/**
 	 * Customize lowering for a native JSX element. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's

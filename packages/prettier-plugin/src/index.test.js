@@ -5869,6 +5869,43 @@ if(n<2){go("now")}</script>`;
 			expect(twice).toBe(once);
 		});
 
+		it('should format a whole-body dynamic <script> expression with its explicit marker', async () => {
+			const expected = `<script type="speculationrules">
+  {= JSON.stringify({ prerender: props.rules }) as string}
+</script>`;
+
+			const result = await format(
+				`<script type="speculationrules">{=JSON.stringify({prerender:props.rules}) as string}</script>`,
+				{ singleQuote: true, printWidth: 100 },
+			);
+
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should be idempotent when reformatting a dynamic <script> expression', async () => {
+			const once = await format(
+				`<script type="application/json">{=JSON.stringify(props.payload) as string}</script>`,
+				{ singleQuote: true, printWidth: 100 },
+			);
+			const twice = await format(once, { singleQuote: true, printWidth: 100 });
+
+			expect(twice).toBe(once);
+			expect(once).toContain('{= JSON.stringify(props.payload) as string}');
+		});
+
+		it('should keep marker-like text inside a static <script> body static', async () => {
+			const expected = `<script>
+  const marker = '{= not an interpolation }';
+</script>`;
+
+			const result = await format(`<script>const marker="{= not an interpolation }";</script>`, {
+				singleQuote: true,
+				printWidth: 100,
+			});
+
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should keep an unparseable <script> body verbatim', async () => {
 			const expected = `<script>const broken = ;</script>`;
 

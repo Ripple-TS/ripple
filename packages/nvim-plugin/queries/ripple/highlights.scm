@@ -312,6 +312,16 @@
 ["." "," ";" ":" "..."] @punctuation.delimiter
 ; Note: < and > are handled separately in JSX contexts as @tag.delimiter
 
+; `{= expression}` replaces the complete raw script body with a host TSRX
+; expression. Keep its fence distinct from ordinary script operators while the
+; expression itself uses normal TypeScript captures. This must follow the
+; generic bracket rule so the more specific fence color wins.
+(script_element
+  (jsx_expression
+    "{" @punctuation.special
+    "=" @punctuation.special
+    "}" @punctuation.special))
+
 ; JSX statement container fences should keep directive coloring over generic brackets.
 (jsx_statement_container
   "@{" @keyword.control
