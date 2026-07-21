@@ -6582,6 +6582,25 @@ function RowList({ rows, Row }) {
 			expect(once).not.toMatch(/return[;\s]*\/\//);
 		});
 
+		it('does not double-wrap self-parenthesizing return and throw arguments', async () => {
+			const input = `function f() {
+  return (
+    // pick the fallback
+    cond ? a : b
+  );
+}
+
+function g() {
+  throw (
+    // wrap the cause
+    makeError(cause)
+  );
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
 		it('stabilizes long arrow bodies with logical expressions in one pass', async () => {
 			const input = `function useStack() {
 	return horizontal

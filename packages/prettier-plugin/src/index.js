@@ -16,7 +16,7 @@
 
 /** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText' | 'printWidth'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
 
-/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, noBreakInside?: boolean, expandLastArg?: boolean, preferInlineSimpleUnionType?: boolean }} PrintArgs */
+/** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, suppressOwnParens?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, noBreakInside?: boolean, expandLastArg?: boolean, preferInlineSimpleUnionType?: boolean }} PrintArgs */
 
 import { parseModule } from '@tsrx/core';
 import { doc } from 'prettier';
@@ -1602,7 +1602,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'MemberExpression':
-			nodeContent = printMemberExpression(node, path, options, print);
+			nodeContent = printMemberExpression(node, path, options, print, args);
 			break;
 
 		case 'MetaProperty':
@@ -1664,7 +1664,7 @@ function printRippleNode(node, path, options, print, args) {
 
 			// Preserve parentheses for type-annotated call expressions
 			// When parenthesized with leading comments, use grouping to allow breaking
-			if (node.metadata?.parenthesized) {
+			if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 				const hasLeadingComments = node.leadingComments && node.leadingComments.length > 0;
 				if (hasLeadingComments) {
 					// Group with softline to allow breaking after opening paren
@@ -1950,7 +1950,8 @@ function printRippleNode(node, path, options, print, args) {
 				parent &&
 				(parent.type === 'MemberExpression' ||
 					(parent.type === 'AssignmentExpression' && parent.left === node));
-			const shouldAddParens = node.metadata?.parenthesized && !parentHandlesParens;
+			const shouldAddParens =
+				node.metadata?.parenthesized && !parentHandlesParens && !args?.suppressOwnParens;
 			if (shouldAddParens) {
 				nodeContent = ['(', identifierContent, ')'];
 			} else {
@@ -2114,7 +2115,19 @@ function printRippleNode(node, path, options, print, args) {
 				if (argumentHasOwnLineLeadingComment(node.argument)) {
 					// The comment prints on its own line, which would separate `return`
 					// from its argument and trigger ASI — keep the argument in parens.
-					parts.push(' (', indent([hardline, path.call(print, 'argument')]), hardline, ')');
+					// These parens replace any the argument would print for itself.
+					parts.push(
+						' (',
+						indent([
+							hardline,
+							path.call(
+								(argumentPath) => print(argumentPath, { suppressOwnParens: true }),
+								'argument',
+							),
+						]),
+						hardline,
+						')',
+					);
 				} else {
 					parts.push(' ');
 					parts.push(path.call(print, 'argument'));
@@ -2296,7 +2309,7 @@ function printRippleNode(node, path, options, print, args) {
 			}
 
 			// Wrap in parentheses if metadata indicates they were present
-			if (node.metadata?.parenthesized) {
+			if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 				result = ['(', result, ')'];
 			}
 
@@ -2320,7 +2333,7 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'MemberExpression':
-			nodeContent = printMemberExpression(node, path, options, print);
+			nodeContent = printMemberExpression(node, path, options, print, args);
 			break;
 
 		case 'ObjectPattern':
@@ -4123,9 +4136,10 @@ function printMethodDefinition(node, path, options, print) {
  * @param {AstPath<AST.MemberExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {PrintArgs} [args] - Additional context arguments
  * @returns {Doc}
  */
-function printMemberExpression(node, path, options, print) {
+function printMemberExpression(node, path, options, print, args) {
 	let objectPart = path.call(print, 'object');
 	// Preserve parentheses around the object when present
 	if (node.object.metadata?.parenthesized) {
@@ -4143,7 +4157,7 @@ function printMemberExpression(node, path, options, print) {
 	}
 
 	// Preserve parentheses around the entire member expression when present
-	if (node.metadata?.parenthesized) {
+	if (node.metadata?.parenthesized && !args?.suppressOwnParens) {
 		// Check if there are leading comments - if so, use group with softlines to allow breaking
 		const hasLeadingComments = node.leadingComments && node.leadingComments.length > 0;
 		if (hasLeadingComments) {
@@ -4329,7 +4343,16 @@ function printThrowStatement(node, path, options, print) {
 	const parts = [];
 	if (argumentHasOwnLineLeadingComment(node.argument)) {
 		// Same ASI hazard as `return`: keep the argument attached via parens.
-		parts.push('throw (', indent([hardline, path.call(print, 'argument')]), hardline, ')');
+		// These parens replace any the argument would print for itself.
+		parts.push(
+			'throw (',
+			indent([
+				hardline,
+				path.call((argumentPath) => print(argumentPath, { suppressOwnParens: true }), 'argument'),
+			]),
+			hardline,
+			')',
+		);
 	} else {
 		parts.push('throw ');
 		parts.push(path.call(print, 'argument'));
