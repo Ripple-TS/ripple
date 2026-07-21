@@ -192,8 +192,23 @@ function get_tsconfig_layers(typescript, host, root_config_path, cache) {
 }
 
 /**
- * Resolve the compiler explicitly selected by a consumer tsconfig. A null cache
- * entry records a hard resolution failure and prevents candidate fallback.
+ * A declaration in the config that owns a failed extends entry, or in a child
+ * config above it, has higher precedence than anything the missing base could
+ * have declared and therefore makes that failure irrelevant to this value.
+ * @param {readonly import('./tsconfig-resolution.js').TsconfigLayer[]} layers
+ * @param {import('./tsconfig-resolution.js').TsconfigExtendsFailure} failure
+ * @param {string} declaration_config_path
+ */
+function is_extends_failure_overridden(layers, failure, declaration_config_path) {
+	const failure_owner_index = layers.findLastIndex((layer) => layer.path === failure.config_path);
+	const declaration_index = layers.findLastIndex((layer) => layer.path === declaration_config_path);
+	return failure_owner_index >= 0 && declaration_index >= failure_owner_index;
+}
+
+/**
+ * Resolve the compiler explicitly selected by a consumer tsconfig. Invalid
+ * specifiers are stable and cached, while missing packages are retried so
+ * tsserver can recover after the dependency is installed.
  * @param {string} config_path
  * @param {string} specifier
  * @returns {string | null}
@@ -221,7 +236,6 @@ function resolve_declared_compiler(config_path, specifier) {
 		log('Found declared tsrx compiler at:', compiler_path, 'from tsconfig:', config_path);
 		return compiler_path;
 	} catch {
-		declared_compiler_path_map.set(cache_key, null);
 		logError(`Unable to resolve declared TSRX compiler "${specifier}" from tsconfig`, config_path);
 		return null;
 	}
@@ -252,27 +266,6 @@ export function resolve_consumer_compiler_for_file(normalized_file_name, options
 	);
 	for (const dependency of resolved_layers.dependencies) {
 		options.dependencies?.add(dependency);
-	}
-	if (resolved_layers.extends_failures.length > 0) {
-		for (const failure of resolved_layers.extends_failures) {
-			if (failure.diagnostics.length === 0) {
-				logError(
-					'Unable to resolve tsconfig extends entry:',
-					JSON.stringify(failure.extends_value),
-					`in ${failure.config_path}`,
-				);
-				continue;
-			}
-			for (const diagnostic of failure.diagnostics) {
-				logError(
-					'Unable to resolve tsconfig extends entry:',
-					JSON.stringify(failure.extends_value),
-					`in ${failure.config_path}`,
-					typescript.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-				);
-			}
-		}
-		return null;
 	}
 	const unreadable_layers = resolved_layers.layers.filter(
 		(layer) => layer.raw_source === undefined,
@@ -320,6 +313,32 @@ export function resolve_consumer_compiler_for_file(normalized_file_name, options
 			declaration.actual_value,
 			`in ${declaration.config_path}`,
 		);
+		return null;
+	}
+	const effective_extends_failures = resolved_layers.extends_failures.filter(
+		(failure) =>
+			declaration.state !== 'declared' ||
+			!is_extends_failure_overridden(resolved_layers.layers, failure, declaration.config_path),
+	);
+	if (effective_extends_failures.length > 0) {
+		for (const failure of effective_extends_failures) {
+			if (failure.diagnostics.length === 0) {
+				logError(
+					'Unable to resolve tsconfig extends entry:',
+					JSON.stringify(failure.extends_value),
+					`in ${failure.config_path}`,
+				);
+				continue;
+			}
+			for (const diagnostic of failure.diagnostics) {
+				logError(
+					'Unable to resolve tsconfig extends entry:',
+					JSON.stringify(failure.extends_value),
+					`in ${failure.config_path}`,
+					typescript.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+				);
+			}
+		}
 		return null;
 	}
 	if (declaration.state === 'declared') {

@@ -685,6 +685,40 @@ describe('typescript-plugin language plugin integration', () => {
 		);
 	});
 
+	it('uses a child compiler declaration despite its unresolved lower-precedence base', () => {
+		const { virtual_code } = compile_fixture('inherited-declaration', (_workspace, config_path) => {
+			write_config(config_path, {
+				extends: './missing-base',
+				...compiler_declaration(COMPILER_A),
+			});
+		});
+
+		expect(virtual_code.generatedCode).toContain('compiler:inherited-a');
+	});
+
+	it('retries a declared compiler package that is installed after an earlier lookup failed', () => {
+		const workspace = create_fixture_workspace('inherited-declaration');
+		const config_path = path.join(workspace, 'tsconfig.json');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const package_name = 'installed-later-compiler';
+		const package_dir = path.join(workspace, 'node_modules', package_name);
+		const compiler_entry = path.join(package_dir, 'index.cjs');
+		write_config(config_path, compiler_declaration(package_name));
+		const options = { ts, configFileName: config_path, configHost: ts.sys };
+
+		expect(resolve_consumer_compiler_for_file(file_name, options)).toBeNull();
+
+		write_config(path.join(package_dir, 'package.json'), {
+			name: package_name,
+			main: './index.cjs',
+		});
+		fs.writeFileSync(compiler_entry, 'module.exports = {};\n');
+		const resolved_entry = resolve_consumer_compiler_for_file(file_name, options);
+		expect(fs.realpathSync(/** @type {string} */ (resolved_entry))).toBe(
+			fs.realpathSync(compiler_entry),
+		);
+	});
+
 	it('creates virtual code with the vue compiler in a vue-only project', () => {
 		const plugin = create_plugin();
 		const workspace = create_fixture_workspace('vue-only');
