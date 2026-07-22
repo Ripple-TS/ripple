@@ -65,6 +65,7 @@ import {
 	get_mapping_from_node,
 } from '../source-map-utils.js';
 import { should_preserve_comment } from '../comment-utils.js';
+import { has_location } from '../utils/ast.js';
 
 const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
 
@@ -453,8 +454,8 @@ export function convert_source_map_to_mappings(
 	 * @returns {void}
 	 */
 	function set_bracket_computed_mapping(node, mappings) {
-		if (node.loc) {
-			const key = /** @type {typeof node.key & AST.NodeWithLocation} */ (node.key);
+		if (has_location(node.key)) {
+			const key = node.key;
 			mappings.push(
 				get_mapping_from_node(
 					/** @type {AST.NodeWithLocation} */ ({
@@ -513,7 +514,7 @@ export function convert_source_map_to_mappings(
 	 * @param {AST.Literal} node
 	 */
 	function handle_literal(node) {
-		if (node.loc) {
+		if (has_location(node)) {
 			const mapping = get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
 			mappings.push(mapping);
 		}
@@ -524,12 +525,15 @@ export function convert_source_map_to_mappings(
 	 * @returns {void}
 	 */
 	function add_extra_source_mapping_tokens(generated_node) {
-		if (!generated_node?.loc || !Array.isArray(generated_node.metadata?.extra_source_mappings)) {
+		if (
+			!has_location(generated_node) ||
+			!Array.isArray(generated_node.metadata?.extra_source_mappings)
+		) {
 			return;
 		}
 
 		for (const source_node of generated_node.metadata.extra_source_mappings) {
-			if (!source_node?.loc) continue;
+			if (!has_location(source_node)) continue;
 
 			tokens.push({
 				source: source_node.name ?? generated_node.name,
@@ -537,10 +541,7 @@ export function convert_source_map_to_mappings(
 				loc: source_node.loc,
 				generatedLoc: generated_node.loc,
 				metadata: {},
-				sourceLength:
-					typeof source_node.start === 'number' && typeof source_node.end === 'number'
-						? source_node.end - source_node.start
-						: undefined,
+				sourceLength: source_node.end - source_node.start,
 			});
 		}
 	}
@@ -602,7 +603,7 @@ export function convert_source_map_to_mappings(
 						for (const binding_mapping of node.metadata.lazy_param_binding_mappings) {
 							const source_node = binding_mapping.source;
 							const generated_node = binding_mapping.generated;
-							if (!source_node?.loc || !generated_node?.loc) continue;
+							if (!has_location(source_node) || !has_location(generated_node)) continue;
 
 							const mapping = get_mapping_from_node(
 								generated_node,
@@ -610,8 +611,8 @@ export function convert_source_map_to_mappings(
 								gen_line_offsets,
 								mapping_data_verify_only,
 							);
-							const source_start = /** @type {number} */ (source_node.start);
-							const source_end = /** @type {number} */ (source_node.end);
+							const source_start = source_node.start;
+							const source_end = source_node.end;
 							mapping.sourceOffsets = [source_start];
 							mapping.lengths = [source_end - source_start];
 							mappings.push(mapping);
@@ -649,7 +650,7 @@ export function convert_source_map_to_mappings(
 				// We only map the 'import' and the last character
 				// to avoid overlapping with individual specifier mappings
 				// which would interfere when only SOME imports are unused.
-				if (node.loc) {
+				if (has_location(node)) {
 					tokens.push({
 						source: 'import',
 						generated: 'import',
@@ -842,7 +843,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'JSXExpressionContainer') {
-				if (node.loc) {
+				if (has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -929,9 +930,9 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				if ((closing?.loc || opening.loc) && (closing || opening.selfClosing)) {
+				const target_node = closing ?? opening;
+				if (has_location(target_node) && (closing || opening.selfClosing)) {
 					// Add the whole closing tag or the self-closing.
-					const target_node = closing ? closing : opening;
 					const mapping = get_mapping_from_node(
 						target_node,
 						src_to_gen_map,
@@ -948,7 +949,7 @@ export function convert_source_map_to_mappings(
 					mapping.generatedLengths = [mapping.generatedLengths[0] + 1];
 					if (!closing && opening.selfClosing) {
 						const generated_close_length = '/>;'.length;
-						mapping.sourceOffsets = [/** @type {AST.NodeWithLocation} */ (opening).end - 2];
+						mapping.sourceOffsets = [target_node.end - 2];
 						mapping.lengths = ['/>'.length];
 						mapping.generatedOffsets = [
 							mapping.generatedOffsets[0] + mapping.generatedLengths[0] - generated_close_length,
@@ -970,7 +971,7 @@ export function convert_source_map_to_mappings(
 			) {
 				const is_method = node.metadata?.is_method;
 
-				if (node.type === 'ArrowFunctionExpression' && node.loc) {
+				if (node.type === 'ArrowFunctionExpression' && has_location(node)) {
 					// The printer emits node-level boundary markers for arrows (their
 					// span can start at a bare `(`), so the strict lookup always
 					// resolves — no defensive has() guard.
@@ -1258,7 +1259,7 @@ export function convert_source_map_to_mappings(
 					visit(node.empty);
 				}
 
-				if (node.loc) {
+				if (has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -1328,7 +1329,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'CallExpression' || node.type === 'NewExpression') {
-				if (node.type === 'NewExpression' && node.loc) {
+				if (node.type === 'NewExpression' && has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -1358,7 +1359,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'MemberExpression') {
-				if (node.loc) {
+				if (has_location(node)) {
 					const mapping = get_mapping_from_node(
 						node,
 						src_to_gen_map,
@@ -1375,7 +1376,7 @@ export function convert_source_map_to_mappings(
 				if (node.property) {
 					visit(node.property);
 
-					if (node.computed && node.property.loc) {
+					if (node.computed && has_location(node.property)) {
 						mappings.push(
 							get_mapping_from_node(
 								node.property,
@@ -1411,7 +1412,7 @@ export function convert_source_map_to_mappings(
 
 				return;
 			} else if (node.type === 'ObjectExpression' || node.type === 'ObjectPattern') {
-				if (node.loc && node.type === 'ObjectExpression') {
+				if (node.type === 'ObjectExpression' && has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -1474,7 +1475,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'TemplateLiteral') {
-				if (node.loc) {
+				if (has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -1505,7 +1506,7 @@ export function convert_source_map_to_mappings(
 					visit(node.argument);
 				}
 
-				if (node.type === 'ReturnStatement' && node.loc) {
+				if (node.type === 'ReturnStatement' && has_location(node)) {
 					const mapping = get_mapping_from_node(
 						node,
 						src_to_gen_map,
@@ -1545,7 +1546,7 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				if (node.loc) {
+				if (has_location(node)) {
 					mappings.push(
 						get_mapping_from_node(node, src_to_gen_map, gen_line_offsets, mapping_data_verify_only),
 					);
@@ -1762,7 +1763,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'ParenthesizedExpression') {
-				if (node.metadata.forceMapping && node.loc) {
+				if (node.metadata.forceMapping && has_location(node)) {
 					const mapping = get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
 					if (node.metadata.skipParenthesisMapping) {
 						mapping.generatedOffsets[0] = mapping.generatedOffsets[0] + 1; // Skip the opening parenthesis
@@ -1801,7 +1802,7 @@ export function convert_source_map_to_mappings(
 				node.type === 'TSTypeParameterInstantiation' ||
 				node.type === 'TSTypeParameterDeclaration'
 			) {
-				if (node.loc) {
+				if (has_location(node)) {
 					const mapping = get_mapping_from_node(
 						node,
 						src_to_gen_map,

@@ -30,7 +30,7 @@ import {
 	BLOCK_CLOSE,
 	BLOCK_OPEN,
 	isFunctionNode,
-	clone_expression_node,
+	clone_ast_node,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -206,7 +206,7 @@ function insert_style_ref_setup_statements(body, setup, scopes) {
 			inserted = true;
 			return [
 				...nodes.slice(0, index),
-				...setup.map((statement) => clone_expression_node(statement, false)),
+				...setup.map((statement) => clone_ast_node(statement, false)),
 				...nodes.slice(index),
 			];
 		}

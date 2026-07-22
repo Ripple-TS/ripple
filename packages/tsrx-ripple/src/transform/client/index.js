@@ -27,7 +27,7 @@ import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
 import {
 	builders,
-	clone_expression_node,
+	clone_ast_node,
 	analyzeCss,
 	IS_CONTROLLED,
 	IS_INDEXED,
@@ -48,6 +48,7 @@ import {
 	createStyleRefSetupStatements,
 	getStyleElementStylesheet,
 	getOriginalEventName,
+	has_location,
 	isEventAttribute,
 	isEmptyJsxFragment as is_empty_jsx_fragment,
 	isInsideComponent as is_inside_component,
@@ -178,7 +179,7 @@ function build_style_class_map_expression(node, context) {
  * @returns {void}
  */
 function add_type_only_style_anchor(node, context) {
-	const style_anchor = b.jsx_element(clone_expression_node(node, true), [], []);
+	const style_anchor = b.jsx_element(clone_ast_node(node, true), [], []);
 	disable_style_anchor_verification(style_anchor);
 
 	const anchor_id = b.id(context.state.scope.generate('style_anchor'));
@@ -237,7 +238,7 @@ function insert_style_ref_setup_statements(body, setup, scopes) {
 			inserted = true;
 			return mirror_scope(nodes, [
 				...nodes.slice(0, index),
-				...setup.map((statement) => clone_expression_node(statement, false)),
+				...setup.map((statement) => clone_ast_node(statement, false)),
 				...nodes.slice(index),
 			]);
 		}
@@ -1256,11 +1257,7 @@ function add_ref_setter_arg(args, source_argument, argument) {
 		args.push(
 			b.arrow(
 				[b.id('v')],
-				b.assignment(
-					'=',
-					/** @type {AST.Pattern} */ (clone_expression_node(argument, false)),
-					b.id('v'),
-				),
+				b.assignment('=', /** @type {AST.Pattern} */ (clone_ast_node(argument, false)), b.id('v')),
 			),
 		);
 	}
@@ -3917,7 +3914,7 @@ function build_tsrx_to_ts_expression(node, context, in_jsx_child = false) {
  * @returns {AST.NodeWithLocation | undefined}
  */
 function get_tsrx_expression_container_location(node) {
-	if (node.loc) return /** @type {AST.NodeWithLocation} */ (node);
+	if (has_location(node)) return node;
 
 	const expression = /** @type {AST.Expression & Partial<AST.NodeWithLocation>} */ (
 		/** @type {ESTreeJSX.JSXExpressionContainer} */ (node).expression

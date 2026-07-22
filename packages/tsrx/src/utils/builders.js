@@ -1121,7 +1121,7 @@ export function key(name) {
 
 /**
  * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXNamespacedName} name
- * @param {AST.Literal | ESTreeJSX.JSXExpressionContainer | null} value
+ * @param {ESTreeJSX.JSXAttribute['value']} value
  * @param {boolean} [shorthand]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXAttribute}

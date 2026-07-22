@@ -1,5 +1,5 @@
 /** @import * as AST from 'estree' */
-/** @import { Visitors } from 'zimmerframe' */
+/** @import * as ESRap from 'esrap' */
 
 import tsx from 'esrap/languages/tsx';
 import { should_preserve_comment, format_comment } from '../../comment-utils.js';
@@ -12,7 +12,7 @@ import { should_preserve_comment, format_comment } from '../../comment-utils.js'
  * transform built around render children — either way a bare expression in a
  * child slot would print as JSX text.
  *
- * @param {any[]} path
+ * @param {AST.Node[]} path
  * @returns {boolean}
  */
 export function in_jsx_child_context(path) {
@@ -21,15 +21,14 @@ export function in_jsx_child_context(path) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_empty_jsx_fragment(node) {
 	return (
 		node?.type === 'JSXFragment' &&
 		!(node.children || []).some(
-			(/** @type {any} */ child) =>
-				child && (child.type !== 'JSXText' || child.value.trim() !== ''),
+			(child) => child && (child.type !== 'JSXText' || child.value.trim() !== ''),
 		)
 	);
 }
@@ -39,8 +38,8 @@ export function is_empty_jsx_fragment(node) {
  * carries its current ancestor path for downstream CSS pruning and mapping
  * helpers.
  *
- * @param {any} node
- * @param {any[]} path
+ * @param {AST.Node} node
+ * @param {AST.Node[]} path
  * @returns {void}
  */
 export function set_node_path_metadata(node, path) {
@@ -62,7 +61,7 @@ export function set_node_path_metadata(node, path) {
  *
  * Shared across all JSX-producing targets (React, Preact, Solid).
  *
- * @returns {any}
+ * @returns {ESRap.Visitors<AST.Node>}
  */
 /**
  * @param {boolean} [boundary_tokens] Enable esrap's `boundaryTokens` anchors
@@ -76,16 +75,17 @@ export function set_node_path_metadata(node, path) {
  * TS input — dropping a leading pragma changes how the whole file checks.
  */
 export function tsx_with_ts_locations(boundary_tokens = false, comments = undefined) {
-	const base = /** @type {any} */ (tsx({ boundaryTokens: boundary_tokens }));
+	const base = tsx({ boundaryTokens: boundary_tokens });
+	const { _: base_visitor, ...base_visitors } = base;
 
-	const leading_preserved = (/** @type {any} */ program) => {
+	const leading_preserved = (/** @type {AST.Program} */ program) => {
 		if (!comments?.length) return [];
 		// Injected statements (dynamic-import/try-import prepends) carry no
 		// loc; anchor "leading" on the first statement that maps to source,
 		// else every preserved comment in the file would hoist to the top.
-		const first = program.body?.find((/** @type {any} */ node) => node.loc);
+		const first = program.body.find((node) => node.loc);
 		return comments.filter(
-			(/** @type {any} */ comment) =>
+			(comment) =>
 				should_preserve_comment(comment) &&
 				(first?.loc == null ||
 					(comment.loc &&
@@ -95,22 +95,7 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 		);
 	};
 
-	/**
-	 * @param {any} node
-	 * @param {any} context
-	 * @param {any} visitor
-	 */
-	const wrap_with_locations = (node, context, visitor) => {
-		if (!node.loc) {
-			visitor(node, context);
-			return;
-		}
-		context.location(node.loc.start.line, node.loc.start.column);
-		visitor(node, context);
-		context.location(node.loc.end.line, node.loc.end.column);
-	};
-
-	/** @type {Record<string, (node: any, context: any) => void>} */
+	/** @type {ESRap.Visitors<AST.Node>} */
 	const wrappers = {
 		Program: (node, context) => {
 			for (const comment of leading_preserved(node)) {
@@ -119,10 +104,10 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 				if (comment.loc) context.location(comment.loc.end.line, comment.loc.end.column);
 				context.newline();
 			}
-			base.Program(node, context);
+			/** @type {NonNullable<typeof base.Program>} */ (base.Program)(node, context);
 		},
 		ArrayPattern: (node, context) => {
-			base.ArrayPattern(node, context);
+			/** @type {NonNullable<typeof base.ArrayPattern>} */ (base.ArrayPattern)(node, context);
 			if (node.typeAnnotation) {
 				context.visit(node.typeAnnotation);
 			}
@@ -143,7 +128,7 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 		// must fall through to base.Property to preserve their printed form.
 		Property: (node, context) => {
 			if (!node.method || node.value.type !== 'FunctionExpression') {
-				base.Property(node, context);
+				/** @type {NonNullable<typeof base.Property>} */ (base.Property)(node, context);
 				return;
 			}
 			const value = node.value;
@@ -204,58 +189,68 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 			context.visit(node.id);
 			context.visit(node.body);
 		},
+		_(node, context, visit) {
+			const visit_with_locations = () => {
+				if (!LOCATION_WRAPPED_NODE_TYPES.has(node.type) || !node.loc) {
+					visit(node);
+					return;
+				}
+				context.location(node.loc.start.line, node.loc.start.column);
+				visit(node);
+				context.location(node.loc.end.line, node.loc.end.column);
+			};
+			if (base_visitor) {
+				base_visitor(node, context, visit_with_locations);
+			} else {
+				visit_with_locations();
+			}
+		},
 	};
 
-	// Be careful when duplicating visitors that are already defined
-	// above in the `wrappers`
-	// if there is already a visitor but you still need a mapping
-	// on the whole node, only then duplicate it here
-	// e.g. JSXOpeningElement is such a case
-	for (const type of [
-		// JS nodes with boundary positions esrap still cannot map. Keyword
-		// writes (if/new/return/for/switch/await) and `boundaryTokens`
-		// anchors (brackets, braces, parens, computed/call closers) cover
-		// many STARTS, but statement ENDS land on unanchored characters
-		// (`;`, a block's `}`), `class` is not a keyword-write, template
-		// literals' backticks carry no location, and an arrow's span can
-		// start at a bare `(` — so these node-level markers remain the
-		// source of both boundaries until esrap can anchor them.
-		'ClassDeclaration',
-		'ClassExpression',
-		'IfStatement',
-		'NewExpression',
-		'MemberExpression',
-		'ObjectExpression',
-		'ReturnStatement',
-		'ForStatement',
-		'ForInStatement',
-		'ForOfStatement',
-		'TemplateLiteral',
-		'AwaitExpression',
-		'SwitchStatement',
-		'TaggedTemplateExpression',
-		'ArrowFunctionExpression',
-		// JSX wrapper nodes: esrap writes `<`, `>`, `</`, `{`, `}` without
-		// locations, so the opening/closing element's and expression
-		// container's start and end don't resolve.
-		'JSXOpeningElement',
-		'JSXClosingElement',
-		'JSXExpressionContainer',
-		// TS wrapper nodes with the same issue.
-		'TSTypeParameterInstantiation',
-		'TSTypeParameterDeclaration',
-		'TSTypeParameter',
-	]) {
-		const visitor = wrappers[type];
-
-		wrappers[type] = (node, context) => wrap_with_locations(node, context, visitor ?? base[type]);
-	}
-
-	return { ...base, ...wrappers };
+	return { ...base_visitors, ...wrappers };
 }
 
+// Be careful when adding visitors that are already defined in `wrappers`.
+// JSXOpeningElement is intentionally in both places: its custom printer still
+// needs a location marker around the whole node.
+const LOCATION_WRAPPED_NODE_TYPES = new Set([
+	// JS nodes with boundary positions esrap still cannot map. Keyword
+	// writes (if/new/return/for/switch/await) and `boundaryTokens`
+	// anchors (brackets, braces, parens, computed/call closers) cover
+	// many STARTS, but statement ENDS land on unanchored characters
+	// (`;`, a block's `}`), `class` is not a keyword-write, template
+	// literals' backticks carry no location, and an arrow's span can
+	// start at a bare `(` — so these node-level markers remain the
+	// source of both boundaries until esrap can anchor them.
+	'ClassDeclaration',
+	'ClassExpression',
+	'IfStatement',
+	'NewExpression',
+	'MemberExpression',
+	'ObjectExpression',
+	'ReturnStatement',
+	'ForStatement',
+	'ForInStatement',
+	'ForOfStatement',
+	'TemplateLiteral',
+	'AwaitExpression',
+	'SwitchStatement',
+	'TaggedTemplateExpression',
+	'ArrowFunctionExpression',
+	// JSX wrapper nodes: esrap writes `<`, `>`, `</`, `{`, `}` without
+	// locations, so the opening/closing element's and expression
+	// container's start and end don't resolve.
+	'JSXOpeningElement',
+	'JSXClosingElement',
+	'JSXExpressionContainer',
+	// TS wrapper nodes with the same issue.
+	'TSTypeParameterInstantiation',
+	'TSTypeParameterDeclaration',
+	'TSTypeParameter',
+]);
+
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_template_if_node(node) {
@@ -266,7 +261,7 @@ export function is_template_if_node(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_template_for_of_node(node) {
@@ -277,7 +272,7 @@ export function is_template_for_of_node(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_template_switch_node(node) {
@@ -288,7 +283,7 @@ export function is_template_switch_node(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_template_try_node(node) {

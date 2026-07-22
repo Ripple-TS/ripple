@@ -1,7 +1,7 @@
 /** @import * as AST from 'estree' */
 
 import * as b from '../utils/builders.js';
-import { is_function_or_component_node } from '../utils/ast.js';
+import { has_location, is_function_or_component_node } from '../utils/ast.js';
 
 /**
  * Lazy destructuring transform — framework-agnostic.
@@ -57,7 +57,7 @@ function generate_lazy_id(context) {
  * @returns {any}
  */
 function set_source_location(node, loc_info) {
-	if (loc_info?.loc) {
+	if (has_location(loc_info)) {
 		node.start = loc_info.start;
 		node.end = loc_info.end;
 		node.loc = loc_info.loc;
@@ -84,7 +84,7 @@ function create_generated_identifier(name, loc_info, source_name, source_length)
  * @returns {{ start: number, end: number, loc: any, source_length: number } | null}
  */
 function get_lazy_pattern_mapping_range(pattern) {
-	if (!pattern.loc) return null;
+	if (!has_location(pattern)) return null;
 
 	const end = pattern.typeAnnotation?.start ?? pattern.end;
 	const end_loc = pattern.typeAnnotation?.loc?.start ?? pattern.loc.end;
@@ -148,11 +148,11 @@ function set_lazy_param_binding_mappings(lazy_id, pattern) {
 
 		const value = prop.value;
 		const actual = value.type === 'AssignmentPattern' ? value.left : value;
-		if (actual.type !== 'Identifier' || !actual.loc) continue;
+		if (actual.type !== 'Identifier' || !has_location(actual)) continue;
 
 		const key_name = get_static_property_name(prop.key);
 		const generated = key_name == null ? null : type_keys.get(key_name);
-		if (generated?.loc) {
+		if (has_location(generated)) {
 			generated.metadata = { ...generated.metadata, disable_verification: true };
 			mappings.push({ source: actual, generated });
 		}

@@ -2,7 +2,7 @@
 
 import * as b from '../utils/builders.js';
 import { is_function_or_class_node as is_function_or_class_boundary } from '../utils/ast.js';
-import { clone_expression_node, clone_identifier } from './jsx/ast-builders.js';
+import { clone_ast_node, clone_identifier } from './jsx/ast-builders.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
 
@@ -131,14 +131,10 @@ function create_style_ref_expression_statements(source, style_map, options) {
 		options.allowMutableRefTarget !== false &&
 		(source.type === 'Identifier' || source.type === 'MemberExpression')
 	) {
-		const target = clone_expression_node(source, false);
+		const target = clone_ast_node(source, false);
 		return [
 			b.stmt(
-				b.assignment(
-					'=',
-					/** @type {AST.Pattern} */ (target),
-					clone_expression_node(style_map, false),
-				),
+				b.assignment('=', /** @type {AST.Pattern} */ (target), clone_ast_node(style_map, false)),
 			),
 		];
 	}
@@ -147,8 +143,8 @@ function create_style_ref_expression_statements(source, style_map, options) {
 		return [
 			b.stmt(
 				b.call(
-					visit_expression(clone_expression_node(source, false), options),
-					clone_expression_node(style_map, false),
+					visit_expression(clone_ast_node(source, false), options),
+					clone_ast_node(style_map, false),
 				),
 			),
 		];
@@ -167,17 +163,17 @@ function create_dynamic_style_ref_statement(source, style_map, options) {
 	const ref_id = options.createTempIdentifier?.() ?? b.id('__tsrx_style_ref');
 	const ref_read = () => clone_identifier(ref_id);
 	const current_write = b.stmt(
-		b.assignment('=', b.member(ref_read(), 'current'), clone_expression_node(style_map, false)),
+		b.assignment('=', b.member(ref_read(), 'current'), clone_ast_node(style_map, false)),
 	);
 	const value_write = b.stmt(
-		b.assignment('=', b.member(ref_read(), 'value'), clone_expression_node(style_map, false)),
+		b.assignment('=', b.member(ref_read(), 'value'), clone_ast_node(style_map, false)),
 	);
 
 	return [
-		b.let(ref_id, visit_expression(clone_expression_node(source, false), options)),
+		b.let(ref_id, visit_expression(clone_ast_node(source, false), options)),
 		b.if(
 			b.binary('===', b.unary('typeof', ref_read()), b.literal('function')),
-			b.block([b.stmt(b.call(ref_read(), clone_expression_node(style_map, false)))]),
+			b.block([b.stmt(b.call(ref_read(), clone_ast_node(style_map, false)))]),
 			b.if(
 				b.logical(
 					'&&',

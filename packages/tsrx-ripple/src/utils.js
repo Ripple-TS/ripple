@@ -7,7 +7,7 @@
 import {
 	add_extra_source_mappings_from_matching_expression,
 	buildAssignmentValue,
-	clone_expression_node,
+	clone_ast_node,
 	extractPaths,
 	builders,
 	isBooleanAttribute,
@@ -16,6 +16,7 @@ import {
 	isNonDelegated,
 	isVoidElement,
 	isCodeBlockFunctionBody,
+	has_location,
 	normalizeEventName,
 	setLocation,
 	simpleHash,
@@ -1201,6 +1202,7 @@ function strip_style_element_children(node, inside_head, scopes) {
  * @returns {AST.ArrowFunctionExpression}
  */
 export function create_native_tsrx_render_function(params, children, source_node) {
+	const source = has_location(source_node) ? source_node : undefined;
 	const fragment = /** @type {ESTreeJSX.JSXFragment} */ (
 		/** @type {unknown} */ ({
 			type: 'JSXFragment',
@@ -1210,13 +1212,7 @@ export function create_native_tsrx_render_function(params, children, source_node
 			metadata: { path: [], tsrx_render_fragment: true },
 		})
 	);
-	const fn = b.arrow(
-		params,
-		b.block([b.return(fragment)], /** @type {AST.NodeWithLocation | undefined} */ (source_node)),
-		false,
-		undefined,
-		/** @type {AST.NodeWithLocation | undefined} */ (source_node),
-	);
+	const fn = b.arrow(params, b.block([b.return(fragment)], source), false, undefined, source);
 	fn.metadata.native_tsrx_function = true;
 	fn.metadata.synthetic_children = true;
 	return fn;
@@ -1965,8 +1961,9 @@ export function lower_dynamic_element(node, component_id, scopes) {
 	const expression = /** @type {AST.Expression} */ (get_element_id(node));
 	const closing_name = node.closingElement?.name;
 	const closing_expression =
-		closing_name?.type === 'JSXExpressionContainer' &&
-		clone_expression_node(closing_name.expression);
+		closing_name?.type === 'JSXExpressionContainer'
+			? clone_ast_node(closing_name.expression)
+			: null;
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
 
 	const is_attribute = /** @type {ESTreeJSX.JSXAttribute} */ (

@@ -8,6 +8,7 @@
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { walk } from 'zimmerframe';
+import { has_location } from '../utils/ast.js';
 
 /**
  * @typedef {(BaseParser: typeof acorn.Parser) => typeof acorn.Parser} AcornPlugin
@@ -607,8 +608,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 						}
 
 						const ancestorElements = path
-							.filter((ancestor) => isNativeTemplateNode(ancestor) && ancestor.loc)
-							.map((ancestor) => /** @type {AST.NodeWithLocation} */ (ancestor))
+							.filter(has_location)
+							.filter(isNativeTemplateNode)
 							.sort((a, b) => a.loc.start.line - b.loc.start.line);
 
 						const targetAncestor = ancestorElements.find(
