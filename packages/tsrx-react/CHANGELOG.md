@@ -1,5 +1,22 @@
 # @tsrx/react
 
+## 0.2.46
+
+### Patch Changes
+
+- [#1374](https://github.com/Ripple-TS/ripple/pull/1374)
+  [`21a43da`](https://github.com/Ripple-TS/ripple/commit/21a43da09713f28c5d2ae73633e5ca56e4cd8d1f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add shared TSRX semantic
+  analysis and report free-floating template output in normal function bodies and
+  ordinary setup sections of `@{}` blocks. Runtime builds now fail when output
+  would be discarded, while type-only and Volar compilation collect the diagnostic
+  and continue. Return or retain template values, or make them part of a
+  function's rendered output.
+
+- Updated dependencies
+  [[`21a43da`](https://github.com/Ripple-TS/ripple/commit/21a43da09713f28c5d2ae73633e5ca56e4cd8d1f)]:
+  - @tsrx/core@0.1.46
+
 ## 0.2.45
 
 ### Patch Changes
