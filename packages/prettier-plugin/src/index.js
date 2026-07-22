@@ -5938,6 +5938,70 @@ function printJSXTextChild(raw) {
 }
 
 /**
+ * True when two consecutive printed JSX children stay glued on one line:
+ * a text child directly adjacent (no whitespace) to its neighbor, as in
+ * `{a}/{b}` or `<span>x</span>text`. Matches vanilla Prettier, which only
+ * keeps siblings together across a whitespace-free text boundary — adjacent
+ * expressions or elements (`{a}{b}`, `</p><p>`) still get their own lines.
+ * @param {any} prevNode - Last source node of the previous printed child
+ * @param {any} nextNode - First source node of the next printed child
+ * @returns {boolean}
+ */
+function isGluedJSXPair(prevNode, nextNode) {
+	if (prevNode?.type !== 'JSXText' && nextNode?.type !== 'JSXText') {
+		return false;
+	}
+	if (typeof prevNode?.end !== 'number' || prevNode.end !== nextNode?.start) {
+		return false;
+	}
+	if (hasComment(prevNode) || hasComment(nextNode)) {
+		return false;
+	}
+	if (prevNode.type === 'JSXText' && /\s$/u.test(prevNode.value)) {
+		return false;
+	}
+	if (nextNode.type === 'JSXText' && /^\s/u.test(nextNode.value)) {
+		return false;
+	}
+	return true;
+}
+
+/**
+ * Print a run of glued JSX children as one unit. Words inside text entries can
+ * still wrap at their own spaces, but glued boundaries get no break opportunity.
+ * @param {(Doc | string)[]} entries
+ * @returns {Doc}
+ */
+function printGluedJSXChildren(entries) {
+	/** @type {Doc[]} */
+	const parts = [];
+	/** @type {Doc[]} */
+	let current = [];
+	const flush = () => {
+		if (current.length > 0) {
+			parts.push(current.length === 1 ? current[0] : current);
+			current = [];
+		}
+	};
+	for (const entry of entries) {
+		if (typeof entry === 'string') {
+			const words = entry.trim().split(/\s+/u);
+			for (let i = 0; i < words.length; i++) {
+				if (i > 0) {
+					flush();
+					parts.push(line);
+				}
+				current.push(words[i]);
+			}
+		} else {
+			current.push(entry);
+		}
+	}
+	flush();
+	return parts.length === 1 ? parts[0] : fill(parts);
+}
+
+/**
  * @param {string} raw
  * @returns {string}
  */
@@ -6113,11 +6177,14 @@ function printJSXElement(node, path, options, print) {
 
 	// Format children - filter out empty text nodes and merge adjacent text nodes.
 	// childNodes tracks the source node behind each doc (a text run is a single
-	// JSXText) so the join can preserve authored blank lines.
+	// JSXText) so the join can preserve authored blank lines; childEndNodes tracks
+	// the last source node so glued neighbors can be detected by position.
 	const childrenDocs = [];
 	const childNodes = [];
+	const childEndNodes = [];
 	let currentText = '';
 	let currentTextNode = null;
+	let currentTextEndNode = null;
 
 	for (let i = 0; i < node.children.length; i++) {
 		const child = node.children[i];
@@ -6127,13 +6194,16 @@ function printJSXElement(node, path, options, print) {
 				if (currentText) {
 					childrenDocs.push(currentText);
 					childNodes.push(currentTextNode);
+					childEndNodes.push(currentTextEndNode);
 					currentText = '';
 					currentTextNode = null;
+					currentTextEndNode = null;
 				}
 				const printedChild = path.call(print, 'children', i);
 				if (printedChild !== '') {
 					childrenDocs.push(printedChild);
 					childNodes.push(child);
+					childEndNodes.push(child);
 				}
 				continue;
 			}
@@ -6152,11 +6222,14 @@ function printJSXElement(node, path, options, print) {
 					if (currentText) {
 						childrenDocs.push(currentText);
 						childNodes.push(currentTextNode);
+						childEndNodes.push(currentTextEndNode);
 						currentText = '';
 						currentTextNode = null;
+						currentTextEndNode = null;
 					}
 					childrenDocs.push([text.trim(), ' ', path.call(print, 'children', i + 1), ';']);
 					childNodes.push(child);
+					childEndNodes.push(afterNextChild);
 					i += 2;
 					continue;
 				}
@@ -6167,14 +6240,17 @@ function printJSXElement(node, path, options, print) {
 					currentText = text;
 					currentTextNode = child;
 				}
+				currentTextEndNode = child;
 			}
 		} else {
 			// If we have accumulated text, push it before the non-text node
 			if (currentText) {
 				childrenDocs.push(currentText);
 				childNodes.push(currentTextNode);
+				childEndNodes.push(currentTextEndNode);
 				currentText = '';
 				currentTextNode = null;
+				currentTextEndNode = null;
 			}
 
 			if (child.type === 'JSXExpressionContainer') {
@@ -6187,10 +6263,12 @@ function printJSXElement(node, path, options, print) {
 					...printTemplateChildTrailingComments(child),
 				]);
 				childNodes.push(child);
+				childEndNodes.push(child);
 			} else {
 				// Handle nested JSX elements
 				childrenDocs.push(path.call(print, 'children', i));
 				childNodes.push(child);
+				childEndNodes.push(child);
 			}
 		}
 	}
@@ -6199,6 +6277,7 @@ function printJSXElement(node, path, options, print) {
 	if (currentText) {
 		childrenDocs.push(currentText);
 		childNodes.push(currentTextNode);
+		childEndNodes.push(currentTextEndNode);
 	}
 
 	// A child with leading comments must break onto its own line, so the comment
@@ -6270,11 +6349,21 @@ function printJSXElement(node, path, options, print) {
 	}
 
 	// Multiple children or complex children - format with line breaks. Text runs
-	// fill/wrap to printWidth.
+	// fill/wrap to printWidth. Children with no whitespace between them in the
+	// source (`{a}/{b}`) stay glued as a single unit.
 	const formattedChildren = [];
 	for (let i = 0; i < childrenDocs.length; i++) {
-		const childDoc = childrenDocs[i];
-		formattedChildren.push(typeof childDoc === 'string' ? printRawText(childDoc) : childDoc);
+		const unitEntries = [childrenDocs[i]];
+		while (i < childrenDocs.length - 1 && isGluedJSXPair(childEndNodes[i], childNodes[i + 1])) {
+			i++;
+			unitEntries.push(childrenDocs[i]);
+		}
+		if (unitEntries.length === 1) {
+			const childDoc = unitEntries[0];
+			formattedChildren.push(typeof childDoc === 'string' ? printRawText(childDoc) : childDoc);
+		} else {
+			formattedChildren.push(printGluedJSXChildren(unitEntries));
+		}
 		if (i < childrenDocs.length - 1) {
 			// Preserve a single authored blank line between children (2+ collapse to 1).
 			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
@@ -6391,10 +6480,19 @@ function printJSXFragment(node, path, options, print) {
 		]);
 	}
 
-	// Multiple children or complex children - format with line breaks
+	// Multiple children or complex children - format with line breaks. Children
+	// with no whitespace between them in the source (`{a}/{b}`) stay glued as a
+	// single unit.
 	const formattedChildren = [];
 	for (let i = 0; i < childrenDocs.length; i++) {
-		formattedChildren.push(childrenDocs[i]);
+		const unitEntries = [childrenDocs[i]];
+		while (i < childrenDocs.length - 1 && isGluedJSXPair(childNodes[i], childNodes[i + 1])) {
+			i++;
+			unitEntries.push(childrenDocs[i]);
+		}
+		formattedChildren.push(
+			unitEntries.length === 1 ? unitEntries[0] : printGluedJSXChildren(unitEntries),
+		);
 		if (i < childrenDocs.length - 1) {
 			// Preserve a single authored blank line between children (2+ collapse to 1).
 			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
