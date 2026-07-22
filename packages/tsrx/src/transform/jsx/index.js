@@ -5919,10 +5919,10 @@ function to_jsx_expression_container(expression, source_node = expression) {
 }
 
 /**
- * Dispatch point for element attribute transformation. Platforms can replace
- * the default "map over `to_jsx_attribute`" via
- * `hooks.transformElementAttributes`. Whether or not the hook is used,
- * the result is run through `merge_duplicate_refs` so platforms with a
+ * Dispatch point for element attribute transformation. Platforms can transform
+ * the parser-native JSX attributes via `hooks.transformElementAttributes`.
+ * Whether or not the hook is used, the result is run through
+ * `merge_duplicate_refs` so platforms with a
  * `multiRefStrategy` can compose an explicit `ref={...}` with compiler-
  * synthesized refs created for host spreads.
  *
@@ -5931,7 +5931,7 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * duplicate JSX props which the JSX runtime collapses to last-wins (and
  * which TypeScript can't type cleanly).
  *
- * @param {ESTreeJSX.JSXTransformAttribute[]} attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
  * @param {TransformContext} transform_context
  * @param {AST.TSRXJSXElement} element
  * @returns {ESTreeJSX.JSXAttributeNode[]}
@@ -5944,9 +5944,7 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 		attrs = preprocess(attrs, transform_context, element);
 	}
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
-	const result = hook
-		? hook(attrs, transform_context, element)
-		: attrs.map((a) => to_jsx_attribute(a, transform_context));
+	const result = hook ? hook(attrs, transform_context, element) : attrs;
 	return merge_duplicate_refs(
 		normalize_host_ref_spreads(result, !is_component, transform_context),
 		transform_context,
@@ -6135,7 +6133,7 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
  * This validator runs over the raw, pre-lowering attribute list so each
  * shape is still distinguishable by `type`.
  *
- * @param {ESTreeJSX.JSXTransformAttribute[]} raw_attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} raw_attrs
  * @param {TransformContext} [transform_context]
  */
 export function validate_at_most_one_ref_attribute(raw_attrs, transform_context) {
@@ -6383,72 +6381,6 @@ function create_tag_name_map_ref_type(map_name, tag_name) {
 		indexType: b.ts_literal_type(b.literal(tag_name)),
 		metadata: { path: [] },
 	});
-}
-
-/**
- * @overload
- * @param {ESTreeJSX.JSXTransformAttribute} attr
- * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXAttributeNode}
- */
-/**
- * @param {ESTreeJSX.JSXTransformAttribute | null | undefined} attr
- * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXAttributeNode | null | undefined}
- */
-export function to_jsx_attribute(attr, transform_context) {
-	if (!attr) return attr;
-	if (attr.type === 'JSXAttribute') {
-		return attr;
-	}
-	if (attr.type === 'JSXSpreadAttribute') {
-		return attr;
-	}
-	// Keep this legacy hook for targets that need React-style DOM attrs. The
-	// current first-party targets preserve authored `class`.
-	let attr_name = attr.name;
-	if (
-		transform_context.platform.jsx.rewriteClassAttr &&
-		attr_name.type === 'Identifier' &&
-		attr_name.name === 'class'
-	) {
-		attr_name = set_loc(b.id('className'), attr.name);
-		attr_name.metadata.source_name = 'class';
-		attr_name.metadata.source_length = 'class'.length;
-	}
-
-	const name =
-		attr_name.type === 'Identifier' ? identifier_to_jsx_identifier(attr_name) : attr_name;
-
-	let value = attr.value;
-	if (value) {
-		if (value.type === 'Literal' && typeof value.value === 'string') {
-			// Keep string literal as attribute string.
-		} else if (value.type !== 'JSXExpressionContainer') {
-			value = to_jsx_expression_container(value);
-		}
-	}
-
-	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
-
-	if (value_has_unmappable_jsx_loc(value)) {
-		jsx_attribute.metadata.has_unmappable_value = true;
-		return jsx_attribute;
-	}
-
-	return set_loc(jsx_attribute, attr);
-}
-
-/**
- * @param {ESTreeJSX.JSXAttribute['value']} value
- * @returns {boolean}
- */
-function value_has_unmappable_jsx_loc(value) {
-	return !!(
-		value?.type === 'JSXExpressionContainer' &&
-		(value.expression.type === 'JSXElement' || value.expression.type === 'JSXFragment') &&
-		!value.expression.loc
-	);
 }
 
 /**

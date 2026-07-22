@@ -307,18 +307,8 @@ declare module 'estree' {
 		tracked?: boolean;
 	}
 
-	/** Legacy pre-ESTree attribute shape accepted by the shared JSX normalizer. */
-	interface JSXLegacyAttribute extends AST.BaseNode {
-		type: 'Attribute';
-		name: AST.Identifier | ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXNamespacedName;
-		value: AST.Expression | ESTreeJSX.JSXExpressionContainer | null;
-		shorthand?: boolean;
-		metadata: BaseNodeMetaData;
-	}
-
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
-		Attribute: JSXLegacyAttribute;
 		JSXSpreadChild: ESTreeJSX.JSXSpreadChild;
 		TSRXJSXElement: TSRXJSXElement;
 		TSRXJSXFragment: TSRXJSXFragment;
@@ -803,9 +793,6 @@ declare module 'estree-jsx' {
 
 	/** An attribute accepted by and emitted from the shared JSX transformer. */
 	type JSXAttributeNode = JSXAttribute | JSXSpreadAttribute;
-
-	/** A standard or legacy attribute accepted before JSX attribute normalization. */
-	type JSXTransformAttribute = JSXAttributeNode | AST.JSXLegacyAttribute;
 
 	/** A `ref` attribute whose value has been narrowed to a non-empty expression. */
 	interface JSXRefAttribute extends JSXAttribute {

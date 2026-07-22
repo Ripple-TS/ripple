@@ -43,9 +43,9 @@ export function clone_identifier(identifier) {
  * Clone a JSX element name (handles `JSXIdentifier`, `JSXMemberExpression`,
  * and plain `Identifier`).
  *
- * @param {ESTreeJSX.JSXOpeningElement['name'] | AST.Identifier} name
- * @param {ESTreeJSX.JSXOpeningElement['name'] | AST.Identifier} [source_node]
- * @returns {ESTreeJSX.JSXOpeningElement['name']}
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name']} name
+ * @param {AST.Node} [source_node]
+ * @returns {ESTreeJSX.TSRXJSXOpeningElement['name']}
  */
 export function clone_jsx_name(name, source_node = name) {
 	if (name.type === 'JSXIdentifier') {

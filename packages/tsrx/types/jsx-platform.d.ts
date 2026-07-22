@@ -188,26 +188,24 @@ export interface JsxPlatformHooks {
 	 */
 	injectImports?: (program: AST.Program, ctx: JsxTransformContext, suspenseSource: string) => void;
 	/**
-	 * Transform a Ripple element's attributes to JSX attributes. Default
-	 * is "map over `to_jsx_attribute`" plus the shared multi-`ref` merge
-	 * pass. Platforms that own a `transformElement` hook (e.g. Solid) bypass
-	 * this entirely — they never reach the dispatch path that would call
-	 * it — and run their own attribute pass inside their `transformElement`.
+	 * Transform a Ripple element's parser-native JSX attributes. The result
+	 * is passed through the shared multi-`ref` merge. Platforms that own a
+	 * `transformElement` hook (e.g. Solid) run their own attribute pass inside
+	 * that hook.
 	 */
 	transformElementAttributes?: (
-		attrs: ESTreeJSX.JSXTransformAttribute[],
+		attrs: ESTreeJSX.JSXAttributeNode[],
 		ctx: JsxTransformContext,
 		element: AST.TSRXJSXElement,
 	) => ESTreeJSX.JSXAttributeNode[];
 	/**
-	 * Rewrite or normalize raw Ripple attributes before the shared
-	 * `to_jsx_attribute()` mapping runs.
+	 * Rewrite parser-native JSX attributes before platform transformation.
 	 */
 	preprocessElementAttributes?: (
-		attrs: ESTreeJSX.JSXTransformAttribute[],
+		attrs: ESTreeJSX.JSXAttributeNode[],
 		ctx: JsxTransformContext,
 		element: AST.TSRXJSXElement,
-	) => ESTreeJSX.JSXTransformAttribute[];
+	) => ESTreeJSX.JSXAttributeNode[];
 	/**
 	 * Optionally replace the default React-style `.map(...)` lowering for a
 	 * `for...of` body after the shared transform has already produced its render

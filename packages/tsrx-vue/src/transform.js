@@ -20,7 +20,6 @@ import {
 	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	setLocation,
-	toJsxAttribute,
 } from '@tsrx/core';
 
 /**
@@ -81,11 +80,10 @@ const vue_platform = {
 			return preprocess_ref_attributes(attrs, ctx);
 		},
 		transformElementAttributes(attrs, ctx, element) {
-			const result = attrs.map((attr) => toJsxAttribute(attr, ctx));
 			if (!ctx.typeOnly || is_component_like_element(element)) {
-				return result;
+				return attrs;
 			}
-			return result.map(mark_type_only_host_ref_attribute);
+			return attrs.map(mark_type_only_host_ref_attribute);
 		},
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
@@ -1133,9 +1131,9 @@ function is_vue_setup_call(call_expression) {
  * virtual TSX skips that spread so Volar can offer completions on the real
  * component prop name.
  *
- * @param {ESTreeJSX.JSXTransformAttribute[]} attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
  * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXTransformAttribute[]}
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function preprocess_ref_attributes(attrs, transform_context) {
 	const result = [];
@@ -1150,7 +1148,7 @@ function preprocess_ref_attributes(attrs, transform_context) {
 }
 
 /**
- * @param {ESTreeJSX.JSXTransformAttribute} attr
+ * @param {ESTreeJSX.JSXAttributeNode} attr
  * @returns {boolean}
  */
 function is_vue_named_ref_attribute(attr) {
@@ -1159,7 +1157,7 @@ function is_vue_named_ref_attribute(attr) {
 	return !!(
 		attr_name &&
 		attr_name !== 'ref' &&
-		(attr.type === 'Attribute' || attr.type === 'JSXAttribute') &&
+		attr.type === 'JSXAttribute' &&
 		value &&
 		is_vue_ref_prop_name(attr_name)
 	);
@@ -1174,8 +1172,8 @@ function is_vue_ref_prop_name(name) {
 }
 
 /**
- * @param {ESTreeJSX.JSXTransformAttribute} attr
- * @returns {ESTreeJSX.JSXTransformAttribute}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {ESTreeJSX.JSXAttributeNode}
  */
 function create_vue_named_ref_spread(attr) {
 	if (attr.type === 'JSXSpreadAttribute') return attr;
@@ -1188,15 +1186,10 @@ function create_vue_named_ref_spread(attr) {
 }
 
 /**
- * @param {ESTreeJSX.JSXTransformAttribute} attr
+ * @param {ESTreeJSX.JSXAttributeNode} attr
  * @returns {string | null}
  */
 function get_vue_attribute_name(attr) {
-	if (attr.type === 'Attribute') {
-		return attr.name.type === 'Identifier' || attr.name.type === 'JSXIdentifier'
-			? attr.name.name
-			: null;
-	}
 	if (attr.type === 'JSXAttribute') {
 		return attr.name?.type === 'JSXIdentifier' ? attr.name.name : null;
 	}
@@ -1204,7 +1197,7 @@ function get_vue_attribute_name(attr) {
 }
 
 /**
- * @param {ESTreeJSX.JSXTransformAttribute} attr
+ * @param {ESTreeJSX.JSXAttributeNode} attr
  * @returns {AST.Expression | ESTreeJSX.JSXEmptyExpression | null}
  */
 function get_vue_attribute_expression(attr) {

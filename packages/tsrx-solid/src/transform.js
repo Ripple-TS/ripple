@@ -7,7 +7,6 @@ import {
 	createJsxTransform,
 	error,
 	mergeDuplicateRefs,
-	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	buildReturnExpression as build_return_expression,
@@ -2002,20 +2001,15 @@ function to_jsx_element(node, transform_context) {
 	const closingElement = selfClosing
 		? null
 		: set_loc(
-				/** @type {ESTreeJSX.JSXClosingElement} */ ({
-					type: 'JSXClosingElement',
-					metadata: { path: [] },
-					// Forward the source *name* (not the JSXClosingElement wrapper)
-					// so `clone_jsx_name` can propagate member-expression sub-part
-					// locations from the closing tag. See the identical fix in
-					// packages/tsrx/src/transform/jsx/index.js.
-					name: clone_jsx_name(
-						name,
-						node.closingElement
-							? /** @type {ESTreeJSX.JSXClosingElement['name']} */ (node.closingElement.name)
-							: name,
+				b.jsx_closing_element(
+					// Clone from the actual closing name when there is one: a dynamic
+					// tag's closing expression (`</{Tag}>`) has its own source positions,
+					// which editor mappings need. See the identical fix in core.
+					clone_jsx_name(
+						node.closingElement?.name ?? name,
+						node.closingElement?.name || node.closingElement || node,
 					),
-				}),
+				),
 				node.closingElement || node,
 			);
 
@@ -2065,13 +2059,9 @@ function create_element_children(children, transform_context) {
 }
 
 /**
- * Transform a list of raw attributes into JSX attributes.
- *
- * Per-attribute conversion (SpreadAttribute → `{...expr}`, plain Attribute →
- * JSXAttribute, JSXAttribute pass-through)
- * is delegated to `@tsrx/core`'s shared {@link toJsxAttribute}. The list
- * is then run through {@link mergeDuplicateRefs} so compiler-synthesized
- * host-spread refs can compose with an explicit `ref={...}`.
+ * Transform a list of parser-native JSX attributes. The list is run through
+ * {@link mergeDuplicateRefs} so compiler-synthesized host-spread refs can
+ * compose with an explicit `ref={...}`.
  *
  * @param {ESTreeJSX.JSXAttributeNode[]} raw_attrs
  * @param {boolean} is_composite
@@ -2081,15 +2071,8 @@ function create_element_children(children, transform_context) {
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context, element) {
 	validateAtMostOneRefAttribute(raw_attrs, transform_context);
-	/** @type {ESTreeJSX.JSXAttributeNode[]} */
-	const result = [];
-
-	for (const attr of raw_attrs) {
-		if (!attr) continue;
-		result.push(toJsxAttribute(attr, transform_context));
-	}
 	return mergeDuplicateRefs(
-		normalize_solid_host_ref_spreads(result, !is_composite, transform_context),
+		normalize_solid_host_ref_spreads(raw_attrs, !is_composite, transform_context),
 		transform_context,
 	);
 }

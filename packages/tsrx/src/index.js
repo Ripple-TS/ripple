@@ -168,7 +168,6 @@ export {
 	plan_switch_lift as planSwitchLift,
 	return_value_body_to_expression as returnValueBodyToExpression,
 	rewrite_loop_continues_to_bare_returns as rewriteLoopContinuesToBareReturns,
-	to_jsx_attribute as toJsxAttribute,
 	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,
 	wrap_edge_whitespace as wrapEdgeWhitespace,
 } from './transform/jsx/index.js';
