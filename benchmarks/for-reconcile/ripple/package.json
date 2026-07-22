@@ -2,7 +2,7 @@
   "name": "ripple-for-reconcile-bench",
   "private": true,
   "type": "module",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "Keyed-@for reconcile bench fixture for ripple — exposes window.__mount/__reverse/__shuffle/__reset for the Playwright harness.",
   "scripts": {
     "dev": "vite --host --port 5190 --strictPort",

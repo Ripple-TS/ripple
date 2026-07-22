@@ -1,5 +1,13 @@
 # @ripple-ts/cli
 
+## 0.3.109
+
+### Patch Changes
+
+- [`99e759d`](https://github.com/Ripple-TS/ripple/commit/99e759d146d9b2488bc6e0e8ae3253f32bb74fba)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update generated pnpm
+  projects to pin pnpm 11.15.1.
+
 ## 0.3.108
 
 ## 0.3.107

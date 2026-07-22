@@ -14,7 +14,7 @@
   "author": "Dominic Gannaway",
   "license": "MIT",
   "config": {
-    "@ripple-ts/language-server": "0.3.108"
+    "@ripple-ts/language-server": "0.3.109"
   },
   "packageManager": "pnpm@11.15.1"
 }

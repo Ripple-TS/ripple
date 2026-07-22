@@ -1,5 +1,14 @@
 # ripple
 
+## 0.3.109
+
+### Patch Changes
+
+- Updated dependencies
+  [[`302dc74`](https://github.com/Ripple-TS/ripple/commit/302dc74143f4143ec7136c036510d258a7866c8a)]:
+  - @tsrx/core@0.1.47
+  - @tsrx/ripple@0.1.48
+
 ## 0.3.108
 
 ## 0.3.107
