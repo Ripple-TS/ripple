@@ -1,5 +1,7 @@
 # @tsrx/typescript-plugin
 
+## 0.3.108
+
 ## 0.3.107
 
 ### Patch Changes

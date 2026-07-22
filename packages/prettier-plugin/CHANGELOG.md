@@ -1,5 +1,18 @@
 # @tsrx/prettier-plugin
 
+## 0.3.108
+
+### Patch Changes
+
+- [#1376](https://github.com/Ripple-TS/ripple/pull/1376)
+  [`7065ecc`](https://github.com/Ripple-TS/ripple/commit/7065ecc5be0a8d5152ff57f23b44e359f513cf30)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep JSX children glued across
+  a whitespace-free text boundary, matching vanilla Prettier.
+  `{state.owner}/{state.repoName}` and `{a}some text{b}` now stay on one line
+  instead of each child being split onto its own line, while whitespace-separated
+  siblings and directly adjacent expressions or elements (`{a} / {b}`, `{a}{b}`,
+  `</p><p>`) still get their own lines.
+
 ## 0.3.107
 
 ### Patch Changes
