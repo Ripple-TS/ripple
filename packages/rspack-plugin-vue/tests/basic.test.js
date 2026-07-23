@@ -177,6 +177,7 @@ describe('@tsrx/rspack-plugin-vue plugin', () => {
 
 		expect(compiler.options.resolve.extensions).toContain('.tsrx');
 		expect(compiler.options.experiments.css).toBe(true);
+		expect(compiler.options.experiments.deferImport).toBe(true);
 		expect(compiler.options.module.rules).toHaveLength(3);
 
 		const [interopRule, jsRule, cssRule] = compiler.options.module.rules;
@@ -219,18 +220,19 @@ describe('@tsrx/rspack-plugin-vue plugin', () => {
 		expect(jsRule.use[1].options.vapor.compiler.runtimeModuleName).toBe('custom-runtime');
 	});
 
-	it('does not override an explicitly disabled experiments.css flag', () => {
+	it('does not override explicitly disabled experiment flags', () => {
 		const plugin = new TsrxVueRspackPlugin();
 		const compiler = {
 			options: {
 				module: { rules: [] },
 				resolve: { extensions: [] },
-				experiments: { css: false },
+				experiments: { css: false, deferImport: false },
 			},
 		};
 
 		plugin.apply(/** @type {any} */ (compiler));
 
 		expect(compiler.options.experiments.css).toBe(false);
+		expect(compiler.options.experiments.deferImport).toBe(false);
 	});
 });

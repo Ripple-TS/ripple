@@ -28,10 +28,10 @@
     "solid-refresh": "0.8.0-next.7"
   },
   "peerDependencies": {
-    "@rspack/core": ">=1.0.0"
+    "@rspack/core": ">=1.6.0"
   },
   "devDependencies": {
-    "@rspack/core": "^1.6.0",
+    "@rspack/core": "^2.1.5",
     "@solidjs/web": "catalog:default",
     "solid-js": "catalog:default",
     "typescript": "catalog:default"

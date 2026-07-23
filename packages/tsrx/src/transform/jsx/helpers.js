@@ -3,6 +3,7 @@
 
 import tsx from 'esrap/languages/tsx';
 import { should_preserve_comment, format_comment } from '../../comment-utils.js';
+import { with_deferred_imports } from '../imports.js';
 
 /**
  * Zimmerframe provides `path` as the ancestor chain. A native template node in
@@ -76,7 +77,7 @@ export function set_node_path_metadata(node, path) {
  * TS input — dropping a leading pragma changes how the whole file checks.
  */
 export function tsx_with_ts_locations(boundary_tokens = false, comments = undefined) {
-	const base = /** @type {any} */ (tsx({ boundaryTokens: boundary_tokens }));
+	const base = /** @type {any} */ (with_deferred_imports(tsx({ boundaryTokens: boundary_tokens })));
 
 	const leading_preserved = (/** @type {any} */ program) => {
 		if (!comments?.length) return [];

@@ -1,3 +1,9 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { experiments, rspack } from '@rspack/core';
 import { describe, expect, it } from 'vitest';
 import jsLoader from '../src/js-loader.js';
 import cssLoader from '../src/css-loader.js';
@@ -122,6 +128,7 @@ describe('@tsrx/rspack-plugin-react plugin', () => {
 
 		expect(compiler.options.resolve.extensions).toContain('.tsrx');
 		expect(compiler.options.experiments.css).toBe(true);
+		expect(compiler.options.experiments.deferImport).toBe(true);
 		expect(compiler.options.module.rules).toHaveLength(2);
 
 		const [jsRule, cssRule] = compiler.options.module.rules;
@@ -149,18 +156,106 @@ describe('@tsrx/rspack-plugin-react plugin', () => {
 		expect(jsRule.use[0].options.jsc.transform.react.importSource).toBe('preact');
 	});
 
-	it('does not override an explicitly disabled experiments.css flag', () => {
+	it('does not override explicitly disabled experiment flags', () => {
 		const plugin = new TsrxReactRspackPlugin();
 		const compiler = {
 			options: {
 				module: { rules: [] },
 				resolve: { extensions: [] },
-				experiments: { css: false },
+				experiments: { css: false, deferImport: false },
 			},
 		};
 
 		plugin.apply(/** @type {any} */ (compiler));
 
 		expect(compiler.options.experiments.css).toBe(false);
+		expect(compiler.options.experiments.deferImport).toBe(false);
+	});
+
+	it('keeps static and dynamic deferred imports lazy in a Rspack 2 bundle', async () => {
+		const package_root = fileURLToPath(new URL('..', import.meta.url));
+		const output_path = mkdtempSync(path.join(tmpdir(), 'tsrx-rspack-defer-'));
+		const virtual_root = 'tests/virtual-defer';
+		const runtime_global = /** @type {typeof globalThis & { __tsrx_defer_events__?: string[] }} */ (
+			globalThis
+		);
+		const modules = {
+			[`${virtual_root}/entry.tsrx`]: `
+				import defer * as staticFeature from './static.js';
+
+				export async function loadDynamic() {
+					const dynamicFeature = await import.defer('./dynamic.js');
+					return {
+						before: [...globalThis.__tsrx_defer_events__],
+						read: () => dynamicFeature.value,
+					};
+				}
+
+				export function readStatic() {
+					return staticFeature.value;
+				}
+			`,
+			[`${virtual_root}/static.js`]: `
+				globalThis.__tsrx_defer_events__.push('static evaluated');
+				export const value = 'static';
+			`,
+			[`${virtual_root}/dynamic.js`]: `
+				globalThis.__tsrx_defer_events__.push('dynamic evaluated');
+				export const value = 'dynamic';
+			`,
+		};
+
+		try {
+			await new Promise((resolve, reject) => {
+				rspack(
+					{
+						context: package_root,
+						mode: 'development',
+						target: 'node',
+						entry: `./${virtual_root}/entry.tsrx`,
+						devtool: false,
+						optimization: { minimize: false },
+						output: {
+							path: output_path,
+							filename: 'main.cjs',
+							chunkFilename: '[name].cjs',
+							library: { type: 'commonjs2' },
+						},
+						plugins: [new experiments.VirtualModulesPlugin(modules), new TsrxReactRspackPlugin()],
+					},
+					(error, stats) => {
+						if (error) {
+							reject(error);
+						} else if (stats?.hasErrors()) {
+							reject(new Error(stats.toString({ all: false, errors: true })));
+						} else {
+							resolve(undefined);
+						}
+					},
+				);
+			});
+
+			runtime_global.__tsrx_defer_events__ = [];
+			const require = createRequire(import.meta.url);
+			const api =
+				/** @type {{ loadDynamic(): Promise<{ before: string[], read(): string }>, readStatic(): string }} */ (
+					require(path.join(output_path, 'main.cjs'))
+				);
+
+			expect(runtime_global.__tsrx_defer_events__).toEqual([]);
+			const dynamic = await api.loadDynamic();
+			expect(dynamic.before).toEqual([]);
+			expect(runtime_global.__tsrx_defer_events__).toEqual([]);
+			expect(dynamic.read()).toBe('dynamic');
+			expect(runtime_global.__tsrx_defer_events__).toEqual(['dynamic evaluated']);
+			expect(api.readStatic()).toBe('static');
+			expect(runtime_global.__tsrx_defer_events__).toEqual([
+				'dynamic evaluated',
+				'static evaluated',
+			]);
+		} finally {
+			Reflect.deleteProperty(runtime_global, '__tsrx_defer_events__');
+			rmSync(output_path, { recursive: true, force: true });
+		}
 	});
 });

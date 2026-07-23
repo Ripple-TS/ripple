@@ -151,6 +151,7 @@ describe('@tsrx/rspack-plugin-preact plugin', () => {
 
 		expect(compiler.options.resolve.extensions).toContain('.tsrx');
 		expect(compiler.options.experiments.css).toBe(true);
+		expect(compiler.options.experiments.deferImport).toBe(true);
 		expect(compiler.options.module.rules).toHaveLength(2);
 
 		const [jsRule, cssRule] = compiler.options.module.rules;
@@ -178,18 +179,19 @@ describe('@tsrx/rspack-plugin-preact plugin', () => {
 		expect(jsRule.use[0].options.jsc.transform.react.importSource).toBe('preact/compat');
 	});
 
-	it('does not override an explicitly disabled experiments.css flag', () => {
+	it('does not override explicitly disabled experiment flags', () => {
 		const plugin = new TsrxPreactRspackPlugin();
 		const compiler = {
 			options: {
 				module: { rules: [] },
 				resolve: { extensions: [] },
-				experiments: { css: false },
+				experiments: { css: false, deferImport: false },
 			},
 		};
 
 		plugin.apply(/** @type {any} */ (compiler));
 
 		expect(compiler.options.experiments.css).toBe(false);
+		expect(compiler.options.experiments.deferImport).toBe(false);
 	});
 });

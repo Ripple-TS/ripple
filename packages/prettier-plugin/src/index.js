@@ -1623,10 +1623,19 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'ImportExpression': {
+			const importExpression =
+				/** @type {AST.ImportExpression & { phase?: 'defer' | null, arguments?: AST.Expression[] }} */ (
+					node
+				);
 			/** @type {Doc[]} */
-			const parts = ['import(', path.call(print, 'source')];
+			const parts = [
+				importExpression.phase === 'defer' ? 'import.defer(' : 'import(',
+				path.call(print, 'source'),
+			];
 			if (node.options) {
 				parts.push(', ', path.call(print, 'options'));
+			} else if (importExpression.arguments?.length) {
+				parts.push(', ', path.call(print, 'arguments', 0));
 			}
 			parts.push(')');
 			nodeContent = parts;
@@ -2589,9 +2598,13 @@ function printRippleNode(node, path, options, print, args) {
 function printImportDeclaration(node, path, options, _print) {
 	/** @type {Doc[]} */
 	const parts = ['import'];
+	const importDeclaration = /** @type {AST.ImportDeclaration & { phase?: 'defer' | null }} */ (
+		node
+	);
 
-	// Handle type imports
-	if (node.importKind === 'type') {
+	if (importDeclaration.phase === 'defer') {
+		parts.push(' defer');
+	} else if (node.importKind === 'type') {
 		parts.push(' type');
 	}
 
@@ -2659,7 +2672,25 @@ function printImportDeclaration(node, path, options, _print) {
 			? source.name
 			: formatStringLiteral(/** @type {string} */ (source.value), options);
 
-	parts.push(' ', sourceDoc, semi(options));
+	parts.push(' ', sourceDoc);
+
+	const attributes =
+		/** @type {Array<{ key: AST.Identifier | AST.Literal, value: AST.Literal }>} */ (
+			/** @type {any} */ (node).attributes ?? /** @type {any} */ (node).assertions ?? []
+		);
+	if (attributes.length > 0) {
+		const attributeDocs = attributes.map((attribute) => {
+			const key =
+				attribute.key.type === 'Identifier'
+					? attribute.key.name
+					: formatStringLiteral(/** @type {string} */ (attribute.key.value), options);
+			const value = formatStringLiteral(/** @type {string} */ (attribute.value.value), options);
+			return [key, ': ', value];
+		});
+		parts.push(' with { ', join(', ', attributeDocs), ' }');
+	}
+
+	parts.push(semi(options));
 
 	return parts;
 }

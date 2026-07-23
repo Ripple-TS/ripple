@@ -52,8 +52,15 @@ export class TsrxSolidRspackPlugin {
 		if (!compiler.options.experiments) {
 			compiler.options.experiments = {};
 		}
-		if (compiler.options.experiments.css === undefined) {
-			compiler.options.experiments.css = true;
+		const experiments =
+			/** @type {typeof compiler.options.experiments & { deferImport?: boolean }} */ (
+				compiler.options.experiments
+			);
+		if (experiments.css === undefined) {
+			experiments.css = true;
+		}
+		if (experiments.deferImport === undefined) {
+			experiments.deferImport = true;
 		}
 
 		compiler.options.module.rules.unshift(
@@ -67,6 +74,9 @@ export class TsrxSolidRspackPlugin {
 							babelrc: false,
 							configFile: false,
 							sourceMaps: true,
+							parserOpts: {
+								plugins: ['deferredImportEvaluation'],
+							},
 							plugins: hot ? [SOLID_REFRESH_BABEL] : [],
 							presets: [
 								[BABEL_PRESET_SOLID, {}],

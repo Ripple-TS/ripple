@@ -120,12 +120,14 @@ describe('@tsrx/rspack-plugin-solid plugin', () => {
 
 		expect(compiler.options.resolve.extensions).toContain('.tsrx');
 		expect(compiler.options.experiments.css).toBe(true);
+		expect(compiler.options.experiments.deferImport).toBe(true);
 		expect(compiler.options.module.rules).toHaveLength(2);
 
 		const [jsRule, cssRule] = compiler.options.module.rules;
 		expect(jsRule.test.toString()).toContain('tsrx');
 		expect(jsRule.use).toHaveLength(2);
 		expect(jsRule.use[0].loader).toContain('babel-loader');
+		expect(jsRule.use[0].options.parserOpts.plugins).toContain('deferredImportEvaluation');
 		expect(jsRule.use[0].options.presets).toHaveLength(2);
 		expect(jsRule.use[0].options.presets[1][1]).toMatchObject({
 			allExtensions: true,
@@ -171,19 +173,20 @@ describe('@tsrx/rspack-plugin-solid plugin', () => {
 		expect(jsRule.use[0].options.plugins).toEqual([]);
 	});
 
-	it('does not override an explicitly disabled experiments.css flag', () => {
+	it('does not override explicitly disabled experiment flags', () => {
 		const plugin = new TsrxSolidRspackPlugin();
 		const compiler = {
 			options: {
 				mode: 'development',
 				module: { rules: [] },
 				resolve: { extensions: [] },
-				experiments: { css: false },
+				experiments: { css: false, deferImport: false },
 			},
 		};
 
 		plugin.apply(/** @type {any} */ (compiler));
 
 		expect(compiler.options.experiments.css).toBe(false);
+		expect(compiler.options.experiments.deferImport).toBe(false);
 	});
 });

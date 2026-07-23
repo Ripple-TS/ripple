@@ -148,6 +148,7 @@ export { normalize_css_property_name as normalizeCssPropertyName } from './utils
 export { escape, escape_script as escapeScript } from './utils/escaping.js';
 
 // Transform
+export { with_deferred_imports as withDeferredImports } from './transform/imports.js';
 export {
 	add_jsx_setup_declaration as addJsxSetupDeclaration,
 	clone_switch_helper_invocation as cloneSwitchHelperInvocation,

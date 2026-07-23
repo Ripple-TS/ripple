@@ -23,10 +23,10 @@
     "@tsrx/react": "workspace:*"
   },
   "peerDependencies": {
-    "@rspack/core": ">=1.0.0"
+    "@rspack/core": ">=1.6.0"
   },
   "devDependencies": {
-    "@rspack/core": "^1.6.0",
+    "@rspack/core": "^2.1.5",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",

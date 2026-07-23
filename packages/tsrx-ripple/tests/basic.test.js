@@ -18,6 +18,27 @@ runSharedComponentParamsTests({
 	name: 'ripple',
 });
 
+describe('@tsrx/ripple deferred imports', () => {
+	it('preserves deferred imports in client, server, and Volar output', () => {
+		const source = `import defer * as feature from './feature.js';
+			const lazy = import.defer('./lazy.js', { with: { type: 'json' } });
+
+			export function App() {
+				return <div>{feature.value}</div>;
+			}`;
+		const outputs = [
+			compile(source, 'App.tsrx').code,
+			compile(source, 'App.tsrx', { mode: 'server' }).code,
+			compile_to_volar_mappings(source, 'App.tsrx', { loose: true }).code,
+		];
+
+		for (const code of outputs) {
+			expect(code).toContain("import defer * as feature from './feature.js';");
+			expect(code).toContain("import.defer('./lazy.js', { with: { type: 'json' } })");
+		}
+	});
+});
+
 describe('@tsrx/ripple faithful text output', () => {
 	it("keeps a single `@` text child as `<>@</>` instead of `{'@'}` in type-only output", () => {
 		const { code, errors } = compile_to_volar_mappings(

@@ -68,6 +68,84 @@ function findElement(source, tagName) {
 }
 
 describe('TSRX parser', () => {
+	describe('deferred imports', () => {
+		it('parses a deferred namespace import with its phase and source', () => {
+			const [declaration] = parseModule(
+				"import defer * as feature from './feature.js';",
+				'App.tsrx',
+			).body;
+
+			expect(declaration.type).toBe('ImportDeclaration');
+			expect(declaration.phase).toBe('defer');
+			expect(declaration.specifiers).toHaveLength(1);
+			expect(declaration.specifiers[0].type).toBe('ImportNamespaceSpecifier');
+			expect(declaration.specifiers[0].local.name).toBe('feature');
+			expect(declaration.source.value).toBe('./feature.js');
+		});
+
+		it('parses import attributes on a deferred namespace import', () => {
+			const [declaration] = parseModule(
+				"import defer * as feature from './feature.json' with { type: 'json' };",
+				'App.tsrx',
+			).body;
+
+			expect(declaration.phase).toBe('defer');
+			expect(declaration.attributes).toHaveLength(1);
+			expect(declaration.attributes[0].key.name).toBe('type');
+			expect(declaration.attributes[0].value.value).toBe('json');
+		});
+
+		it('parses a dynamic deferred import with options and trailing commas', () => {
+			const expression = findNode(
+				"const feature = import.defer('./feature.json', { with: { type: 'json' } },);",
+				'ImportExpression',
+			);
+
+			expect(expression.phase).toBe('defer');
+			expect(expression.source.value).toBe('./feature.json');
+			expect(expression.options.type).toBe('ObjectExpression');
+
+			const trailing = findNode(
+				"const feature = import.defer('./feature.js',);",
+				'ImportExpression',
+			);
+			expect(trailing.phase).toBe('defer');
+			expect(trailing.options).toBeNull();
+		});
+
+		it('keeps defer as a normal default import binding when followed by from', () => {
+			const [declaration] = parseModule("import defer from './feature.js';", 'App.tsrx').body;
+
+			expect(declaration.phase).toBeUndefined();
+			expect(declaration.specifiers).toHaveLength(1);
+			expect(declaration.specifiers[0].type).toBe('ImportDefaultSpecifier');
+			expect(declaration.specifiers[0].local.name).toBe('defer');
+		});
+
+		it('keeps the existing AST shape for ordinary dynamic import options', () => {
+			const expression = findNode(
+				"const feature = import('./feature.json', { with: { type: 'json' } });",
+				'ImportExpression',
+			);
+
+			expect(expression.phase).toBeUndefined();
+			expect(expression.options).toBeUndefined();
+			expect(expression.arguments).toHaveLength(1);
+		});
+
+		it('rejects deferred default, named, and bare imports', () => {
+			for (const source of [
+				"import defer feature from './feature.js';",
+				"import defer { feature } from './feature.js';",
+				"import defer './feature.js';",
+			]) {
+				expect(() => parseModule(source, 'App.tsrx')).toThrow(
+					'`import defer` only supports a namespace import from a string literal.',
+				);
+			}
+		});
+	});
+
 	it('parses returned tags as JSXElement nodes', () => {
 		const returned = getReturned('function MyApp() { return <div />; }');
 

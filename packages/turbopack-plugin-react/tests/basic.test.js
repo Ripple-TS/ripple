@@ -51,6 +51,26 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 		expect(map).toBeTruthy();
 	});
 
+	it('preserves deferred imports in the loader output', async () => {
+		const { context, promise } = create_loader_context('/virtual/App.tsrx');
+
+		tsrx_react_turbopack_loader.call(
+			context,
+			`import defer * as feature from './feature.js';
+			const lazy = import.defer('./lazy.js');
+
+			export function App() @{
+				<div>{feature.value}</div>
+			}`,
+		);
+
+		const { err, output } = await promise;
+
+		expect(err).toBeNull();
+		expect(output).toContain("import defer * as feature from './feature.js';");
+		expect(output).toContain("import.defer('./lazy.js')");
+	});
+
 	it('preserves top-level directives at the start of the output', async () => {
 		const { context, promise } = create_loader_context('/virtual/App.tsrx');
 

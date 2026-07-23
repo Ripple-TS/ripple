@@ -4689,6 +4689,79 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Parse deferred import-call arguments using Acorn's current ESTree
+			 * shape. Keep ordinary `import()` on the TypeScript parser's existing
+			 * path so adding this proposal does not change its public AST shape.
+			 *
+			 * @param {AST.Node} node
+			 * @returns {AST.ImportExpression}
+			 */
+			parseDeferredDynamicImport(node) {
+				const import_node = /** @type {any} */ (node);
+				this.next();
+				import_node.source = this.parseMaybeAssign();
+
+				if (!this.eat(tt.parenR)) {
+					this.expect(tt.comma);
+					if (!this.afterTrailingComma(tt.parenR)) {
+						import_node.options = this.parseMaybeAssign();
+						if (!this.eat(tt.parenR)) {
+							this.expect(tt.comma);
+							if (!this.afterTrailingComma(tt.parenR)) this.unexpected();
+						}
+					} else {
+						import_node.options = null;
+					}
+				} else {
+					import_node.options = null;
+				}
+
+				return this.finishNode(import_node, 'ImportExpression');
+			}
+
+			/**
+			 * Parse the deferred dynamic-import form from the proposal:
+			 * `import.defer(specifier, options?)`.
+			 *
+			 * Acorn otherwise treats every `import.<name>` expression as
+			 * `import.meta`, so recognize `defer` before delegating that path.
+			 * @type {Parse.Parser['parseExprImport']}
+			 */
+			parseExprImport(forNew) {
+				const parser = /** @type {any} */ (this);
+				const node = /** @type {any} */ (this.startNode());
+
+				if (this.containsEsc) {
+					this.raiseRecoverable(this.start, 'Escape sequence in keyword import');
+				}
+				this.next();
+
+				if (this.type === tt.parenL && !forNew) {
+					return this.parseDynamicImport(node);
+				}
+
+				if (this.type === tt.dot) {
+					const ahead = parser.lookahead();
+					if (!forNew && parser.isContextualWithState('defer', ahead)) {
+						this.next();
+						this.next();
+						node.phase = 'defer';
+						if (this.type !== tt.parenL) this.unexpected();
+						return this.parseDeferredDynamicImport(node);
+					}
+
+					const meta = /** @type {any} */ (
+						this.startNodeAt(node.start, node.loc && node.loc.start)
+					);
+					meta.name = 'import';
+					node.meta = this.finishNode(meta, 'Identifier');
+					return this.parseImportMeta(node);
+				}
+
+				return this.unexpected();
+			}
+
+			/**
 			 * Parse proposal-style imports from an inline module declaration:
 			 * `import { foo } from server;`
 			 *
@@ -4702,11 +4775,30 @@ export function TSRXPlugin(config) {
 				const parser = /** @type {any} */ (this);
 				const import_node = /** @type {any} */ (node);
 				let enterHead = parser.lookahead();
+				let deferred = false;
+				let defer_start = -1;
 				import_node.importKind = 'value';
 				parser.importOrExportOuterKind = 'value';
 				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
 					let ahead = parser.lookahead(2);
+					// `defer` remains a valid local binding in regular imports, so it is a
+					// phase modifier only when the following token cannot continue a default
+					// import or an import-equals declaration. The namespace-only restriction is
+					// checked after parsing the clause, which also gives invalid named/default
+					// deferred imports a focused diagnostic.
 					if (
+						ahead.type !== tt.comma &&
+						!parser.isContextualWithState('from', ahead) &&
+						ahead.type !== tt.eq &&
+						parser.isContextualWithState('defer', enterHead)
+					) {
+						deferred = true;
+						defer_start = enterHead.start;
+						import_node.phase = 'defer';
+						parser.ts_eatContextualWithState('defer', 1, enterHead);
+						enterHead = parser.lookahead();
+						ahead = parser.lookahead(2);
+					} else if (
 						ahead.type !== tt.comma &&
 						!parser.isContextualWithState('from', ahead) &&
 						ahead.type !== tt.eq &&
@@ -4740,6 +4832,17 @@ export function TSRXPlugin(config) {
 					} else {
 						this.unexpected();
 					}
+				}
+				if (
+					deferred &&
+					(import_node.specifiers.length !== 1 ||
+						import_node.specifiers[0].type !== 'ImportNamespaceSpecifier' ||
+						import_node.source.type !== 'Literal')
+				) {
+					this.raise(
+						defer_start,
+						'`import defer` only supports a namespace import from a string literal.',
+					);
 				}
 				parser.parseMaybeImportAttributes(node);
 				this.semicolon();

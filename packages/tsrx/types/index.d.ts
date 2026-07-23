@@ -495,6 +495,10 @@ declare module 'estree' {
 
 	interface ImportDeclaration {
 		importKind: TSESTree.ImportDeclaration['importKind'];
+		phase?: 'defer' | null;
+	}
+	interface ImportExpression {
+		phase?: 'defer' | null;
 	}
 	interface ImportSpecifier {
 		importKind: TSESTree.ImportSpecifier['importKind'];

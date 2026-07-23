@@ -24,12 +24,12 @@
     "source-map": "catalog:default"
   },
   "peerDependencies": {
-    "@rspack/core": ">=1.0.0",
+    "@rspack/core": ">=1.6.0",
     "vue": ">=3.5",
     "vue-jsx-vapor": ">=3.2.14"
   },
   "devDependencies": {
-    "@rspack/core": "^1.6.0",
+    "@rspack/core": "^2.1.5",
     "typescript": "catalog:default",
     "vue": "3.6.0-beta.12",
     "vue-jsx-vapor": "^3.2.14"

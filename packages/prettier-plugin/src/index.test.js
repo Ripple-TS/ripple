@@ -1247,6 +1247,20 @@ const items=[1,2,3];
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve and format dynamic deferred imports', async () => {
+			const input = `const feature=import.defer("./feature.js")`;
+			const expected = `const feature = import.defer('./feature.js');`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve dynamic deferred import options', async () => {
+			const input = `const data=import.defer("./feature.json",{with:{type:"json"}})`;
+			const expected = `const data = import.defer('./feature.json', { with: { type: 'json' } });`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format destructured dynamic import() in Promise.all', async () => {
 			const input = `const [{ EditorState }, { oneDark }] = await Promise.all([import('@codemirror/state'), import('@codemirror/theme-one-dark')]);`;
 			const expected = `const [{ EditorState }, { oneDark }] = await Promise.all([
@@ -1631,6 +1645,13 @@ async function load() {
 import { Something, type Props, track } from 'ripple';`;
 			const expected = `import { type Component } from 'ripple';
 import { Something, type Props, track } from 'ripple';`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve and format static deferred imports', async () => {
+			const input = `import defer*as feature from "./feature.json" with{type:"json"};`;
+			const expected = `import defer * as feature from './feature.json' with { type: 'json' };`;
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
 		});

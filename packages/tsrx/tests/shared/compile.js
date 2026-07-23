@@ -46,6 +46,23 @@ const TSRX_TEMPLATE_RETURN_ERROR =
  */
 export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
 	describe(`[${name}] compile diagnostics`, () => {
+		it('preserves deferred imports in type-only output', () => {
+			const result = compile_to_volar_mappings(
+				`import defer * as feature from './feature.js';
+				const lazy = import.defer('./lazy.js', { with: { type: 'json' } });
+
+				export function App() {
+					return <div>{feature.value}</div>;
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain("import defer * as feature from './feature.js';");
+			expect(result.code).toContain("import.defer('./lazy.js', { with: { type: 'json' } })");
+		});
+
 		it('keeps fragment expression children inside containers in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function StatusBadge() @{
@@ -1933,6 +1950,23 @@ export function runSharedCompileTests({
 	runSharedNestedLazyDestructuringTests({ compile, name });
 	runSharedLazyScopeNestingTests({ compile, name });
 	runSharedLazyJsxNameTests({ compile, name });
+
+	describe(`[${name}] deferred imports`, () => {
+		it('preserves deferred imports in compiled output', () => {
+			const { code } = compile(
+				`import defer * as feature from './feature.js';
+				const lazy = import.defer('./lazy.js', { with: { type: 'json' } });
+
+				export function App() {
+					return <div>{feature.value}</div>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("import defer * as feature from './feature.js';");
+			expect(code).toContain("import.defer('./lazy.js', { with: { type: 'json' } })");
+		});
+	});
 
 	describe(`[${name}] fragment expression children`, () => {
 		// A bare expression placed directly as a JSX child reads as JSX text

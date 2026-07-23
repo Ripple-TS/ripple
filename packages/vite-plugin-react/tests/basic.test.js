@@ -43,6 +43,23 @@ describe('@tsrx/vite-plugin-react basic', () => {
 		expect(plugin.load(resolved_id)).toBe('');
 	});
 
+	it('preserves deferred imports in the transform output', async () => {
+		const plugin = tsrxReact();
+		const id = '/virtual/App.tsrx';
+		const source = `import defer * as feature from './feature.js';
+		const lazy = import.defer('./lazy.js');
+
+		export function App() @{
+			<div>{feature.value}</div>
+		}`;
+
+		const transformed = await plugin.transform(source, id);
+
+		expect(transformed).not.toBeNull();
+		expect(transformed.code).toMatch(/import defer \* as feature from ["']\.\/feature\.js["'];/);
+		expect(transformed.code).toMatch(/import\.defer\(["']\.\/lazy\.js["']\)/);
+	});
+
 	it('maps the JSX transform output back to the original tsrx source', async () => {
 		const plugin = tsrxReact();
 		const id = '/virtual/App.tsrx';

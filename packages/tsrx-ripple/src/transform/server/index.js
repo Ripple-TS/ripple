@@ -31,6 +31,7 @@ import {
 	BLOCK_OPEN,
 	isFunctionNode,
 	clone_expression_node,
+	withDeferredImports,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -3632,7 +3633,7 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const { code, map } = print(
 		program,
-		/** @type {Visitors<AST.Node, TransformServerState>} */ (ts()),
+		/** @type {Visitors<AST.Node, TransformServerState>} */ (withDeferredImports(ts())),
 		{
 			sourceMapContent: source,
 			sourceMapSource: path.basename(filename),
