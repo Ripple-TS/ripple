@@ -1,6 +1,6 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
-/** @import { JsxPlatform, JsxTransformContext, JsxTransformOptions, JsxTransformResult } from '@tsrx/core/types' */
+/** @import { JsxHelperComponent, JsxPlatform, JsxTransformContext as TransformContext, JsxTransformOptions, JsxTransformResult } from '@tsrx/core/types' */
 
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
@@ -20,13 +20,14 @@ import {
 } from './helpers.js';
 import {
 	add_extra_source_mappings_from_matching_expression,
-	clone_expression_node,
+	clone_ast_node,
 	clone_identifier,
 	clone_jsx_name,
 	create_generated_identifier,
 	create_null_literal,
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
+	identifier_to_jsx_identifier,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_component_jsx_name,
@@ -62,6 +63,7 @@ import {
 import { is_hoist_safe_jsx_node } from '../jsx-hoist.js';
 import { lower_server_module_for_types } from './server-module.js';
 import {
+	has_location,
 	is_function_or_class_node as is_function_or_class_boundary,
 	is_template_directive as is_jsx_control_flow_expression,
 } from '../../utils/ast.js';
@@ -105,18 +107,6 @@ function report_jsx_fragment_in_tsrx_error(node, transform_context) {
 		transform_context.comments,
 	);
 }
-
-/**
- * Local alias for the shared `JsxTransformContext`. Kept as a typedef so the
- * rest of this file's `@param {TransformContext}` annotations don't all have
- * to spell out the import.
- *
- * @typedef {JsxTransformContext} TransformContext
- */
-
-/**
- * @typedef {{ source_name: string, read: () => any }} LazyBinding
- */
 
 /**
  * @param {any} node
@@ -392,7 +382,7 @@ function wrap_lowered_value_in_fragment(expression, source) {
 		expression?.type === 'JSXExpressionContainer'
 			? expression
 			: to_jsx_expression_container(expression, source);
-	return set_loc(b.jsx_fragment([child]), source?.loc ? source : undefined);
+	return set_loc(b.jsx_fragment([child]), has_location(source) ? source : undefined);
 }
 
 /**
@@ -568,7 +558,7 @@ export function createJsxTransform(platform) {
 	function transform(ast, source, filename, options) {
 		const suspense_source = options?.suspenseSource ?? platform.imports.suspense;
 		const collect = !!(options?.collect || options?.loose);
-		/** @type {any[]} */
+		/** @type {AST.CSS.StyleSheet[]} */
 		const stylesheets = [];
 		/** @type {AST.Statement[]} */
 		const type_only_style_anchors = [];
@@ -587,6 +577,14 @@ export function createJsxTransform(platform) {
 			needs_dynamic_factory: false,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
+			needs_show: false,
+			needs_for: false,
+			needs_switch: false,
+			needs_match: false,
+			needs_errored: false,
+			needs_loading: false,
+			needs_define_vapor_component: false,
+			needs_vapor_for: false,
 			stylesheets,
 			type_only_style_anchors,
 			module_scoped_hook_components:
@@ -881,13 +879,13 @@ function lower_dynamic_jsx_element(node, transform_context) {
 
 	const dynamic_expression = dynamic_name.expression;
 	if (!dynamic_expression) return;
-	const generated_expression = clone_expression_node(dynamic_expression);
+	const generated_expression = clone_ast_node(dynamic_expression);
 	if (node.closingElement?.name?.expression) {
 		// One generated expression stands in for both tags; record the closing
 		// tag's positions so editor features keep working on `</{expr}>`.
 		add_extra_source_mappings_from_matching_expression(
 			generated_expression,
-			clone_expression_node(node.closingElement.name.expression),
+			clone_ast_node(node.closingElement.name.expression),
 		);
 	}
 
@@ -1298,11 +1296,7 @@ function build_render_statements(
 								render_nodes.push(
 									b.jsx_expression_container(
 										set_loc(
-											b.conditional(
-												clone_expression_node(child.test),
-												b.literal(null),
-												stmt.argument,
-											),
+											b.conditional(clone_ast_node(child.test), b.literal(null), stmt.argument),
 											child,
 										),
 									),
@@ -1385,7 +1379,7 @@ function build_render_statements(
 		if (return_arg === null) {
 			return_arg = set_loc(
 				b.jsx_fragment([]),
-				source_authored_fragment.loc ? source_authored_fragment : undefined,
+				has_location(source_authored_fragment) ? source_authored_fragment : undefined,
 			);
 		} else if (return_arg.type !== 'JSXFragment') {
 			return_arg = wrap_lowered_value_in_fragment(return_arg, source_authored_fragment);
@@ -1587,7 +1581,7 @@ function create_helper_component_element(helper_id, bindings, source_node, mappi
 	const { mapWrapper = true, mapBindingNames = true, mapBindingValues = true } = mapping;
 	const attributes = bindings.map((binding) =>
 		b.jsx_attribute(
-			identifier_to_jsx_name(
+			identifier_to_jsx_identifier(
 				mapBindingNames ? clone_identifier(binding) : create_generated_identifier(binding.name),
 			),
 			to_jsx_expression_container(
@@ -1598,7 +1592,7 @@ function create_helper_component_element(helper_id, bindings, source_node, mappi
 	);
 
 	const opening_element = b.jsx_opening_element(
-		identifier_to_jsx_name(clone_identifier(helper_id)),
+		identifier_to_jsx_identifier(clone_identifier(helper_id)),
 		attributes,
 		true,
 	);
@@ -2356,7 +2350,7 @@ function create_style_expression_value(node, stylesheet, transform_context) {
  * @param {TransformContext} transform_context
  */
 function add_type_only_style_anchor(node, transform_context) {
-	const style_anchor = b.jsx_element(clone_expression_node(node, true), [], []);
+	const style_anchor = b.jsx_element(clone_ast_node(node, true), [], []);
 	disable_style_anchor_verification(style_anchor);
 
 	const anchor_id = create_generated_identifier(create_style_anchor_name(transform_context));
@@ -2476,7 +2470,7 @@ function annotate_tsrx_with_hash(node, hash, jsx_class_attr_name, preserve_style
 	const annotated = { ...node };
 	annotated.children = (node.children || []).map((/** @type {any} */ statement) =>
 		annotate_with_hash(
-			clone_expression_node(statement),
+			clone_ast_node(statement),
 			hash,
 			jsx_class_attr_name,
 			preserve_style_elements,
@@ -2841,7 +2835,11 @@ function node_contains_hook_bearing_tsrx(node, transform_context) {
 	}
 
 	if (is_native_tsrx_node(node)) {
-		return body_contains_top_level_hook_call(node.children || [], transform_context, true);
+		return body_contains_top_level_hook_call(
+			'children' in node ? node.children : [],
+			transform_context,
+			true,
+		);
 	}
 
 	if (
@@ -3244,7 +3242,7 @@ function create_component_return_statement(
 	type_only = false,
 ) {
 	const cloned = render_nodes.map((node) =>
-		map_render_node_locations ? clone_expression_node(node) : clone_expression_node(node, false),
+		map_render_node_locations ? clone_ast_node(node) : clone_ast_node(node, false),
 	);
 
 	return set_loc(
@@ -3402,7 +3400,7 @@ function prepend_render_nodes_to_return_statement(
  * @returns {any}
  */
 function combine_render_return_argument(render_nodes, return_argument, type_only = false) {
-	const combined = render_nodes.map((node) => clone_expression_node(node, false));
+	const combined = render_nodes.map((node) => clone_ast_node(node, false));
 
 	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
@@ -3447,7 +3445,7 @@ function is_null_literal(node) {
  * @returns {{ source_decl: any, source_normalize_decl: any }}
  */
 function build_array_normalization_decls(source_id, source_expr) {
-	const source_decl = b.let(clone_identifier(source_id), clone_expression_node(source_expr));
+	const source_decl = b.let(clone_identifier(source_id), clone_ast_node(source_expr));
 	const is_array_call = b.call(b.member(b.id('Array'), 'isArray'), clone_identifier(source_id));
 	const from_call = b.call(b.member(b.id('Array'), 'from'), clone_identifier(source_id));
 	const normalized = b.conditional(is_array_call, clone_identifier(source_id), from_call);
@@ -3493,7 +3491,7 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 	const use_iterable_helper = !!transform_context.platform.imports.forOfIterableHelper;
 	const { source_decl, source_normalize_decl } = use_iterable_helper
 		? {
-				source_decl: b.let(clone_identifier(source_id), clone_expression_node(node.right)),
+				source_decl: b.let(clone_identifier(source_id), clone_ast_node(node.right)),
 				source_normalize_decl: null,
 			}
 		: build_array_normalization_decls(source_id, node.right);
@@ -3595,10 +3593,12 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 
 	const body_key_expression = find_key_expression_in_body(original_loop_body);
 	const explicit_key_expression =
-		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
+		body_key_expression ?? (node.key ? clone_ast_node(node.key) : undefined);
 	const key_expression =
 		explicit_key_expression ??
-		(loop_params.length >= 2 ? clone_identifier(loop_params[1]) : undefined);
+		(loop_params.length >= 2
+			? clone_identifier(/** @type {AST.Identifier} */ (loop_params[1]))
+			: undefined);
 	if (key_expression) {
 		callback_invocation_element.openingElement.attributes.push(
 			b.jsx_attribute(b.jsx_id('key'), to_jsx_expression_container(key_expression, key_expression)),
@@ -3808,9 +3808,9 @@ function to_jsx_element(
 }
 
 /**
- * @param {any[]} children
+ * @param {AST.Node[]} children
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {ESTreeJSX.JSXElement['children']}
  */
 
 function create_element_children(children, transform_context) {
@@ -3822,9 +3822,7 @@ function create_element_children(children, transform_context) {
 		const saved_inside_element_child = transform_context.inside_element_child;
 		transform_context.inside_element_child = true;
 		try {
-			return wrap_edge_whitespace(
-				children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context)),
-			);
+			return wrap_edge_whitespace(children.map((child) => to_jsx_child(child, transform_context)));
 		} finally {
 			transform_context.inside_element_child = saved_inside_element_child;
 		}
@@ -3840,7 +3838,7 @@ function create_element_children(children, transform_context) {
 }
 
 /**
- * @param {any[]} children
+ * @param {AST.Node[]} children
  * @returns {boolean}
  */
 function children_contain_return_semantics(children) {
@@ -3848,35 +3846,35 @@ function children_contain_return_semantics(children) {
 }
 
 /**
- * @param {any} node
+ * @param {unknown} node
  * @returns {boolean}
  */
 function child_contains_return_semantics(node) {
+	if (Array.isArray(node)) {
+		return node.some(child_contains_return_semantics);
+	}
 	if (!node || typeof node !== 'object') {
 		return false;
 	}
+	const ast_node = /** @type {Record<string, unknown>} */ (node);
 
-	if (node.type === 'ReturnStatement') {
+	if (ast_node.type === 'ReturnStatement') {
 		return true;
 	}
 
 	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
+		ast_node.type === 'FunctionDeclaration' ||
+		ast_node.type === 'FunctionExpression' ||
+		ast_node.type === 'ArrowFunctionExpression'
 	) {
 		return false;
 	}
 
-	if (Array.isArray(node)) {
-		return node.some(child_contains_return_semantics);
-	}
-
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(ast_node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		if (child_contains_return_semantics(node[key])) {
+		if (child_contains_return_semantics(ast_node[key])) {
 			return true;
 		}
 	}
@@ -3885,11 +3883,11 @@ function child_contains_return_semantics(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.TSRXRenderChild}
  */
 function is_inline_element_child(node) {
-	return node && is_render_child_node(node);
+	return !!node && is_render_child_node(node);
 }
 
 /**
@@ -4252,7 +4250,7 @@ function get_body_source_node(body_nodes) {
 	const first = body_nodes[0];
 	const last = body_nodes[body_nodes.length - 1];
 
-	if (first?.loc && last?.loc) {
+	if (has_location(first) && has_location(last)) {
 		return {
 			start: first.start,
 			end: last.end,
@@ -4307,8 +4305,8 @@ function get_raw_jsx_code_block_body_nodes(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.NativeTSRXNode}
  */
 function is_native_tsrx_node(node) {
 	return (
@@ -4316,21 +4314,21 @@ function is_native_tsrx_node(node) {
 		((node?.type === 'JSXElement' ||
 			node?.type === 'JSXFragment' ||
 			node?.type === 'JSXStyleElement') &&
-			node.metadata?.native_tsrx)
+			!!node.metadata?.native_tsrx)
 	);
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.IfStatement | AST.JSXIfExpression}
  */
 function is_if_control_node(node) {
 	return node?.type === 'IfStatement' || node?.type === 'JSXIfExpression';
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.TSRXRenderChild}
  */
 function is_render_child_node(node) {
 	if (!node) return false;
@@ -4383,8 +4381,25 @@ function is_try_control_node(node) {
  * are pulled out; whitespace runs containing a newline are layout indentation and
  * are left for the host compiler to collapse.
  *
- * @param {any[]} nodes
- * @returns {any[]}
+ */
+/**
+ * @overload
+ * @param {ESTreeJSX.JSXRenderChild[]} nodes
+ * @returns {ESTreeJSX.JSXRenderChild[]}
+ */
+/**
+ * @overload
+ * @param {ESTreeJSX.JSXElement['children']} nodes
+ * @returns {ESTreeJSX.JSXElement['children']}
+ */
+/**
+ * @overload
+ * @param {ESTreeJSX.JSXTransformChild[]} nodes
+ * @returns {ESTreeJSX.JSXTransformChild[]}
+ */
+/**
+ * @param {ESTreeJSX.JSXTransformChild[]} nodes
+ * @returns {ESTreeJSX.JSXTransformChild[]}
  */
 export function wrap_edge_whitespace(nodes) {
 	const length = nodes.length;
@@ -4398,7 +4413,7 @@ export function wrap_edge_whitespace(nodes) {
 		return nodes;
 	}
 
-	/** @type {(ESTreeJSX.JSXExpressionContainer | ESTreeJSX.JSXText)[]} */
+	/** @type {ESTreeJSX.JSXTransformChild[]} */
 	const out = [];
 	for (let i = 0; i < length; i++) {
 		const node = nodes[i];
@@ -4428,7 +4443,7 @@ export function wrap_edge_whitespace(nodes) {
 		if (value !== '') {
 			// keep the location as we need it for @ autocomplete
 			// and perhaps other things in the future
-			out.push(b.jsx_text(value, value, node));
+			out.push(b.jsx_text(value, value, has_location(node) ? node : undefined));
 		}
 		if (trailing) {
 			out.push(trailing);
@@ -4438,9 +4453,21 @@ export function wrap_edge_whitespace(nodes) {
 }
 
 /**
- * @param {any} node
+ * @overload
+ * @param {AST.TSRXRenderChild} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXRenderChild}
+ */
+/**
+ * @overload
+ * @param {AST.Node} node
+ * @param {TransformContext} transform_context
+ * @returns {AST.Node}
+ */
+/**
+ * @param {AST.Node} node
+ * @param {TransformContext} transform_context
+ * @returns {AST.Node}
  */
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
@@ -4514,25 +4541,25 @@ function to_jsx_child(node, transform_context) {
  * Children have already been parsed and transformed through the normal TSRX
  * JSX element/text/control-flow visitors.
  *
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformContext} transform_context
  * @param {boolean} [in_jsx_child]
- * @returns {any}
+ * @returns {AST.Expression | ESTreeJSX.JSXExpressionContainer}
  */
 function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	const children = (node.children || []).filter(
-		(/** @type {any} */ child) =>
+		(child) =>
 			child && child.type !== 'EmptyStatement' && (child.type !== 'JSXText' || child.value !== ''),
 	);
 
-	/** @type {any} */
-	let expression;
+	/** @type {AST.Expression | null} */
+	let expression = null;
 	if (children.length === 0) {
 		// An empty fragment is a real value: keep it as `<></>` in BOTH child and
 		// expression position. Lowering it to a bare `null` in expression position
 		// (e.g. `let b = <></>`) drops the author's fragment and changes its type;
 		// `<></>` is a valid value and keeps the to_ts/runtime view faithful.
-		expression = set_loc(b.jsx_fragment([]), node.loc ? node : undefined);
+		expression = set_loc(b.jsx_fragment([]), has_location(node) ? node : undefined);
 	} else if (
 		children.length === 1 &&
 		(is_empty_jsx_fragment(children[0]) ||
@@ -4543,7 +4570,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 		// dropping the outer fragment the author wrote. Keep both levels. (`<><></></>`
 		// is kept regardless; a non-empty inner is only kept for an authored outer, so
 		// a generated wrapper still collapses.)
-		expression = set_loc(b.jsx_fragment(children), node.loc ? node : undefined);
+		expression = set_loc(b.jsx_fragment(children), has_location(node) ? node : undefined);
 	} else {
 		expression = return_value_body_to_expression(children, node, transform_context);
 	}
@@ -4554,7 +4581,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 			transform_context.inside_element_child = true;
 			try {
 				const render_nodes = wrap_edge_whitespace(
-					children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context)),
+					children.map((child) => to_jsx_child(child, transform_context)),
 				);
 				expression =
 					build_return_expression(render_nodes, in_jsx_child, transform_context.typeOnly) ||
@@ -4567,13 +4594,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 		}
 	}
 
-	if (
-		in_jsx_child &&
-		expression.type !== 'JSXElement' &&
-		expression.type !== 'JSXFragment' &&
-		expression.type !== 'JSXText' &&
-		expression.type !== 'JSXExpressionContainer'
-	) {
+	if (in_jsx_child && expression.type !== 'JSXElement' && expression.type !== 'JSXFragment') {
 		return to_jsx_expression_container(expression, node);
 	}
 
@@ -4669,14 +4690,14 @@ function create_statement_iife(body_nodes, source_node, transform_context) {
 }
 
 /**
- * @param {any} node
- * @param {any} source_node
+ * @param {AST.Expression} node
+ * @param {AST.Node | null | undefined} source_node
  * @param {TransformContext} [transform_context]
- * @returns {any}
+ * @returns {AST.Expression}
  */
 function set_generated_expression_loc(node, source_node, transform_context) {
-	if (transform_context?.typeOnly || !source_node?.loc) return node;
-	return setLocation(/** @type {any} */ (node), source_node);
+	if (transform_context?.typeOnly || !has_location(source_node)) return node;
+	return setLocation(node, source_node);
 }
 
 /**
@@ -5046,17 +5067,17 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
-		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
+		body_key_expression ?? (node.key ? clone_ast_node(node.key) : undefined);
 	const key_expression =
 		has_hooks && explicit_key_expression == null && node.index
-			? clone_expression_node(node.index)
+			? clone_ast_node(node.index)
 			: explicit_key_expression;
 	const implicit_non_hook_key_expression =
 		!has_hooks && body_key_expression == null
 			? node.key
-				? clone_expression_node(node.key)
+				? clone_ast_node(node.key)
 				: node.index
-					? clone_expression_node(node.index)
+					? clone_ast_node(node.index)
 					: undefined
 			: undefined;
 
@@ -5132,7 +5153,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 			b.conditional(
 				b.binary(
 					'===',
-					b.member(clone_expression_node(node.right), create_generated_identifier('length')),
+					b.member(clone_ast_node(node.right), create_generated_identifier('length')),
 					b.literal(0),
 				),
 				empty_fallback,
@@ -5173,7 +5194,7 @@ function apply_key_to_loop_body(body_nodes, key_expression) {
 					...attributes,
 					b.jsx_attribute(
 						b.jsx_id('key'),
-						to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+						to_jsx_expression_container(clone_ast_node(key_expression), key_expression),
 					),
 				],
 			},
@@ -5254,7 +5275,7 @@ function apply_key_to_jsx_element(element, key_expression) {
 				...attributes,
 				b.jsx_attribute(
 					b.jsx_id('key'),
-					to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+					to_jsx_expression_container(clone_ast_node(key_expression), key_expression),
 				),
 			],
 		},
@@ -5270,7 +5291,7 @@ function keyed_fragment_to_jsx_element(fragment, key_expression) {
 	const name = b.jsx_id('Fragment');
 	const key_attribute = b.jsx_attribute(
 		b.jsx_id('key'),
-		to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+		to_jsx_expression_container(clone_ast_node(key_expression), key_expression),
 	);
 
 	return b.jsx_element_fresh(
@@ -5476,9 +5497,9 @@ function try_statement_to_jsx_child(node, transform_context) {
  * Create a simple JSX element AST node.
  *
  * @param {string} tag_name
- * @param {any[]} attributes
- * @param {any[]} children
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttributeNode[]} attributes
+ * @param {ESTreeJSX.JSXElement['children']} children
+ * @returns {ESTreeJSX.JSXElement}
  */
 function create_jsx_element(tag_name, attributes, children) {
 	const self_closing = children.length === 0;
@@ -5496,12 +5517,12 @@ function create_jsx_element(tag_name, attributes, children) {
  *
  * @param {AST.Program} program
  * @param {TransformContext} transform_context
- * @param {JsxPlatform} platform
+ * @param {Pick<JsxPlatform, 'imports'>} platform
  * @param {string} suspense_source - effective suspense import source after
  *   applying any per-call override from JsxTransformOptions.suspenseSource.
  */
 function inject_try_imports(program, transform_context, platform, suspense_source) {
-	/** @type {any[]} */
+	/** @type {AST.ImportDeclaration[]} */
 	const imports = [];
 
 	if (transform_context.needs_fragment && platform.imports.fragment) {
@@ -5543,7 +5564,7 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 			? platform.imports.refProp
 			: null;
 
-	/** @type {Map<string, any[]>} */
+	/** @type {Map<string, AST.ImportSpecifier[]>} */
 	const ref_imports = new Map();
 
 	if (merge_refs_source !== null) {
@@ -5583,9 +5604,9 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 }
 
 /**
- * @param {Map<string, any[]>} imports
+ * @param {Map<string, AST.ImportSpecifier[]>} imports
  * @param {string} source
- * @param {any} specifier
+ * @param {AST.ImportSpecifier} specifier
  */
 function add_ref_import_specifier(imports, source, specifier) {
 	const specifiers = imports.get(source);
@@ -5597,9 +5618,9 @@ function add_ref_import_specifier(imports, source, specifier) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.IfStatement | AST.JSXIfExpression} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {AST.IfStatement}
  */
 function create_render_if_statement(node, transform_context) {
 	const consequent_body =
@@ -5616,7 +5637,8 @@ function create_render_if_statement(node, transform_context) {
 		if (is_if_control_node(node.alternate)) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
-			const alternate_body = node.alternate.body || [node.alternate];
+			const alternate_body =
+				node.alternate.type === 'BlockStatement' ? node.alternate.body : [node.alternate];
 			if (is_template_if_node(node)) {
 				validate_if_body_control_flow(alternate_body, transform_context);
 			}
@@ -5659,8 +5681,8 @@ function create_render_if_statement(node, transform_context) {
  * `own_body` is the case's isolated consequent. JSX `@switch` cases do not
  * fall through, so `break` is not part of the template switch model.
  *
- * @param {any[]} consequent
- * @returns {{ own_body: any[], has_terminator: boolean }}
+ * @param {AST.Statement[]} consequent
+ * @returns {{ own_body: AST.Statement[], has_terminator: boolean }}
  */
 function summarize_switch_case_body(consequent) {
 	const own_body = [];
@@ -5690,10 +5712,10 @@ function summarize_switch_case_body(consequent) {
  * see double/triple hits per source range.
  *
  * @param {{ component_element: ESTreeJSX.JSXElement }} helper
- * @returns {any}
+ * @returns {ESTreeJSX.JSXElement}
  */
 export function clone_switch_helper_invocation(helper) {
-	return clone_expression_node(helper.component_element, false);
+	return clone_ast_node(helper.component_element, false);
 }
 
 /**
@@ -5710,31 +5732,29 @@ export function clone_switch_helper_invocation(helper) {
  * React, Vue, and Solid) already pushed their declarations into
  * `transform_context.helper_state.helpers`, so `setup_statements` is empty.
  *
- * @param {any} switch_node
+ * @param {AST.SwitchStatement} switch_node
  * @param {TransformContext} transform_context
  * @returns {{
- *   case_info: Array<{ own_body: any[], has_terminator: boolean }>,
- *   case_helpers: Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>,
- *   setup_statements: any[],
+ *   case_info: Array<{ own_body: AST.Statement[], has_terminator: boolean }>,
+ *   case_helpers: Array<JsxHelperComponent | null>,
+ *   setup_statements: AST.Statement[],
  * }}
  */
 export function plan_switch_lift(switch_node, transform_context) {
-	const case_info = switch_node.cases.map((/** @type {any} */ c) => {
+	const case_info = switch_node.cases.map((c) => {
 		const consequent = flatten_switch_consequent(c.consequent || []);
 		return summarize_switch_case_body(consequent);
 	});
 
 	// A case body needs to be lifted iff it contains hooks. Cases are isolated,
 	// so downstream case bodies are never duplicated into earlier arms.
-	const needs_helper = case_info.map(
-		(/** @type {{ own_body: any[], has_terminator: boolean }} */ info) => {
-			if (info.own_body.length === 0) return false;
-			return (
-				should_extract_hook_helpers(transform_context) &&
-				body_contains_top_level_hook_call(info.own_body, transform_context, true)
-			);
-		},
-	);
+	const needs_helper = case_info.map((info) => {
+		if (info.own_body.length === 0) return false;
+		return (
+			should_extract_hook_helpers(transform_context) &&
+			body_contains_top_level_hook_call(info.own_body, transform_context, true)
+		);
+	});
 
 	// Pre-allocate helper ids in source order so the snapshot's
 	// `StatementBodyHook<N>` numbering reads top-to-bottom by case position
@@ -5746,7 +5766,7 @@ export function plan_switch_lift(switch_node, transform_context) {
 			: null,
 	);
 
-	/** @type {Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>} */
+	/** @type {Array<JsxHelperComponent | null>} */
 	const case_helpers = new Array(switch_node.cases.length).fill(null);
 
 	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
@@ -5758,12 +5778,13 @@ export function plan_switch_lift(switch_node, transform_context) {
 			undefined,
 			switch_node.cases[i],
 			transform_context,
-			/** @type {any} */ (helper_ids[i]),
+			/** @type {AST.Identifier} */ (helper_ids[i]),
 		);
 	}
 
 	// Hoist all helpers' setup statements above the switch in source order so
 	// the switch body stays a pure dispatcher.
+	/** @type {AST.Statement[]} */
 	const setup_statements = [];
 	for (const helper of case_helpers) {
 		if (helper) setup_statements.push(...helper.setup_statements);
@@ -5777,9 +5798,9 @@ export function plan_switch_lift(switch_node, transform_context) {
 }
 
 /**
- * @param {any} switch_node
+ * @param {AST.SwitchStatement} switch_node
  * @param {TransformContext} transform_context
- * @returns {{ setup_statements: any[], switch_statement: any }}
+ * @returns {{ setup_statements: AST.Statement[], switch_statement: AST.SwitchStatement }}
  */
 function build_switch_with_lift(switch_node, transform_context) {
 	const { case_info, case_helpers, setup_statements } = plan_switch_lift(
@@ -5787,92 +5808,95 @@ function build_switch_with_lift(switch_node, transform_context) {
 		transform_context,
 	);
 
-	const new_cases = switch_node.cases.map(
-		(/** @type {any} */ original_case, /** @type {number} */ i) => {
-			const helper = case_helpers[i];
-			if (helper) {
-				return set_loc(
-					b.switch_case(original_case.test, [
-						create_component_return_statement(
-							[helper.component_element],
-							original_case,
-							true,
-							transform_context.typeOnly,
-						),
-					]),
-					original_case,
+	const new_cases = switch_node.cases.map((original_case, /** @type {number} */ i) => {
+		const helper = case_helpers[i];
+		if (helper) {
+			return set_loc(
+				b.switch_case(original_case.test, [
+					create_component_return_statement(
+						[helper.component_element],
+						original_case,
+						true,
+						transform_context.typeOnly,
+					),
+				]),
+				original_case,
+			);
+		}
+
+		const { own_body, has_terminator } = case_info[i];
+
+		if (own_body.length === 0 && !has_terminator) {
+			return set_loc(
+				b.switch_case(original_case.test, [create_null_return_statement()]),
+				original_case,
+			);
+		}
+
+		/** @type {AST.Statement[]} */
+		const case_body = [];
+		/** @type {ESTreeJSX.JSXElement['children']} */
+		const render_nodes = [];
+		let has_terminal = false;
+
+		for (const child of own_body) {
+			if (is_loop_skip_return_statement(child)) {
+				case_body.push(
+					create_component_return_statement(render_nodes, child, true, transform_context.typeOnly),
 				);
+				has_terminal = true;
+				break;
 			}
-
-			const { own_body, has_terminator } = case_info[i];
-
-			if (own_body.length === 0 && !has_terminator) {
-				return set_loc(
-					b.switch_case(original_case.test, [create_null_return_statement()]),
-					original_case,
+			if (child.type === 'ReturnStatement') {
+				case_body.push(child);
+				has_terminal = true;
+				break;
+			}
+			if (is_render_child_node(child)) {
+				render_nodes.push(
+					/** @type {ESTreeJSX.JSXElement['children'][number]} */ (
+						to_jsx_child(child, transform_context)
+					),
 				);
+			} else if (is_bare_render_expression(child)) {
+				render_nodes.push(to_jsx_expression_container(child, child));
+			} else {
+				case_body.push(child);
 			}
+		}
 
-			const case_body = [];
-			const render_nodes = [];
-			let has_terminal = false;
-
-			for (const child of own_body) {
-				if (is_loop_skip_return_statement(child)) {
-					case_body.push(
-						create_component_return_statement(
-							render_nodes,
-							child,
-							true,
-							transform_context.typeOnly,
-						),
-					);
-					has_terminal = true;
-					break;
-				}
-				if (child.type === 'ReturnStatement') {
-					case_body.push(child);
-					has_terminal = true;
-					break;
-				}
-				if (is_render_child_node(child)) {
-					render_nodes.push(to_jsx_child(child, transform_context));
-				} else if (is_bare_render_expression(child)) {
-					render_nodes.push(to_jsx_expression_container(child, child));
-				} else {
-					case_body.push(child);
-				}
+		if (!has_terminal) {
+			if (render_nodes.length > 0) {
+				case_body.push(
+					create_component_return_statement(
+						render_nodes,
+						original_case,
+						true,
+						transform_context.typeOnly,
+					),
+				);
+			} else if (case_body.length > 0) {
+				case_body.push(create_null_return_statement());
+			} else if (has_terminator) {
+				case_body.push(create_null_return_statement());
 			}
+		}
 
-			if (!has_terminal) {
-				if (render_nodes.length > 0) {
-					case_body.push(
-						create_component_return_statement(
-							render_nodes,
-							original_case,
-							true,
-							transform_context.typeOnly,
-						),
-					);
-				} else if (case_body.length > 0) {
-					case_body.push(create_null_return_statement());
-				} else if (has_terminator) {
-					case_body.push(create_null_return_statement());
-				}
-			}
-
-			return set_loc(b.switch_case(original_case.test, case_body), original_case);
-		},
-	);
+		return set_loc(b.switch_case(original_case.test, case_body), original_case);
+	});
 
 	return {
 		setup_statements,
-		switch_statement: b.switch(switch_node.discriminant, new_cases, switch_node),
+		switch_statement: b.switch(
+			switch_node.discriminant,
+			new_cases,
+			has_location(switch_node) ? switch_node : undefined,
+		),
 	};
 }
 
 /**
- * @returns {any}
+ * @returns {AST.ReturnStatement}
  */
 function create_null_return_statement() {
 	return b.return(b.literal(null));
@@ -5880,25 +5904,25 @@ function create_null_return_statement() {
 
 /**
  * @param {AST.Expression} expression
- * @param {any} [source_node]
+ * @param {AST.Node} [source_node]
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
 	// NOTE: JSXExpressionContainer nodes are intentionally created without loc.
 	// They are synthetic wrappers whose source positions do not correspond to
 	// entries in the generated source map, so adding loc causes Volar mapping failures.
-	return /** @type {any} */ ({
+	return {
 		type: 'JSXExpressionContainer',
-		expression: /** @type {any} */ (expression),
+		expression,
 		metadata: { path: [] },
-	});
+	};
 }
 
 /**
- * Dispatch point for element attribute transformation. Platforms can replace
- * the default "map over `to_jsx_attribute`" via
- * `hooks.transformElementAttributes`. Whether or not the hook is used,
- * the result is run through `merge_duplicate_refs` so platforms with a
+ * Dispatch point for element attribute transformation. Platforms can transform
+ * the parser-native JSX attributes via `hooks.transformElementAttributes`.
+ * Whether or not the hook is used, the result is run through
+ * `merge_duplicate_refs` so platforms with a
  * `multiRefStrategy` can compose an explicit `ref={...}` with compiler-
  * synthesized refs created for host spreads.
  *
@@ -5907,10 +5931,10 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * duplicate JSX props which the JSX runtime collapses to last-wins (and
  * which TypeScript can't type cleanly).
  *
- * @param {any[]} attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
  * @param {TransformContext} transform_context
- * @param {any} element
- * @returns {any[]}
+ * @param {AST.TSRXJSXElement} element
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	validate_at_most_one_ref_attribute(attrs, transform_context);
@@ -5920,9 +5944,7 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 		attrs = preprocess(attrs, transform_context, element);
 	}
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
-	const result = hook
-		? hook(attrs, transform_context, element)
-		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
+	const result = hook ? hook(attrs, transform_context, element) : attrs;
 	return merge_duplicate_refs(
 		normalize_host_ref_spreads(result, !is_component, transform_context),
 		transform_context,
@@ -5930,7 +5952,7 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 }
 
 /**
- * @param {any} element
+ * @param {AST.TSRXJSXElement | ESTreeJSX.JSXElement} element
  * @returns {boolean}
  */
 export function is_component_like_element(element) {
@@ -5944,7 +5966,7 @@ export function is_component_like_element(element) {
 }
 
 /**
- * @param {any} name
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name']} name
  * @returns {boolean}
  */
 function is_component_like_jsx_name(name) {
@@ -5955,10 +5977,10 @@ function is_component_like_jsx_name(name) {
 }
 
 /**
- * @param {any[]} attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
  * @param {boolean} is_host
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
@@ -5970,49 +5992,55 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 		.map((attr) => attr.value.expression);
 	const needs_synthetic_spread_ref = needs_explicit_spread_ref || ref_exprs.length > 0;
 
-	return attrs.flatMap((attr) => {
-		if (!attr || attr.type !== 'JSXSpreadAttribute') {
-			return [attr];
-		}
+	return attrs.flatMap(
+		/**
+		 * @param {ESTreeJSX.JSXAttributeNode} attr
+		 * @returns {ESTreeJSX.JSXAttributeNode[]}
+		 */
+		(attr) => {
+			if (attr.type !== 'JSXSpreadAttribute') {
+				return [attr];
+			}
 
-		const normalize_helper = needs_synthetic_spread_ref
-			? NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME
-			: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME;
-		if (needs_synthetic_spread_ref) {
-			transform_context.needs_normalize_spread_props_for_ref_attr = true;
-		} else {
-			transform_context.needs_normalize_spread_props = true;
-		}
-		const normalized = b.call(normalize_helper, attr.argument);
+			const normalize_helper = needs_synthetic_spread_ref
+				? NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME
+				: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME;
+			if (needs_synthetic_spread_ref) {
+				transform_context.needs_normalize_spread_props_for_ref_attr = true;
+			} else {
+				transform_context.needs_normalize_spread_props = true;
+			}
+			const normalized = b.call(normalize_helper, attr.argument);
 
-		if (needs_synthetic_spread_ref) {
-			const normalized_id = create_generated_identifier(
-				create_spread_props_name(transform_context),
-			);
-			const spread = {
-				...attr,
-				argument: clone_identifier(normalized_id),
-			};
-			const ref_attr = b.jsx_attribute(
-				b.jsx_id('ref'),
-				to_jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
-				false,
-				attr,
-			);
-			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
-			/** @type {any} */ (ref_attr.metadata).synthetic_ref = true;
-			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
+			if (needs_synthetic_spread_ref) {
+				const normalized_id = create_generated_identifier(
+					create_spread_props_name(transform_context),
+				);
+				const spread = {
+					...attr,
+					argument: clone_identifier(normalized_id),
+				};
+				const ref_attr = b.jsx_attribute(
+					b.jsx_id('ref'),
+					to_jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
+					false,
+					has_location(attr) ? attr : undefined,
+				);
+				ref_attr.metadata = { ...(ref_attr.metadata || {}) };
+				ref_attr.metadata.synthetic_ref = true;
+				add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
-			return [spread, ref_attr];
-		}
+				return [spread, ref_attr];
+			}
 
-		return [
-			{
-				...attr,
-				argument: normalized,
-			},
-		];
-	});
+			return [
+				{
+					...attr,
+					argument: normalized,
+				},
+			];
+		},
+	);
 }
 
 /**
@@ -6029,8 +6057,8 @@ function create_spread_props_name(transform_context) {
 }
 
 /**
- * @param {any} node
- * @param {any} declaration
+ * @param {AST.Node} node
+ * @param {AST.Statement} declaration
  */
 export function add_jsx_setup_declaration(node, declaration) {
 	node.metadata ??= { path: [] };
@@ -6038,29 +6066,40 @@ export function add_jsx_setup_declaration(node, declaration) {
 }
 
 /**
- * @param {any} node
- * @param {Set<any>} [seen]
- * @returns {any[]}
+ * @param {AST.Node} node
+ * @param {Set<object>} [seen]
+ * @returns {AST.Statement[]}
  */
 export function extract_jsx_setup_declarations(node, seen = new Set()) {
-	if (node == null || typeof node !== 'object' || seen.has(node)) {
-		return [];
-	}
-	seen.add(node);
-
-	const declarations = node.metadata?.generated_setup_declarations ?? [];
-	if (node.metadata?.generated_setup_declarations) {
-		delete node.metadata.generated_setup_declarations;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		declarations.push(...extract_jsx_setup_declarations(node[key], seen));
-	}
-
+	/** @type {AST.Statement[]} */
+	const declarations = [];
+	collect_jsx_setup_declarations(node, seen, declarations);
 	return declarations;
+}
+
+/**
+ * @param {unknown} value
+ * @param {Set<object>} seen
+ * @param {AST.Statement[]} declarations
+ * @returns {void}
+ */
+function collect_jsx_setup_declarations(value, seen, declarations) {
+	if (value == null || typeof value !== 'object' || seen.has(value)) return;
+	seen.add(value);
+
+	if ('type' in value && typeof value.type === 'string') {
+		const node = /** @type {AST.Node} */ (value);
+		if (node.metadata?.generated_setup_declarations) {
+			declarations.push(...node.metadata.generated_setup_declarations);
+			delete node.metadata.generated_setup_declarations;
+		}
+	}
+
+	const record = /** @type {Record<string, unknown>} */ (value);
+	for (const key of Object.keys(record)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		collect_jsx_setup_declarations(record[key], seen, declarations);
+	}
 }
 
 /**
@@ -6094,11 +6133,11 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
  * This validator runs over the raw, pre-lowering attribute list so each
  * shape is still distinguishable by `type`.
  *
- * @param {any[]} raw_attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} raw_attrs
  * @param {TransformContext} [transform_context]
  */
 export function validate_at_most_one_ref_attribute(raw_attrs, transform_context) {
-	/** @type {any[]} */
+	/** @type {ESTreeJSX.JSXIdentifier[]} */
 	const refs = [];
 	for (const attr of raw_attrs) {
 		if (!attr) continue;
@@ -6108,7 +6147,7 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 			attr.name.type === 'JSXIdentifier' &&
 			attr.name.name === 'ref';
 		if (!is_ref_attr) continue;
-		refs.push(attr.name);
+		refs.push(/** @type {ESTreeJSX.JSXIdentifier} */ (attr.name));
 	}
 	if (refs.length < 2) {
 		return;
@@ -6146,9 +6185,9 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
  * Single-ref elements are always left unchanged so trivial cases stay
  * import-free and produce no helper call.
  *
- * @param {any[]} jsx_attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} jsx_attrs
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	const strategy = transform_context.platform.jsx.multiRefStrategy;
@@ -6168,11 +6207,11 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	// instead of silently composing them into `__mergeRefs(...)`.
 	if (tsx_form_count >= 2) return jsx_attrs;
 
-	/** @type {any[]} */
+	/** @type {AST.Expression[]} */
 	const ref_exprs = [];
-	/** @type {any[]} */
+	/** @type {ESTreeJSX.JSXAttributeNode[]} */
 	const result = [];
-	/** @type {any} */
+	/** @type {ESTreeJSX.JSXRefAttribute | null} */
 	let source_attr = null;
 	for (const attr of jsx_attrs) {
 		if (is_jsx_ref_attribute(attr)) {
@@ -6202,12 +6241,15 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	// merged attribute and its name. Without this the kept `ref` keyword in
 	// `ref={__mergeRefs(...)}` has no source mapping back to the user's `ref=`
 	// keyword.
-	const merged_name = build_jsx_id('ref', source_attr?.name);
+	const source_name = source_attr?.name;
+	const source_name_location = has_location(source_name) ? source_name : undefined;
+	const source_attr_location = has_location(source_attr) ? source_attr : undefined;
+	const merged_name = build_jsx_id('ref', source_name_location);
 	const merged_attr = build_jsx_attribute(
 		merged_name,
 		b.jsx_expression_container(merged_value),
 		false,
-		source_attr,
+		source_attr_location,
 	);
 	result.push(merged_attr);
 
@@ -6215,8 +6257,8 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 }
 
 /**
- * @param {any} attr
- * @returns {boolean}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {attr is ESTreeJSX.JSXRefAttribute}
  */
 function is_jsx_ref_attribute(attr) {
 	return (
@@ -6263,7 +6305,7 @@ const MATHML_REF_TAG_NAMES = new Set(
 );
 
 /**
- * @param {any} element
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXOpeningElement} element
  * @param {'html' | 'svg' | 'mathml'} [namespace]
  * @returns {AST.TypeNode | null}
  */
@@ -6314,13 +6356,14 @@ function infer_ref_namespace(tag_name) {
 }
 
 /**
- * @param {any} element
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXOpeningElement} element
  * @returns {string | null}
  */
 function get_element_ref_tag_name(element) {
-	const name = element?.name;
-	if (name?.type === 'JSXIdentifier') return name.name;
-	if (element?.openingElement?.name?.type === 'JSXIdentifier') {
+	if ('name' in element && element.name.type === 'JSXIdentifier') {
+		return element.name.name;
+	}
+	if ('openingElement' in element && element.openingElement.name.type === 'JSXIdentifier') {
 		return element.openingElement.name.name;
 	}
 	return null;
@@ -6341,70 +6384,9 @@ function create_tag_name_map_ref_type(map_name, tag_name) {
 }
 
 /**
- * @param {any} attr
- * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute}
- */
-export function to_jsx_attribute(attr, transform_context) {
-	if (!attr) return attr;
-	if (attr.type === 'JSXAttribute') {
-		return attr;
-	}
-	if (attr.type === 'JSXSpreadAttribute') {
-		return attr;
-	}
-	// Keep this legacy hook for targets that need React-style DOM attrs. The
-	// current first-party targets preserve authored `class`.
-	let attr_name = attr.name;
-	if (
-		transform_context.platform.jsx.rewriteClassAttr &&
-		attr_name &&
-		attr_name.type === 'Identifier' &&
-		attr_name.name === 'class'
-	) {
-		attr_name = set_loc(b.id('className'), attr.name);
-		attr_name.metadata.source_name = 'class';
-		attr_name.metadata.source_length = 'class'.length;
-	}
-
-	const name =
-		attr_name && attr_name.type === 'Identifier' ? identifier_to_jsx_name(attr_name) : attr_name;
-
-	let value = attr.value;
-	if (value) {
-		if (value.type === 'Literal' && typeof value.value === 'string') {
-			// Keep string literal as attribute string.
-		} else if (value.type !== 'JSXExpressionContainer') {
-			value = to_jsx_expression_container(value);
-		}
-	}
-
-	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
-
-	if (value_has_unmappable_jsx_loc(value)) {
-		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
-		return jsx_attribute;
-	}
-
-	return set_loc(jsx_attribute, attr);
-}
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-function value_has_unmappable_jsx_loc(value) {
-	return !!(
-		value?.type === 'JSXExpressionContainer' &&
-		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
-		!value.expression.loc
-	);
-}
-
-/**
- * @param {any[]} render_nodes
+ * @param {ESTreeJSX.JSXRenderChild[]} render_nodes
  * @param {boolean} [in_jsx_child]
- * @returns {any}
+ * @returns {AST.Expression | null}
  */
 export function build_return_expression(render_nodes, in_jsx_child = false, type_only = false) {
 	if (render_nodes.length === 0) return null;
@@ -6412,10 +6394,10 @@ export function build_return_expression(render_nodes, in_jsx_child = false, type
 		const only = render_nodes[0];
 		if (only.type === 'JSXExpressionContainer') {
 			if (only.metadata?.tsrx_reactive_block === true) {
-				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+				return set_loc(b.jsx_fragment([only]), has_location(only) ? only : undefined);
 			}
 			if (only.expression?.type === 'JSXEmptyExpression') {
-				return set_loc(b.jsx_fragment([]), only.loc ? only : undefined);
+				return set_loc(b.jsx_fragment([]), has_location(only) ? only : undefined);
 			}
 			return only.expression;
 		}
@@ -6428,7 +6410,7 @@ export function build_return_expression(render_nodes, in_jsx_child = false, type
 			if (!type_only && !in_jsx_child && (only.value ?? '').trim() === '') {
 				return null;
 			}
-			return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			return set_loc(b.jsx_fragment([only]), has_location(only) ? only : undefined);
 		}
 		return only;
 	}
@@ -6436,7 +6418,7 @@ export function build_return_expression(render_nodes, in_jsx_child = false, type
 	const last = render_nodes[render_nodes.length - 1];
 	return set_loc(
 		b.jsx_fragment(render_nodes),
-		first?.loc && last?.loc
+		has_location(first) && has_location(last)
 			? {
 					start: first.start,
 					end: last.end,

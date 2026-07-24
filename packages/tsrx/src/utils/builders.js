@@ -1121,7 +1121,7 @@ export function key(name) {
 
 /**
  * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXNamespacedName} name
- * @param {AST.Literal | ESTreeJSX.JSXExpressionContainer | null} value
+ * @param {ESTreeJSX.JSXAttribute['value']} value
  * @param {boolean} [shorthand]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXAttribute}
@@ -1142,7 +1142,7 @@ export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
  * Build a fresh `JSXOpeningElement`. For elements derived from an existing
  * JSX element node, prefer `jsx_element` which spreads from the source.
  *
- * @param {ESTreeJSX.JSXOpeningElement['name']} name
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name']} name
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} [attributes]
  * @param {boolean} [self_closing]
  * @param {ESTreeJSX.JSXOpeningElement['typeArguments']} [type_arguments]
@@ -1171,7 +1171,7 @@ export function jsx_opening_element(
 /**
  * Build a fresh `JSXClosingElement`.
  *
- * @param {ESTreeJSX.JSXClosingElement['name']} name
+ * @param {ESTreeJSX.TSRXJSXClosingElement['name']} name
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXClosingElement}
  */

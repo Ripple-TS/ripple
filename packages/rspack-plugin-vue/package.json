@@ -3,7 +3,7 @@
   "description": "Rspack plugin for @tsrx/vue",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.58",
+  "version": "0.0.59",
   "type": "module",
   "publishConfig": {
     "access": "public"

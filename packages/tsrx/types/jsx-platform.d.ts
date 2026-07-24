@@ -1,6 +1,7 @@
 import type * as AST from 'estree';
+import type * as ESTreeJSX from 'estree-jsx';
 import type { RawSourceMap } from 'source-map';
-import type { CompileError } from './index';
+import type { CompileError, JsxHelperComponent } from './index';
 
 /**
  * Result returned by a JSX platform transform (React, Preact, Solid).
@@ -25,10 +26,8 @@ export interface JsxTransformResult {
 }
 
 /**
- * Shared base for the per-call transform context that the JSX factory passes
- * into every visitor and helper. Platform-specific transforms (e.g. Solid)
- * extend this with their own `needs_*` flags via `hooks.initialState`; helpers
- * defined in `@tsrx/core` only ever rely on these base fields.
+ * Per-call transform context that the JSX factory passes into every visitor
+ * and platform hook.
  */
 export interface JsxTransformContext {
 	platform: JsxPlatform;
@@ -43,14 +42,22 @@ export interface JsxTransformContext {
 	needs_dynamic_factory: boolean;
 	needs_for_of_iterable: boolean;
 	needs_iteration_value_type: boolean;
+	needs_show: boolean;
+	needs_for: boolean;
+	needs_switch: boolean;
+	needs_match: boolean;
+	needs_errored: boolean;
+	needs_loading: boolean;
+	needs_define_vapor_component: boolean;
+	needs_vapor_for: boolean;
 	stylesheets: AST.CSS.StyleSheet[];
 	type_only_style_anchors: AST.Statement[];
 	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
 		next_id: number;
-		helpers: any[];
-		statics: any[];
+		helpers: AST.Statement[];
+		statics: AST.Statement[];
 	} | null;
 	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
@@ -138,10 +145,13 @@ export interface JsxPlatformHooks {
 	 * child (or an expression container wrapping one).
 	 */
 	controlFlow?: {
-		ifStatement?: (node: any, ctx: any) => any;
-		forOf?: (node: any, ctx: any) => any;
-		switchStatement?: (node: any, ctx: any) => any;
-		tryStatement?: (node: any, ctx: any) => any;
+		ifStatement?: (node: AST.IfStatement, ctx: JsxTransformContext) => ESTreeJSX.JSXRenderNode;
+		forOf?: (node: AST.ForOfStatement, ctx: JsxTransformContext) => ESTreeJSX.JSXRenderNode;
+		switchStatement?: (
+			node: AST.SwitchStatement,
+			ctx: JsxTransformContext,
+		) => ESTreeJSX.JSXRenderNode;
+		tryStatement?: (node: AST.TryStatement, ctx: JsxTransformContext) => ESTreeJSX.JSXRenderNode;
 	};
 	/**
 	 * Mark a top-level call expression inside a control-flow branch as requiring
@@ -149,14 +159,19 @@ export interface JsxPlatformHooks {
 	 * branch instead of once per parent rerender. Vue uses this for branch-local
 	 * Composition API state like `ref()`.
 	 */
-	isTopLevelSetupCall?: (callExpression: any, ctx: any) => boolean;
+	isTopLevelSetupCall?: (callExpression: AST.CallExpression, ctx: JsxTransformContext) => boolean;
 	/**
 	 * Wrap a hoisted helper component declaration emitted by the shared control-
 	 * flow splitter. The default is the plain function declaration; Vue uses
 	 * this to wrap helpers in `defineVaporComponent(...)` so branch-local setup
 	 * state behaves like normal component state.
 	 */
-	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
+	wrapHelperComponent?: (
+		helperFn: AST.FunctionDeclaration,
+		helperId: AST.Identifier,
+		ctx: JsxTransformContext,
+		sourceNode: AST.NodeWithLocation | undefined,
+	) => AST.Statement;
 	/**
 	 * Emit hook-isolation helper components as unique module-scope declarations
 	 * instead of lazily creating and caching them from the parent component body.
@@ -171,27 +186,38 @@ export interface JsxPlatformHooks {
 	 * Solid injects `Show`, `For`, `Switch`, `Match`, `Errored`, `Loading`
 	 * from `solid-js`.
 	 */
-	injectImports?: (program: AST.Program, ctx: any, suspenseSource: string) => void;
+	injectImports?: (program: AST.Program, ctx: JsxTransformContext, suspenseSource: string) => void;
 	/**
-	 * Transform a Ripple element's attributes to JSX attributes. Default
-	 * is "map over `to_jsx_attribute`" plus the shared multi-`ref` merge
-	 * pass. Platforms that own a `transformElement` hook (e.g. Solid) bypass
-	 * this entirely — they never reach the dispatch path that would call
-	 * it — and run their own attribute pass inside their `transformElement`.
+	 * Transform a Ripple element's parser-native JSX attributes. The result
+	 * is passed through the shared multi-`ref` merge. Platforms that own a
+	 * `transformElement` hook (e.g. Solid) run their own attribute pass inside
+	 * that hook.
 	 */
-	transformElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
+	transformElementAttributes?: (
+		attrs: ESTreeJSX.JSXAttributeNode[],
+		ctx: JsxTransformContext,
+		element: AST.TSRXJSXElement,
+	) => ESTreeJSX.JSXAttributeNode[];
 	/**
-	 * Rewrite or normalize raw Ripple attributes before the shared
-	 * `to_jsx_attribute()` mapping runs.
+	 * Rewrite parser-native JSX attributes before platform transformation.
 	 */
-	preprocessElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
+	preprocessElementAttributes?: (
+		attrs: ESTreeJSX.JSXAttributeNode[],
+		ctx: JsxTransformContext,
+		element: AST.TSRXJSXElement,
+	) => ESTreeJSX.JSXAttributeNode[];
 	/**
 	 * Optionally replace the default React-style `.map(...)` lowering for a
 	 * `for...of` body after the shared transform has already produced its render
 	 * statements and applied any explicit or implicit keys. Vue uses this to hand
 	 * the loop to the downstream Vapor JSX compiler as a typed `VaporFor` component.
 	 */
-	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
+	renderForOf?: (
+		node: AST.ForOfStatement,
+		loopParams: AST.Pattern[],
+		bodyStatements: AST.Statement[],
+		ctx: JsxTransformContext,
+	) => ESTreeJSX.JSXExpressionContainer | null;
 	/**
 	 * Optionally replace the default React-style pending lowering for
 	 * `@try { ... } @pending { ... }`. The default emits
@@ -200,35 +226,35 @@ export interface JsxPlatformHooks {
 	 * `v-slots`.
 	 */
 	createPendingBoundary?: (
-		tryContent: any,
-		fallbackContent: any,
-		ctx: any,
-		node: any,
-	) => any | null;
+		tryContent: ESTreeJSX.JSXRenderNode,
+		fallbackContent: ESTreeJSX.JSXRenderNode,
+		ctx: JsxTransformContext,
+		node: AST.TryStatement,
+	) => ESTreeJSX.JSXRenderNode | null;
 	/**
 	 * Optionally create a generated component for a catch fallback body while
 	 * the catch parameters are still in scope. Platforms can use this to reuse
 	 * one mapped catch-body component from multiple runtime catch sites.
 	 */
 	createErrorFallbackComponent?: (
-		catchBodyNodes: any[],
-		catchParams: any[],
-		ctx: any,
-		node: any,
-	) => any | null;
+		catchBodyNodes: AST.Statement[],
+		catchParams: AST.Pattern[],
+		ctx: JsxTransformContext,
+		node: AST.TryStatement,
+	) => JsxHelperComponent | null;
 	/**
 	 * Optionally replace the default `try/catch` boundary wrapper. The hook
 	 * receives the current render content, the original try-body content before
 	 * any pending wrapper, and the generated catch fallback function.
 	 */
 	createErrorBoundary?: (
-		tryContent: any,
-		rawTryContent: any,
-		fallbackFn: any,
-		ctx: any,
-		node: any,
-		info?: { fallbackComponent?: any },
-	) => any | null;
+		tryContent: ESTreeJSX.JSXRenderNode,
+		rawTryContent: ESTreeJSX.JSXRenderNode,
+		fallbackFn: AST.ArrowFunctionExpression,
+		ctx: JsxTransformContext,
+		node: AST.TryStatement,
+		info?: { fallbackComponent?: JsxHelperComponent | null },
+	) => ESTreeJSX.JSXRenderNode | null;
 	/**
 	 * Optionally move the primary `try { ... }` render content into an explicit
 	 * error-boundary prop instead of rendering it as the boundary's JSX children.
@@ -236,7 +262,11 @@ export interface JsxPlatformHooks {
 	 * zero-argument function. If a `pending` block exists, `tryContent` is the
 	 * already-created pending boundary so catch wrappers still enclose it.
 	 */
-	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
+	createErrorBoundaryContent?: (
+		tryContent: ESTreeJSX.JSXRenderNode,
+		ctx: JsxTransformContext,
+		node: AST.TryStatement,
+	) => AST.Expression | null;
 	/**
 	 * Customize lowering for a native JSX element. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
@@ -245,7 +275,11 @@ export interface JsxPlatformHooks {
 	 * `JSXText` child it can hoist to a `textContent` attribute before the
 	 * generic text→JSXExpressionContainer transform runs.
 	 */
-	transformElement?: (inner: any, ctx: any, rawChildren: any[]) => any;
+	transformElement?: (
+		inner: AST.TSRXJSXElement,
+		ctx: JsxTransformContext,
+		rawChildren: AST.Node[],
+	) => ESTreeJSX.JSXRenderNode;
 	/**
 	 * Optionally rewrite a host element's children into attributes or another
 	 * specialized child shape after generic attribute lowering but before the
@@ -258,27 +292,27 @@ export interface JsxPlatformHooks {
 	 * back to the default child handling.
 	 */
 	transformElementChildren?: (
-		element: any,
-		walkedChildren: any[],
-		rawChildren: any[],
-		attrs: any[],
-		ctx: any,
-	) => { children: any[]; selfClosing?: boolean } | null;
+		element: AST.TSRXJSXElement,
+		walkedChildren: AST.Node[],
+		rawChildren: AST.Node[],
+		attrs: ESTreeJSX.JSXAttributeNode[],
+		ctx: JsxTransformContext,
+	) => { children: ESTreeJSX.JSXElement['children']; selfClosing?: boolean } | null;
 	/**
 	 * Decide whether a JSX subtree may be hoisted to module scope when it is
 	 * otherwise statically safe. Targets can use this to keep runtime-sensitive
 	 * JSX, such as component invocations, inside render/setup execution.
 	 */
-	canHoistStaticNode?: (node: any, ctx: any) => boolean;
+	canHoistStaticNode?: (node: ESTreeJSX.JSXElement, ctx: JsxTransformContext) => boolean;
 	/**
 	 * Custom validation for a component body that uses top-level `await`.
 	 * Default: enforce `validation.requireUseServerForAwait`. Solid rejects
 	 * component-level await outright with a keyword-precise location.
 	 */
 	validateComponentAwait?: (
-		awaitNode: any,
-		component: any,
-		ctx: any,
+		awaitNode: AST.TSRXAwaitNode,
+		component: AST.Function,
+		ctx: JsxTransformContext,
 		moduleUsesServerDirective: boolean,
 		source: string,
 	) => void;
@@ -287,7 +321,7 @@ export interface JsxPlatformHooks {
 	 * initial `transform_context`. Lets solid seed its `needs_show` /
 	 * `needs_for` / etc. flags without forking the factory.
 	 */
-	initialState?: () => Record<string, unknown>;
+	initialState?: () => Partial<JsxTransformContext>;
 }
 
 /**

@@ -501,6 +501,83 @@ const items=[1,2,3];
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('keeps expression children glued across whitespace-free text', async () => {
+		const input = `function Test() {
+  return <a href={x}>
+    {state.owner}/{state.repoName}
+    <ExternalLink className="w-3 h-3" />
+  </a>;
+}`;
+		const expected = `function Test() {
+  return <a href={x}>
+    {state.owner}/{state.repoName}
+    <ExternalLink className="w-3 h-3" />
+  </a>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps expression siblings glued across multi-word text', async () => {
+		const input = `function Test() {
+  return <div>
+    {a}some words here{b}
+    <Foo />
+  </div>;
+}`;
+		const expected = `function Test() {
+  return <div>
+    {a}some words here{b}
+    <Foo />
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps whitespace-separated and directly adjacent expressions on their own lines', async () => {
+		const input = `function Test() {
+  return <div>
+    {a} / {b}
+    {c}{d}
+    <Foo />
+  </div>;
+}`;
+		const expected = `function Test() {
+  return <div>
+    {a}
+    /
+    {b}
+    {c}
+    {d}
+    <Foo />
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps fragment expression children glued across whitespace-free text', async () => {
+		const input = `function Test() {
+  return <>
+    {state.owner}/{state.repoName}
+    <Foo />
+  </>;
+}`;
+		const expected = `function Test() {
+  return <>
+    {state.owner}/{state.repoName}
+    <Foo />
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats text line breaks properly', async () => {
 		const input = `function Test() {
   return <div>

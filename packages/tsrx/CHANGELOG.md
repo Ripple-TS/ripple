@@ -1,5 +1,16 @@
 # @tsrx/core
 
+## 0.1.47
+
+### Patch Changes
+
+- [#1379](https://github.com/Ripple-TS/ripple/pull/1379)
+  [`302dc74`](https://github.com/Ripple-TS/ripple/commit/302dc74143f4143ec7136c036510d258a7866c8a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace the JSX platform
+  contract's `any` values with ESTree and ESTree JSX node types, and rename the
+  generic AST clone helper to `clone_ast_node`. Remove the obsolete
+  pre-parser-native attribute normalization API and its legacy AST types.
+
 ## 0.1.46
 
 ### Patch Changes

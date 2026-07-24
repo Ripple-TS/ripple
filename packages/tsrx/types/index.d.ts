@@ -24,11 +24,23 @@ export type {
 };
 export { createJsxTransform };
 
-export function collectStyleRefAttributes(node: any, refs?: any[]): any[];
-export function createStyleClassMap(component: any, css: any): AST.ObjectExpression;
-export function createStyleClassMapFromStylesheet(css: any): AST.ObjectExpression;
+/** Result of extracting a branch body into a generated helper component. */
+export interface JsxHelperComponent {
+	setup_statements: AST.Statement[];
+	component_element: ESTreeJSX.JSXElement;
+}
+
+export function collectStyleRefAttributes(
+	node: AST.Node | AST.Node[],
+	refs?: ESTreeJSX.JSXAttribute[],
+): ESTreeJSX.JSXAttribute[];
+export function createStyleClassMap(
+	component: AST.Node,
+	css: AST.CSS.StyleSheet,
+): AST.ObjectExpression;
+export function createStyleClassMapFromStylesheet(css: AST.CSS.StyleSheet): AST.ObjectExpression;
 export function createStyleRefSetupStatements(
-	refAttributes: any[],
+	refAttributes: ESTreeJSX.JSXAttribute[],
 	styleMap: AST.Expression,
 	options?: {
 		allowMutableRefTarget?: boolean;
@@ -36,7 +48,9 @@ export function createStyleRefSetupStatements(
 		visitExpression?: (expression: AST.Expression) => AST.Expression;
 	},
 ): AST.Statement[];
-export function getStyleElementStylesheet(styleElement: any): any | null;
+export function getStyleElementStylesheet(
+	styleElement: AST.JSXStyleElement,
+): AST.CSS.StyleSheet | null;
 
 /**
  * Compile error interface
@@ -119,11 +133,11 @@ interface BaseNodeMetaData {
 	/** Memoized `<> … </>` wrapper for a value-position directive (see get_directive_value_wrapper). */
 	tsrx_value_wrapper?: AST.TSRXJSXFragment;
 	ts_name?: string;
-	delegated?: any;
+	delegated?: boolean;
 	returned_tsrx_return?: AST.ReturnStatement;
 	styleScopeHash?: string;
 	css?: {
-		scopedClasses: Map<string, { start: number; end: number; selector: any }>;
+		scopedClasses: TopScopedClasses;
 		hash: string;
 	};
 	elementLeadingComments?: AST.Comment[];
@@ -139,6 +153,12 @@ interface BaseNodeMetaData {
 	generated_loop_skip_if?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
+	extra_source_mappings?: AST.NodeWithLocation[];
+	generated_setup_declarations?: AST.Statement[];
+	has_unmappable_value?: boolean;
+	synthetic_ref?: boolean;
+	tsrx_reactive_block?: boolean;
+	vapor_pending_fallback?: ESTreeJSX.JSXRenderNode;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
 		generated: AST.Identifier | AST.Literal;
@@ -156,8 +176,8 @@ interface FunctionMetaData extends BaseNodeMetaData {
 	/** Top-level scoped classes collected while pruning the component's CSS. */
 	topScopedClasses?: TopScopedClasses;
 	synthetic_children?: boolean;
-	generated_helpers?: any[];
-	generated_statics?: any[];
+	generated_helpers?: AST.Statement[];
+	generated_statics?: AST.Statement[];
 }
 
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output
@@ -445,6 +465,25 @@ declare module 'estree' {
 		| JSXSwitchExpression
 		| JSXTryExpression;
 
+	/** A statement-form template directive after its parser node has been retyped. */
+	type JSXTemplateStatement =
+		| (AST.IfStatement & { statementType: 'IfStatement' })
+		| (AST.ForOfStatement & { statementType: 'ForOfStatement' })
+		| (AST.SwitchStatement & { statementType: 'SwitchStatement' })
+		| (AST.TryStatement & { statementType: 'TryStatement' });
+
+	/** A source node that the shared JSX transform can lower into a JSX child. */
+	type TSRXRenderChild =
+		| ESTreeJSX.JSXElement
+		| ESTreeJSX.JSXFragment
+		| ESTreeJSX.JSXExpressionContainer
+		| ESTreeJSX.JSXText
+		| JSXTemplateDirective
+		| JSXTemplateStatement;
+
+	/** An AST node that represents component-level `await` during validation. */
+	type TSRXAwaitNode = AST.AwaitExpression | AST.ForOfStatement | JSXForOfExpression;
+
 	/** Any node that can be the rendered output of a TSRX template or statement container. */
 	type TSRXRenderOutput =
 		| ESTreeJSX.JSXElement
@@ -452,6 +491,9 @@ declare module 'estree' {
 		| JSXStyleElement
 		| JSXCodeBlock
 		| JSXTemplateDirective;
+
+	/** A parser node whose body uses native TSRX template semantics. */
+	type NativeTSRXNode = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement | JSXCodeBlock;
 
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';
@@ -480,7 +522,16 @@ declare module 'estree' {
 	type CommentWithLocation = AST.Comment & NodeWithLocation;
 
 	interface TryStatement {
+		statementType?: 'TryStatement';
 		pending?: AST.BlockStatement | null;
+	}
+
+	interface IfStatement {
+		statementType?: 'IfStatement';
+	}
+
+	interface SwitchStatement {
+		statementType?: 'SwitchStatement';
 	}
 
 	interface CatchClause {
@@ -488,6 +539,7 @@ declare module 'estree' {
 	}
 
 	interface ForOfStatement {
+		statementType?: 'ForOfStatement';
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
 		empty?: AST.BlockStatement | null;
@@ -737,6 +789,27 @@ declare module 'estree' {
 }
 
 declare module 'estree-jsx' {
+	/** A node that can be returned from a platform hook into a JSX render slot. */
+	type JSXRenderNode = AST.Expression | JSXExpressionContainer | JSXText | JSXSpreadChild;
+
+	/** A JSX child produced by the transform's render-body lowering. */
+	type JSXRenderChild = JSXElement | JSXFragment | JSXExpressionContainer | JSXText;
+
+	/** An attribute accepted by and emitted from the shared JSX transformer. */
+	type JSXAttributeNode = JSXAttribute | JSXSpreadAttribute;
+
+	/** A `ref` attribute whose value has been narrowed to a non-empty expression. */
+	interface JSXRefAttribute extends JSXAttribute {
+		name: JSXIdentifier;
+		value: JSXExpressionContainer & { expression: AST.Expression };
+	}
+
+	/** A child accepted while TSRX JSX is being lowered to standard ESTree JSX. */
+	type JSXTransformChild =
+		| JSXElement['children'][number]
+		| AST.TSRXJSXElement
+		| AST.TSRXJSXFragment;
+
 	interface JSXAttribute {
 		shorthand: boolean;
 	}
@@ -789,7 +862,8 @@ declare module 'estree-jsx' {
 			| JSXIdentifier
 			| JSXNamespacedName
 			| JSXExpressionContainer
-			| import('estree').MemberExpression;
+			| AST.Identifier
+			| AST.MemberExpression;
 	}
 
 	interface TSRXJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
@@ -799,7 +873,8 @@ declare module 'estree-jsx' {
 			| JSXIdentifier
 			| JSXNamespacedName
 			| JSXExpressionContainer
-			| import('estree').MemberExpression;
+			| AST.Identifier
+			| AST.MemberExpression;
 	}
 
 	interface ExpressionMap {

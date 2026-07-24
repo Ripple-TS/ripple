@@ -1,7 +1,8 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
 
-import { set_location } from '../../utils/builders.js';
+import * as b from '../../utils/builders.js';
+import { has_location } from '../../utils/ast.js';
 
 /**
  * AST-building utilities shared across every JSX target (React, Preact,
@@ -13,15 +14,15 @@ import { set_location } from '../../utils/builders.js';
  * Attach `source_node`'s `loc` to `node` (deep), defaulting `node.metadata`
  * so downstream walks / serializers don't trip on it being undefined.
  *
- * @template T
+ * @template {AST.Node} T
  * @param {T} node
- * @param {any} source_node
+ * @param {AST.Node | AST.NodeWithLocation | undefined} source_node
  * @returns {T}
  */
 export function set_loc(node, source_node) {
-	/** @type {any} */ (node).metadata ??= { path: [] };
-	if (source_node?.loc) {
-		return /** @type {T} */ (set_location(/** @type {any} */ (node), source_node, true));
+	node.metadata ??= { path: [] };
+	if (has_location(source_node)) {
+		return b.set_location(node, source_node, true);
 	}
 	return node;
 }
@@ -35,58 +36,64 @@ export function set_loc(node, source_node) {
  * @returns {AST.Identifier}
  */
 export function clone_identifier(identifier) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'Identifier',
-			name: identifier.name,
-			metadata: { path: [] },
-		}),
-		identifier,
-	);
+	return set_loc(b.id(identifier.name), identifier);
 }
 
 /**
  * Clone a JSX element name (handles `JSXIdentifier`, `JSXMemberExpression`,
  * and plain `Identifier`).
  *
- * @param {any} name
- * @param {any} [source_node]
- * @returns {any}
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name']} name
+ * @param {AST.Node} [source_node]
+ * @returns {ESTreeJSX.TSRXJSXOpeningElement['name']}
  */
 export function clone_jsx_name(name, source_node = name) {
-	if (!name) return name;
 	if (name.type === 'JSXIdentifier') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXIdentifier',
-				name: name.name,
-				metadata: name.metadata || { path: [] },
-			}),
-			source_node,
-		);
+		return clone_jsx_identifier(name, source_node);
 	}
 	if (name.type === 'JSXMemberExpression') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXMemberExpression',
-				object: clone_jsx_name(name.object, source_node.object || name.object),
-				property: clone_jsx_name(name.property, source_node.property || name.property),
-				metadata: name.metadata || { path: [] },
-			}),
-			source_node,
-		);
+		return clone_jsx_member_expression(name, source_node);
 	}
 	if (name.type === 'Identifier') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXIdentifier',
-				name: name.name,
-				metadata: name.metadata || { path: [] },
-			}),
-			source_node,
-		);
+		const clone = b.jsx_id(name.name);
+		clone.metadata = name.metadata || { path: [] };
+		return set_loc(clone, source_node);
 	}
 	return name;
+}
+
+/**
+ * @param {ESTreeJSX.JSXIdentifier} name
+ * @param {AST.Node} source_node
+ * @returns {ESTreeJSX.JSXIdentifier}
+ */
+function clone_jsx_identifier(name, source_node) {
+	const clone = b.jsx_id(name.name);
+	clone.metadata = name.metadata || { path: [] };
+	return set_loc(clone, source_node);
+}
+
+/**
+ * @param {ESTreeJSX.JSXMemberExpression} name
+ * @param {AST.Node} source_node
+ * @returns {ESTreeJSX.JSXMemberExpression}
+ */
+function clone_jsx_member_expression(name, source_node) {
+	const member_source = source_node.type === 'JSXMemberExpression' ? source_node : name;
+	const object =
+		name.object.type === 'JSXIdentifier'
+			? clone_jsx_identifier(
+					name.object,
+					member_source.object.type === 'JSXIdentifier' ? member_source.object : name.object,
+				)
+			: clone_jsx_member_expression(
+					name.object,
+					member_source.object.type === 'JSXMemberExpression' ? member_source.object : name.object,
+				);
+	const property = clone_jsx_identifier(name.property, member_source.property);
+	const clone = b.jsx_member(object, property);
+	clone.metadata = name.metadata || { path: [] };
+	return set_loc(clone, source_node);
 }
 
 /**
@@ -94,38 +101,45 @@ export function clone_jsx_name(name, source_node = name) {
  * range can map back to several source ranges. Used for dynamic tags, where
  * the generated `is={expr}` value stands in for both `<{expr}` and `</{expr}>`;
  * segments.js turns each recorded node into an additional mapping token.
- * @param {any} generated
- * @param {any} source
+ * @param {AST.Node} generated
+ * @param {AST.Node | null | undefined} source
  * @returns {void}
  */
 export function add_extra_source_mappings_from_matching_expression(generated, source) {
 	if (!generated || !source || generated.type !== source.type) return;
 
 	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
-		if (!source.loc) return;
+		if (!has_location(source)) return;
 		generated.metadata ??= { path: [] };
 		generated.metadata.extra_source_mappings ??= [];
 		generated.metadata.extra_source_mappings.push(source);
 		return;
 	}
 
+	const generated_node = /** @type {AST.TraversableAstNode} */ (generated);
+	const source_node = /** @type {AST.TraversableAstNode} */ (source);
 	for (const key of ['expression', 'object', 'property']) {
-		if (generated[key] && source[key]) {
-			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
+		const generated_child = generated_node[key];
+		const source_child = source_node[key];
+		if (is_ast_node(generated_child) && is_ast_node(source_child)) {
+			add_extra_source_mappings_from_matching_expression(generated_child, source_child);
 		}
 	}
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is AST.Node}
+ */
+function is_ast_node(value) {
+	return !!value && typeof value === 'object' && 'type' in value;
 }
 
 /**
  * @returns {AST.Literal}
  */
 export function create_null_literal() {
-	return /** @type {any} */ ({
-		type: 'Literal',
-		value: null,
-		raw: 'null',
-		metadata: { path: [] },
-	});
+	return b.literal(null, 'null');
 }
 
 /**
@@ -133,15 +147,11 @@ export function create_null_literal() {
  * @returns {AST.Identifier}
  */
 export function create_generated_identifier(name) {
-	return /** @type {any} */ ({
-		type: 'Identifier',
-		name,
-		metadata: { path: [] },
-	});
+	return b.id(name);
 }
 
 /**
- * @param {any} node
+ * @param {AST.BaseNode} node
  * @param {string} message
  * @returns {Error & { pos: number, end: number }}
  */
@@ -160,33 +170,35 @@ export function create_compile_error(node, message) {
  * component hover label — without that flag those source-map adjustments
  * and editor hover features silently drop for any composite element.
  *
- * @param {any} id
- * @returns {any}
+ * @param {AST.Identifier | AST.MemberExpression} id
+ * @returns {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression}
  */
 export function identifier_to_jsx_name(id) {
-	if (!id) return id;
 	if (id.type === 'Identifier') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXIdentifier',
-				name: id.name,
-				metadata: { ...(id.metadata || {}), path: [], is_component: /^[A-Z]/.test(id.name) },
-			}),
-			id,
-		);
+		return identifier_to_jsx_identifier(id);
 	}
-	if (id.type === 'MemberExpression') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXMemberExpression',
-				object: identifier_to_jsx_name(id.object),
-				property: identifier_to_jsx_name(id.property),
-				metadata: id.metadata || { path: [] },
-			}),
-			id,
-		);
-	}
-	return id;
+	const object =
+		id.object.type === 'Identifier'
+			? identifier_to_jsx_name(id.object)
+			: identifier_to_jsx_name(/** @type {AST.MemberExpression} */ (id.object));
+	const property = identifier_to_jsx_identifier(/** @type {AST.Identifier} */ (id.property));
+	const name = b.jsx_member(object, property);
+	name.metadata = id.metadata || { path: [] };
+	return set_loc(name, id);
+}
+
+/**
+ * @param {AST.Identifier} id
+ * @returns {ESTreeJSX.JSXIdentifier}
+ */
+export function identifier_to_jsx_identifier(id) {
+	const name = b.jsx_id(id.name);
+	name.metadata = {
+		...(id.metadata || {}),
+		path: [],
+		is_component: /^[A-Z]/.test(id.name),
+	};
+	return set_loc(name, id);
 }
 
 /**
@@ -199,7 +211,7 @@ export function identifier_to_jsx_name(id) {
  * Used by platforms that veto static-hoisting of component JSX (Vue, Solid)
  * and by core's narrower bare-component-invocation predicate.
  *
- * @param {any} name
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name'] | AST.Identifier} name
  * @returns {boolean}
  */
 export function is_component_jsx_name(name) {
@@ -227,26 +239,25 @@ export function is_component_jsx_name(name) {
  * component instance to module identity, which doesn't help either framework
  * the way it helps React, so it's wasted output.
  *
- * @param {any} node
+ * @param {AST.Node | AST.Node[]} node
  * @returns {boolean}
  */
 export function contains_component_jsx(node) {
 	if (!node || typeof node !== 'object') {
 		return false;
 	}
-
-	if (node.type === 'JSXElement') {
+	if ('type' in node && node.type === 'JSXElement') {
 		if (is_component_jsx_name(node.openingElement?.name)) {
 			return true;
 		}
 		return node.children?.some(contains_component_jsx) ?? false;
 	}
 
-	if (node.type === 'JSXFragment') {
+	if ('type' in node && node.type === 'JSXFragment') {
 		return node.children?.some(contains_component_jsx) ?? false;
 	}
 
-	if (node.type === 'JSXExpressionContainer') {
+	if ('type' in node && node.type === 'JSXExpressionContainer') {
 		return contains_component_jsx(node.expression);
 	}
 
@@ -258,7 +269,7 @@ export function contains_component_jsx(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_jsx_child(node) {
@@ -287,8 +298,8 @@ export function is_jsx_child(node) {
  * the unwrapped expression is still render output rather than an executable
  * statement.
  *
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.Expression}
  */
 export function is_bare_render_expression(node) {
 	if (!node || typeof node !== 'object') {
@@ -335,17 +346,17 @@ export function is_bare_render_expression(node) {
  * Gather the params a `for (x of y; index i)` loop should expose to its body
  * JSX (value first, optional index second).
  *
- * @param {any} left
- * @param {any} [index]
- * @returns {any[]}
+ * @param {AST.ForOfStatement['left']} left
+ * @param {AST.Identifier | null} [index]
+ * @returns {AST.Pattern[]}
  */
 export function get_for_of_iteration_params(left, index) {
-	/** @type {any[]} */
+	/** @type {AST.Pattern[]} */
 	const params = [];
 	if (left?.type === 'VariableDeclaration' && left.declarations?.[0]) {
 		params.push(left.declarations[0].id);
 	} else {
-		params.push(left);
+		params.push(/** @type {AST.Pattern} */ (left));
 	}
 	if (index) {
 		params.push(index);
@@ -359,8 +370,8 @@ export function get_for_of_iteration_params(left, index) {
  * under the case. This lets `case` arms use `{ ... }` for readability
  * without the block becoming a fresh scope at the JSX level.
  *
- * @param {any[]} consequent
- * @returns {any[]}
+ * @param {AST.Statement[]} consequent
+ * @returns {AST.Statement[]}
  */
 export function flatten_switch_consequent(consequent) {
 	const result = [];
@@ -404,12 +415,12 @@ function is_static_string_expression(expression) {
  * get the ternary because the AST alone can't prove they're non-null strings.
  *
  * @param {AST.Expression} expression
- * @param {any} [source_node]
+ * @param {AST.Node | AST.NodeWithLocation} [source_node]
  * @returns {AST.Expression}
  */
 export function to_text_expression(expression, source_node = expression) {
 	if (is_static_string_expression(expression)) {
-		return set_loc(clone_expression_node(expression), source_node);
+		return set_loc(clone_ast_node(expression), source_node);
 	}
 	return set_loc(
 		/** @type {AST.Expression} */ ({
@@ -417,7 +428,7 @@ export function to_text_expression(expression, source_node = expression) {
 			test: {
 				type: 'BinaryExpression',
 				operator: '==',
-				left: clone_expression_node(expression),
+				left: clone_ast_node(expression),
 				right: create_null_literal(),
 				metadata: { path: [] },
 			},
@@ -430,7 +441,7 @@ export function to_text_expression(expression, source_node = expression) {
 			alternate: {
 				type: 'BinaryExpression',
 				operator: '+',
-				left: clone_expression_node(expression),
+				left: clone_ast_node(expression),
 				right: {
 					type: 'Literal',
 					value: '',
@@ -448,24 +459,34 @@ export function to_text_expression(expression, source_node = expression) {
 /**
  * Deep-clone an AST subtree.
  *
- * @param {any} node
+ * @template T
+ * @param {T} node
  * @param {boolean} with_locations
- * @returns {any}
+ * @returns {T}
  */
-export function clone_expression_node(node, with_locations = true) {
+export function clone_ast_node(node, with_locations = true) {
 	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map((child) => clone_expression_node(child, with_locations));
-	const clone = /** @type {Record<string, any>} */ ({});
+	if (Array.isArray(node)) {
+		return /** @type {T} */ (node.map((child) => clone_ast_node(child, with_locations)));
+	}
+	const clone = { ...node };
+	const clone_record = /** @type {Record<string, unknown>} */ (clone);
 
 	for (const key of Object.keys(node)) {
 		if (!with_locations && (key === 'loc' || key === 'start' || key === 'end')) {
+			delete clone_record[key];
 			continue;
 		}
 		if (key === 'metadata') {
-			clone.metadata = node.metadata ? { ...node.metadata } : { path: [] };
+			const metadata = /** @type {Record<string, unknown>} */ (node).metadata;
+			clone_record.metadata =
+				metadata && typeof metadata === 'object' ? { ...metadata } : { path: [] };
 			continue;
 		}
-		clone[key] = clone_expression_node(node[key], with_locations);
+		clone_record[key] = clone_ast_node(
+			/** @type {Record<string, unknown>} */ (node)[key],
+			with_locations,
+		);
 	}
 	return clone;
 }

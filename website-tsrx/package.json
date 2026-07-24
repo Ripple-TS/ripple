@@ -1,6 +1,6 @@
 {
   "name": "tsrx-website",
-  "version": "0.1.90",
+  "version": "0.1.92",
   "description": "Marketing site for TSRX built with Ripple SSR",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "pnpm@11.15.1",
   "dependencies": {
     "@codemirror/commands": "^6.9.1",
     "@codemirror/lang-javascript": "^6.2.4",

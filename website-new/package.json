@@ -1,6 +1,6 @@
 {
   "name": "ripple-website",
-  "version": "0.1.109",
+  "version": "0.1.111",
   "description": "",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "pnpm@11.15.1",
   "dependencies": {
     "@ripple-ts/adapter-node": "workspace:*",
     "livecodes": "catalog:default",

@@ -89,6 +89,7 @@ export {
 	is_function_node as isFunctionNode,
 	is_function_or_class_node as isFunctionOrClassNode,
 	is_function_or_component_node as isFunctionOrComponentNode,
+	has_location,
 	is_inside_component as isInsideComponent,
 	is_template_directive as isTemplateDirective,
 	is_tsrx_render_output_node as isTsrxRenderOutputNode,
@@ -168,7 +169,6 @@ export {
 	plan_switch_lift as planSwitchLift,
 	return_value_body_to_expression as returnValueBodyToExpression,
 	rewrite_loop_continues_to_bare_returns as rewriteLoopContinuesToBareReturns,
-	to_jsx_attribute as toJsxAttribute,
 	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,
 	wrap_edge_whitespace as wrapEdgeWhitespace,
 } from './transform/jsx/index.js';
@@ -190,7 +190,7 @@ export {
 } from './transform/style-ref.js';
 export {
 	add_extra_source_mappings_from_matching_expression,
-	clone_expression_node,
+	clone_ast_node,
 	clone_identifier,
 	clone_jsx_name,
 	contains_component_jsx,

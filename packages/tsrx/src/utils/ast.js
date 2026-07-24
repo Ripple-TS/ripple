@@ -21,6 +21,17 @@
 import * as b from './builders.js';
 
 /**
+ * @template {object} T
+ * @param {T | null | undefined} node
+ * @returns {node is T & AST.NodeWithLocation}
+ */
+export function has_location(node) {
+	if (node == null) return false;
+	const location = /** @type {Partial<AST.NodeWithLocation>} */ (node);
+	return location.loc != null && location.start !== undefined && location.end !== undefined;
+}
+
+/**
  * @param {AST.Node} node
  * @returns {node is AST.Function}
  */

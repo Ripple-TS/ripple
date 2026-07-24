@@ -1,23 +1,25 @@
-/** @import { JsxPlatform } from '@tsrx/core/types' */
+/** @import * as AST from 'estree' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import { JsxHelperComponent, JsxPlatform, JsxTransformContext as TransformContext } from '@tsrx/core/types' */
 
 import { walk } from 'zimmerframe';
 import is_reference from 'is-reference';
 import {
 	builders as b,
 	addJsxSetupDeclaration,
-	clone_expression_node,
+	clone_ast_node,
 	clone_identifier,
 	contains_component_jsx,
 	createHookSafeHelper,
 	create_generated_identifier,
 	createJsxTransform,
 	error,
+	has_location,
 	is_component_like_element,
 	MERGE_REFS_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	setLocation,
-	toJsxAttribute,
 } from '@tsrx/core';
 
 /**
@@ -78,11 +80,10 @@ const vue_platform = {
 			return preprocess_ref_attributes(attrs, ctx);
 		},
 		transformElementAttributes(attrs, ctx, element) {
-			const result = attrs.map((attr) => toJsxAttribute(attr, ctx));
 			if (!ctx.typeOnly || is_component_like_element(element)) {
-				return result;
+				return attrs;
 			}
-			return result.map(mark_type_only_host_ref_attribute);
+			return attrs.map(mark_type_only_host_ref_attribute);
 		},
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
@@ -102,7 +103,7 @@ const vue_platform = {
 			if (!node.pending) {
 				return null;
 			}
-			const fallback_content = /** @type {any} */ (try_content.metadata)?.vapor_pending_fallback;
+			const fallback_content = try_content.metadata?.vapor_pending_fallback;
 			if (!fallback_content) {
 				return create_vapor_error_boundary(try_content, fallback_fn);
 			}
@@ -154,9 +155,9 @@ const vue_platform = {
 export const transform = createJsxTransform(vue_platform);
 
 /**
- * @param {any} try_content
- * @param {any} fallback_content
- * @returns {any}
+ * @param {ESTreeJSX.JSXRenderNode} try_content
+ * @param {ESTreeJSX.JSXRenderNode} fallback_content
+ * @returns {ESTreeJSX.JSXElement}
  */
 function create_vapor_pending_boundary(try_content, fallback_content) {
 	return create_vapor_pending_boundary_from_default_slot(
@@ -166,9 +167,9 @@ function create_vapor_pending_boundary(try_content, fallback_content) {
 }
 
 /**
- * @param {any} default_slot
- * @param {any} fallback_content
- * @returns {any}
+ * @param {AST.ArrowFunctionExpression} default_slot
+ * @param {ESTreeJSX.JSXRenderNode} fallback_content
+ * @returns {ESTreeJSX.JSXElement}
  */
 function create_vapor_pending_boundary_from_default_slot(default_slot, fallback_content) {
 	const fallback_expression = jsx_child_to_expression(fallback_content);
@@ -189,16 +190,16 @@ function create_vapor_pending_boundary_from_default_slot(default_slot, fallback_
 		null,
 		[],
 	);
-	/** @type {any} */ (boundary.metadata).vapor_pending_fallback = fallback_content;
+	boundary.metadata.vapor_pending_fallback = fallback_content;
 	return boundary;
 }
 
 /**
- * @param {any[]} catch_body_nodes
- * @param {any[]} catch_params
- * @param {any} ctx
- * @param {any} node
- * @returns {any}
+ * @param {AST.Statement[]} catch_body_nodes
+ * @param {AST.Pattern[]} catch_params
+ * @param {TransformContext} ctx
+ * @param {AST.TryStatement} node
+ * @returns {JsxHelperComponent}
  */
 function create_module_scoped_error_fallback_component(catch_body_nodes, catch_params, ctx, node) {
 	const saved_module_scoped = ctx.module_scoped_hook_components;
@@ -217,12 +218,12 @@ function create_module_scoped_error_fallback_component(catch_body_nodes, catch_p
  * Suspense can still observe async children while `catch` handles immediate
  * render failures.
  *
- * @param {any} content
- * @param {any} fallback_fn
- * @param {{ component_element: any } | null} fallback_component
- * @param {any} source_block
- * @param {any} source_try
- * @returns {any}
+ * @param {ESTreeJSX.JSXRenderNode} content
+ * @param {AST.ArrowFunctionExpression} fallback_fn
+ * @param {JsxHelperComponent | null} fallback_component
+ * @param {AST.BlockStatement} source_block
+ * @param {AST.TryStatement} source_try
+ * @returns {AST.ArrowFunctionExpression}
  */
 function create_sync_error_boundary_slot(
 	content,
@@ -239,7 +240,11 @@ function create_sync_error_boundary_slot(
 				b.arrow([], b.block([])),
 			])
 		: b.call(b.parenthesized(fallback_fn), clone_identifier(error_id), b.arrow([], b.block([])));
-	const try_block = setLocation(b.block([b.return(content_expression)]), source_block, true);
+	const try_block = setLocation(
+		b.block([b.return(content_expression)]),
+		has_location(source_block) ? source_block : undefined,
+		true,
+	);
 	const try_statement = setLocation(
 		b.try(
 			try_block,
@@ -247,32 +252,33 @@ function create_sync_error_boundary_slot(
 			null,
 			null,
 		),
-		source_try,
+		has_location(source_try) ? source_try : undefined,
 		true,
 	);
 	return b.arrow([], b.block([try_statement]));
 }
 
 /**
- * @param {{ component_element: any }} fallback_component
- * @param {any} fallback_fn
- * @returns {any}
+ * @param {JsxHelperComponent} fallback_component
+ * @param {AST.ArrowFunctionExpression} fallback_fn
+ * @returns {AST.ArrowFunctionExpression}
  */
 function create_fallback_component_renderer(fallback_component, fallback_fn) {
 	return b.arrow(
-		fallback_fn.params.map((/** @type {any} */ param) => clone_expression_node(param, false)),
+		fallback_fn.params.map((param) => clone_ast_node(param, false)),
 		b.block([b.return(create_fallback_component_element(fallback_component, fallback_fn))]),
 	);
 }
 
 /**
- * @param {{ component_element: any }} fallback_component
- * @param {any} fallback_fn
- * @param {any[]} [replacement_args]
- * @returns {any}
+ * @param {JsxHelperComponent} fallback_component
+ * @param {AST.ArrowFunctionExpression} fallback_fn
+ * @param {AST.Expression[]} [replacement_args]
+ * @returns {ESTreeJSX.JSXElement}
  */
 function create_fallback_component_element(fallback_component, fallback_fn, replacement_args = []) {
-	const element = clone_expression_node(fallback_component.component_element, false);
+	const element = clone_ast_node(fallback_component.component_element, false);
+	/** @type {Map<string, AST.Expression>} */
 	const replacements = new Map();
 	for (let i = 0; i < fallback_fn.params.length && i < replacement_args.length; i += 1) {
 		const param = fallback_fn.params[i];
@@ -282,16 +288,20 @@ function create_fallback_component_element(fallback_component, fallback_fn, repl
 	}
 
 	for (const attr of element.openingElement?.attributes ?? []) {
-		const attr_name = attr.name?.name;
+		if (attr.type !== 'JSXAttribute' || attr.name.type !== 'JSXIdentifier') continue;
+		const attr_name = attr.name.name;
 		if (!attr_name || !replacements.has(attr_name)) continue;
-		attr.value = to_jsx_expression_container(replacements.get(attr_name), attr.value ?? attr);
+		attr.value = to_jsx_expression_container(
+			/** @type {AST.Expression} */ (replacements.get(attr_name)),
+			attr.value ?? attr,
+		);
 	}
 
 	return element;
 }
 
 /**
- * @param {any[]} patterns
+ * @param {AST.Pattern[]} patterns
  * @returns {Set<string>}
  */
 function get_pattern_names(patterns) {
@@ -303,17 +313,19 @@ function get_pattern_names(patterns) {
 }
 
 /**
- * @param {any} child
- * @returns {any}
+ * @param {ESTreeJSX.JSXRenderNode} child
+ * @returns {AST.Expression}
  */
 function jsx_child_to_expression(child) {
-	return child?.type === 'JSXExpressionContainer' ? child.expression : child;
+	return child.type === 'JSXExpressionContainer'
+		? /** @type {AST.Expression} */ (child.expression)
+		: /** @type {AST.Expression} */ (child);
 }
 
 /**
- * @param {any} content
- * @param {any} fallback_fn
- * @returns {any}
+ * @param {ESTreeJSX.JSXRenderNode} content
+ * @param {AST.ArrowFunctionExpression} fallback_fn
+ * @returns {ESTreeJSX.JSXElement}
  */
 function create_vapor_error_boundary(content, fallback_fn) {
 	return b.jsx_element_fresh(
@@ -339,8 +351,8 @@ function create_vapor_error_boundary(content, fallback_fn) {
  * expression unchanged but stop TypeScript verification from reporting that
  * Vue-specific assignability diagnostic on the generated `ref` prop token.
  *
- * @param {any} attr
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {ESTreeJSX.JSXAttributeNode}
  */
 function mark_type_only_host_ref_attribute(attr) {
 	if (
@@ -352,16 +364,16 @@ function mark_type_only_host_ref_attribute(attr) {
 		return attr;
 	}
 
-	const name = b.jsx_id(attr.name.name, attr.name);
+	const name = b.jsx_id(attr.name.name, has_location(attr.name) ? attr.name : undefined);
 	name.metadata = { ...(attr.name.metadata || {}), disable_verification: true };
-	return b.jsx_attribute(name, attr.value, attr.shorthand, attr);
+	return b.jsx_attribute(name, attr.value, attr.shorthand, has_location(attr) ? attr : undefined);
 }
 
 /**
- * @param {any} helper_fn
- * @param {any} helper_id
- * @param {any} source_node
- * @returns {any}
+ * @param {AST.FunctionDeclaration} helper_fn
+ * @param {AST.Identifier} helper_id
+ * @param {AST.NodeWithLocation | undefined} source_node
+ * @returns {AST.VariableDeclaration}
  */
 function wrap_helper_component(helper_fn, helper_id, source_node) {
 	return setLocation(
@@ -376,33 +388,39 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
 }
 
 /**
- * @param {any} program
- * @param {any} ctx
+ * @param {AST.Program} program
+ * @param {TransformContext} ctx
  * @returns {void}
  */
 function wrap_native_function_components(program, ctx) {
 	const wrapped = walk(program, ctx, {
 		FunctionDeclaration(node, { next, path, state }) {
 			const inner = next() ?? node;
-			return wrap_native_function_component(inner, state, path) ?? inner;
+			return (
+				wrap_native_function_component(/** @type {AST.Function} */ (inner), state, path) ?? inner
+			);
 		},
 		FunctionExpression(node, { next, path, state }) {
 			const inner = next() ?? node;
-			return wrap_native_function_component(inner, state, path) ?? inner;
+			return (
+				wrap_native_function_component(/** @type {AST.Function} */ (inner), state, path) ?? inner
+			);
 		},
 		ArrowFunctionExpression(node, { next, path, state }) {
 			const inner = next() ?? node;
-			return wrap_native_function_component(inner, state, path) ?? inner;
+			return (
+				wrap_native_function_component(/** @type {AST.Function} */ (inner), state, path) ?? inner
+			);
 		},
 	});
-	program.body = wrapped.body;
+	program.body = /** @type {AST.Program} */ (wrapped).body;
 }
 
 /**
- * @param {any} fn
- * @param {any} ctx
- * @param {any[]} path
- * @returns {any | null}
+ * @param {AST.Function} fn
+ * @param {TransformContext} ctx
+ * @param {AST.Node[]} path
+ * @returns {AST.Expression | AST.VariableDeclaration | null}
  */
 function wrap_native_function_component(fn, ctx, path) {
 	if (!fn.metadata?.native_tsrx_function) {
@@ -423,7 +441,7 @@ function wrap_native_function_component(fn, ctx, path) {
 			fn.metadata?.generated_helpers || [],
 			fn.metadata?.generated_statics || [],
 		),
-		fn,
+		has_location(fn) ? fn : undefined,
 		true,
 	);
 
@@ -441,18 +459,18 @@ function wrap_native_function_component(fn, ctx, path) {
 
 	return setLocation(
 		b.declaration('const', [b.declarator(create_generated_identifier(fn.id.name), call)]),
-		fn,
+		has_location(fn) ? fn : undefined,
 		true,
 	);
 }
 
 /**
- * @param {any} fn
- * @param {any} parent
+ * @param {AST.Function} fn
+ * @param {AST.Node | undefined} parent
  * @returns {string | null}
  */
 function get_function_component_name(fn, parent) {
-	if (fn.id?.type === 'Identifier') {
+	if (fn.type !== 'ArrowFunctionExpression' && fn.id?.type === 'Identifier') {
 		return fn.id.name;
 	}
 
@@ -472,7 +490,7 @@ function get_function_component_name(fn, parent) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | undefined} node
  * @returns {string | null}
  */
 function get_static_name(node) {
@@ -489,14 +507,14 @@ function get_static_name(node) {
 }
 
 /**
- * @param {any} fn_expression
- * @param {any[]} generated_helpers
- * @param {any[]} generated_statics
- * @returns {any}
+ * @param {AST.FunctionExpression | AST.ArrowFunctionExpression} fn_expression
+ * @param {AST.Statement[]} generated_helpers
+ * @param {AST.Statement[]} generated_statics
+ * @returns {AST.CallExpression}
  */
 function create_define_vapor_component_call(fn_expression, generated_helpers, generated_statics) {
 	const call = b.call('defineVaporComponent', fn_expression);
-	Object.assign(/** @type {any} */ (call.metadata), {
+	Object.assign(call.metadata, {
 		generated_helpers,
 		generated_statics,
 	});
@@ -504,11 +522,11 @@ function create_define_vapor_component_call(fn_expression, generated_helpers, ge
 }
 
 /**
- * @param {any} node
- * @param {any[]} loop_params
- * @param {any[]} body_statements
- * @param {any} transform_context
- * @returns {any | null}
+ * @param {AST.ForOfStatement} node
+ * @param {AST.Pattern[]} loop_params
+ * @param {AST.Statement[]} body_statements
+ * @param {TransformContext} transform_context
+ * @returns {ESTreeJSX.JSXExpressionContainer | null}
  */
 function render_for_of_as_vapor_for(node, loop_params, body_statements, transform_context) {
 	if (node.empty) {
@@ -530,9 +548,8 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 	}
 
 	const key_expression = node.key
-		? clone_expression_node(node.key)
-		: (find_jsx_key_expression(rendered) ??
-			(node.index ? clone_expression_node(node.index) : null));
+		? clone_ast_node(node.key)
+		: (find_jsx_key_expression(rendered) ?? (node.index ? clone_ast_node(node.index) : null));
 
 	const slot = key_expression
 		? create_keyed_vapor_for_slot(loop_params, rendered)
@@ -548,7 +565,7 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 	}
 
 	const attributes = [
-		b.jsx_attribute(b.jsx_id('in'), to_jsx_expression_container(clone_expression_node(node.right))),
+		b.jsx_attribute(b.jsx_id('in'), to_jsx_expression_container(clone_ast_node(node.right))),
 	];
 
 	if (key_expression) {
@@ -570,15 +587,15 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 }
 
 /**
- * @param {any} node
- * @param {any[]} loop_params
- * @param {any} rendered
- * @returns {any}
+ * @param {AST.ForOfStatement} node
+ * @param {AST.Pattern[]} loop_params
+ * @param {AST.Expression} rendered
+ * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function render_for_of_as_flat_map(node, loop_params, rendered) {
 	return to_jsx_expression_container(
 		b.call(
-			b.member(clone_expression_node(node.right), 'flatMap'),
+			b.member(clone_ast_node(node.right), 'flatMap'),
 			b.arrow(loop_params, b.block([b.return(to_array_render_expression(rendered))])),
 		),
 	);
@@ -588,7 +605,7 @@ function render_for_of_as_flat_map(node, loop_params, rendered) {
  * Loop bodies that can return `null` need the shared callback lowering so
  * `continue` truly skips the iteration.
  *
- * @param {any} node
+ * @param {AST.Node} node
  * @returns {boolean}
  */
 function expression_can_skip_rendering(node) {
@@ -615,8 +632,8 @@ function expression_can_skip_rendering(node) {
 }
 
 /**
- * @param {any} node
- * @returns {any}
+ * @param {AST.Expression} node
+ * @returns {AST.Expression}
  */
 function to_array_render_expression(node) {
 	if (node?.type === 'Literal' && node.value === null) {
@@ -639,8 +656,8 @@ function to_array_render_expression(node) {
 }
 
 /**
- * @param {any} node
- * @returns {any | null}
+ * @param {AST.Expression} node
+ * @returns {AST.Expression | null}
  */
 function find_jsx_key_expression(node) {
 	if (node?.type !== 'JSXElement') {
@@ -653,9 +670,13 @@ function find_jsx_key_expression(node) {
 			attr.name?.type === 'JSXIdentifier' &&
 			attr.name.name === 'key'
 		) {
-			return attr.value?.type === 'JSXExpressionContainer'
-				? clone_expression_node(attr.value.expression)
-				: clone_expression_node(attr.value);
+			if (
+				attr.value?.type === 'JSXExpressionContainer' &&
+				attr.value.expression.type !== 'JSXEmptyExpression'
+			) {
+				return clone_ast_node(attr.value.expression);
+			}
+			return attr.value?.type === 'Literal' ? clone_ast_node(attr.value) : null;
 		}
 	}
 
@@ -663,13 +684,13 @@ function find_jsx_key_expression(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node} node
  * @returns {void}
  */
 function strip_top_level_jsx_keys(node) {
 	if (node?.type === 'JSXElement') {
 		node.openingElement.attributes = (node.openingElement.attributes || []).filter(
-			(/** @type {any} */ attr) =>
+			(attr) =>
 				!(
 					attr.type === 'JSXAttribute' &&
 					attr.name?.type === 'JSXIdentifier' &&
@@ -687,14 +708,14 @@ function strip_top_level_jsx_keys(node) {
 }
 
 /**
- * @param {any[]} loop_params
- * @param {any} body
+ * @param {AST.Pattern[]} loop_params
+ * @param {AST.Expression} body
  * @param {boolean} expression
- * @returns {any}
+ * @returns {AST.ArrowFunctionExpression}
  */
 function create_loop_callback(loop_params, body, expression) {
 	const callback = b.arrow(
-		loop_params.map((param) => clone_expression_node(param)),
+		loop_params.map((param) => clone_ast_node(param)),
 		body,
 	);
 	callback.expression = expression;
@@ -702,9 +723,9 @@ function create_loop_callback(loop_params, body, expression) {
 }
 
 /**
- * @param {any[]} loop_params
- * @param {any} rendered
- * @returns {{ params: any[], body: any, expression: boolean } | null}
+ * @param {AST.Pattern[]} loop_params
+ * @param {AST.Expression} rendered
+ * @returns {{ params: AST.Pattern[], body: AST.Expression, expression: boolean } | null}
  */
 function create_keyed_vapor_for_slot(loop_params, rendered) {
 	if (loop_params[0]?.type === 'Identifier') {
@@ -741,10 +762,10 @@ function create_keyed_vapor_for_slot(loop_params, rendered) {
  * receive shallow refs so row instances can update in place. Match that runtime
  * shape by reading loop params through `.value` inside the slot body.
  *
- * @param {any} node
- * @param {any[]} loop_params
- * @param {Map<string, any>} [replacements]
- * @returns {any}
+ * @param {AST.Expression} node
+ * @param {AST.Pattern[]} loop_params
+ * @param {Map<string, AST.Expression>} [replacements]
+ * @returns {AST.Expression}
  */
 function rewrite_vapor_for_keyed_slot_refs(node, loop_params, replacements = new Map()) {
 	const loop_param_names = new Set();
@@ -756,38 +777,40 @@ function rewrite_vapor_for_keyed_slot_refs(node, loop_params, replacements = new
 		return node;
 	}
 
-	return walk(
-		node,
-		{ loop_param_names, shadowed_names: new Set() },
-		{
-			Identifier(identifier, { path, state, next }) {
-				const parent = path.at(-1);
-				if (
-					(state.loop_param_names.has(identifier.name) || replacements.has(identifier.name)) &&
-					!state.shadowed_names.has(identifier.name) &&
-					parent &&
-					is_runtime_reference(identifier, parent)
-				) {
-					const replacement = replacements.get(identifier.name);
-					if (replacement) {
-						return clone_expression_node(replacement);
+	return /** @type {AST.Expression} */ (
+		walk(
+			node,
+			{ loop_param_names, shadowed_names: new Set() },
+			{
+				Identifier(identifier, { path, state, next }) {
+					const parent = path.at(-1);
+					if (
+						(state.loop_param_names.has(identifier.name) || replacements.has(identifier.name)) &&
+						!state.shadowed_names.has(identifier.name) &&
+						parent &&
+						is_runtime_reference(identifier, parent)
+					) {
+						const replacement = replacements.get(identifier.name);
+						if (replacement) {
+							return clone_ast_node(replacement);
+						}
+						return create_value_member_expression(identifier);
 					}
-					return create_value_member_expression(identifier);
-				}
 
-				return next();
+					return next();
+				},
+				FunctionDeclaration: rewrite_function_shadowed_refs,
+				FunctionExpression: rewrite_function_shadowed_refs,
+				ArrowFunctionExpression: rewrite_function_shadowed_refs,
+				BlockStatement: rewrite_block_shadowed_refs,
 			},
-			FunctionDeclaration: rewrite_function_shadowed_refs,
-			FunctionExpression: rewrite_function_shadowed_refs,
-			ArrowFunctionExpression: rewrite_function_shadowed_refs,
-			BlockStatement: rewrite_block_shadowed_refs,
-		},
+		)
 	);
 }
 
 /**
- * @param {any} identifier
- * @param {any} parent
+ * @param {AST.Identifier} identifier
+ * @param {AST.Node} parent
  * @returns {boolean}
  */
 function is_runtime_reference(identifier, parent) {
@@ -795,25 +818,28 @@ function is_runtime_reference(identifier, parent) {
 		return parent.expression === identifier;
 	}
 	if (parent.type === 'JSXAttribute') {
-		return parent.value === identifier || parent.value?.expression === identifier;
+		return (
+			parent.value?.type === 'JSXExpressionContainer' && parent.value.expression === identifier
+		);
 	}
 	return is_reference(identifier, parent);
 }
 
 /**
- * @param {any} pattern
- * @param {any} source
- * @returns {Map<string, any> | null}
+ * @param {AST.Pattern} pattern
+ * @param {AST.Expression} source
+ * @returns {Map<string, AST.Expression> | null}
  */
 function create_pattern_replacements(pattern, source) {
+	/** @type {Map<string, AST.Expression>} */
 	const replacements = new Map();
 	return collect_pattern_replacements(pattern, source, replacements) ? replacements : null;
 }
 
 /**
- * @param {any} pattern
- * @param {any} source
- * @param {Map<string, any>} replacements
+ * @param {AST.Pattern | null} pattern
+ * @param {AST.Expression} source
+ * @param {Map<string, AST.Expression>} replacements
  * @returns {boolean}
  */
 function collect_pattern_replacements(pattern, source, replacements) {
@@ -861,13 +887,13 @@ function collect_pattern_replacements(pattern, source, replacements) {
 }
 
 /**
- * @param {any} node
- * @param {{ state: { loop_param_names: Set<string>, shadowed_names: Set<string> }, next: (state?: any) => any }} context
- * @returns {any}
+ * @param {AST.Function} node
+ * @param {import('zimmerframe').Context<AST.Node, { loop_param_names: Set<string>, shadowed_names: Set<string> }>} context
+ * @returns {AST.Node | void}
  */
 function rewrite_function_shadowed_refs(node, { state, next }) {
 	const shadowed_names = new Set(state.shadowed_names);
-	if (node.id) {
+	if (node.type !== 'ArrowFunctionExpression' && node.id) {
 		collect_pattern_names(node.id, shadowed_names);
 	}
 	for (const param of node.params || []) {
@@ -878,9 +904,9 @@ function rewrite_function_shadowed_refs(node, { state, next }) {
 }
 
 /**
- * @param {any} node
- * @param {{ state: { loop_param_names: Set<string>, shadowed_names: Set<string> }, next: (state?: any) => any }} context
- * @returns {any}
+ * @param {AST.BlockStatement} node
+ * @param {import('zimmerframe').Context<AST.Node, { loop_param_names: Set<string>, shadowed_names: Set<string> }>} context
+ * @returns {AST.Node | void}
  */
 function rewrite_block_shadowed_refs(node, { state, next }) {
 	const shadowed_names = new Set(state.shadowed_names);
@@ -889,7 +915,7 @@ function rewrite_block_shadowed_refs(node, { state, next }) {
 }
 
 /**
- * @param {any[]} statements
+ * @param {AST.Statement[]} statements
  * @param {Set<string>} names
  * @returns {void}
  */
@@ -912,7 +938,7 @@ function collect_block_lexical_names(statements, names) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | AST.Node[]} node
  * @param {Set<string>} names
  * @returns {void}
  */
@@ -942,16 +968,26 @@ function collect_function_var_names(node, names) {
 		}
 	}
 
-	for (const key of Object.keys(node)) {
+	const traversable = /** @type {AST.TraversableAstNode} */ (node);
+	for (const key of Object.keys(traversable)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		collect_function_var_names(node[key], names);
+		const value = traversable[key];
+		if (Array.isArray(value)) {
+			for (const child of value) {
+				if (child && typeof child === 'object' && 'type' in child) {
+					collect_function_var_names(/** @type {AST.Node} */ (child), names);
+				}
+			}
+		} else if (value && typeof value === 'object' && 'type' in value) {
+			collect_function_var_names(/** @type {AST.Node} */ (value), names);
+		}
 	}
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null} node
  * @param {Set<string>} names
  * @returns {void}
  */
@@ -985,66 +1021,69 @@ function collect_pattern_names(node, names) {
 }
 
 /**
- * @param {any} object
- * @param {any} key
- * @returns {any}
+ * @param {AST.Expression} object
+ * @param {AST.Expression | AST.PrivateIdentifier} key
+ * @returns {AST.MemberExpression}
  */
 function create_property_member_expression(object, key) {
 	if (key?.type === 'Identifier') {
-		return create_member_expression(
-			clone_expression_node(object),
-			clone_identifier(key),
-			false,
-			key,
-		);
+		return create_member_expression(clone_ast_node(object), clone_identifier(key), false, key);
 	}
 
-	return create_member_expression(
-		clone_expression_node(object),
-		clone_expression_node(key),
-		true,
-		key,
-	);
+	return create_member_expression(clone_ast_node(object), clone_ast_node(key), true, key);
 }
 
 /**
- * @param {any} object
+ * @param {AST.Expression} object
  * @param {number} index
- * @returns {any}
+ * @returns {AST.MemberExpression}
  */
 function create_index_member_expression(object, index) {
-	return create_member_expression(clone_expression_node(object), b.literal(index), true, object);
+	return create_member_expression(clone_ast_node(object), b.literal(index), true, object);
 }
 
 /**
- * @param {any} identifier
- * @returns {any}
+ * @param {AST.Identifier} identifier
+ * @returns {AST.MemberExpression}
  */
 function create_value_member_expression(identifier) {
 	return create_member_expression(clone_identifier(identifier), 'value', false, identifier);
 }
 
 /**
- * @param {any} object
- * @param {any} property
+ * @param {AST.Expression} object
+ * @param {string | AST.Expression | AST.PrivateIdentifier} property
  * @param {boolean} computed
- * @param {any} source_node
- * @returns {any}
+ * @param {AST.Node} source_node
+ * @returns {AST.MemberExpression}
  */
 function create_member_expression(object, property, computed, source_node) {
-	return b.member(object, property, computed, false, source_node);
+	return b.member(
+		object,
+		property,
+		computed,
+		false,
+		has_location(source_node) ? source_node : undefined,
+	);
 }
 
 /**
- * @param {any} fn
- * @returns {any}
+ * @param {AST.Function} fn
+ * @returns {AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
 function function_declaration_to_expression(fn) {
 	if (fn.type === 'ArrowFunctionExpression') {
 		return fn;
 	}
 
-	const expression = b.function(fn.id, fn.params, fn.body, fn.async, fn.typeParameters, fn);
+	const expression = b.function(
+		fn.id ?? null,
+		fn.params,
+		fn.body,
+		fn.async,
+		fn.typeParameters,
+		has_location(fn) ? fn : undefined,
+	);
 	expression.generator = fn.generator;
 	expression.metadata = { ...(fn.metadata || {}), path: fn.metadata?.path || [] };
 	return expression;
@@ -1063,7 +1102,7 @@ const VUE_SETUP_CALLS = new Set([
 ]);
 
 /**
- * @param {any} call_expression
+ * @param {AST.CallExpression} call_expression
  * @returns {boolean}
  */
 function is_vue_setup_call(call_expression) {
@@ -1092,9 +1131,9 @@ function is_vue_setup_call(call_expression) {
  * virtual TSX skips that spread so Volar can offer completions on the real
  * component prop name.
  *
- * @param {any[]} attrs
- * @param {any} transform_context
- * @returns {any[]}
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
+ * @param {TransformContext} transform_context
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function preprocess_ref_attributes(attrs, transform_context) {
 	const result = [];
@@ -1109,7 +1148,7 @@ function preprocess_ref_attributes(attrs, transform_context) {
 }
 
 /**
- * @param {any} attr
+ * @param {ESTreeJSX.JSXAttributeNode} attr
  * @returns {boolean}
  */
 function is_vue_named_ref_attribute(attr) {
@@ -1118,7 +1157,7 @@ function is_vue_named_ref_attribute(attr) {
 	return !!(
 		attr_name &&
 		attr_name !== 'ref' &&
-		(attr?.type === 'Attribute' || attr?.type === 'JSXAttribute') &&
+		attr.type === 'JSXAttribute' &&
 		value &&
 		is_vue_ref_prop_name(attr_name)
 	);
@@ -1133,52 +1172,56 @@ function is_vue_ref_prop_name(name) {
 }
 
 /**
- * @param {any} attr
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {ESTreeJSX.JSXAttributeNode}
  */
 function create_vue_named_ref_spread(attr) {
+	if (attr.type === 'JSXSpreadAttribute') return attr;
 	const attr_name = get_vue_attribute_name(attr);
 	const value = get_vue_attribute_expression(attr);
 	if (attr_name === null) return attr;
 	const prop = b.prop('init', b.key(attr_name), value ?? b.literal(true), false, false);
-	return b.jsx_spread_attribute(b.object([prop], attr), attr);
+	const source = has_location(attr) ? attr : undefined;
+	return b.jsx_spread_attribute(b.object([prop], source), source);
 }
 
 /**
- * @param {any} attr
+ * @param {ESTreeJSX.JSXAttributeNode} attr
  * @returns {string | null}
  */
 function get_vue_attribute_name(attr) {
-	if (attr?.type === 'Attribute') {
-		return typeof attr.name === 'string' ? attr.name : (attr.name?.name ?? null);
-	}
-	if (attr?.type === 'JSXAttribute') {
+	if (attr.type === 'JSXAttribute') {
 		return attr.name?.type === 'JSXIdentifier' ? attr.name.name : null;
 	}
 	return null;
 }
 
 /**
- * @param {any} attr
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {AST.Expression | ESTreeJSX.JSXEmptyExpression | null}
  */
 function get_vue_attribute_expression(attr) {
-	const value = attr?.value;
+	if (attr.type === 'JSXSpreadAttribute') return attr.argument;
+	const value = attr.value;
 	return value?.type === 'JSXExpressionContainer' ? value.expression : value;
 }
 
 /**
- * @param {any} node
- * @param {any[]} walked_children
- * @param {any[]} raw_children
- * @param {any[]} attributes
- * @returns {{ children: any[]; selfClosing?: boolean } | null}
+ * @param {AST.TSRXJSXElement} node
+ * @param {AST.Node[]} walked_children
+ * @param {AST.Node[]} raw_children
+ * @param {ESTreeJSX.JSXAttributeNode[]} attributes
+ * @returns {{ children: ESTreeJSX.JSXElement['children']; selfClosing?: boolean } | null}
  */
 function rewrite_host_text_children(node, walked_children, raw_children, attributes) {
 	const source_children = raw_children || walked_children;
 	const is_composite = is_component_like_element(node);
 
-	if (!is_composite && source_children.length === 1 && source_children[0]?.type === 'Text') {
+	if (
+		!is_composite &&
+		source_children.length === 1 &&
+		/** @type {{ type: string }} */ (source_children[0]).type === 'Text'
+	) {
 		return null;
 	}
 
@@ -1186,17 +1229,20 @@ function rewrite_host_text_children(node, walked_children, raw_children, attribu
 }
 
 /**
- * @param {any} expression
- * @param {any} source_node
- * @returns {any}
+ * @param {AST.Expression | ESTreeJSX.JSXEmptyExpression} expression
+ * @param {AST.Node} [source_node]
+ * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
-	return b.jsx_expression_container(expression, source_node);
+	return b.jsx_expression_container(
+		expression,
+		has_location(source_node) ? source_node : undefined,
+	);
 }
 
 /**
  * @param {import('estree').Program} program
- * @param {any} transform_context
+ * @param {TransformContext} transform_context
  * @returns {void}
  */
 function inject_vue_imports(program, transform_context) {
@@ -1253,7 +1299,7 @@ function ensure_named_import(program, source, name, local = name) {
 		}
 
 		const has_specifier = statement.specifiers.some(
-			(/** @type {any} */ specifier) =>
+			(specifier) =>
 				specifier.type === 'ImportSpecifier' &&
 				specifier.imported?.type === 'Identifier' &&
 				specifier.imported.name === name &&
@@ -1273,7 +1319,7 @@ function ensure_named_import(program, source, name, local = name) {
 /**
  * @param {string} name
  * @param {string} [local]
- * @returns {any}
+ * @returns {AST.ImportSpecifier}
  */
 function create_import_specifier(name, local = name) {
 	return b.import_specifier(name, local, 'value');

@@ -184,7 +184,7 @@ describe('createProject integration tests', () => {
 		});
 
 		const packageJson = JSON.parse(readFileSync(join(projectPath, 'package.json'), 'utf-8'));
-		expect(packageJson.packageManager).toBe('pnpm@9.0.0');
+		expect(packageJson.packageManager).toBe('pnpm@11.15.1');
 	});
 
 	it('should not add packageManager field for npm', async () => {

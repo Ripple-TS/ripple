@@ -321,7 +321,7 @@ function updateScripts(packageJson) {
 function getPackageManagerVersion(packageManager) {
 	const versions = {
 		yarn: 'yarn@4.0.0',
-		pnpm: 'pnpm@9.0.0',
+		pnpm: 'pnpm@11.15.1',
 		bun: 'bun@1.3.0',
 	};
 	return versions[packageManager] || packageManager;

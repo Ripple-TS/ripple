@@ -1,13 +1,12 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
-/** @import { JsxTransformContext } from '@tsrx/core/types' */
+/** @import { JsxTransformContext as TransformContext } from '@tsrx/core/types' */
 
 import { walk } from 'zimmerframe';
 import {
 	createJsxTransform,
 	error,
 	mergeDuplicateRefs,
-	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	buildReturnExpression as build_return_expression,
@@ -20,7 +19,7 @@ import {
 	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	returnValueBodyToExpression as return_value_body_to_expression,
-	clone_expression_node,
+	clone_ast_node,
 	clone_identifier,
 	clone_jsx_name,
 	contains_component_jsx,
@@ -52,29 +51,6 @@ const TSRX_IF_RETURN_ERROR =
 const TSRX_IF_BREAK_ERROR = 'Break statements are not allowed inside TSRX template @if blocks.';
 const TSRX_IF_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
-
-/**
- * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
- * track which Solid runtime primitives (`Show`, `For`, `Switch`, `Match`,
- * `Errored`, `Loading`) the lowered output requires. The factory seeds these
- * via `hooks.initialState`; everything else (filename, collect, errors,
- * helper_state, …) comes from the shared base.
- *
- * @typedef {JsxTransformContext & {
- *   needs_show: boolean,
- *   needs_for: boolean,
- *   needs_switch: boolean,
- *   needs_match: boolean,
- *   needs_errored: boolean,
- *   needs_loading: boolean,
- *   needs_normalize_spread_props: boolean,
- *   needs_normalize_spread_props_for_ref_attr: boolean,
- * }} TransformContext
- */
-
-/**
- * @typedef {{ source_name: string, read: () => any }} LazyBinding
- */
 
 /**
  * Solid platform descriptor consumed by `createJsxTransform`. Everything
@@ -148,7 +124,7 @@ const solid_platform = {
 		},
 		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
-			const adjusted_node = /** @type {any} */ ({
+			const adjusted_node = /** @type {AST.Node} */ ({
 				...await_expression,
 				start: await_start,
 				end: await_start + 'await'.length,
@@ -167,22 +143,21 @@ const solid_platform = {
 			switchStatement: switch_statement_to_jsx_child,
 			tryStatement: try_statement_to_jsx_child,
 		},
-		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
+		injectImports: (program, ctx) => inject_solid_imports(program, ctx),
 		// `transformElementAttributes` is intentionally omitted: the
 		// `transformElement` hook below short-circuits core's element walker
 		// before `to_jsx_element` runs, so the dispatch path that would call
 		// `transformElementAttributes` is never reached for Solid. Attribute
 		// lowering happens in Solid's local `transform_element_attributes`,
 		// which `to_jsx_element` calls directly.
-		transformElement: (inner, ctx) =>
-			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx)),
+		transformElement: (inner, ctx) => to_jsx_element(inner, ctx),
 	},
 };
 
 export const transform = createJsxTransform(solid_platform);
 
 /**
- * @param {any} await_node
+ * @param {AST.TSRXAwaitNode} await_node
  * @param {string} source
  * @returns {number}
  */
@@ -192,7 +167,7 @@ function get_await_keyword_start(await_node, source) {
 	}
 
 	if (
-		(await_node?.type === 'ForOfStatement' || await_node?.type === 'JSXForExpression') &&
+		(await_node.type === 'ForOfStatement' || await_node.type === 'JSXForExpression') &&
 		await_node.await === true
 	) {
 		const statement_start = await_node.start ?? 0;
@@ -212,9 +187,9 @@ function get_await_keyword_start(await_node, source) {
 // =====================================================================
 
 /**
- * @param {any} node
+ * @param {AST.Node} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {AST.Node}
  */
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
@@ -617,7 +592,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	 * @param {any[]} render_nodes
 	 */
 	const create_return_statement = (source_node, render_nodes) => {
-		const cloned = render_nodes.map((node) => clone_expression_node(node));
+		const cloned = render_nodes.map((node) => clone_ast_node(node));
 		const argument = cloned.length > 0 ? build_return_expression(cloned) : create_null_literal();
 		return set_loc(b.return(argument), source_node);
 	};
@@ -726,7 +701,7 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
  * @returns {any}
  */
 function combine_render_return_argument(render_nodes, return_argument) {
-	const combined = render_nodes.map((node) => clone_expression_node(node));
+	const combined = render_nodes.map((node) => clone_ast_node(node));
 
 	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
@@ -872,9 +847,9 @@ function iife_if_arrow(node) {
  * `if (test) { a } else { b }` → `<Show when={test} fallback={b}>a</Show>`
  * `if (a) { } else if (b) { } else { }` → `<Switch fallback={...}><Match when={a}>...</Match>...</Switch>`
  *
- * @param {any} node
+ * @param {AST.IfStatement} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXRenderNode}
  */
 function if_statement_to_jsx_child(node, transform_context) {
 	const branches = flatten_if_chain(node);
@@ -1014,17 +989,15 @@ function build_show_element(test, children, fallback) {
  * without an index use the default raw item. Explicit `key` clauses replace
  * the implicit mode with the user-provided key expression.
  *
- * @param {any} node
+ * @param {AST.ForOfStatement} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXElement}
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_for = true;
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
-	const loop_body = /** @type {any[]} */ (
-		node.body.type === 'BlockStatement' ? node.body.body : [node.body]
-	);
+	const loop_body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
 	const uses_index_only_mode = !node.key && node.index;
 	validate_for_body_control_flow(loop_body, transform_context);
 
@@ -1053,7 +1026,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	if (node.key) {
-		const item_param = clone_expression_node(loop_params[0]);
+		const item_param = clone_ast_node(loop_params[0]);
 		const keyed_arrow = b.arrow([item_param], node.key);
 		attributes.push(
 			b.jsx_attribute(b.jsx_id('keyed'), to_jsx_expression_container(keyed_arrow, node.key)),
@@ -1084,9 +1057,9 @@ function for_of_statement_to_jsx_child(node, transform_context) {
  * declares them in order and returns the element. The client transform's
  * module-scoped helpers leave that IIFE empty, so we skip the wrapper.
  *
- * @param {any} node
+ * @param {AST.SwitchStatement} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXRenderNode}
  */
 function switch_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_switch = true;
@@ -1128,7 +1101,11 @@ function switch_statement_to_jsx_child(node, transform_context) {
 		// one case would corrupt the others. The right operand (`caseN`) is the
 		// original source `test` node — unique per case, so we keep its real loc
 		// for editor IntelliSense and don't clone it.
-		const test = b.binary('===', clone_expression_node(node.discriminant), original_case.test);
+		const test = b.binary(
+			'===',
+			clone_ast_node(node.discriminant),
+			/** @type {AST.Expression} */ (original_case.test),
+		);
 
 		match_entries.push({ test, body_jsx });
 	}
@@ -1177,9 +1154,9 @@ function switch_statement_to_jsx_child(node, transform_context) {
  * Transform an `@try { ... } @pending { ... } @catch (err, reset) { ... }` block
  * into Solid's `<Errored>` and/or `<Loading>` JSX elements.
  *
- * @param {any} node
+ * @param {AST.TryStatement} node
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXRenderNode}
  */
 function try_statement_to_jsx_child(node, transform_context) {
 	const pending = node.pending;
@@ -1698,7 +1675,7 @@ function merge_switch_rest_into_exiting_case(case_nodes, rest_nodes, is_last_cas
  * @returns {any[]}
  */
 function clone_switch_rest_nodes(nodes) {
-	return nodes.map((node) => clone_expression_node(node, false));
+	return nodes.map((node) => clone_ast_node(node, false));
 }
 
 /**
@@ -1918,10 +1895,10 @@ function get_static_property_name(key) {
  */
 function negate_expression(expr) {
 	if (expr?.type === 'UnaryExpression' && expr.operator === '!') {
-		return clone_expression_node(expr.argument);
+		return clone_ast_node(expr.argument);
 	}
 
-	return b.unary('!', clone_expression_node(expr));
+	return b.unary('!', clone_ast_node(expr));
 }
 
 const TEMPLATE_FRAGMENT_ERROR =
@@ -1983,10 +1960,10 @@ function inject_solid_imports(program, transform_context) {
 // =====================================================================
 
 /**
- * @param {any} node - walker-transformed JSX element whose children have
+ * @param {AST.TSRXJSXElement} node - walker-transformed JSX element whose children have
  *   already had nested template rewrites applied.
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {ESTreeJSX.JSXRenderNode}
  */
 function to_jsx_element(node, transform_context) {
 	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx) return node;
@@ -2003,7 +1980,8 @@ function to_jsx_element(node, transform_context) {
 		return tsrx_node_to_jsx_expression(node, transform_context, true);
 	}
 
-	const name = clone_jsx_name(node.openingElement.name, node.openingElement.name);
+	const source_name = /** @type {ESTreeJSX.JSXOpeningElement['name']} */ (node.openingElement.name);
+	const name = clone_jsx_name(source_name, source_name);
 	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
 		node.openingElement.attributes || [],
@@ -2023,14 +2001,15 @@ function to_jsx_element(node, transform_context) {
 	const closingElement = selfClosing
 		? null
 		: set_loc(
-				/** @type {any} */ ({
-					type: 'JSXClosingElement',
-					// Forward the source *name* (not the JSXClosingElement wrapper)
-					// so `clone_jsx_name` can propagate member-expression sub-part
-					// locations from the closing tag. See the identical fix in
-					// packages/tsrx/src/transform/jsx/index.js.
-					name: clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
-				}),
+				b.jsx_closing_element(
+					// Clone from the actual closing name when there is one: a dynamic
+					// tag's closing expression (`</{Tag}>`) has its own source positions,
+					// which editor mappings need. See the identical fix in core.
+					clone_jsx_name(
+						node.closingElement?.name ?? name,
+						node.closingElement?.name || node.closingElement || node,
+					),
+				),
 				node.closingElement || node,
 			);
 
@@ -2080,32 +2059,21 @@ function create_element_children(children, transform_context) {
 }
 
 /**
- * Transform a list of raw attributes into JSX attributes.
+ * Transform a list of parser-native JSX attributes. The list is run through
+ * {@link mergeDuplicateRefs} so compiler-synthesized host-spread refs can
+ * compose with an explicit `ref={...}`.
  *
- * Per-attribute conversion (SpreadAttribute → `{...expr}`, plain Attribute →
- * JSXAttribute, JSXAttribute pass-through)
- * is delegated to `@tsrx/core`'s shared {@link toJsxAttribute}. The list
- * is then run through {@link mergeDuplicateRefs} so compiler-synthesized
- * host-spread refs can compose with an explicit `ref={...}`.
- *
- * @param {any[]} raw_attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} raw_attrs
  * @param {boolean} is_composite
  * @param {TransformContext} transform_context
- * @param {any} element
- * @returns {any[]}
+ * @param {AST.TSRXJSXElement} element
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function transform_element_attributes(raw_attrs, is_composite, transform_context, element) {
-	validateAtMostOneRefAttribute(raw_attrs, /** @type {any} */ (transform_context));
-	/** @type {any[]} */
-	const result = [];
-
-	for (const attr of raw_attrs) {
-		if (!attr) continue;
-		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
-	}
+	validateAtMostOneRefAttribute(raw_attrs, transform_context);
 	return mergeDuplicateRefs(
-		normalize_solid_host_ref_spreads(result, !is_composite, transform_context),
-		/** @type {any} */ (transform_context),
+		normalize_solid_host_ref_spreads(raw_attrs, !is_composite, transform_context),
+		transform_context,
 	);
 }
 
