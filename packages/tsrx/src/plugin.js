@@ -4689,17 +4689,23 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Parse deferred import-call arguments using Acorn's current ESTree
-			 * shape. Keep ordinary `import()` on the TypeScript parser's existing
-			 * path so adding this proposal does not change its public AST shape.
+			 * Parse the argument list of a deferred dynamic import,
+			 * `import.defer(specifier, options?)`, starting at the opening paren.
+			 *
+			 * This mirrors Acorn's ES2025 `import(...)` grammar (optional `options`
+			 * argument, optional trailing comma), which neither inherited parser
+			 * produces here: acorn-typescript's `parseDynamicImport` emits legacy
+			 * `arguments`, and Acorn's own only enables the `options` shape at
+			 * `ecmaVersion >= 16` while TSRX parses at 13.
 			 *
 			 * @param {AST.Node} node
 			 * @returns {AST.ImportExpression}
 			 */
 			parseDeferredDynamicImport(node) {
 				const import_node = /** @type {any} */ (node);
-				this.next();
+				this.next(); // `(`
 				import_node.source = this.parseMaybeAssign();
+				import_node.options = null;
 
 				if (!this.eat(tt.parenR)) {
 					this.expect(tt.comma);
@@ -4709,56 +4715,40 @@ export function TSRXPlugin(config) {
 							this.expect(tt.comma);
 							if (!this.afterTrailingComma(tt.parenR)) this.unexpected();
 						}
-					} else {
-						import_node.options = null;
 					}
-				} else {
-					import_node.options = null;
 				}
 
 				return this.finishNode(import_node, 'ImportExpression');
 			}
 
 			/**
-			 * Parse the deferred dynamic-import form from the proposal:
-			 * `import.defer(specifier, options?)`.
-			 *
-			 * Acorn otherwise treats every `import.<name>` expression as
-			 * `import.meta`, so recognize `defer` before delegating that path.
+			 * Recognize the deferred dynamic-import form
+			 * `import.defer(specifier, options?)` before Acorn parses `import.<name>`
+			 * as an `import.meta` member access. Ordinary `import()` and `import.meta`
+			 * fall through to Acorn unchanged, so the proposal never alters their
+			 * existing AST shape.
 			 * @type {Parse.Parser['parseExprImport']}
 			 */
 			parseExprImport(forNew) {
 				const parser = /** @type {any} */ (this);
-				const node = /** @type {any} */ (this.startNode());
-
-				if (this.containsEsc) {
-					this.raiseRecoverable(this.start, 'Escape sequence in keyword import');
-				}
-				this.next();
-
-				if (this.type === tt.parenL && !forNew) {
-					return this.parseDynamicImport(node);
-				}
-
-				if (this.type === tt.dot) {
-					const ahead = parser.lookahead();
-					if (!forNew && parser.isContextualWithState('defer', ahead)) {
-						this.next();
-						this.next();
-						node.phase = 'defer';
-						if (this.type !== tt.parenL) this.unexpected();
-						return this.parseDeferredDynamicImport(node);
+				if (
+					!forNew &&
+					parser.lookahead().type === tt.dot &&
+					parser.isContextualWithState('defer', parser.lookahead(2))
+				) {
+					const node = /** @type {any} */ (this.startNode());
+					if (this.containsEsc) {
+						this.raiseRecoverable(this.start, 'Escape sequence in keyword import');
 					}
-
-					const meta = /** @type {any} */ (
-						this.startNodeAt(node.start, node.loc && node.loc.start)
-					);
-					meta.name = 'import';
-					node.meta = this.finishNode(meta, 'Identifier');
-					return this.parseImportMeta(node);
+					this.next(); // `import`
+					this.next(); // `.`
+					this.next(); // `defer`
+					node.phase = 'defer';
+					if (this.type !== tt.parenL) this.unexpected();
+					return this.parseDeferredDynamicImport(node);
 				}
 
-				return this.unexpected();
+				return super.parseExprImport(forNew);
 			}
 
 			/**
@@ -4781,29 +4771,24 @@ export function TSRXPlugin(config) {
 				parser.importOrExportOuterKind = 'value';
 				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
 					let ahead = parser.lookahead(2);
-					// `defer` remains a valid local binding in regular imports, so it is a
-					// phase modifier only when the following token cannot continue a default
-					// import or an import-equals declaration. The namespace-only restriction is
-					// checked after parsing the clause, which also gives invalid named/default
-					// deferred imports a focused diagnostic.
-					if (
+					// `defer` and `type` are only phase/kind modifiers when the following
+					// token cannot continue a default import (`, `/`from`) or an
+					// import-equals declaration (`=`); otherwise they are ordinary bindings.
+					const head_modifies =
 						ahead.type !== tt.comma &&
 						!parser.isContextualWithState('from', ahead) &&
-						ahead.type !== tt.eq &&
-						parser.isContextualWithState('defer', enterHead)
-					) {
+						ahead.type !== tt.eq;
+					// The namespace-only restriction is checked after parsing the clause,
+					// which also gives invalid named/default deferred imports a focused
+					// diagnostic.
+					if (head_modifies && parser.isContextualWithState('defer', enterHead)) {
 						deferred = true;
 						defer_start = enterHead.start;
 						import_node.phase = 'defer';
 						parser.ts_eatContextualWithState('defer', 1, enterHead);
 						enterHead = parser.lookahead();
 						ahead = parser.lookahead(2);
-					} else if (
-						ahead.type !== tt.comma &&
-						!parser.isContextualWithState('from', ahead) &&
-						ahead.type !== tt.eq &&
-						parser.ts_eatContextualWithState('type', 1, enterHead)
-					) {
+					} else if (head_modifies && parser.ts_eatContextualWithState('type', 1, enterHead)) {
 						parser.importOrExportOuterKind = 'type';
 						import_node.importKind = 'type';
 						enterHead = parser.lookahead();
