@@ -420,11 +420,38 @@ export namespace Parse {
 	export interface AcornTypeScriptExtensions {
 		tokTypes: AcornTypeScriptTokTypes;
 		tokContexts: AcornTypeScriptTokContexts;
+		/** Whether a token type can start/continue an identifier (incl. TS soft keywords) */
+		tokenIsIdentifier(token: TokenType): boolean;
 	}
 
 	export interface AcornTypeScriptFunctionBodyConfig {
 		isFunctionDeclaration?: boolean | number;
 		isClassMethod?: boolean;
+	}
+
+	/**
+	 * Snapshot of tokenizer state returned by `lookahead()`, mirroring
+	 * @sveltejs/acorn-typescript's saved lookahead state. Callers inspect the
+	 * upcoming token (`type`/`value`/`start`/`containsEsc`) without consuming it,
+	 * and pass the snapshot to the `*WithState` contextual helpers.
+	 */
+	export interface LookaheadState {
+		pos: number;
+		type: TokenType;
+		value: string | number | RegExp | bigint | null;
+		start: number;
+		end: number;
+		startLoc: AST.Position;
+		endLoc: AST.Position;
+		lastTokEnd: number;
+		lastTokStart: number;
+		lastTokStartLoc: AST.Position;
+		lastTokEndLoc: AST.Position;
+		context: TokContext[];
+		curLine: number;
+		lineStart: number;
+		curPosition: () => AST.Position;
+		containsEsc: boolean;
 	}
 
 	interface Scope {
@@ -496,6 +523,11 @@ export namespace Parse {
 		inFunction: boolean;
 		/** Whether @sveltejs/acorn-typescript is currently parsing a TypeScript type */
 		inType: boolean;
+		/**
+		 * `value`/`type` kind of the import or export declaration currently being
+		 * parsed (@sveltejs/acorn-typescript). `undefined` when not inside one.
+		 */
+		importOrExportOuterKind?: 'value' | 'type';
 		/** Stack of label names for break/continue statements */
 		labels: Array<{ kind: string | null; name?: string; statementStart?: number }>;
 		/** Current scope flags stack */
@@ -757,6 +789,23 @@ export namespace Parse {
 		expectContextual(name: string): void;
 
 		/**
+		 * Like `isContextual`, but tests a `lookahead()` snapshot instead of the
+		 * current token (@sveltejs/acorn-typescript).
+		 * @param keyword Keyword to check (e.g. "from", "defer")
+		 * @param state Lookahead snapshot to test
+		 */
+		isContextualWithState(keyword: string, state: LookaheadState): boolean;
+
+		/**
+		 * If `state` is the contextual keyword `name`, consume `nextCount` tokens
+		 * and return true (@sveltejs/acorn-typescript).
+		 * @param name Contextual keyword to eat (e.g. "type", "defer")
+		 * @param nextCount Number of tokens to advance when it matches
+		 * @param state Lookahead snapshot to test
+		 */
+		ts_eatContextualWithState(name: string, nextCount: number, state: LookaheadState): boolean;
+
+		/**
 		 * Check if semicolon can be inserted at current position (ASI)
 		 */
 		canInsertSemicolon(): boolean;
@@ -831,10 +880,11 @@ export namespace Parse {
 		// Lookahead
 		// ============================================================
 		/**
-		 * Look ahead one token without consuming
-		 * @returns Object with type and value of next token
+		 * Look ahead `number` tokens (default 1) without consuming, returning a
+		 * snapshot of the tokenizer state at that position.
+		 * @param number How many tokens to look ahead (default 1)
 		 */
-		lookahead(): { type: TokenType; value: any };
+		lookahead(number?: number): LookaheadState;
 
 		/**
 		 * Get next token start position
@@ -1462,6 +1512,16 @@ export namespace Parse {
 		// ============================================================
 		/** Parse import declaration */
 		parseImport(node: AST.Node): AST.ImportDeclaration;
+
+		/**
+		 * Parse a TypeScript import-equals declaration, `import x = require('y')`
+		 * or `import x = A.B` (@sveltejs/acorn-typescript). Typed as
+		 * `ImportDeclaration` because estree has no `TSImportEqualsDeclaration`.
+		 */
+		tsParseImportEqualsDeclaration(node: AST.Node, isExport?: boolean): AST.ImportDeclaration;
+
+		/** Parse an optional import-attributes clause (`with { … }` / `assert { … }`) */
+		parseMaybeImportAttributes(node: AST.Node): void;
 
 		/** Parse import specifiers */
 		parseImportSpecifiers(): AST.ImportSpecifier[];

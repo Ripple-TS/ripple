@@ -4698,19 +4698,18 @@ export function TSRXPlugin(config) {
 			 * `arguments`, and Acorn's own only enables the `options` shape at
 			 * `ecmaVersion >= 16` while TSRX parses at 13.
 			 *
-			 * @param {AST.Node} node
+			 * @param {AST.ImportExpression} node
 			 * @returns {AST.ImportExpression}
 			 */
 			parseDeferredDynamicImport(node) {
-				const import_node = /** @type {any} */ (node);
 				this.next(); // `(`
-				import_node.source = this.parseMaybeAssign();
-				import_node.options = null;
+				node.source = this.parseMaybeAssign();
+				node.options = null;
 
 				if (!this.eat(tt.parenR)) {
 					this.expect(tt.comma);
 					if (!this.afterTrailingComma(tt.parenR)) {
-						import_node.options = this.parseMaybeAssign();
+						node.options = this.parseMaybeAssign();
 						if (!this.eat(tt.parenR)) {
 							this.expect(tt.comma);
 							if (!this.afterTrailingComma(tt.parenR)) this.unexpected();
@@ -4718,7 +4717,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				return this.finishNode(import_node, 'ImportExpression');
+				return this.finishNode(node, 'ImportExpression');
 			}
 
 			/**
@@ -4730,11 +4729,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseExprImport']}
 			 */
 			parseExprImport(forNew) {
-				const parser = /** @type {any} */ (this);
 				if (
 					!forNew &&
-					parser.lookahead().type === tt.dot &&
-					parser.isContextualWithState('defer', parser.lookahead(2))
+					this.lookahead().type === tt.dot &&
+					this.isContextualWithState('defer', this.lookahead(2))
 				) {
 					const node = /** @type {any} */ (this.startNode());
 					if (this.containsEsc) {
@@ -4761,43 +4759,42 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseImport']}
 			 */
 			parseImport(node) {
-				const tokenIsIdentifier = /** @type {any} */ (Parser.acornTypeScript).tokenIsIdentifier;
-				const parser = /** @type {any} */ (this);
+				const tokenIsIdentifier = Parser.acornTypeScript.tokenIsIdentifier;
 				const import_node = /** @type {any} */ (node);
-				let enterHead = parser.lookahead();
+				let enterHead = this.lookahead();
 				let deferred = false;
 				let defer_start = -1;
 				import_node.importKind = 'value';
-				parser.importOrExportOuterKind = 'value';
+				this.importOrExportOuterKind = 'value';
 				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
-					let ahead = parser.lookahead(2);
+					let ahead = this.lookahead(2);
 					// `defer` and `type` are only phase/kind modifiers when the following
 					// token cannot continue a default import (`, `/`from`) or an
 					// import-equals declaration (`=`); otherwise they are ordinary bindings.
 					const head_modifies =
 						ahead.type !== tt.comma &&
-						!parser.isContextualWithState('from', ahead) &&
+						!this.isContextualWithState('from', ahead) &&
 						ahead.type !== tt.eq;
 					// The namespace-only restriction is checked after parsing the clause,
 					// which also gives invalid named/default deferred imports a focused
 					// diagnostic.
-					if (head_modifies && parser.isContextualWithState('defer', enterHead)) {
+					if (head_modifies && this.isContextualWithState('defer', enterHead)) {
 						deferred = true;
 						defer_start = enterHead.start;
 						import_node.phase = 'defer';
-						parser.ts_eatContextualWithState('defer', 1, enterHead);
-						enterHead = parser.lookahead();
-						ahead = parser.lookahead(2);
-					} else if (head_modifies && parser.ts_eatContextualWithState('type', 1, enterHead)) {
-						parser.importOrExportOuterKind = 'type';
+						this.ts_eatContextualWithState('defer', 1, enterHead);
+						enterHead = this.lookahead();
+						ahead = this.lookahead(2);
+					} else if (head_modifies && this.ts_eatContextualWithState('type', 1, enterHead)) {
+						this.importOrExportOuterKind = 'type';
 						import_node.importKind = 'type';
-						enterHead = parser.lookahead();
-						ahead = parser.lookahead(2);
+						enterHead = this.lookahead();
+						ahead = this.lookahead(2);
 					}
 					if (tokenIsIdentifier(enterHead.type) && ahead.type === tt.eq) {
 						this.next();
-						const importNode = parser.tsParseImportEqualsDeclaration(node);
-						parser.importOrExportOuterKind = 'value';
+						const importNode = this.tsParseImportEqualsDeclaration(node);
+						this.importOrExportOuterKind = 'value';
 						return importNode;
 					}
 				}
@@ -4829,10 +4826,10 @@ export function TSRXPlugin(config) {
 						'`import defer` only supports a namespace import from a string literal.',
 					);
 				}
-				parser.parseMaybeImportAttributes(node);
+				this.parseMaybeImportAttributes(node);
 				this.semicolon();
 				this.finishNode(node, 'ImportDeclaration');
-				parser.importOrExportOuterKind = 'value';
+				this.importOrExportOuterKind = 'value';
 				return import_node;
 			}
 
