@@ -4734,7 +4734,7 @@ export function TSRXPlugin(config) {
 					this.lookahead().type === tt.dot &&
 					this.isContextualWithState('defer', this.lookahead(2))
 				) {
-					const node = /** @type {any} */ (this.startNode());
+					const node = /** @type {AST.ImportExpression} */ (this.startNode());
 					if (this.containsEsc) {
 						this.raiseRecoverable(this.start, 'Escape sequence in keyword import');
 					}
