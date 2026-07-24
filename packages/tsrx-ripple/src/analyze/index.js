@@ -128,11 +128,11 @@ function get_member_name(node) {
 }
 
 /**
- * @param {AST.ImportDeclaration} node
+ * @param {AST.TSRXImportDeclaration} node
  * @returns {string | null}
  */
 function get_submodule_import_source_name(node) {
-	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	const source = node.source;
 	return source.type === 'Identifier' ? source.name : null;
 }
 

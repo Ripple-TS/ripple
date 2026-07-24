@@ -4760,11 +4760,10 @@ export function TSRXPlugin(config) {
 			 */
 			parseImport(node) {
 				const tokenIsIdentifier = Parser.acornTypeScript.tokenIsIdentifier;
-				const import_node = /** @type {any} */ (node);
 				let enterHead = this.lookahead();
 				let deferred = false;
 				let defer_start = -1;
-				import_node.importKind = 'value';
+				node.importKind = 'value';
 				this.importOrExportOuterKind = 'value';
 				if (tokenIsIdentifier(enterHead.type) || this.match(tt.star) || this.match(tt.braceL)) {
 					let ahead = this.lookahead(2);
@@ -4781,13 +4780,13 @@ export function TSRXPlugin(config) {
 					if (head_modifies && this.isContextualWithState('defer', enterHead)) {
 						deferred = true;
 						defer_start = enterHead.start;
-						import_node.phase = 'defer';
+						node.phase = 'defer';
 						this.ts_eatContextualWithState('defer', 1, enterHead);
 						enterHead = this.lookahead();
 						ahead = this.lookahead(2);
 					} else if (head_modifies && this.ts_eatContextualWithState('type', 1, enterHead)) {
 						this.importOrExportOuterKind = 'type';
-						import_node.importKind = 'type';
+						node.importKind = 'type';
 						enterHead = this.lookahead();
 						ahead = this.lookahead(2);
 					}
@@ -4800,26 +4799,26 @@ export function TSRXPlugin(config) {
 				}
 				this.next();
 				if (this.type === tt.string) {
-					import_node.specifiers = [];
-					import_node.source = this.parseExprAtom();
+					node.specifiers = [];
+					node.source = /** @type {AST.Literal} */ (this.parseExprAtom());
 				} else {
-					import_node.specifiers = this.parseImportSpecifiers();
+					node.specifiers = this.parseImportSpecifiers();
 					this.expectContextual('from');
 					if (this.type === tt.string) {
-						import_node.source = this.parseExprAtom();
+						node.source = /** @type {AST.Literal} */ (this.parseExprAtom());
 					} else if (tokenIsIdentifier(this.type)) {
 						const source = this.parseIdent(false);
 						source.metadata ??= { path: [] };
-						import_node.source = source;
+						node.source = source;
 					} else {
 						this.unexpected();
 					}
 				}
 				if (
 					deferred &&
-					(import_node.specifiers.length !== 1 ||
-						import_node.specifiers[0].type !== 'ImportNamespaceSpecifier' ||
-						import_node.source.type !== 'Literal')
+					(node.specifiers.length !== 1 ||
+						node.specifiers[0].type !== 'ImportNamespaceSpecifier' ||
+						node.source.type !== 'Literal')
 				) {
 					this.raise(
 						defer_start,
@@ -4830,7 +4829,7 @@ export function TSRXPlugin(config) {
 				this.semicolon();
 				this.finishNode(node, 'ImportDeclaration');
 				this.importOrExportOuterKind = 'value';
-				return import_node;
+				return node;
 			}
 
 			/**

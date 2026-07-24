@@ -558,11 +558,11 @@ function is_collection_value_expression(expression, scope, context) {
 }
 
 /**
- * @param {AST.ImportDeclaration} node
+ * @param {AST.TSRXImportDeclaration} node
  * @returns {string | null}
  */
 function get_submodule_import_source_name(node) {
-	const source = /** @type {AST.Literal | AST.Identifier} */ (node.source);
+	const source = node.source;
 	return source.type === 'Identifier' ? source.name : null;
 }
 
@@ -596,7 +596,7 @@ function get_imported_name(specifier) {
 }
 
 /**
- * @param {AST.ImportDeclaration} node
+ * @param {AST.TSRXImportDeclaration} node
  * @returns {AST.Statement[]}
  */
 function transform_server_module_import(node) {

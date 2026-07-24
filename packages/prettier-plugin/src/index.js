@@ -2589,8 +2589,8 @@ function printRippleNode(node, path, options, print, args) {
 
 /**
  * Print an import declaration
- * @param {AST.ImportDeclaration} node - The import declaration node
- * @param {AstPath<AST.ImportDeclaration>} path - The AST path
+ * @param {AST.TSRXImportDeclaration} node - The import declaration node
+ * @param {AstPath<AST.TSRXImportDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} _print - Print callback (unused)
  * @returns {Doc[]}
@@ -2598,11 +2598,7 @@ function printRippleNode(node, path, options, print, args) {
 function printImportDeclaration(node, path, options, _print) {
 	/** @type {Doc[]} */
 	const parts = ['import'];
-	const importDeclaration = /** @type {AST.ImportDeclaration & { phase?: 'defer' | null }} */ (
-		node
-	);
-
-	if (importDeclaration.phase === 'defer') {
+	if (node.phase === 'defer') {
 		parts.push(' defer');
 	} else if (node.importKind === 'type') {
 		parts.push(' type');

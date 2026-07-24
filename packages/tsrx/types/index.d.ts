@@ -310,6 +310,7 @@ declare module 'estree' {
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
 		JSXSpreadChild: ESTreeJSX.JSXSpreadChild;
+		TSRXImportDeclaration: TSRXImportDeclaration;
 		TSRXJSXElement: TSRXJSXElement;
 		TSRXJSXFragment: TSRXJSXFragment;
 		TSRXJSXOpeningElement: ESTreeJSX.TSRXJSXOpeningElement;
@@ -548,6 +549,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: TSESTree.ImportDeclaration['importKind'];
 		phase?: 'defer' | null;
+	}
+	interface TSRXImportDeclaration extends Omit<ImportDeclaration, 'source'> {
+		source: AST.Literal | AST.Identifier;
 	}
 	interface ImportExpression {
 		phase?: 'defer' | null;
@@ -1395,7 +1399,7 @@ export interface AnalysisResult {
 	component_metadata: Array<{ id: string }>;
 	metadata: {
 		serverImportsPresent: boolean;
-		serverImportDeclarations: AST.ImportDeclaration[];
+		serverImportDeclarations: AST.TSRXImportDeclaration[];
 		serverModule: AST.TSModuleDeclaration | null;
 	};
 	errors: CompileError[];

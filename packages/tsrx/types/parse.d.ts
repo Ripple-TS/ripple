@@ -1511,7 +1511,7 @@ export namespace Parse {
 		// Module Parsing (Import/Export)
 		// ============================================================
 		/** Parse import declaration */
-		parseImport(node: AST.Node): AST.ImportDeclaration;
+		parseImport(node: AST.TSRXImportDeclaration): AST.TSRXImportDeclaration;
 
 		/**
 		 * Parse a TypeScript import-equals declaration, `import x = require('y')`
