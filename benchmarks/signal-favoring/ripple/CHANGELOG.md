@@ -1,5 +1,12 @@
 # ripple-signal-bench
 
+## 0.0.27
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.110
+
 ## 0.0.26
 
 ### Patch Changes

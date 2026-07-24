@@ -1,5 +1,19 @@
 # @tsrx/solid
 
+## 0.1.48
+
+### Patch Changes
+
+- [#1380](https://github.com/Ripple-TS/ripple/pull/1380)
+  [`81859da`](https://github.com/Ripple-TS/ripple/commit/81859da03464b8865304c70ea2b8b1245018af2c)
+  Thanks [@trueadm](https://github.com/trueadm)! - Parse, preserve, and format
+  static and dynamic deferred imports. Enable deferred-import evaluation in the
+  Rspack integrations; static imports require Rspack 1.6 or newer and dynamic
+  imports require Rspack 2 or newer.
+- Updated dependencies
+  [[`81859da`](https://github.com/Ripple-TS/ripple/commit/81859da03464b8865304c70ea2b8b1245018af2c)]:
+  - @tsrx/core@0.1.48
+
 ## 0.1.47
 
 ### Patch Changes
