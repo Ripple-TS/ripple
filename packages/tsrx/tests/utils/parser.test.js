@@ -736,6 +736,26 @@ abc
 		expect(element.children).toEqual([]);
 	});
 
+	it('parses a fragment-wrapped directive attribute value on an element with children', () => {
+		// Unlike the bare-directive case, the container's first token here is the
+		// fragment's `<`, whose tag contexts must not count toward the depth the
+		// stack unwinds to when the container closes — otherwise the `>` after
+		// `}` lexes as template text.
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA prop={<>@if (ok) { <div>1</div> } @else { <div>2</div> }</>}></ElementA>
+			}`,
+			'ElementA',
+		);
+
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.type).toBe('JSXExpressionContainer');
+		expect(attribute.value.expression.type).toBe('JSXFragment');
+		const [directive] = attribute.value.expression.children;
+		expect(directive.type).toBe('JSXIfExpression');
+		expect(directive.alternate?.type).toBe('BlockStatement');
+	});
+
 	it('parses an attribute that follows a directive attribute value', () => {
 		const element = findElement(
 			`export function FeatureCard() @{

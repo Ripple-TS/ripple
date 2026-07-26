@@ -3411,17 +3411,20 @@ export function TSRXPlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.#jsxExpressionContainerDepth++;
 				let pushed_context_baseline = false;
-				/** @type {number} */
-				let context_baseline;
+				// The stack depth with the container's `{` brace context on top, taken
+				// before `next()` so the first expression token's own context pushes
+				// (e.g. a fragment's `<` pushing its tag contexts) are not counted.
+				// This is the depth the stack must return to when the container's
+				// closing `}` is the current token.
+				const container_context_depth = this.context.length;
 				try {
 					this.next();
 
-					// Record the context-stack depth now that the container's `{` brace
-					// context is on the stack. A control-flow directive parsed inside this
+					// Record the context-stack depth now that the first expression token
+					// has been read. A control-flow directive parsed inside this
 					// container must not strip anything below this floor (see
 					// `#filterTemplateScriptContexts`).
-					context_baseline = this.context.length;
-					this.#expressionContainerContextBaselines.push(context_baseline);
+					this.#expressionContainerContextBaselines.push(this.context.length);
 					this.#expressionContainerPathBaselines.push(this.#path.length);
 					pushed_context_baseline = true;
 
@@ -3442,13 +3445,14 @@ export function TSRXPlugin(config) {
 						// a snapshot taken inside this container
 						// (`#parseTemplateControlFlowBlock`), so the container's closing `}`
 						// — read while that stale snapshot was active — pops the wrong entry
-						// and leaves stale brace contexts above the enclosing tag's contexts.
-						// Once the `}` has been read the stack must be back at one below the
-						// baseline (the container's own brace context popped); drop anything
-						// above that so the token after `}` (e.g. the `>` finishing the
-						// enclosing opening tag) tokenizes in the right context.
-						if (this.type === tt.braceR && this.context.length >= context_baseline) {
-							this.context.length = context_baseline - 1;
+						// and leaves stale contexts above the enclosing tag's contexts (the
+						// directive's statement brace, or a wrapping fragment's child
+						// context). Once the `}` has been read the stack must be back at one
+						// below the container's depth (its own brace context popped); drop
+						// anything above that so the token after `}` (e.g. the `>` finishing
+						// the enclosing opening tag) tokenizes in the right context.
+						if (this.type === tt.braceR && this.context.length >= container_context_depth) {
+							this.context.length = container_context_depth - 1;
 						}
 						this.expect(tt.braceR);
 					}
