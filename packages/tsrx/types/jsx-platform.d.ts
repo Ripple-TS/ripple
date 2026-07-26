@@ -75,6 +75,12 @@ export interface JsxTransformContext {
 	comments: AST.CommentWithLocation[] | undefined;
 	/** True when emitting a type-only virtual TSX module; preserves lazy destructuring patterns. */
 	typeOnly: boolean;
+	/**
+	 * True when generated nodes may be anchored on the directive keyword that
+	 * produced them. Off by default; the emitted code and its source map are
+	 * unchanged when clear.
+	 */
+	inspect: boolean;
 }
 
 /**
@@ -121,6 +127,15 @@ export interface JsxTransformOptions {
 	 * bindings.
 	 */
 	typeOnly?: boolean;
+	/**
+	 * Anchor generated nodes on the directive keyword that produced them, so
+	 * navigation tooling can trace an authored `@for` / `@empty` to the code it
+	 * became. Off by default — a directive is lowered away entirely, so nothing
+	 * in the source map otherwise reaches its keyword. With the flag clear the
+	 * output bytes and every mapping derived from them are unaffected, which is
+	 * why the editor pipeline never asks for it.
+	 */
+	inspect?: boolean;
 }
 
 /**

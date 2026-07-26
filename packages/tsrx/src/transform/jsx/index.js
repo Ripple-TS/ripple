@@ -599,6 +599,11 @@ export function createJsxTransform(platform) {
 			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
 			typeOnly: !!options?.typeOnly,
+			// Opt-in navigation origins (see stamp_directive_origin). OFF by
+			// default, and the editor pipeline never asks for it: with the flag
+			// clear the emitted code, the source map and therefore every Volar
+			// mapping are byte-identical to before.
+			inspect: !!options?.inspect,
 			// Platforms can seed their own tracking state (e.g. solid's
 			// needs_show / needs_for flags) via `hooks.initialState`.
 			...(platform.hooks?.initialState?.() ?? {}),
@@ -1254,6 +1259,15 @@ function build_render_statements(
 	// state of mutable variables.
 	const interleaved = is_interleaved_body(body_nodes);
 	let capture_index = 0;
+	// When this pass hoists a JSX child into `const _tsrx_child_N = …`, that
+	// NAME is the one anchorable token of the whole expression: a `@if` whose
+	// branch carries hooks lowers to `cond ? (() => { … })() : …`, and neither
+	// the ternary (it starts where its test does) nor an IIFE arm (it starts on
+	// a paren) yields a map segment of its own. `stamp_directive_origin`
+	// confirms the authored spelling, so a hoist of anything else is untouched.
+	/** @type {(id: AST.Identifier, init: AST.Expression) => AST.Identifier} */
+	const anchor_capture_name = (id, init) =>
+		stamp_directive_origin(id, init, '@if', transform_context);
 
 	for (let i = 0; i < body_nodes.length; i += 1) {
 		const child = body_nodes[i];
@@ -1336,7 +1350,11 @@ function build_render_statements(
 			if (hoisted) {
 				statements.push(...hoisted.hoist_statements);
 				if (interleaved && is_capturable_jsx_child(hoisted.jsx_child)) {
-					const { declaration, reference } = captureJsxChild(hoisted.jsx_child, capture_index++);
+					const { declaration, reference } = captureJsxChild(
+						hoisted.jsx_child,
+						capture_index++,
+						anchor_capture_name,
+					);
 					statements.push(declaration);
 					render_nodes.push(reference);
 				} else {
@@ -1350,7 +1368,11 @@ function build_render_statements(
 			const jsx = to_jsx_child(child, transform_context);
 			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
-				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				const { declaration, reference } = captureJsxChild(
+					jsx,
+					capture_index++,
+					anchor_capture_name,
+				);
 				statements.push(declaration);
 				render_nodes.push(reference);
 			} else {
@@ -4752,6 +4774,29 @@ function if_statement_to_jsx_child(node, transform_context) {
 	const render_if_statement = create_render_if_statement(node, transform_context);
 	const conditional_expression = render_if_statement_to_conditional_expression(render_if_statement);
 	if (conditional_expression) {
+		// `@if` / `@else` are lowered away: the directive becomes a ternary and
+		// the clause becomes its alternate, so neither keyword has a counterpart
+		// in the output. Anchor the ternary on `@if` and its alternate on
+		// `@else` — `node` is the AUTHORED directive here, before
+		// `create_render_if_statement` rebuilt it.
+		if (conditional_expression.alternate) {
+			conditional_expression.alternate = stamp_directive_origin(
+				conditional_expression.alternate,
+				node.alternateKeyword,
+				'@else',
+				transform_context,
+			);
+		}
+		// The ternary itself cannot carry the anchor: it begins at the same
+		// generated position as its test, so the test's own mapping wins there.
+		// Each ARM is a distinct position, and pointing a directive at the branch
+		// it renders is what the runtime targets already do.
+		conditional_expression.consequent = stamp_directive_origin(
+			conditional_expression.consequent,
+			node,
+			'@if',
+			transform_context,
+		);
 		return to_jsx_expression_container(conditional_expression, node);
 	}
 
@@ -5142,9 +5187,28 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		transform_context.needs_for_of_iterable = true;
 		const args = [node.right, iter_callback];
 		if (empty_fallback) {
-			args.push(b.literal(null), b.arrow([], empty_fallback));
+			// `@empty` is a clause: its block starts at `{`, so the parser records
+			// the keyword's own span. Anchor the arm the clause became on it.
+			args.push(
+				b.literal(null),
+				stamp_directive_origin(
+					b.arrow([], empty_fallback),
+					node.emptyKeyword,
+					'@empty',
+					transform_context,
+				),
+			);
 		}
-		return to_jsx_expression_container(b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), ...args));
+		// `@for` itself has no counterpart in the output — the directive is
+		// lowered away. Point its keyword at the helper this became, so tooling
+		// can navigate from the authored construct to the code it produced.
+		const helper_id = stamp_directive_origin(
+			b.id(MAP_ITERABLE_INTERNAL_NAME),
+			node,
+			'@for',
+			transform_context,
+		);
+		return to_jsx_expression_container(b.call(helper_id, ...args));
 	}
 
 	const map_call = b.call(b.member(node.right, create_generated_identifier('map')), iter_callback);
@@ -6283,6 +6347,51 @@ export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
 export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
 export const NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME =
 	'__normalize_spread_props_for_ref_attr';
+/**
+ * Point a generated node at the DIRECTIVE KEYWORD that produced it.
+ *
+ * A template directive is lowered away entirely — `@for` becomes a
+ * `map_iterable` call, `@if` a conditional — so the keyword the author actually
+ * wrote has no counterpart in the output and nothing in the source map reaches
+ * it. Navigation tooling (the playground's compiled-output pane; anything else
+ * tracing authored syntax to emitted code) therefore cannot resolve a cursor
+ * placed on it.
+ *
+ * Opt-in via `options.inspect`. With the flag clear this returns the node
+ * untouched, so the emitted bytes, the print's source map and every Volar
+ * mapping derived from it are exactly what they were — the editor pipeline is
+ * unaffected by construction.
+ *
+ * Only ONE identifying token per construct is stamped (the helper's callee, an
+ * arm's identifier). Stamping a whole subtree would give the keyword a span
+ * wide enough to shadow the finer mappings inside it, which is precisely the
+ * failure the synthesized-`return` clamp used to produce.
+ *
+ * @template {AST.Node} T
+ * @param {T} node the generated node to anchor
+ * @param {any} directive the authored directive node; its `start`/`loc.start` IS the keyword
+ * @param {string} keyword the authored spelling, `@` included
+ * @param {TransformContext} transform_context
+ * @returns {T}
+ */
+function stamp_directive_origin(node, directive, keyword, transform_context) {
+	if (!transform_context.inspect) return node;
+	const start = directive?.start;
+	const loc_start = directive?.loc?.start;
+	if (typeof start !== 'number' || !loc_start) return node;
+	// Confirm the authored spelling before claiming those bytes: the same
+	// lowering also runs for constructs the author never wrote as a directive.
+	if (transform_context.source?.startsWith(keyword, start) !== true) return node;
+
+	node.start = start;
+	node.end = start + keyword.length;
+	node.loc = {
+		start: { ...loc_start },
+		end: { ...loc_start, column: loc_start.column + keyword.length },
+	};
+	return node;
+}
+
 export const MAP_ITERABLE_INTERNAL_NAME = '__map_iterable';
 export const ITERATION_VALUE_INTERNAL_NAME = '__IterationValue';
 

@@ -8,6 +8,19 @@
  * textually after the mutation.
  */
 
+/** @import * as AST from 'estree' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
+
+import * as b from '../utils/builders.js';
+
+/**
+ * A JSX child that evaluates to a single expression, so it can be captured
+ * into a `const` at its source position.
+ * @typedef {ESTreeJSX.JSXElement
+ *   | ESTreeJSX.JSXFragment
+ *   | (ESTreeJSX.JSXExpressionContainer & { expression: AST.Expression })} CapturableJsxChild
+ */
+
 /**
  * Returns true when the body contains a non-JSX statement that appears
  * after a JSX child. In that case JSX children must be captured at their
@@ -17,8 +30,8 @@
  * The `is_jsx_child` predicate is target-specific — each target recognizes
  * its JSX-bearing child nodes and template-control expressions.
  *
- * @param {any[]} body_nodes
- * @param {(node: any) => boolean} is_jsx_child
+ * @param {AST.Node[]} body_nodes
+ * @param {(node: AST.Node) => boolean} is_jsx_child
  * @returns {boolean}
  */
 export function is_interleaved_body(body_nodes, is_jsx_child) {
@@ -35,11 +48,12 @@ export function is_interleaved_body(body_nodes, is_jsx_child) {
 
 /**
  * Only JSX nodes that evaluate to a single expression can be hoisted into a
- * `const`. Static text children (`JSXText`) are inert and don't need
- * capturing — their position relative to mutations doesn't change output.
+ * `const`. Static text children (`JSXText`) and comment-only containers
+ * (`{/* … *\/}`) are inert and don't need capturing — their position relative
+ * to mutations doesn't change output, and neither has an expression to bind.
  *
- * @param {any} jsx
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} jsx
+ * @returns {jsx is CapturableJsxChild}
  */
 export function is_capturable_jsx_child(jsx) {
 	if (!jsx) return false;
@@ -48,7 +62,8 @@ export function is_capturable_jsx_child(jsx) {
 	// into a const would evaluate them once.
 	if (jsx.metadata?.tsrx_reactive_block === true) return false;
 	const t = jsx.type;
-	return t === 'JSXElement' || t === 'JSXFragment' || t === 'JSXExpressionContainer';
+	if (t === 'JSXExpressionContainer') return jsx.expression.type !== 'JSXEmptyExpression';
+	return t === 'JSXElement' || t === 'JSXFragment';
 }
 
 /**
@@ -58,45 +73,24 @@ export function is_capturable_jsx_child(jsx) {
  * statements in source order and uses the reference in place of the JSX
  * child inside the returned fragment.
  *
- * @param {any} jsx
+ * @param {CapturableJsxChild} jsx
  * @param {number} capture_index
- * @returns {{ declaration: any, reference: any }}
+ * @param {(id: AST.Identifier, init: AST.Expression) => AST.Identifier} [anchor_id] gives the
+ *   capture's NAME an authored origin — the only anchorable token when the captured
+ *   expression itself starts with punctuation
+ * @returns {{ declaration: AST.VariableDeclaration, reference: ESTreeJSX.JSXExpressionContainer }}
  */
-export function capture_jsx_child(jsx, capture_index) {
+export function capture_jsx_child(jsx, capture_index, anchor_id) {
 	const name = `_tsrx_child_${capture_index}`;
 	const init = jsx.type === 'JSXExpressionContainer' ? jsx.expression : jsx;
 
-	const declaration = /** @type {any} */ ({
-		type: 'VariableDeclaration',
-		kind: 'const',
-		declarations: [
-			/** @type {any} */ ({
-				type: 'VariableDeclarator',
-				id: /** @type {any} */ ({
-					type: 'Identifier',
-					name,
-					metadata: { path: [] },
-				}),
-				init,
-				metadata: { path: [] },
-			}),
-		],
-		metadata: { path: [] },
-	});
+	const declaration = b.const(anchor_id ? anchor_id(b.id(name), init) : b.id(name), init);
 
 	// NOTE: JSXExpressionContainer nodes are intentionally created without
 	// loc — they're synthetic wrappers whose source positions don't
 	// correspond to source-map entries and adding loc causes Volar mapping
 	// failures.
-	const reference = /** @type {any} */ ({
-		type: 'JSXExpressionContainer',
-		expression: /** @type {any} */ ({
-			type: 'Identifier',
-			name,
-			metadata: { path: [] },
-		}),
-		metadata: { path: [] },
-	});
+	const reference = b.jsx_expression_container(b.id(name));
 
 	return { declaration, reference };
 }
