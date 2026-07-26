@@ -697,6 +697,59 @@ abc
 		expect(directive.handler?.type).toBe('CatchClause');
 	});
 
+	it('parses a directive attribute value on an element with children', () => {
+		// The directive's block parse restores a context-stack snapshot taken
+		// inside the attribute's `{ }` container; the stale entries it leaves
+		// made the `>` that finishes the opening tag lex as a relational
+		// operator (self-closing parents were unaffected because `/>` has its
+		// own tokenizer repair).
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA prop={ @if (ok) { <div /> } }><ElementB /></ElementA>
+			}`,
+			'ElementA',
+		);
+
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.type).toBe('JSXExpressionContainer');
+		expect(attribute.value.expression.type).toBe('JSXIfExpression');
+		expect(element.children.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(element.children[0].openingElement.name.name).toBe('ElementB');
+	});
+
+	it('parses a directive attribute value on a self-closing element', () => {
+		// The self-closing form predates the container-baseline repair (the `/>`
+		// tokenizer fix-up made it work); keep it covered so both tag endings
+		// stay in sync, including a sibling after the tag, where stale contexts
+		// would surface.
+		const element = findElement(
+			`export function FeatureCard() @{
+				<><ElementA prop={ @if (ok) { <div /> } } /><ElementB /></>
+			}`,
+			'ElementA',
+		);
+
+		expect(element.openingElement.selfClosing).toBe(true);
+		expect(element.closingElement).toBe(null);
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.expression.type).toBe('JSXIfExpression');
+		expect(element.children).toEqual([]);
+	});
+
+	it('parses an attribute that follows a directive attribute value', () => {
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA a={ @if (ok) { <div /> } } b="x">text</ElementA>
+			}`,
+			'ElementA',
+		);
+
+		const [a, b] = element.openingElement.attributes;
+		expect(a.value.expression.type).toBe('JSXIfExpression');
+		expect(b.name.name).toBe('b');
+		expect(b.value.value).toBe('x');
+	});
+
 	it('preserves element-text whitespace inside a directive in an expression container', () => {
 		const span = findElement(inExpressionContainer(`@if (ok) { <span>   keep</span> }`), 'span');
 

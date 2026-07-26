@@ -3411,6 +3411,8 @@ export function TSRXPlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.#jsxExpressionContainerDepth++;
 				let pushed_context_baseline = false;
+				/** @type {number} */
+				let context_baseline;
 				try {
 					this.next();
 
@@ -3418,7 +3420,8 @@ export function TSRXPlugin(config) {
 					// context is on the stack. A control-flow directive parsed inside this
 					// container must not strip anything below this floor (see
 					// `#filterTemplateScriptContexts`).
-					this.#expressionContainerContextBaselines.push(this.context.length);
+					context_baseline = this.context.length;
+					this.#expressionContainerContextBaselines.push(context_baseline);
 					this.#expressionContainerPathBaselines.push(this.#path.length);
 					pushed_context_baseline = true;
 
@@ -3435,6 +3438,18 @@ export function TSRXPlugin(config) {
 						this.next();
 					}
 					if (!consumeBraceAfterScope) {
+						// A control-flow directive expression restores the context stack from
+						// a snapshot taken inside this container
+						// (`#parseTemplateControlFlowBlock`), so the container's closing `}`
+						// — read while that stale snapshot was active — pops the wrong entry
+						// and leaves stale brace contexts above the enclosing tag's contexts.
+						// Once the `}` has been read the stack must be back at one below the
+						// baseline (the container's own brace context popped); drop anything
+						// above that so the token after `}` (e.g. the `>` finishing the
+						// enclosing opening tag) tokenizes in the right context.
+						if (this.type === tt.braceR && this.context.length >= context_baseline) {
+							this.context.length = context_baseline - 1;
+						}
 						this.expect(tt.braceR);
 					}
 				} finally {
