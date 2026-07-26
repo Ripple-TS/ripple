@@ -216,6 +216,35 @@ export namespace Parse {
 	}
 
 	/**
+	 * The slots the parser stamps onto a native template node while it is still
+	 * being built. The node is started before its opening tag is read, so only
+	 * then does it learn whether it is an element, a style element, or a fragment;
+	 * the discriminant and the opening/closing slots are written through this view
+	 * rather than through the finished node types, which pin the discriminant and
+	 * require a closing tag.
+	 */
+	export interface NativeTemplateNodeSlots {
+		type: AST.NativeTSRXTemplateNode['type'];
+		openingElement?: ESTreeJSX.TSRXJSXOpeningElement;
+		closingElement?: ESTreeJSX.TSRXJSXClosingElement | null;
+		openingFragment?: ESTreeJSX.JSXOpeningFragment;
+		closingFragment?: ESTreeJSX.JSXClosingFragment | null;
+		isDynamic?: boolean;
+		unclosed?: boolean;
+	}
+
+	/**
+	 * The two fields the parser rewrites when it retypes a parsed control-flow
+	 * statement as its directive expression form (`IfStatement` ->
+	 * `JSXIfExpression`, …). Rewriting a discriminant in place has no assignable
+	 * cast, so the reinterpretation is confined to this shape.
+	 */
+	export interface JSXControlFlowDirectiveSlots {
+		type: AST.JSXTemplateDirective['type'];
+		statementType: AST.JSXTemplateDirective['statementType'];
+	}
+
+	/**
 	 * Token context - controls how tokens are interpreted in different syntactic contexts
 	 */
 	export interface TokContext {
@@ -1191,6 +1220,19 @@ export namespace Parse {
 
 		tsParseTypeArguments(): AST.Node;
 
+		/**
+		 * Parse type arguments in an expression position, rescanning the `<` that was
+		 * tokenized outside a type context (@sveltejs/acorn-typescript). `undefined`
+		 * when the rescan does not yield a `<`.
+		 */
+		tsParseTypeArgumentsInExpression(): AST.TSTypeParameterInstantiation | undefined;
+
+		/**
+		 * Run a parser callback, restoring the tokenizer and returning `undefined`
+		 * when it aborts or throws (@sveltejs/acorn-typescript).
+		 */
+		tsTryParseAndCatch<T>(fn: () => T): T | undefined;
+
 		tsTryParseTypeAnnotation(): AST.TSTypeAnnotation;
 
 		/**
@@ -1719,13 +1761,13 @@ export namespace Parse {
 		 * Parse JSX opening element at position
 		 * @param startPos Start position
 		 * @param startLoc Start location
-		 * @returns JSXOpeningElement or JSXOpeningFragment
+		 * @returns JSXOpeningElement (widened to TSRX's dynamic `<{expr}>` name) or,
+		 * for `<>`, JSXOpeningFragment
 		 */
 		jsx_parseOpeningElementAt(
 			startPos?: number,
 			startLoc?: AST.Position,
-		): ESTreeJSX.JSXOpeningElement;
-		// it could also be ESTreeJSX.JSXOpeningFragment
+		): ESTreeJSX.TSRXJSXOpeningElement | ESTreeJSX.JSXOpeningFragment;
 
 		/**
 		 * Parse JSX closing element at position

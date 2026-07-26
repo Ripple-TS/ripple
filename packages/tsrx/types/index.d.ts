@@ -392,6 +392,8 @@ declare module 'estree' {
 		extends Omit<ESTreeJSX.JSXFragment, 'children'>, AST.NodeWithMaybeComments {
 		/** See {@link TSRXJSXElement}'s `children`. */
 		children: AST.Node[];
+		/** Loose-mode recovery: the fragment was never closed. */
+		unclosed?: boolean;
 	}
 
 	interface JSXCodeBlock extends AST.BaseExpression {
@@ -507,8 +509,15 @@ declare module 'estree' {
 		| JSXCodeBlock
 		| JSXTemplateDirective;
 
+	/**
+	 * A native TSRX element, style element, or fragment: what the parser builds
+	 * from an opening tag and keeps on its open-element path while the body is
+	 * parsed.
+	 */
+	type NativeTSRXTemplateNode = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement;
+
 	/** A parser node whose body uses native TSRX template semantics. */
-	type NativeTSRXNode = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement | JSXCodeBlock;
+	type NativeTSRXNode = NativeTSRXTemplateNode | JSXCodeBlock;
 
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';
@@ -909,6 +918,8 @@ declare module 'estree-jsx' {
 	}
 
 	interface TSRXJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
+		/** The parser marks the closing half of a dynamic `<{expr}>` tag. */
+		isDynamic?: boolean;
 		// See TSRXJSXOpeningElement's `name`.
 		name:
 			| JSXMemberExpression

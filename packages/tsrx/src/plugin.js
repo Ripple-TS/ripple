@@ -68,6 +68,15 @@ const DYNAMIC_TAG_DISALLOWED_TYPES = new Set([
 	'TaggedTemplateExpression',
 ]);
 
+/**
+ * The expression wrappers a dynamic tag (`<{expr}>`) may be written through.
+ * @param {AST.Node} node
+ * @returns {node is AST.TSAsExpression | AST.TSTypeAssertion | AST.TSNonNullExpression | AST.ParenthesizedExpression | AST.ChainExpression}
+ */
+function is_dynamic_tag_wrapper(node) {
+	return DYNAMIC_TAG_WRAPPER_TYPES.has(node.type);
+}
+
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
 /** @type {WeakMap<Record<string, boolean>, Set<string>>} */
@@ -278,7 +287,7 @@ export function TSRXPlugin(config) {
 			#templateControlFlowTryDepth = 0;
 			/** @type {Parse.Parser['context']} */
 			context = [b_stat];
-			/** @type {AST.Node | null} */
+			/** @type {AST.NativeTSRXTemplateNode | null} */
 			#openingNativeTemplateNode = null;
 			#closingNativeTemplateNode = false;
 			#readingJSXControlFlowDirectiveKeyword = false;
@@ -1020,7 +1029,8 @@ export function TSRXPlugin(config) {
 				if (
 					opening &&
 					current_template_node === opening &&
-					/** @type {any} */ (opening).openingElement?.selfClosing &&
+					opening.type !== 'JSXFragment' &&
+					opening.openingElement?.selfClosing &&
 					this.input.charCodeAt(this.lastTokEnd - 1) === CharCode.greaterThan &&
 					this.input.charCodeAt(this.lastTokEnd - 2) === CharCode.slash
 				) {
@@ -1293,6 +1303,7 @@ export function TSRXPlugin(config) {
 			 * Parse the single bare render node of a code block — a JSX element/fragment
 			 * (parsed as a native TSRX element so its own body may again be plain JSX or
 			 * a nested `@{ … }`) or an `@if`/`@for`/`@switch`/`@try` directive.
+			 * @returns {AST.TSRXRenderOutput}
 			 */
 			#parseCodeBlockRenderNode() {
 				const at_index = skip_whitespace_from(this.input, this.start);
@@ -1309,13 +1320,11 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.#isCodeBlockStart(at_index)) {
-					return /** @type {AST.Node} */ (/** @type {unknown} */ (this.#parseCodeBlock()));
+					return this.#parseCodeBlock();
 				}
 
 				if (this.#isJSXControlFlowDirectiveAt(at_index)) {
-					return /** @type {AST.Node} */ (
-						/** @type {unknown} */ (this.#parseJSXControlFlowExpression())
-					);
+					return this.#parseJSXControlFlowExpression();
 				}
 
 				// Re-read the `<` so its `jsxTagStart` pushes the opening-tag contexts.
@@ -1336,7 +1345,7 @@ export function TSRXPlugin(config) {
 				if (this.curContext() === tstc.tc_expr) {
 					this.context.pop();
 				}
-				return /** @type {AST.Node} */ (/** @type {unknown} */ (node));
+				return node;
 			}
 
 			/**
@@ -1476,28 +1485,38 @@ export function TSRXPlugin(config) {
 				// `@if` parses as a directive would depend on leading whitespace.
 				if (this.input.charCodeAt(this.start) === CharCode.at && this.type !== tstt.jsxText) {
 					if (this.#isCodeBlockStart(this.start)) {
-						return /** @type {any} */ (this.#parseCodeBlock());
+						return this.#parseCodeBlock();
 					}
 					if (this.#isJSXControlFlowDirectiveAt(this.start)) {
-						return /** @type {any} */ (this.#parseJSXControlFlowExpression());
+						return this.#parseJSXControlFlowExpression();
 					}
 				}
 				return super.parseExprAtom(refDestructuringErrors, forInit, forNew);
 			}
 
 			/**
+			 * Retype a parsed control-flow statement in place as its directive
+			 * expression form (`IfStatement` -> `JSXIfExpression`, …), keeping the
+			 * original statement type in `statementType`.
+			 *
 			 * @param {AST.Node} node
-			 * @param {string} type
+			 * @param {AST.JSXTemplateDirective['type']} type
 			 * @param {number} start
 			 * @param {AST.Position} startLoc
+			 * @returns {AST.JSXTemplateDirective}
 			 */
 			#finishJSXControlFlowExpression(node, type, start, startLoc) {
 				node.start = start;
 				/** @type {AST.NodeWithLocation} */ (node).loc.start = startLoc;
 				node.metadata ??= { path: [] };
-				/** @type {any} */ (node).statementType = node.type;
-				/** @type {any} */ (node).type = type;
-				return node;
+				const directive = /** @type {Parse.JSXControlFlowDirectiveSlots} */ (
+					/** @type {unknown} */ (node)
+				);
+				directive.statementType = /** @type {AST.JSXTemplateDirective['statementType']} */ (
+					node.type
+				);
+				directive.type = type;
+				return /** @type {AST.JSXTemplateDirective} */ (directive);
 			}
 
 			/**
@@ -1916,7 +1935,7 @@ export function TSRXPlugin(config) {
 				if (this.type === tstt.jsxText) {
 					const text = this.#parseJSXSwitchCaseRawText();
 					if (!isWhitespaceTextNode(text)) {
-						consequent.push(/** @type {any} */ (text));
+						consequent.push(text);
 					}
 					return;
 				}
@@ -1944,12 +1963,12 @@ export function TSRXPlugin(config) {
 					if (!node) {
 						this.unexpected();
 					}
-					consequent.push(/** @type {any} */ (node));
+					consequent.push(node);
 					return;
 				}
 
 				if (this.#isJSXControlFlowDirectiveStart()) {
-					consequent.push(/** @type {any} */ (this.#parseJSXControlFlowExpression()));
+					consequent.push(this.#parseJSXControlFlowExpression());
 					return;
 				}
 
@@ -2001,30 +2020,31 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {ESTreeJSX.JSXOpeningElement} openingElement
+			 * @param {ESTreeJSX.TSRXJSXOpeningElement} openingElement
 			 * @returns {ESTreeJSX.JSXOpeningFragment}
 			 */
 			#toOpeningFragment(openingElement) {
+				const element = /** @type {Partial<ESTreeJSX.TSRXJSXOpeningElement>} */ (openingElement);
+				delete element.name;
+				delete element.attributes;
+				delete element.selfClosing;
 				const openingFragment = /** @type {ESTreeJSX.JSXOpeningFragment} */ (
 					/** @type {unknown} */ (openingElement)
 				);
 				openingFragment.type = 'JSXOpeningFragment';
-				delete (/** @type {any} */ (openingFragment).name);
-				delete (/** @type {any} */ (openingFragment).attributes);
-				delete (/** @type {any} */ (openingFragment).selfClosing);
 				return openingFragment;
 			}
 
 			/**
-			 * @param {ESTreeJSX.JSXClosingElement} closingElement
+			 * @param {ESTreeJSX.TSRXJSXClosingElement} closingElement
 			 * @returns {ESTreeJSX.JSXClosingFragment}
 			 */
 			#toClosingFragment(closingElement) {
+				delete (/** @type {Partial<ESTreeJSX.TSRXJSXClosingElement>} */ (closingElement).name);
 				const closingFragment = /** @type {ESTreeJSX.JSXClosingFragment} */ (
 					/** @type {unknown} */ (closingElement)
 				);
 				closingFragment.type = 'JSXClosingFragment';
-				delete (/** @type {any} */ (closingFragment).name);
 				return closingFragment;
 			}
 
@@ -2034,7 +2054,7 @@ export function TSRXPlugin(config) {
 			 * synthesize the closing element, and restore the tokenizer state past it.
 			 * Shared by `<style>` and `<script>`.
 			 *
-			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {ESTreeJSX.TSRXJSXOpeningElement & AST.NodeWithLocation} open
 			 * @param {AST.JSXStyleElement | AST.TSRXJSXElement} node
 			 * @param {'style' | 'script'} tagName
 			 * @returns {string} The raw body text
@@ -2128,7 +2148,7 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {ESTreeJSX.TSRXJSXOpeningElement & AST.NodeWithLocation} open
 			 * @param {AST.JSXStyleElement} node
 			 * @param {boolean} insideHead
 			 */
@@ -2171,7 +2191,7 @@ export function TSRXPlugin(config) {
 			 * `content` directly (the Ripple transforms, the prettier plugin) must skip
 			 * the children instead of emitting both.
 			 *
-			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {ESTreeJSX.TSRXJSXOpeningElement & AST.NodeWithLocation} open
 			 * @param {AST.TSRXJSXElement} node
 			 */
 			#parseScriptElement(open, node) {
@@ -2716,11 +2736,14 @@ export function TSRXPlugin(config) {
 					return null;
 				}
 
-				const children = Array.isArray(/** @type {any} */ (container).children)
-					? /** @type {any} */ (container).children
+				// A directive's `{ }` block is a native template node too, and it has no
+				// `children`, so read the slot defensively.
+				const container_children = /** @type {{ children?: unknown }} */ (container).children;
+				const children = Array.isArray(container_children)
+					? /** @type {AST.Node[]} */ (container_children)
 					: [];
 				const hasMeaningfulChildren = children.some(
-					(/** @type {any} */ child) => child && !isWhitespaceTextNode(child),
+					(child) => child && !isWhitespaceTextNode(child),
 				);
 
 				if (hasMeaningfulChildren) {
@@ -2754,18 +2777,23 @@ export function TSRXPlugin(config) {
 					// Dynamic tags (`<{Tag}>`) name by expression source. The braces keep
 					// them from colliding with static tag names ('style', 'head', ...) and
 					// read as source syntax in error messages (`</{Tag}>`).
-					const expression = /** @type {AST.Expression} */ (/** @type {any} */ (node).expression);
+					const expression = node.expression;
 					return `{${this.input.slice(expression.start, expression.end).trim()}}`;
 				}
 				return null;
 			}
 
 			/**
-			 * @param {any} name
-			 * @returns {boolean}
+			 * @param {AST.Node | '' | null | undefined} name
+			 * @returns {name is ESTreeJSX.JSXExpressionContainer}
 			 */
 			#isDynamicJSXElementName(name) {
-				return !!(name && name.type === 'JSXExpressionContainer' && name.isDynamic === true);
+				return (
+					!!name &&
+					typeof name !== 'string' &&
+					name.type === 'JSXExpressionContainer' &&
+					name.isDynamic === true
+				);
 			}
 
 			/**
@@ -2774,15 +2802,15 @@ export function TSRXPlugin(config) {
 			 * composed of those. Constructed values (calls, spreads, concatenation,
 			 * interpolation, object/array literals) and static non-string literals
 			 * can never be valid tag names.
-			 * @param {any} expression
+			 * @param {AST.Node | null | undefined} expression
 			 * @returns {boolean}
 			 */
 			#isValidDynamicTagExpression(expression) {
 				let node = expression;
-				while (node && DYNAMIC_TAG_WRAPPER_TYPES.has(node.type)) {
+				while (node && is_dynamic_tag_wrapper(node)) {
 					node = node.expression;
 				}
-				if (!node || node.type?.startsWith?.('JSX')) return false;
+				if (!node || node.type.startsWith('JSX')) return false;
 				if (node.type === 'Identifier') return node.name !== 'undefined';
 				if (node.type === 'Literal') return typeof node.value === 'string';
 				if (node.type === 'UnaryExpression' && node.operator === 'void') return false;
@@ -2790,8 +2818,10 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {any} node
-			 * @param {Set<any>} [seen]
+			 * Walks every property of the tag expression, so it receives whatever the
+			 * AST holds — nodes, arrays of nodes, and the primitives in between.
+			 * @param {unknown} node
+			 * @param {Set<unknown>} [seen]
 			 * @returns {boolean}
 			 */
 			#containsDisallowedDynamicTagSyntax(node, seen = new Set()) {
@@ -2800,16 +2830,18 @@ export function TSRXPlugin(config) {
 				if (Array.isArray(node)) {
 					return node.some((child) => this.#containsDisallowedDynamicTagSyntax(child, seen));
 				}
+				const ast_node = /** @type {AST.Node} */ (node);
 				if (
-					DYNAMIC_TAG_DISALLOWED_TYPES.has(node.type) ||
-					(node.type === 'TemplateLiteral' && node.expressions.length > 0) ||
-					(node.type === 'BinaryExpression' && node.operator === '+')
+					DYNAMIC_TAG_DISALLOWED_TYPES.has(ast_node.type) ||
+					(ast_node.type === 'TemplateLiteral' && ast_node.expressions.length > 0) ||
+					(ast_node.type === 'BinaryExpression' && ast_node.operator === '+')
 				) {
 					return true;
 				}
-				for (const key of Object.keys(node)) {
+				for (const key of Object.keys(ast_node)) {
 					if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-					if (this.#containsDisallowedDynamicTagSyntax(node[key], seen)) return true;
+					const value = /** @type {Record<string, unknown>} */ (ast_node)[key];
+					if (this.#containsDisallowedDynamicTagSyntax(value, seen)) return true;
 				}
 				return false;
 			}
@@ -3580,8 +3612,8 @@ export function TSRXPlugin(config) {
 								acorn.getLineInfo(this.input, brace_start + 1),
 							);
 							/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
-							/** @type {any} */ (node).value = expression;
-							/** @type {any} */ (node).shorthand = true;
+							/** @type {ESTreeJSX.JSXAttribute} */ (node).value = expression;
+							/** @type {ESTreeJSX.JSXAttribute} */ (node).shorthand = true;
 
 							const end = brace_start + 1;
 							const endLoc = acorn.getLineInfo(this.input, end);
@@ -3653,13 +3685,13 @@ export function TSRXPlugin(config) {
 						);
 						expression.expression = name;
 						/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
-						/** @type {any} */ (node).value = this.finishNodeAt(
+						/** @type {ESTreeJSX.JSXAttribute} */ (node).value = this.finishNodeAt(
 							expression,
 							'JSXExpressionContainer',
 							this.end + 1,
 							this.endLoc,
 						);
-						/** @type {any} */ (node).shorthand = true;
+						/** @type {ESTreeJSX.JSXAttribute} */ (node).shorthand = true;
 						this.next();
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXAttribute');
@@ -4294,18 +4326,18 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseOpeningElementAt']}
 			 */
 			jsx_parseOpeningElementAt(startPos, startLoc) {
-				const node = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+				const node = /** @type {ESTreeJSX.TSRXJSXOpeningElement & AST.NodeWithLocation} */ (
 					this.startNodeAt(/** @type {number} */ (startPos), /** @type {AST.Position} */ (startLoc))
 				);
 				node.attributes = [];
 				const nodeName = this.jsx_parseElementName();
-				if (nodeName) node.name = /** @type {any} */ (nodeName);
+				if (nodeName) node.name = nodeName;
 				if (this.#isDynamicJSXElementName(nodeName)) {
-					/** @type {any} */ (node).isDynamic = true;
+					node.isDynamic = true;
 				}
 				if (this.match(tt.relational) || this.match(tt.bitShift)) {
-					const typeArguments = /** @type {any} */ (this).tsTryParseAndCatch(() =>
-						/** @type {any} */ (this).tsParseTypeArgumentsInExpression(),
+					const typeArguments = this.tsTryParseAndCatch(() =>
+						this.tsParseTypeArgumentsInExpression(),
 					);
 					if (typeArguments) node.typeArguments = typeArguments;
 				}
@@ -4317,19 +4349,23 @@ export function TSRXPlugin(config) {
 				const opening_template_node = this.#openingNativeTemplateNode;
 				let pushed_opening_template_node = false;
 				if (opening_template_node) {
+					// The enclosing `parseElement` started this node before the opening tag
+					// said what it is; stamp its shape now that the tag has been read.
+					const template_node = /** @type {Parse.NativeTemplateNodeSlots} */ (
+						opening_template_node
+					);
 					if (nodeName) {
-						/** @type {any} */ (opening_template_node).type =
+						template_node.type =
 							this.getElementName(nodeName) === 'style' ? 'JSXStyleElement' : 'JSXElement';
-						/** @type {any} */ (opening_template_node).openingElement = node;
-						/** @type {any} */ (opening_template_node).closingElement = null;
+						template_node.openingElement = node;
+						template_node.closingElement = null;
 						if (this.#isDynamicJSXElementName(nodeName)) {
-							/** @type {any} */ (opening_template_node).isDynamic = true;
+							template_node.isDynamic = true;
 						}
 					} else {
-						/** @type {any} */ (opening_template_node).type = 'JSXFragment';
-						/** @type {any} */ (opening_template_node).openingFragment =
-							this.#toOpeningFragment(node);
-						/** @type {any} */ (opening_template_node).closingFragment = null;
+						template_node.type = 'JSXFragment';
+						template_node.openingFragment = this.#toOpeningFragment(node);
+						template_node.closingFragment = null;
 					}
 					this.#path.push(opening_template_node);
 					pushed_opening_template_node = true;
@@ -4345,8 +4381,10 @@ export function TSRXPlugin(config) {
 				if (nodeName) {
 					return this.finishNode(node, 'JSXOpeningElement');
 				}
-				return /** @type {any} */ (
-					/** @type {any} */ (this).finishNode(node, 'JSXOpeningFragment')
+				// `<>` reuses the opening-element node, so finishing it also retypes it.
+				return this.finishNode(
+					/** @type {ESTreeJSX.JSXOpeningFragment} */ (/** @type {unknown} */ (node)),
+					'JSXOpeningFragment',
 				);
 			}
 
@@ -4391,7 +4429,7 @@ export function TSRXPlugin(config) {
 				this.#openingNativeTemplateNode = node;
 				let open;
 				try {
-					open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+					open = /** @type {ESTreeJSX.TSRXJSXOpeningElement & AST.NodeWithLocation} */ (
 						this.jsx_parseOpeningElementAt(start, position)
 					);
 				} finally {
@@ -4419,24 +4457,24 @@ export function TSRXPlugin(config) {
 					);
 				}
 
+				// The node was started before its opening tag was read, so its shape is
+				// stamped through the under-construction view.
+				const slots = /** @type {Parse.NativeTemplateNodeSlots} */ (node);
 				if (is_fragment) {
-					/** @type {ESTreeJSX.JSXFragment} */ (node).type = 'JSXFragment';
-					/** @type {ESTreeJSX.JSXFragment} */ (node).openingFragment =
-						this.#toOpeningFragment(open);
-					/** @type {any} */ (node).closingFragment = null;
+					slots.type = 'JSXFragment';
+					slots.openingFragment = this.#toOpeningFragment(open);
+					slots.closingFragment = null;
 				} else {
 					if (is_style) {
-						/** @type {AST.JSXStyleElement} */ (node).type = 'JSXStyleElement';
-						/** @type {AST.JSXStyleElement} */ (node).openingElement =
-							/** @type {AST.JSXStyleElement['openingElement']} */ (open);
-						/** @type {AST.JSXStyleElement} */ (node).closingElement =
-							/** @type {AST.JSXStyleElement['closingElement']} */ (null);
+						slots.type = 'JSXStyleElement';
+						slots.openingElement = open;
+						slots.closingElement = null;
 					} else {
-						/** @type {ESTreeJSX.JSXElement} */ (node).type = 'JSXElement';
-						/** @type {ESTreeJSX.JSXElement} */ (node).openingElement = open;
-						/** @type {ESTreeJSX.JSXElement} */ (node).closingElement = null;
+						slots.type = 'JSXElement';
+						slots.openingElement = open;
+						slots.closingElement = null;
 						if (is_dynamic) {
-							/** @type {any} */ (node).isDynamic = true;
+							slots.isDynamic = true;
 						}
 					}
 				}
@@ -4472,7 +4510,7 @@ export function TSRXPlugin(config) {
 							this.start,
 							`Unclosed tag '<${displayTag}>'. Expected '</${displayTag}>' before end of template.`,
 						);
-						/** @type {any} */ (node).unclosed = true;
+						slots.unclosed = true;
 						/** @type {AST.SourceLocation} */ (node.loc).end = {
 							.../** @type {AST.SourceLocation} */ (
 								is_fragment
@@ -4543,7 +4581,7 @@ export function TSRXPlugin(config) {
 						this.curLine = loc.line;
 						this.lineStart = at_index - loc.column;
 					}
-					body.push(/** @type {any} */ (this.#parseCodeBlock()));
+					body.push(this.#parseCodeBlock());
 					this.parseTemplateBody(body);
 					return;
 				}
@@ -4647,8 +4685,7 @@ export function TSRXPlugin(config) {
 							this.#closingNativeTemplateNode = false;
 						}
 						if (closingName) {
-							/** @type {ESTreeJSX.JSXClosingElement} */ (closingNode).name =
-								/** @type {ESTreeJSX.JSXIdentifier} */ (closingName);
+							/** @type {ESTreeJSX.TSRXJSXClosingElement} */ (closingNode).name = closingName;
 						}
 						const current = /** @type {ESTreeJSX.JSXFragment | ESTreeJSX.JSXElement} */ (
 							this.#path[this.#path.length - 1]
@@ -4671,19 +4708,21 @@ export function TSRXPlugin(config) {
 						this.expect(tstt.jsxTagEnd);
 						this.#closingNativeTemplateNode = false;
 						const closingElement =
-							/** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+							/** @type {ESTreeJSX.TSRXJSXClosingElement & AST.NodeWithLocation} */ (
 								this.finishNode(
 									closingNode,
 									closingName ? 'JSXClosingElement' : 'JSXClosingFragment',
 								)
 							);
 						if (this.#isDynamicJSXElementName(closingElement.name)) {
-							/** @type {any} */ (closingElement).isDynamic = true;
+							closingElement.isDynamic = true;
 						}
 						this.exprAllowed = false;
 
 						// Validate that the closing tag matches the opening tag
-						const currentElement = /** @type {any} */ (this.#path[this.#path.length - 1]);
+						const currentElement = /** @type {AST.NativeTSRXTemplateNode} */ (
+							this.#path[this.#path.length - 1]
+						);
 						if (!this.#isNativeTemplateNode(currentElement)) {
 							this.raise(this.start, 'Unexpected closing tag');
 						}
@@ -4717,7 +4756,7 @@ export function TSRXPlugin(config) {
 							// simply an unexpected closing tag (e.g. `<div></span>`).
 							const normalized_closing_name = closingTagName ?? '';
 							const matches_open_element = this.#path.some((node) => {
-								const elem = /** @type {any} */ (node);
+								const elem = /** @type {AST.NativeTSRXTemplateNode} */ (node);
 								if (!this.#isNativeTemplateNode(elem)) return false;
 								const elemName =
 									elem.type === 'JSXFragment'
@@ -4738,7 +4777,9 @@ export function TSRXPlugin(config) {
 							);
 							// Loop through all unclosed elements on the stack
 							while (this.#path.length > 0) {
-								const elem = /** @type {any} */ (this.#path[this.#path.length - 1]);
+								const elem = /** @type {AST.NativeTSRXTemplateNode} */ (
+									this.#path[this.#path.length - 1]
+								);
 
 								// Stop at non-template boundaries.
 								if (!this.#isNativeTemplateNode(elem)) {
@@ -4771,7 +4812,9 @@ export function TSRXPlugin(config) {
 							}
 						}
 
-						const elementToClose = /** @type {any} */ (this.#path[this.#path.length - 1]);
+						const elementToClose = /** @type {AST.NativeTSRXTemplateNode} */ (
+							this.#path[this.#path.length - 1]
+						);
 						if (this.#isNativeTemplateNode(elementToClose)) {
 							const elementToCloseName =
 								elementToClose.type === 'JSXFragment'

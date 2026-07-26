@@ -2,7 +2,7 @@ import type { ExtendedEventOptions } from '@tsrx/core/types';
 export type { RefValue } from '@tsrx/core/runtime/ref';
 export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsrx/core/types';
 
-export type Component<T = Record<string, any>> = (props: T) => void | TSRXElement;
+export type Component<T = Record<string, any>> = (props: T) => Renderable | void;
 
 declare const TSRX_ELEMENT: unique symbol;
 declare const REF_KEY: unique symbol;
@@ -13,6 +13,15 @@ export type TSRXElement<Tag = any> = {
 	readonly [TSRX_ELEMENT]: true;
 	readonly __tag?: Tag;
 };
+
+/**
+ * Every value a component may return and have rendered. Both runtimes dispatch
+ * the same way: elements render, arrays flatten recursively, `null`/`undefined`
+ * render nothing, and everything else is stringified. Promises, functions, and
+ * symbols are not renderable.
+ */
+export type Renderable =
+	TSRXElement | string | number | bigint | boolean | null | undefined | readonly Renderable[];
 
 /** Type for implicit children fragments rendered with `{children}`. */
 export type Children = TSRXElement | Component | string | number | boolean | null | undefined;
