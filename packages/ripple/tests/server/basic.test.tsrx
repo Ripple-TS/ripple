@@ -598,4 +598,23 @@ second
 			'<div class="block-function">function inner / function outer</div><div class="block-arrow">22</div><div class="block-method">method inner / method outer</div>',
 		);
 	});
+
+	it('renders a template element inside an expression container child', async () => {
+		function App() @{
+			<div>
+				{<h1>
+					@if (true) {
+						<span>{'yes'}</span>
+					} @else {
+						<span>{'no'}</span>
+					}
+				</h1>}
+			</div>
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('<h1>');
+		expect(body).toContain('<span>yes</span>');
+		expect(body).not.toContain('<span>no</span>');
+	});
 });

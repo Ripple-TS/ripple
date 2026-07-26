@@ -647,6 +647,24 @@ second
 		expect(container.querySelector('div h1 span').textContent).toEqual('no');
 	});
 
+	it('renders a call-containing text expression after inlined text', () => {
+		// The `' '` text anchor for the expression used to coalesce with the
+		// preceding inlined text into a single template text node, leaving
+		// `sibling(…, true)` nothing to anchor to — a runtime crash. (Only
+		// call-containing expressions hit this: call-free ones merge with the
+		// preceding text upstream instead.)
+		function fetchCount() {
+			return 42;
+		}
+
+		function App() @{
+			<div>count: {String(fetchCount())}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div').textContent).toEqual('count: 42');
+	});
+
 	it('should handle multiple consecutive text expressions', () => {
 		function App() @{
 			let name = 'World';
