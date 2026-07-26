@@ -273,6 +273,8 @@ export function TSRXPlugin(config) {
 			#controlFlowBlockAllowsNativeReturn = false;
 			#parsingJSXSwitchCaseScriptStatementDepth = 0;
 			#templateControlFlowBlockDepth = 0;
+			/** @type {AST.NodeWithLocation | null}	*/
+			#lastClauseKeywordSpan = null;
 			#templateControlFlowTryDepth = 0;
 			/** @type {Parse.Parser['context']} */
 			context = [b_stat];
@@ -1518,43 +1520,57 @@ export function TSRXPlugin(config) {
 					const previous_reading_header = this.#readingJSXControlFlowHeader;
 					this.#readingJSXControlFlowHeader = true;
 					try {
-						node = this.#finishJSXControlFlowExpression(
-							this.parseStatement(null),
-							'JSXForExpression',
-							start,
-							startLoc,
+						node = /** @type {AST.JSXForExpression} */ (
+							this.#finishJSXControlFlowExpression(
+								this.parseStatement(null),
+								'JSXForExpression',
+								start,
+								startLoc,
+							)
 						);
 					} finally {
 						this.#readingJSXControlFlowHeader = previous_reading_header;
 						this.#templateControlFlowBlockDepth--;
 					}
 					if (
-						/** @type {any} */ (node).statementType !== 'ForOfStatement' &&
-						/** @type {any} */ (node).statementType !== 'ForInStatement' &&
-						/** @type {any} */ (node).statementType !== 'ForStatement'
+						node.statementType !== 'ForOfStatement' &&
+						node.statementType !== 'ForInStatement' &&
+						node.statementType !== 'ForStatement'
 					) {
 						this.raise(start, 'Expected `for` after `@`.');
 					}
-					if (/** @type {any} */ (node).body?.type !== 'BlockStatement') {
-						this.raise(
-							/** @type {any} */ (node).body?.start ?? start,
-							'Expected `{` after JSX control-flow directive.',
-						);
+					if (node.body?.type !== 'BlockStatement') {
+						this.raise(node.body?.start ?? start, 'Expected `{` after JSX control-flow directive.');
 					}
 					if (this.#eatJSXForEmptyKeyword()) {
 						if (this.type !== tt.braceL) {
 							this.raise(this.start, 'Expected `{` after JSX control-flow directive.');
 						}
+						const emptyKeyword = this.#lastClauseKeywordSpan;
+						let empty;
 						this.#templateControlFlowBlockDepth++;
 						try {
-							/** @type {any} */ (node).empty = this.parseBlock();
+							empty = this.parseBlock();
 						} finally {
 							this.#templateControlFlowBlockDepth--;
 						}
+						node.empty = empty;
+						node.emptyKeyword = emptyKeyword;
+						// `@empty { … }` is part of the `@for` statement, but the node was
+						// already finished at the end of the for BODY (the clause is parsed
+						// after `#finishJSXControlFlowExpression`, unlike `@else`/`@catch`,
+						// which their own `parseStatement` consumes first). Extend it, or
+						// every consumer that slices by range — editor mappings, the
+						// playground's AST/position tracking, formatters, diagnostics —
+						// truncates the statement before its `@empty` clause.
+						node.end = empty.end;
+						/** @type {AST.NodeWithLocation} */ (node).loc.end =
+							/** @type {AST.NodeWithLocation} */ (empty).loc.end;
+						if (node.range) node.range[1] = /** @type {number} */ (empty.end);
 					} else if (this.#isUnprefixedDirectiveClauseContinuation('empty', ['{'])) {
 						this.raise(this.start, 'Expected `@empty` after `@for` block.');
 					} else {
-						/** @type {any} */ (node).empty = null;
+						node.empty = null;
 					}
 					return node;
 				}
@@ -1584,6 +1600,7 @@ export function TSRXPlugin(config) {
 			 * @param {string} keyword
 			 */
 			#eatJSXDirectiveClauseKeyword(keyword) {
+				this.#lastClauseKeywordSpan = null;
 				const keywordStart = skip_whitespace_from(this.input, this.start);
 				if (this.input.charCodeAt(keywordStart) !== CharCode.at) {
 					return false;
@@ -1596,6 +1613,19 @@ export function TSRXPlugin(config) {
 					return false;
 				}
 
+				// The clause keyword is the only authored spelling of `@empty`/`@else`/
+				// `@catch` and friends: the clause node itself starts at its `{`, so
+				// without this span nothing in the tree points at the keyword and
+				// tooling cannot resolve a cursor placed on it.
+				const keywordEnd = wordStart + keyword.length;
+				this.#lastClauseKeywordSpan = {
+					start: keywordStart,
+					end: keywordEnd,
+					loc: {
+						start: acorn.getLineInfo(this.input, keywordStart),
+						end: acorn.getLineInfo(this.input, keywordEnd),
+					},
+				};
 				this.pos = wordStart;
 				this.start = wordStart;
 				this.startLoc = acorn.getLineInfo(this.input, wordStart);
@@ -1714,6 +1744,7 @@ export function TSRXPlugin(config) {
 				node.alternate = null;
 
 				if (this.#eatJSXDirectiveClauseKeyword('else')) {
+					node.alternateKeyword = this.#lastClauseKeywordSpan;
 					node.alternate = this.#eatJSXDirectiveBareClauseKeyword('if')
 						? this.#parseTemplateIfStatement()
 						: /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
@@ -1758,6 +1789,9 @@ export function TSRXPlugin(config) {
 							this.startNodeAt(clauseStart, clauseStartLoc)
 						);
 						current.consequent = [];
+						// `@case`/`@default` is the arm's only authored keyword; the node
+						// itself starts before the leading whitespace.
+						current.keyword = this.#lastClauseKeywordSpan;
 						const previous_reading_header = this.#readingJSXControlFlowHeader;
 						this.#readingJSXControlFlowHeader = true;
 						try {
@@ -3719,6 +3753,7 @@ export function TSRXPlugin(config) {
 						node.handler = null;
 
 						if (this.#eatJSXDirectiveClauseKeyword('pending')) {
+							node.pendingKeyword = this.#lastClauseKeywordSpan;
 							node.pending = this.#parseTemplateControlFlowReturnBlock();
 						} else if (this.#isUnprefixedDirectiveClauseContinuation('pending', ['{'])) {
 							this.raise(this.start, 'Expected `@pending` after `@try` block.');
@@ -3729,6 +3764,7 @@ export function TSRXPlugin(config) {
 						const clauseStart = this.start;
 						const clauseStartLoc = this.startLoc;
 						if (this.#eatJSXDirectiveClauseKeyword('catch')) {
+							node.handlerKeyword = this.#lastClauseKeywordSpan;
 							if (this.type === tt._catch || this.value === 'catch') {
 								this.next();
 							}

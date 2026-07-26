@@ -642,6 +642,30 @@ abc
 		expect(directive.alternate?.type).toBe('BlockStatement');
 	});
 
+	it('spans a directive clause that follows the block, for every directive', () => {
+		// A directive's range has to cover its trailing clause: consumers slice
+		// source by it (editor position mappings, formatters, diagnostics), and a
+		// range that stops at the first block truncates the statement.
+		// `@else`/`@pending`/`@catch` come for free because the statement parse
+		// consumes them; `@empty` is attached after the node is finished.
+		const cases = [
+			['JSXIfExpression', `@if (ok) { <b>a</b> } @else { <i>b</i> }`, '@else'],
+			['JSXForExpression', `@for (const x of xs) { <b>{x}</b> } @empty { <i>none</i> }`, '@empty'],
+			[
+				'JSXTryExpression',
+				`@try { <b>a</b> } @pending { <i>l</i> } @catch (e) { <u>e</u> }`,
+				'@catch',
+			],
+		];
+		for (const [type, template, clause] of cases) {
+			const source = `export default function App() @{\n\t<div>\n\t\t${template}\n\t</div>\n}\n`;
+			const directive = findNode(source, type);
+			expect(directive, type).toBeDefined();
+			expect(source.slice(directive.start, directive.end), type).toContain(clause);
+			expect(source.slice(directive.start, directive.end), type).toBe(template);
+		}
+	});
+
 	it('parses an @for directive inside an element nested in an expression container', () => {
 		const directive = findNode(
 			inExpressionContainer(`@for (const item of items) { <li>{item}</li> }`),

@@ -415,6 +415,11 @@ declare module 'estree' {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
 		empty?: AST.BlockStatement | null;
+		/**
+		 * Span of the `@empty` keyword; only present when `empty` is. The clause's
+		 * block starts at its `{`, so this is the only pointer to the keyword text.
+		 */
+		emptyKeyword?: AST.NodeWithLocation | null;
 		metadata: BaseNodeMetaData;
 	}
 
@@ -522,14 +527,25 @@ declare module 'estree' {
 	interface TryStatement {
 		statementType?: 'TryStatement';
 		pending?: AST.BlockStatement | null;
+		/** Span of the `@pending` keyword; only present when `pending` is. */
+		pendingKeyword?: AST.NodeWithLocation | null;
+		/** Span of the `@catch` keyword; only present when `handler` is. */
+		handlerKeyword?: AST.NodeWithLocation | null;
 	}
 
 	interface IfStatement {
 		statementType?: 'IfStatement';
+		/** Span of the `@else` keyword; only present when `alternate` is. */
+		alternateKeyword?: AST.NodeWithLocation | null;
 	}
 
 	interface SwitchStatement {
 		statementType?: 'SwitchStatement';
+	}
+
+	interface SwitchCase {
+		/** Span of the arm's `@case`/`@default` keyword. */
+		keyword?: AST.NodeWithLocation | null;
 	}
 
 	interface CatchClause {
