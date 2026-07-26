@@ -621,6 +621,7 @@ second
 	it('renders a bigint merged into a text run after a string', async () => {
 		function App() @{
 			const label = 'big:';
+			// prettier-ignore
 			<div>{label}{1n}</div>
 		}
 

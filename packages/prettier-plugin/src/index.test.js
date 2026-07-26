@@ -6687,6 +6687,46 @@ function RowList({ rows, Row }) {
 		});
 	});
 
+	describe('numeric literals', () => {
+		it('prints bigint literals instead of crashing on JSON.stringify', async () => {
+			const input = `const total = 1n;
+const mask = 0xffn;`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('prints bigint literals inside templates', async () => {
+			const input = `function App() @{
+  const label = "big:";
+  <div>
+    {label}
+    {1n}
+  </div>
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(input);
+		});
+
+		it('keeps the authored radix, separators, and exponent of numeric literals', async () => {
+			const input = `const a = 0xFF;
+const b = 1_000_000;
+const c = .5;
+const d = 1e21;
+const e = 1E3;
+const f = 1.50;`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(`const a = 0xff;
+const b = 1_000_000;
+const c = 0.5;
+const d = 1e21;
+const e = 1e3;
+const f = 1.5;`);
+		});
+	});
+
 	describe('idempotence', () => {
 		/**
 		 * @param {string} code

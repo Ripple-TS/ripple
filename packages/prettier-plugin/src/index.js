@@ -214,6 +214,12 @@ function isRawScriptElement(node) {
  * @returns {string} - The formatted string literal with quotes
  */
 function formatStringLiteral(value, options) {
+	if (typeof value === 'bigint') {
+		// `JSON.stringify` throws on BigInt; a BigInt literal is its decimal
+		// digits plus the `n` suffix.
+		return `${value}n`;
+	}
+
 	if (typeof value !== 'string') {
 		return JSON.stringify(value);
 	}
@@ -227,6 +233,31 @@ function formatStringLiteral(value, options) {
 		.replace(/\t/g, '\\t');
 
 	return quote + escapedValue + quote;
+}
+
+/**
+ * Normalize a numeric literal the way Prettier's core printer does: keep the
+ * author's radix, separators, and exponent, but lowercase the notation and drop
+ * redundant zeroes. Reprinting `value` instead would rewrite the source
+ * (`0xff` -> `255`, `1_000` -> `1000`).
+ * @param {string} raw - The literal exactly as written in the source
+ * @returns {string} - The normalized literal
+ */
+function formatNumericLiteral(raw) {
+	return (
+		raw
+			.toLowerCase()
+			// Remove unnecessary plus and zeroes from scientific notation.
+			.replace(/^([+-]?[\d.]+e)(?:\+|(-))?0*(\d)/, '$1$2$3')
+			// Remove unnecessary scientific notation (1x).
+			.replace(/^([+-]?[\d.]+)e[+-]?0+$/, '$1')
+			// Make sure numbers always start with a digit.
+			.replace(/^([+-])?\./, '$10.')
+			// Remove extraneous trailing decimal zeroes.
+			.replace(/(\.\d+?)0+(?=e|$)/, '$1')
+			// Remove trailing dot.
+			.replace(/\.(?=e|$)/, '')
+	);
 }
 
 /**
@@ -1968,17 +1999,26 @@ function printRippleNode(node, path, options, print, args) {
 			}
 			break;
 		}
-		case 'Literal':
+		case 'Literal': {
 			// Handle regex literals specially
 			const node_typed = /** @type {AST.RegExpLiteral} */ (node);
+			const bigint_typed = /** @type {AST.BigIntLiteral} */ (node);
 			if (node_typed.regex) {
 				// Regex literal: use the raw representation
 				nodeContent = node_typed.raw || `/${node_typed.regex.pattern}/${node_typed.regex.flags}`;
+			} else if (typeof bigint_typed.bigint === 'string') {
+				// BigInt literal: `bigint` is always decimal, so only `raw` keeps
+				// the author's radix (`0xffn`).
+				nodeContent = (bigint_typed.raw || `${bigint_typed.bigint}n`).toLowerCase();
+			} else if (typeof node.value === 'number' && typeof node_typed.raw === 'string') {
+				// Numeric literal: normalize, but never reprint from `value`.
+				nodeContent = formatNumericLiteral(node_typed.raw);
 			} else {
-				// String, number, boolean, or null literal
+				// String, boolean, or null literal
 				nodeContent = formatStringLiteral(node.value, options);
 			}
 			break;
+		}
 
 		case 'ArrowFunctionExpression':
 			nodeContent = printArrowFunction(node, path, options, print, args);

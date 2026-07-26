@@ -671,6 +671,7 @@ second
 		// merged after a provably-string operand renders its decimal text.
 		function App() @{
 			const label = 'big:';
+			// prettier-ignore
 			<div>{label}{1n}</div>
 		}
 
