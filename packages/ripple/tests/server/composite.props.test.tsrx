@@ -164,4 +164,30 @@ describe('composite > props', () => {
 		expect(document.querySelector('p').textContent).toBe('Description 1');
 		expect(document.querySelector('price').textContent).toBe('15');
 	});
+
+	it('renders a template element passed inline as a prop', async () => {
+		// `props.header` is not provably a string, so it renders through
+		// `render_expression`, which recognizes template-element values —
+		// inline escaping would stringify the element to `[object Object]`.
+		function Child(props: { header: unknown }) @{
+			<div>{props.header}</div>
+		}
+
+		function App() @{
+			<Child
+				header={<h1>
+					@if (true) {
+						<span>{'yes'}</span>
+					} @else {
+						<span>{'no'}</span>
+					}
+				</h1>}
+			/>
+		}
+
+		const { body } = await render(App);
+		expect(body).toContain('<h1>');
+		expect(body).toContain('<span>yes</span>');
+		expect(body).not.toContain('<span>no</span>');
+	});
 });

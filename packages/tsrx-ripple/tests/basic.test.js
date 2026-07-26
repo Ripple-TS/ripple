@@ -769,11 +769,13 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		const code = ts(
 			`function App({ xs, c }: { xs: number[]; c: any }) @{ const v = @switch (c) { @case 1: { <><a /> @for (const x of xs) { <li>{x}</li> }</> } }; <div>{v}</div> }`,
 		);
+		// The inline space between `<a />` and the directive is significant sibling
+		// whitespace (it would render between inline elements) and stays in the output.
 		expect(code).toMatch(
-			/<><a \/>\{Array\.from\(xs\)\.map\(\(x\) => \{\s*return <li>\{x\}<\/li>;\s*\}\)\}<\/>/,
+			/<><a \/> \{Array\.from\(xs\)\.map\(\(x\) => \{\s*return <li>\{x\}<\/li>;\s*\}\)\}<\/>/,
 		);
 		// not a void IIFE-with-for inside the fragment.
-		expect(code).not.toMatch(/<a \/>\{\(\(\) => \{\s*for \(/);
+		expect(code).not.toMatch(/<a \/> \{\(\(\) => \{\s*for \(/);
 	});
 
 	// The same nested directive in RENDER position (a direct child of the rendered
@@ -1924,5 +1926,83 @@ describe('@tsrx/ripple template comments', () => {
 	it('keeps template comments out of to_ts output', () => {
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		expect(code).not.toMatch(/world|hello/);
+	});
+});
+
+describe('@tsrx/ripple template elements in expression position', () => {
+	// An element inside an expression container or attribute value is a value,
+	// not a rendered child — it must lower to a `_$_.tsrx_element(…)` handle in
+	// both modes instead of leaking raw JSX (or a raw directive node) to the
+	// printer.
+	const attribute_source = `export function App() @{
+			<Child prop={<h1>@if (true) { <div>1</div> } @else { <div>2</div> }</h1>} />
+		}`;
+	const container_source = `export function App() @{
+			<div>{<h1>@if (true) { <span>1</span> } @else { <span>2</span> }</h1>}</div>
+		}`;
+
+	it('lowers an element-valued attribute with control flow in client and server output', () => {
+		for (const mode of ['client', 'server']) {
+			const { code } = compile(attribute_source, 'App.tsrx', { mode });
+			expect(code).toContain('prop: _$_.tsrx_element(');
+			expect(code).not.toContain('@if');
+			expect(code).not.toContain('<h1>@if');
+		}
+	});
+
+	it('lowers an element inside a child expression container in client and server output', () => {
+		const client = compile(container_source, 'App.tsrx', { mode: 'client' });
+		expect(client.code).toContain('_$_.expression(expression, () => _$_.tsrx_element(');
+		expect(client.code).not.toContain('() => <h1>');
+
+		const server = compile(container_source, 'App.tsrx', { mode: 'server' });
+		expect(server.code).toContain('_$_.render_expression(_$_.tsrx_element(');
+	});
+});
+
+describe('@tsrx/ripple server expression classification', () => {
+	// Only provably-string expressions may use the inline-escape fast path;
+	// anything else can hold a template value and must render through
+	// `render_expression`. `<title>` is text-only per spec, so its expression
+	// children always escape — hydration markers must never reach
+	// `document.title`.
+	it('escapes provably-primitive expressions and defers the rest to render_expression', () => {
+		const { code } = compile(
+			`export function App(props: { n: number, s: string }) @{
+				<>
+					<div>{props.s}</div>
+					<em>{'lit' + props.n}</em>
+					<b>{String(props.n)}</b>
+					<i>{props.n as string}</i>
+					<span>{props.n}</span>
+					<section>{props.anything}</section>
+				</>
+			}`,
+			'App.tsrx',
+			{ mode: 'server', loose: true },
+		);
+
+		expect(code).toContain('_$_.escape(props.s)');
+		expect(code).toContain("_$_.escape('lit' + props.n)");
+		expect(code).toContain('_$_.escape(String(props.n))');
+		// `props.n` is number-typed — provably a text primitive, so it escapes.
+		expect(code).toContain('_$_.escape(props.n)');
+		expect(code).toContain('_$_.render_expression(props.anything)');
+		expect(code).not.toContain('_$_.render_expression(props.s)');
+	});
+
+	it('keeps title expression children on the escaping text path', () => {
+		const { code } = compile(
+			`export function App(props: { anything: unknown }) @{
+				<head>
+					<title>{props.anything}</title>
+				</head>
+			}`,
+			'App.tsrx',
+			{ mode: 'server', loose: true },
+		);
+
+		expect(code).toContain('_$_.escape(props.anything)');
+		expect(code).not.toContain('_$_.render_expression');
 	});
 });

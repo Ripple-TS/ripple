@@ -195,4 +195,50 @@ describe('composite > props', () => {
 		expect(container.querySelector('p').textContent).toBe('Description 1');
 		expect(container.querySelector('price').textContent).toBe('15');
 	});
+
+	it('renders a template element passed inline as a prop', () => {
+		function Child(props: { header: unknown }) @{
+			<div>{props.header}</div>
+		}
+
+		function App() @{
+			<Child header={<h1>{'hello'}</h1>} />
+		}
+
+		render(App);
+		expect(container.querySelector('div h1').textContent).toBe('hello');
+	});
+
+	it('updates control flow inside an element passed inline as a prop', () => {
+		function Child(props: { header: unknown }) @{
+			<div>{props.header}</div>
+		}
+
+		function App() @{
+			let &[ok] = track(true);
+			<>
+				<button
+					onClick={() => {
+						ok = !ok;
+					}}
+				>{'toggle'}</button>
+				<Child
+					header={<h1>
+						@if (ok) {
+							<span>{'yes'}</span>
+						} @else {
+							<span>{'no'}</span>
+						}
+					</h1>}
+				/>
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('div h1 span').textContent).toBe('yes');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('div h1 span').textContent).toBe('no');
+	});
 });

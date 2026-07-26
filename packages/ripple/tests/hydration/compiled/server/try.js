@@ -19,7 +19,15 @@ export function RootCatch({ error, reset }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section class="root-catch"><p class="root-error">' + _$_.escape(error.message) + '</p><button class="root-reset">retry</button></section>';
+			__out += '<section class="root-catch"><p class="root-error">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(error.message);
+			}
+
+			__out += '</p><button class="root-reset">retry</button></section>';
 			_$_.output_push(__out);
 		});
 	});
@@ -45,7 +53,15 @@ export function RootAsyncDirect() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="root-async-value">' + _$_.escape(lazy.value) + '</p>';
+			__out += '<p class="root-async-value">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -58,7 +74,15 @@ export function RootAsyncRejects() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="root-async-value">' + _$_.escape(lazy_1.value) + '</p>';
+			__out += '<p class="root-async-value">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_1.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -118,7 +142,15 @@ function AsyncList() {
 			__out += '<ul class="items"><!--[-->';
 
 			for (let item of lazy_2.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -175,7 +207,15 @@ function AsyncContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="resolved">' + _$_.escape(lazy_3.value) + '</div>';
+			__out += '<div class="resolved">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_3.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 		});
 	});

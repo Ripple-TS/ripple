@@ -218,9 +218,9 @@ export function ExpressionContent() {
 			var div_6 = _$_.first_child_frag(fragment_7);
 
 			{
-				var expression_1 = _$_.child(div_6);
+				var expression_1 = _$_.child(div_6, true);
 
-				_$_.expression(expression_1, () => value);
+				expression_1.nodeValue = value;
 				_$_.pop(div_6);
 			}
 
@@ -246,9 +246,9 @@ function NestedHelperItem({ item }) {
 		var div_7 = root_15();
 
 		{
-			var expression_3 = _$_.child(div_7);
+			var expression_3 = _$_.child(div_7, true);
 
-			_$_.expression(expression_3, () => item);
+			expression_3.nodeValue = item;
 			_$_.pop(div_7);
 		}
 

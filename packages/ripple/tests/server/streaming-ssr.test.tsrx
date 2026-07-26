@@ -203,7 +203,7 @@ describe('streaming try/pending boundaries', () => {
 		const id = slot_match![1];
 		const chunk = chunks[1];
 		expect(chunk).toContain(`<template data-ripple-chunk="${id}">`);
-		expect(chunk).toContain('<p>async-data</p>');
+		expect(chunk).toContain('<p><!--[-->async-data<!--]--></p>');
 		// static markup after the suspension point belongs to the chunk
 		// (regression: it used to be lost when the boundary cleared its buffer)
 		expect(chunk).toContain('<footer>static-after</footer>');
@@ -242,7 +242,7 @@ describe('streaming try/pending boundaries', () => {
 		await result;
 
 		const chunk = chunks[chunks.length - 1];
-		expect(chunk).toContain('<p>body</p>');
+		expect(chunk).toContain('<p><!--[-->body<!--]--></p>');
 		expect(chunk).not.toContain('failed');
 	});
 
@@ -272,7 +272,7 @@ describe('streaming try/pending boundaries', () => {
 
 		const all = chunks.join('');
 		const chunk = chunks[chunks.length - 1];
-		expect(chunk).toContain('<em>boom</em>');
+		expect(chunk).toContain('<em><!--[-->boom<!--]--></em>');
 		expect(chunk).toContain('<template data-ripple-chunk=');
 		// the rejected trackAsync envelope reaches the wire before the chunk
 		// that hydrates the catch branch from it
@@ -380,8 +380,8 @@ describe('streaming nested and sibling boundaries', () => {
 
 		expect(chunks).toHaveLength(2);
 		const chunk = chunks[1];
-		expect(chunk).toContain('<p class="outer">outer-done</p>');
-		expect(chunk).toContain('<p class="inner">inner-done</p>');
+		expect(chunk).toContain('<p class="outer"><!--[-->outer-done<!--]--></p>');
+		expect(chunk).toContain('<p class="inner"><!--[-->inner-done<!--]--></p>');
 		// coalesced: the inner boundary is inlined, no open slot, no fallback
 		expect(chunk).not.toContain('inner-loading');
 		expect(chunk).not.toMatch(SLOT_OPEN_RE);
@@ -402,7 +402,7 @@ describe('streaming nested and sibling boundaries', () => {
 
 		expect(chunks).toHaveLength(2);
 		const parent_chunk = chunks[1];
-		expect(parent_chunk).toContain('<p class="outer">outer-done</p>');
+		expect(parent_chunk).toContain('<p class="outer"><!--[-->outer-done<!--]--></p>');
 		// the child is still pending: its slot (wrapper + fallback) ships
 		// inside the parent chunk
 		expect(parent_chunk).toContain('inner-loading');
@@ -412,7 +412,7 @@ describe('streaming nested and sibling boundaries', () => {
 		await result;
 
 		expect(chunks).toHaveLength(3);
-		expect(chunks[2]).toContain('<p class="inner">inner-done</p>');
+		expect(chunks[2]).toContain('<p class="inner"><!--[-->inner-done<!--]--></p>');
 	});
 
 	it('streams sibling boundaries out of order, as each settles', async () => {
@@ -603,7 +603,7 @@ describe('streaming with a document template', () => {
 		expect(isClosed()).toBe(true);
 		// the suffix is the final push, after the last chunk
 		expect(chunks[chunks.length - 1]).toBe('</div></body></html>');
-		expect(chunks[chunks.length - 2]).toContain('<p>done</p>');
+		expect(chunks[chunks.length - 2]).toContain('<p><!--[-->done<!--]--></p>');
 	});
 });
 
@@ -647,7 +647,7 @@ describe('streaming head content', () => {
 		expect(chunk).toMatch(
 			/<template data-ripple-head="\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
 		);
-		expect(chunk).toContain('<p class="has-head">late</p>');
+		expect(chunk).toContain('<p class="has-head"><!--[-->late<!--]--></p>');
 		// the head template precedes the content template
 		expect(chunk.indexOf('data-ripple-head')).toBeLessThan(chunk.indexOf('data-ripple-chunk'));
 	});

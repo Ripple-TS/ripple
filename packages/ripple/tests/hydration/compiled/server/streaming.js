@@ -93,7 +93,15 @@ function CatchOnlyContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="resolved">' + _$_.escape(lazy_2.value) + '</p>';
+			__out += '<p class="resolved">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_2.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -129,7 +137,15 @@ export function StreamCatchOnly() {
 				(e) => {
 					let __out = '';
 
-					__out += '<!--[--><em class="caught">' + _$_.escape(e.message) + '</em><!--]-->';
+					__out += '<!--[--><em class="caught">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(e.message);
+					}
+
+					__out += '</em><!--]-->';
 					_$_.output_push(__out);
 				},
 				null
@@ -147,7 +163,15 @@ function RejectContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="resolved">' + _$_.escape(lazy_3.value) + '</p>';
+			__out += '<p class="resolved">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_3.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -185,7 +209,15 @@ export function StreamRejects() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<em class="caught">' + _$_.escape(e.message) + '</em>';
+					__out += '<em class="caught">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(e.message);
+					}
+
+					__out += '</em>';
 					_$_.output_push(__out);
 				});
 
@@ -220,7 +252,15 @@ function NoCatchContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="resolved">' + _$_.escape(lazy_4.value) + '</p>';
+			__out += '<p class="resolved">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_4.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -275,7 +315,15 @@ export function RootCatch({ error, reset }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section class="root-catch">' + _$_.escape(error.message) + '</section>';
+			__out += '<section class="root-catch">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(error.message);
+			}
+
+			__out += '</section>';
 			_$_.output_push(__out);
 		});
 	});
@@ -302,7 +350,15 @@ function HeadContent() {
 			__out += '<!--[--><!--[-->';
 
 			if (lazy_5.value) {
-				__out += '<!--[--><p class="head-content">' + _$_.escape(lazy_5.value) + '</p>';
+				__out += '<!--[--><p class="head-content">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(lazy_5.value);
+				}
+
+				__out += '</p>';
 				_$_.output_push(__out);
 				__out = '';
 				_$_.set_output_target('head');
@@ -370,7 +426,15 @@ export function StreamRootDirect() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="root-async">' + _$_.escape(lazy_6.value) + '</p>';
+			__out += '<p class="root-async">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_6.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -383,7 +447,15 @@ function OuterContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="outer">' + _$_.escape(lazy_7.value) + '</p>';
+			__out += '<p class="outer">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_7.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -396,7 +468,15 @@ function InnerContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="inner">' + _$_.escape(lazy_8.value) + '</p>';
+			__out += '<p class="inner">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_8.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});

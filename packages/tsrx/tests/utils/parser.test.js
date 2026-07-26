@@ -756,6 +756,150 @@ abc
 		expect(directive.alternate?.type).toBe('BlockStatement');
 	});
 
+	it('parses an element-wrapped directive attribute value', () => {
+		// The host element's `templateMode` is still `'script'` while its opening
+		// tag parses, which routed the attribute value's element to the vanilla
+		// JSX parser — turning the directive into literal text. An inline template
+		// value must parse the same as one assigned to a variable first.
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA prop={<h1>
+					@if (ok) { <div>1</div> } @else { <div>2</div> }
+				</h1>} />
+			}`,
+			'ElementA',
+		);
+
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.type).toBe('JSXExpressionContainer');
+		expect(attribute.value.expression.type).toBe('JSXElement');
+		const directive = attribute.value.expression.children.find(
+			(child) => child.type === 'JSXIfExpression',
+		);
+		expect(directive.type).toBe('JSXIfExpression');
+		expect(directive.alternate?.type).toBe('BlockStatement');
+	});
+
+	it('parses an element-wrapped directive attribute value with no whitespace around the directive', () => {
+		// With no gap after `<h1>`, the vanilla-parsed text token began exactly at
+		// the `@`, so the at-sign expression intercept re-parsed it as a directive
+		// inside an otherwise untransformed subtree — crashing the printer.
+		// Whether `@if` is a directive must not depend on leading whitespace.
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA prop={<h1>@if (ok) { <div>1</div> } @else { <div>2</div> }</h1>} />
+			}`,
+			'ElementA',
+		);
+
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.expression.type).toBe('JSXElement');
+		const [directive] = attribute.value.expression.children;
+		expect(directive.type).toBe('JSXIfExpression');
+		expect(directive.alternate?.type).toBe('BlockStatement');
+	});
+
+	it('keeps text before and after a directive in an element-wrapped attribute value', () => {
+		// The tokenizer's raw-text loop used to re-anchor at the directive's `@`
+		// (and at `=`), silently dropping the text it had already accumulated —
+		// container-nested elements lost everything before the directive.
+		const element = findElement(
+			`export function FeatureCard() @{
+				<ElementA prop={<h1>before @if (ok) { <div>1</div> } @else { <div>2</div> } after</h1>} />
+			}`,
+			'ElementA',
+		);
+
+		const [attribute] = element.openingElement.attributes;
+		expect(attribute.value.expression.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXIfExpression',
+			'JSXText',
+		]);
+		const [before, , after] = attribute.value.expression.children;
+		expect(before.value).toBe('before ');
+		expect(after.value).toBe(' after');
+	});
+
+	it('keeps text before and after a directive in an element nested in an expression container', () => {
+		const element = findElement(
+			`export function FeatureCard() @{
+				<div>{<h1>before @if (ok) { <div>1</div> } @else { <div>2</div> } after</h1>}</div>
+			}`,
+			'h1',
+		);
+
+		expect(element.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXIfExpression',
+			'JSXText',
+		]);
+		const [before, , after] = element.children;
+		expect(before.value).toBe('before ');
+		expect(after.value).toBe(' after');
+	});
+
+	it('keeps a significant inline space between a sibling element and a directive in every position', () => {
+		// Sibling whitespace is rendered by the browser (`<a></a> <li>` shows a
+		// space), so it must not depend on which construct the template sits in.
+		// The tokenizer used to drop it at the directive's `@` in container and
+		// attribute positions, inside `@switch` bodies (JS switch label bail),
+		// and inside value-position directives (template-script depth bail).
+		const host = `<h1><a /> @if (ok) { <li>x</li> }</h1>`;
+		const positions = [
+			['template child', `function App({ ok }) @{ <div>${host}</div> }`],
+			['directive render body', `function App({ ok }) @{ @if (ok) { ${host} } }`],
+			[
+				'directive value',
+				`function App({ ok }) @{ const v = @if (ok) { ${host} }; <div>{v}</div> }`,
+			],
+			['@switch case body', `function App({ ok, c }) @{ @switch (c) { @case 1: { ${host} } } }`],
+			['attribute value', `function App({ ok }) @{ <ElementA prop={${host}} /> }`],
+			['expression container child', `function App({ ok }) @{ <div>{${host}}</div> }`],
+		];
+
+		for (const [position, source] of positions) {
+			const element = findElement(source, 'h1');
+			expect(
+				element.children.map((child) => child.type),
+				position,
+			).toEqual(['JSXElement', 'JSXText', 'JSXIfExpression']);
+			expect(element.children[1].value, position).toBe(' ');
+		}
+	});
+
+	it('still drops layout indentation before a directive', () => {
+		// Whitespace containing a newline is layout, not content — the JSX
+		// significant-whitespace rule removes it in every position.
+		const element = findElement(
+			`function App({ ok, c }) @{
+				const v = @switch (c) { @case 1: { <h1><a />
+					@if (ok) { <li>x</li> }
+				</h1> } };
+				<div>{v}</div>
+			}`,
+			'h1',
+		);
+
+		expect(element.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXIfExpression']);
+	});
+
+	it('keeps text around `=` inside a container-nested element', () => {
+		// `=` is a raw-text bail boundary like `@`; the accumulated run before it
+		// used to be discarded in expression-container positions.
+		for (const [position, source] of [
+			['expression container child', `function App() @{ <div>{<h1>a = b</h1>}</div> }`],
+			['attribute value', `function App() @{ <ElementA prop={<h1>a = b</h1>} /> }`],
+		]) {
+			const element = findElement(source, 'h1');
+			expect(
+				element.children.map((child) => child.type),
+				position,
+			).toEqual(['JSXText']);
+			expect(element.children[0].value, position).toBe('a = b');
+		}
+	});
+
 	it('parses an attribute that follows a directive attribute value', () => {
 		const element = findElement(
 			`export function FeatureCard() @{

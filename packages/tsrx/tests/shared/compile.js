@@ -486,6 +486,21 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 	});
 
 	describe(`[${name}] control flow in expression position`, () => {
+		it('lowers a directive inside an element-valued attribute', () => {
+			const { code } = compile(
+				`function Child(props) { return null; }
+
+					export function App() @{
+						<Child prop={<h1>@if (true) { <div>1</div> } @else { <div>2</div> }</h1>} />
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('prop={<h1>');
+			expect(code).toContain('<div>1</div>');
+			expect(code).toContain('<div>2</div>');
+			expect(code).not.toContain('@if');
+		});
+
 		it('lowers @switch assigned to a variable', () => {
 			const { code } = compile(
 				`function App({ status }: { status: string }) {
@@ -2883,9 +2898,12 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('return;');
-			expect(code).toContain('return <><div>fragment</div></>;');
-			expect(code).toContain('return <><div>tsx</div></>;');
-			expect(code).toContain('return <><div>tsrx</div></>;');
+			expect(code).toMatch(/const App__static\d+ = <div[^>]*>fragment<\/div>;/);
+			expect(code).toMatch(/const App__static\d+ = <div[^>]*>tsx<\/div>;/);
+			expect(code).toMatch(/const App__static\d+ = <div[^>]*>tsrx<\/div>;/);
+			expect(code).toMatch(/fragment={\(\) => {\s+return <>{App__static\d+}<\/>;/);
+			expect(code).toMatch(/tsx={\(\) => {\s+return <>{App__static\d+}<\/>;/);
+			expect(code).toMatch(/tsrx={\(\) => {\s+return <>{App__static\d+}<\/>;/);
 		});
 
 		it('parses semicolon-less JSX returns in component prop arrow functions', () => {
@@ -2919,10 +2937,8 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('fragment={() => <>');
-			expect(code).toContain('native={() => <>');
-			expect(code).toContain('<>Delete</>');
-			expect(code).toContain('<>Edit</>');
+			expect(code).toMatch(/fragment={\(\) => {\s+return <>{\[<>Delete<\/>, <>Edit<\/>\]}<\/>;/);
+			expect(code).toMatch(/native={\(\) => {\s+return <>{\[<>Delete<\/>, <>Edit<\/>\]}<\/>;/);
 		});
 	});
 

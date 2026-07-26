@@ -215,7 +215,15 @@ export function NestedTsxTsrxExpressionValues() {
 			__out += '<div class="nested-expression-values"><!--[-->';
 
 			for (const item of [1, 2, 3]) {
-				__out += '<div class="app-item">' + _$_.escape(item) + '</div>';
+				__out += '<div class="app-item">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</div>';
 			}
 
 			__out += '<!--]-->';

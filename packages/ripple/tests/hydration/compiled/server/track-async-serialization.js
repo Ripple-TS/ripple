@@ -24,7 +24,15 @@ function ServerCallResult({ count }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="result">' + _$_.escape(lazy.value) + '</p>';
+			__out += '<p class="result">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});
@@ -89,7 +97,15 @@ export function AsyncSimpleValue() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<p class="result">' + _$_.escape(lazy_2.value) + '</p>';
+					__out += '<p class="result">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_2.value);
+					}
+
+					__out += '</p>';
 					_$_.output_push(__out);
 				});
 
@@ -134,7 +150,15 @@ export function AsyncNumericValue() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<span class="count">' + _$_.escape(lazy_3.value) + '</span>';
+					__out += '<span class="count">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_3.value);
+					}
+
+					__out += '</span>';
 					_$_.output_push(__out);
 				});
 
@@ -179,7 +203,23 @@ export function AsyncObjectValue() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<div class="user"><span class="name">' + _$_.escape(lazy_4.value.name) + '</span><span class="age">' + _$_.escape(lazy_4.value.age) + '</span></div>';
+					__out += '<div class="user"><span class="name">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_4.value.name);
+					}
+
+					__out += '</span><span class="age">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_4.value.age);
+					}
+
+					__out += '</span></div>';
 					_$_.output_push(__out);
 				});
 
@@ -225,7 +265,23 @@ export function AsyncMultipleValues() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<div class="multi"><span class="first">' + _$_.escape(lazy_5.value) + '</span><span class="second">' + _$_.escape(lazy_6.value) + '</span></div>';
+					__out += '<div class="multi"><span class="first">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_5.value);
+					}
+
+					__out += '</span><span class="second">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_6.value);
+					}
+
+					__out += '</span></div>';
 					_$_.output_push(__out);
 				});
 
@@ -270,7 +326,15 @@ export function AsyncWithCatch() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<p class="result">' + _$_.escape(lazy_7.value) + '</p>';
+					__out += '<p class="result">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_7.value);
+					}
+
+					__out += '</p>';
 					_$_.output_push(__out);
 				});
 
@@ -287,7 +351,15 @@ export function AsyncWithCatch() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<p class="error">' + _$_.escape(e.message) + '</p>';
+					__out += '<p class="error">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(e.message);
+					}
+
+					__out += '</p>';
 					_$_.output_push(__out);
 				});
 
@@ -331,7 +403,15 @@ export function ChildWithError() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<p class="result">' + _$_.escape(lazy_8.value) + '</p>';
+					__out += '<p class="result">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(lazy_8.value);
+					}
+
+					__out += '</p>';
 					_$_.output_push(__out);
 				});
 
@@ -392,7 +472,15 @@ export function ParentWithCatch() {
 				_$_.regular_block(() => {
 					let __out = '';
 
-					__out += '<p class="parent-error">' + _$_.escape(e.message) + '</p>';
+					__out += '<p class="parent-error">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(e.message);
+					}
+
+					__out += '</p>';
 					_$_.output_push(__out);
 				});
 
@@ -411,7 +499,15 @@ function ReactiveDependencyResult({ count }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<p class="result">' + _$_.escape(lazy_9.value) + '</p>';
+			__out += '<p class="result">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_9.value);
+			}
+
+			__out += '</p>';
 			_$_.output_push(__out);
 		});
 	});

@@ -15,7 +15,15 @@ export function IfFragmentForElement() {
 				__out += '<!--[--><!--[-->';
 
 				for (const muze of muzes) {
-					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+					__out += '<p class="muze">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(muze.muzeId);
+					}
+
+					__out += '</p>';
 				}
 
 				__out += '<!--]--><span class="after">after</span><!--]-->';
@@ -41,7 +49,15 @@ export function IfFragmentForIfIf() {
 				__out += '<!--[--><!--[-->';
 
 				for (const muze of muzes) {
-					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+					__out += '<p class="muze">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(muze.muzeId);
+					}
+
+					__out += '</p>';
 				}
 
 				__out += '<!--]--><!--[-->';
@@ -94,7 +110,15 @@ export function ComponentBodyFragmentControlFlow() {
 			__out += '<!--[--><!--[-->';
 
 			for (const muze of muzes) {
-				__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+				__out += '<p class="muze">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(muze.muzeId);
+				}
+
+				__out += '</p>';
 			}
 
 			__out += '<!--]--><span class="after">after</span><!--]-->';
@@ -121,7 +145,15 @@ export function ComponentBodyCodeBlockControlFlow() {
 				__out += '<!--[-->';
 
 				for (const muze of rows) {
-					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+					__out += '<p class="muze">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(muze.muzeId);
+					}
+
+					__out += '</p>';
 				}
 
 				__out += '<!--]-->';
@@ -156,7 +188,15 @@ export function IfCodeBlockControlFlow() {
 					__out += '<!--[-->';
 
 					for (const muze of rows) {
-						__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+						__out += '<p class="muze">';
+
+						{
+							_$_.output_push(__out);
+							__out = '';
+							_$_.render_expression(muze.muzeId);
+						}
+
+						__out += '</p>';
 					}
 
 					__out += '<!--]-->';
@@ -188,7 +228,15 @@ export function IfElseFragment() {
 				__out += '<!--[--><!--[-->';
 
 				for (const muze of muzes) {
-					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+					__out += '<p class="muze">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(muze.muzeId);
+					}
+
+					__out += '</p>';
 				}
 
 				__out += '<!--]--><span class="after">after</span><!--]-->';
@@ -214,7 +262,15 @@ export function IfDivFragment() {
 				__out += '<section><!--[--><!--[-->';
 
 				for (const muze of muzes) {
-					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+					__out += '<p class="muze">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(muze.muzeId);
+					}
+
+					__out += '</p>';
 				}
 
 				__out += '<!--]--><span class="after">after</span><!--]--></section>';

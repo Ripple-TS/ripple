@@ -13,7 +13,15 @@ export function StaticForLoop() {
 			__out += '<ul><!--[-->';
 
 			for (const item of items) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -64,7 +72,15 @@ export function KeyedForLoop() {
 			__out += '<ul><!--[-->';
 
 			for (const item of items) {
-				__out += '<li>' + _$_.escape(item.name) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item.name);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -83,7 +99,15 @@ export function ReactiveForLoopAdd() {
 			__out += '<button class="add">Add</button><ul><!--[-->';
 
 			for (const item of lazy.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -102,7 +126,15 @@ export function ReactiveForLoopRemove() {
 			__out += '<button class="remove">Remove</button><ul><!--[-->';
 
 			for (const item of lazy_1.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -126,7 +158,15 @@ export function ForLoopInteractive() {
 				var i = 0;
 
 				for (const count of lazy_2.value) {
-					__out += '<div' + _$_.attr('class', `item-${i}`) + '><span class="value">' + _$_.escape(count) + '</span><button class="increment">+</button></div>';
+					__out += '<div' + _$_.attr('class', `item-${i}`) + '><span class="value">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(count);
+					}
+
+					__out += '</span><button class="increment">+</button></div>';
 					i++;
 				}
 
@@ -162,7 +202,15 @@ export function NestedForLoop() {
 						var colIndex = 0;
 
 						for (const cell of row) {
-							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>' + _$_.escape(cell) + '</span>';
+							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>';
+
+							{
+								_$_.output_push(__out);
+								__out = '';
+								_$_.render_expression(cell);
+							}
+
+							__out += '</span>';
 							colIndex++;
 						}
 
@@ -192,7 +240,15 @@ export function EmptyForLoop() {
 			__out += '<div class="container"><!--[-->';
 
 			for (const item of items) {
-				__out += '<span>' + _$_.escape(item) + '</span>';
+				__out += '<span>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</span>';
 			}
 
 			__out += '<!--]--></div>';
@@ -214,7 +270,23 @@ export function ForLoopComplexObjects() {
 			__out += '<div><!--[-->';
 
 			for (const user of users) {
-				__out += '<div' + _$_.attr('class', `user-${user.id}`) + '><span class="name">' + _$_.escape(user.name) + '</span><span class="role">' + _$_.escape(user.role) + '</span></div>';
+				__out += '<div' + _$_.attr('class', `user-${user.id}`) + '><span class="name">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(user.name);
+				}
+
+				__out += '</span><span class="role">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(user.role);
+				}
+
+				__out += '</span></div>';
 			}
 
 			__out += '<!--]--></div>';
@@ -240,7 +312,15 @@ export function KeyedForLoopReorder() {
 			__out += '<button class="reorder">Reorder</button><ul><!--[-->';
 
 			for (const item of lazy_3.value) {
-				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(item.name) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item.name);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -259,7 +339,15 @@ export function KeyedForLoopUpdate() {
 			__out += '<button class="update">Update</button><ul><!--[-->';
 
 			for (const item of lazy_4.value) {
-				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(item.name) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item.name);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -278,7 +366,15 @@ export function ForLoopMixedOperations() {
 			__out += '<button class="shuffle">Shuffle</button><ul><!--[-->';
 
 			for (const item of lazy_5.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -301,7 +397,15 @@ export function ForLoopInsideIf() {
 				__out += '<ul class="list"><!--[-->';
 
 				for (const item of lazy_7.value) {
-					__out += '<li>' + _$_.escape(item) + '</li>';
+					__out += '<li>';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(item);
+					}
+
+					__out += '</li>';
 				}
 
 				__out += '<!--]--></ul>';
@@ -323,7 +427,15 @@ export function ForLoopEmptyToPopulated() {
 			__out += '<button class="populate">Populate</button><ul class="list"><!--[-->';
 
 			for (const item of lazy_8.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -342,7 +454,15 @@ export function ForLoopPopulatedToEmpty() {
 			__out += '<button class="clear">Clear</button><ul class="list"><!--[-->';
 
 			for (const item of lazy_9.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -374,7 +494,15 @@ export function NestedForLoopReactive() {
 						var colIndex = 0;
 
 						for (const cell of row) {
-							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>' + _$_.escape(cell) + '</span>';
+							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>';
+
+							{
+								_$_.output_push(__out);
+								__out = '';
+								_$_.render_expression(cell);
+							}
+
+							__out += '</span>';
 							colIndex++;
 						}
 
@@ -419,13 +547,37 @@ export function ForLoopDeeplyNested() {
 			__out += '<div class="org"><!--[-->';
 
 			for (const dept of departments) {
-				__out += '<div' + _$_.attr('class', `dept-${dept.id}`) + '><h2 class="dept-name">' + _$_.escape(dept.name) + '</h2><!--[-->';
+				__out += '<div' + _$_.attr('class', `dept-${dept.id}`) + '><h2 class="dept-name">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(dept.name);
+				}
+
+				__out += '</h2><!--[-->';
 
 				for (const team of dept.teams) {
-					__out += '<div' + _$_.attr('class', `team-${team.id}`) + '><h3 class="team-name">' + _$_.escape(team.name) + '</h3><ul><!--[-->';
+					__out += '<div' + _$_.attr('class', `team-${team.id}`) + '><h3 class="team-name">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(team.name);
+					}
+
+					__out += '</h3><ul><!--[-->';
 
 					for (const member of team.members) {
-						__out += '<li class="member">' + _$_.escape(member) + '</li>';
+						__out += '<li class="member">';
+
+						{
+							_$_.output_push(__out);
+							__out = '';
+							_$_.render_expression(member);
+						}
+
+						__out += '</li>';
 					}
 
 					__out += '<!--]--></ul></div>';
@@ -513,7 +665,15 @@ export function ForLoopWithSiblings() {
 			__out += '<div class="wrapper"><header class="before">Before</header><!--[-->';
 
 			for (const item of lazy_13.value) {
-				__out += '<div' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</div>';
+				__out += '<div' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</div>';
 			}
 
 			__out += '<!--]--><footer class="after">After</footer></div><button class="add">Add</button>';
@@ -575,7 +735,15 @@ export function ForLoopSingleItem() {
 			__out += '<ul><!--[-->';
 
 			for (const item of items) {
-				__out += '<li class="single">' + _$_.escape(item) + '</li>';
+				__out += '<li class="single">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -594,7 +762,15 @@ export function ForLoopAddAtBeginning() {
 			__out += '<button class="prepend">Prepend A</button><ul><!--[-->';
 
 			for (const item of lazy_15.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -613,7 +789,15 @@ export function ForLoopAddInMiddle() {
 			__out += '<button class="insert">Insert B</button><ul><!--[-->';
 
 			for (const item of lazy_16.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -632,7 +816,15 @@ export function ForLoopRemoveFromMiddle() {
 			__out += '<button class="remove-middle">Remove B</button><ul><!--[-->';
 
 			for (const item of lazy_17.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -656,7 +848,15 @@ export function ForLoopLargeList() {
 				var i = 0;
 
 				for (const item of items) {
-					__out += '<li' + _$_.attr('class', `item-${i}`) + '>' + _$_.escape(item) + '</li>';
+					__out += '<li' + _$_.attr('class', `item-${i}`) + '>';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(item);
+					}
+
+					__out += '</li>';
 					i++;
 				}
 
@@ -679,7 +879,15 @@ export function ForLoopSwap() {
 			__out += '<button class="swap">Swap First and Last</button><ul><!--[-->';
 
 			for (const item of lazy_18.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -698,7 +906,15 @@ export function ForLoopReverse() {
 			__out += '<button class="reverse">Reverse</button><ul><!--[-->';
 
 			for (const item of lazy_19.value) {
-				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';

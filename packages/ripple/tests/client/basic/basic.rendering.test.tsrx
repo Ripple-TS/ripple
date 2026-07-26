@@ -607,6 +607,46 @@ second
 		expect(div.textContent).toEqual('a Hello');
 	});
 
+	it('renders a template element inside an expression container child', () => {
+		function App() @{
+			<div>
+				{<h1>inline</h1>}
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div h1').textContent).toEqual('inline');
+	});
+
+	it('updates control flow inside an element in an expression container child', () => {
+		function App() @{
+			let &[ok] = track(true);
+			<>
+				<button
+					onClick={() => {
+						ok = !ok;
+					}}
+				>{'toggle'}</button>
+				<div>
+					{<h1>
+						@if (ok) {
+							<span>{'yes'}</span>
+						} @else {
+							<span>{'no'}</span>
+						}
+					</h1>}
+				</div>
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('div h1 span').textContent).toEqual('yes');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('div h1 span').textContent).toEqual('no');
+	});
+
 	it('should handle multiple consecutive text expressions', () => {
 		function App() @{
 			let name = 'World';

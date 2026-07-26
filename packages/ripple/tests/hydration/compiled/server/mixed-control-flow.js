@@ -219,7 +219,15 @@ function AsyncRow({ label }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="resolved-row">' + _$_.escape(lazy_3.value) + '</div>';
+			__out += '<div class="resolved-row">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_3.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 		});
 	});

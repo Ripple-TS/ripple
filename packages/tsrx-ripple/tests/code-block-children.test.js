@@ -22,7 +22,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const component = code.search(/_\$_\.tsrx_element\(\(__anchor, __block\) => \{\s*const x = 1;/);
 		expect(component).toBeGreaterThan(-1);
 		expect(code.indexOf('_$_.expression(')).toBeLessThan(component);
-		expect(code).toContain('() => x');
+		expect(code).toContain('.nodeValue = x;');
 		expect(code).not.toContain('(() => {');
 	});
 
@@ -66,7 +66,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		// Shadowed declarations survive because each block is its own scope.
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('const x = 2;');
-		expect(code).toContain('() => x + y');
+		expect(code).toContain('.nodeValue = x + y;');
 		// Each nesting level becomes its own inline component scope.
 		expect(code.indexOf('const x = 2;')).toBeGreaterThan(code.indexOf('const x = 1;'));
 	});
@@ -203,8 +203,11 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		expect(errors).toEqual([]);
 		const scoped_decl = code.indexOf('const scoped = 1;');
 		expect(scoped_decl).toBeGreaterThan(-1);
-		expect(code.indexOf('_$_.escape(items.length)')).toBeGreaterThan(scoped_decl);
-		expect(code).not.toContain('render_expression');
+		// `items.length` is not provably a string, so it renders through
+		// `render_expression`; a code-only block still produces no inline
+		// component — the root element is the only `tsrx_element`.
+		expect(code.indexOf('_$_.render_expression(items.length)')).toBeGreaterThan(scoped_decl);
+		expect(code.match(/_\$_\.tsrx_element\(/g)).toHaveLength(1);
 	});
 
 	const nested_function_body = `function App() @{
@@ -224,7 +227,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		expect(anchor).toBeGreaterThan(-1);
 		expect(code.indexOf('const x = 1;')).toBeLessThan(anchor);
 		expect(code.indexOf('const y = 2;')).toBeGreaterThan(anchor);
-		expect(code).toContain('() => x + y');
+		expect(code).toContain('.nodeValue = x + y;');
 	});
 
 	it('scopes a nested code-block render chain in a function body (server)', () => {
@@ -261,6 +264,8 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const { code, errors } = compile(inside_if, 'App.tsrx', { mode: 'server' });
 		expect(errors).toEqual([]);
 		expect(code).toContain(`const label = 'shown';`);
+		// `label` is bound to a string literal — provably stringish, so it keeps
+		// the inline-escape fast path.
 		expect(code).toContain('_$_.escape(label)');
 	});
 });

@@ -66,7 +66,7 @@ describe('trackAsync serialization (server)', () => {
 		}
 
 		const { body } = await render(App);
-		expect(body).toContain('<li>a</li>');
+		expect(body).toContain('<li><!--[-->a<!--]--></li>');
 		expect(body).toContain('__ripple_ta_');
 	});
 
@@ -84,7 +84,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		const public_message = DEV ? 'fetch failed' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
-		expect(body).toContain(`<p class="error">${public_message}</p>`);
+		expect(body).toContain(`<p class="error"><!--[-->${public_message}<!--]--></p>`);
 		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
@@ -110,7 +110,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(Parent);
 		const public_message = DEV ? 'child error' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
-		expect(body).toContain(`<p class="parent-error">${public_message}</p>`);
+		expect(body).toContain(`<p class="parent-error"><!--[-->${public_message}<!--]--></p>`);
 		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
@@ -132,7 +132,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		const public_message = DEV ? 'sync failure' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
-		expect(body).toContain(`<p class="error">${public_message}</p>`);
+		expect(body).toContain(`<p class="error"><!--[-->${public_message}<!--]--></p>`);
 		expect(body).toContain('__ripple_ta_');
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);

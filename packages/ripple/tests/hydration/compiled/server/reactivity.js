@@ -10,7 +10,15 @@ export function TrackedState() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="count">' + _$_.escape(lazy.value) + '</div>';
+			__out += '<div class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -23,7 +31,15 @@ export function CounterWithInitial(props) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><span class="count">' + _$_.escape(lazy_1.value) + '</span></div>';
+			__out += '<div><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_1.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -74,7 +90,31 @@ export function MultipleTracked() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="multiple-tracked"><div class="x">' + _$_.escape(lazy_4.value) + '</div><div class="y">' + _$_.escape(lazy_5.value) + '</div><div class="z">' + _$_.escape(lazy_6.value) + '</div></div>';
+			__out += '<div class="multiple-tracked"><div class="x">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_4.value);
+			}
+
+			__out += '</div><div class="y">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_5.value);
+			}
+
+			__out += '</div><div class="z">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_6.value);
+			}
+
+			__out += '</div></div>';
 			_$_.output_push(__out);
 		});
 	});

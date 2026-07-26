@@ -28,7 +28,15 @@ export function ReactiveTitle() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><span>' + _$_.escape(lazy.value) + '</span></div>';
+			__out += '<div><span>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
@@ -66,7 +74,15 @@ export function ReactiveMetaTags() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div>' + _$_.escape(lazy_1.value) + '</div>';
+			__out += '<div>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_1.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
@@ -86,7 +102,15 @@ export function TitleWithTemplate() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div>' + _$_.escape(lazy_2.value) + '</div>';
+			__out += '<div>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_2.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
@@ -125,7 +149,15 @@ export function ConditionalTitle() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div>' + _$_.escape(lazy_4.value) + '</div>';
+			__out += '<div>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_4.value);
+			}
+
+			__out += '</div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');
@@ -146,7 +178,15 @@ export function ComputedTitle() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><span>' + _$_.escape(lazy_5.value) + '</span></div>';
+			__out += '<div><span>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_5.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');

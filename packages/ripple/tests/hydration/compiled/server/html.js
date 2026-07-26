@@ -321,7 +321,7 @@ export function DocLayout(__props) {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+						_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
 					}
 
 					_$_.output_push('</a>');
@@ -367,7 +367,7 @@ export function DocLayout(__props) {
 								_$_.output_push('>');
 
 								{
-									_$_.output_push(_$_.escape(item.text));
+									_$_.render_expression(item.text);
 								}
 
 								_$_.output_push('</a>');
@@ -711,7 +711,15 @@ function ForList({ items }) {
 			__out += '<!--[-->';
 
 			for (const item of items) {
-				__out += '<span class="for-item">' + _$_.escape(item) + '</span>';
+				__out += '<span class="for-item">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</span>';
 			}
 
 			__out += '<!--]-->';
@@ -957,7 +965,15 @@ function NavItem(__props) {
 				_$_.output_push('</div>');
 			}
 
-			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>' + _$_.escape(__props.text) + '</span></a></div>';
+			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(__props.text);
+			}
+
+			__out += '</span></a></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1482,7 +1498,7 @@ function DocsLayoutInner(__props) {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+						_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
 					}
 
 					_$_.output_push('</a>');
@@ -1647,7 +1663,7 @@ function DocsLayoutExact(__props) {
 							_$_.output_push('>');
 
 							{
-								_$_.output_push(_$_.escape(_$_.fallback(__props.prevLink, null).text));
+								_$_.render_expression(_$_.fallback(__props.prevLink, null).text);
 							}
 
 							_$_.output_push('</span>');
@@ -1675,7 +1691,7 @@ function DocsLayoutExact(__props) {
 							_$_.output_push('>');
 
 							{
-								_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+								_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
 							}
 
 							_$_.output_push('</span>');
@@ -1724,7 +1740,7 @@ function DocsLayoutExact(__props) {
 							_$_.output_push('>');
 
 							{
-								_$_.output_push(_$_.escape(item.text));
+								_$_.render_expression(item.text);
 							}
 
 							_$_.output_push('</a>');

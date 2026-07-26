@@ -10,7 +10,15 @@ export function ClickCounter() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="increment">Increment</button><span class="count">' + _$_.escape(lazy.value) + '</span></div>';
+			__out += '<div><button class="increment">Increment</button><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -23,7 +31,15 @@ export function IncrementDecrement() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="decrement">-</button><span class="count">' + _$_.escape(lazy_1.value) + '</span><button class="increment">+</button></div>';
+			__out += '<div><button class="decrement">-</button><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_1.value);
+			}
+
+			__out += '</span><button class="increment">+</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -37,7 +53,23 @@ export function MultipleEvents() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="target">Target</button><span class="clicks">' + _$_.escape(lazy_2.value) + '</span><span class="hovers">' + _$_.escape(lazy_3.value) + '</span></div>';
+			__out += '<div><button class="target">Target</button><span class="clicks">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_2.value);
+			}
+
+			__out += '</span><span class="hovers">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_3.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -56,7 +88,23 @@ export function MultiStateUpdate() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="btn">Click</button><span class="count">' + _$_.escape(lazy_4.value) + '</span><span class="action">' + _$_.escape(lazy_5.value) + '</span></div>';
+			__out += '<div><button class="btn">Click</button><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_4.value);
+			}
+
+			__out += '</span><span class="action">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_5.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -112,7 +160,15 @@ export function ParentWithChildButton() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="count">' + _$_.escape(lazy_7.value) + '</span></div>';
+			__out += '<span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lazy_7.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});

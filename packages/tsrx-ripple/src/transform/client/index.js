@@ -112,6 +112,7 @@ import {
 	get_code_block_render,
 	get_code_block_template_child,
 	lower_code_block_children,
+	is_text_primitive_expression,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -322,233 +323,6 @@ function insert_style_ref_setup_statements(body, setup, scopes) {
 		return result;
 	}
 	return [...setup, ...body];
-}
-
-/**
- * @param {AST.TypeNode | undefined | null} type_annotation
- * @returns {AST.TypeNode | undefined}
- */
-function unwrap_type_annotation(type_annotation) {
-	/** @type {AST.TypeNode | undefined | null} */
-	let annotation = type_annotation;
-
-	while (annotation) {
-		if (annotation.type === 'TSTypeAnnotation') {
-			annotation = annotation.typeAnnotation;
-			continue;
-		}
-		if (annotation.type === 'TSParenthesizedType') {
-			annotation = annotation.typeAnnotation;
-			continue;
-		}
-		break;
-	}
-
-	return annotation ?? undefined;
-}
-
-/**
- * @param {AST.TypeNode | undefined | null} type_annotation
- * @returns {boolean}
- */
-function is_string_type_annotation(type_annotation) {
-	const annotation = unwrap_type_annotation(type_annotation);
-	if (!annotation) return false;
-
-	if (annotation.type === 'TSStringKeyword') return true;
-	if (annotation.type === 'TSLiteralType' && annotation.literal.type === 'Literal') {
-		return typeof annotation.literal.value === 'string';
-	}
-	if (annotation.type === 'TSUnionType') {
-		return annotation.types.every((type) => is_string_type_annotation(type));
-	}
-
-	return false;
-}
-
-/**
- * @param {AST.TypeNode | undefined | null} type_annotation
- * @param {string} property_name
- * @returns {AST.TypeNode | undefined}
- */
-function get_property_type_annotation(type_annotation, property_name) {
-	const annotation = unwrap_type_annotation(type_annotation);
-
-	if (annotation?.type === 'TSIntersectionType') {
-		for (const type of annotation.types) {
-			const property_type = get_property_type_annotation(type, property_name);
-			if (property_type) return property_type;
-		}
-		return undefined;
-	}
-
-	if (annotation?.type !== 'TSTypeLiteral') {
-		return undefined;
-	}
-
-	for (const member of annotation.members) {
-		if (member.type !== 'TSPropertySignature' || member.computed) continue;
-
-		const key = member.key;
-		const name =
-			key.type === 'Identifier'
-				? key.name
-				: key.type === 'Literal' && typeof key.value === 'string'
-					? key.value
-					: null;
-
-		if (name === property_name) {
-			return member.typeAnnotation?.typeAnnotation;
-		}
-	}
-
-	return undefined;
-}
-
-/**
- * @param {Binding | null | undefined} binding
- * @returns {AST.TypeNode | undefined}
- */
-function get_binding_type_annotation(binding) {
-	const node = binding?.node;
-	if (!node) return undefined;
-
-	return (
-		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation | AST.TypeNode }} */ (binding.metadata ?? {})
-			.typeAnnotation ??
-		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation }} */ (node).typeAnnotation?.typeAnnotation
-	);
-}
-
-/**
- * @param {AST.Expression} expression
- * @returns {string | null}
- */
-function get_static_property_name(expression) {
-	if (expression.type !== 'MemberExpression' || expression.property.type === 'PrivateIdentifier') {
-		return null;
-	}
-
-	if (!expression.computed && expression.property.type === 'Identifier') {
-		return expression.property.name;
-	}
-
-	if (
-		expression.computed &&
-		expression.property.type === 'Literal' &&
-		typeof expression.property.value === 'string'
-	) {
-		return expression.property.value;
-	}
-
-	return null;
-}
-
-/**
- * @param {AST.Expression | AST.Pattern} expression
- * @returns {boolean}
- */
-function is_string_literal_expression(expression) {
-	return expression.type === 'Literal' && typeof expression.value === 'string';
-}
-
-/**
- * @param {AST.Expression} expression
- * @param {TransformClientState} state
- * @param {Set<Binding>} [visited]
- * @returns {boolean}
- */
-function is_stringish_expression(expression, state, visited = new Set()) {
-	if (expression.type === 'ParenthesizedExpression' || expression.type === 'ChainExpression') {
-		return is_stringish_expression(
-			/** @type {AST.Expression} */ (expression.expression),
-			state,
-			visited,
-		);
-	}
-
-	if (expression.type === 'TSAsExpression' || expression.type === 'TSTypeAssertion') {
-		return (
-			is_string_type_annotation(expression.typeAnnotation) ||
-			is_stringish_expression(/** @type {AST.Expression} */ (expression.expression), state, visited)
-		);
-	}
-
-	if (
-		expression.type === 'TSNonNullExpression' ||
-		expression.type === 'TSInstantiationExpression'
-	) {
-		return is_stringish_expression(
-			/** @type {AST.Expression} */ (expression.expression),
-			state,
-			visited,
-		);
-	}
-
-	if (is_string_literal_expression(expression) || expression.type === 'TemplateLiteral') {
-		return true;
-	}
-
-	if (
-		expression.type === 'CallExpression' &&
-		expression.callee.type === 'Identifier' &&
-		expression.callee.name === 'String'
-	) {
-		return true;
-	}
-
-	if (expression.type === 'BinaryExpression' && expression.operator === '+') {
-		const left = /** @type {AST.Expression} */ (expression.left);
-		const right = /** @type {AST.Expression} */ (expression.right);
-		// `string + anything` (and `anything + string`) always evaluates to a
-		// string in JS, so one provably-stringish operand is enough — the result
-		// can never be an element or collection. (String literals are stringish,
-		// so this subsumes the literal-operand cases.)
-		return (
-			is_stringish_expression(left, state, visited) ||
-			is_stringish_expression(right, state, visited)
-		);
-	}
-
-	if (expression.type === 'ConditionalExpression') {
-		return (
-			is_stringish_expression(expression.consequent, state, visited) &&
-			is_stringish_expression(expression.alternate, state, visited)
-		);
-	}
-
-	if (expression.type === 'Identifier') {
-		const binding = state.scope.get(expression.name);
-		if (!binding || binding.node === expression || visited.has(binding)) {
-			return false;
-		}
-		if (is_string_type_annotation(get_binding_type_annotation(binding))) {
-			return true;
-		}
-		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
-			visited.add(binding);
-			return is_stringish_expression(
-				/** @type {AST.Expression} */ (binding.initial),
-				state,
-				visited,
-			);
-		}
-		return false;
-	}
-
-	if (expression.type === 'MemberExpression' && expression.object.type === 'Identifier') {
-		const property_name = get_static_property_name(expression);
-		if (property_name === null) return false;
-
-		const binding = state.scope.get(expression.object.name);
-		const property_type = get_property_type_annotation(
-			get_binding_type_annotation(binding),
-			property_name,
-		);
-		return is_string_type_annotation(property_type);
-	}
-
-	return false;
 }
 
 /**
@@ -2458,7 +2232,7 @@ const visitors = {
 		// from re-wrapping it endlessly.
 		if (
 			!is_code_block_function_body(node, context.path.at(-1)) &&
-			is_native_tsrx_value_position(context.path)
+			is_native_tsrx_value_position(context.path, node)
 		) {
 			return context.visit(wrap_code_block_in_iife(node), context.state);
 		}
@@ -2506,7 +2280,7 @@ const visitors = {
 			if (state.to_ts) {
 				return context.next();
 			}
-			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path, node)) {
 				return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
 			}
 			return context.next();
@@ -2579,7 +2353,7 @@ const visitors = {
 
 		if (
 			state.regular_js ||
-			is_native_tsrx_value_position(context.path) ||
+			is_native_tsrx_value_position(context.path, node) ||
 			is_regular_js_statement_position(context.path)
 		) {
 			const expression = build_style_class_map_expression(node, context);
@@ -2622,7 +2396,7 @@ const visitors = {
 			if (state.to_ts) {
 				return context.next();
 			}
-			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
+			if (state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path, node)) {
 				return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
 			}
 			return context.next();
@@ -2660,7 +2434,7 @@ const visitors = {
 			(!state.inside_head &&
 				!state.template_child &&
 				!node.metadata?.returned_tsrx_child &&
-				(is_native_tsrx_value_position(context.path) ||
+				(is_native_tsrx_value_position(context.path, node) ||
 					(context.state.component === undefined &&
 						is_native_tsrx_statement_position(context.path))))
 		) {
@@ -5148,10 +4922,24 @@ function is_native_tsrx_statement_position(path) {
 
 /**
  * @param {AST.Node[]} path
+ * @param {AST.Node} [node] The node being classified. Expression-container and
+ *   attribute values are visited with the container unwrapped (see
+ *   `get_attribute_value` / `get_template_expression`), so their path parent is
+ *   the host template element itself — indistinguishable from a rendered child
+ *   by parent type alone. A rendered child sits in the parent's `children`; a
+ *   value does not, so `<div>{<h1 />}</div>` and `prop={<h1 />}` classify as
+ *   values while `<div><h1 /></div>` stays a template child.
  * @returns {boolean}
  */
-function is_native_tsrx_value_position(path) {
+function is_native_tsrx_value_position(path, node) {
 	const parent = path.at(-1);
+	if (node && (is_template_element(parent) || is_template_fragment(parent))) {
+		return !(
+			/** @type {ESTreeJSX.JSXElement} */ (parent).children?.includes(
+				/** @type {ESTreeJSX.JSXElement} */ (node),
+			)
+		);
+	}
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		is_template_element(parent) ||
@@ -5574,6 +5362,14 @@ function transform_children(children, context) {
 
 	let skipped = 0;
 
+	// Whether the template string currently ends inside text content (inlined
+	// literals, JSXText, a previous text expression's ' ' anchor). A further
+	// ' ' text anchor pushed onto a text tail coalesces with it into a single
+	// DOM text node, so `sibling(…, true)` would find nothing to anchor to —
+	// text expressions must then fall back to a comment-anchored
+	// `_$_.expression` instead. Conservative: fragments leave it set.
+	let template_tail_is_text = false;
+
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
 		const node = normalized[node_idx];
 
@@ -5686,6 +5482,24 @@ function transform_children(children, context) {
 			 * @param {AST.Expression} expr
 			 */
 			const render_text_expression = (identity, expr) => {
+				// A non-literal needs a text node of its own; on a text tail the
+				// ' ' anchor would coalesce with the preceding text into a single
+				// DOM node, so render through a comment-anchored expression
+				// instead. (Inlined literals just extend the text — no anchor.)
+				if (expr.type !== 'Literal' && template_tail_is_text) {
+					skipped = 0;
+					state.template?.push('<!>');
+					template_tail_is_text = false;
+					const id = flush_node(false);
+					const call = b.call('_$_.expression', id, b.thunk(expr));
+					state.init?.push(
+						state.namespace !== DEFAULT_NAMESPACE
+							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
+							: b.stmt(call),
+					);
+					return;
+				}
+				template_tail_is_text = true;
 				if (metadata?.tracking) {
 					skipped = 0;
 					state.template?.push(' ');
@@ -5752,6 +5566,8 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
+				// An element's markup (or its comment anchor) closes the text run.
+				template_tail_is_text = false;
 
 				// After processing an element's children via child()/sibling() navigation,
 				// hydrate_node is left deep inside the element. If there's a next sibling,
@@ -5830,6 +5646,8 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
+				// A fragment's children can end in anything — assume a text tail.
+				template_tail_is_text = true;
 			} else if (is_template_expression(node)) {
 				// is_template_expression stays a boolean (its negative would lie
 				// about merged-text containers), so narrow the container once here.
@@ -5842,6 +5660,7 @@ function transform_children(children, context) {
 				);
 
 				if (expr.type === 'Literal') {
+					template_tail_is_text = true;
 					if (normalized.length === 1) {
 						skipped++;
 						if (
@@ -5861,6 +5680,7 @@ function transform_children(children, context) {
 				} else if (is_static_native_tsrx_call) {
 					skipped = 0;
 					state.template?.push('<!>');
+					template_tail_is_text = false;
 					const id = flush_node(false);
 					const call = b.call('_$_.render_tsrx_element', expr, id, b.id('__block'));
 					state.init?.push(
@@ -5870,7 +5690,7 @@ function transform_children(children, context) {
 					);
 				} else if (
 					!is_children_template_expression(container_expression, state.scope) &&
-					is_stringish_expression(container_expression, state)
+					is_text_primitive_expression(container_expression, state)
 				) {
 					render_text_expression(container_expression, expr);
 				} else if (
@@ -5879,6 +5699,7 @@ function transform_children(children, context) {
 				) {
 					skipped++;
 					state.template?.push(' ');
+					template_tail_is_text = true;
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(
@@ -5889,6 +5710,7 @@ function transform_children(children, context) {
 				} else {
 					skipped = 0;
 					state.template?.push('<!>');
+					template_tail_is_text = false;
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(

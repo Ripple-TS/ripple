@@ -7,7 +7,7 @@
 import * as acorn from 'acorn';
 import { isWhitespaceTextNode, BINDING_TYPES, DestructuringErrors } from './parse/index.js';
 import { parse_style } from './parse/style.js';
-import { regex_newline_characters } from './utils/patterns.js';
+import { regex_newline_characters, regex_not_whitespace } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
 import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
@@ -926,14 +926,24 @@ export function TSRXPlugin(config) {
 			 *   template-mode element whose text children are raw JSX text; the rest of
 			 *   the directive/comment/boundary checks below still apply, so a directive
 			 *   body inside an expression container is correctly excluded.
+			 * @param {boolean} [ignore_directive_start] Skip the directive-start bail —
+			 *   used to ask whether the position is template text APART from starting a
+			 *   directive, so whitespace directly before the directive can be kept. Also
+			 *   skips the value-position (`#templateScriptParsingDepth`) and `@switch`
+			 *   (JS switch label) bails: those describe the surrounding construct, not
+			 *   this position, and significant whitespace between template siblings must
+			 *   not depend on which construct the template sits in.
 			 */
-			#shouldReadTemplateRawTextToken(allow_inside_expression_container = false) {
+			#shouldReadTemplateRawTextToken(
+				allow_inside_expression_container = false,
+				ignore_directive_start = false,
+			) {
 				if (
 					this.#closingNativeTemplateNode ||
 					this.#readingJSXControlFlowDirectiveKeyword ||
 					this.#readingJSXControlFlowHeader ||
 					this.#parsingJSXSwitchCaseScriptStatementDepth > 0 ||
-					this.#templateScriptParsingDepth > 0 ||
+					(!ignore_directive_start && this.#templateScriptParsingDepth > 0) ||
 					(!allow_inside_expression_container && this.#jsxExpressionContainerDepth > 0)
 				) {
 					return false;
@@ -942,11 +952,14 @@ export function TSRXPlugin(config) {
 				if (current_context_token === '<tag' || current_context_token === '</tag') {
 					return false;
 				}
-				if (this.labels.some((label) => label.kind === 'switch')) {
+				if (!ignore_directive_start && this.labels.some((label) => label.kind === 'switch')) {
 					return false;
 				}
 				const current_template_node = this.#currentNativeTemplateNode();
-				if (!current_template_node || this.#isJSXControlFlowDirectiveAt(this.pos)) {
+				if (
+					!current_template_node ||
+					(!ignore_directive_start && this.#isJSXControlFlowDirectiveAt(this.pos))
+				) {
 					return false;
 				}
 				// Inside an expression container (only reachable with
@@ -1020,6 +1033,26 @@ export function TSRXPlugin(config) {
 					return true;
 				}
 				return true;
+			}
+
+			/**
+			 * At a raw-text bail boundary in `jsx_readToken`, decides whether the
+			 * accumulated run is template text that must be finished as a jsxText
+			 * token rather than silently discarded by the token-start reset. True
+			 * when the run contains non-whitespace (whitespace accumulates without
+			 * consulting the raw-text gate, so a whitespace-only run can be plain JS
+			 * layout — a newline before a `return`, indentation before `: null`), or
+			 * when it is significant whitespace directly before a directive in an
+			 * open template element (`<><a /> @for (…) { … }</>`).
+			 * @param {string} accumulated
+			 */
+			#shouldFinishAccumulatedTemplateText(accumulated) {
+				if (!accumulated) return false;
+				if (regex_not_whitespace.test(accumulated)) return true;
+				return (
+					this.#isJSXControlFlowDirectiveAt(this.pos) &&
+					this.#shouldReadTemplateRawTextToken(true, true)
+				);
 			}
 
 			#readTemplateRawTextToken() {
@@ -1438,7 +1471,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forInit, forNew) {
-				if (this.input.charCodeAt(this.start) === CharCode.at) {
+				// A token already consumed as JSX text (a script-mode element child) must
+				// stay text even when it happens to begin at an `@` — otherwise whether
+				// `@if` parses as a directive would depend on leading whitespace.
+				if (this.input.charCodeAt(this.start) === CharCode.at && this.type !== tstt.jsxText) {
 					if (this.#isCodeBlockStart(this.start)) {
 						return /** @type {any} */ (this.#parseCodeBlock());
 					}
@@ -3731,13 +3767,23 @@ export function TSRXPlugin(config) {
 			/** @type {Parse.Parser['jsx_parseAttributeValue']} */
 			jsx_parseAttributeValue() {
 				switch (this.type) {
-					case tt.braceL:
+					case tt.braceL: {
+						// The host element's `templateMode` is still `'script'` while its
+						// opening tag parses, which would route JSX inside the value
+						// container to the vanilla (non-TSRX) element parser. Clear the
+						// opening node so the container parses exactly like a child-position
+						// `{ … }` container — an inline template value must behave the same
+						// as one assigned to a variable and passed by name.
+						const opening_node = this.#openingNativeTemplateNode;
+						this.#openingNativeTemplateNode = null;
 						this.#jsxAttributeValueExpressionDepth++;
 						try {
 							return this.jsx_parseExpressionContainer();
 						} finally {
 							this.#jsxAttributeValueExpressionDepth--;
+							this.#openingNativeTemplateNode = opening_node;
 						}
+					}
 					case tstt.jsxTagStart:
 					case tt.string:
 						return this.parseExprAtom();
@@ -3996,17 +4042,26 @@ export function TSRXPlugin(config) {
 
 					switch (ch) {
 						case CharCode.equals:
+							// The `allow_inside_expression_container` form keeps `=` (and `=>`)
+							// as text inside a container-nested element's children, matching the
+							// bare-template path — see the default case below.
 							if (
-								!this.#shouldReadTemplateRawTextToken() &&
+								!this.#shouldReadTemplateRawTextToken(true) &&
 								this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan
 							) {
 								this.#resetTokenStartToCurrentPosition();
 								this.pos += 2;
 								return this.finishToken(tt.arrow);
 							}
-							if (this.#shouldReadTemplateRawTextToken()) {
+							if (this.#shouldReadTemplateRawTextToken(true)) {
 								++this.pos;
 								break;
+							}
+							{
+								const accumulated = out + this.input.slice(chunkStart, this.pos);
+								if (this.#shouldFinishAccumulatedTemplateText(accumulated)) {
+									return this.finishToken(tstt.jsxText, accumulated);
+								}
 							}
 							this.#resetTokenStartToCurrentPosition();
 							this.context.push(b_stat);
@@ -4185,6 +4240,16 @@ export function TSRXPlugin(config) {
 								if (this.#shouldReadTemplateRawTextToken(true)) {
 									++this.pos;
 									break;
+								}
+								// Like `<` and `{` above, a bail boundary (e.g. a directive's `@`)
+								// must first finish accumulated template text — resetting the token
+								// start here would silently drop it from the template. See
+								// `#shouldFinishAccumulatedTemplateText` for which runs qualify.
+								{
+									const accumulated = out + this.input.slice(chunkStart, this.pos);
+									if (this.#shouldFinishAccumulatedTemplateText(accumulated)) {
+										return this.finishToken(tstt.jsxText, accumulated);
+									}
 								}
 								this.#resetTokenStartToCurrentPosition();
 								this.context.push(b_stat);

@@ -3008,3 +3008,280 @@ export function adopt_raw_template_jsx(node) {
 	mark_raw_template_jsx(node);
 	return node.type === 'JSXFragment' ? node.children : node;
 }
+
+/**
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+export function unwrap_type_annotation(type_annotation) {
+	/** @type {AST.TypeNode | undefined | null} */
+	let annotation = type_annotation;
+
+	while (annotation) {
+		if (annotation.type === 'TSTypeAnnotation') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation ?? undefined;
+}
+
+/**
+ * Whether the type provably describes a text primitive — a string, number,
+ * boolean, or bigint (or null/undefined, which render as ''). Unions qualify
+ * only when every member does.
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @returns {boolean}
+ */
+export function is_text_primitive_type_annotation(type_annotation) {
+	const annotation = unwrap_type_annotation(type_annotation);
+	if (!annotation) return false;
+
+	if (
+		annotation.type === 'TSStringKeyword' ||
+		annotation.type === 'TSNumberKeyword' ||
+		annotation.type === 'TSBooleanKeyword' ||
+		annotation.type === 'TSBigIntKeyword' ||
+		annotation.type === 'TSNullKeyword' ||
+		annotation.type === 'TSUndefinedKeyword'
+	) {
+		return true;
+	}
+	if (annotation.type === 'TSLiteralType' && annotation.literal.type === 'Literal') {
+		return is_text_primitive_literal(annotation.literal);
+	}
+	if (annotation.type === 'TSUnionType') {
+		return annotation.types.every((type) => is_text_primitive_type_annotation(type));
+	}
+
+	return false;
+}
+
+/**
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @param {string} property_name
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_property_type_annotation(type_annotation, property_name) {
+	const annotation = unwrap_type_annotation(type_annotation);
+
+	if (annotation?.type === 'TSIntersectionType') {
+		for (const type of annotation.types) {
+			const property_type = get_property_type_annotation(type, property_name);
+			if (property_type) return property_type;
+		}
+		return undefined;
+	}
+
+	if (annotation?.type !== 'TSTypeLiteral') {
+		return undefined;
+	}
+
+	for (const member of annotation.members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) continue;
+
+		const key = member.key;
+		const name =
+			key.type === 'Identifier'
+				? key.name
+				: key.type === 'Literal' && typeof key.value === 'string'
+					? key.value
+					: null;
+
+		if (name === property_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {Binding | null | undefined} binding
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_binding_type_annotation(binding) {
+	const node = binding?.node;
+	if (!node) return undefined;
+
+	return (
+		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation | AST.TypeNode }} */ (binding.metadata ?? {})
+			.typeAnnotation ??
+		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation }} */ (node).typeAnnotation?.typeAnnotation
+	);
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @returns {string | null}
+ */
+export function get_static_property_name(expression) {
+	if (expression.type !== 'MemberExpression' || expression.property.type === 'PrivateIdentifier') {
+		return null;
+	}
+
+	if (!expression.computed && expression.property.type === 'Identifier') {
+		return expression.property.name;
+	}
+
+	if (
+		expression.computed &&
+		expression.property.type === 'Literal' &&
+		typeof expression.property.value === 'string'
+	) {
+		return expression.property.value;
+	}
+
+	return null;
+}
+
+/**
+ * A literal whose value is a text primitive. Regex literals are objects and
+ * are excluded (their `value` can also be `null` when unserializable).
+ * @param {AST.Expression | AST.Pattern} expression
+ * @returns {boolean}
+ */
+export function is_text_primitive_literal(expression) {
+	if (expression.type !== 'Literal' || 'regex' in expression) {
+		return false;
+	}
+	const value = expression.value;
+	return (
+		value === null ||
+		typeof value === 'string' ||
+		typeof value === 'number' ||
+		typeof value === 'boolean' ||
+		typeof value === 'bigint'
+	);
+}
+
+/**
+ * Whether the expression provably evaluates to a text primitive — a string,
+ * number, boolean, bigint, null, or undefined. These render as plain escaped
+ * text (`String(value ?? '')` on the server, `value + ''` on the client), so
+ * they may use the inline text fast paths. Anything unproven can hold a
+ * template value — an element or a collection — and must render through the
+ * value-aware expression paths instead.
+ * @param {AST.Expression} expression
+ * @param {{ scope: ScopeInterface }} state
+ * @param {Set<Binding>} [visited]
+ * @returns {boolean}
+ */
+export function is_text_primitive_expression(expression, state, visited = new Set()) {
+	if (expression.type === 'ParenthesizedExpression' || expression.type === 'ChainExpression') {
+		return is_text_primitive_expression(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (expression.type === 'TSAsExpression' || expression.type === 'TSTypeAssertion') {
+		return (
+			is_text_primitive_type_annotation(expression.typeAnnotation) ||
+			is_text_primitive_expression(
+				/** @type {AST.Expression} */ (expression.expression),
+				state,
+				visited,
+			)
+		);
+	}
+
+	if (
+		expression.type === 'TSNonNullExpression' ||
+		expression.type === 'TSInstantiationExpression'
+	) {
+		return is_text_primitive_expression(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (is_text_primitive_literal(expression) || expression.type === 'TemplateLiteral') {
+		return true;
+	}
+
+	if (
+		expression.type === 'CallExpression' &&
+		expression.callee.type === 'Identifier' &&
+		(expression.callee.name === 'String' ||
+			expression.callee.name === 'Number' ||
+			expression.callee.name === 'Boolean')
+	) {
+		return true;
+	}
+
+	// Every binary, unary, and update expression yields a primitive in JS:
+	// `+` returns a string or number (object operands coerce first),
+	// arithmetic/bitwise operators return numbers or bigints, comparisons and
+	// `instanceof`/`in` return booleans, `typeof` returns a string, `void`
+	// returns undefined, `!`/`delete` return booleans.
+	if (
+		expression.type === 'BinaryExpression' ||
+		expression.type === 'UnaryExpression' ||
+		expression.type === 'UpdateExpression'
+	) {
+		return true;
+	}
+
+	// `&&`/`||`/`??` return one of their operands, so both must be proven.
+	if (expression.type === 'LogicalExpression') {
+		return (
+			is_text_primitive_expression(
+				/** @type {AST.Expression} */ (expression.left),
+				state,
+				visited,
+			) && is_text_primitive_expression(expression.right, state, visited)
+		);
+	}
+
+	if (expression.type === 'ConditionalExpression') {
+		return (
+			is_text_primitive_expression(expression.consequent, state, visited) &&
+			is_text_primitive_expression(expression.alternate, state, visited)
+		);
+	}
+
+	if (expression.type === 'Identifier') {
+		if (expression.name === 'undefined') {
+			return true;
+		}
+		const binding = state.scope.get(expression.name);
+		if (!binding || binding.node === expression || visited.has(binding)) {
+			return false;
+		}
+		if (is_text_primitive_type_annotation(get_binding_type_annotation(binding))) {
+			return true;
+		}
+		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
+			visited.add(binding);
+			return is_text_primitive_expression(
+				/** @type {AST.Expression} */ (binding.initial),
+				state,
+				visited,
+			);
+		}
+		return false;
+	}
+
+	if (expression.type === 'MemberExpression' && expression.object.type === 'Identifier') {
+		const property_name = get_static_property_name(expression);
+		if (property_name === null) return false;
+
+		const binding = state.scope.get(expression.object.name);
+		const property_type = get_property_type_annotation(
+			get_binding_type_annotation(binding),
+			property_name,
+		);
+		return is_text_primitive_type_annotation(property_type);
+	}
+
+	return false;
+}

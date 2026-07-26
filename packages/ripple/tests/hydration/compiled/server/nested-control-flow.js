@@ -18,7 +18,15 @@ export function ForIf() {
 				__out += '<!--[-->';
 
 				if (item.show) {
-					__out += '<li' + _$_.attr('class', `item item-${item.id}`) + '>' + _$_.escape(item.label) + '</li>';
+					__out += '<li' + _$_.attr('class', `item item-${item.id}`) + '>';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(item.label);
+					}
+
+					__out += '</li>';
 				}
 
 				__out += '<!--]-->';
