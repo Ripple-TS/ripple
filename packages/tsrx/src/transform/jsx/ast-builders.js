@@ -378,23 +378,6 @@ export function flatten_switch_consequent(consequent) {
 }
 
 /**
- * @param {AST.Expression | null | undefined} expression
- * @returns {boolean}
- */
-function is_static_string_expression(expression) {
-	if (!expression) {
-		return false;
-	}
-	if (expression.type === 'Literal') {
-		return typeof expression.value === 'string';
-	}
-	if (expression.type === 'TemplateLiteral') {
-		return expression.expressions.length === 0;
-	}
-	return false;
-}
-
-/**
  * Deep-clone an AST subtree.
  *
  * @template T
