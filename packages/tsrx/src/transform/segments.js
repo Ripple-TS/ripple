@@ -68,6 +68,7 @@ import { should_preserve_comment } from '../comment-utils.js';
 import { has_location } from '../utils/ast.js';
 
 const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
+const RETURN_KEYWORD = 'return';
 
 /**
  * @param {string} value
@@ -1506,18 +1507,31 @@ export function convert_source_map_to_mappings(
 					visit(node.argument);
 				}
 
-				if (node.type === 'ReturnStatement' && has_location(node)) {
+				// Map only the `return` KEYWORD: a whole-statement mapping is too broad
+				// and shadows the finer mappings of everything inside it.
+				//
+				// That clamp is only meaningful when the author actually wrote the
+				// keyword there. A SYNTHESIZED return — every template arm in a
+				// `.tsrx` file (`@case`/`@default`/`@empty`/`@else` bodies, a `@{ … }`
+				// body) — carries the arm's authored range instead, whose text is the
+				// arm's own syntax. Clamping that to six characters pairs an arbitrary
+				// slice of source (`@defau`) with an arbitrary slice of output
+				// (`defaul`), which then wins any narrowest-match lookup. A
+				// synthesized return has no authored keyword to point at, so it
+				// contributes no mapping.
+				if (
+					node.type === 'ReturnStatement' &&
+					has_location(node) &&
+					source.startsWith(RETURN_KEYWORD, node.start)
+				) {
 					const mapping = get_mapping_from_node(
 						node,
 						src_to_gen_map,
 						gen_line_offsets,
 						mapping_data_verify_only,
 					);
-					// We're only mapping the 'return' keyword, otherwise the mapping would be too broad
-					// and likely may cause issues with partial mappings of something inside the return statement that we need
-					const return_keyword_length = 'return'.length;
-					mapping.lengths = [return_keyword_length];
-					mapping.generatedLengths = [return_keyword_length];
+					mapping.lengths = [RETURN_KEYWORD.length];
+					mapping.generatedLengths = [RETURN_KEYWORD.length];
 
 					mappings.push(mapping);
 				}
