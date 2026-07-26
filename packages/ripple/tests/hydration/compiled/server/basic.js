@@ -949,3 +949,77 @@ export function FragmentChildOnly() {
 		});
 	});
 }
+
+function OpaqueLead(props) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_expression(props.header);
+			__out += '<p>after-opaque</p><!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function FragmentLeadsWithOpaqueValue() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div>';
+
+			{
+				{
+					const comp = OpaqueLead;
+					const args = [{ header: 'H' }];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+			}
+
+			__out += '</div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function PrimitiveCallLead() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += _$_.escape(String(fetchLabel())) + '<p>after-call</p>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function FragmentLeadsWithPrimitiveCall() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div>';
+
+			{
+				{
+					const comp = PrimitiveCallLead;
+					const args = [{}];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+			}
+
+			__out += '</div>';
+			_$_.output_push(__out);
+		});
+	});
+}

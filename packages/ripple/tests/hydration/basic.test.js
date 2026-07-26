@@ -277,4 +277,20 @@ describe('hydration > text runs with call-containing primitives', () => {
 		await hydrateComponent(ServerComponents.FragmentChildOnly, ClientComponents.FragmentChildOnly);
 		expect(container.textContent).toBe('frag-tail');
 	});
+
+	it('hydrates a fragment leading with an opaque value', async () => {
+		await hydrateComponent(
+			ServerComponents.FragmentLeadsWithOpaqueValue,
+			ClientComponents.FragmentLeadsWithOpaqueValue,
+		);
+		expect(container.textContent).toBe('Hafter-opaque');
+	});
+
+	it('hydrates a fragment leading with a call-containing primitive', async () => {
+		await hydrateComponent(
+			ServerComponents.FragmentLeadsWithPrimitiveCall,
+			ClientComponents.FragmentLeadsWithPrimitiveCall,
+		);
+		expect(container.textContent).toBe('fetchedafter-call');
+	});
 });

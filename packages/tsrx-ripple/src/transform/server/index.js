@@ -69,7 +69,6 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
-	expression_contains_call,
 	get_indexed_reactive_target,
 	rewrite_lazy_member_base,
 	strip_tsrx_style_elements,
@@ -497,70 +496,6 @@ function is_template_value_binding(expression, scope) {
 }
 
 /**
- * @param {AST.Expression | AST.SpreadElement} expression
- * @param {ScopeInterface} scope
- * @param {TransformServerContext} context
- * @returns {boolean}
- */
-function is_collection_value_expression(expression, scope, context) {
-	if (expression.type === 'ArrayExpression') {
-		return true;
-	}
-
-	if (
-		expression.type === 'TSAsExpression' ||
-		expression.type === 'TSSatisfiesExpression' ||
-		expression.type === 'TSNonNullExpression'
-	) {
-		return is_collection_value_expression(expression.expression, scope, context);
-	}
-
-	if (expression.type === 'ConditionalExpression') {
-		return (
-			is_collection_value_expression(expression.consequent, scope, context) ||
-			is_collection_value_expression(expression.alternate, scope, context)
-		);
-	}
-
-	if (expression.type === 'LogicalExpression') {
-		return (
-			is_collection_value_expression(expression.left, scope, context) ||
-			is_collection_value_expression(expression.right, scope, context)
-		);
-	}
-
-	if (expression.type === 'CallExpression') {
-		if (is_ripple_track_call(expression.callee, context)) {
-			const first_arg = expression.arguments[0];
-			return (
-				first_arg != null &&
-				is_collection_value_expression(
-					/** @type {AST.Expression | AST.SpreadElement} */ (first_arg),
-					scope,
-					context,
-				)
-			);
-		}
-
-		if (expression.callee.type === 'Identifier') {
-			return function_returns_value(scope.get(expression.callee.name)?.initial, (expression) =>
-				is_collection_value_expression(expression, scope, context),
-			);
-		}
-	}
-
-	if (expression.type !== 'Identifier') {
-		return false;
-	}
-
-	const initial = scope.get(expression.name)?.initial;
-	return (
-		initial != null &&
-		is_collection_value_expression(/** @type {AST.Expression} */ (initial), scope, context)
-	);
-}
-
-/**
  * @param {AST.TSRXImportDeclaration} node
  * @returns {string | null}
  */
@@ -704,15 +639,13 @@ function tsrx_expression_emits_marker(node, context) {
 	if (is_static_native_tsrx_function_call(expression, context)) {
 		return false;
 	}
-	const scope = context.state.scope;
-	return (
-		is_children_template_expression(expression, scope) ||
-		contains_template_value_node(/** @type {AST.Node} */ (expression)) ||
-		is_template_value_call(expression, scope) ||
-		is_template_value_binding(expression, scope) ||
-		is_collection_value_expression(expression, scope, context) ||
-		expression_contains_call(expression)
-	);
+	// The single routing truth — the `JSXExpressionContainer` visitor calls
+	// this same function, so the fragment-boundary prediction can never drift
+	// from what SSR actually emits: only an expression that is not provably a
+	// text primitive lowers to `render_expression` (marker-bracketed);
+	// provable primitives — including call-containing ones like `String(f())`
+	// — inline as escaped text with no markers.
+	return !is_text_primitive_expression(expression, context.state);
 }
 
 /**
@@ -3035,15 +2968,11 @@ const visitors = {
 			state.init?.push(b.stmt(b.call('_$_.render_tsrx_element', expression)));
 		} else if (
 			!inside_title &&
-			// Only an expression provably evaluating to a text primitive — a
-			// string, number, boolean, bigint, or null/undefined (literals,
-			// operators, `String()`/`Number()`/`Boolean()`, `as` casts, typed
-			// bindings and members) — may use the inline-escape fast path.
-			// Anything else — children props, collections, calls, opaque members
-			// like `{props.header}` — can hold a template value and must go
-			// through `render_expression`, which renders elements and
-			// collections and escapes plain values.
-			!is_text_primitive_expression(/** @type {AST.Expression} */ (node.expression), state)
+			// Shared routing truth (see `tsrx_expression_emits_marker`): only an
+			// expression that is not provably a text primitive renders through
+			// `render_expression` — which renders elements and collections,
+			// escapes plain values, and brackets with hydration markers.
+			tsrx_expression_emits_marker(node, context)
 		) {
 			state.init?.push(b.stmt(b.call('_$_.render_expression', expression)));
 		} else {
