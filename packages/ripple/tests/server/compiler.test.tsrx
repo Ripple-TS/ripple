@@ -226,6 +226,10 @@ function tag() {
 const values = { member: 0 };`;
 
 		const cases = [
+			// Call-containing but provably-text-primitive expressions — `empty() + ''`,
+			// `\`${empty()}\``, `void empty()`, `values[getKey()]++` — are NOT in this
+			// list: they cannot hold an element, so they DO merge into the text run
+			// (see 'merges provably-primitive call-containing children').
 			{ name: 'call expression', expression: 'child(\'call\')' },
 			{ name: 'new expression', expression: 'new Constructed(\'new\')' },
 			{ name: 'chain expression', expression: 'factory?.(\'chain\')' },
@@ -239,7 +243,6 @@ const values = { member: 0 };`;
 			},
 			{ name: 'array expression', expression: '[child(\'array\')]' },
 			{ name: 'assignment expression', expression: 'assigned = child(\'assignment\')' },
-			{ name: 'binary expression', expression: 'empty() + \'\'' },
 			{ name: 'logical expression', expression: 'true && child(\'logical\')' },
 			{ name: 'conditional expression', expression: 'true ? child(\'conditional\') : \'\'' },
 			{ name: 'member expression', expression: 'lookup[getKey()]' },
@@ -249,9 +252,6 @@ const values = { member: 0 };`;
 			},
 			{ name: 'sequence expression', expression: '(touch(), child(\'sequence\'))' },
 			{ name: 'tagged template expression', expression: 'tag`tagged`' },
-			{ name: 'template literal', expression: '`${empty()}`' },
-			{ name: 'unary expression', expression: 'void empty()' },
-			{ name: 'update expression', expression: 'values[getKey()]++' },
 		];
 
 		for (const test_case of cases) {
@@ -267,6 +267,31 @@ export function App() @{
 			}
 		}
 	});
+
+	it(
+		'merges provably-primitive call-containing children into one escaped text run in SSR output',
+		() => {
+			const source = `function empty() {
+	return null;
+}
+function fetchLabel() {
+	return 'fetched';
+}
+export function App() @{
+		<div>{'label:'}{void empty()}{String(fetchLabel())}</div>
+}`;
+
+			const { code } = compile(source, 'primitive-merge.tsrx', { mode: 'server' });
+
+			// One escaped text run — no render_expression, no hydration markers; a
+			// provably-string child concatenates bare (no String(… ?? '') wrap).
+			expect(code).toContain(
+				'_$_.escape(\'label:\' + (String(void empty() ?? \'\') + String(fetchLabel())))',
+			);
+			expect(code).not.toContain('render_expression');
+			expect(code).not.toContain('String(String(');
+		},
+	);
 
 	it('decodes JSX-style entities before server text escaping', () => {
 		const result = compile(

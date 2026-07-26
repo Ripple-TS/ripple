@@ -143,6 +143,10 @@ function tag() {
 const values = { member: 0 };`;
 
 		const cases = [
+			// Call-containing but provably-text-primitive expressions — `empty() + ''`,
+			// `\`${empty()}\``, `void empty()`, `values[getKey()]++` — are NOT in this
+			// list: they cannot hold an element, so they DO merge into the text run
+			// (see 'merges provably-primitive call-containing children').
 			{ name: 'call expression', expression: 'child(\'call\')' },
 			{ name: 'new expression', expression: 'new Constructed(\'new\')' },
 			{ name: 'chain expression', expression: 'factory?.(\'chain\')' },
@@ -156,7 +160,6 @@ const values = { member: 0 };`;
 			},
 			{ name: 'array expression', expression: '[child(\'array\')]' },
 			{ name: 'assignment expression', expression: 'assigned = child(\'assignment\')' },
-			{ name: 'binary expression', expression: 'empty() + \'\'' },
 			{ name: 'logical expression', expression: 'true && child(\'logical\')' },
 			{ name: 'conditional expression', expression: 'true ? child(\'conditional\') : \'\'' },
 			{ name: 'member expression', expression: 'lookup[getKey()]' },
@@ -166,9 +169,6 @@ const values = { member: 0 };`;
 			},
 			{ name: 'sequence expression', expression: '(touch(), child(\'sequence\'))' },
 			{ name: 'tagged template expression', expression: 'tag`tagged`' },
-			{ name: 'template literal', expression: '`${empty()}`' },
-			{ name: 'unary expression', expression: 'void empty()' },
-			{ name: 'update expression', expression: 'values[getKey()]++' },
 		];
 
 		for (const test_case of cases) {
@@ -183,6 +183,38 @@ export function App() @{
 				throw new Error(`${test_case.name} was merged into a stringified text expression:\n${code}`);
 			}
 		}
+	});
+
+	it('merges provably-primitive call-containing children into the text run', () => {
+		const source = `function empty() {
+	return null;
+}
+export function App() @{
+		<div>{'label:'}{void empty()}</div>
+}`;
+
+		const { code } = compile(source, 'primitive-merge.tsrx', { mode: 'client' });
+
+		// One merged text expression — no separate comment-anchored expression.
+		expect(code).toContain('\'label:\' + _$_.with_scope');
+		expect(code).toContain('String(void');
+		expect(code).not.toContain('_$_.expression(');
+	});
+
+	it('concatenates provably-string merge children bare', () => {
+		const source = `function fetchLabel() {
+	return 'fetched';
+}
+export function App() @{
+		<div>{'label:'}{String(fetchLabel())}</div>
+}`;
+
+		const { code } = compile(source, 'string-merge.tsrx', { mode: 'client' });
+
+		// Already a string: no String(… ?? '') double wrap around it.
+		expect(code).toContain('String(fetchLabel())');
+		expect(code).not.toContain('String(String(');
+		expect(code).not.toContain('?? \'\'');
 	});
 
 	it('parses backtick expressions inside TSRX fragments as template literals', () => {

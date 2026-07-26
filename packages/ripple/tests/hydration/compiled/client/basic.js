@@ -71,6 +71,9 @@ var root_66 = _$_.template(`<footer class="last-child">I am the last child</foot
 var root_67 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
 var root_68 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
 var root_69 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
+var root_70 = _$_.template(`<div> </div>`, 0);
+var root_71 = _$_.template(`<div> </div>`, 0);
+var root_72 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -193,7 +196,7 @@ export function Greeting(props) {
 		}
 
 		_$_.render(() => {
-			_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name ?? '')));
+			_$_.set_text(expression, 'Hello ' + props.name);
 		});
 
 		_$_.append(__anchor, div_5);
@@ -914,6 +917,58 @@ export function NestedComponentAsLastSibling() {
 		}
 
 		_$_.append(__anchor, section_1);
+	});
+}
+
+function fetchLabel() {
+	return 'fetched';
+}
+
+export function TextTailExpression() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_27 = root_70();
+
+		{
+			var text = _$_.child(div_27, true);
+
+			_$_.pop(div_27);
+		}
+
+		_$_.render(() => {
+			_$_.set_text(text, "label: " + _$_.with_scope(__block, () => String(fetchLabel())));
+		});
+
+		_$_.append(__anchor, div_27);
+	});
+}
+
+export function FragmentTailExpression() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_28 = root_71();
+
+		{
+			var expression_29 = _$_.child(div_28, true);
+
+			_$_.pop(div_28);
+		}
+
+		_$_.render(() => {
+			_$_.set_text(expression_29, 'frag-' + _$_.with_scope(__block, () => String(fetchLabel())));
+		});
+
+		_$_.append(__anchor, div_28);
+	});
+}
+
+export function FragmentChildOnly() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_29 = root_72();
+
+		{
+			_$_.pop(div_29);
+		}
+
+		_$_.append(__anchor, div_29);
 	});
 }
 

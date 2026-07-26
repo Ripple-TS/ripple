@@ -113,6 +113,8 @@ import {
 	get_code_block_template_child,
 	lower_code_block_children,
 	is_text_primitive_expression,
+	collect_head_elements,
+	is_flattenable_template_fragment,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -4921,6 +4923,29 @@ function is_native_tsrx_statement_position(path) {
 }
 
 /**
+ * Whether `node` is one of `parent`'s rendered template children, looking
+ * through fragments that `normalize_child` flattens — their children render
+ * inline in the parent, so they are the parent's children for classification.
+ * @param {AST.Node | undefined} parent
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_rendered_template_child(parent, node) {
+	const children = /** @type {ESTreeJSX.JSXElement | undefined} */ (parent)?.children;
+	if (!children) return false;
+	for (const child of children) {
+		if (child === node) return true;
+		if (
+			is_flattenable_template_fragment(/** @type {AST.Node} */ (child), false) &&
+			is_rendered_template_child(/** @type {AST.Node} */ (child), node)
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * @param {AST.Node[]} path
  * @param {AST.Node} [node] The node being classified. Expression-container and
  *   attribute values are visited with the container unwrapped (see
@@ -4934,11 +4959,7 @@ function is_native_tsrx_statement_position(path) {
 function is_native_tsrx_value_position(path, node) {
 	const parent = path.at(-1);
 	if (node && (is_template_element(parent) || is_template_fragment(parent))) {
-		return !(
-			/** @type {ESTreeJSX.JSXElement} */ (parent).children?.includes(
-				/** @type {ESTreeJSX.JSXElement} */ (node),
-			)
-		);
+		return !is_rendered_template_child(parent, node);
 	}
 	return !(
 		is_native_tsrx_statement_position(path) ||
@@ -5208,11 +5229,7 @@ function transform_children(children, context) {
 		state: { ...state, keep_component_style: state.to_ts ? true : state.keep_component_style },
 	});
 
-	const head_elements = /** @type {ESTreeJSX.JSXElement[]} */ (
-		children.filter(
-			(node) => is_template_element(node) && get_element_identifier(node)?.name === 'head',
-		)
-	);
+	const head_elements = collect_head_elements(children, !!state.to_ts);
 
 	const is_fragment =
 		normalized.some(
@@ -5362,14 +5379,6 @@ function transform_children(children, context) {
 
 	let skipped = 0;
 
-	// Whether the template string currently ends inside text content (inlined
-	// literals, JSXText, a previous text expression's ' ' anchor). A further
-	// ' ' text anchor pushed onto a text tail coalesces with it into a single
-	// DOM text node, so `sibling(…, true)` would find nothing to anchor to —
-	// text expressions must then fall back to a comment-anchored
-	// `_$_.expression` instead. Conservative: fragments leave it set.
-	let template_tail_is_text = false;
-
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
 		const node = normalized[node_idx];
 
@@ -5482,24 +5491,6 @@ function transform_children(children, context) {
 			 * @param {AST.Expression} expr
 			 */
 			const render_text_expression = (identity, expr) => {
-				// A non-literal needs a text node of its own; on a text tail the
-				// ' ' anchor would coalesce with the preceding text into a single
-				// DOM node, so render through a comment-anchored expression
-				// instead. (Inlined literals just extend the text — no anchor.)
-				if (expr.type !== 'Literal' && template_tail_is_text) {
-					skipped = 0;
-					state.template?.push('<!>');
-					template_tail_is_text = false;
-					const id = flush_node(false);
-					const call = b.call('_$_.expression', id, b.thunk(expr));
-					state.init?.push(
-						state.namespace !== DEFAULT_NAMESPACE
-							? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
-							: b.stmt(call),
-					);
-					return;
-				}
-				template_tail_is_text = true;
 				if (metadata?.tracking) {
 					skipped = 0;
 					state.template?.push(' ');
@@ -5566,8 +5557,6 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-				// An element's markup (or its comment anchor) closes the text run.
-				template_tail_is_text = false;
 
 				// After processing an element's children via child()/sibling() navigation,
 				// hydrate_node is left deep inside the element. If there's a next sibling,
@@ -5646,8 +5635,6 @@ function transform_children(children, context) {
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
-				// A fragment's children can end in anything — assume a text tail.
-				template_tail_is_text = true;
 			} else if (is_template_expression(node)) {
 				// is_template_expression stays a boolean (its negative would lie
 				// about merged-text containers), so narrow the container once here.
@@ -5660,7 +5647,6 @@ function transform_children(children, context) {
 				);
 
 				if (expr.type === 'Literal') {
-					template_tail_is_text = true;
 					if (normalized.length === 1) {
 						skipped++;
 						if (
@@ -5680,7 +5666,6 @@ function transform_children(children, context) {
 				} else if (is_static_native_tsrx_call) {
 					skipped = 0;
 					state.template?.push('<!>');
-					template_tail_is_text = false;
 					const id = flush_node(false);
 					const call = b.call('_$_.render_tsrx_element', expr, id, b.id('__block'));
 					state.init?.push(
@@ -5699,7 +5684,6 @@ function transform_children(children, context) {
 				) {
 					skipped++;
 					state.template?.push(' ');
-					template_tail_is_text = true;
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(
@@ -5710,7 +5694,6 @@ function transform_children(children, context) {
 				} else {
 					skipped = 0;
 					state.template?.push('<!>');
-					template_tail_is_text = false;
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(

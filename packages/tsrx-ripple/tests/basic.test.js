@@ -2006,3 +2006,68 @@ describe('@tsrx/ripple server expression classification', () => {
 		expect(code).not.toContain('_$_.render_expression');
 	});
 });
+
+describe('@tsrx/ripple fragment children flatten', () => {
+	// A fragment in children position is transparent grouping: it must add
+	// ZERO dom — no comment anchor, no runtime expression wrapper — and its
+	// text merges into the surrounding run.
+	it('renders fragment children inline with no extra nodes', () => {
+		const source = `export function App() @{
+				<div>{'a'}<>{'b'}<span>{'c'}</span></>{'d'}</div>
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).toContain('`<div>ab<span>c</span>d</div>`');
+		expect(code).not.toContain('<!>');
+		expect(code).not.toContain('_$_.expression');
+
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+		expect(server.code).toContain(`'<div>ab<span>c</span>d</div>'`);
+	});
+
+	it('flattens nested fragments recursively', () => {
+		const source = `export function App() @{
+				<div>{'a'}<><>{'b'}</><>{'c'}<span>{'d'}</span></></></div>
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).toContain('`<div>abc<span>d</span></div>`');
+		expect(code).not.toContain('<!>');
+
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+		expect(server.code).toContain(`'<div>abc<span>d</span></div>'`);
+	});
+
+	it('handles control flow inside a flattened fragment at the parent level', () => {
+		const source = `export function App({ ok }) @{
+				<div>{'a'}<>@if (ok) { <b>{'y'}</b> } @else { <i>{'n'}</i> }</>{'z'}</div>
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		// The directive anchors directly in the parent template — exactly one
+		// comment anchor, no fragment wrapper expression around it.
+		expect(code).toContain('_$_.if(');
+		expect((code.match(/<!>/g) || []).length).toBe(1);
+		expect(code).not.toContain('_$_.expression(');
+
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+		expect(server.code).toContain('if (ok) {');
+	});
+
+	it('extracts head elements from inside flattened fragments in client output', () => {
+		const source = `export function App({ ok }) @{
+				@if (ok) {
+					<>
+						<head>
+							<title>{'late'}</title>
+						</head>
+						<p>{'content'}</p>
+					</>
+				}
+			}`;
+
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).toContain('_$_.head(');
+		expect(code).toContain('_$_.document.title');
+	});
+});

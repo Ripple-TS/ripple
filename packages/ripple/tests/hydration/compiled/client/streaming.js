@@ -2,33 +2,30 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="resolved"><span class="value"> </span><button class="inc">inc</button></div>`, 0);
-var root_4 = _$_.template(`<!><footer class="after-async">after-async</footer>`, 1, 2);
-var root_3 = _$_.template(`<!>`, 1, 1);
-var root_5 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_3 = _$_.template(`<!><footer class="after-async">after-async</footer>`, 1, 2);
+var root_4 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_2 = _$_.template(`<span class="before">before</span><!><span class="sibling-after">sibling-after</span>`, 1, 3);
 var root_1 = _$_.template(`<!>`, 1, 1);
-var root_6 = _$_.template(`<p class="resolved"> </p>`, 0);
-var root_9 = _$_.template(`<em class="caught"> </em>`, 0);
-var root_8 = _$_.template(`<span class="before">before</span><!>`, 1, 2);
-var root_7 = _$_.template(`<!>`, 1, 1);
-var root_10 = _$_.template(`<p class="resolved"> </p>`, 0);
-var root_11 = _$_.template(`<em class="caught"> </em>`, 0);
-var root_12 = _$_.template(`<p class="loading">loading...</p>`, 0);
-var root_13 = _$_.template(`<p class="resolved"> </p>`, 0);
-var root_14 = _$_.template(`<p class="loading">loading...</p>`, 0);
-var root_15 = _$_.template(`<section class="root-catch"> </section>`, 0);
-var root_16 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
-var root_19 = _$_.template(`<p class="head-content"> </p>`, 0);
-var root_18 = _$_.template(`<!>`, 1, 1);
-var root_17 = _$_.template(`<!>`, 1, 1);
-var root_20 = _$_.template(`<p class="loading">loading...</p>`, 0);
-var root_21 = _$_.template(`<p class="root-async"> </p>`, 0);
-var root_22 = _$_.template(`<p class="outer"> </p>`, 0);
-var root_23 = _$_.template(`<p class="inner"> </p>`, 0);
-var root_26 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
-var root_25 = _$_.template(`<!><!>`, 1, 2);
-var root_24 = _$_.template(`<!>`, 1, 1);
-var root_27 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
+var root_5 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_8 = _$_.template(`<em class="caught"> </em>`, 0);
+var root_7 = _$_.template(`<span class="before">before</span><!>`, 1, 2);
+var root_6 = _$_.template(`<!>`, 1, 1);
+var root_9 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_10 = _$_.template(`<em class="caught"> </em>`, 0);
+var root_11 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_12 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_13 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_14 = _$_.template(`<section class="root-catch"> </section>`, 0);
+var root_15 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
+var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
+var root_16 = _$_.template(`<!>`, 1, 1);
+var root_18 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_19 = _$_.template(`<p class="root-async"> </p>`, 0);
+var root_20 = _$_.template(`<p class="outer"> </p>`, 0);
+var root_21 = _$_.template(`<p class="inner"> </p>`, 0);
+var root_23 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
+var root_22 = _$_.template(`<!><!>`, 1, 2);
+var root_24 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
 
 import { track, trackAsync } from 'ripple';
 
@@ -92,9 +89,9 @@ function BasicContent() {
 export function StreamPending() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var fragment = root_1();
-		var node_3 = _$_.first_child_frag(fragment);
+		var node_2 = _$_.first_child_frag(fragment);
 
-		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
+		_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_2();
 			var span_1 = _$_.first_child_frag(fragment_1);
 			var node = _$_.sibling(span_1);
@@ -103,21 +100,14 @@ export function StreamPending() {
 				node,
 				(__anchor) => {
 					var fragment_2 = root_3();
-					var node_2 = _$_.first_child_frag(fragment_2);
+					var node_1 = _$_.first_child_frag(fragment_2);
 
-					_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
-						var fragment_3 = root_4();
-						var node_1 = _$_.first_child_frag(fragment_3);
-
-						_$_.render_component(BasicContent, node_1, {});
-						_$_.append(__anchor, fragment_3);
-					}));
-
+					_$_.render_component(BasicContent, node_1, {});
 					_$_.append(__anchor, fragment_2);
 				},
 				null,
 				(__anchor) => {
-					var p = root_5();
+					var p = root_4();
 
 					_$_.append(__anchor, p);
 				}
@@ -133,7 +123,7 @@ export function StreamPending() {
 function CatchOnlyContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_2 = _$_.track_async(() => controls.catchOnly.promise, __block, '50f939c6');
-		var p_1 = root_6();
+		var p_1 = root_5();
 
 		{
 			var expression_1 = _$_.child(p_1);
@@ -148,21 +138,21 @@ function CatchOnlyContent() {
 
 export function StreamCatchOnly() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_4 = root_7();
-		var node_5 = _$_.first_child_frag(fragment_4);
+		var fragment_3 = root_6();
+		var node_4 = _$_.first_child_frag(fragment_3);
 
-		_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_5 = root_8();
-			var span_2 = _$_.first_child_frag(fragment_5);
-			var node_4 = _$_.sibling(span_2);
+		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_4 = root_7();
+			var span_2 = _$_.first_child_frag(fragment_4);
+			var node_3 = _$_.sibling(span_2);
 
 			_$_.try(
-				node_4,
+				node_3,
 				(__anchor) => {
 					_$_.render_component(CatchOnlyContent, __anchor, {});
 				},
 				(__anchor, e) => {
-					var em = root_9();
+					var em = root_8();
 
 					{
 						var expression_2 = _$_.child(em);
@@ -175,17 +165,17 @@ export function StreamCatchOnly() {
 				}
 			);
 
-			_$_.append(__anchor, fragment_5);
+			_$_.append(__anchor, fragment_4);
 		}));
 
-		_$_.append(__anchor, fragment_4);
+		_$_.append(__anchor, fragment_3);
 	});
 }
 
 function RejectContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => controls.rejects.promise, __block, '96452a54');
-		var p_2 = root_10();
+		var p_2 = root_9();
 
 		{
 			var expression_3 = _$_.child(p_2);
@@ -206,7 +196,7 @@ export function StreamRejects() {
 				_$_.render_component(RejectContent, __anchor, {});
 			},
 			(__anchor, e) => {
-				var em_1 = root_11();
+				var em_1 = root_10();
 
 				{
 					var expression_4 = _$_.child(em_1);
@@ -218,7 +208,7 @@ export function StreamRejects() {
 				_$_.append(__anchor, em_1);
 			},
 			(__anchor) => {
-				var p_3 = root_12();
+				var p_3 = root_11();
 
 				_$_.append(__anchor, p_3);
 			},
@@ -230,7 +220,7 @@ export function StreamRejects() {
 function NoCatchContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_4 = _$_.track_async(() => controls.noCatch.promise, __block, '6baa716b');
-		var p_4 = root_13();
+		var p_4 = root_12();
 
 		{
 			var expression_5 = _$_.child(p_4);
@@ -252,7 +242,7 @@ export function StreamNoCatch() {
 			},
 			null,
 			(__anchor) => {
-				var p_5 = root_14();
+				var p_5 = root_13();
 
 				_$_.append(__anchor, p_5);
 			},
@@ -263,7 +253,7 @@ export function StreamNoCatch() {
 
 export function RootCatch({ error, reset }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var section = root_15();
+		var section = root_14();
 
 		_$_.event('Click', section, reset);
 
@@ -280,7 +270,7 @@ export function RootCatch({ error, reset }) {
 
 export function RootPending() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var p_6 = root_16();
+		var p_6 = root_15();
 
 		_$_.append(__anchor, p_6);
 	});
@@ -289,35 +279,28 @@ export function RootPending() {
 function HeadContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_5 = _$_.track_async(() => controls.head.promise, __block, '9cd3c3cd');
-		var fragment_6 = root_17();
-		var node_7 = _$_.first_child_frag(fragment_6);
+		var fragment_5 = root_16();
+		var node_5 = _$_.first_child_frag(fragment_5);
 
-		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
+		_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
 			{
 				var consequent = (__anchor) => {
-					var fragment_7 = root_18();
-					var node_6 = _$_.first_child_frag(fragment_7);
+					var p_7 = root_17();
 
-					_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
-						var p_7 = root_19();
+					{
+						var expression_7 = _$_.child(p_7);
 
-						{
-							var expression_7 = _$_.child(p_7);
+						_$_.expression(expression_7, () => lazy_5.value);
+						_$_.pop(p_7);
+					}
 
-							_$_.expression(expression_7, () => lazy_5.value);
-							_$_.pop(p_7);
-						}
-
-						_$_.head('814bacd9', (__anchor) => {
-							_$_.render(() => {
-								_$_.document.title = 'title:' + lazy_5.value;
-							});
+					_$_.head('814bacd9', (__anchor) => {
+						_$_.render(() => {
+							_$_.document.title = 'title:' + lazy_5.value;
 						});
+					});
 
-						_$_.append(__anchor, p_7);
-					}));
-
-					_$_.append(__anchor, fragment_7);
+					_$_.append(__anchor, p_7);
 				};
 
 				_$_.if(
@@ -330,7 +313,7 @@ function HeadContent() {
 			}
 		}));
 
-		_$_.append(__anchor, fragment_6);
+		_$_.append(__anchor, fragment_5);
 	});
 }
 
@@ -343,7 +326,7 @@ export function StreamHead() {
 			},
 			null,
 			(__anchor) => {
-				var p_8 = root_20();
+				var p_8 = root_18();
 
 				_$_.append(__anchor, p_8);
 			},
@@ -355,7 +338,7 @@ export function StreamHead() {
 export function StreamRootDirect() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_6 = _$_.track_async(() => controls.rootDirect.promise, __block, 'bc9e61da');
-		var p_9 = root_21();
+		var p_9 = root_19();
 
 		{
 			var expression_8 = _$_.child(p_9);
@@ -371,7 +354,7 @@ export function StreamRootDirect() {
 function OuterContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_7 = _$_.track_async(() => controls.outer.promise, __block, '35931cce');
-		var p_10 = root_22();
+		var p_10 = root_20();
 
 		{
 			var expression_9 = _$_.child(p_10);
@@ -387,7 +370,7 @@ function OuterContent() {
 function InnerContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_8 = _$_.track_async(() => controls.inner.promise, __block, '6c7d38ed');
-		var p_11 = root_23();
+		var p_11 = root_21();
 
 		{
 			var expression_10 = _$_.child(p_11);
@@ -405,38 +388,31 @@ export function StreamNested() {
 		_$_.try(
 			__anchor,
 			(__anchor) => {
-				var fragment_8 = root_24();
-				var node_10 = _$_.first_child_frag(fragment_8);
+				var fragment_6 = root_22();
+				var node_6 = _$_.first_child_frag(fragment_6);
 
-				_$_.expression(node_10, () => _$_.tsrx_element((__anchor, __block) => {
-					var fragment_9 = root_25();
-					var node_8 = _$_.first_child_frag(fragment_9);
+				_$_.render_component(OuterContent, node_6, {});
 
-					_$_.render_component(OuterContent, node_8, {});
+				var node_7 = _$_.sibling(node_6);
 
-					var node_9 = _$_.sibling(node_8);
+				_$_.try(
+					node_7,
+					(__anchor) => {
+						_$_.render_component(InnerContent, __anchor, {});
+					},
+					null,
+					(__anchor) => {
+						var p_12 = root_23();
 
-					_$_.try(
-						node_9,
-						(__anchor) => {
-							_$_.render_component(InnerContent, __anchor, {});
-						},
-						null,
-						(__anchor) => {
-							var p_12 = root_26();
+						_$_.append(__anchor, p_12);
+					}
+				);
 
-							_$_.append(__anchor, p_12);
-						}
-					);
-
-					_$_.append(__anchor, fragment_9);
-				}));
-
-				_$_.append(__anchor, fragment_8);
+				_$_.append(__anchor, fragment_6);
 			},
 			null,
 			(__anchor) => {
-				var p_13 = root_27();
+				var p_13 = root_24();
 
 				_$_.append(__anchor, p_13);
 			},

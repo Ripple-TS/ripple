@@ -12,7 +12,7 @@ export function IfFragmentForElement() {
 			__out += '<div class="feed-c"><!--[-->';
 
 			if (hasLoaded) {
-				__out += '<!--[--><!--[-->';
+				__out += '<!--[-->';
 
 				for (const muze of muzes) {
 					__out += '<p class="muze">';
@@ -26,7 +26,7 @@ export function IfFragmentForElement() {
 					__out += '</p>';
 				}
 
-				__out += '<!--]--><span class="after">after</span><!--]-->';
+				__out += '<!--]--><span class="after">after</span>';
 			}
 
 			__out += '<!--]--></div>';
@@ -46,7 +46,7 @@ export function IfFragmentForIfIf() {
 			__out += '<div class="feed"><!--[-->';
 
 			if (hasLoaded) {
-				__out += '<!--[--><!--[-->';
+				__out += '<!--[-->';
 
 				for (const muze of muzes) {
 					__out += '<p class="muze">';
@@ -72,7 +72,7 @@ export function IfFragmentForIfIf() {
 					__out += '<span class="empty">empty</span>';
 				}
 
-				__out += '<!--]--><!--]-->';
+				__out += '<!--]-->';
 			}
 
 			__out += '<!--]--></div>';
@@ -91,7 +91,7 @@ export function IfFragmentElements() {
 			__out += '<div class="feed-b"><!--[-->';
 
 			if (hasLoaded) {
-				__out += '<!--[--><p class="muze">b</p><p class="muze">c</p><!--]-->';
+				__out += '<p class="muze">b</p><p class="muze">c</p>';
 			}
 
 			__out += '<!--]--></div>';
@@ -177,7 +177,6 @@ export function IfCodeBlockControlFlow() {
 			__out += '<div class="feed-f"><!--[-->';
 
 			if (hasLoaded) {
-				__out += '<!--[-->';
 				_$_.output_push(__out);
 				__out = '';
 
@@ -203,7 +202,7 @@ export function IfCodeBlockControlFlow() {
 					_$_.output_push(__out);
 				}));
 
-				__out += '<span class="after">after</span><!--]-->';
+				__out += '<span class="after">after</span>';
 			}
 
 			__out += '<!--]--></div>';
@@ -225,7 +224,7 @@ export function IfElseFragment() {
 			if (hasLoaded) {
 				__out += '<span class="loading">loading</span>';
 			} else {
-				__out += '<!--[--><!--[-->';
+				__out += '<!--[-->';
 
 				for (const muze of muzes) {
 					__out += '<p class="muze">';
@@ -239,7 +238,7 @@ export function IfElseFragment() {
 					__out += '</p>';
 				}
 
-				__out += '<!--]--><span class="after">after</span><!--]-->';
+				__out += '<!--]--><span class="after">after</span>';
 			}
 
 			__out += '<!--]--></div>';
@@ -259,7 +258,7 @@ export function IfDivFragment() {
 			__out += '<div class="feed-e"><!--[-->';
 
 			if (hasLoaded) {
-				__out += '<section><!--[--><!--[-->';
+				__out += '<section><!--[-->';
 
 				for (const muze of muzes) {
 					__out += '<p class="muze">';
@@ -273,7 +272,7 @@ export function IfDivFragment() {
 					__out += '</p>';
 				}
 
-				__out += '<!--]--><span class="after">after</span><!--]--></section>';
+				__out += '<!--]--><span class="after">after</span></section>';
 			}
 
 			__out += '<!--]--></div>';

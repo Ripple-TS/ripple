@@ -131,7 +131,7 @@ export function Greeting(props) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div>' + _$_.escape('Hello ' + String(props.name ?? '')) + '</div>';
+			__out += '<div>' + _$_.escape('Hello ' + props.name) + '</div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -908,6 +908,43 @@ export function NestedComponentAsLastSibling() {
 			}
 
 			__out += '</section>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function fetchLabel() {
+	return 'fetched';
+}
+
+export function TextTailExpression() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div>' + _$_.escape("label: " + String(fetchLabel())) + '</div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function FragmentTailExpression() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div>' + _$_.escape('frag-' + String(fetchLabel())) + '</div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function FragmentChildOnly() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div>frag-<span>tail</span></div>';
 			_$_.output_push(__out);
 		});
 	});

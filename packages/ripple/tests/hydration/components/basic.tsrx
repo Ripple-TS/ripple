@@ -326,3 +326,21 @@ export function NestedComponentAsLastSibling() @{
 		<InnerContent />
 	</section>
 }
+
+// A call-containing but provably-text-primitive expression following inlined
+// text: client and server must agree on the DOM shape for the text run.
+function fetchLabel() {
+	return 'fetched';
+}
+
+export function TextTailExpression() @{
+	<div>label: {String(fetchLabel())}</div>
+}
+
+export function FragmentTailExpression() @{
+	<div><>{'frag-'}</>{String(fetchLabel())}</div>
+}
+
+export function FragmentChildOnly() @{
+	<div><>{'frag-'}</><span>{'tail'}</span></div>
+}

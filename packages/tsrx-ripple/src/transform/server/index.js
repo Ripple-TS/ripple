@@ -81,6 +81,8 @@ import {
 	lower_code_block_children,
 	is_code_block_function_body,
 	is_text_primitive_expression,
+	collect_head_elements,
+	is_flattenable_template_fragment,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -836,6 +838,29 @@ function is_native_tsrx_statement_position(path) {
 }
 
 /**
+ * Whether `node` is one of `parent`'s rendered template children, looking
+ * through fragments that `normalize_child` flattens — their children render
+ * inline in the parent, so they are the parent's children for classification.
+ * @param {AST.Node | undefined} parent
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_rendered_template_child(parent, node) {
+	const children = /** @type {ESTreeJSX.JSXElement | undefined} */ (parent)?.children;
+	if (!children) return false;
+	for (const child of children) {
+		if (child === node) return true;
+		if (
+			is_flattenable_template_fragment(/** @type {AST.Node} */ (child), false) &&
+			is_rendered_template_child(/** @type {AST.Node} */ (child), node)
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * @param {AST.Node[]} path
  * @param {AST.Node} [node] The node being classified. Expression-container and
  *   attribute values are visited with the container unwrapped (see
@@ -849,11 +874,7 @@ function is_native_tsrx_statement_position(path) {
 function is_native_tsrx_value_position(path, node) {
 	const parent = path.at(-1);
 	if (node && (is_template_element(parent) || is_template_fragment(parent))) {
-		return !(
-			/** @type {ESTreeJSX.JSXElement} */ (parent).children?.includes(
-				/** @type {ESTreeJSX.JSXElement} */ (node),
-			)
-		);
+		return !is_rendered_template_child(parent, node);
 	}
 	return !(
 		is_native_tsrx_statement_position(path) ||
@@ -1178,9 +1199,7 @@ function transform_children(children, context) {
 		}
 	}
 
-	const head_elements = /** @type {ESTreeJSX.JSXElement[]} */ (
-		children.filter((node) => is_head_element(node))
-	);
+	const head_elements = collect_head_elements(children, !!state.to_ts);
 
 	if (head_elements.length) {
 		state.init?.push(b.stmt(b.call(b.id('_$_.set_output_target'), b.literal('head'))));

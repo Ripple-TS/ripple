@@ -350,7 +350,7 @@ function HeadContent() {
 			__out += '<!--[--><!--[-->';
 
 			if (lazy_5.value) {
-				__out += '<!--[--><p class="head-content">';
+				__out += '<p class="head-content">';
 
 				{
 					_$_.output_push(__out);
@@ -366,7 +366,6 @@ function HeadContent() {
 				_$_.output_push(__out);
 				__out = '';
 				_$_.set_output_target(null);
-				__out += '<!--]-->';
 			}
 
 			__out += '<!--]--><!--]-->';
@@ -494,41 +493,55 @@ export function StreamNested() {
 
 				_$_.regular_block(() => {
 					{
-						{
-							const comp = OuterContent;
-							const args = [{}];
+						const comp = OuterContent;
+						const args = [{}];
 
-							_$_.render_component(comp, ...args);
-						}
-
-						_$_.try_block(
-							() => {
-								let __out = '';
-
-								__out += '<!--[-->';
-
-								{
-									const comp = InnerContent;
-									const args = [{}];
-
-									_$_.output_push(__out);
-									__out = '';
-									_$_.render_component(comp, ...args);
-								}
-
-								__out += '<!--]-->';
-								_$_.output_push(__out);
-							},
-							null,
-							() => {
-								let __out = '';
-
-								__out += '<!--[--><p class="inner-loading">inner-loading</p><!--]-->';
-								_$_.output_push(__out);
-							}
-						);
+						_$_.render_component(comp, ...args);
 					}
 				});
+
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.try_block(
+					() => {
+						let __out = '';
+
+						__out += '<!--[-->';
+						_$_.output_push(__out);
+						__out = '';
+
+						_$_.regular_block(() => {
+							{
+								const comp = InnerContent;
+								const args = [{}];
+
+								_$_.render_component(comp, ...args);
+							}
+						});
+
+						__out += '<!--]-->';
+						_$_.output_push(__out);
+					},
+					null,
+					() => {
+						let __out = '';
+
+						__out += '<!--[-->';
+						_$_.output_push(__out);
+						__out = '';
+
+						_$_.regular_block(() => {
+							let __out = '';
+
+							__out += '<p class="inner-loading">inner-loading</p>';
+							_$_.output_push(__out);
+						});
+
+						__out += '<!--]-->';
+						_$_.output_push(__out);
+					}
+				);
 
 				__out += '<!--]-->';
 				_$_.output_push(__out);

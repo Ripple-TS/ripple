@@ -255,3 +255,26 @@ describe('hydration > basic', () => {
 		expect(container.querySelector('.inner .last-child')?.textContent).toBe('I am the last child');
 	});
 });
+
+describe('hydration > text runs with call-containing primitives', () => {
+	it('hydrates a text expression that follows inlined text', async () => {
+		await hydrateComponent(
+			ServerComponents.TextTailExpression,
+			ClientComponents.TextTailExpression,
+		);
+		expect(container.textContent).toBe('label: fetched');
+	});
+
+	it('hydrates a text expression that follows a fragment ending in text', async () => {
+		await hydrateComponent(
+			ServerComponents.FragmentTailExpression,
+			ClientComponents.FragmentTailExpression,
+		);
+		expect(container.textContent).toBe('frag-fetched');
+	});
+
+	it('hydrates an authored fragment child', async () => {
+		await hydrateComponent(ServerComponents.FragmentChildOnly, ClientComponents.FragmentChildOnly);
+		expect(container.textContent).toBe('frag-tail');
+	});
+});

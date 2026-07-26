@@ -66,7 +66,20 @@ export function get_last_child(node) {
  */
 export function first_child(node, is_text) {
 	if (!hydrating) {
-		return get_first_child(node);
+		var first = get_first_child(node);
+		// A text anchor may have coalesced with preceding template text into a
+		// single text node (or be missing entirely) — the caller expects a text
+		// node of its own, so create one.
+		if (is_text && first?.nodeType !== TEXT_NODE) {
+			var created = create_text();
+			if (first === null) {
+				/** @type {Element} */ (node).append(created);
+			} else {
+				/** @type {Element | Text | Comment} */ (first).before(created);
+			}
+			return created;
+		}
+		return first;
 	}
 	var child = get_first_child(/** @type {Node} */ (hydrate_node));
 
