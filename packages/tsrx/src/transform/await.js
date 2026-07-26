@@ -1,6 +1,10 @@
+/** @import * as AST from 'estree' */
+
+import { child_nodes, is_ast_node } from '../utils/ast.js';
+
 /**
- * @param {any[]} body_nodes
- * @returns {any | null}
+ * @param {AST.Node[]} body_nodes
+ * @returns {AST.TSRXAwaitNode | null}
  */
 export function find_first_top_level_await_in_tsrx_function_body(body_nodes) {
 	for (const node of body_nodes) {
@@ -12,12 +16,12 @@ export function find_first_top_level_await_in_tsrx_function_body(body_nodes) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | AST.Node[] | null | undefined} node
  * @param {boolean} inside_nested_function
- * @returns {any | null}
+ * @returns {AST.TSRXAwaitNode | null}
  */
 export function find_first_top_level_await(node, inside_nested_function) {
-	if (!node || typeof node !== 'object') {
+	if (!node) {
 		return null;
 	}
 
@@ -45,17 +49,15 @@ export function find_first_top_level_await(node, inside_nested_function) {
 	if (
 		node.type === 'AwaitExpression' ||
 		(node.type === 'ForOfStatement' && node.await === true) ||
-		(node.type === 'JSXForExpression' && node.await === true)
+		(node.type === 'JSXForExpression' &&
+			node.statementType === 'ForOfStatement' &&
+			node.await === true)
 	) {
 		return node;
 	}
 
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-
-		const found = find_first_top_level_await(node[key], false);
+	for (const child of child_nodes(node)) {
+		const found = find_first_top_level_await(child, false);
 		if (found) return found;
 	}
 

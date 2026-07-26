@@ -21,6 +21,43 @@
 import * as b from './builders.js';
 
 /**
+ * @param {unknown} value
+ * @returns {value is AST.Node}
+ */
+export function is_ast_node(value) {
+	return !!value && typeof value === 'object' && 'type' in value;
+}
+
+/**
+ * The child nodes reachable from `node`'s own properties, flattening node
+ * arrays. Positional and metadata keys are skipped: they never hold children,
+ * and `metadata` in particular can hold memoized lowerings of nodes that are
+ * already reachable elsewhere in the tree.
+ *
+ * @param {AST.Node} node
+ * @param {string} [skip_key] an extra own key to skip
+ * @returns {AST.Node[]}
+ */
+export function child_nodes(node, skip_key) {
+	/** @type {AST.Node[]} */
+	const children = [];
+	const entries = /** @type {AST.TraversableAstNode} */ (node);
+	for (const key of Object.keys(entries)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		if (key === skip_key) continue;
+		const value = entries[key];
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				if (is_ast_node(item)) children.push(item);
+			}
+		} else if (is_ast_node(value)) {
+			children.push(value);
+		}
+	}
+	return children;
+}
+
+/**
  * @template {object} T
  * @param {T | null | undefined} node
  * @returns {node is T & AST.NodeWithLocation}

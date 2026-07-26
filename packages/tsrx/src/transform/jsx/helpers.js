@@ -252,7 +252,7 @@ const LOCATION_WRAPPED_NODE_TYPES = new Set([
 
 /**
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.JSXIfExpression | (AST.IfStatement & { statementType: 'IfStatement' })}
  */
 export function is_template_if_node(node) {
 	return (
@@ -263,7 +263,7 @@ export function is_template_if_node(node) {
 
 /**
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.JSXForOfExpression | (AST.ForOfStatement & { statementType: 'ForOfStatement' })}
  */
 export function is_template_for_of_node(node) {
 	return (
@@ -274,7 +274,7 @@ export function is_template_for_of_node(node) {
 
 /**
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.JSXSwitchExpression | (AST.SwitchStatement & { statementType: 'SwitchStatement' })}
  */
 export function is_template_switch_node(node) {
 	return (
@@ -285,7 +285,7 @@ export function is_template_switch_node(node) {
 
 /**
  * @param {AST.Node | null | undefined} node
- * @returns {boolean}
+ * @returns {node is AST.JSXTryExpression | (AST.TryStatement & { statementType: 'TryStatement' })}
  */
 export function is_template_try_node(node) {
 	return (

@@ -5,6 +5,8 @@
  * `.foo.hash`) match after rendering.
  */
 
+/** @import * as AST from 'estree' */
+
 import { walk } from 'zimmerframe';
 import * as b from '../utils/builders.js';
 import { mark_class_map_selectors } from './style-ref.js';
@@ -91,8 +93,8 @@ function is_unreachable_via_class_map(complex_selector, path) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.JSXStyleElement}
  */
 export function is_style_element(node) {
 	return !!node && node.type === 'JSXStyleElement';

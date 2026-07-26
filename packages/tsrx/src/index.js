@@ -204,7 +204,6 @@ export {
 	is_component_jsx_name,
 	is_jsx_child,
 	set_loc,
-	to_text_expression,
 } from './transform/jsx/ast-builders.js';
 export {
 	render_stylesheets as renderStylesheets,

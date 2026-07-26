@@ -5,6 +5,7 @@ import type { Parse } from './parse.js';
 import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from './helpers';
+import type { Context as ZimmerframeContext } from 'zimmerframe';
 import type {
 	JsxPlatform,
 	JsxPlatformHooks,
@@ -27,7 +28,8 @@ export { createJsxTransform };
 /** Result of extracting a branch body into a generated helper component. */
 export interface JsxHelperComponent {
 	setup_statements: AST.Statement[];
-	component_element: ESTreeJSX.JSXElement;
+	/** The parser's widened TSRX element shape — see {@link AST.TSRXJSXElement}. */
+	component_element: AST.TSRXJSXElement;
 }
 
 export function collectStyleRefAttributes(
@@ -86,7 +88,7 @@ export interface CompileOptions {
 }
 
 export type NameSpace = 'html' | 'svg' | 'mathml';
-interface BaseNodeMetaData {
+export interface BaseNodeMetaData {
 	scoped?: boolean;
 	path: AST.Node[];
 	has_template?: boolean;
@@ -105,6 +107,8 @@ interface BaseNodeMetaData {
 	commentContainerId?: number;
 	parenthesized?: boolean;
 	native_tsrx?: boolean;
+	/** The function's body came from a `@{ … }` code block that has been lowered. */
+	native_tsrx_body?: boolean;
 	tsrx_generated_wrapper?: boolean;
 	native_tsrx_template_block?: boolean;
 	dynamicElement?: boolean;
@@ -155,9 +159,19 @@ interface BaseNodeMetaData {
 	disable_verification?: boolean;
 	extra_source_mappings?: AST.NodeWithLocation[];
 	generated_setup_declarations?: AST.Statement[];
+	/** Helper components lifted out of a component; read back by `expand_component_helpers`. */
+	generated_helpers?: AST.Statement[];
+	/** Module-level static JSX hoisted out of a component. */
+	generated_statics?: AST.Statement[];
 	has_unmappable_value?: boolean;
 	synthetic_ref?: boolean;
 	tsrx_reactive_block?: boolean;
+	/** Generated dynamic-tag render-block closure, not a user component boundary. */
+	tsrx_dynamic_wrapper?: boolean;
+	/** Scoped-class definition sites, for editor definitions/hover on `style.x`. */
+	styleClasses?: StyleClasses;
+	/** Top-level scoped classes collected while pruning the component's CSS. */
+	topScopedClasses?: TopScopedClasses;
 	vapor_pending_fallback?: ESTreeJSX.JSXRenderNode;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
@@ -165,7 +179,7 @@ interface BaseNodeMetaData {
 	}>;
 }
 
-interface FunctionMetaData extends BaseNodeMetaData {
+export interface FunctionMetaData extends BaseNodeMetaData {
 	native_tsrx?: boolean;
 	native_tsrx_function?: boolean;
 	is_method?: boolean;
@@ -173,11 +187,7 @@ interface FunctionMetaData extends BaseNodeMetaData {
 	has_lazy_descendants?: boolean;
 	/** The component's extracted `<style>` stylesheet (element-level scoped-class info lives on BaseNodeMetaData's `css`). */
 	component_css?: AST.CSS.StyleSheet | null;
-	/** Top-level scoped classes collected while pruning the component's CSS. */
-	topScopedClasses?: TopScopedClasses;
 	synthetic_children?: boolean;
-	generated_helpers?: AST.Statement[];
-	generated_statics?: AST.Statement[];
 }
 
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output
@@ -405,6 +415,8 @@ declare module 'estree' {
 		test: AST.Expression;
 		consequent: AST.Statement;
 		alternate: AST.Statement | null;
+		/** Span of the `@else` keyword; only present when `alternate` is. */
+		alternateKeyword?: AST.NodeWithLocation | null;
 		metadata: BaseNodeMetaData;
 	}
 
@@ -557,6 +569,8 @@ declare module 'estree' {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
 		empty?: AST.BlockStatement | null;
+		/** Span of the `@empty` keyword; only present when `empty` is. */
+		emptyKeyword?: AST.NodeWithLocation | null;
 	}
 
 	interface ImportDeclaration {
@@ -809,8 +823,21 @@ declare module 'estree-jsx' {
 	/** A node that can be returned from a platform hook into a JSX render slot. */
 	type JSXRenderNode = AST.Expression | JSXExpressionContainer | JSXText | JSXSpreadChild;
 
-	/** A JSX child produced by the transform's render-body lowering. */
-	type JSXRenderChild = JSXElement | JSXFragment | JSXExpressionContainer | JSXText;
+	/**
+	 * A JSX child produced by the transform's render-body lowering. Elements and
+	 * fragments carry the parser's widened TSRX shape, which plain estree-jsx
+	 * elements are assignable to.
+	 */
+	type JSXRenderChild = AST.TSRXJSXElement | AST.TSRXJSXFragment | JSXExpressionContainer | JSXText;
+
+	/**
+	 * A JSX child that evaluates to a single expression, so it can be captured
+	 * into a `const` at its source position.
+	 */
+	type JSXCapturableChild =
+		| AST.TSRXJSXElement
+		| AST.TSRXJSXFragment
+		| (JSXExpressionContainer & { expression: AST.Expression });
 
 	/** An attribute accepted by and emitted from the shared JSX transformer. */
 	type JSXAttributeNode = JSXAttribute | JSXSpreadAttribute;
@@ -1690,6 +1717,14 @@ export interface TransformClientState extends BaseState {
 	ref_target_type?: AST.TypeNode;
 }
 
+/** Accumulator for the helper components and statics a component lift produces. */
+export interface JsxHelperState {
+	base_name: string;
+	next_id: number;
+	helpers: AST.Statement[];
+	statics: AST.Statement[];
+}
+
 /** Override zimmerframe types and provide our own */
 /**
  * Where stock `@types/estree-jsx` and the TSRX parser shapes share a `type`
@@ -1760,6 +1795,13 @@ export type VisitorClientContext = TransformClientContext & {
 };
 
 /**
+ * The zimmerframe visitor context the JSX transform's visitors receive. Walked
+ * over the `Node` union rather than `Program`, since only that union admits a
+ * visitor per node type.
+ */
+export type JsxVisitorContext = ZimmerframeContext<AST.Node, JsxTransformContext>;
+
+/**
  * Delegated event result
  */
 export interface DelegatedEventResult {
@@ -1776,6 +1818,16 @@ export type TopScopedClasses = Map<
 >;
 
 export type StyleClasses = Map<string, AST.MemberExpression['property']>;
+
+/**
+ * The scoped-CSS work for one native TSRX node: its stylesheet, the `style.x`
+ * ref attributes that reference it, and a hash-annotated copy of the node.
+ */
+export interface JsxStyleContext {
+	css: AST.CSS.StyleSheet;
+	style_refs: ESTreeJSX.JSXAttribute[];
+	fragment: AST.NativeTSRXNode;
+}
 
 /**
  * Event handling types

@@ -14,14 +14,6 @@
 import * as b from '../utils/builders.js';
 
 /**
- * A JSX child that evaluates to a single expression, so it can be captured
- * into a `const` at its source position.
- * @typedef {ESTreeJSX.JSXElement
- *   | ESTreeJSX.JSXFragment
- *   | (ESTreeJSX.JSXExpressionContainer & { expression: AST.Expression })} CapturableJsxChild
- */
-
-/**
  * Returns true when the body contains a non-JSX statement that appears
  * after a JSX child. In that case JSX children must be captured at their
  * source position so mutations in following statements do not retroactively
@@ -53,7 +45,7 @@ export function is_interleaved_body(body_nodes, is_jsx_child) {
  * to mutations doesn't change output, and neither has an expression to bind.
  *
  * @param {AST.Node | null | undefined} jsx
- * @returns {jsx is CapturableJsxChild}
+ * @returns {jsx is ESTreeJSX.JSXCapturableChild}
  */
 export function is_capturable_jsx_child(jsx) {
 	if (!jsx) return false;
@@ -73,7 +65,7 @@ export function is_capturable_jsx_child(jsx) {
  * statements in source order and uses the reference in place of the JSX
  * child inside the returned fragment.
  *
- * @param {CapturableJsxChild} jsx
+ * @param {ESTreeJSX.JSXCapturableChild} jsx
  * @param {number} capture_index
  * @param {(id: AST.Identifier, init: AST.Expression) => AST.Identifier} [anchor_id] gives the
  *   capture's NAME an authored origin — the only anchorable token when the captured

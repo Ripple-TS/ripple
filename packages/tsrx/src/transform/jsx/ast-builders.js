@@ -2,7 +2,7 @@
 /** @import * as ESTreeJSX from 'estree-jsx' */
 
 import * as b from '../../utils/builders.js';
-import { has_location } from '../../utils/ast.js';
+import { has_location, is_ast_node } from '../../utils/ast.js';
 
 /**
  * AST-building utilities shared across every JSX target (React, Preact,
@@ -16,7 +16,7 @@ import { has_location } from '../../utils/ast.js';
  *
  * @template {AST.Node} T
  * @param {T} node
- * @param {AST.Node | AST.NodeWithLocation | undefined} source_node
+ * @param {AST.Node | AST.NodeWithLocation | null | undefined} source_node
  * @returns {T}
  */
 export function set_loc(node, source_node) {
@@ -125,14 +125,6 @@ export function add_extra_source_mappings_from_matching_expression(generated, so
 			add_extra_source_mappings_from_matching_expression(generated_child, source_child);
 		}
 	}
-}
-
-/**
- * @param {unknown} value
- * @returns {value is AST.Node}
- */
-function is_ast_node(value) {
-	return !!value && typeof value === 'object' && 'type' in value;
 }
 
 /**
@@ -400,60 +392,6 @@ function is_static_string_expression(expression) {
 		return expression.expressions.length === 0;
 	}
 	return false;
-}
-
-/**
- * Build `expr == null ? '' : expr + ''` — the text-coerce form used when a
- * Ripple `{expr}` child must render as a string in JSX (React/Preact drop
- * booleans; Solid's default child semantics don't either). Solid uses this
- * via `to_jsx_child`; React/Preact wrap it in a JSXExpressionContainer.
- *
- * When the expression is statically a non-null string at the AST level —
- * a string `Literal` (`"hello"`, `'hello'`) or a `TemplateLiteral` with no
- * interpolations (`` `hello` ``) — the coercion is provably a no-op and
- * the literal is emitted as-is. Identifiers and any other expression type still
- * get the ternary because the AST alone can't prove they're non-null strings.
- *
- * @param {AST.Expression} expression
- * @param {AST.Node | AST.NodeWithLocation} [source_node]
- * @returns {AST.Expression}
- */
-export function to_text_expression(expression, source_node = expression) {
-	if (is_static_string_expression(expression)) {
-		return set_loc(clone_ast_node(expression), source_node);
-	}
-	return set_loc(
-		/** @type {AST.Expression} */ ({
-			type: 'ConditionalExpression',
-			test: {
-				type: 'BinaryExpression',
-				operator: '==',
-				left: clone_ast_node(expression),
-				right: create_null_literal(),
-				metadata: { path: [] },
-			},
-			consequent: {
-				type: 'Literal',
-				value: '',
-				raw: "''",
-				metadata: { path: [] },
-			},
-			alternate: {
-				type: 'BinaryExpression',
-				operator: '+',
-				left: clone_ast_node(expression),
-				right: {
-					type: 'Literal',
-					value: '',
-					raw: "''",
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		}),
-		source_node,
-	);
 }
 
 /**

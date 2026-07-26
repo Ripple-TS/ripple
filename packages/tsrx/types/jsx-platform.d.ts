@@ -1,7 +1,7 @@
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type { RawSourceMap } from 'source-map';
-import type { CompileError, JsxHelperComponent } from './index';
+import type { CompileError, JsxHelperComponent, JsxHelperState } from './index';
 
 /**
  * Result returned by a JSX platform transform (React, Preact, Solid).
@@ -53,12 +53,7 @@ export interface JsxTransformContext {
 	stylesheets: AST.CSS.StyleSheet[];
 	type_only_style_anchors: AST.Statement[];
 	module_scoped_hook_components: boolean;
-	helper_state: {
-		base_name: string;
-		next_id: number;
-		helpers: AST.Statement[];
-		statics: AST.Statement[];
-	} | null;
+	helper_state: JsxHelperState | null;
 	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
 	lazy_next_id: number;
@@ -318,7 +313,7 @@ export interface JsxPlatformHooks {
 	 * otherwise statically safe. Targets can use this to keep runtime-sensitive
 	 * JSX, such as component invocations, inside render/setup execution.
 	 */
-	canHoistStaticNode?: (node: ESTreeJSX.JSXElement, ctx: JsxTransformContext) => boolean;
+	canHoistStaticNode?: (node: AST.TSRXJSXElement, ctx: JsxTransformContext) => boolean;
 	/**
 	 * Custom validation for a component body that uses top-level `await`.
 	 * Default: enforce `validation.requireUseServerForAwait`. Solid rejects

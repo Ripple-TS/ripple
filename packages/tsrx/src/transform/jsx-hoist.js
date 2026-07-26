@@ -1,3 +1,4 @@
+/** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
 
 /**
@@ -104,7 +105,7 @@ export function is_hoist_safe_jsx_attribute(attribute) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @returns {boolean}
  */
 export function is_hoist_safe_jsx_node(node) {

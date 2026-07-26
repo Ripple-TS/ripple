@@ -157,7 +157,7 @@ export const transform = createJsxTransform(vue_platform);
 /**
  * @param {ESTreeJSX.JSXRenderNode} try_content
  * @param {ESTreeJSX.JSXRenderNode} fallback_content
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 function create_vapor_pending_boundary(try_content, fallback_content) {
 	return create_vapor_pending_boundary_from_default_slot(
@@ -169,7 +169,7 @@ function create_vapor_pending_boundary(try_content, fallback_content) {
 /**
  * @param {AST.ArrowFunctionExpression} default_slot
  * @param {ESTreeJSX.JSXRenderNode} fallback_content
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 function create_vapor_pending_boundary_from_default_slot(default_slot, fallback_content) {
 	const fallback_expression = jsx_child_to_expression(fallback_content);
@@ -205,9 +205,15 @@ function create_module_scoped_error_fallback_component(catch_body_nodes, catch_p
 	const saved_module_scoped = ctx.module_scoped_hook_components;
 	ctx.module_scoped_hook_components = true;
 	try {
-		return createHookSafeHelper(catch_body_nodes, undefined, node.handler ?? node, ctx, undefined, {
-			transientBindings: get_pattern_names(catch_params),
-		});
+		const source = node.handler ?? node;
+		return createHookSafeHelper(
+			catch_body_nodes,
+			undefined,
+			has_location(source) ? source : undefined,
+			ctx,
+			undefined,
+			{ transientBindings: get_pattern_names(catch_params) },
+		);
 	} finally {
 		ctx.module_scoped_hook_components = saved_module_scoped;
 	}
@@ -274,7 +280,7 @@ function create_fallback_component_renderer(fallback_component, fallback_fn) {
  * @param {JsxHelperComponent} fallback_component
  * @param {AST.ArrowFunctionExpression} fallback_fn
  * @param {AST.Expression[]} [replacement_args]
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 function create_fallback_component_element(fallback_component, fallback_fn, replacement_args = []) {
 	const element = clone_ast_node(fallback_component.component_element, false);
@@ -325,7 +331,7 @@ function jsx_child_to_expression(child) {
 /**
  * @param {ESTreeJSX.JSXRenderNode} content
  * @param {AST.ArrowFunctionExpression} fallback_fn
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 function create_vapor_error_boundary(content, fallback_fn) {
 	return b.jsx_element_fresh(

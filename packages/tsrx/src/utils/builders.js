@@ -605,13 +605,17 @@ export function ts_type_literal(members, loc_info) {
 }
 
 /**
+ * `@types/estree`'s `Statement` union has no TS declarations in it, so the
+ * result is typed as both: a `type X = …` alias occupies a statement slot
+ * everywhere the transforms emit one.
+ *
  * @param {AST.Identifier} id
  * @param {AST.Node} type_annotation
  * @param {AST.NodeWithLocation} [loc_info]
- * @returns {AST.TSTypeAliasDeclaration}
+ * @returns {AST.TSTypeAliasDeclaration & AST.Statement}
  */
 export function ts_type_alias(id, type_annotation, loc_info) {
-	const node = /** @type {AST.TSTypeAliasDeclaration} */ ({
+	const node = /** @type {AST.TSTypeAliasDeclaration & AST.Statement} */ ({
 		type: 'TSTypeAliasDeclaration',
 		id,
 		typeParameters: undefined,
@@ -1090,8 +1094,8 @@ export function try_builder(block, handler = null, finalizer = null, pending = n
 }
 
 /**
- * @param {AST.Pattern | null} param
- * @param {AST.Pattern | null} reset_param
+ * @param {AST.Pattern | null | undefined} param
+ * @param {AST.Pattern | null | undefined} reset_param
  * @param {AST.BlockStatement} body
  * @param {AST.NodeWithLocation} [loc_info]
  * @return {AST.CatchClause}
@@ -1100,8 +1104,8 @@ export function catch_clause_builder(param, reset_param, body, loc_info) {
 	/** @type {AST.CatchClause} */
 	const node = {
 		type: 'CatchClause',
-		param,
-		resetParam: reset_param,
+		param: param ?? null,
+		resetParam: reset_param ?? null,
 		body,
 		metadata: { path: [] },
 	};
@@ -1147,7 +1151,7 @@ export function jsx_attribute(name, value = null, shorthand = false, loc_info) {
  * @param {boolean} [self_closing]
  * @param {ESTreeJSX.JSXOpeningElement['typeArguments']} [type_arguments]
  * @param {AST.NodeWithLocation} [loc_info]
- * @returns {ESTreeJSX.JSXOpeningElement}
+ * @returns {ESTreeJSX.TSRXJSXOpeningElement}
  */
 export function jsx_opening_element(
 	name,
@@ -1156,7 +1160,7 @@ export function jsx_opening_element(
 	type_arguments = undefined,
 	loc_info,
 ) {
-	const node = /** @type {ESTreeJSX.JSXOpeningElement} */ ({
+	const node = /** @type {ESTreeJSX.TSRXJSXOpeningElement} */ ({
 		type: 'JSXOpeningElement',
 		name,
 		attributes,
@@ -1173,10 +1177,10 @@ export function jsx_opening_element(
  *
  * @param {ESTreeJSX.TSRXJSXClosingElement['name']} name
  * @param {AST.NodeWithLocation} [loc_info]
- * @returns {ESTreeJSX.JSXClosingElement}
+ * @returns {ESTreeJSX.TSRXJSXClosingElement}
  */
 export function jsx_closing_element(name, loc_info) {
-	const node = /** @type {ESTreeJSX.JSXClosingElement} */ ({
+	const node = /** @type {ESTreeJSX.TSRXJSXClosingElement} */ ({
 		type: 'JSXClosingElement',
 		name,
 		metadata: { path: [] },
@@ -1191,11 +1195,14 @@ export function jsx_closing_element(name, loc_info) {
  * derived from an existing source node, use `jsx_element` (which spreads
  * the source's name and metadata).
  *
- * @param {ESTreeJSX.JSXOpeningElement} opening_element
- * @param {ESTreeJSX.JSXClosingElement | null} [closing_element]
- * @param {ESTreeJSX.JSXElement['children']} [children]
+ * Carries the parser's widened TSRX shape (dynamic-tag names, lowered template
+ * children) — see {@link jsx_element}.
+ *
+ * @param {ESTreeJSX.TSRXJSXOpeningElement} opening_element
+ * @param {ESTreeJSX.TSRXJSXClosingElement | null} [closing_element]
+ * @param {AST.TSRXJSXElement['children']} [children]
  * @param {AST.NodeWithLocation} [loc_info]
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 export function jsx_element_fresh(
 	opening_element,
@@ -1203,7 +1210,7 @@ export function jsx_element_fresh(
 	children = [],
 	loc_info,
 ) {
-	const node = /** @type {ESTreeJSX.JSXElement} */ ({
+	const node = /** @type {AST.TSRXJSXElement} */ ({
 		type: 'JSXElement',
 		openingElement: opening_element,
 		closingElement: closing_element,

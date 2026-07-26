@@ -286,12 +286,12 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 
 	const returned_expression = return_value_body_to_expression(children, node, transform_context);
 	if (returned_expression) {
+		// `return_value_body_to_expression` only ever yields a value expression,
+		// so an element/fragment are the only JSX shapes reachable here.
 		if (
 			in_jsx_child &&
 			returned_expression.type !== 'JSXElement' &&
-			returned_expression.type !== 'JSXFragment' &&
-			returned_expression.type !== 'JSXText' &&
-			returned_expression.type !== 'JSXExpressionContainer'
+			returned_expression.type !== 'JSXFragment'
 		) {
 			return to_jsx_expression_container(returned_expression, node);
 		}
