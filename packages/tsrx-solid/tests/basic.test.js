@@ -60,6 +60,23 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/`await` is not allowed inside Solid components/);
 		});
 
+		// `is_template_for_of_node` gates the hook-bearing for-of hoist; a
+		// `for … in` directive shares the `JSXForExpression` type and must not
+		// be lowered through it.
+		it('rejects a hook-bearing @for...in instead of lowering it as for...of', () => {
+			expect(() =>
+				compile(
+					`export function App({ obj }: { obj: Record<string, string> }) @{
+							@for (const key in obj) {
+								const value = createMemo(() => obj[key]);
+								<div>{value()}</div>
+							}
+						}`,
+					'App.tsrx',
+				),
+			).toThrow(/`@for` currently supports `for\.\.\.of` loops/);
+		});
+
 		it('still rejects await with a top-level use server directive', () => {
 			expect(() =>
 				compile(

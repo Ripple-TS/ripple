@@ -5533,18 +5533,31 @@ function try_statement_to_jsx_child(node, transform_context) {
 				? to_jsx_expression_container(create_null_literal())
 				: statement_body_to_jsx_child(pending_body_nodes, transform_context);
 
-		result =
-			transform_context.platform.hooks?.createPendingBoundary?.(
-				result,
-				fallback_content,
+		const custom_pending = transform_context.platform.hooks?.createPendingBoundary?.(
+			result,
+			fallback_content,
+			transform_context,
+			node,
+		);
+		if (custom_pending != null) {
+			result = custom_pending;
+		} else {
+			// The keyword the fallback came from, and — since `<Suspense>` is the
+			// outermost thing `@try` produced unless a `@catch` wraps it below —
+			// the keyword the boundary itself came from.
+			const fallback_name = stamp_directive_origin(
+				b.jsx_id('fallback'),
+				node.pendingKeyword,
+				'@pending',
 				transform_context,
-				node,
-			) ??
-			create_jsx_element(
+			);
+			result = create_jsx_element(
 				'Suspense',
-				[b.jsx_attribute(b.jsx_id('fallback'), fallback_content)],
+				[b.jsx_attribute(fallback_name, fallback_content)],
 				[result],
 			);
+			stamp_directive_origin(result.openingElement.name, node, '@try', transform_context);
+		}
 	}
 
 	// Wrap in <TsrxErrorBoundary> if catch block exists
@@ -5623,16 +5636,28 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 			return result;
 		} else {
+			const fallback_name = stamp_directive_origin(
+				b.jsx_id('fallback'),
+				node.handlerKeyword,
+				'@catch',
+				transform_context,
+			);
 			result = create_jsx_element(
 				'TsrxErrorBoundary',
 				[
-					b.jsx_attribute(b.jsx_id('fallback'), to_jsx_expression_container(fallback_fn)),
+					b.jsx_attribute(fallback_name, to_jsx_expression_container(fallback_fn)),
 					...(boundary_content
 						? [b.jsx_attribute(b.jsx_id('content'), to_jsx_expression_container(boundary_content))]
 						: []),
 				],
 				boundary_content ? [] : [result],
 			);
+			// `@try` names the OUTERMOST boundary it produced. With a `@pending`
+			// that is the `<Suspense>` stamped above, and this element merely
+			// wraps it; without one, the error boundary is what `@try` became.
+			if (!pending) {
+				stamp_directive_origin(result.openingElement.name, node, '@try', transform_context);
+			}
 		}
 	}
 

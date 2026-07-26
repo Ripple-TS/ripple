@@ -262,13 +262,18 @@ export function is_template_if_node(node) {
 }
 
 /**
+ * A `@for … of …` directive, in either the expression or the retyped statement
+ * form. `JSXForExpression` also covers `@for … in …` and plain `@for (;;)`, so
+ * both arms must check `statementType` — callers read for-of-only fields such
+ * as `await` off the result.
+ *
  * @param {AST.Node | null | undefined} node
  * @returns {node is AST.JSXForOfExpression | (AST.ForOfStatement & { statementType: 'ForOfStatement' })}
  */
 export function is_template_for_of_node(node) {
 	return (
-		node?.type === 'JSXForExpression' ||
-		(node?.type === 'ForOfStatement' && node?.statementType === 'ForOfStatement')
+		(node?.type === 'JSXForExpression' || node?.type === 'ForOfStatement') &&
+		node.statementType === 'ForOfStatement'
 	);
 }
 

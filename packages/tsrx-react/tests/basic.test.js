@@ -168,6 +168,19 @@ describe('@tsrx/react basic', () => {
 		).toThrow(/does not support `for await\.\.\.of`/);
 	});
 
+	it('rejects @for...in in templates', () => {
+		expect(() =>
+			compile(
+				`export function App({ obj }: { obj: Record<string, string> }) @{
+					@for (const key in obj) {
+						<div>{obj[key]}</div>
+					}
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/`@for` currently supports `for\.\.\.of` loops/);
+	});
+
 	it('rejects for await...of in templates even when use server is present', () => {
 		expect(() =>
 			compile(

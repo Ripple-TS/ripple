@@ -448,6 +448,10 @@ function is_solid_render_control(node) {
 	return (
 		!!node?.metadata?.solid_render_control ||
 		is_template_if_node(node) ||
+		// Every `@for` form is render control, including the `for … in` / plain
+		// `for (;;)` ones the transform later rejects — they must reach that
+		// diagnostic rather than fall through as plain statements.
+		node?.type === 'JSXForExpression' ||
 		is_template_for_of_node(node) ||
 		is_template_switch_node(node) ||
 		is_template_try_node(node)
