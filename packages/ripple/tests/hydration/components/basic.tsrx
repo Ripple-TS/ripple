@@ -338,9 +338,11 @@ export function TextTailExpression() @{
 }
 
 export function FragmentTailExpression() @{
+	// prettier-ignore
 	<div><>{'frag-'}</>{String(fetchLabel())}</div>
 }
 
 export function FragmentChildOnly() @{
+	// prettier-ignore
 	<div><>{'frag-'}</><span>{'tail'}</span></div>
 }
