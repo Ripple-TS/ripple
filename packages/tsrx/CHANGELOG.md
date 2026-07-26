@@ -1,5 +1,16 @@
 # @tsrx/core
 
+## 0.1.49
+
+### Patch Changes
+
+- [#1382](https://github.com/Ripple-TS/ripple/pull/1382)
+  [`979b230`](https://github.com/Ripple-TS/ripple/commit/979b2303a98cc85669c899bd3aff757f72a1e7c8)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix a parse error when a
+  control-flow directive (`@if`, `@for`, `@switch`, `@try`) is used as an
+  attribute value on an element that has children, e.g.
+  `<ElementA prop={ @if (ok) { <div /> } }><ElementB /></ElementA>`.
+
 ## 0.1.48
 
 ### Patch Changes
