@@ -1744,6 +1744,9 @@ importers:
       '@tsrx/vue':
         specifier: workspace:*
         version: link:../packages/tsrx-vue
+      octane:
+        specifier: ^0.1.6
+        version: 0.1.6(@typescript-eslint/types@8.56.1)
       prettier:
         specifier: 'catalog:'
         version: 3.9.6

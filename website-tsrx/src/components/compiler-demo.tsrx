@@ -10,6 +10,7 @@ const HASH_DEBOUNCE_MS = 400;
 const CUSTOM_SNIPPET_VALUE = '__custom';
 const EMPTY_DEMO_SOURCE = '';
 const TARGET_OPTIONS = [
+	{ value: 'octane', label: 'Octane' },
 	{ value: 'react', label: 'React' },
 	{ value: 'preact', label: 'Preact' },
 	{ value: 'ripple', label: 'Ripple' },
@@ -17,6 +18,7 @@ const TARGET_OPTIONS = [
 	{ value: 'vue', label: 'Vue' },
 ];
 const TARGET_LABELS: Record<string, string> = {
+	octane: 'Octane output',
 	react: 'React output',
 	preact: 'Preact output',
 	vue: 'Vue output',

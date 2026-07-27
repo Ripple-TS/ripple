@@ -3,8 +3,8 @@
 ## Overview
 
 TSRX (TypeScript Render Extensions) is a **TypeScript language extension** for
-building declarative UIs. It compiles one `.tsrx` source file to **React**,
-**Preact**, **Solid**, **Vue**, or **Ripple**. TSRX is the
+building declarative UIs. It compiles one `.tsrx` source file to **Octane**,
+**React**, **Preact**, **Solid**, **Vue**, or **Ripple**. TSRX is the
 source language; the target picks the runtime semantics.
 
 Think of TSRX as a spiritual successor to JSX: the same mental model of
@@ -15,7 +15,7 @@ them all the way through to the compiled output.
 
 **Key characteristics:**
 
-- **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
+- **One source, many targets**: `octane`, `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **JSX-shaped templates**: JSX elements, fragments, text, and expression containers use standard JSX node shapes
 - **JSX statement containers**: `@{ ... }` keeps TypeScript setup local to the JSX that uses it
 - **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` are JSX expressions whose bodies use `{...}` template blocks
@@ -27,7 +27,7 @@ them all the way through to the compiled output.
 **Canonical compiler packages**: `@tsrx/core` (framework-agnostic
 parser/analyzer), `@tsrx/react` (React codegen), `@tsrx/preact` (Preact codegen),
 `@tsrx/solid` (Solid codegen), `@tsrx/vue` (Vue/Vapor codegen), `@tsrx/ripple`
-(Ripple codegen).
+(Ripple codegen), and `octane/compiler` (Octane codegen).
 
 ## Installation & Targets
 
@@ -61,10 +61,61 @@ npm install -D @tsrx/bun-plugin-vue        # Bun
 
 # Ripple target
 npm install ripple @ripple-ts/vite-plugin
+
+# Octane target (Node.js 22+)
+npm install octane @octanejs/vite-plugin
 ```
 
 Vue's Vite setup should use `tsrxVue()` from `@tsrx/vite-plugin-vue`,
 and editor/typecheck configs should set `jsxImportSource: 'vue-jsx-vapor'`.
+
+### Octane setup
+
+Octane is a compiler-first, React-compatible UI framework built on TSRX. It is
+currently alpha software. A `.tsrx` file is always owned by the Octane compiler
+when using Octane's bundler integration.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { octane } from '@octanejs/vite-plugin';
+
+export default defineConfig({
+	plugins: [octane()],
+});
+```
+
+Mount TSRX components with Octane's root API and import hooks from `octane`:
+
+```ts
+import { createRoot } from 'octane';
+import { App } from './App.tsrx';
+
+const root = createRoot(document.getElementById('root')!);
+root.render(App, { title: 'Hello TSRX' });
+```
+
+Octane derives omitted dependency lists for effects, memos, callbacks, and
+imperative handles from lexical captures. Explicit arrays retain React
+semantics; pass `null` for every render. Hooks are tracked by compiler-assigned
+call sites, so they may be conditional, but a slot-based hook cannot be called
+inside a plain JavaScript loop; use keyed `@for` instead.
+
+Octane uses native DOM events. Use `onInput` for per-keystroke text input;
+`onChange` keeps the browser's commit behavior. The TSRX editor tooling detects
+Octane-only projects automatically. In a repository with multiple TSRX
+compilers, set the applicable `tsconfig.json` explicitly:
+
+```json
+{
+	"tsrx": {
+		"compiler": "octane"
+	}
+}
+```
+
+See https://octanejs.dev/docs/build-tools for Vite, Rspack, Rsbuild, SSR, and
+mixed-toolchain setup.
 
 ### Rspack setup (React target)
 
@@ -729,6 +780,14 @@ directive-prefixed template control flow, scoped styles, host `innerHTML`, and
 `@try/pending` lowering through Vue suspense APIs. Component-level `await` is
 not supported for Vue TSRX.
 
+### Octane
+
+Octane compiles TSRX directly to DOM operations without a virtual DOM while
+keeping React-style function components and hooks. It supports TSRX control
+flow, scoped styles, client rendering, SSR, hydration, and Suspense. Octane
+dependency arrays are compiler-inferred when omitted, hooks use stable call-site
+slots, and text inputs use native `onInput` for per-edit updates.
+
 ### Ripple
 
 Ripple is both a compiler target and a runtime. See the Ripple llms.txt
@@ -826,6 +885,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 - **Playground**: https://tsrx.dev/playground
 - **Source**: https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx
 - **Ripple target (runtime APIs)**: https://www.ripple-ts.com/llms.txt
+- **Octane target (runtime and build tools)**: https://octanejs.dev/llms.txt
 
 This document is optimized for AI/LLM understanding of the TSRX language.
 For the most up-to-date information, visit https://tsrx.dev or the GitHub
