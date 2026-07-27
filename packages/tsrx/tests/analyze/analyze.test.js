@@ -1,3 +1,6 @@
+/** @import * as AST from 'estree' */
+/** @import { CompileError, TSRXAnalysisOptions } from '../../types/index' */
+
 import { describe, expect, it } from 'vitest';
 import { analyzeTsrx, DIAGNOSTIC_CODES, parseModule } from '../../src/index.js';
 import { TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR } from '../../src/analyze/validation.js';
@@ -10,10 +13,12 @@ const filename = 'App.tsrx';
  * exercised once rather than repeated by every lowering target.
  *
  * @param {string} source
- * @param {import('../../types/index.d.ts').TSRXAnalysisOptions} [options]
+ * @param {TSRXAnalysisOptions} [options]
  */
 function analyze(source, options = { collect: true }) {
+	/** @type {CompileError[]} */
 	const parse_errors = [];
+	/** @type {AST.CommentWithLocation[]} */
 	const comments = [];
 	const ast = parseModule(source, filename, {
 		collect: true,
@@ -194,7 +199,7 @@ describe('target-neutral TSRX analysis', () => {
 			]) {
 				const result = analyze('function Test() { <div /> }', options);
 
-				expect(forgotten_output_errors(result), options).toHaveLength(1);
+				expect(forgotten_output_errors(result), JSON.stringify(options)).toHaveLength(1);
 			}
 		});
 	});

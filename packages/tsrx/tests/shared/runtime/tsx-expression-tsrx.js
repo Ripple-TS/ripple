@@ -3,23 +3,21 @@ import { TsrxInTsxExpressionApp } from './tsx-expression-tsrx-components.tsrx';
 
 export function runTsxExpressionTsrxRuntimeTests() {
 	async function settle() {
-		const flush = /** @type {(() => Promise<void>) | undefined} */ (
-			/** @type {any} */ (globalThis).flush
-		);
+		const flush = globalThis.flush;
 		if (flush) {
 			await flush();
 		}
 	}
 
+	/** @param {unknown} Component */
 	async function mount(Component) {
-		await globalThis
-			/** @type {any} */ .render(Component);
+		await globalThis.render(Component);
 		await settle();
 	}
 
+	/** @param {string} selector */
 	function text(selector) {
-		const container = /** @type {HTMLElement} */ (/** @type {any} */ (globalThis).container);
-		return container.querySelector(selector)?.textContent ?? null;
+		return globalThis.container.querySelector(selector)?.textContent ?? null;
 	}
 
 	describe('JSX fragments inside expression values at runtime', () => {

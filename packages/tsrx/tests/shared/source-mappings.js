@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { identifier_to_jsx_name, parseModule } from '@tsrx/core';
+import { builders as b, identifier_to_jsx_name, parseModule } from '@tsrx/core';
+import { assert_type } from './node-types.js';
 import {
 	build_line_offsets,
 	build_src_to_gen_map,
@@ -8,19 +9,7 @@ import {
 	offset_to_line_col,
 } from '../../src/source-map-utils.js';
 
-/**
- * @typedef {{
- *   compile: (source: string, filename?: string) => { code: string, map: any },
- *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => any,
- *   name: string,
- *   rejectsComponentAwait: boolean,
- * }} SourceMappingHarness
- *
- * `rejectsComponentAwait`: does the platform refuse top-level `await` in a
- * component body (without any escape directive)? React and Preact return async
- * functions and accept it; Solid forbids it outright. When true, the shared `AwaitExpression`
- * test asserts the compiler throws rather than that it maps successfully.
- */
+/** @import { SourceMappingHarness } from '../../types/index' */
 
 /**
  * Tests for `compile_to_volar_mappings`
@@ -938,20 +927,15 @@ function C() @{
 			expect(result.errors[1].message).toBe('Argument name clash');
 			expect(result.errors[1].type).toBe('usage');
 			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('b');
-			expect(
-				result.mappings.find(
-					(mapping) =>
-						mapping.sourceOffsets[0] === result.errors[0].pos &&
-						mapping.lengths[0] === result.errors[0].end - result.errors[0].pos,
-				),
-			).toBeDefined();
-			expect(
-				result.mappings.find(
-					(mapping) =>
-						mapping.sourceOffsets[0] === result.errors[1].pos &&
-						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
-				),
-			).toBeDefined();
+			for (const error of result.errors) {
+				expect(
+					result.mappings.find(
+						(mapping) =>
+							mapping.sourceOffsets[0] === error.pos &&
+							mapping.lengths[0] === Number(error.end) - Number(error.pos),
+					),
+				).toBeDefined();
+			}
 			expect(result.code).toContain('function App({ a: b, b }: { a: string; b: string })');
 		});
 
@@ -965,41 +949,28 @@ function C() @{
 			expect(result.errors).toHaveLength(2);
 			expect(source.slice(result.errors[0].pos, result.errors[0].end)).toBe('value');
 			expect(source.slice(result.errors[1].pos, result.errors[1].end)).toBe('value');
-			expect(
-				result.mappings.find(
-					(mapping) =>
-						mapping.sourceOffsets[0] === result.errors[0].pos &&
-						mapping.lengths[0] === result.errors[0].end - result.errors[0].pos,
-				),
-			).toBeDefined();
-			expect(
-				result.mappings.find(
-					(mapping) =>
-						mapping.sourceOffsets[0] === result.errors[1].pos &&
-						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
-				),
-			).toBeDefined();
+			for (const error of result.errors) {
+				expect(
+					result.mappings.find(
+						(mapping) =>
+							mapping.sourceOffsets[0] === error.pos &&
+							mapping.lengths[0] === Number(error.end) - Number(error.pos),
+					),
+				).toBeDefined();
+			}
 		});
 	});
 
 	describe(`[${name}] identifier_to_jsx_name preserves component metadata`, () => {
 		it('flags capitalized identifier names as components', () => {
-			const jsx = identifier_to_jsx_name({
-				type: 'Identifier',
-				name: 'MyComponent',
-				metadata: { path: [] },
-			});
-			expect(jsx.type).toBe('JSXIdentifier');
+			const jsx = identifier_to_jsx_name(b.id('MyComponent'));
+			assert_type(jsx, 'JSXIdentifier');
 			expect(jsx.metadata.is_component).toBe(true);
 		});
 
 		it('leaves lowercase identifiers unflagged', () => {
-			const jsx = identifier_to_jsx_name({
-				type: 'Identifier',
-				name: 'div',
-				metadata: { path: [] },
-			});
-			expect(jsx.type).toBe('JSXIdentifier');
+			const jsx = identifier_to_jsx_name(b.id('div'));
+			assert_type(jsx, 'JSXIdentifier');
 			expect(jsx.metadata.is_component).toBe(false);
 		});
 	});
@@ -1138,6 +1109,10 @@ function App() @{
 				result.code.indexOf('otherRef'),
 			);
 
+			/**
+			 * @param {number} source_offset
+			 * @param {number} length
+			 */
 			const find_mappings = (source_offset, length) =>
 				result.mappings.filter(
 					(mapping) => mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
@@ -1186,11 +1161,10 @@ export function App() @{
 			const generated_user_offset = result.code.indexOf('RenderProp<User>') + 'RenderProp<'.length;
 
 			const user_mapping = result.mappings.find(
-				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ m) =>
-					m.sourceOffsets[0] === source_user_offset && m.lengths[0] === 'User'.length,
+				(m) => m.sourceOffsets[0] === source_user_offset && m.lengths[0] === 'User'.length,
 			);
 			expect(user_mapping).toBeDefined();
-			expect(user_mapping.generatedOffsets[0]).toBe(generated_user_offset);
+			expect(user_mapping?.generatedOffsets[0]).toBe(generated_user_offset);
 		});
 	});
 
@@ -1331,6 +1305,10 @@ function App() @{
 					generated_helper_count_declaration_offset,
 				);
 
+				/**
+				 * @param {number} source_offset
+				 * @param {number} length
+				 */
 				const find_mappings = (source_offset, length) =>
 					result.mappings.filter(
 						(mapping) =>

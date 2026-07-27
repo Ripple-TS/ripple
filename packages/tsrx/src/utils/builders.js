@@ -605,6 +605,47 @@ export function ts_type_literal(members, loc_info) {
 }
 
 /**
+ * `<left>.<right>` — the qualified entity name of a type reference or of an
+ * import-equals module reference.
+ *
+ * @param {AST.EntityName} left
+ * @param {AST.Identifier} right
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TSQualifiedName}
+ */
+export function ts_qualified_name(left, right, loc_info) {
+	const node = /** @type {AST.TSQualifiedName} */ ({
+		type: 'TSQualifiedName',
+		left,
+		right,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
+ * `import <id> = <module_reference>;` — the alias form that keeps every meaning
+ * (value, type, namespace) of the referenced binding.
+ *
+ * @param {AST.Identifier} id
+ * @param {AST.EntityName | AST.TSExternalModuleReference} module_reference
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TSStatement<AST.TSImportEqualsDeclaration>}
+ */
+export function ts_import_equals(id, module_reference, loc_info) {
+	const node = /** @type {AST.TSStatement<AST.TSImportEqualsDeclaration>} */ ({
+		type: 'TSImportEqualsDeclaration',
+		id,
+		moduleReference: module_reference,
+		importKind: 'value',
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * `@types/estree`'s `Statement` union has no TS declarations in it, so the
  * result is typed as both: a `type X = …` alias occupies a statement slot
  * everywhere the transforms emit one.
@@ -612,10 +653,10 @@ export function ts_type_literal(members, loc_info) {
  * @param {AST.Identifier} id
  * @param {AST.Node} type_annotation
  * @param {AST.NodeWithLocation} [loc_info]
- * @returns {AST.TSTypeAliasDeclaration & AST.Statement}
+ * @returns {AST.TSStatement<AST.TSTypeAliasDeclaration>}
  */
 export function ts_type_alias(id, type_annotation, loc_info) {
-	const node = /** @type {AST.TSTypeAliasDeclaration & AST.Statement} */ ({
+	const node = /** @type {AST.TSStatement<AST.TSTypeAliasDeclaration>} */ ({
 		type: 'TSTypeAliasDeclaration',
 		id,
 		typeParameters: undefined,
@@ -676,6 +717,29 @@ export function prop(kind, key, value, computed = false, shorthand = false) {
 	return {
 		type: 'Property',
 		kind,
+		key,
+		value,
+		method: false,
+		shorthand,
+		computed,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * A property of an object *pattern* — its value is a binding target, not an
+ * expression, so it cannot be built with {@link prop}.
+ *
+ * @param {AST.Expression} key
+ * @param {AST.Pattern} value
+ * @param {boolean} computed
+ * @param {boolean} shorthand
+ * @returns {AST.AssignmentProperty}
+ */
+export function assignment_prop(key, value, computed = false, shorthand = false) {
+	return {
+		type: 'Property',
+		kind: 'init',
 		key,
 		value,
 		method: false,

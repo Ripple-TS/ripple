@@ -3043,6 +3043,10 @@ const visitors = {
 			}
 		}
 
+		// The block's own imports were hoisted to module scope by the
+		// ImportDeclaration visitor, so only statements are left behind.
+		const block_statements = /** @type {AST.Statement[]} */ (block.body);
+
 		return b.export(
 			b.const(
 				'_$_server_$_',
@@ -3051,7 +3055,7 @@ const visitors = {
 						b.block([
 							b.var('_$_server_$_', b.object([])),
 							...server_block_locals,
-							...block.body,
+							...block_statements,
 							b.return(b.id('_$_server_$_')),
 						]),
 					),

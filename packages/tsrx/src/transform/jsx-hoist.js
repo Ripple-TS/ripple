@@ -10,7 +10,7 @@
  */
 
 /**
- * @param {import('estree').Literal} node
+ * @param {AST.Literal} node
  * @returns {boolean}
  */
 export function is_static_literal(node) {
@@ -24,7 +24,7 @@ export function is_static_literal(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_hoist_safe_expression(node) {
@@ -60,7 +60,7 @@ export function is_hoist_safe_expression(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 export function is_hoist_safe_jsx_child(node) {
@@ -115,7 +115,7 @@ export function is_hoist_safe_jsx_node(node) {
 
 	// Lowered dynamic tags reference a component-scoped const and resolve at
 	// runtime — never static, never hoistable.
-	if (/** @type {any} */ (node).metadata?.dynamicElement === true) {
+	if (node.metadata?.dynamicElement === true) {
 		return false;
 	}
 

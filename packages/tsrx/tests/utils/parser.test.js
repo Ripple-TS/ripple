@@ -1,70 +1,343 @@
+/** @import * as AST from 'estree' */
+/** @import { TSESTree } from '@typescript-eslint/types' */
+/** @import { CompileError, NodeOfType, NodeTypeName } from '../../types/index' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
+
 import { describe, expect, it } from 'vitest';
 import { parseModule } from '../../src/index.js';
+import { node_children } from '../../src/utils/ast.js';
+import { as_type, assert_type } from '../shared/node-types.js';
 
+/**
+ * Walk every node reachable from `value`, stopping at the first one `match`
+ * accepts.
+ *
+ * @param {unknown} value
+ * @param {(node: AST.Node) => boolean} match
+ * @returns {AST.Node | undefined}
+ */
+function find_first(value, match) {
+	if (!value || typeof value !== 'object') return undefined;
+
+	if (Array.isArray(value)) {
+		for (const item of value) {
+			const found = find_first(item, match);
+			if (found) return found;
+		}
+		return undefined;
+	}
+
+	const node = /** @type {AST.Node & Record<string, unknown>} */ (value);
+	if (typeof node.type === 'string' && match(node)) return node;
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end') continue;
+		const found = find_first(node[key], match);
+		if (found) return found;
+	}
+
+	return undefined;
+}
+
+/**
+ * What a component returns, asserted to be JSX — the common case in these
+ * tests. Use {@link getReturnedExpression} when the return value is something
+ * else (a ternary, an array, a call).
+ *
+ * @param {string} source
+ * @returns {AST.TSRXJSXElement | AST.TSRXJSXFragment | AST.JSXStyleElement | AST.JSXCodeBlock}
+ */
 function getReturned(source) {
+	const returned = getReturnedExpression(source);
+	if (
+		returned.type !== 'JSXElement' &&
+		returned.type !== 'JSXFragment' &&
+		returned.type !== 'JSXStyleElement' &&
+		returned.type !== 'JSXCodeBlock'
+	) {
+		throw new Error(`Expected the component to return JSX, got ${returned.type}`);
+	}
+	return returned;
+}
+
+/**
+ * What a component returns, asserted to be a `@{ … }` code block.
+ *
+ * @param {string} source
+ * @returns {AST.JSXCodeBlock}
+ */
+function getReturnedCodeBlock(source) {
+	const returned = getReturnedExpression(source);
+	assert_type(returned, 'JSXCodeBlock');
+	return returned;
+}
+
+/**
+ * What a component returns: the first statement of a top-level function when it
+ * is a `return`, or — for components nested inside another function — the first
+ * JSX-returning `return` anywhere in the tree.
+ *
+ * @param {string} source
+ * @returns {AST.Expression}
+ */
+function getReturnedExpression(source) {
 	const ast = parseModule(source, 'App.tsrx');
 	const first = ast.body[0];
 	if (first?.type === 'FunctionDeclaration') {
-		return first.body.body[0].argument;
+		const statement = first.body.body[0];
+		if (statement?.type === 'ReturnStatement' && statement.argument) {
+			return statement.argument;
+		}
 	}
-	// Fallback for components declared below the top level (e.g. a `function App`
-	// nested inside a return of another function callback): walk to the first JSX-returning
-	// `return` statement anywhere in the tree.
-	let found;
-	(function walk(node) {
-		if (found || !node || typeof node !== 'object') return;
-		if (Array.isArray(node)) return node.forEach(walk);
-		if (
-			node.type === 'ReturnStatement' &&
-			(node.argument?.type === 'JSXFragment' || node.argument?.type === 'JSXElement')
-		) {
-			found = node.argument;
-			return;
-		}
-		for (const key in node) {
-			if (key === 'loc' || key === 'start' || key === 'end') continue;
-			walk(node[key]);
-		}
-	})(ast);
-	return found;
+
+	const found = find_first(
+		ast,
+		(node) => node.type === 'ReturnStatement' && is_jsx_output(node.argument),
+	);
+	const argument = found?.type === 'ReturnStatement' ? found.argument : null;
+	if (!argument) {
+		throw new Error('No `return` statement with a value found in source');
+	}
+	return argument;
 }
 
-// Find the first node of `type` anywhere in the parsed tree.
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.TSRXJSXElement | AST.TSRXJSXFragment}
+ */
+function is_jsx_output(node) {
+	return node?.type === 'JSXFragment' || node?.type === 'JSXElement';
+}
+
+/**
+ * Find the first node of `type` anywhere in the parsed tree.
+ *
+ * @template {NodeTypeName} T
+ * @param {string} source
+ * @param {T} type
+ * @returns {NodeOfType<T>}
+ */
 function findNode(source, type) {
 	const ast = parseModule(source, 'App.tsrx');
-	let found;
-	(function walk(node) {
-		if (found || !node || typeof node !== 'object') return;
-		if (Array.isArray(node)) return node.forEach(walk);
-		if (node.type === type) {
-			found = node;
-			return;
-		}
-		for (const key in node) {
-			if (key === 'loc' || key === 'start' || key === 'end') continue;
-			walk(node[key]);
-		}
-	})(ast);
-	return found;
+	const found = find_first(ast, (node) => node.type === type);
+	if (!found) throw new Error(`No ${type} node found in source`);
+	return /** @type {NodeOfType<T>} */ (found);
 }
 
-// Find the first JSXElement with the given tag name anywhere in the parsed tree.
+/**
+ * Find the first JSXElement with the given tag name anywhere in the parsed tree.
+ *
+ * @param {string} source
+ * @param {string} tagName
+ * @returns {AST.TSRXJSXElement}
+ */
 function findElement(source, tagName) {
 	const ast = parseModule(source, 'App.tsrx');
-	let found;
-	(function walk(node) {
-		if (found || !node || typeof node !== 'object') return;
-		if (Array.isArray(node)) return node.forEach(walk);
-		if (node.type === 'JSXElement' && node.openingElement?.name?.name === tagName) {
-			found = node;
-			return;
+	const found = find_first(ast, (node) => {
+		if (node.type !== 'JSXElement') return false;
+		const name = /** @type {AST.TSRXJSXElement} */ (node).openingElement?.name;
+		return (name?.type === 'JSXIdentifier' || name?.type === 'Identifier') && name.name === tagName;
+	});
+	if (!found) throw new Error(`No <${tagName}> element found in source`);
+	return /** @type {AST.TSRXJSXElement} */ (found);
+}
+
+/**
+ * The statements of the program's first top-level function declaration.
+ *
+ * @param {AST.Program} ast
+ * @returns {AST.Statement[]}
+ */
+function functionBody(ast) {
+	const [first] = ast.body;
+	assert_type(first, 'FunctionDeclaration');
+	return first.body.body;
+}
+
+/**
+ * An element's tag name, asserted to be a plain JSX identifier.
+ *
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} element
+ * @returns {ESTreeJSX.JSXIdentifier}
+ */
+function openingName(element) {
+	return as_type(element.openingElement.name, 'JSXIdentifier');
+}
+
+/**
+ * The node's child at `index`, asserted to be `type`.
+ *
+ * @template {NodeTypeName} T
+ * @param {AST.Node} node
+ * @param {number} index
+ * @param {T} type
+ * @returns {NodeOfType<T>}
+ */
+function child(node, index, type) {
+	return as_type(node_children(node)[index], type);
+}
+
+/**
+ * The initializer of a variable declaration's first declarator.
+ *
+ * @param {AST.Node | null | undefined} statement
+ * @returns {AST.Expression}
+ */
+function declaratorInit(statement) {
+	const init = as_type(statement, 'VariableDeclaration').declarations[0]?.init;
+	if (!init) throw new Error('variable declaration has no initializer');
+	return init;
+}
+
+/**
+ * The expression inside a JSX attribute's `{ … }` value.
+ *
+ * @param {AST.Node | null | undefined} attribute
+ * @returns {AST.Expression}
+ */
+function attributeExpression(attribute) {
+	const value = as_type(attribute, 'JSXAttribute').value;
+	const expression = as_type(value, 'JSXExpressionContainer').expression;
+	if (expression.type === 'JSXEmptyExpression') {
+		throw new Error('attribute value container is empty');
+	}
+	return expression;
+}
+
+/**
+ * The statements of a block.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.Statement[]}
+ */
+function blockBody(node) {
+	return as_type(node, 'BlockStatement').body;
+}
+
+/**
+ * The `{ … }` expression a dynamic tag name (`<{Tag} />`) holds.
+ *
+ * @param {AST.TSRXJSXElement} element
+ * @returns {AST.Expression}
+ */
+function dynamicName(element) {
+	const container = as_type(element.openingElement.name, 'JSXExpressionContainer');
+	const expression = container.expression;
+	if (expression.type === 'JSXEmptyExpression') {
+		throw new Error('dynamic tag name container is empty');
+	}
+	return expression;
+}
+
+/**
+ * The setup statements and render output of a `@{ … }` code block.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.JSXCodeBlock}
+ */
+function codeBlock(node) {
+	return as_type(node, 'JSXCodeBlock');
+}
+
+/**
+ * A code block's render output, asserted to be present.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.Node}
+ */
+function codeBlockRender(node) {
+	const render = codeBlock(node).render;
+	if (!render) throw new Error('code block has no render output');
+	return render;
+}
+
+/** The elements of an array expression, with holes rejected.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.Expression[]}
+ */
+function arrayElements(node) {
+	return as_type(node, 'ArrayExpression').elements.map((element) => {
+		if (!element || element.type === 'SpreadElement') {
+			throw new Error('array element is a hole or a spread');
 		}
-		for (const key in node) {
-			if (key === 'loc' || key === 'start' || key === 'end') continue;
-			walk(node[key]);
-		}
-	})(ast);
-	return found;
+		return element;
+	});
+}
+
+/**
+ * The program's first statement, asserted to be `type`.
+ *
+ * @template {NodeTypeName} T
+ * @param {AST.Program} ast
+ * @param {T} type
+ * @returns {NodeOfType<T>}
+ */
+function firstStatement(ast, type) {
+	return as_type(ast.body[0], type);
+}
+
+/**
+ * The declaration an `export` statement carries.
+ *
+ * @param {AST.Program} ast
+ * @returns {AST.Node}
+ */
+function exportedDeclaration(ast) {
+	const declaration = firstStatement(ast, 'ExportNamedDeclaration').declaration;
+	if (!declaration) throw new Error('export statement has no declaration');
+	return declaration;
+}
+
+/**
+ * The value of an optional lookup, asserted to exist.
+ *
+ * @template T
+ * @param {T | null | undefined} value
+ * @returns {T}
+ */
+function found(value) {
+	assert_found(value);
+	return /** @type {T} */ (value);
+}
+
+/**
+ * Assert that an optional lookup found something, narrowing out `undefined`.
+ *
+ * @param {unknown} value
+ * @returns {asserts value}
+ */
+function assert_found(value) {
+	expect(value).toBeDefined();
+	expect(value).not.toBeNull();
+}
+
+/**
+ * The `regex` payload of a regular-expression literal.
+ *
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.RegExpLiteral['regex']}
+ */
+function regexLiteral(node) {
+	const literal = as_type(node, 'Literal');
+	if (!('regex' in literal) || !literal.regex) throw new Error('not a regular expression literal');
+	return literal.regex;
+}
+
+/**
+ * Every node reachable from `value`, in walk order.
+ *
+ * @param {unknown} value
+ * @returns {AST.Node[]}
+ */
+function allNodes(value) {
+	/** @type {AST.Node[]} */
+	const nodes = [];
+	find_first(value, (node) => {
+		nodes.push(node);
+		return false;
+	});
+	return nodes;
 }
 
 describe('TSRX parser', () => {
@@ -75,7 +348,7 @@ describe('TSRX parser', () => {
 				'App.tsrx',
 			).body;
 
-			expect(declaration.type).toBe('ImportDeclaration');
+			assert_type(declaration, 'ImportDeclaration');
 			expect(declaration.phase).toBe('defer');
 			expect(declaration.specifiers).toHaveLength(1);
 			expect(declaration.specifiers[0].type).toBe('ImportNamespaceSpecifier');
@@ -89,10 +362,12 @@ describe('TSRX parser', () => {
 				'App.tsrx',
 			).body;
 
-			expect(declaration.phase).toBe('defer');
-			expect(declaration.attributes).toHaveLength(1);
-			expect(declaration.attributes[0].key.name).toBe('type');
-			expect(declaration.attributes[0].value.value).toBe('json');
+			expect(as_type(declaration, 'ImportDeclaration').phase).toBe('defer');
+			expect(as_type(declaration, 'ImportDeclaration').attributes).toHaveLength(1);
+			expect(
+				as_type(as_type(declaration, 'ImportDeclaration').attributes[0].key, 'Identifier').name,
+			).toBe('type');
+			expect(as_type(declaration, 'ImportDeclaration').attributes[0].value.value).toBe('json');
 		});
 
 		it('parses a dynamic deferred import with options and trailing commas', () => {
@@ -102,8 +377,8 @@ describe('TSRX parser', () => {
 			);
 
 			expect(expression.phase).toBe('defer');
-			expect(expression.source.value).toBe('./feature.json');
-			expect(expression.options.type).toBe('ObjectExpression');
+			expect(as_type(expression.source, 'Literal').value).toBe('./feature.json');
+			expect(expression.options?.type).toBe('ObjectExpression');
 
 			const trailing = findNode(
 				"const feature = import.defer('./feature.js',);",
@@ -116,10 +391,12 @@ describe('TSRX parser', () => {
 		it('keeps defer as a normal default import binding when followed by from', () => {
 			const [declaration] = parseModule("import defer from './feature.js';", 'App.tsrx').body;
 
-			expect(declaration.phase).toBeUndefined();
-			expect(declaration.specifiers).toHaveLength(1);
-			expect(declaration.specifiers[0].type).toBe('ImportDefaultSpecifier');
-			expect(declaration.specifiers[0].local.name).toBe('defer');
+			expect(as_type(declaration, 'ImportDeclaration').phase).toBeUndefined();
+			expect(as_type(declaration, 'ImportDeclaration').specifiers).toHaveLength(1);
+			expect(as_type(declaration, 'ImportDeclaration').specifiers[0].type).toBe(
+				'ImportDefaultSpecifier',
+			);
+			expect(as_type(declaration, 'ImportDeclaration').specifiers[0].local.name).toBe('defer');
 		});
 
 		it('keeps the existing AST shape for ordinary dynamic import options', () => {
@@ -149,35 +426,38 @@ describe('TSRX parser', () => {
 	it('parses returned tags as JSXElement nodes', () => {
 		const returned = getReturned('function MyApp() { return <div />; }');
 
-		expect(returned.type).toBe('JSXElement');
-		expect(returned.openingElement.name.name).toBe('div');
-		expect(returned.openingElement.selfClosing).toBe(true);
+		assert_type(returned, 'JSXElement');
+		expect(openingName(returned).name).toBe('div');
+		expect(as_type(returned, 'JSXElement').openingElement.selfClosing).toBe(true);
 	});
 
 	it('parses returned tags after comments as JSXElement return arguments', () => {
 		const returned = getReturned('function MyApp() { return /* comment */ <div />; }');
 
-		expect(returned.type).toBe('JSXElement');
-		expect(returned.openingElement.name.name).toBe('div');
+		assert_type(returned, 'JSXElement');
+		expect(openingName(returned).name).toBe('div');
 	});
 
 	it('parses self-closing dynamic element tags', () => {
 		const source = 'function MyApp() { return <{Tag} class="card" />; }';
 		const returned = getReturned(source);
 
-		expect(returned.type).toBe('JSXElement');
-		expect(returned.isDynamic).toBe(true);
-		expect(returned.openingElement.isDynamic).toBe(true);
-		expect(returned.openingElement.selfClosing).toBe(true);
-		expect(returned.closingElement).toBeNull();
-		expect(returned.openingElement.name.type).toBe('JSXExpressionContainer');
-		expect(returned.openingElement.name.isDynamic).toBe(true);
-		expect(returned.openingElement.name.expression.type).toBe('Identifier');
-		expect(returned.openingElement.name.expression.name).toBe('Tag');
+		assert_type(returned, 'JSXElement');
+		expect(as_type(returned, 'JSXElement').isDynamic).toBe(true);
+		expect(as_type(returned, 'JSXElement').openingElement.isDynamic).toBe(true);
+		expect(as_type(returned, 'JSXElement').openingElement.selfClosing).toBe(true);
+		expect(as_type(returned, 'JSXElement').closingElement).toBeNull();
+		expect(as_type(returned, 'JSXElement').openingElement.name.type).toBe('JSXExpressionContainer');
+		expect(
+			as_type(as_type(returned, 'JSXElement').openingElement.name, 'JSXExpressionContainer')
+				.isDynamic,
+		).toBe(true);
+		expect(dynamicName(as_type(returned, 'JSXElement')).type).toBe('Identifier');
+		expect(as_type(dynamicName(as_type(returned, 'JSXElement')), 'Identifier').name).toBe('Tag');
 		expect(
 			source.slice(
-				returned.openingElement.name.expression.start,
-				returned.openingElement.name.expression.end,
+				dynamicName(as_type(returned, 'JSXElement')).start,
+				dynamicName(as_type(returned, 'JSXElement')).end,
 			),
 		).toBe('Tag');
 	});
@@ -188,12 +468,20 @@ describe('TSRX parser', () => {
 		}`;
 		const returned = getReturned(source);
 
-		expect(returned.type).toBe('JSXElement');
-		expect(returned.isDynamic).toBe(true);
-		expect(returned.openingElement.name.expression.name).toBe('Child');
-		expect(returned.closingElement.isDynamic).toBe(true);
-		expect(returned.closingElement.name.type).toBe('JSXExpressionContainer');
-		expect(returned.closingElement.name.expression.name).toBe('Child');
+		assert_type(returned, 'JSXElement');
+		expect(as_type(returned, 'JSXElement').isDynamic).toBe(true);
+		expect(as_type(dynamicName(as_type(returned, 'JSXElement')), 'Identifier').name).toBe('Child');
+		expect(as_type(returned, 'JSXElement').closingElement?.isDynamic).toBe(true);
+		expect(as_type(returned, 'JSXElement').closingElement?.name.type).toBe(
+			'JSXExpressionContainer',
+		);
+		expect(
+			as_type(
+				as_type(as_type(returned, 'JSXElement').closingElement?.name, 'JSXExpressionContainer')
+					.expression,
+				'Identifier',
+			).name,
+		).toBe('Child');
 		expect(returned.children.map((child) => child.type)).toEqual(['JSXElement']);
 	});
 
@@ -209,8 +497,8 @@ describe('TSRX parser', () => {
 		for (const [tag, expressionType, expressionSource] of cases) {
 			const source = `function MyApp() { return ${tag}; }`;
 			const returned = getReturned(source);
-			const expression = returned.openingElement.name.expression;
-			expect(returned.isDynamic).toBe(true);
+			const expression = dynamicName(as_type(returned, 'JSXElement'));
+			expect(as_type(returned, 'JSXElement').isDynamic).toBe(true);
 			expect(expression.type).toBe(expressionType);
 			expect(source.slice(expression.start, expression.end)).toBe(expressionSource);
 		}
@@ -260,10 +548,10 @@ describe('TSRX parser', () => {
 			'App.tsrx',
 		);
 
-		const [declaration, statement] = ast.body[0].body.body;
-		expect(declaration.declarations[0].init.type).toBe('JSXFragment');
-		expect(statement.type).toBe('ReturnStatement');
-		expect(statement.argument.type).toBe('JSXFragment');
+		const [declaration, statement] = functionBody(ast);
+		expect(declaratorInit(declaration).type).toBe('JSXFragment');
+		assert_type(statement, 'ReturnStatement');
+		expect(statement.argument?.type).toBe('JSXFragment');
 	});
 
 	it('parses a return after a fragment initializer with style children without an explicit semicolon', () => {
@@ -281,12 +569,12 @@ describe('TSRX parser', () => {
 			'App.tsrx',
 		);
 
-		const [declaration, statement] = ast.body[0].body.body;
-		const fragment = declaration.declarations[0].init;
-		expect(fragment.type).toBe('JSXFragment');
+		const [declaration, statement] = functionBody(ast);
+		const fragment = declaratorInit(declaration);
+		assert_type(fragment, 'JSXFragment');
 		expect(fragment.children.some((child) => child.type === 'JSXStyleElement')).toBe(true);
-		expect(statement.type).toBe('ReturnStatement');
-		expect(statement.argument.type).toBe('JSXFragment');
+		assert_type(statement, 'ReturnStatement');
+		expect(statement.argument?.type).toBe('JSXFragment');
 	});
 
 	it('honors ASI for returned tags after a newline', () => {
@@ -298,11 +586,13 @@ describe('TSRX parser', () => {
 			'App.tsrx',
 		);
 
-		const body = ast.body[0].body.body;
+		const body = functionBody(ast);
 		expect(body[0].type).toBe('ReturnStatement');
-		expect(body[0].argument).toBeNull();
+		expect(as_type(body[0], 'ReturnStatement').argument).toBeNull();
 		expect(body[1].type).toBe('JSXElement');
-		expect(body[1].openingElement.name.name).toBe('div');
+		expect(as_type(as_type(body[1], 'JSXElement').openingElement.name, 'JSXIdentifier').name).toBe(
+			'div',
+		);
 	});
 
 	it('parses mixed scalar and JSX return branches', () => {
@@ -319,17 +609,27 @@ describe('TSRX parser', () => {
 			'App.tsrx',
 		);
 
-		const [ready, empty, fallback] = ast.body[0].body.body;
-		expect(ready.consequent.body[0].argument.value).toBe('Ready');
-		expect(empty.consequent.body[0].argument.value).toBeNull();
-		expect(fallback.argument.type).toBe('JSXElement');
+		const [ready, empty, fallback] = functionBody(ast);
+		expect(
+			as_type(
+				as_type(blockBody(as_type(ready, 'IfStatement').consequent)[0], 'ReturnStatement').argument,
+				'Literal',
+			).value,
+		).toBe('Ready');
+		expect(
+			as_type(
+				as_type(blockBody(as_type(empty, 'IfStatement').consequent)[0], 'ReturnStatement').argument,
+				'Literal',
+			).value,
+		).toBeNull();
+		expect(found(as_type(fallback, 'ReturnStatement').argument).type).toBe('JSXElement');
 	});
 
 	it('parses fragments as JSXFragment nodes', () => {
 		const ast = parseModule('const x = <><div /></>;', 'App.tsrx');
 
-		const value = ast.body[0].declarations[0].init;
-		expect(value.type).toBe('JSXFragment');
+		const value = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(value, 'JSXFragment');
 		expect(value.openingFragment.type).toBe('JSXOpeningFragment');
 		expect(value.closingFragment.type).toBe('JSXClosingFragment');
 		expect(value.children.map((child) => child.type)).toEqual(['JSXElement']);
@@ -343,10 +643,10 @@ describe('TSRX parser', () => {
 			'App.tsrx',
 		);
 
-		const value = ast.body[0].declaration.declarations[0].init.body;
-		expect(value.type).toBe('JSXFragment');
+		const value = as_type(declaratorInit(exportedDeclaration(ast)), 'ArrowFunctionExpression').body;
+		assert_type(value, 'JSXFragment');
 		expect(value.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(value.children[0].value).toContain('hello world');
+		expect(child(value, 0, 'JSXText').value).toContain('hello world');
 	});
 
 	it('preserves JSX text whitespace around expression children', () => {
@@ -356,11 +656,11 @@ describe('TSRX parser', () => {
 			}`,
 		);
 
-		expect(returned.children.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual([
 			'JSXExpressionContainer',
 			'JSXText',
 		]);
-		expect(returned.children[1].value).toBe(' is visible');
+		expect(child(returned, 1, 'JSXText').value).toBe(' is visible');
 	});
 
 	it('preserves same-line JSX whitespace text between expression children', () => {
@@ -370,12 +670,12 @@ describe('TSRX parser', () => {
 			}`,
 		);
 
-		expect(returned.children.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual([
 			'JSXExpressionContainer',
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(returned.children[1].value).toBe(' ');
+		expect(child(returned, 1, 'JSXText').value).toBe(' ');
 	});
 
 	// Regression: JSX text inside a `{ … }` expression container used to lose its
@@ -393,10 +693,10 @@ describe('TSRX parser', () => {
 			}`,
 		);
 
-		const textarea = returned.children[0].expression;
-		expect(textarea.type).toBe('JSXElement');
+		const textarea = child(returned, 0, 'JSXExpressionContainer').expression;
+		assert_type(textarea, 'JSXElement');
 		expect(textarea.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(textarea.children[0].value).toBe('   a');
+		expect(child(textarea, 0, 'JSXText').value).toBe('   a');
 	});
 
 	it('captures element text identically for bare and expression-container elements', () => {
@@ -406,8 +706,8 @@ describe('TSRX parser', () => {
 			'textarea',
 		);
 
-		expect(bare.children[0].value).toBe('   a');
-		expect(wrapped.children[0].value).toBe(bare.children[0].value);
+		expect(child(bare, 0, 'JSXText').value).toBe('   a');
+		expect(child(wrapped, 0, 'JSXText').value).toBe(child(bare, 0, 'JSXText').value);
 	});
 
 	it('preserves leading newline-indented element text inside an expression container', () => {
@@ -422,14 +722,14 @@ abc
 		);
 
 		expect(textarea.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(textarea.children[0].value).toBe('\n    C\nabc\n');
+		expect(child(textarea, 0, 'JSXText').value).toBe('\n    C\nabc\n');
 	});
 
 	it('preserves trailing and interior whitespace in expression-container element text', () => {
 		const div = findElement(`function App() { return <>{<div>a   b   </div>}</>; }`, 'div');
 
 		expect(div.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(div.children[0].value).toBe('a   b   ');
+		expect(child(div, 0, 'JSXText').value).toBe('a   b   ');
 	});
 
 	// The same preservation must hold for elements authored with TSRX template
@@ -440,14 +740,14 @@ abc
 		const div = findElement(`function App() @{ <div>   a</div> }`, 'div');
 
 		expect(div.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(div.children[0].value).toBe('   a');
+		expect(child(div, 0, 'JSXText').value).toBe('   a');
 	});
 
 	it('preserves expression-container element text whitespace inside a TSRX template body', () => {
 		const span = findElement(`function App() @{ <div>{<span>   x</span>}</div> }`, 'span');
 
 		expect(span.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(span.children[0].value).toBe('   x');
+		expect(child(span, 0, 'JSXText').value).toBe('   x');
 	});
 
 	it('preserves element text whitespace inside a TSRX @if block', () => {
@@ -461,7 +761,7 @@ abc
 		);
 
 		expect(textarea.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(textarea.children[0].value).toBe('   a');
+		expect(child(textarea, 0, 'JSXText').value).toBe('   a');
 	});
 
 	it('preserves leading element text whitespace inside a TSRX @for block', () => {
@@ -475,7 +775,7 @@ abc
 		);
 
 		expect(li.children.map((child) => child.type)).toEqual(['JSXText', 'JSXExpressionContainer']);
-		expect(li.children[0].value).toBe('   ');
+		expect(child(li, 0, 'JSXText').value).toBe('   ');
 	});
 
 	it('treats backslashes in expression-container element text as literal text', () => {
@@ -483,8 +783,8 @@ abc
 		const wrapped = findElement(`function App() { return <>{<div>a\\nb</div>}</>; }`, 'div');
 
 		expect(bare.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(bare.children[0].value).toBe('a\\nb');
-		expect(wrapped.children[0].value).toBe(bare.children[0].value);
+		expect(child(bare, 0, 'JSXText').value).toBe('a\\nb');
+		expect(child(wrapped, 0, 'JSXText').value).toBe(child(bare, 0, 'JSXText').value);
 	});
 
 	// A `/` in element text must stay literal text — never the start of a regular
@@ -496,16 +796,16 @@ abc
 		const wrapped = findElement(`function App(p) { return <div>{p.c && <a>x/y</a>}</div>; }`, 'a');
 
 		expect(bare.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(bare.children[0].value).toBe('x/y');
+		expect(child(bare, 0, 'JSXText').value).toBe('x/y');
 		expect(wrapped.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(wrapped.children[0].value).toBe('x/y');
+		expect(child(wrapped, 0, 'JSXText').value).toBe('x/y');
 	});
 
 	it('treats a slash in element text inside a parenthesized expression container as literal text', () => {
 		const a = findElement(`export function A(p) { return <div>{p.c && (<a>x/y</a>)}</div>; }`, 'a');
 
 		expect(a.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(a.children[0].value).toBe('x/y');
+		expect(child(a, 0, 'JSXText').value).toBe('x/y');
 	});
 
 	it('parses a slash between adjacent expression children at the top level', () => {
@@ -516,7 +816,7 @@ abc
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(span.children[1].value).toBe('/');
+		expect(child(span, 1, 'JSXText').value).toBe('/');
 	});
 
 	it('parses a slash between adjacent expression children in a nested element', () => {
@@ -530,7 +830,7 @@ abc
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(span.children[1].value).toBe('/');
+		expect(child(span, 1, 'JSXText').value).toBe('/');
 	});
 
 	it('parses a slash between adjacent expression children inside an expression container', () => {
@@ -544,7 +844,7 @@ abc
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(span.children[1].value).toBe('/');
+		expect(child(span, 1, 'JSXText').value).toBe('/');
 	});
 
 	it('parses a slash between adjacent expression children in a parenthesized expression container', () => {
@@ -558,7 +858,7 @@ abc
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(b.children[1].value).toBe('/');
+		expect(child(b, 1, 'JSXText').value).toBe('/');
 	});
 
 	it('parses slashes in element text at deeper expression-container nesting', () => {
@@ -575,8 +875,8 @@ abc
 			'JSXExpressionContainer',
 			'JSXText',
 		]);
-		expect(em.children[1].value).toBe('/');
-		expect(em.children[3].value).toBe(' m/s');
+		expect(child(em, 1, 'JSXText').value).toBe('/');
+		expect(child(em, 3, 'JSXText').value).toBe(' m/s');
 	});
 
 	it('still parses division inside an expression container after a nested element', () => {
@@ -586,9 +886,10 @@ abc
 		);
 
 		expect(container.alternate.type).toBe('BinaryExpression');
-		expect(container.alternate.operator).toBe('/');
+		expect(as_type(container.alternate, 'BinaryExpression').operator).toBe('/');
 	});
 
+	/** @param {string} body */
 	const inExpressionContainer = (body) => `function App() {
 			return <>{<div>${body}</div>}</>;
 		}`;
@@ -600,8 +901,8 @@ abc
 		);
 
 		expect(block?.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('preserves significant whitespace before a code block in a fragment', () => {
@@ -612,8 +913,8 @@ abc
 			'JSXCodeBlock',
 			'JSXText',
 		]);
-		expect(fragment.children[0].value).toBe('   ');
-		expect(fragment.children[2].value).toBe('   ');
+		expect(child(fragment, 0, 'JSXText').value).toBe('   ');
+		expect(child(fragment, 2, 'JSXText').value).toBe('   ');
 	});
 
 	it('drops layout whitespace before a code block in a fragment', () => {
@@ -629,7 +930,7 @@ abc
 		);
 
 		expect(directive?.type).toBe('JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(blockBody(directive.consequent).map((child) => child.type)).toEqual(['JSXElement']);
 	});
 
 	it('parses an @if/@else directive inside an element nested in an expression container', () => {
@@ -657,7 +958,9 @@ abc
 				'@catch',
 			],
 		];
-		for (const [type, template, clause] of cases) {
+		for (const [type, template, clause] of /** @type {Array<[NodeTypeName, string, string]>} */ (
+			cases
+		)) {
 			const source = `export default function App() @{\n\t<div>\n\t\t${template}\n\t</div>\n}\n`;
 			const directive = findNode(source, type);
 			expect(directive, type).toBeDefined();
@@ -711,10 +1014,13 @@ abc
 		);
 
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.type).toBe('JSXExpressionContainer');
-		expect(attribute.value.expression.type).toBe('JSXIfExpression');
+		assert_type(attribute, 'JSXAttribute');
+		expect(attribute.value?.type).toBe('JSXExpressionContainer');
+		expect(attributeExpression(attribute).type).toBe('JSXIfExpression');
 		expect(element.children.map((child) => child.type)).toEqual(['JSXElement']);
-		expect(element.children[0].openingElement.name.name).toBe('ElementB');
+		expect(as_type(child(element, 0, 'JSXElement').openingElement.name, 'JSXIdentifier').name).toBe(
+			'ElementB',
+		);
 	});
 
 	it('parses a directive attribute value on a self-closing element', () => {
@@ -732,7 +1038,8 @@ abc
 		expect(element.openingElement.selfClosing).toBe(true);
 		expect(element.closingElement).toBe(null);
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.expression.type).toBe('JSXIfExpression');
+		assert_type(attribute, 'JSXAttribute');
+		expect(attributeExpression(attribute).type).toBe('JSXIfExpression');
 		expect(element.children).toEqual([]);
 	});
 
@@ -749,10 +1056,11 @@ abc
 		);
 
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.type).toBe('JSXExpressionContainer');
-		expect(attribute.value.expression.type).toBe('JSXFragment');
-		const [directive] = attribute.value.expression.children;
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(attribute, 'JSXAttribute');
+		expect(attribute.value?.type).toBe('JSXExpressionContainer');
+		expect(attributeExpression(attribute).type).toBe('JSXFragment');
+		const [directive] = node_children(attributeExpression(attribute));
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.alternate?.type).toBe('BlockStatement');
 	});
 
@@ -771,12 +1079,13 @@ abc
 		);
 
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.type).toBe('JSXExpressionContainer');
-		expect(attribute.value.expression.type).toBe('JSXElement');
-		const directive = attribute.value.expression.children.find(
+		assert_type(attribute, 'JSXAttribute');
+		expect(attribute.value?.type).toBe('JSXExpressionContainer');
+		expect(attributeExpression(attribute).type).toBe('JSXElement');
+		const directive = node_children(attributeExpression(attribute)).find(
 			(child) => child.type === 'JSXIfExpression',
 		);
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.alternate?.type).toBe('BlockStatement');
 	});
 
@@ -793,9 +1102,10 @@ abc
 		);
 
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.expression.type).toBe('JSXElement');
-		const [directive] = attribute.value.expression.children;
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(attribute, 'JSXAttribute');
+		expect(attributeExpression(attribute).type).toBe('JSXElement');
+		const [directive] = node_children(attributeExpression(attribute));
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.alternate?.type).toBe('BlockStatement');
 	});
 
@@ -811,14 +1121,15 @@ abc
 		);
 
 		const [attribute] = element.openingElement.attributes;
-		expect(attribute.value.expression.children.map((child) => child.type)).toEqual([
+		assert_type(attribute, 'JSXAttribute');
+		expect(node_children(attributeExpression(attribute)).map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXIfExpression',
 			'JSXText',
 		]);
-		const [before, , after] = attribute.value.expression.children;
-		expect(before.value).toBe('before ');
-		expect(after.value).toBe(' after');
+		const [before, , after] = node_children(attributeExpression(attribute));
+		expect(as_type(before, 'JSXText').value).toBe('before ');
+		expect(as_type(after, 'JSXText').value).toBe(' after');
 	});
 
 	it('keeps text before and after a directive in an element nested in an expression container', () => {
@@ -835,8 +1146,8 @@ abc
 			'JSXText',
 		]);
 		const [before, , after] = element.children;
-		expect(before.value).toBe('before ');
-		expect(after.value).toBe(' after');
+		expect(as_type(before, 'JSXText').value).toBe('before ');
+		expect(as_type(after, 'JSXText').value).toBe(' after');
 	});
 
 	it('keeps a significant inline space between a sibling element and a directive in every position', () => {
@@ -864,7 +1175,7 @@ abc
 				element.children.map((child) => child.type),
 				position,
 			).toEqual(['JSXElement', 'JSXText', 'JSXIfExpression']);
-			expect(element.children[1].value, position).toBe(' ');
+			expect(child(element, 1, 'JSXText').value, position).toBe(' ');
 		}
 	});
 
@@ -896,7 +1207,7 @@ abc
 				element.children.map((child) => child.type),
 				position,
 			).toEqual(['JSXText']);
-			expect(element.children[0].value, position).toBe('a = b');
+			expect(child(element, 0, 'JSXText').value, position).toBe('a = b');
 		}
 	});
 
@@ -909,16 +1220,16 @@ abc
 		);
 
 		const [a, b] = element.openingElement.attributes;
-		expect(a.value.expression.type).toBe('JSXIfExpression');
-		expect(b.name.name).toBe('b');
-		expect(b.value.value).toBe('x');
+		expect(attributeExpression(a).type).toBe('JSXIfExpression');
+		expect(as_type(b, 'JSXAttribute').name.name).toBe('b');
+		expect(as_type(as_type(b, 'JSXAttribute').value, 'Literal').value).toBe('x');
 	});
 
 	it('preserves element-text whitespace inside a directive in an expression container', () => {
 		const span = findElement(inExpressionContainer(`@if (ok) { <span>   keep</span> }`), 'span');
 
 		expect(span.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(span.children[0].value).toBe('   keep');
+		expect(child(span, 0, 'JSXText').value).toBe('   keep');
 	});
 
 	it('parses a multiline parenthesized self-closing element in an expression', () => {
@@ -931,14 +1242,14 @@ abc
 		);
 
 		const [valueDeclaration, afterDeclaration] = ast.body;
-		const value = valueDeclaration.declarations[0].init;
-		expect(value.type).toBe('JSXElement');
-		expect(value.openingElement.name.name).toBe('Item');
-		expect(afterDeclaration.declarations[0].init.value).toBe(true);
+		const value = declaratorInit(valueDeclaration);
+		assert_type(value, 'JSXElement');
+		expect(openingName(value).name).toBe('Item');
+		expect(as_type(declaratorInit(afterDeclaration), 'Literal').value).toBe(true);
 	});
 
 	it('parses a return ternary from a self-closing element to a fragment', () => {
-		const returned = getReturned(
+		const returned = getReturnedExpression(
 			`function App(condition) {
 				return condition ? (
 					<Item />
@@ -950,14 +1261,14 @@ abc
 			}`,
 		);
 
-		expect(returned.type).toBe('ConditionalExpression');
+		assert_type(returned, 'ConditionalExpression');
 		expect(returned.consequent.type).toBe('JSXElement');
 		expect(returned.alternate.type).toBe('JSXFragment');
-		expect(returned.alternate.children.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(node_children(returned.alternate).map((child) => child.type)).toEqual(['JSXElement']);
 	});
 
 	it('parses a return ternary from a self-closing element to an array', () => {
-		const returned = getReturned(
+		const returned = getReturnedExpression(
 			`function App(condition) {
 				return condition ? (
 					<Item />
@@ -967,10 +1278,12 @@ abc
 			}`,
 		);
 
-		expect(returned.type).toBe('ConditionalExpression');
+		assert_type(returned, 'ConditionalExpression');
 		expect(returned.consequent.type).toBe('JSXElement');
 		expect(returned.alternate.type).toBe('ArrayExpression');
-		expect(returned.alternate.elements.map((element) => element.type)).toEqual(['JSXElement']);
+		expect(arrayElements(returned.alternate).map((element) => element.type)).toEqual([
+			'JSXElement',
+		]);
 	});
 
 	it('parses same-line JSX elements in an array expression', () => {
@@ -979,10 +1292,13 @@ abc
 			'App.tsx',
 		);
 
-		const fruits = ast.body[0].declarations[0].init;
-		expect(fruits.type).toBe('ArrayExpression');
-		expect(fruits.elements.map((element) => element.type)).toEqual(['JSXElement', 'JSXElement']);
-		expect(fruits.elements.map((element) => element.children[0].value)).toEqual([
+		const fruits = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(fruits, 'ArrayExpression');
+		expect(arrayElements(fruits).map((element) => element.type)).toEqual([
+			'JSXElement',
+			'JSXElement',
+		]);
+		expect(arrayElements(fruits).map((element) => child(element, 0, 'JSXText').value)).toEqual([
 			'Apple',
 			'Banana',
 		]);
@@ -995,10 +1311,19 @@ abc
 			}`,
 		);
 
-		const array = returned.children[0].expression.expression;
-		expect(array.type).toBe('ArrayExpression');
-		expect(array.elements.map((element) => element.type)).toEqual(['JSXElement', 'JSXElement']);
-		expect(array.elements.map((element) => element.children[0].value)).toEqual(['A', 'B']);
+		const array = as_type(
+			child(returned, 0, 'JSXExpressionContainer').expression,
+			'TSAsExpression',
+		).expression;
+		assert_type(array, 'ArrayExpression');
+		expect(arrayElements(array).map((element) => element.type)).toEqual([
+			'JSXElement',
+			'JSXElement',
+		]);
+		expect(arrayElements(array).map((element) => child(element, 0, 'JSXText').value)).toEqual([
+			'A',
+			'B',
+		]);
 	});
 
 	it('preserves template text after a self-closing child', () => {
@@ -1011,8 +1336,8 @@ abc
 			}`,
 		);
 
-		expect(returned.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXText']);
-		expect(returned.children[1].value).toContain('tail');
+		expect(node_children(returned).map((child) => child.type)).toEqual(['JSXElement', 'JSXText']);
+		expect(child(returned, 1, 'JSXText').value).toContain('tail');
 	});
 
 	it('parses a ternary with JSX element branches inside an expression container', () => {
@@ -1022,8 +1347,8 @@ abc
 			}`,
 		);
 
-		const expression = returned.children[0].expression;
-		expect(expression.type).toBe('ConditionalExpression');
+		const expression = child(returned, 0, 'JSXExpressionContainer').expression;
+		assert_type(expression, 'ConditionalExpression');
 		expect(expression.consequent.type).toBe('JSXElement');
 		expect(expression.alternate.type).toBe('JSXElement');
 	});
@@ -1035,8 +1360,8 @@ abc
 			}`,
 		);
 
-		const expression = returned.children[0].expression;
-		expect(expression.type).toBe('ConditionalExpression');
+		const expression = child(returned, 0, 'JSXExpressionContainer').expression;
+		assert_type(expression, 'ConditionalExpression');
 		expect(expression.consequent.type).toBe('JSXFragment');
 		expect(expression.alternate.type).toBe('JSXFragment');
 	});
@@ -1048,12 +1373,12 @@ abc
 			}`,
 		);
 
-		const outer = returned.children[0].expression;
-		expect(outer.type).toBe('ConditionalExpression');
+		const outer = child(returned, 0, 'JSXExpressionContainer').expression;
+		assert_type(outer, 'ConditionalExpression');
 		expect(outer.consequent.type).toBe('JSXElement');
 		expect(outer.alternate.type).toBe('ConditionalExpression');
-		expect(outer.alternate.consequent.type).toBe('JSXElement');
-		expect(outer.alternate.alternate.type).toBe('JSXElement');
+		expect(as_type(outer.alternate, 'ConditionalExpression').consequent.type).toBe('JSXElement');
+		expect(as_type(outer.alternate, 'ConditionalExpression').alternate.type).toBe('JSXElement');
 	});
 
 	it('parses a parenthesized multiline element with nested children in a ternary branch', () => {
@@ -1069,17 +1394,18 @@ abc
 			}`,
 		);
 
-		const expression = returned.children.find(
-			(child) => child.type === 'JSXExpressionContainer',
+		const expression = as_type(
+			found(node_children(returned).find((child) => child.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
 		).expression;
-		expect(expression.type).toBe('ConditionalExpression');
+		assert_type(expression, 'ConditionalExpression');
 		expect(expression.consequent.type).toBe('JSXElement');
-		expect(expression.consequent.openingElement.name.name).toBe('Outer');
-		const inner = expression.consequent.children.find((child) => child.type === 'JSXElement');
-		expect(inner.openingElement.name.name).toBe('Inner');
-		expect(inner.children[0].value).toBe('hi');
+		expect(openingName(as_type(expression.consequent, 'JSXElement')).name).toBe('Outer');
+		const inner = node_children(expression.consequent).find((child) => child.type === 'JSXElement');
+		expect(openingName(as_type(inner, 'JSXElement')).name).toBe('Inner');
+		expect(child(found(inner), 0, 'JSXText').value).toBe('hi');
 		expect(expression.alternate.type).toBe('Literal');
-		expect(expression.alternate.value).toBeNull();
+		expect(as_type(expression.alternate, 'Literal').value).toBeNull();
 	});
 
 	it('preserves element-text whitespace in ternary branches inside an expression container', () => {
@@ -1091,7 +1417,7 @@ abc
 		);
 
 		expect(span.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(span.children[0].value).toBe('   keep');
+		expect(child(span, 0, 'JSXText').value).toBe('   keep');
 	});
 
 	it('keeps line comments out of plain JSX fragment output', () => {
@@ -1103,9 +1429,11 @@ abc
 			'App.tsrx',
 		);
 
-		const value = ast.body[0].declaration.declarations[0].init.body;
-		expect(value.children.map((child) => child.type)).toEqual(['JSXElement']);
-		expect(value.children[0].openingElement.name.name).toBe('div');
+		const value = as_type(declaratorInit(exportedDeclaration(ast)), 'ArrowFunctionExpression').body;
+		expect(node_children(value).map((child) => child.type)).toEqual(['JSXElement']);
+		expect(as_type(child(value, 0, 'JSXElement').openingElement.name, 'JSXIdentifier').name).toBe(
+			'div',
+		);
 	});
 
 	it('treats JS-looking fragment content as JSXText', () => {
@@ -1116,28 +1444,25 @@ abc
 			'App.tsrx',
 		);
 
-		const value = ast.body[0].declaration.declarations[0].init.body;
-		expect(value.children.map((child) => child.type)).toEqual(['JSXText']);
-		expect(value.children[0].value).toContain('const x = 1');
+		const value = as_type(declaratorInit(exportedDeclaration(ast)), 'ArrowFunctionExpression').body;
+		expect(node_children(value).map((child) => child.type)).toEqual(['JSXText']);
+		expect(child(value, 0, 'JSXText').value).toContain('const x = 1');
 	});
 
 	// Collect every JSXText value in the tree, and parse with `collect` so the
 	// recorded comments can be asserted alongside the text they were removed from.
+	/** @param {string} source */
 	function parseTemplateTextsAndComments(source) {
 		/** @type {import('estree').Comment[]} */
+		/** @type {AST.CommentWithLocation[]} */
 		const comments = [];
 		const ast = parseModule(source, 'App.tsrx', { collect: true, comments });
+		/** @type {string[]} */
 		const texts = [];
-		(function walk(node) {
-			if (!node || typeof node !== 'object') return;
-			if (Array.isArray(node)) return node.forEach(walk);
+		for (const node of allNodes(ast)) {
 			if (node.type === 'JSXText') texts.push(node.value);
-			for (const key in node) {
-				if (key === 'loc' || key === 'start' || key === 'end') continue;
-				walk(node[key]);
-			}
-		})(ast);
-		comments.sort((a, b) => a.start - b.start);
+		}
+		comments.sort((a, b) => (a.start ?? 0) - (b.start ?? 0));
 		return { texts, comments };
 	}
 
@@ -1266,9 +1591,9 @@ abc
 	it('keeps ordinary tag names as JSX identifiers', () => {
 		const ast = parseModule('const wrapper = <tsrx><div /></tsrx>;', 'App.tsrx');
 
-		const value = ast.body[0].declarations[0].init;
-		expect(value.type).toBe('JSXElement');
-		expect(value.openingElement.name.name).toBe('tsrx');
+		const value = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(value, 'JSXElement');
+		expect(openingName(value).name).toBe('tsrx');
 		expect(value.children[0].type).toBe('JSXElement');
 	});
 
@@ -1279,8 +1604,8 @@ abc
 			}
 		</style>; }`);
 
-		expect(returned.type).toBe('JSXStyleElement');
-		expect(returned.openingElement.name.name).toBe('style');
+		assert_type(returned, 'JSXStyleElement');
+		expect(openingName(returned).name).toBe('style');
 		expect(returned.children.map((child) => child.type)).toEqual(['StyleSheet']);
 		expect(returned.css).toContain('color: red');
 		expect(returned.metadata.styleScopeHash).toBe(returned.children[0].hash);
@@ -1289,10 +1614,10 @@ abc
 	it('parses empty style blocks inside fragments', () => {
 		const returned = getReturned('function App() { return <><style></style></>; }');
 
-		expect(returned.type).toBe('JSXFragment');
+		assert_type(returned, 'JSXFragment');
 		expect(returned.children.map((child) => child.type)).toEqual(['JSXStyleElement']);
-		expect(returned.children[0].css).toBe('');
-		expect(returned.children[0].children.map((child) => child.type)).toEqual(['StyleSheet']);
+		expect(child(returned, 0, 'JSXStyleElement').css).toBe('');
+		expect(node_children(returned.children[0]).map((child) => child.type)).toEqual(['StyleSheet']);
 	});
 
 	it('parses module-scope style expressions followed by JavaScript statements', () => {
@@ -1307,14 +1632,14 @@ abc
 			return <div class={styles.card} />;
 		}`;
 		const ast = parseModule(source, 'App.tsrx');
-		const style = ast.body[0].declarations[0].init;
+		const style = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
 
 		expect(ast.body.map((node) => node.type)).toEqual([
 			'VariableDeclaration',
 			'ExpressionStatement',
 			'ExportNamedDeclaration',
 		]);
-		expect(style.type).toBe('JSXStyleElement');
+		assert_type(style, 'JSXStyleElement');
 		expect(style.end).toBe(source.indexOf('</style>') + '</style>'.length);
 		expect(style.css).toContain('.card');
 	});
@@ -1328,7 +1653,8 @@ abc
 			</style>
 		</head>; }`);
 
-		const style = returned.children.find((child) => child.type === 'JSXStyleElement');
+		const style = node_children(returned).find((child) => child.type === 'JSXStyleElement');
+		assert_found(style);
 		expect(style.children.map((child) => child.type)).toEqual(['StyleSheet']);
 		expect(style.metadata.styleScopeHash).toBeUndefined();
 	});
@@ -1344,14 +1670,14 @@ abc
 			</head>
 		</>; }`);
 
-		const head = returned.children.find(
-			(child) => child.type === 'JSXElement' && child.openingElement.name.name === 'head',
+		const head = node_children(returned).find(
+			(child) => child.type === 'JSXElement' && openingName(child).name === 'head',
 		);
-		const meta = head.children.find(
-			(child) => child.type === 'JSXElement' && child.openingElement.name.name === 'meta',
+		const meta = node_children(found(head)).find(
+			(child) => child.type === 'JSXElement' && openingName(child).name === 'meta',
 		);
-		expect(meta.openingElement.selfClosing).toBe(true);
-		expect(meta.closingElement).toBeNull();
+		expect(as_type(meta, 'JSXElement').openingElement.selfClosing).toBe(true);
+		expect(as_type(meta, 'JSXElement').closingElement).toBeNull();
 	});
 
 	it('splits setup code and render output with a `@{ }` code block', () => {
@@ -1360,15 +1686,15 @@ abc
 			<>Hello {x}</>
 		}</div>; }`);
 
-		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXFragment');
-		expect(block.render.children.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual(['JSXCodeBlock']);
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(block.render.children[0].value).toContain('Hello');
+		expect(child(codeBlockRender(block), 0, 'JSXText').value).toContain('Hello');
 	});
 
 	it('allows a code-only `@{ }` block with no render output', () => {
@@ -1377,13 +1703,13 @@ abc
 			effect(() => log(x));
 		}</div>; }`);
 
-		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual(['JSXCodeBlock']);
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'ExpressionStatement',
 		]);
-		expect(block.render).toBeNull();
+		expect(codeBlock(block).render).toBeNull();
 	});
 
 	it('allows a `@{ }` block whose body is only a render node', () => {
@@ -1391,11 +1717,11 @@ abc
 			<span>{count}</span>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.type).toBe('JSXCodeBlock');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		assert_type(block, 'JSXCodeBlock');
 		expect(block.body).toEqual([]);
-		expect(block.render.type).toBe('JSXElement');
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('wraps multiple render nodes and text in a fragment', () => {
@@ -1407,11 +1733,14 @@ abc
 			</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXFragment');
-		expect(block.render.children.map((child) => child.type)).toEqual(['JSXText', 'JSXElement']);
-		expect(block.render.children[0].value).toContain('for switching to if');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+		]);
+		expect(child(codeBlockRender(block), 0, 'JSXText').value).toContain('for switching to if');
 	});
 
 	it('parses a nested element that earns its own `@{ }` block', () => {
@@ -1422,12 +1751,13 @@ abc
 			}</div>
 		</div>; }`);
 
-		const inner = returned.children.find((child) => child.type === 'JSXElement');
-		expect(inner.openingElement.name.name).toBe('div');
+		const inner = node_children(returned).find((child) => child.type === 'JSXElement');
+		assert_found(inner);
+		expect(openingName(inner).name).toBe('div');
 		expect(inner.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
 		const block = inner.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses a `@{ }` block as a fragment body', () => {
@@ -1436,11 +1766,11 @@ abc
 			<div>{a}</div>
 		}</>; }`);
 
-		expect(returned.type).toBe('JSXFragment');
+		assert_type(returned, 'JSXFragment');
 		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
 		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('div');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` block preceded by text as a code block, not text plus expression container', () => {
@@ -1452,29 +1782,40 @@ abc
 			}`,
 			'App.tsrx',
 		);
-		const fragment = ast.body[0].body.render;
+		const fragment = codeBlockRender(firstStatement(ast, 'FunctionDeclaration').body);
 
-		expect(fragment.children.map((child) => child.type)).toEqual(['JSXText', 'JSXCodeBlock']);
-		expect(fragment.children[0].value).toContain('Hello ');
-		const block = fragment.children[1];
-		expect(block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
-		expect(block.body[0].expression.property.name).toBe('username');
-		expect(block.render).toBeNull();
+		expect(node_children(found(fragment)).map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXCodeBlock',
+		]);
+		expect(child(found(fragment), 0, 'JSXText').value).toContain('Hello ');
+		const block = node_children(found(fragment))[1];
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['ExpressionStatement']);
+		expect(
+			as_type(
+				as_type(
+					as_type(as_type(block, 'JSXCodeBlock').body[0], 'ExpressionStatement').expression,
+					'MemberExpression',
+				).property,
+				'Identifier',
+			).name,
+		).toBe('username');
+		expect(codeBlock(block).render).toBeNull();
 	});
 
 	it('parses inline `@{ }` blocks between text siblings and keeps the surrounding spaces', () => {
 		const returned = getReturned(`function App() { return <div>a @{x} b @{y} c</div>; }`);
 
-		expect(returned.children.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXCodeBlock',
 			'JSXText',
 			'JSXCodeBlock',
 			'JSXText',
 		]);
-		expect(returned.children[0].value).toBe('a ');
-		expect(returned.children[2].value).toBe(' b ');
-		expect(returned.children[4].value).toBe(' c');
+		expect(child(returned, 0, 'JSXText').value).toBe('a ');
+		expect(child(returned, 2, 'JSXText').value).toBe(' b ');
+		expect(child(returned, 4, 'JSXText').value).toBe(' c');
 	});
 
 	it('parses a `@{ }` block preceded by text inside an element nested in an expression container', () => {
@@ -1484,17 +1825,17 @@ abc
 		);
 
 		expect(span.children.map((child) => child.type)).toEqual(['JSXText', 'JSXCodeBlock']);
-		expect(span.children[0].value).toBe('p ');
+		expect(child(span, 0, 'JSXText').value).toBe('p ');
 	});
 
 	it('keeps a lone `@` followed by a spaced expression container as text', () => {
 		const returned = getReturned(`function App() { return <div>at @ {x}</div>; }`);
 
-		expect(returned.children.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
-		expect(returned.children[0].value).toBe('at @ ');
+		expect(child(returned, 0, 'JSXText').value).toBe('at @ ');
 	});
 
 	it('keeps locations aligned for plain JSX expression children', () => {
@@ -1507,11 +1848,12 @@ abc
 }
 foo();`;
 		const ast = parseModule(source, 'App.tsrx');
-		const returned = ast.body[0].body.body[0].argument;
-		const pre = returned.children.find((child) => child.type === 'JSXElement');
-		const expression = pre.children.find(
-			(child) => child.type === 'JSXExpressionContainer',
-		).expression;
+		const returned = as_type(functionBody(ast)[0], 'ReturnStatement').argument;
+		const pre = node_children(found(returned)).find((child) => child.type === 'JSXElement');
+		assert_found(pre);
+		const container = node_children(pre).find((child) => child.type === 'JSXExpressionContainer');
+		assert_found(container);
+		const expression = as_type(container, 'JSXExpressionContainer').expression;
 
 		expect(expression.start).toBe(source.indexOf('x}'));
 		expect(ast.body[1].start).toBe(source.indexOf('foo()'));
@@ -1538,9 +1880,12 @@ foo();`;
 		);
 
 		expect(switchExpression.cases).toHaveLength(2);
-		const spread = switchExpression.cases[0].consequent[0].openingElement.attributes[0];
-		expect(spread.argument.type).toBe('Identifier');
-		expect(spread.argument.name).toBe('attrs');
+		const spread = as_type(switchExpression.cases[0].consequent[0], 'JSXElement').openingElement
+			.attributes[0];
+		expect(as_type(spread, 'JSXSpreadAttribute').argument.type).toBe('Identifier');
+		expect(as_type(as_type(spread, 'JSXSpreadAttribute').argument, 'Identifier').name).toBe(
+			'attrs',
+		);
 		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual(['JSXElement']);
 		expect(switchExpression.cases[1].consequent.map((node) => node.type)).toEqual(['JSXElement']);
 	});
@@ -1612,17 +1957,17 @@ foo();`;
 			<a>#1177</a>
 		</div>; }`);
 
-		const elements = returned.children.filter((child) => child.type === 'JSXElement');
+		const elements = node_children(returned).filter((child) => child.type === 'JSXElement');
 		expect(elements[0].children[0].type).toBe('JSXText');
-		expect(elements[0].children[0].value).toBe('const');
+		expect(as_type(elements[0].children[0], 'JSXText').value).toBe('const');
 		expect(elements[1].children[0].type).toBe('JSXText');
-		expect(elements[1].children[0].value).toBe('@if');
+		expect(as_type(elements[1].children[0], 'JSXText').value).toBe('@if');
 		expect(elements[2].children[0].type).toBe('JSXText');
-		expect(elements[2].children[0].value).toBe('@tsrx/react');
+		expect(as_type(elements[2].children[0], 'JSXText').value).toBe('@tsrx/react');
 		expect(elements[3].children[0].type).toBe('JSXText');
-		expect(elements[3].children[0].value).toBe('/mcp');
+		expect(as_type(elements[3].children[0], 'JSXText').value).toBe('/mcp');
 		expect(elements[4].children[0].type).toBe('JSXText');
-		expect(elements[4].children[0].value).toBe('#1177');
+		expect(as_type(elements[4].children[0], 'JSXText').value).toBe('#1177');
 	});
 
 	it('allows a JSX value in the setup section of a code block', () => {
@@ -1634,10 +1979,10 @@ foo();`;
 			</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.body[0].declarations[0].init.type).toBe('JSXElement');
-		expect(block.render.children.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(declaratorInit(block.body[0]).type).toBe('JSXElement');
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
 			'JSXElement',
 			'JSXExpressionContainer',
 		]);
@@ -1649,9 +1994,9 @@ foo();`;
 			<>{x}</>
 		}</>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.children[0].type).toBe('JSXText');
-		expect(block.body[0].declarations[0].init.children[0].value).toBe('hello');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(node_children(declaratorInit(block.body[0]))[0].type).toBe('JSXText');
+		expect(child(declaratorInit(block.body[0]), 0, 'JSXText').value).toBe('hello');
 	});
 
 	it('does not treat closing-tag text inside setup strings as markup', () => {
@@ -1660,9 +2005,9 @@ foo();`;
 			<>Hello</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.value).toBe('</div><div>');
-		expect(block.render.type).toBe('JSXFragment');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(as_type(declaratorInit(block.body[0]), 'Literal').value).toBe('</div><div>');
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
 	});
 
 	it('parses string and regex literals in the setup section as ordinary TS', () => {
@@ -1672,39 +2017,43 @@ foo();`;
 			<>Hello</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		expect(block.body[0].declarations[0].init.value).toBe('---');
-		expect(block.body[1].declarations[0].init.type).toBe('Literal');
-		expect(block.body[1].declarations[0].init.regex.pattern).toBe('---');
+		expect(as_type(declaratorInit(block.body[0]), 'Literal').value).toBe('---');
+		expect(declaratorInit(block.body[1]).type).toBe('Literal');
+		expect(regexLiteral(declaratorInit(block.body[1])).pattern).toBe('---');
 	});
 
 	it('parses a template literal as the sole content of a `@{ }` code block', () => {
 		const block = findNode('let c = @{ `a${x}b` };', 'JSXCodeBlock');
 
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.render).toBeNull();
-		expect(block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
-		const template = block.body[0].expression;
-		expect(template.type).toBe('TemplateLiteral');
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).render).toBeNull();
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['ExpressionStatement']);
+		const template = as_type(block.body[0], 'ExpressionStatement').expression;
+		assert_type(template, 'TemplateLiteral');
 		expect(template.quasis.map((quasi) => quasi.value.raw)).toEqual(['a', 'b']);
-		expect(template.expressions.map((expression) => expression.name)).toEqual(['x']);
+		expect(
+			template.expressions.map((expression) => as_type(expression, 'Identifier').name),
+		).toEqual(['x']);
 	});
 
 	it('parses a template literal after another statement in a `@{ }` code block', () => {
 		const block = findNode('let i = @{ const a = 1; `t${a}` };', 'JSXCodeBlock');
 
-		expect(block.body.map((child) => child.type)).toEqual([
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'ExpressionStatement',
 		]);
-		const template = block.body[1].expression;
-		expect(template.type).toBe('TemplateLiteral');
+		const template = as_type(block.body[1], 'ExpressionStatement').expression;
+		assert_type(template, 'TemplateLiteral');
 		expect(template.quasis.map((quasi) => quasi.value.raw)).toEqual(['t', '']);
-		expect(template.expressions.map((expression) => expression.name)).toEqual(['a']);
+		expect(
+			template.expressions.map((expression) => as_type(expression, 'Identifier').name),
+		).toEqual(['a']);
 	});
 
 	it('does not treat tag-looking text inside setup regex literals as markup', () => {
@@ -1713,9 +2062,9 @@ foo();`;
 			<>{x}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.type).toBe('Literal');
-		expect(block.body[0].declarations[0].init.regex.pattern).toBe('<span>');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(declaratorInit(block.body[0]).type).toBe('Literal');
+		expect(regexLiteral(declaratorInit(block.body[0])).pattern).toBe('<span>');
 	});
 
 	it('reads `<value> /…/` in the setup section as a less-than against a regex', () => {
@@ -1724,12 +2073,12 @@ foo();`;
 			<>{x}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('<');
-		expect(init.left.value).toBe(3);
-		expect(init.right.regex.pattern).toBe('div>');
+		expect(as_type(init.left, 'Literal').value).toBe(3);
+		expect(regexLiteral(init.right).pattern).toBe('div>');
 	});
 
 	it('reads a line-leading `<` against a number in the setup section as a comparison, not a tag', () => {
@@ -1743,16 +2092,16 @@ foo();`;
 			'App.tsrx',
 		);
 
-		const block = ast.body[0].declarations[0].init;
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const block = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('<');
-		expect(init.left.value).toBe(123);
-		expect(init.right.value).toBe(456);
-		expect(block.render.type).toBe('JSXElement');
-		expect(block.render.openingElement.name.name).toBe('div');
+		expect(as_type(init.left, 'Literal').value).toBe(123);
+		expect(as_type(init.right, 'Literal').value).toBe(456);
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses array of objects in the setup section', () => {
@@ -1768,13 +2117,13 @@ foo();`;
 				}
 			});`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('ArrayExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'ArrayExpression');
 		expect(init.elements).toHaveLength(2);
-		expect(init.elements[0].type).toBe('ObjectExpression');
-		expect(init.elements[0].properties).toHaveLength(4);
+		expect(found(init.elements[0]).type).toBe('ObjectExpression');
+		expect(as_type(init.elements[0], 'ObjectExpression').properties).toHaveLength(4);
 	});
 
 	it('parses functions returning fragments in the setup section', () => {
@@ -1788,12 +2137,17 @@ foo();`;
 				}</>;
 			}`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['FunctionDeclaration']);
-		expect(block.render.type).toBe('JSXElement');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['FunctionDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXElement');
 		const declaration = block.body[0];
-		expect(declaration.body.body[0].type).toBe('ReturnStatement');
-		expect(declaration.body.body[0].argument.type).toBe('JSXFragment');
+		expect(as_type(declaration, 'FunctionDeclaration').body.body[0].type).toBe('ReturnStatement');
+		expect(
+			found(
+				as_type(as_type(declaration, 'FunctionDeclaration').body.body[0], 'ReturnStatement')
+					.argument,
+			).type,
+		).toBe('JSXFragment');
 	});
 
 	it('parses native control flow in a component nested below the top level', () => {
@@ -1810,13 +2164,18 @@ foo();`;
 				}
 			});`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXForExpression');
-		const directive = block.render;
-		expect(directive.statementType).toBe('ForOfStatement');
-		expect(directive.body.body.map((child) => child.type)).toEqual(['IfStatement', 'JSXElement']);
-		expect(directive.body.body[0].consequent.type).toBe('ContinueStatement');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXForExpression');
+		const directive = codeBlockRender(block);
+		assert_found(directive);
+		expect(as_type(directive, 'JSXForExpression').statementType).toBe('ForOfStatement');
+		expect(
+			blockBody(as_type(directive, 'JSXForExpression').body).map((child) => child.type),
+		).toEqual(['IfStatement', 'JSXElement']);
+		expect(
+			as_type(as_type(directive, 'JSXForExpression').body.body[0], 'IfStatement').consequent.type,
+		).toBe('ContinueStatement');
 	});
 
 	it('parses a TSRX template returned from a `.map()` callback as a native template', () => {
@@ -1835,9 +2194,11 @@ foo();`;
 		expect(tr.metadata.native_tsrx).toBe(true);
 		expect(tr.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
 		const block = tr.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXForExpression');
-		expect(block.render.statementType).toBe('ForOfStatement');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXForExpression');
+		expect(as_type(codeBlockRender(block), 'JSXForExpression').statementType).toBe(
+			'ForOfStatement',
+		);
 	});
 
 	it('parses a TSRX element in a conditional expression as a native template', () => {
@@ -1856,8 +2217,10 @@ foo();`;
 		expect(div.metadata.native_tsrx).toBe(true);
 		expect(div.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
 		const block = div.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+		]);
 	});
 
 	it('treats a generic call in the setup section as script, not markup', () => {
@@ -1866,9 +2229,11 @@ foo();`;
 			<>{x}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.type).toBe('CallExpression');
-		expect(block.body[0].declarations[0].init.callee.name).toBe('foo');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(declaratorInit(block.body[0]).type).toBe('CallExpression');
+		expect(
+			as_type(as_type(declaratorInit(block.body[0]), 'CallExpression').callee, 'Identifier').name,
+		).toBe('foo');
 	});
 
 	it('treats a generic arrow function in the setup section as script', () => {
@@ -1877,8 +2242,8 @@ foo();`;
 			<>{id}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.type).toBe('ArrowFunctionExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(declaratorInit(block.body[0]).type).toBe('ArrowFunctionExpression');
 	});
 
 	it('treats generic function expressions in the setup section as script', () => {
@@ -1892,11 +2257,21 @@ foo();`;
 			}
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['FunctionDeclaration']);
-		const object = block.body[0].body.body[0].argument;
-		expect(object.properties[0].value.type).toBe('FunctionExpression');
-		expect(object.properties[0].value.typeParameters.type).toBe('TSTypeParameterDeclaration');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['FunctionDeclaration']);
+		const object = as_type(
+			as_type(block.body[0], 'FunctionDeclaration').body.body[0],
+			'ReturnStatement',
+		).argument;
+		expect(as_type(as_type(object, 'ObjectExpression').properties[0], 'Property').value.type).toBe(
+			'FunctionExpression',
+		);
+		expect(
+			as_type(
+				as_type(as_type(object, 'ObjectExpression').properties[0], 'Property').value,
+				'FunctionExpression',
+			).typeParameters?.type,
+		).toBe('TSTypeParameterDeclaration');
 	});
 
 	it('treats class methods and member calls with type arguments as script', () => {
@@ -1913,18 +2288,20 @@ foo();`;
 			<>{c}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'ClassDeclaration',
 			'ClassDeclaration',
 			'VariableDeclaration',
 		]);
-		const method = block.body[1].body.body[0];
-		expect(method.type).toBe('MethodDefinition');
-		expect(method.typeParameters.type).toBe('TSTypeParameterDeclaration');
-		const call = block.body[2].declarations[0].init;
-		expect(call.type).toBe('CallExpression');
-		expect(call.typeArguments.type).toBe('TSTypeParameterInstantiation');
+		const method = as_type(
+			as_type(block.body[1], 'ClassDeclaration').body.body[0],
+			'MethodDefinition',
+		);
+		expect(method.typeParameters?.type).toBe('TSTypeParameterDeclaration');
+		const call = declaratorInit(block.body[2]);
+		assert_type(call, 'CallExpression');
+		expect(call.typeArguments?.type).toBe('TSTypeParameterInstantiation');
 	});
 
 	it('keeps whitespace-separated relational expressions out of the type-argument path', () => {
@@ -1933,9 +2310,9 @@ foo();`;
 			<>{result}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('>');
 	});
 
@@ -1948,42 +2325,54 @@ foo();`;
 			<T>{builder<string>()}</T>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		const builder = block.body[1].declarations[0].init;
-		expect(builder.type).toBe('FunctionExpression');
-		expect(builder.typeParameters.type).toBe('TSTypeParameterDeclaration');
-		expect(block.render.openingElement.name.name).toBe('T');
+		const builder = declaratorInit(block.body[1]);
+		assert_type(builder, 'FunctionExpression');
+		expect(builder.typeParameters?.type).toBe('TSTypeParameterDeclaration');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('T');
 	});
 
 	it('parses template text touching a following element as text, not a type-argument list', () => {
-		const block = getReturned(`function App() { return @{ <>hello<span>{a}</span></> }; }`);
+		const block = getReturnedCodeBlock(
+			`function App() { return @{ <>hello<span>{a}</span></> }; }`,
+		);
 
-		const fragment = block.render;
-		expect(fragment.children.map((child) => child.type)).toEqual(['JSXText', 'JSXElement']);
-		expect(fragment.children[0].value).toBe('hello');
-		expect(fragment.children[1].openingElement.name.name).toBe('span');
+		const fragment = codeBlockRender(block);
+		expect(node_children(found(fragment)).map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+		]);
+		expect(child(found(fragment), 0, 'JSXText').value).toBe('hello');
+		expect(
+			as_type(child(found(fragment), 1, 'JSXElement').openingElement.name, 'JSXIdentifier').name,
+		).toBe('span');
 	});
 
 	it('parses template text touching a following fragment as text, not a type-argument list', () => {
-		const block = getReturned(`function App() { return @{ <>hello<>{a}</></> }; }`);
+		const block = getReturnedCodeBlock(`function App() { return @{ <>hello<>{a}</></> }; }`);
 
-		const fragment = block.render;
-		expect(fragment.children.map((child) => child.type)).toEqual(['JSXText', 'JSXFragment']);
-		expect(fragment.children[0].value).toBe('hello');
-		expect(fragment.children[1].children.map((child) => child.type)).toEqual([
+		const fragment = codeBlockRender(block);
+		expect(node_children(found(fragment)).map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXFragment',
+		]);
+		expect(child(found(fragment), 0, 'JSXText').value).toBe('hello');
+		expect(node_children(node_children(found(fragment))[1]).map((child) => child.type)).toEqual([
 			'JSXExpressionContainer',
 		]);
 	});
 
 	it('keeps expressions as containers between touching text inside an expression container', () => {
-		const block = getReturned(`function App() { return @{ <>{<>x{a}y<>{b}</>z</>}</> }; }`);
+		const block = getReturnedCodeBlock(
+			`function App() { return @{ <>{<>x{a}y<>{b}</>z</>}</> }; }`,
+		);
 
-		const inner = block.render.children[0].expression;
-		expect(inner.type).toBe('JSXFragment');
+		const inner = child(codeBlockRender(block), 0, 'JSXExpressionContainer').expression;
+		assert_type(inner, 'JSXFragment');
 		expect(inner.children.map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXExpressionContainer',
@@ -1991,8 +2380,15 @@ foo();`;
 			'JSXFragment',
 			'JSXText',
 		]);
-		expect(inner.children[1].expression.name).toBe('a');
-		expect(inner.children[3].children[0].expression.name).toBe('b');
+		expect(as_type(child(inner, 1, 'JSXExpressionContainer').expression, 'Identifier').name).toBe(
+			'a',
+		);
+		expect(
+			as_type(
+				as_type(node_children(inner.children[3])[0], 'JSXExpressionContainer').expression,
+				'Identifier',
+			).name,
+		).toBe('b');
 	});
 
 	it('parses expression containers at every level of nested fragments in expression position', () => {
@@ -2003,27 +2399,31 @@ foo();`;
 			'App.tsrx',
 		);
 
-		const outer = ast.body[0].body.render;
-		expect(outer.type).toBe('JSXFragment');
+		const outer = codeBlockRender(firstStatement(ast, 'FunctionDeclaration').body);
+		assert_type(outer, 'JSXFragment');
 		expect(outer.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
 
-		const level2 = outer.children[0].expression;
-		expect(level2.type).toBe('JSXFragment');
+		const level2 = child(outer, 0, 'JSXExpressionContainer').expression;
+		assert_type(level2, 'JSXFragment');
 		expect(level2.children.map((child) => child.type)).toEqual([
 			'JSXExpressionContainer',
 			'JSXText',
 			'JSXFragment',
 			'JSXText',
 		]);
-		expect(level2.children[0].expression.name).toBe('a');
+		expect(as_type(child(level2, 0, 'JSXExpressionContainer').expression, 'Identifier').name).toBe(
+			'a',
+		);
 
 		const level3 = level2.children[2];
-		expect(level3.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
+		expect(node_children(level3).map((child) => child.type)).toEqual(['JSXExpressionContainer']);
 
-		const level4 = level3.children[0].expression;
-		expect(level4.type).toBe('JSXFragment');
+		const level4 = child(level3, 0, 'JSXExpressionContainer').expression;
+		assert_type(level4, 'JSXFragment');
 		expect(level4.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
-		expect(level4.children[0].expression.name).toBe('a');
+		expect(as_type(child(level4, 0, 'JSXExpressionContainer').expression, 'Identifier').name).toBe(
+			'a',
+		);
 	});
 
 	it('parses sibling fragments separated by template text', () => {
@@ -2035,9 +2435,9 @@ foo();`;
 			'JSXFragment',
 			'JSXText',
 		]);
-		expect(withText.children[0].value).toBe(' ');
-		expect(withText.children[2].value).toBe(' 2 ');
-		expect(withText.children[4].value).toBe(' ');
+		expect(child(withText, 0, 'JSXText').value).toBe(' ');
+		expect(child(withText, 2, 'JSXText').value).toBe(' 2 ');
+		expect(child(withText, 4, 'JSXText').value).toBe(' ');
 
 		const emptySiblings = findNode('let b = <> <></> 2 <></> </>', 'JSXFragment');
 		expect(emptySiblings.children.map((child) => child.type)).toEqual([
@@ -2047,9 +2447,9 @@ foo();`;
 			'JSXFragment',
 			'JSXText',
 		]);
-		expect(withText.children[0].value).toBe(' ');
-		expect(withText.children[2].value).toBe(' 2 ');
-		expect(withText.children[4].value).toBe(' ');
+		expect(child(withText, 0, 'JSXText').value).toBe(' ');
+		expect(child(withText, 2, 'JSXText').value).toBe(' 2 ');
+		expect(child(withText, 4, 'JSXText').value).toBe(' ');
 	});
 
 	it('keeps an inline space between adjacent sibling fragments', () => {
@@ -2061,8 +2461,8 @@ foo();`;
 			'JSXFragment',
 			'JSXText',
 		]);
-		expect(fragment.children[2].value).toBe('  ');
-		expect(fragment.children[4].value).toBe('something ');
+		expect(child(fragment, 2, 'JSXText').value).toBe('  ');
+		expect(child(fragment, 4, 'JSXText').value).toBe('something ');
 	});
 
 	it('keeps inline spaces around and between sibling elements', () => {
@@ -2074,9 +2474,9 @@ foo();`;
 			'JSXElement',
 			'JSXText',
 		]);
-		expect(pre.children[0].value).toBe(' ');
-		expect(pre.children[2].value).toBe(' ');
-		expect(pre.children[4].value).toBe(' ');
+		expect(child(pre, 0, 'JSXText').value).toBe(' ');
+		expect(child(pre, 2, 'JSXText').value).toBe(' ');
+		expect(child(pre, 4, 'JSXText').value).toBe(' ');
 	});
 
 	it('parses a text-then-element sibling after newline-separated elements', () => {
@@ -2087,7 +2487,7 @@ foo();`;
 			'JSXText',
 			'JSXElement',
 		]);
-		expect(pre.children[2].value).toBe('1');
+		expect(child(pre, 2, 'JSXText').value).toBe('1');
 	});
 
 	it('parses indented multi-line markup with a text-then-element sibling', () => {
@@ -2098,7 +2498,7 @@ foo();`;
 		const text = pre.children.find(
 			(child) => child.type === 'JSXText' && child.value.includes('1'),
 		);
-		expect(text.value).toBe('1');
+		expect(as_type(text, 'JSXText').value).toBe('1');
 	});
 
 	it('parses parenthesized conditional JSX spread attributes in render output', () => {
@@ -2107,12 +2507,14 @@ foo();`;
 			<button {...(enabled ? { onClick: fn } : { title: 'disabled' })}>target</button>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		const spread = block.render.openingElement.attributes[0];
-		expect(spread.type).toBe('JSXSpreadAttribute');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		const spread = as_type(codeBlockRender(block), 'JSXElement').openingElement.attributes[0];
+		assert_type(spread, 'JSXSpreadAttribute');
 		expect(spread.argument.type).toBe('ConditionalExpression');
-		expect(spread.argument.test.name).toBe('enabled');
+		expect(as_type(as_type(spread.argument, 'ConditionalExpression').test, 'Identifier').name).toBe(
+			'enabled',
+		);
 	});
 
 	it('parses parenthesized conditional spreads that swap ref-shaped props', () => {
@@ -2122,16 +2524,34 @@ foo();`;
 			<input {...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })} />
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		const spread = block.render.openingElement.attributes[0];
-		expect(spread.type).toBe('JSXSpreadAttribute');
+		const spread = as_type(codeBlockRender(block), 'JSXElement').openingElement.attributes[0];
+		assert_type(spread, 'JSXSpreadAttribute');
 		expect(spread.argument.type).toBe('ConditionalExpression');
-		expect(spread.argument.consequent.properties[0].key.name).toBe('ref');
-		expect(spread.argument.alternate.properties[0].key.name).toBe('input_ref');
+		expect(
+			as_type(
+				as_type(
+					as_type(as_type(spread.argument, 'ConditionalExpression').consequent, 'ObjectExpression')
+						.properties[0],
+					'Property',
+				).key,
+				'Identifier',
+			).name,
+		).toBe('ref');
+		expect(
+			as_type(
+				as_type(
+					as_type(as_type(spread.argument, 'ConditionalExpression').alternate, 'ObjectExpression')
+						.properties[0],
+					'Property',
+				).key,
+				'Identifier',
+			).name,
+		).toBe('input_ref');
 	});
 
 	it('does not let a relational `>` inside an attribute break tag scanning', () => {
@@ -2142,9 +2562,9 @@ foo();`;
 			<>{x}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.type).toBe('JSXElement');
-		expect(block.body[0].declarations[0].init.openingElement.name.name).toBe('Comp');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(declaratorInit(block.body[0]).type).toBe('JSXElement');
+		expect(openingName(as_type(declaratorInit(block.body[0]), 'JSXElement')).name).toBe('Comp');
 	});
 
 	it('parses template literals in the setup section', () => {
@@ -2154,8 +2574,8 @@ foo();`;
 			<>Hello</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body[0].declarations[0].init.type).toBe('TemplateLiteral');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(declaratorInit(block.body[0]).type).toBe('TemplateLiteral');
 	});
 
 	it('parses line and block comments in the setup section', () => {
@@ -2166,8 +2586,8 @@ foo();`;
 			<>Hello</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
 	});
 
 	it('does not let a setup JSX value close the outer template', () => {
@@ -2178,12 +2598,18 @@ foo();`;
 			<>{x}</>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		const scriptJsx = block.body[0].declarations[0].init;
-		expect(scriptJsx.type).toBe('JSXElement');
-		expect(scriptJsx.openingElement.name.name).toBe('section');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const scriptJsx = declaratorInit(block.body[0]);
+		assert_type(scriptJsx, 'JSXElement');
+		expect(openingName(scriptJsx).name).toBe('section');
 		expect(
-			scriptJsx.children.find((child) => child.type === 'JSXElement').openingElement.name.name,
+			as_type(
+				as_type(
+					scriptJsx.children.find((child) => child.type === 'JSXElement'),
+					'JSXElement',
+				).openingElement.name,
+				'JSXIdentifier',
+			).name,
 		).toBe('div');
 	});
 
@@ -2197,11 +2623,11 @@ foo();`;
 			<div class={styles.card} />
 		}</section>; }`);
 
-		const block = returned.children[0];
-		const style = block.body[0].declarations[0].init;
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXElement');
-		expect(style.type).toBe('JSXStyleElement');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const style = declaratorInit(block.body[0]);
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		assert_type(style, 'JSXStyleElement');
 		expect(style.children[0].type).toBe('StyleSheet');
 		expect(style.css).toContain('.card');
 	});
@@ -2213,7 +2639,7 @@ foo();`;
 			}
 		</style>; }`);
 
-		expect(returned.type).toBe('JSXStyleElement');
+		assert_type(returned, 'JSXStyleElement');
 		expect(returned.css).toContain('--- </div><div>');
 		expect(returned.children[0].source).toContain('--- </div><div>');
 	});
@@ -2226,12 +2652,13 @@ foo();`;
 			}</Component>
 		</section>; }`);
 
-		const component = returned.children.find((child) => child.type === 'JSXElement');
-		expect(component.openingElement.name.name).toBe('Component');
+		const component = node_children(returned).find((child) => child.type === 'JSXElement');
+		assert_found(component);
+		expect(openingName(component).name).toBe('Component');
 		expect(component.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
 		const block = component.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('button');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('button');
 	});
 
 	it('parses @if as a JSXIfExpression', () => {
@@ -2243,13 +2670,17 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.type).toBe('JSXIfExpression');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.statementType).toBe('IfStatement');
-		expect(directive.test.name).toBe('ready');
-		expect(directive.consequent.body[0].type).toBe('JSXFragment');
-		expect(directive.consequent.body[0].children[0].value).toContain('Ready');
-		expect(directive.alternate.body[0].children[0].value).toContain('Waiting');
+		expect(as_type(directive.test, 'Identifier').name).toBe('ready');
+		expect(blockBody(directive.consequent)[0].type).toBe('JSXFragment');
+		expect(
+			as_type(node_children(blockBody(directive.consequent)[0])[0], 'JSXText').value,
+		).toContain('Ready');
+		expect(as_type(node_children(blockBody(directive.alternate)[0])[0], 'JSXText').value).toContain(
+			'Waiting',
+		);
 	});
 
 	it('parses @else if as a chained JSXIfExpression alternate', () => {
@@ -2263,11 +2694,27 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.alternate.type).toBe('IfStatement');
-		expect(directive.alternate.test.right.value).toBe('success');
-		expect(directive.alternate.consequent.body[0].children[0].value).toContain('Success');
-		expect(directive.alternate.alternate.body[0].children[0].value).toContain('Failed');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		assert_found(directive);
+		expect(directive.alternate?.type).toBe('IfStatement');
+		expect(
+			as_type(
+				as_type(as_type(directive.alternate, 'IfStatement').test, 'BinaryExpression').right,
+				'Literal',
+			).value,
+		).toBe('success');
+		expect(
+			as_type(
+				node_children(blockBody(as_type(directive.alternate, 'IfStatement').consequent)[0])[0],
+				'JSXText',
+			).value,
+		).toContain('Success');
+		expect(
+			as_type(
+				node_children(blockBody(as_type(directive.alternate, 'IfStatement').alternate)[0])[0],
+				'JSXText',
+			).value,
+		).toContain('Failed');
 	});
 
 	it('parses bare else text after an @if directive', () => {
@@ -2277,14 +2724,14 @@ foo();`;
 				} else
 			</>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		const text = returned.children.find(
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		const text = node_children(returned).find(
 			(child) => child.type === 'JSXText' && child.value.includes('else'),
 		);
 
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.alternate).toBe(null);
-		expect(text.value).toMatch(/^ else/);
+		expect(as_type(text, 'JSXText').value).toMatch(/^ else/);
 	});
 
 	it('keeps the whitespace before bare else text in a @{ ... } block', () => {
@@ -2300,9 +2747,9 @@ foo();`;
 		const directive = fragment.children.find((child) => child.type === 'JSXIfExpression');
 		const text = fragment.children.find((child) => child.type === 'JSXText');
 
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(directive.alternate).toBe(null);
-		expect(text.value).toBe(' else\n');
+		expect(as_type(text, 'JSXText').value).toBe(' else\n');
 	});
 
 	it('parses same-line trailing text after an @if block closed by a tag', () => {
@@ -2313,10 +2760,11 @@ foo();`;
 		// closing tag (no intervening element) is the trigger.
 		const returned = getReturned(`function App() { return <>@if (a) {<b />} done</>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		const text = returned.children.find((child) => child.type === 'JSXText');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		const text = node_children(returned).find((child) => child.type === 'JSXText');
+		assert_found(text);
 
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(text.value).toBe(' done');
 	});
 
@@ -2325,10 +2773,11 @@ foo();`;
 			`function App() { return <>@for (const x of xs) {<b />} done</>; }`,
 		);
 
-		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
-		const text = returned.children.find((child) => child.type === 'JSXText');
+		const directive = node_children(returned).find((child) => child.type === 'JSXForExpression');
+		const text = node_children(returned).find((child) => child.type === 'JSXText');
+		assert_found(text);
 
-		expect(directive.type).toBe('JSXForExpression');
+		assert_type(directive, 'JSXForExpression');
 		expect(text.value).toBe(' done');
 	});
 
@@ -2340,8 +2789,9 @@ foo();`;
 
 		const directive = element.children.find((child) => child.type === 'JSXIfExpression');
 		const text = element.children.find((child) => child.type === 'JSXText');
+		assert_found(text);
 
-		expect(directive.type).toBe('JSXIfExpression');
+		assert_type(directive, 'JSXIfExpression');
 		expect(text.value).toBe(' done');
 	});
 
@@ -2417,9 +2867,17 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
-		expect(directive.consequent.body[0].expression.operator).toBe('++');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		assert_found(directive);
+		expect(blockBody(directive.consequent).map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+		]);
+		expect(
+			as_type(
+				as_type(blockBody(directive.consequent)[0], 'ExpressionStatement').expression,
+				'UpdateExpression',
+			).operator,
+		).toBe('++');
 	});
 
 	it('parses assignment-only @if body content as a statement', () => {
@@ -2429,9 +2887,14 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
-		expect(directive.consequent.body[0].expression.type).toBe('AssignmentExpression');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		assert_found(directive);
+		expect(blockBody(directive.consequent).map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+		]);
+		expect(as_type(blockBody(directive.consequent)[0], 'ExpressionStatement').expression.type).toBe(
+			'AssignmentExpression',
+		);
 	});
 
 	it('does not treat closing-tag text inside directive setup strings as markup', () => {
@@ -2441,9 +2904,13 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(directive.consequent.body[0].declarations[0].init.value).toBe('</div><div>');
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		expect(blockBody(directive?.consequent).map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+		]);
+		expect(as_type(declaratorInit(blockBody(directive?.consequent)[0]), 'Literal').value).toBe(
+			'</div><div>',
+		);
 	});
 
 	it('parses @for as a JSXForExpression', () => {
@@ -2453,12 +2920,17 @@ foo();`;
 			}
 		</ul>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
-		expect(directive.type).toBe('JSXForExpression');
+		const directive = node_children(returned).find((child) => child.type === 'JSXForExpression');
+		assert_type(directive, 'JSXForExpression');
 		expect(directive.statementType).toBe('ForOfStatement');
-		expect(directive.left.declarations[0].id.name).toBe('item');
-		expect(directive.right.name).toBe('items');
-		expect(directive.key.property.name).toBe('id');
+		if (directive.statementType !== 'ForOfStatement') throw new Error('expected a `for … of`');
+		expect(
+			as_type(as_type(directive.left, 'VariableDeclaration').declarations[0].id, 'Identifier').name,
+		).toBe('item');
+		expect(as_type(directive.right, 'Identifier').name).toBe('items');
+		expect(as_type(as_type(directive.key, 'MemberExpression').property, 'Identifier').name).toBe(
+			'id',
+		);
 		expect(directive.body.body[0].type).toBe('JSXElement');
 		expect(directive.empty).toBeNull();
 	});
@@ -2477,15 +2949,20 @@ foo();`;
 			'App.tsrx',
 		);
 
-		const block = ast.body[0].declaration.body;
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.render.type).toBe('JSXFragment');
-		expect(block.render.children.map((child) => child.type)).toEqual([
+		const block = as_type(
+			found(as_type(ast.body[0], 'ExportNamedDeclaration').declaration),
+			'FunctionDeclaration',
+		).body;
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
 			'JSXElement',
 			'JSXElement',
 			'JSXForExpression',
 		]);
-		expect(block.render.children[2].body.body[0].type).toBe('JSXElement');
+		expect(
+			as_type(node_children(codeBlockRender(block))[2], 'JSXForExpression').body.body[0].type,
+		).toBe('JSXElement');
 	});
 
 	it('parses @for empty fallbacks as template blocks', () => {
@@ -2498,14 +2975,19 @@ foo();`;
 			}
 		</ul>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
-		expect(directive.type).toBe('JSXForExpression');
-		expect(directive.empty.type).toBe('BlockStatement');
-		expect(directive.empty.body.map((child) => child.type)).toEqual([
+		const directive = node_children(returned).find((child) => child.type === 'JSXForExpression');
+		assert_type(directive, 'JSXForExpression');
+		expect(directive.empty?.type).toBe('BlockStatement');
+		expect(blockBody(directive.empty).map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'JSXElement',
 		]);
-		expect(directive.empty.body[1].openingElement.name.name).toBe('li');
+		expect(
+			as_type(
+				as_type(blockBody(directive.empty)[1], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('li');
 	});
 
 	it('rejects braceless @for empty fallbacks', () => {
@@ -2525,8 +3007,8 @@ foo();`;
 			}
 		</ul>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
-		expect(directive.body.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
+		const directive = node_children(returned).find((child) => child.type === 'JSXForExpression');
+		expect(blockBody(directive?.body).map((child) => child.type)).toEqual(['ExpressionStatement']);
 	});
 
 	it('parses @switch as a JSXSwitchExpression with fragment case bodies', () => {
@@ -2544,16 +3026,20 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXSwitchExpression');
-		expect(directive.type).toBe('JSXSwitchExpression');
+		const directive = node_children(returned).find((child) => child.type === 'JSXSwitchExpression');
+		assert_type(directive, 'JSXSwitchExpression');
 		expect(directive.statementType).toBe('SwitchStatement');
-		expect(directive.discriminant.name).toBe('value');
+		expect(as_type(directive.discriminant, 'Identifier').name).toBe('value');
 		expect(directive.cases).toHaveLength(3);
-		expect(directive.cases[0].test.value).toBe('a');
+		expect(as_type(directive.cases[0].test, 'Literal').value).toBe('a');
 		expect(directive.cases[0].consequent[0].type).toBe('JSXFragment');
-		expect(directive.cases[0].consequent[0].children[0].value).toContain('Case A');
+		expect(as_type(node_children(directive.cases[0].consequent[0])[0], 'JSXText').value).toContain(
+			'Case A',
+		);
 		expect(directive.cases[2].test).toBeNull();
-		expect(directive.cases[2].consequent[0].children[0].value).toContain('Fallback');
+		expect(as_type(node_children(directive.cases[2].consequent[0])[0], 'JSXText').value).toContain(
+			'Fallback',
+		);
 	});
 
 	it('parses @try as a JSXTryExpression', () => {
@@ -2567,15 +3053,19 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXTryExpression');
-		expect(directive.type).toBe('JSXTryExpression');
+		const directive = node_children(returned).find((child) => child.type === 'JSXTryExpression');
+		assert_type(directive, 'JSXTryExpression');
 		expect(directive.statementType).toBe('TryStatement');
 		expect(directive.block.body[0].type).toBe('JSXElement');
-		expect(directive.pending.body[0].type).toBe('JSXFragment');
-		expect(directive.pending.body[0].children[0].value).toContain('Loading');
-		expect(directive.handler.param.name).toBe('error');
-		expect(directive.handler.resetParam.name).toBe('reset');
-		expect(directive.handler.body.body[0].children[0].value).toContain('Failed');
+		expect(blockBody(directive.pending)[0].type).toBe('JSXFragment');
+		expect(as_type(node_children(blockBody(directive.pending)[0])[0], 'JSXText').value).toContain(
+			'Loading',
+		);
+		expect(as_type(found(found(directive.handler).param), 'Identifier').name).toBe('error');
+		expect(as_type(found(found(directive.handler).resetParam), 'Identifier').name).toBe('reset');
+		expect(
+			as_type(node_children(blockBody(directive.handler?.body)[0])[0], 'JSXText').value,
+		).toContain('Failed');
 	});
 
 	it('parses code-only @try bodies', () => {
@@ -2587,9 +3077,9 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXTryExpression');
-		expect(directive.block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
-		expect(directive.pending.body[0].type).toBe('JSXFragment');
+		const directive = node_children(returned).find((child) => child.type === 'JSXTryExpression');
+		expect(blockBody(directive?.block).map((child) => child.type)).toEqual(['ExpressionStatement']);
+		expect(blockBody(directive?.pending)[0].type).toBe('JSXFragment');
 	});
 
 	it('parses a `@{ }` block returned directly from an arrow body', () => {
@@ -2600,10 +3090,13 @@ foo();`;
 			};`,
 			'App.tsrx',
 		);
-		const block = ast.body[0].declarations[0].init.body;
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('div');
+		const block = as_type(
+			declaratorInit(firstStatement(ast, 'VariableDeclaration')),
+			'ArrowFunctionExpression',
+		).body;
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` block assigned to a variable', () => {
@@ -2614,9 +3107,9 @@ foo();`;
 			};`,
 			'App.tsrx',
 		);
-		const block = ast.body[0].declarations[0].init;
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.render.openingElement.name.name).toBe('div');
+		const block = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(block, 'JSXCodeBlock');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses an @if directive returned from a `.map()` callback', () => {
@@ -2624,9 +3117,14 @@ foo();`;
 			`const H = items.map((i) => @if (i.ok) { <li>{i.name}</li> });`,
 			'JSXIfExpression',
 		);
-		expect(directive.type).toBe('JSXIfExpression');
-		expect(directive.consequent.body[0].type).toBe('JSXElement');
-		expect(directive.consequent.body[0].openingElement.name.name).toBe('li');
+		assert_type(directive, 'JSXIfExpression');
+		expect(blockBody(directive.consequent)[0].type).toBe('JSXElement');
+		expect(
+			as_type(
+				as_type(blockBody(directive.consequent)[0], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('li');
 	});
 
 	it('parses an arrow component whose whole body is a `@{ }` block', () => {
@@ -2637,11 +3135,14 @@ foo();`;
 			};`,
 			'App.tsrx',
 		);
-		const block = ast.body[0].declarations[0].init.body;
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.openingElement.name.name).toBe('div');
-		expect(block.render.children.map((child) => child.type)).toEqual([
+		const block = as_type(
+			declaratorInit(firstStatement(ast, 'VariableDeclaration')),
+			'ArrowFunctionExpression',
+		).body;
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('div');
+		expect(node_children(found(block.render)).map((child) => child.type)).toEqual([
 			'JSXText',
 			'JSXExpressionContainer',
 		]);
@@ -2655,55 +3156,68 @@ foo();`;
 			}`,
 			'App.tsrx',
 		);
-		const fn = ast.body[0];
-		expect(fn.type).toBe('FunctionDeclaration');
-		expect(fn.body.type).toBe('JSXCodeBlock');
-		expect(fn.body.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(fn.body.render.openingElement.name.name).toBe('div');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
+		expect(codeBlock(fn.body).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(fn.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses an empty `@{}` function declaration body', () => {
 		const ast = parseModule(`function Something() @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.type).toBe('FunctionDeclaration');
-		expect(fn.body.type).toBe('JSXCodeBlock');
-		expect(fn.body.body).toEqual([]);
-		expect(fn.body.render).toBeNull();
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
+		expect(codeBlock(fn.body).body).toEqual([]);
+		expect(codeBlock(fn.body).render).toBeNull();
 	});
 
 	it('parses a `@{ }` block as an object property arrow body', () => {
 		const ast = parseModule(`const obj = { Prop: () => @{ <div/> } };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('ArrowFunctionExpression');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'ArrowFunctionExpression');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.body.render.openingElement.name.name).toBe('div');
+		expect(openingName(as_type(codeBlockRender(value.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses an empty `@{}` object property arrow body', () => {
 		const ast = parseModule(`const obj = { Prop: () => @{} };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.body.body).toEqual([]);
-		expect(value.body.render).toBeNull();
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		expect(as_type(value, 'ArrowFunctionExpression').body.type).toBe('JSXCodeBlock');
+		expect(as_type(as_type(value, 'ArrowFunctionExpression').body, 'JSXCodeBlock').body).toEqual(
+			[],
+		);
+		expect(
+			as_type(as_type(value, 'ArrowFunctionExpression').body, 'JSXCodeBlock').render,
+		).toBeNull();
 	});
 
 	it('parses a `@{ }` block as a method shorthand body', () => {
 		const ast = parseModule(`const obj = { Render() @{ <div/> } };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('FunctionExpression');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'FunctionExpression');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.body.render.openingElement.name.name).toBe('div');
+		expect(openingName(as_type(codeBlockRender(value.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` block as a function body following a return type', () => {
 		const ast = parseModule(`function App(): JSX.Element @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.type).toBe('FunctionDeclaration');
-		expect(fn.body.type).toBe('JSXCodeBlock');
-		expect(fn.body.body).toEqual([]);
-		expect(fn.body.render).toBeNull();
-		expect(fn.returnType.type).toBe('TSTypeAnnotation');
-		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
+		expect(codeBlock(fn.body).body).toEqual([]);
+		expect(codeBlock(fn.body).render).toBeNull();
+		expect(found(fn.returnType).type).toBe('TSTypeAnnotation');
+		expect(found(fn.returnType).typeAnnotation.type).toBe('TSTypeReference');
 	});
 
 	it('splits setup and render in a `@{ }` body after a return type', () => {
@@ -2714,64 +3228,79 @@ foo();`;
 			}`,
 			'App.tsrx',
 		);
-		const fn = ast.body[0];
-		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
-		expect(fn.body.type).toBe('JSXCodeBlock');
-		expect(fn.body.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(fn.body.render.openingElement.name.name).toBe('div');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(found(as_type(fn, 'FunctionDeclaration').returnType).typeAnnotation.type).toBe(
+			'TSTypeReference',
+		);
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
+		expect(codeBlock(fn.body).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(fn.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` block as an arrow concise body after a return type', () => {
 		const ast = parseModule(`const App = (): JSX.Element => @{ <div/> };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init;
-		expect(value.type).toBe('ArrowFunctionExpression');
+		const value = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(value, 'ArrowFunctionExpression');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
-		expect(value.body.render.openingElement.name.name).toBe('div');
+		expect(value.returnType?.typeAnnotation.type).toBe('TSTypeReference');
+		expect(openingName(as_type(codeBlockRender(value.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` block as an anonymous function-expression body', () => {
 		const ast = parseModule(`const obj = { render: function() @{} };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('FunctionExpression');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'FunctionExpression');
 		expect(value.id).toBeNull();
 		expect(value.body.type).toBe('JSXCodeBlock');
 		expect(value.body.body).toEqual([]);
-		expect(value.body.render).toBeNull();
+		expect(codeBlock(value.body).render).toBeNull();
 	});
 
 	it('parses a `@{ }` anonymous function-expression body after a return type', () => {
 		const ast = parseModule(`const obj = { render: function(): JSX.Element @{} };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('FunctionExpression');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'FunctionExpression');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(value.returnType?.typeAnnotation.type).toBe('TSTypeReference');
 	});
 
 	it('parses a `@{ }` method shorthand body after a return type', () => {
 		const ast = parseModule(`const obj = { Render(): JSX.Element @{ <div/> } };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('FunctionExpression');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'FunctionExpression');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
-		expect(value.body.render.openingElement.name.name).toBe('div');
+		expect(value.returnType?.typeAnnotation.type).toBe('TSTypeReference');
+		expect(openingName(as_type(codeBlockRender(value.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('parses a `@{ }` body on a generic function with a return type', () => {
 		const ast = parseModule(`function Test<T>(value: T): T @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.type).toBe('FunctionDeclaration');
-		expect(fn.typeParameters.params.map((p) => p.name.name ?? p.name)).toEqual(['T']);
-		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
-		expect(fn.body.type).toBe('JSXCodeBlock');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(found(fn.typeParameters).params.map((p) => p.name)).toEqual(['T']);
+		expect(found(fn.returnType).typeAnnotation.type).toBe('TSTypeReference');
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
 	});
 
 	it('parses a `@{ }` body with multiple type parameters and a tuple return type', () => {
 		const ast = parseModule(`function Test<T, U>(first: T, second: U): [T, U] @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.typeParameters.params).toHaveLength(2);
-		expect(fn.returnType.typeAnnotation.type).toBe('TSTupleType');
-		expect(fn.body.type).toBe('JSXCodeBlock');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(found(as_type(fn, 'FunctionDeclaration').typeParameters).params).toHaveLength(2);
+		expect(found(as_type(fn, 'FunctionDeclaration').returnType).typeAnnotation.type).toBe(
+			'TSTupleType',
+		);
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
 	});
 
 	it('parses a `@{ }` body with a constrained type parameter', () => {
@@ -2779,28 +3308,42 @@ foo();`;
 			`function Test<T extends { id: string }>(item: T): string @{}`,
 			'App.tsrx',
 		);
-		const fn = ast.body[0];
-		expect(fn.typeParameters.params[0].constraint.type).toBe('TSTypeLiteral');
-		expect(fn.returnType.typeAnnotation.type).toBe('TSStringKeyword');
-		expect(fn.body.type).toBe('JSXCodeBlock');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(
+			found(found(as_type(fn, 'FunctionDeclaration').typeParameters).params[0].constraint).type,
+		).toBe('TSTypeLiteral');
+		expect(found(as_type(fn, 'FunctionDeclaration').returnType).typeAnnotation.type).toBe(
+			'TSStringKeyword',
+		);
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
 	});
 
 	it('parses a `@{ }` body with a defaulted type parameter', () => {
 		const ast = parseModule(`function Test<T = string>(value: T): T @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.typeParameters.params[0].default.type).toBe('TSStringKeyword');
-		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
-		expect(fn.body.type).toBe('JSXCodeBlock');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(
+			found(found(as_type(fn, 'FunctionDeclaration').typeParameters).params[0].default).type,
+		).toBe('TSStringKeyword');
+		expect(found(as_type(fn, 'FunctionDeclaration').returnType).typeAnnotation.type).toBe(
+			'TSTypeReference',
+		);
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
 	});
 
 	it('parses a `@{ }` body on a generic function with a union return type', () => {
 		const ast = parseModule(`function Test<T>(items: T[]): T | undefined @{}`, 'App.tsrx');
-		const fn = ast.body[0];
-		expect(fn.typeParameters.params.map((p) => p.name.name ?? p.name)).toEqual(['T']);
-		const union = fn.returnType.typeAnnotation;
-		expect(union.type).toBe('TSUnionType');
-		expect(union.types.map((t) => t.typeName?.name ?? t.type)).toEqual(['T', 'TSUndefinedKeyword']);
-		expect(fn.body.type).toBe('JSXCodeBlock');
+		const fn = firstStatement(ast, 'FunctionDeclaration');
+		expect(
+			found(as_type(fn, 'FunctionDeclaration').typeParameters).params.map((p) => p.name),
+		).toEqual(['T']);
+		const union = found(as_type(fn, 'FunctionDeclaration').returnType).typeAnnotation;
+		assert_type(union, 'TSUnionType');
+		expect(
+			union.types.map((t) =>
+				t.type === 'TSTypeReference' ? as_type(t.typeName, 'Identifier').name : t.type,
+			),
+		).toEqual(['T', 'TSUndefinedKeyword']);
+		expect(codeBlock(fn.body).type).toBe('JSXCodeBlock');
 	});
 
 	it('rejects an arrow token between a function return type and a `@{ }` body', () => {
@@ -2811,11 +3354,15 @@ foo();`;
 
 	it('parses a typed arrow property whose concise body is a `@{ }` block', () => {
 		const ast = parseModule(`const obj = { Render: (): JSX.Element => @{ <div/> } };`, 'App.tsrx');
-		const value = ast.body[0].declarations[0].init.properties[0].value;
-		expect(value.type).toBe('ArrowFunctionExpression');
-		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		const value = as_type(
+			as_type(declaratorInit(firstStatement(ast, 'VariableDeclaration')), 'ObjectExpression')
+				.properties[0],
+			'Property',
+		).value;
+		assert_type(value, 'ArrowFunctionExpression');
+		expect(value.returnType?.typeAnnotation.type).toBe('TSTypeReference');
 		expect(value.body.type).toBe('JSXCodeBlock');
-		expect(value.body.render.openingElement.name.name).toBe('div');
+		expect(openingName(as_type(codeBlockRender(value.body), 'JSXElement')).name).toBe('div');
 	});
 
 	it('rejects duplicate params in a `@{ }` function body after a return type', () => {
@@ -2838,7 +3385,7 @@ foo();`;
 			['const x = @try { <a/> } @catch (e) { <b/> };', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
-			const init = parseModule(source, 'App.tsrx').body[0].declarations[0].init;
+			const init = declaratorInit(parseModule(source, 'App.tsrx').body[0]);
 			expect(init.type, source).toBe(type);
 		}
 	});
@@ -2852,9 +3399,10 @@ foo();`;
 			['function App() { return @try { <a/> } @catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
-			const statement = parseModule(source, 'App.tsrx').body[0].body.body[0];
+			const statement = as_type(parseModule(source, 'App.tsrx').body[0], 'FunctionDeclaration').body
+				.body[0];
 			expect(statement.type, source).toBe('ReturnStatement');
-			expect(statement.argument.type, source).toBe(type);
+			expect(as_type(statement, 'ReturnStatement').argument?.type, source).toBe(type);
 		}
 	});
 
@@ -2867,17 +3415,20 @@ foo();`;
 			['function App() { @try { <a/> } @catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
-			const statement = parseModule(source, 'App.tsrx').body[0].body.body[0];
+			const statement = as_type(parseModule(source, 'App.tsrx').body[0], 'FunctionDeclaration').body
+				.body[0];
 			expect(statement.type, source).toBe('ExpressionStatement');
-			expect(statement.expression.type, source).toBe(type);
+			expect(as_type(statement, 'ExpressionStatement').expression.type, source).toBe(type);
 		}
 	});
 
 	it('keeps a decorated class expression parsing as a decorator, not a code block', () => {
 		const ast = parseModule(`const X = @dec class {};`, 'App.tsrx');
-		const init = ast.body[0].declarations[0].init;
-		expect(init.type).toBe('ClassExpression');
-		expect(init.decorators[0].expression.name).toBe('dec');
+		const init = declaratorInit(firstStatement(ast, 'VariableDeclaration'));
+		assert_type(init, 'ClassExpression');
+		// estree has no decorators on class nodes; the parser emits the TS shape.
+		const decorators = /** @type {{ decorators?: TSESTree.Decorator[] }} */ (init).decorators;
+		expect(as_type(found(decorators)[0].expression, 'Identifier').name).toBe('dec');
 	});
 
 	it('reports an error for two bare render nodes in a code block', () => {
@@ -2913,6 +3464,7 @@ foo();`;
 
 		expect(() => parseModule(source, 'App.tsrx')).not.toThrow();
 
+		/** @type {CompileError[]} */
 		const errors = [];
 		parseModule(source, 'App.tsrx', { collect: true, errors });
 		expect(errors).toEqual([]);
@@ -2937,25 +3489,20 @@ foo();`;
 			`\n` +
 			`\t<div>{test}</div>\n` +
 			`}`;
+		/** @type {CompileError[]} */
 		const errors = [];
 		const ast = parseModule(source, 'App.tsrx', { collect: true, errors });
 		const total_lines = source.split('\n').length;
 
 		// Every node's reported line must match the line its byte offset actually sits on.
+		/** @param {number} offset */
 		const line_of = (offset) => source.slice(0, offset).split('\n').length;
-		(function walk(node) {
-			if (!node || typeof node !== 'object') return;
-			if (Array.isArray(node)) return node.forEach(walk);
-			if (node.loc && typeof node.start === 'number') {
-				expect(node.loc.start.line, `${node.type} start`).toBe(line_of(node.start));
-				expect(node.loc.end.line, `${node.type} end`).toBe(line_of(node.end));
-				expect(node.loc.end.line).toBeLessThanOrEqual(total_lines);
-			}
-			for (const key in node) {
-				if (key === 'loc' || key === 'parent') continue;
-				walk(node[key]);
-			}
-		})(ast);
+		for (const node of allNodes(ast)) {
+			if (!node.loc || typeof node.start !== 'number') continue;
+			expect(node.loc.start.line, `${node.type} start`).toBe(line_of(node.start));
+			expect(node.loc.end.line, `${node.type} end`).toBe(line_of(found(node.end)));
+			expect(node.loc.end.line).toBeLessThanOrEqual(total_lines);
+		}
 
 		// Both authoring-rule diagnostics still land on the correct source lines.
 		const messages = errors.map((e) => `${e.loc?.start?.line}:${e.message}`);
@@ -2974,14 +3521,14 @@ foo();`;
 			'App.tsrx',
 		);
 
-		const block = ast.body[0].body;
+		const block = as_type(ast.body[0], 'FunctionDeclaration').body;
 		expect(ast.body[0].type).toBe('FunctionDeclaration');
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual([
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		expect(block.render).toBeNull();
+		expect(codeBlock(block).render).toBeNull();
 	});
 
 	it('parses two sibling `@{ }` blocks as separate element children', () => {
@@ -2998,12 +3545,15 @@ foo();`;
 			</main>;
 		}`);
 
-		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock', 'JSXCodeBlock']);
-		const [first, second] = returned.children;
-		expect(first.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(first.render.openingElement.name.name).toBe('span');
-		expect(second.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(second.render.openingElement.name.name).toBe('span');
+		expect(node_children(returned).map((child) => child.type)).toEqual([
+			'JSXCodeBlock',
+			'JSXCodeBlock',
+		]);
+		const [first, second] = node_children(returned);
+		expect(codeBlock(first).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(first), 'JSXElement')).name).toBe('span');
+		expect(codeBlock(second).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(openingName(as_type(codeBlockRender(second), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses two sibling `@if` directives as separate element children', () => {
@@ -3018,13 +3568,38 @@ foo();`;
 			</main>;
 		}`);
 
-		const directives = returned.children.filter((child) => child.type === 'JSXIfExpression');
+		const directives = node_children(returned).filter((child) => child.type === 'JSXIfExpression');
 		expect(directives).toHaveLength(2);
-		expect(directives[0].test.callee.object.name).toBe('props');
-		expect(directives[0].test.callee.property.name).toBe('foo');
-		expect(directives[0].consequent.body[0].openingElement.name.name).toBe('span');
-		expect(directives[1].test.callee.property.name).toBe('bar');
-		expect(directives[1].consequent.body[0].openingElement.name.name).toBe('span');
+		expect(
+			as_type(
+				as_type(as_type(directives[0].test, 'CallExpression').callee, 'MemberExpression').object,
+				'Identifier',
+			).name,
+		).toBe('props');
+		expect(
+			as_type(
+				as_type(as_type(directives[0].test, 'CallExpression').callee, 'MemberExpression').property,
+				'Identifier',
+			).name,
+		).toBe('foo');
+		expect(
+			as_type(
+				as_type(blockBody(directives[0].consequent)[0], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('span');
+		expect(
+			as_type(
+				as_type(as_type(directives[1].test, 'CallExpression').callee, 'MemberExpression').property,
+				'Identifier',
+			).name,
+		).toBe('bar');
+		expect(
+			as_type(
+				as_type(blockBody(directives[1].consequent)[0], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('span');
 	});
 
 	it('reports an error for setup plus two render nodes in an `@if` body', () => {
@@ -3085,19 +3660,31 @@ foo();`;
 			</main>;
 		}`);
 
-		const outer = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(outer.consequent.body.map((child) => child.type)).toEqual([
+		const outer = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		assert_found(outer);
+		expect(blockBody(outer.consequent).map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'JSXFragment',
 		]);
-		const fragment = outer.consequent.body.find((child) => child.type === 'JSXFragment');
-		expect(fragment.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXIfExpression']);
-		const inner = fragment.children.find((child) => child.type === 'JSXIfExpression');
-		expect(inner.consequent.body.map((child) => child.type)).toEqual([
+		const fragment = blockBody(outer.consequent).find(
+			(child) => /** @type {AST.Node} */ (child).type === 'JSXFragment',
+		);
+		assert_found(fragment);
+		expect(node_children(fragment).map((child) => child.type)).toEqual([
+			'JSXElement',
+			'JSXIfExpression',
+		]);
+		const inner = node_children(fragment).find((child) => child.type === 'JSXIfExpression');
+		expect(blockBody(inner?.consequent).map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'JSXElement',
 		]);
-		expect(inner.consequent.body[1].openingElement.name.name).toBe('span');
+		expect(
+			as_type(
+				as_type(blockBody(inner?.consequent)[1], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('span');
 	});
 
 	it('reports an error for nested `@{ }` blocks directly inside a code block body', () => {
@@ -3132,14 +3719,17 @@ foo();`;
 			}</main>;
 		}`);
 
-		const block = returned.children[0];
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXCodeBlock');
-		expect(block.render.render.openingElement.name.name).toBe('span');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXCodeBlock');
+		expect(openingName(as_type(codeBlockRender(codeBlockRender(block)), 'JSXElement')).name).toBe(
+			'span',
+		);
 	});
 
 	it('reports the one-child violation recoverably in loose mode', () => {
+		/** @type {CompileError[]} */
 		const errors = [];
 		const ast = parseModule(
 			`function App() {
@@ -3154,7 +3744,7 @@ foo();`;
 		);
 
 		// Non-fatal: parsing still produces an AST.
-		expect(ast.type).toBe('Program');
+		assert_type(ast, 'Program');
 		expect(errors.map((error) => error.message)).toEqual([expect.stringMatching(/single node/)]);
 	});
 
@@ -3175,17 +3765,17 @@ foo();`;
 			}</main>;
 		}`);
 
-		const block = returned.children[0];
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXFragment');
-		expect(block.render.children.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		assert_type(block, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
+		expect(node_children(found(block.render)).map((child) => child.type)).toEqual([
 			'JSXCodeBlock',
 			'JSXCodeBlock',
 		]);
-		const [first, second] = block.render.children;
-		expect(first.render.openingElement.name.name).toBe('span');
-		expect(second.render.openingElement.name.name).toBe('span');
+		const [first, second] = node_children(found(block.render));
+		expect(openingName(as_type(codeBlockRender(first), 'JSXElement')).name).toBe('span');
+		expect(openingName(as_type(codeBlockRender(second), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses a code-only `@{ }` block (no render) as an element body', () => {
@@ -3196,13 +3786,13 @@ foo();`;
 			}</div>;
 		}`);
 
-		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		expect(node_children(returned).map((child) => child.type)).toEqual(['JSXCodeBlock']);
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		expect(block.render).toBeNull();
+		expect(codeBlock(block).render).toBeNull();
 	});
 
 	// The boundary between a block's setup section and its single render node hinges
@@ -3217,11 +3807,11 @@ foo();`;
 			<b>hi</b>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.body[0].declarations[0].init.type).toBe('Identifier');
-		expect(block.render.type).toBe('JSXElement');
-		expect(block.render.openingElement.name.name).toBe('b');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(declaratorInit(block.body[0]).type).toBe('Identifier');
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('b');
 	});
 
 	it('keeps a same-line `value < tag-like` as a comparison, with render on the next line', () => {
@@ -3230,11 +3820,11 @@ foo();`;
 			<span>{r}</span>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('<');
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('keeps a no-space same-line `aaa <b` as a comparison, not a `<b>` tag', () => {
@@ -3243,13 +3833,13 @@ foo();`;
 			<span>{r}</span>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		const init = block.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		const init = declaratorInit(block.body[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('<');
-		expect(init.left.name).toBe('aaa');
-		expect(init.right.name).toBe('b');
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(as_type(init.left, 'Identifier').name).toBe('aaa');
+		expect(as_type(init.right, 'Identifier').name).toBe('b');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('treats a trailing `aaa <b` with no following node as a comparison, never a render node', () => {
@@ -3257,10 +3847,10 @@ foo();`;
 			const r = aaa <b
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.render).toBeNull();
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.body[0].declarations[0].init.operator).toBe('<');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).render).toBeNull();
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(as_type(declaratorInit(block.body[0]), 'BinaryExpression').operator).toBe('<');
 	});
 
 	it('still starts the render node when a `<tag` follows a `;` on the same line', () => {
@@ -3268,10 +3858,10 @@ foo();`;
 			const a = 5; <span/>
 		}</div>; }`);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXElement');
-		expect(block.render.openingElement.name.name).toBe('span');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses a one-line `@{ }` block whose render follows the setup `;` (fragment)', () => {
@@ -3279,11 +3869,13 @@ foo();`;
 			`function App() { return <div>@{ const foo = 123; <>{foo}</> }</div>; }`,
 		);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.body[0].declarations[0].init.value).toBe(123);
-		expect(block.render.type).toBe('JSXFragment');
-		expect(block.render.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(as_type(declaratorInit(block.body[0]), 'Literal').value).toBe(123);
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
+		expect(node_children(codeBlockRender(block)).map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+		]);
 	});
 
 	it('parses a one-line `@{ }` block whose render follows the setup `;` (element)', () => {
@@ -3291,10 +3883,10 @@ foo();`;
 			`function App() { return <div>@{ const foo = 123; <span>{foo}</span> }</div>; }`,
 		);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXElement');
-		expect(block.render.openingElement.name.name).toBe('span');
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXElement');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses a one-line `@{ }` block with multiple `;`-separated setup statements before the render', () => {
@@ -3302,24 +3894,27 @@ foo();`;
 			`function App() { return <div>@{ const a = 1; const b = 2; <span>{a}{b}</span> }</div>; }`,
 		);
 
-		const block = returned.children[0];
-		expect(block.body.map((child) => child.type)).toEqual([
+		const block = child(returned, 0, 'JSXCodeBlock');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'VariableDeclaration',
 		]);
-		expect(block.render.openingElement.name.name).toBe('span');
+		expect(openingName(as_type(codeBlockRender(block), 'JSXElement')).name).toBe('span');
 	});
 
 	it('parses a one-line `@{ }` block returned directly', () => {
-		const statement = parseModule(
+		const ast = parseModule(
 			`function App() { return @{ const foo = 123; <>{foo}</> }; }`,
 			'App.tsrx',
-		).body[0].body.body[0];
+		);
+		const statement = functionBody(ast)[0];
 
-		expect(statement.type).toBe('ReturnStatement');
-		expect(statement.argument.type).toBe('JSXCodeBlock');
-		expect(statement.argument.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(statement.argument.render.type).toBe('JSXFragment');
+		assert_type(statement, 'ReturnStatement');
+		expect(statement.argument?.type).toBe('JSXCodeBlock');
+		expect(codeBlock(statement.argument).body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+		]);
+		expect(codeBlockRender(statement.argument).type).toBe('JSXFragment');
 	});
 
 	it('applies the setup-to-render `<` disambiguation inside an `@if` consequent', () => {
@@ -3330,15 +3925,20 @@ foo();`;
 			}
 		</div>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual([
+		const directive = node_children(returned).find((child) => child.type === 'JSXIfExpression');
+		expect(blockBody(directive?.consequent).map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'JSXElement',
 		]);
-		const init = directive.consequent.body[0].declarations[0].init;
-		expect(init.type).toBe('BinaryExpression');
+		const init = declaratorInit(blockBody(directive?.consequent)[0]);
+		assert_type(init, 'BinaryExpression');
 		expect(init.operator).toBe('<');
-		expect(directive.consequent.body[1].openingElement.name.name).toBe('span');
+		expect(
+			as_type(
+				as_type(blockBody(directive?.consequent)[1], 'JSXElement').openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('span');
 	});
 
 	it('applies the setup-to-render `<` disambiguation inside an `@for` body', () => {
@@ -3349,13 +3949,16 @@ foo();`;
 			}
 		</ul>; }`);
 
-		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
-		expect(directive.body.body.map((child) => child.type)).toEqual([
+		const directive = node_children(returned).find((child) => child.type === 'JSXForExpression');
+		expect(blockBody(directive?.body).map((child) => child.type)).toEqual([
 			'VariableDeclaration',
 			'JSXElement',
 		]);
-		expect(directive.body.body[0].declarations[0].init.operator).toBe('<');
-		expect(directive.body.body[1].openingElement.name.name).toBe('li');
+		expect(as_type(declaratorInit(directive?.body.body[0]), 'BinaryExpression').operator).toBe('<');
+		expect(
+			as_type(as_type(directive?.body.body[1], 'JSXElement').openingElement.name, 'JSXIdentifier')
+				.name,
+		).toBe('li');
 	});
 
 	// The render node of a one-line block can be an `@if`/`@for`/`@switch`/`@try`
@@ -3375,35 +3978,54 @@ foo();`;
 	});
 
 	it('parses a braced `@if` render after the setup `;` on the same line', () => {
-		const block = getReturned(
+		const block = getReturnedCodeBlock(
 			`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> } }; }`,
 		);
 
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXIfExpression');
-		expect(block.render.consequent.type).toBe('BlockStatement');
-		expect(block.render.consequent.body.map((child) => child.type)).toEqual(['JSXElement']);
-		expect(block.render.consequent.body[0].openingElement.name.name).toBe('div');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXIfExpression');
+		expect(as_type(codeBlockRender(block), 'JSXIfExpression').consequent.type).toBe(
+			'BlockStatement',
+		);
+		expect(
+			blockBody(as_type(codeBlockRender(block), 'JSXIfExpression').consequent).map(
+				(child) => child.type,
+			),
+		).toEqual(['JSXElement']);
+		expect(
+			as_type(
+				as_type(
+					blockBody(as_type(codeBlockRender(block), 'JSXIfExpression').consequent)[0],
+					'JSXElement',
+				).openingElement.name,
+				'JSXIdentifier',
+			).name,
+		).toBe('div');
 	});
 
 	it('parses a braced `@if` render whose body begins on the next line', () => {
-		const block = getReturned(`function App() { return @{ const foo = 123; @if (foo) {
+		const block = getReturnedCodeBlock(`function App() { return @{ const foo = 123; @if (foo) {
 			<div>{foo}</div>} }; }`);
 
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXIfExpression');
-		expect(block.render.consequent.body.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXIfExpression');
+		expect(
+			blockBody(as_type(codeBlockRender(block), 'JSXIfExpression').consequent).map(
+				(child) => child.type,
+			),
+		).toEqual(['JSXElement']);
 	});
 
 	it('parses a braced `@for` render after the setup `;` on the same line', () => {
-		const block = getReturned(
+		const block = getReturnedCodeBlock(
 			`function App() { return @{ const xs = [1, 2]; @for (const x of xs) { <li>{x}</li> } }; }`,
 		);
 
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXForExpression');
-		expect(block.render.body.body.map((child) => child.type)).toEqual(['JSXElement']);
-		expect(block.render.body.body[0].openingElement.name.name).toBe('li');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXForExpression');
+		const loop = as_type(codeBlockRender(block), 'JSXForExpression');
+		expect(blockBody(loop.body).map((child) => child.type)).toEqual(['JSXElement']);
+		expect(openingName(as_type(blockBody(loop.body)[0], 'JSXElement')).name).toBe('li');
 	});
 
 	it('rejects a braceless `@for` render after the setup `;`', () => {
@@ -3423,21 +4045,21 @@ foo();`;
 	});
 
 	it('allows and ignores a trailing `;` after a render node', () => {
-		const block = getReturned(
+		const block = getReturnedCodeBlock(
 			`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> }; }; }`,
 		);
 
 		// The stray `;` is a meaningless empty statement; it is skipped rather than
 		// captured as a body statement, so the render node still parses cleanly.
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXIfExpression');
+		expect(codeBlock(block).body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(codeBlockRender(block).type).toBe('JSXIfExpression');
 	});
 
 	it('allows and ignores a trailing `;` after a fragment render node', () => {
-		const block = getReturned(`function App() { return @{ <><div>{'hi'}</div></>; }; }`);
+		const block = getReturnedCodeBlock(`function App() { return @{ <><div>{'hi'}</div></>; }; }`);
 
 		expect(block.body).toEqual([]);
-		expect(block.render.type).toBe('JSXFragment');
+		expect(codeBlockRender(block).type).toBe('JSXFragment');
 	});
 });
 
@@ -3453,26 +4075,32 @@ describe('division and private fields in template JS positions', () => {
 			`function App(p) { return @{ <g id={p.id}><rect x={p.left - p.dotSize / 2} /></g> }; }`,
 			'rect',
 		);
-		const x = rect.openingElement.attributes[0].value.expression;
-		expect(x.type).toBe('BinaryExpression');
+		const x = attributeExpression(rect.openingElement.attributes[0]);
+		assert_type(x, 'BinaryExpression');
 		expect(x.operator).toBe('-');
 		expect(x.right.type).toBe('BinaryExpression');
-		expect(x.right.operator).toBe('/');
+		expect(as_type(x.right, 'BinaryExpression').operator).toBe('/');
 	});
 
 	it('parses `/` as division in a child expression container', () => {
 		const g = findElement(`function App(p) { return @{ <g>{p.a / 2}</g> }; }`, 'g');
-		const expr = g.children.find((c) => c.type === 'JSXExpressionContainer').expression;
-		expect(expr.type).toBe('BinaryExpression');
+		const expr = as_type(
+			found(node_children(g).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		).expression;
+		assert_type(expr, 'BinaryExpression');
 		expect(expr.operator).toBe('/');
 	});
 
 	it('parses `#` as a private-field access in a child expression container', () => {
 		const g = findElement(`class C { #x = 1; m() { return @{ <g>{this.#x}</g> }; } }`, 'g');
-		const expr = g.children.find((c) => c.type === 'JSXExpressionContainer').expression;
-		expect(expr.type).toBe('MemberExpression');
+		const expr = as_type(
+			found(node_children(g).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		).expression;
+		assert_type(expr, 'MemberExpression');
 		expect(expr.property.type).toBe('PrivateIdentifier');
-		expect(expr.property.name).toBe('x');
+		expect(as_type(expr.property, 'PrivateIdentifier').name).toBe('x');
 	});
 
 	it('parses `/` as division in a directive header nested inside an element', () => {
@@ -3481,9 +4109,11 @@ describe('division and private fields in template JS positions', () => {
 			'JSXIfExpression',
 		);
 		expect(node.test.type).toBe('BinaryExpression');
-		expect(node.test.operator).toBe('>');
-		expect(node.test.left.type).toBe('BinaryExpression');
-		expect(node.test.left.operator).toBe('/');
+		expect(as_type(node.test, 'BinaryExpression').operator).toBe('>');
+		expect(as_type(node.test, 'BinaryExpression').left.type).toBe('BinaryExpression');
+		expect(as_type(as_type(node.test, 'BinaryExpression').left, 'BinaryExpression').operator).toBe(
+			'/',
+		);
 	});
 
 	it('parses a regex literal inside a nested element attribute expression', () => {
@@ -3491,10 +4121,10 @@ describe('division and private fields in template JS positions', () => {
 			`function App(p) { return @{ <g><rect x={String(p.a).replace(/x/g, String(2 / p.b))} /></g> }; }`,
 			'rect',
 		);
-		const x = rect.openingElement.attributes[0].value.expression;
-		expect(x.type).toBe('CallExpression');
+		const x = attributeExpression(rect.openingElement.attributes[0]);
+		assert_type(x, 'CallExpression');
 		expect(x.arguments[0].type).toBe('Literal');
-		expect(x.arguments[0].regex).toEqual({ pattern: 'x', flags: 'g' });
+		expect(regexLiteral(x.arguments[0])).toEqual({ pattern: 'x', flags: 'g' });
 	});
 
 	it('still reads a literal `/` and `#` in template text as text', () => {
@@ -3517,13 +4147,13 @@ describe('raw-text <script> elements', () => {
 			`function App() @{ <head><script>const x = 1; foo();</script></head> }`,
 			'script',
 		);
-		expect(script.type).toBe('JSXElement');
+		assert_type(script, 'JSXElement');
 		expect(script.content).toBe('const x = 1; foo();');
 		// The body is mirrored as one JSXText child (like JSXStyleElement's css +
 		// parsed children) so generic element consumers emit it verbatim.
 		expect(script.children).toHaveLength(1);
 		expect(script.children[0].type).toBe('JSXText');
-		expect(script.children[0].value).toBe('const x = 1; foo();');
+		expect(child(script, 0, 'JSXText').value).toBe('const x = 1; foo();');
 	});
 
 	it('reads JS with markup-significant characters (`<`, `{`, `}`) that would otherwise break parsing', () => {
@@ -3540,15 +4170,19 @@ describe('raw-text <script> elements', () => {
 			'script',
 		);
 		expect(script.content).toBe('const n: number = 1;');
-		const typeAttr = script.openingElement.attributes.find((a) => a.name?.name === 'type');
-		expect(typeAttr?.value?.value).toBe('text/typescript');
+		const typeAttr = script.openingElement.attributes.find(
+			(a) => as_type(a, 'JSXAttribute').name?.name === 'type',
+		);
+		expect(as_type(found(as_type(found(typeAttr), 'JSXAttribute').value), 'Literal').value).toBe(
+			'text/typescript',
+		);
 	});
 
 	it('exposes body offsets that match `content` (opening tag end -> closing tag start)', () => {
 		const source = `function App() @{ <head><script>const y = 2;</script></head> }`;
 		const script = findElement(source, 'script');
 		const start = script.openingElement.end;
-		const end = script.closingElement.start;
+		const end = script.closingElement?.start;
 		expect(source.slice(start, end)).toBe(script.content);
 	});
 
@@ -3575,19 +4209,20 @@ describe('acorn-typescript ≥1.0.11 constructs parse through the TSRX parser', 
 	it('allows the `in` operator inside a parenthesized `for` initializer', () => {
 		const ast = parseModule(`for ((('a' in {}) ? 1 : 2);;) break;`, 'App.ts');
 		const [statement] = ast.body;
-		expect(statement.type).toBe('ForStatement');
-		expect(statement.init.type).toBe('ConditionalExpression');
+		assert_type(statement, 'ForStatement');
+		expect(statement.init?.type).toBe('ConditionalExpression');
 	});
 
 	it('allows a const initializer in an ambient context', () => {
 		const ast = parseModule(`declare const VERSION = '1.0';`, 'App.ts');
 		const [statement] = ast.body;
-		expect(statement.type).toBe('VariableDeclaration');
+		assert_type(statement, 'VariableDeclaration');
 		expect(statement.declare).toBe(true);
-		expect(statement.declarations[0].init.value).toBe('1.0');
+		expect(as_type(declaratorInit(statement), 'Literal').value).toBe('1.0');
 	});
 
 	it('collects each comment exactly once', () => {
+		/** @type {AST.CommentWithLocation[]} */
 		const comments = [];
 		parseModule(
 			`// leading
@@ -3610,6 +4245,7 @@ describe('keywordTokens parse option', () => {
 		const source = `async function load() {}\nfunction plain() {}`;
 		const ast = parseModule(source, 'App.ts', { keywordTokens: true });
 		const tokens = ast.tsrx_keyword_tokens;
+		assert_found(tokens);
 		expect(tokens.map((t) => [t.value, t.start])).toEqual([
 			['async', source.indexOf('async')],
 			['function', source.indexOf('function')],
@@ -3623,6 +4259,7 @@ describe('keywordTokens parse option', () => {
 		const source = `async /* function */   function load() {}`;
 		const ast = parseModule(source, 'App.ts', { keywordTokens: true });
 		const tokens = ast.tsrx_keyword_tokens;
+		assert_found(tokens);
 		expect(tokens.map((t) => [t.value, t.start])).toEqual([
 			['async', 0],
 			['function', source.lastIndexOf('function')],

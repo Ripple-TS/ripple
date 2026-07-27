@@ -46,9 +46,10 @@ export function has_prototype_accessor(value, key) {
 
 /**
  * Slice helper for arrays and array-like values.
- * @param {ArrayLike<any>} array_like
+ * @template T
+ * @param {ArrayLike<T>} array_like
  * @param {...number} args
- * @returns {any[]}
+ * @returns {T[]}
  */
 export function array_slice(array_like, ...args) {
 	return is_array(array_like)
@@ -93,38 +94,46 @@ export function iterable_array_from(iterable, index = 0) {
 /**
  * Creates a shallow forwarding object without one prop. Values are exposed through
  * getters so compiler-emitted reactive prop accessors are not snapshotted.
- * @param {Record<PropertyKey, any> | null | undefined} props
- * @param {PropertyKey} exclude_prop
- * @returns {Record<PropertyKey, any>}
+ *
+ * @template {object} [T=Record<PropertyKey, unknown>]
+ * @template {PropertyKey} [K=PropertyKey]
+ * @param {T | null | undefined} props
+ * @param {K} exclude_prop
+ * @returns {Omit<T, K>} the forwarding object; `{}` when `props` is nullish
  */
 export function exclude_prop_from_object(props, exclude_prop) {
-	/** @type {Record<PropertyKey, any>} */
+	/** @type {Record<PropertyKey, unknown>} */
 	const next = {};
-	if (props == null) return next;
 
-	for (const prop of Reflect.ownKeys(props)) {
-		if (prop === exclude_prop) continue;
+	if (props != null) {
+		const source = /** @type {Record<PropertyKey, unknown>} */ (props);
 
-		const descriptor = get_descriptor(props, prop);
-		if (!descriptor?.enumerable) continue;
+		for (const prop of Reflect.ownKeys(source)) {
+			if (prop === exclude_prop) continue;
 
-		/** @type {PropertyDescriptor} */
-		const forwarding_descriptor = {
-			enumerable: true,
-			configurable: true,
-			get() {
-				return props[prop];
-			},
-		};
+			const descriptor = get_descriptor(source, prop);
+			if (!descriptor?.enumerable) continue;
 
-		if (descriptor.writable === true || typeof descriptor.set === 'function') {
-			forwarding_descriptor.set = (value) => {
-				props[prop] = value;
+			/** @type {PropertyDescriptor} */
+			const forwarding_descriptor = {
+				enumerable: true,
+				configurable: true,
+				get() {
+					return source[prop];
+				},
 			};
-		}
 
-		define_property(next, prop, forwarding_descriptor);
+			if (descriptor.writable === true || typeof descriptor.set === 'function') {
+				forwarding_descriptor.set = (value) => {
+					source[prop] = value;
+				};
+			}
+
+			define_property(next, prop, forwarding_descriptor);
+		}
 	}
 
-	return next;
+	// The forwarding object is assembled key by key, which no incremental type
+	// can describe; it mirrors `props` minus `exclude_prop` by construction.
+	return /** @type {Omit<T, K>} */ (next);
 }

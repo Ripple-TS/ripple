@@ -11,44 +11,14 @@
 	PostProcessingChanges,
 	LineOffsets,
 	CompileError,
+	CssElementInfo,
+	CssSourceRegion,
+	MappingToken,
+	ScriptSourceRegion,
+	TokenClass,
 } from '../../types/index';
 @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  */
-
-/**
-@typedef {{
-	start: number,
-	end: number,
-	content: string,
-	id: string,
-}} CssSourceRegion;
-@typedef {{
-	start: number,
-	end: number,
-	content: string,
-	id: string,
-}} ScriptSourceRegion;
-@typedef {{
-	source: string | null | undefined;
-	generated: string;
-	loc: AST.SourceLocation;
-	metadata: PluginActionOverrides;
-	generatedLoc?: AST.SourceLocation;
-	end_loc?: AST.SourceLocation;
-	sourceLength?: number;
-	mappingData?: Partial<VolarCodeMapping['data']>;
-}} Token;
-@typedef {{
-	name: string,
-	line: number,
-	column: number,
-	offset: number,
-	length: number,
-	sourceOffset: number,
-}} TokenClass;
- */
-
-/** @typedef {Map<string, { scopedClasses: Map<string, { start: number; end: number; selector: any }>; hash: string } | undefined>} CssElementInfo */
 
 import { walk } from 'zimmerframe';
 import {
@@ -367,7 +337,7 @@ function extract_classes(node, src_to_gen_map, gen_line_offsets, src_line_offset
 /**
  * Create Volar mappings by walking the transformed AST
  * @param {AST.Node} ast - The transformed AST
- * @param {AST.Node} ast_from_source - The original AST from source
+ * @param {AST.Program} ast_from_source - The original AST from source
  * @param {string} source - Original source code
  * @param {string} generated_code - Generated code (returned in output, not used for searching)
  * @param {RawSourceMap} source_map - Esrap source map for accurate position lookup
@@ -401,7 +371,7 @@ export function convert_source_map_to_mappings(
 		errors.length > 0,
 	);
 
-	/** @type {Token[]} */
+	/** @type {MappingToken[]} */
 	const tokens = [];
 	/** @type {CssSourceRegion[]} */
 	const css_regions = [];
@@ -425,7 +395,7 @@ export function convert_source_map_to_mappings(
 	 * _$_server_$_.foo`), esrap records multiple generated positions for the
 	 * same source location. Keep token mappings in generated-order by consuming
 	 * the next matching generated token instead of always using the first one.
-	 * @param {Token} token
+	 * @param {MappingToken} token
 	 * @returns {{ line: number; column: number }}
 	 */
 	function get_generated_position_for_token(token) {
@@ -479,16 +449,22 @@ export function convert_source_map_to_mappings(
 	const mapped_comments = new Set();
 
 	/**
-	 * @param {any} node
+	 * @param {AST.Node | null | undefined} node
 	 * @returns {void}
 	 */
 	function add_preserved_comment_mappings(node) {
-		for (const key of ['leadingComments', 'trailingComments', 'innerComments', 'comments']) {
-			const comments = node?.[key];
+		if (!node) return;
+
+		for (const comments of [
+			node.leadingComments,
+			node.trailingComments,
+			node.innerComments,
+			node.comments,
+		]) {
 			if (!Array.isArray(comments)) continue;
 
 			for (const comment of comments) {
-				if (!comment?.loc || !should_preserve_comment(comment)) continue;
+				if (!has_location(comment) || !should_preserve_comment(comment)) continue;
 
 				const comment_key = `${comment.start}:${comment.end}`;
 				if (mapped_comments.has(comment_key)) continue;
@@ -522,7 +498,7 @@ export function convert_source_map_to_mappings(
 	}
 
 	/**
-	 * @param {any} generated_node
+	 * @param {AST.Identifier | ESTreeJSX.JSXIdentifier} generated_node
 	 * @returns {void}
 	 */
 	function add_extra_source_mapping_tokens(generated_node) {
@@ -558,7 +534,7 @@ export function convert_source_map_to_mappings(
 				// Only create mappings for identifiers with location info (from source)
 				// Synthesized identifiers (created by builders) don't have .loc and are skipped
 				if (node.name && node.loc) {
-					/** @type {Token} */
+					/** @type {MappingToken} */
 					let token;
 					// Check if this identifier was changed in metadata (e.g., #Map -> RippleMap)
 					// Or if it was capitalized during transformation
@@ -583,8 +559,8 @@ export function convert_source_map_to_mappings(
 					if (node.metadata?.source_length != null && LAZY_PARAM_IDENTIFIER_REGEX.test(node.name)) {
 						token.metadata.hover = create_lazy_param_hover_replacement(node.name);
 					}
-					if ('hover' in (node.metadata || {})) {
-						token.metadata.hover = /** @type {any} */ (node.metadata).hover;
+					if (node.metadata && 'hover' in node.metadata) {
+						token.metadata.hover = node.metadata.hover;
 					}
 					if (node.metadata?.disable_verification) {
 						token.mappingData = { ...mapping_data, verification: false };
@@ -624,7 +600,7 @@ export function convert_source_map_to_mappings(
 			} else if (node.type === 'JSXIdentifier') {
 				// JSXIdentifiers can also be capitalized (for dynamic components)
 				if (node.loc && node.name) {
-					/** @type {Token} */
+					/** @type {MappingToken} */
 					const token = {
 						source: node.metadata?.source_name ?? node.name,
 						generated: node.name,
@@ -998,8 +974,7 @@ export function convert_source_map_to_mappings(
 					// node-start-anchored arithmetic when tokens were not collected.
 					const keyword_bound =
 						node_fn.id?.start ?? node_fn.params?.[0]?.start ?? node_fn.body?.start ?? node_fn.end;
-					/** @type {Array<{ value: string, start: number, end: number, loc: AST.SourceLocation }>} */
-					const lexer_tokens = /** @type {any} */ (ast_from_source).tsrx_keyword_tokens ?? [];
+					const lexer_tokens = ast_from_source.tsrx_keyword_tokens ?? [];
 					/**
 					 * @param {'async' | 'function'} keyword
 					 * @param {number} from

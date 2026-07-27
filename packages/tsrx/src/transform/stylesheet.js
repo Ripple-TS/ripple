@@ -1,22 +1,6 @@
 /**
 @import * as AST from 'estree';
-@import { Visitors } from '../../types/index';
- */
-
-/**
-@typedef {{
-  code: MagicString;
-  hash: string;
-  minify: boolean;
-  selector: string;
-  keyframes: Record<string, {
-    indexes: number[];
-    local: boolean | undefined;
-  }>;
-  specificity: {
-    bumped: boolean
-  }
-}} State
+@import { StylesheetRenderState, Visitors } from '../../types/index';
  */
 
 import MagicString from 'magic-string';
@@ -39,7 +23,7 @@ function remove_css_prefix(name) {
 /**
  * Walk backwards until we find a non-whitespace character
  * @param {number} end
- * @param {State} state
+ * @param {StylesheetRenderState} state
  */
 function remove_preceding_whitespace(end, state) {
 	let start = end;
@@ -121,7 +105,7 @@ function has_global_in_middle(rule) {
 /**
  * @param {AST.CSS.PseudoClassSelector} selector
  * @param {AST.CSS.Combinator | null} combinator
- * @param {State} state
+ * @param {StylesheetRenderState} state
  */
 function remove_global_pseudo_class(selector, combinator, state) {
 	if (selector.args === null) {
@@ -166,7 +150,7 @@ function escape_comment_close(node, code) {
 }
 
 /**
- * @param {State} state
+ * @param {StylesheetRenderState} state
  * @param {number} index
  */
 function append_hash(state, index) {
@@ -207,7 +191,7 @@ function is_empty(rule, is_in_global_block) {
 	return true;
 }
 
-/** @type {Visitors<AST.CSS.Node, State>} */
+/** @type {Visitors<AST.CSS.Node, StylesheetRenderState>} */
 const visitors = {
 	_: (node, context) => {
 		context.state.code.addSourcemapLocation(node.start);

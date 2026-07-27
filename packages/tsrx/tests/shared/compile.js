@@ -1,23 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
 
-/**
- * @typedef {{
- *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string }> },
- *   name: string,
- *   classAttrName: 'class' | 'className',
- *   generatedClassAttrName?: 'class' | 'className',
- * }} CompileHarness
- *
- * @typedef {{
- *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { code: string, errors: Array<{ code?: string }> },
- *   name: string,
- * }} CompileDiagnosticsHarness
- *
- * `classAttrName`: the authored DOM-element class attribute shape the platform emits.
- * `generatedClassAttrName`: the class attribute shape the platform uses when
- * injecting scoped CSS hashes.
- */
+/** @import { CompileDiagnosticsHarness, CompileHarness } from '../../types/index' */
 
 /**
  * @param {string} haystack
@@ -30,6 +14,7 @@ function count_substring(haystack, needle) {
 
 /**
  * @param {{ errors: Array<{ code?: string }> }} result
+ * @returns {Array<string | undefined>}
  */
 function diagnostic_codes(result) {
 	return result.errors.map((error) => error.code);
@@ -3930,7 +3915,8 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} highlight`));
+			expect(cssHash).not.toBeNull();
+			const app_hash = cssHash?.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toContain(`${app_hash} highlight`);
 			expect(code).toContain(`${componentClassAttrName}={styles.highlight}`);
@@ -3952,7 +3938,8 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} container`));
+			expect(cssHash).not.toBeNull();
+			const app_hash = cssHash?.split(' ').find((h) => code.includes(`${h} container`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toContain(`${app_hash} container`);
 			expect(code).toContain(`${componentClassAttrName}={styles.container}`);
@@ -3985,7 +3972,8 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			const hash = cssHash.split(' ').find((h) => code.includes(`${h} card`));
+			expect(cssHash).not.toBeNull();
+			const hash = cssHash?.split(' ').find((h) => code.includes(`${h} card`));
 			expect(hash).toBeTruthy();
 			expect(css).toContain(`.card.${hash}`);
 			expect(code).toContain(`${classAttrName}={styles.card}`);

@@ -1,14 +1,14 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
-/** @import { Visitors, TopScopedClasses, StyleClasses } from '../../types/index' */
-/** @typedef {0 | 1} Direction */
+/** @import { CssPruneDirection, Visitors, TopScopedClasses, StyleClasses } from '../../types/index' */
 
 import { walk } from 'zimmerframe';
+import { node_children } from '../utils/ast.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
-/** @type {Direction} */
+/** @type {CssPruneDirection} */
 const FORWARD = 0;
-/** @type {Direction} */
+/** @type {CssPruneDirection} */
 const BACKWARD = 1;
 
 // this will be set for every prune_css call
@@ -21,42 +21,41 @@ let style_identifier_classes;
 let top_scoped_classes;
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.TSRXJSXElement}
  */
 function is_native_jsx_element(node) {
-	return node?.type === 'JSXElement' && node.metadata?.native_tsrx;
+	return node?.type === 'JSXElement' && node.metadata?.native_tsrx === true;
 }
 
 /**
- * @param {any} node
- * @returns {any}
+ * @param {AST.TSRXElementNode} node
+ * @returns {ESTreeJSX.TSRXJSXOpeningElement['name']}
  */
 function get_element_name(node) {
-	return node.openingElement?.name ?? node.id;
+	return node.openingElement.name;
 }
 
 /**
- * @param {any} node
- * @returns {any[]}
+ * @param {AST.TSRXElementNode} node
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function get_element_attributes(node) {
-	return node.openingElement?.attributes ?? node.attributes ?? [];
+	return node.openingElement.attributes;
 }
 
 /**
- * @param {any} attribute
+ * @param {ESTreeJSX.JSXAttribute} attribute
  * @returns {string | null}
  */
 function get_attribute_name(attribute) {
 	const name = attribute.name;
-	if (name?.type === 'JSXIdentifier' || name?.type === 'Identifier') return name.name;
-	return null;
+	return name.type === 'JSXIdentifier' ? name.name : null;
 }
 
 /**
- * @param {any} attribute
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttribute} attribute
+ * @returns {AST.Expression | ESTreeJSX.JSXEmptyExpression | null}
  */
 function get_attribute_value(attribute) {
 	const value = attribute.value;
@@ -64,32 +63,27 @@ function get_attribute_value(attribute) {
 }
 
 /**
- * @param {AST.Node} node
+ * @param {AST.TSRXElementNode} node
  * @returns {boolean}
  */
 function is_dynamic_element(node) {
 	// `metadata.dynamicElement` marks lowered dynamic tags; `isDynamic` is the
 	// parser flag on a not-yet-lowered `<{expr}>` element. Both resolve their
 	// tag at runtime, so they can match any type selector.
-	return (
-		node?.metadata?.dynamicElement === true ||
-		/** @type {ESTreeJSX.JSXExpressionContainer} */ (node)?.isDynamic === true
-	);
+	return node.metadata?.dynamicElement === true || node.isDynamic === true;
 }
 
 /**
  * Returns true if node is a DOM element (not a component).
- * @param {AST.Node} node
+ * @param {AST.TSRXElementNode} node
  * @returns {boolean}
  */
 function is_element_dom_element(node) {
 	const id = get_element_name(node);
-	return (
-		(id.type === 'Identifier' || id.type === 'JSXIdentifier') &&
-		id.name[0].toLowerCase() === id.name[0] &&
-		id.name !== 'children' &&
-		!id.tracked
-	);
+	if (id.type !== 'Identifier' && id.type !== 'JSXIdentifier') return false;
+	if (id.name[0].toLowerCase() !== id.name[0] || id.name === 'children') return false;
+	// Only a plain `Identifier` tag can carry the tracked (`@name`) marker.
+	return id.type !== 'Identifier' || !id.tracked;
 }
 
 // CSS selector constants
@@ -269,8 +263,8 @@ function truncate(node) {
 /**
  * @param {AST.CSS.RelativeSelector[]} relative_selectors
  * @param {AST.CSS.Rule} rule
- * @param {any} element
- * @param {Direction} direction
+ * @param {AST.TSRXElementNode} element
+ * @param {CssPruneDirection} direction
  * @returns {boolean}
  */
 function apply_selector(relative_selectors, rule, element, direction) {
@@ -320,12 +314,12 @@ function apply_selector(relative_selectors, rule, element, direction) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.TSRXElementNode} node
  * @param {boolean} adjacent_only
- * @returns {any[]}
+ * @returns {AST.TSRXJSXElement[]}
  */
 function get_ancestor_elements(node, adjacent_only) {
-	/** @type {any[]} */
+	/** @type {AST.TSRXJSXElement[]} */
 	const ancestors = [];
 
 	const path = node.metadata.path;
@@ -346,12 +340,12 @@ function get_ancestor_elements(node, adjacent_only) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.TSRXElementNode} node
  * @param {boolean} adjacent_only
- * @returns {any[]}
+ * @returns {AST.TSRXJSXElement[]}
  */
 function get_descendant_elements(node, adjacent_only) {
-	/** @type {any[]} */
+	/** @type {AST.TSRXJSXElement[]} */
 	const descendants = [];
 
 	/**
@@ -365,26 +359,18 @@ function get_descendant_elements(node, adjacent_only) {
 			if (adjacent_only) return; // Only direct children for '>' combinator
 		}
 
-		if (Array.isArray(/** @type {any} */ (current_node).children)) {
-			for (const child of /** @type {any} */ (current_node).children) {
-				visit(child, depth + 1);
-			}
+		for (const child of node_children(current_node)) {
+			visit(child, depth + 1);
 		}
 
-		if (
-			current_node.type === 'JSXExpressionContainer' &&
-			current_node.expression &&
-			typeof current_node.expression === 'object'
-		) {
+		if (current_node.type === 'JSXExpressionContainer') {
 			visit(current_node.expression, depth + 1);
 		}
 	}
 
 	// Start from node's children
-	if (node.children) {
-		for (const child of node.children) {
-			visit(child);
-		}
+	for (const child of node_children(node)) {
+		visit(child);
 	}
 
 	return descendants;
@@ -392,7 +378,7 @@ function get_descendant_elements(node, adjacent_only) {
 
 /**
  * Check if an element can render dynamic content that might affect CSS matching
- * @param {AST.Node} element
+ * @param {AST.TSRXElementNode} element
  * @param {boolean} check_classes - Whether to check for dynamic class attributes
  * @returns {boolean}
  */
@@ -425,12 +411,13 @@ function can_render_dynamic_content(element, check_classes = false) {
 }
 
 /**
- * @param {AST.Node} node
- * @param {Direction} direction
+ * @param {AST.TSRXElementNode} node
+ * @param {CssPruneDirection} direction
  * @param {boolean} adjacent_only
- * @returns {Map<any, boolean>}
+ * @returns {Map<AST.TSRXJSXElement, boolean>}
  */
 function get_possible_element_siblings(node, direction, adjacent_only) {
+	/** @type {Map<AST.TSRXJSXElement, boolean>} */
 	const siblings = new Map();
 	const parent = get_element_parent(node);
 
@@ -439,7 +426,7 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 	}
 
 	// Get the container that holds the siblings
-	const container = parent.children || [];
+	const container = node_children(parent);
 	const node_index = container.indexOf(node);
 
 	if (node_index === -1) return siblings;
@@ -482,8 +469,8 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
  * @param {AST.CSS.RelativeSelector} relative_selector
  * @param {AST.CSS.RelativeSelector[]} rest_selectors
  * @param {AST.CSS.Rule} rule
- * @param {any} node
- * @param {Direction} direction
+ * @param {AST.TSRXElementNode} node
+ * @param {CssPruneDirection} direction
  * @returns {boolean}
  */
 function apply_combinator(relative_selector, rest_selectors, rule, node, direction) {
@@ -544,7 +531,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 								// Check if there are any elements after this component that could match the remaining selectors
 								const parent = get_element_parent(node);
 								if (parent) {
-									const container = parent.children || [];
+									const container = node_children(parent);
 									const component_index = container.indexOf(possible_sibling);
 
 									// For adjacent combinator, only check immediate next element
@@ -589,8 +576,8 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 	}
 }
 /**
- * @param {AST.Node} node
- * @returns {any | null}
+ * @param {AST.TSRXElementNode} node
+ * @returns {AST.TSRXJSXElement | null}
  */
 function get_element_parent(node) {
 	// Check if metadata and path exist
@@ -703,12 +690,14 @@ function is_global(selector, rule) {
 }
 
 /**
- * @param {any} attribute
- * @returns {boolean}
+ * The attribute's value when it is a static string literal, otherwise `null`.
+ *
+ * @param {ESTreeJSX.JSXAttribute} attribute
+ * @returns {string | null}
  */
-function is_text_attribute(attribute) {
+function get_text_attribute_value(attribute) {
 	const value = get_attribute_value(attribute);
-	return value?.type === 'Literal' && typeof value.value === 'string';
+	return value?.type === 'Literal' && typeof value.value === 'string' ? value.value : null;
 }
 
 /**
@@ -742,7 +731,7 @@ function test_attribute(operator, expected_value, case_insensitive, value) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.TSRXElementNode} node
  * @param {string} name
  * @param {string | null} expected_value
  * @param {string | null} operator
@@ -768,13 +757,9 @@ function attribute_matches(node, name, expected_value, operator, case_insensitiv
 
 		if (expected_value === null) return true;
 
-		if (is_text_attribute(attribute)) {
-			return test_attribute(
-				operator,
-				expected_value,
-				case_insensitive,
-				get_attribute_value(attribute).value,
-			);
+		const text_value = get_text_attribute_value(attribute);
+		if (text_value !== null) {
+			return test_attribute(operator, expected_value, case_insensitive, text_value);
 		} else {
 			return true;
 		}
@@ -807,8 +792,8 @@ function is_outer_global(relative_selector) {
 /**
  * @param {AST.CSS.RelativeSelector} relative_selector
  * @param {AST.CSS.Rule} rule
- * @param {any} element
- * @param {Direction} direction
+ * @param {AST.TSRXElementNode} element
+ * @param {CssPruneDirection} direction
  * @return {boolean}
  */
 function relative_selector_might_apply_to_node(relative_selector, rule, element, direction) {
@@ -932,7 +917,7 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 								selector.metadata.scoped = true;
 							}
 
-							/** @type {any | null} */
+							/** @type {AST.TSRXElementNode | null} */
 							let el = element;
 							while (el) {
 								el.metadata.scoped = true;
@@ -1119,7 +1104,7 @@ function rule_has_animation(rule) {
 
 /**
  * @param {AST.CSS.StyleSheet} css
- * @param {any} element
+ * @param {AST.TSRXElementNode} element
  * @param {StyleClasses} styleClasses
  * @param {TopScopedClasses} topScopedClasses
  * @return {void}

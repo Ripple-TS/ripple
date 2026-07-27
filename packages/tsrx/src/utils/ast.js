@@ -1,22 +1,6 @@
 /** @import * as AST from 'estree' */
 
-/**
- * Represents the path of a destructured assignment from either a declaration
- * or assignment expression. For example, given `const { foo: { bar: baz } } = quux`,
- * the path of `baz` is `foo.bar`
- * @typedef {{
- *   node: AST.Identifier | AST.MemberExpression;
- *   is_rest: boolean;
- *   has_default_value: boolean;
- *   expression: (object: AST.Identifier | AST.CallExpression) => AST.Expression;
- *   update_expression: (object: AST.Identifier) => AST.Expression;
- * }} DestructuredAssignment
- * - `node`: The node the destructuring path ends in. Can be a member expression only for assignment expressions
- * - `is_rest`: `true` if this is a `...rest` destructuring
- * - `has_default_value`: `true` if this has a fallback value like `const { foo = 'bar' } = ..`
- * - `expression`: The value of the current path. Will be a call expression if a rest element or default is involved — e.g. `const { foo: { bar: baz = 42 }, ...rest } = quux` — since we can't represent `baz` or `rest` purely as a path. Will be an await expression in case of an async default value (`const { foo = await bar } = ...`)
- * - `update_expression`: Like `expression` but without default values.
- */
+/** @import { DestructuredAssignment } from '../../types/index' */
 
 import * as b from './builders.js';
 
@@ -58,6 +42,19 @@ export function child_nodes(node, skip_key) {
 }
 
 /**
+ * The children a node carries, as nodes. Node types differ in whether they
+ * have a `children` slot at all (`JSXCodeBlock` does not) and in what it may
+ * hold, so this reads it uniformly instead of forcing every caller to narrow.
+ *
+ * @param {AST.Node} node
+ * @returns {AST.Node[]}
+ */
+export function node_children(node) {
+	const children = /** @type {AST.TraversableAstNode} */ (node).children;
+	return Array.isArray(children) ? children.filter(is_ast_node) : [];
+}
+
+/**
  * @template {object} T
  * @param {T | null | undefined} node
  * @returns {node is T & AST.NodeWithLocation}
@@ -66,6 +63,14 @@ export function has_location(node) {
 	if (node == null) return false;
 	const location = /** @type {Partial<AST.NodeWithLocation>} */ (node);
 	return location.loc != null && location.start !== undefined && location.end !== undefined;
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is AST.JSXStyleElement}
+ */
+export function is_style_element(node) {
+	return !!node && node.type === 'JSXStyleElement';
 }
 
 /**
@@ -90,7 +95,7 @@ export function is_function_or_class_node(node) {
 
 /**
  * @param {AST.Node} node
- * @returns {boolean}
+ * @returns {node is AST.Function}
  */
 export function is_function_or_component_node(node) {
 	return is_function_node(node);
@@ -199,8 +204,8 @@ export function get_component_from_path(path, includes_functions = false) {
 		const node = path[i];
 
 		if (is_function_node(node)) {
-			if (/** @type {any} */ (node).metadata?.native_tsrx_function) {
-				return /** @type {AST.Function} */ (node);
+			if (node.metadata?.native_tsrx_function) {
+				return node;
 			}
 			if (!includes_functions) {
 				return;

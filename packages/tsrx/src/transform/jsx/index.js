@@ -66,6 +66,7 @@ import {
 	is_function_node,
 	is_function_or_class_node as is_function_or_class_boundary,
 	is_template_directive as is_jsx_control_flow_expression,
+	node_children,
 } from '../../utils/ast.js';
 
 const TEMPLATE_FRAGMENT_ERROR =
@@ -1044,19 +1045,6 @@ function inject_dynamic_import(program, transform_context) {
 	program.body.unshift(
 		b.import_declaration([b.import_specifier('Dynamic', DYNAMIC_IMPORT_LOCAL)], source),
 	);
-}
-
-/**
- * The children a node carries, as nodes. Node types differ in whether they
- * have a `children` slot at all (`JSXCodeBlock` does not) and in what it may
- * hold, so this reads it uniformly instead of forcing every caller to narrow.
- *
- * @param {AST.Node} node
- * @returns {AST.Node[]}
- */
-function node_children(node) {
-	const children = /** @type {AST.TraversableAstNode} */ (node).children;
-	return Array.isArray(children) ? children.filter(is_ast_node) : [];
 }
 
 /**

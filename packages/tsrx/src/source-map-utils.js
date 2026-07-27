@@ -1,31 +1,17 @@
 /**
  * @import { PostProcessingChanges, LineOffsets } from '../types/index.js';
  * @import * as AST from 'estree';
- * @import { CodeMapping } from '../types/index.js';
+ * @import {
+ *   CodeMapping,
+ *   CodePosition,
+ *   CodeToGeneratedMap,
+ *   GeneratedToSourceMap,
+ *   SourceLineGeneratedMap,
+ *   SourceLineGeneratedPosition,
+ * } from '../types/index.js';
  * @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  * @import { RawSourceMap } from 'source-map';
  */
-
-/**
- * @typedef {{
- *   line: number,
- *   column: number,
- *   end_line: number,
- *   end_column: number,
- *   code: string,
- *   metadata: {
- *     css?: AST.Node['metadata']['css']
- *   },
- * }} CodePosition
- * @typedef {{
- *   column: number,
- *   position: CodePosition,
- * }} SourceLineGeneratedPosition
- */
-
-/** @typedef {Map<string, CodePosition[]>} CodeToGeneratedMap */
-/** @typedef {Map<string, {line: number, column: number}[]>} GeneratedToSourceMap */
-/** @typedef {Map<number, SourceLineGeneratedPosition[]>} SourceLineGeneratedMap */
 
 import { decode } from '@jridgewell/sourcemap-codec';
 

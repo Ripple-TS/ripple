@@ -6,6 +6,7 @@ import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
 import type { RequireAllOrNone } from './helpers';
 import type { Context as ZimmerframeContext } from 'zimmerframe';
+import type MagicString from 'magic-string';
 import type {
 	JsxPlatform,
 	JsxPlatformHooks,
@@ -41,14 +42,25 @@ export function createStyleClassMap(
 	css: AST.CSS.StyleSheet,
 ): AST.ObjectExpression;
 export function createStyleClassMapFromStylesheet(css: AST.CSS.StyleSheet): AST.ObjectExpression;
+/** How a `style.x` ref attribute is lowered into setup statements. */
+export interface StyleRefOptions {
+	allowMutableRefTarget?: boolean;
+	createTempIdentifier?: () => AST.Identifier;
+	visitExpression?: (expression: AST.Expression) => AST.Expression;
+}
+
+/**
+ * Walk state for the style-expression class-map collection: the nearest
+ * prelude-level selector, which carries the class map entries found beneath it.
+ */
+export interface ClassMapCollectionState {
+	enclosing_selector: AST.CSS.ComplexSelector | null;
+}
+
 export function createStyleRefSetupStatements(
 	refAttributes: ESTreeJSX.JSXAttribute[],
 	styleMap: AST.Expression,
-	options?: {
-		allowMutableRefTarget?: boolean;
-		createTempIdentifier?: () => AST.Identifier;
-		visitExpression?: (expression: AST.Expression) => AST.Expression;
-	},
+	options?: StyleRefOptions,
 ): AST.Statement[];
 export function getStyleElementStylesheet(
 	styleElement: AST.JSXStyleElement,
@@ -137,6 +149,8 @@ export interface BaseNodeMetaData {
 	/** Memoized `<> … </>` wrapper for a value-position directive (see get_directive_value_wrapper). */
 	tsrx_value_wrapper?: AST.TSRXJSXFragment;
 	ts_name?: string;
+	/** Editor hover override served for this node's mapping, if any. */
+	hover?: PluginActionOverrides['hover'];
 	delegated?: boolean;
 	returned_tsrx_return?: AST.ReturnStatement;
 	styleScopeHash?: string;
@@ -157,7 +171,8 @@ export interface BaseNodeMetaData {
 	generated_loop_skip_if?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
-	extra_source_mappings?: AST.NodeWithLocation[];
+	/** Identifiers whose source ranges also map to this generated identifier. */
+	extra_source_mappings?: Array<(AST.Identifier | AST.PrivateIdentifier) & AST.NodeWithLocation>;
 	generated_setup_declarations?: AST.Statement[];
 	/** Helper components lifted out of a component; read back by `expand_component_helpers`. */
 	generated_helpers?: AST.Statement[];
@@ -201,6 +216,8 @@ type AcornTSNode<T> = Omit<T, 'parent' | 'loc' | 'range' | 'expression'> & {
 
 	leadingComments?: AST.Comment[] | undefined;
 	trailingComments?: AST.Comment[] | undefined;
+	innerComments?: AST.Comment[] | undefined;
+	comments?: AST.Comment[] | undefined;
 	append_into?: AST.Identifier;
 };
 
@@ -214,6 +231,12 @@ interface FunctionLikeTS {
 declare module 'estree' {
 	interface Program {
 		innerComments?: Comment[] | undefined;
+		/**
+		 * Lexer-authoritative `async`/`function` keyword spans, recorded when the
+		 * parse opted in via `keywordTokens`. No AST node carries them, and the
+		 * mapping collector needs the source positions.
+		 */
+		tsrx_keyword_tokens?: Parse.KeywordToken[];
 	}
 
 	interface FunctionDeclaration extends FunctionLikeTS {
@@ -582,15 +605,27 @@ declare module 'estree' {
 		emptyKeyword?: AST.NodeWithLocation | null;
 	}
 
+	interface VariableDeclaration {
+		/** `declare const x` in an ambient context. */
+		declare?: boolean;
+	}
+
 	interface ImportDeclaration {
 		importKind: TSESTree.ImportDeclaration['importKind'];
 		phase?: 'defer' | null;
+		/** Pre-`import attributes` spelling of {@link ImportDeclaration.attributes}. */
+		assertions?: AST.ImportAttribute[];
 	}
 	interface TSRXImportDeclaration extends Omit<ImportDeclaration, 'source'> {
 		source: AST.Literal | AST.Identifier;
 	}
 	interface ImportExpression {
 		phase?: 'defer' | null;
+		/**
+		 * acorn parks an ordinary `import(source, options)` call's second
+		 * argument here; only a deferred import fills in `options`.
+		 */
+		arguments?: AST.Expression[];
 	}
 	interface ImportSpecifier {
 		importKind: TSESTree.ImportSpecifier['importKind'];
@@ -613,6 +648,8 @@ declare module 'estree' {
 
 	interface BaseNode {
 		is_controlled?: boolean;
+		/** Comments the parser attached inside the node's own span. */
+		innerComments?: Comment[] | undefined;
 		// This is for Pattern but it's a type alias
 		// So it's just easy to extend BaseNode even though
 		// typeAnnotation, typeArguments do not apply to all nodes
@@ -655,7 +692,22 @@ declare module 'estree' {
 
 	type TSRXStatement = AST.Statement | TSESTree.Statement;
 
+	/**
+	 * A TypeScript-only declaration standing in a statement slot. estree's
+	 * `Statement` union is closed and knows nothing of TS declarations, so nodes
+	 * the TS parser puts in a body (or the transforms emit into one) are spelled
+	 * as an intersection with it.
+	 */
+	type TSStatement<T> = T & AST.Statement;
+
 	type NodeWithChildren = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement | ESTreeJSX.JSXElement;
+
+	/**
+	 * A parsed element node with an opening tag — an ordinary TSRX element or a
+	 * `<style>` element. Both carry a tag name and attributes, so element-level
+	 * passes (nesting validation, scoped-CSS pruning) accept either.
+	 */
+	type TSRXElementNode = TSRXJSXElement | JSXStyleElement;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {
@@ -713,6 +765,12 @@ declare module 'estree' {
 				rule: Rule | null;
 				used: boolean;
 				is_global?: boolean;
+				/**
+				 * The selector carries a class the generated style-expression class
+				 * map exposes, so render preparation must keep it (see
+				 * `mark_class_map_selectors`).
+				 */
+				class_map_selector?: boolean;
 			};
 		}
 
@@ -1197,14 +1255,16 @@ declare module 'estree' {
 		typeAnnotation: TSTypeAnnotation | undefined;
 	}
 	interface TSModuleBlock extends Omit<AcornTSNode<TSESTree.TSModuleBlock>, 'body'> {
-		body: AST.Statement[];
+		/** A module block is a module scope: imports and exports are allowed. */
+		body: AST.Program['body'];
 	}
 	interface TSModuleDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSModuleDeclaration>,
 		'body' | 'id'
 	> {
 		body: TSModuleBlock;
-		id: AST.Identifier;
+		/** A string literal for `declare module '<specifier>'`. */
+		id: AST.Identifier | AST.Literal;
 		metadata: BaseNodeMetaData & {
 			exports?: Set<string>;
 		};
@@ -1445,6 +1505,13 @@ export interface AnalysisResult {
 	ast: AST.Program;
 	scopes: Map<AST.Node, ScopeInterface>;
 	scope: ScopeInterface;
+	/** Module-level scope information, kept as the analysis descends. */
+	module: {
+		ast: AST.Program;
+		scope: ScopeInterface;
+		scopes: Map<AST.Node, ScopeInterface>;
+		filename: string;
+	};
 	component_metadata: Array<{ id: string }>;
 	metadata: {
 		serverImportsPresent: boolean;
@@ -1505,6 +1572,7 @@ export interface Binding {
 		| AST.FunctionDeclaration
 		| AST.ClassDeclaration
 		| AST.ImportDeclaration
+		| AST.TSRXImportDeclaration
 		| AST.TSModuleDeclaration
 		| ESTreeJSX.JSXFragment;
 	/** Whether this binding has been reassigned */
@@ -1604,6 +1672,7 @@ export interface ScopeInterface {
 			| AST.FunctionDeclaration
 			| AST.ClassDeclaration
 			| AST.ImportDeclaration
+			| AST.TSRXImportDeclaration
 			| AST.TSModuleDeclaration
 			| ESTreeJSX.JSXFragment,
 	): Binding;
@@ -1642,14 +1711,7 @@ export interface BaseState {
 }
 
 export interface AnalysisState extends BaseState {
-	analysis: AnalysisResult & {
-		module: {
-			ast: AnalysisResult['ast'];
-			scope: AnalysisResult['scope'];
-			scopes: AnalysisResult['scopes'];
-			filename: string;
-		};
-	};
+	analysis: AnalysisResult;
 	elements?: Array<AST.TSRXJSXElement | AST.JSXStyleElement>;
 	function_depth?: number;
 	collect?: boolean;
@@ -1815,8 +1877,169 @@ export type JsxVisitorContext = ZimmerframeContext<AST.Node, JsxTransformContext
 /**
  * Delegated event result
  */
+/**
+ * Represents the path of a destructured assignment from either a declaration
+ * or assignment expression. For example, given `const { foo: { bar: baz } } = quux`,
+ * the path of `baz` is `foo.bar`.
+ */
+export interface DestructuredAssignment {
+	/**
+	 * The node the destructuring path ends in. Can be a member expression only
+	 * for assignment expressions.
+	 */
+	node: AST.Identifier | AST.MemberExpression;
+	/** `true` if this is a `...rest` destructuring. */
+	is_rest: boolean;
+	/** `true` if this has a fallback value like `const { foo = 'bar' } = ..`. */
+	has_default_value: boolean;
+	/**
+	 * The value of the current path. Will be a call expression if a rest element
+	 * or default is involved — e.g. `const { foo: { bar: baz = 42 }, ...rest } =
+	 * quux` — since we can't represent `baz` or `rest` purely as a path. Will be
+	 * an await expression in case of an async default value
+	 * (`const { foo = await bar } = ...`).
+	 */
+	expression: (object: AST.Identifier | AST.CallExpression) => AST.Expression;
+	/** Like `expression` but without default values. */
+	update_expression: (object: AST.Identifier) => AST.Expression;
+}
+
+/** Render state threaded through the stylesheet printer. */
+export interface StylesheetRenderState {
+	code: MagicString;
+	hash: string;
+	minify: boolean;
+	selector: string;
+	keyframes: Record<
+		string,
+		{
+			indexes: number[];
+			local: boolean | undefined;
+		}
+	>;
+	specificity: {
+		bumped: boolean;
+	};
+}
+
+/**
+ * One generated occurrence of a source line's code, as indexed by
+ * `build_src_to_gen_map`.
+ */
+export interface CodePosition {
+	line: number;
+	column: number;
+	end_line: number;
+	end_column: number;
+	code: string;
+	metadata: {
+		css?: BaseNodeMetaData['css'];
+	};
+}
+
+/** A generated position recorded against a source line's column. */
+export interface SourceLineGeneratedPosition {
+	column: number;
+	position: CodePosition;
+}
+
+/** Generated positions of each distinct piece of source code, keyed by its text. */
+export type CodeToGeneratedMap = Map<string, CodePosition[]>;
+
+/** Source positions of each piece of generated code, keyed by its text. */
+export type GeneratedToSourceMap = Map<string, Array<{ line: number; column: number }>>;
+
+/** Generated positions reachable from a source line, keyed by that line. */
+export type SourceLineGeneratedMap = Map<number, SourceLineGeneratedPosition[]>;
+
+/** Walk state of `create_scopes`: the scope the current node lives in. */
+export interface ScopeState {
+	scope: ScopeInterface;
+}
+
+/** A `<style>` block's source region in the authored file. */
+export interface CssSourceRegion {
+	start: number;
+	end: number;
+	content: string;
+	id: string;
+}
+
+/** A `<script>` block's source region in the authored file. */
+export interface ScriptSourceRegion {
+	start: number;
+	end: number;
+	content: string;
+	id: string;
+}
+
+/** One source ↔ generated correspondence collected from the printed output. */
+export interface MappingToken {
+	source: string | null | undefined;
+	generated: string;
+	loc: AST.SourceLocation;
+	metadata: PluginActionOverrides;
+	generatedLoc?: AST.SourceLocation;
+	end_loc?: AST.SourceLocation;
+	sourceLength?: number;
+	mappingData?: Partial<CodeMapping['data']>;
+}
+
+/** A generated identifier's position, resolved against the generated text. */
+export interface TokenClass {
+	name: string;
+	line: number;
+	column: number;
+	offset: number;
+	length: number;
+	sourceOffset: number;
+}
+
+/** Per-element scoped-class info, keyed by the element's generated name. */
+export type CssElementInfo = Map<string, BaseNodeMetaData['css']>;
+
 export interface DelegatedEventResult {
 	function?: AST.FunctionExpression | AST.FunctionDeclaration | AST.ArrowFunctionExpression;
+}
+
+/**
+ * Which way the CSS selector matcher walks the element tree: `0` matches the
+ * rest of the selector against descendants/following siblings, `1` against
+ * ancestors/preceding siblings.
+ */
+export type CssPruneDirection = 0 | 1;
+
+/**
+ * Anything a source range can be copied from: a parsed node, or a synthesized
+ * range built for a generated node.
+ */
+export interface MaybeLocated {
+	start?: number;
+	end?: number;
+	loc?: AST.SourceLocation | null;
+}
+
+/** The lazy destructuring patterns: `&{ … }` and `&[ … ]`. */
+export type LazyPattern = AST.ObjectPattern | AST.ArrayPattern;
+
+/** Id allocation state for the lazy destructuring transform. */
+export interface LazyContext {
+	lazy_next_id: number;
+}
+
+/** A name introduced by a lazy `&{ … }` / `&[ … ]` destructuring pattern. */
+export interface LazyBinding {
+	/** The generated identifier the pattern was replaced with (`__lazy0`). */
+	source_name: string;
+	/**
+	 * Builds the access that reads this binding off the generated source
+	 * identifier (`__lazy0.name`, `__lazy0[1]`). `reference` is the identifier
+	 * being rewritten; its source range is carried onto the generated property
+	 * so mappings still point at the authored name.
+	 */
+	read: (
+		reference?: AST.Identifier | ESTreeJSX.JSXIdentifier,
+	) => AST.Identifier | AST.MemberExpression;
 }
 
 export type TopScopedClasses = Map<
@@ -1992,6 +2215,61 @@ export type VolarCompileFn<TOptions = ParseOptions> = (
 	filename?: string,
 	options?: TOptions,
 ) => VolarMappingsResult;
+
+/**
+ * The node interface behind a `type` discriminant, preferring the widened TSRX
+ * shapes for the JSX kinds the parser actually produces.
+ */
+export type NodeOfType<T extends NodeTypeName> = T extends 'JSXElement'
+	? AST.TSRXJSXElement
+	: T extends 'JSXFragment'
+		? AST.TSRXJSXFragment
+		: Extract<AST.Node, { type: T }>;
+
+/**
+ * Every node kind's `type` discriminant. TypeScript node types carry an
+ * enum-typed discriminant, so the string form is spelled out alongside it.
+ */
+export type NodeTypeName = AST.Node['type'] | `${AST.Node['type']}`;
+
+/**
+ * The per-target compile entry point the shared compile test-suite runs
+ * against (see `@tsrx/core/test-harness/compile`).
+ */
+export interface CompileHarness {
+	compile: CompileFn;
+	/** The target's name, used in test titles. */
+	name: string;
+	/** The authored DOM-element class attribute shape the platform emits. */
+	classAttrName: 'class' | 'className';
+	/**
+	 * The class attribute shape the platform uses when injecting scoped CSS
+	 * hashes. Defaults to `classAttrName`.
+	 */
+	generatedClassAttrName?: 'class' | 'className';
+}
+
+/** The per-target entry points the shared source-mapping tests run against. */
+export interface SourceMappingHarness {
+	compile: CompileFn;
+	compile_to_volar_mappings: VolarCompileFn;
+	/** The target's name, used in test titles. */
+	name: string;
+	/**
+	 * Does the platform refuse top-level `await` in a component body (without
+	 * any escape directive)? React and Preact return async functions and accept
+	 * it; Solid forbids it outright. When true, the shared `AwaitExpression`
+	 * test asserts the compiler throws rather than that it maps successfully.
+	 */
+	rejectsComponentAwait: boolean;
+}
+
+/** The per-target entry point the shared editor-diagnostics tests run against. */
+export interface CompileDiagnosticsHarness {
+	compile_to_volar_mappings: VolarCompileFn;
+	/** The target's name, used in test titles. */
+	name: string;
+}
 
 /**
  * Source map transformation types

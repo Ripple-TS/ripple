@@ -27,8 +27,10 @@ describe('language runtime helpers', () => {
 
 		expect(reads).toBe(0);
 		expect(Reflect.ownKeys(rest)).toEqual(['static', 'live', symbol]);
-		expect(rest.is).toBeUndefined();
-		expect(rest.hidden).toBeUndefined();
+		// `Omit` drops both statically, so read them back off a plain view.
+		const rest_view = /** @type {Record<PropertyKey, unknown>} */ (rest);
+		expect(rest_view.is).toBeUndefined();
+		expect(rest_view.hidden).toBeUndefined();
 
 		expect(rest.live).toBe('initial');
 		expect(reads).toBe(1);

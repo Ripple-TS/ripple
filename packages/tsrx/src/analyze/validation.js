@@ -144,12 +144,12 @@ const invalid_nestings = {
 };
 
 /**
- * @param {any} element
+ * @param {AST.TSRXElementNode} element
  * @returns {string | null}
  */
 function get_element_tag(element) {
-	const name = element.openingElement?.name ?? element.id;
-	return name?.type === 'JSXIdentifier' || name?.type === 'Identifier' ? name.name : null;
+	const name = element.openingElement.name;
+	return name.type === 'JSXIdentifier' || name.type === 'Identifier' ? name.name : null;
 }
 
 /**
@@ -349,10 +349,10 @@ export function is_template_value_position(parent, child) {
 		case 'PropertyDefinition':
 			return parent.value === child;
 		case 'ArrayExpression':
-			return /** @type {any[]} */ (parent.elements).includes(child);
+			return parent.elements.some((element) => element === child);
 		case 'CallExpression':
 		case 'NewExpression':
-			return parent.callee === child || /** @type {any[]} */ (parent.arguments).includes(child);
+			return parent.callee === child || parent.arguments.some((argument) => argument === child);
 		case 'ConditionalExpression':
 			return parent.test === child || parent.consequent === child || parent.alternate === child;
 		case 'LogicalExpression':
@@ -365,7 +365,7 @@ export function is_template_value_position(parent, child) {
 			return parent.argument === child;
 		case 'TemplateLiteral':
 		case 'SequenceExpression':
-			return /** @type {any[]} */ (parent.expressions).includes(child);
+			return parent.expressions.some((expression) => expression === child);
 		case 'TSAsExpression':
 		case 'TSNonNullExpression':
 		case 'TSSatisfiesExpression':
@@ -376,7 +376,7 @@ export function is_template_value_position(parent, child) {
 }
 
 /**
- * @param {any} element
+ * @param {AST.TSRXElementNode} element
  * @param {AnalysisContext} context
  * @param {CompileError[]} [errors]
  */

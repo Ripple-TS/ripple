@@ -1,4 +1,5 @@
 /** @import * as AST from 'estree' */
+/** @import * as ESRap from 'esrap' */
 
 /**
  * Add TSRX import-phase support to an esrap TS/TSX visitor set. esrap 2.3
@@ -6,7 +7,7 @@
  * `phase` field yet, so delegating would silently turn a deferred import into
  * an eager one.
  *
- * @template {Record<string, any>} T
+ * @template {ESRap.Visitors} T
  * @param {T} visitors
  * @returns {T}
  */
@@ -24,11 +25,10 @@ export function with_deferred_imports(visitors) {
 		...visitors,
 		/**
 		 * @param {AST.ImportDeclaration} node
-		 * @param {import('esrap').Context} context
+		 * @param {ESRap.Context} context
 		 */
 		ImportDeclaration(node, context) {
-			const import_node = /** @type {AST.ImportDeclaration & { phase?: 'defer' | null }} */ (node);
-			if (import_node.phase !== 'defer') {
+			if (node.phase !== 'defer') {
 				print_import_declaration(node, context);
 				return;
 			}
@@ -48,10 +48,7 @@ export function with_deferred_imports(visitors) {
 			context.write(' from ');
 			context.visit(node.source);
 
-			const attributes =
-				/** @type {Array<{ key: AST.Identifier | AST.Literal, value: AST.Literal }>} */ (
-					/** @type {any} */ (node).attributes ?? /** @type {any} */ (node).assertions ?? []
-				);
+			const attributes = node.attributes ?? node.assertions ?? [];
 			if (attributes.length > 0) {
 				context.write(' with { ');
 				for (let index = 0; index < attributes.length; index++) {
@@ -68,11 +65,10 @@ export function with_deferred_imports(visitors) {
 		},
 		/**
 		 * @param {AST.ImportExpression} node
-		 * @param {import('esrap').Context} context
+		 * @param {ESRap.Context} context
 		 */
 		ImportExpression(node, context) {
-			const import_node = /** @type {AST.ImportExpression & { phase?: 'defer' | null }} */ (node);
-			if (import_node.phase !== 'defer') {
+			if (node.phase !== 'defer') {
 				print_import_expression(node, context);
 				return;
 			}
@@ -81,9 +77,7 @@ export function with_deferred_imports(visitors) {
 			context.write('import.defer(');
 			context.visit(node.source);
 
-			const options =
-				node.options ??
-				/** @type {AST.Expression | undefined} */ (/** @type {any} */ (node).arguments?.[0]);
+			const options = node.options ?? node.arguments?.[0];
 			if (options) {
 				context.write(', ');
 				context.visit(options);

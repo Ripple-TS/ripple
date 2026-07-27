@@ -2,17 +2,14 @@
 @import * as AST from 'estree'
 @import * as ESTreeJSX from 'estree-jsx'
 @import { Parse } from '../../types/parse'
+@import { BaseNodeMetaData } from '../../types/index'
 @import { NonEmptyString } from '../../types/helpers'
  */
 
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { walk } from 'zimmerframe';
-import { has_location } from '../utils/ast.js';
-
-/**
- * @typedef {(BaseParser: typeof acorn.Parser) => typeof acorn.Parser} AcornPlugin
- */
+import { has_location, node_children } from '../utils/ast.js';
 
 /** @type {Parse.BindingType} */
 export const BINDING_TYPES = {
@@ -87,14 +84,14 @@ export function isWhitespaceTextNode(node) {
 }
 
 /**
- * @type {AcornPlugin}
+ * @type {Parse.AcornPlugin}
  */
 function elementTemplateClosingTagPlugin(Base) {
-	const jsxTagStart = /** @type {any} */ (Base).acornTypeScript?.tokTypes?.jsxTagStart;
+	const jsxTagStart = Base.acornTypeScript?.tokTypes?.jsxTagStart;
 	if (!jsxTagStart) return Base;
 
 	/**
-	 * @param {any} parser
+	 * @param {Parse.Parser} parser
 	 */
 	function inElementTemplateBodyDirect(parser) {
 		const stack = parser.context;
@@ -104,7 +101,7 @@ function elementTemplateClosingTagPlugin(Base) {
 	}
 
 	/**
-	 * @param {any} parser
+	 * @param {Parse.Parser} parser
 	 */
 	function inElementTemplateBodyAnywhere(parser) {
 		const stack = parser.context;
@@ -122,7 +119,7 @@ function elementTemplateClosingTagPlugin(Base) {
 	}
 
 	/**
-	 * @param {any} parser
+	 * @param {Parse.Parser} parser
 	 */
 	function isOpeningTagAfterReturnKeyword(parser) {
 		if (parser.input.charCodeAt(parser.start + 1) === 47 /* '/' */) return false;
@@ -153,32 +150,26 @@ function elementTemplateClosingTagPlugin(Base) {
 
 	return class extends Base {
 		/** @param {number} code */
-		// @ts-ignore — extending acorn's Parser with internal hooks
 		getTokenFromCode(code) {
-			if (code === 60 /* '<' */ && !(/** @type {any} */ (this).inType)) {
-				const self = /** @type {any} */ (this);
+			if (code === 60 /* '<' */ && !this.inType) {
 				const nextChar =
-					self.pos + 1 < self.input.length ? self.input.charCodeAt(self.pos + 1) : -1;
-				if (nextChar === 47 /* '/' */ && inElementTemplateBodyDirect(self)) {
-					++self.pos;
-					return self.finishToken(jsxTagStart);
+					this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
+				if (nextChar === 47 /* '/' */ && inElementTemplateBodyDirect(this)) {
+					++this.pos;
+					return this.finishToken(jsxTagStart);
 				}
 			}
-			// @ts-ignore — super dispatches to next layer in the plugin chain
 			return super.getTokenFromCode(code);
 		}
 
-		// @ts-ignore — extending acorn's Parser with internal hooks
 		canInsertSemicolon() {
-			const self = /** @type {any} */ (this);
 			if (
-				self.type === jsxTagStart &&
-				inElementTemplateBodyAnywhere(self) &&
-				!isOpeningTagAfterReturnKeyword(self)
+				this.type === jsxTagStart &&
+				inElementTemplateBodyAnywhere(this) &&
+				!isOpeningTagAfterReturnKeyword(this)
 			) {
 				return true;
 			}
-			// @ts-ignore
 			return super.canInsertSemicolon();
 		}
 	};
@@ -190,16 +181,20 @@ function elementTemplateClosingTagPlugin(Base) {
  * This is the core factory for building tsrx-based parsers. Framework plugins (like TSRXPlugin)
  * extend the base parser with framework-specific syntax.
  *
- * @param {...(AcornPlugin | Function)} plugins - Framework parser plugins to compose
- * @returns {<T extends string>(source: string, filename: NonEmptyString<T>, options?: any) => AST.Program} A parse function
+ * @param {...Parse.AcornPlugin} plugins - Framework parser plugins to compose
+ * @returns {<T extends string>(source: string, filename: NonEmptyString<T>, options?: Parse.ParseFunctionOptions) => AST.Program} A parse function
  */
 export function createParser(...plugins) {
 	const parser = /** @type {Parse.ParserConstructor} */ (
 		/** @type {unknown} */ (
 			acorn.Parser.extend(
 				tsPlugin({ jsx: true }),
-				...plugins.map((p) => /** @type {AcornPlugin} */ (/** @type {unknown} */ (p))),
-				elementTemplateClosingTagPlugin,
+				.../** @type {Array<(BaseParser: typeof acorn.Parser) => typeof acorn.Parser>} */ (
+					/** @type {unknown} */ (plugins)
+				),
+				/** @type {(BaseParser: typeof acorn.Parser) => typeof acorn.Parser} */ (
+					/** @type {unknown} */ (elementTemplateClosingTagPlugin)
+				),
 			)
 		)
 	);
@@ -207,7 +202,7 @@ export function createParser(...plugins) {
 	/**
 	 * @param {string} source
 	 * @param {string} filename
-	 * @param {any} [options]
+	 * @param {Parse.ParseFunctionOptions} [options]
 	 * @returns {AST.Program}
 	 */
 	return function parse(source, filename, options) {
@@ -225,20 +220,19 @@ export function createParser(...plugins) {
 		// node records. The tokenizer is the only correct source — offset
 		// arithmetic breaks on extra whitespace, and text search breaks on
 		// comments (`async /* function */ function`).
-		/** @type {Array<{ value: string, start: number, end: number, loc: AST.SourceLocation }> | undefined} */
+		/** @type {Parse.KeywordToken[] | undefined} */
 		const keyword_tokens = options?.keywordTokens ? [] : undefined;
 		/** @type {Parse.Options['onToken'] | undefined} */
 		const onToken = keyword_tokens
 			? (token) => {
-					const t = /** @type {any} */ (token);
-					const is_function_keyword = t.type?.keyword === 'function';
-					const is_async_name = t.type?.label === 'name' && t.value === 'async';
-					if (is_function_keyword || is_async_name) {
+					const is_function_keyword = token.type.keyword === 'function';
+					const is_async_name = token.type.label === 'name' && token.value === 'async';
+					if ((is_function_keyword || is_async_name) && token.loc) {
 						keyword_tokens.push({
 							value: is_function_keyword ? 'function' : 'async',
-							start: t.start,
-							end: t.end,
-							loc: t.loc,
+							start: token.start,
+							end: token.end,
+							loc: token.loc,
 						});
 					}
 				}
@@ -273,7 +267,7 @@ export function createParser(...plugins) {
 		add_comments(ast);
 
 		if (keyword_tokens) {
-			/** @type {any} */ (ast).tsrx_keyword_tokens = keyword_tokens;
+			ast.tsrx_keyword_tokens = keyword_tokens;
 		}
 
 		return ast;
@@ -305,80 +299,68 @@ export function get_comment_handlers(source, comments, index = 0) {
 	}
 
 	/**
-	 * @param {any} node
-	 * @returns {node is (ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation}
+	 * @param {AST.Node | AST.CSS.Node | null | undefined} node
+	 * @returns {node is AST.NativeTSRXTemplateNode & AST.NodeWithLocation}
 	 */
 	function isNativeTemplateNode(node) {
 		return (
 			(node?.type === 'JSXElement' ||
 				node?.type === 'JSXFragment' ||
 				node?.type === 'JSXStyleElement') &&
-			node.metadata?.native_tsrx
+			node.metadata?.native_tsrx === true
 		);
 	}
 
 	/**
-	 * @param {any} node
-	 * @returns {node is (ESTreeJSX.JSXElement | AST.JSXStyleElement) & AST.NodeWithLocation}
+	 * @param {AST.Node | AST.CSS.Node | null | undefined} node
+	 * @returns {node is AST.TSRXElementNode & AST.NodeWithLocation}
 	 */
 	function isNativeTemplateElement(node) {
 		return (
 			(node?.type === 'JSXElement' || node?.type === 'JSXStyleElement') &&
-			node.metadata?.native_tsrx
+			node.metadata?.native_tsrx === true
 		);
 	}
 
 	/**
-	 * @param {any} node
-	 * @returns {AST.Node[]}
-	 */
-	function getTemplateChildren(node) {
-		return Array.isArray(node?.children)
-			? /** @type {AST.Node[]} */ (/** @type {unknown} */ (node.children))
-			: [];
-	}
-
-	/**
-	 * @param {any} node
-	 * @returns {node is (ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation}
+	 * @param {AST.Node | AST.CSS.Node | null | undefined} node
+	 * @returns {node is AST.NativeTSRXTemplateNode & AST.NodeWithLocation}
 	 */
 	function isEmptyTemplateNode(node) {
-		return isNativeTemplateNode(node) && getTemplateChildren(node).length === 0;
+		return isNativeTemplateNode(node) && node.children.length === 0;
 	}
 
 	/**
-	 * @param {any} node
-	 * @returns {any}
+	 * @param {AST.Node} node
+	 * @returns {BaseNodeMetaData}
 	 */
 	function getNodeMetadata(node) {
-		const target = /** @type {AST.Node} */ (/** @type {unknown} */ (node));
-		target.metadata ??= { path: [] };
-		return target.metadata;
+		node.metadata ??= { path: [] };
+		return node.metadata;
 	}
 
 	/**
-	 * @param {any} node
+	 * @param {AST.NodeWithMaybeComments} node
 	 * @param {AST.CommentWithLocation} comment
 	 */
 	function pushInnerComment(node, comment) {
-		const target = /** @type {any} */ (node);
-		(target.innerComments ||= []).push(comment);
+		(node.innerComments ||= []).push(comment);
 	}
 
 	/**
-	 * @param {any} node
+	 * @param {AST.NodeWithMaybeComments} node
 	 * @returns {boolean}
 	 */
 	function hasInnerComments(node) {
-		return !!(/** @type {any} */ (node).innerComments?.length);
+		return !!node.innerComments?.length;
 	}
 
 	/**
-	 * @param {ESTreeJSX.JSXElement | AST.JSXStyleElement} node
+	 * @param {AST.TSRXElementNode} node
 	 * @returns {string | null}
 	 */
 	function getJSXElementName(node) {
-		const name = node.openingElement?.name;
+		const name = node.openingElement.name;
 		if (!name) return null;
 		if (name.type === 'JSXIdentifier') return name.name;
 		if (name.type === 'JSXNamespacedName') return `${name.namespace.name}:${name.name.name}`;
@@ -478,7 +460,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 
 					/**
 					 * @param {AST.CommentWithLocation} comment
-					 * @returns {((ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation) | null}
+					 * @returns {(AST.NativeTSRXTemplateNode & AST.NodeWithLocation) | null}
 					 */
 					function getEmptyElementInnerCommentTarget(comment) {
 						const element = path.findLast((ancestor) => isNativeTemplateNode(ancestor));
@@ -505,15 +487,12 @@ export function get_comment_handlers(source, comments, index = 0) {
 					// parent <style> element's content range so they don't leak to
 					// subsequent JS nodes.
 					if (node.type === 'StyleSheet') {
-						const styleElement =
-							/** @type {(ESTreeJSX.JSXElement & AST.NodeWithLocation) | undefined} */ (
-								path.findLast(
-									(ancestor) =>
-										isNativeTemplateElement(ancestor) && getJSXElementName(ancestor) === 'style',
-								)
-							);
-						if (styleElement) {
-							const cssStart = styleElement.openingElement?.end ?? styleElement.start;
+						const styleElement = path.findLast(
+							(ancestor) =>
+								isNativeTemplateElement(ancestor) && getJSXElementName(ancestor) === 'style',
+						);
+						if (isNativeTemplateElement(styleElement)) {
+							const cssStart = styleElement.openingElement.end ?? styleElement.start;
 							const cssEnd = styleElement.closingElement?.start ?? styleElement.end;
 							while (comments[0] && comments[0].start >= cssStart && comments[0].end <= cssEnd) {
 								comments.shift();
@@ -540,7 +519,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 								// before the child element is pushed to the parser's #path, causing
 								// comments inside the child to get the parent's containerId.
 								const commentStart = comments[0].start;
-								const isInsideChildElement = getTemplateChildren(node).some(
+								const isInsideChildElement = node_children(node).some(
 									(child) =>
 										child &&
 										child.start !== undefined &&

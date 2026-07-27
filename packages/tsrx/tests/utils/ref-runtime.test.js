@@ -1,3 +1,5 @@
+/** @import { MergeableRef } from '../../types/runtime/ref' */
+
 import { describe, expect, it } from 'vitest';
 import { create_ref_prop, mergeRefs } from '../../src/runtime/ref.js';
 
@@ -8,6 +10,7 @@ describe('ref runtime helpers', () => {
 			nodeName: 'INPUT',
 			value: 'keep',
 		};
+		/** @type {object | null | undefined} */
 		let slot = undefined;
 		const ref = create_ref_prop(
 			() => slot,
@@ -26,6 +29,7 @@ describe('ref runtime helpers', () => {
 
 	it('returns cleanup for mutable ref props', () => {
 		const node = {};
+		/** @type {object | null | undefined} */
 		let slot = undefined;
 		const ref = create_ref_prop(
 			() => slot,
@@ -38,15 +42,19 @@ describe('ref runtime helpers', () => {
 		expect(slot).toBe(node);
 		expect(typeof cleanup).toBe('function');
 
-		cleanup();
+		cleanup?.();
 		expect(slot).toBeNull();
 	});
 
 	it('still assigns real current and value ref objects by own property', () => {
 		const node = {};
+		/** @type {{ current: object | null }} */
 		const current_ref = { current: null };
+		/** @type {{ value: object | null }} */
 		const value_ref = { value: null };
+		/** @type {object | null} */
 		let current_slot = current_ref;
+		/** @type {object | null} */
 		let value_slot = value_ref;
 
 		create_ref_prop(
@@ -85,6 +93,7 @@ describe('ref runtime helpers', () => {
 
 	it('assigns value ref objects with inherited accessors', () => {
 		const node = {};
+		/** @type {object | null} */
 		let stored = null;
 		const value_ref = Object.create({
 			get value() {
@@ -107,7 +116,7 @@ describe('ref runtime helpers', () => {
 
 	it('does not mutate objects that only inherit current or value properties when merging refs', () => {
 		const inherited_ref_shape = Object.create({ current: 'inherited', value: 'inherited' });
-		const merged = mergeRefs(inherited_ref_shape);
+		const merged = mergeRefs(/** @type {MergeableRef<object>} */ (inherited_ref_shape));
 
 		const cleanup = merged({});
 		cleanup();

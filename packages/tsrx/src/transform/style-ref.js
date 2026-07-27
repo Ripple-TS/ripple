@@ -1,29 +1,46 @@
 /** @import * as AST from 'estree' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import { ClassMapCollectionState, StyleRefOptions, TopScopedClasses, Visitors } from '../../types/index' */
 
+import { walk } from 'zimmerframe';
 import * as b from '../utils/builders.js';
-import { is_function_or_class_node as is_function_or_class_boundary } from '../utils/ast.js';
+import {
+	child_nodes,
+	is_function_or_class_node as is_function_or_class_boundary,
+	is_style_element,
+} from '../utils/ast.js';
 import { clone_ast_node, clone_identifier } from './jsx/ast-builders.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
 
 /**
- * @typedef {{
- *   allowMutableRefTarget?: boolean;
- *   createTempIdentifier?: () => AST.Identifier;
- *   visitExpression?: (expression: AST.Expression) => AST.Expression;
- * }} StyleRefOptions
- */
-
-/**
- * @param {any} component
- * @param {any} css
+ * @param {AST.Node} component
+ * @param {AST.CSS.StyleSheet} css
  * @returns {AST.ObjectExpression}
  */
 export function create_style_class_map(component, css) {
-	const hash = css?.hash ?? null;
-	const top_scoped_classes = /** @type {Map<string, any>} */ (
-		component?.metadata?.topScopedClasses ?? collect_style_class_map_entries(css)
+	return build_style_class_map(
+		component.metadata?.topScopedClasses ?? collect_style_class_map_entries(css),
+		css.hash,
 	);
+}
+
+/**
+ * @param {AST.CSS.StyleSheet} css
+ * @returns {AST.ObjectExpression}
+ */
+export function create_style_class_map_from_stylesheet(css) {
+	return build_style_class_map(collect_style_class_map_entries(css), css.hash);
+}
+
+/**
+ * `{ foo: 'hash foo', … }` for every class the style expression exposes.
+ *
+ * @param {TopScopedClasses} top_scoped_classes
+ * @param {string | null} hash
+ * @returns {AST.ObjectExpression}
+ */
+function build_style_class_map(top_scoped_classes, hash) {
 	const class_names = [...top_scoped_classes.keys()].sort();
 
 	return b.object(
@@ -34,42 +51,28 @@ export function create_style_class_map(component, css) {
 }
 
 /**
- * @param {any} css
- * @returns {AST.ObjectExpression}
- */
-export function create_style_class_map_from_stylesheet(css) {
-	return create_style_class_map(
-		{ metadata: { topScopedClasses: collect_style_class_map_entries(css) } },
-		css,
-	);
-}
-
-/**
- * @param {any} style_element
- * @returns {any | null}
+ * @param {AST.JSXStyleElement} style_element
+ * @returns {AST.CSS.StyleSheet | null}
  */
 export function get_style_element_stylesheet(style_element) {
-	return (
-		style_element?.children?.find?.((/** @type {any} */ child) => child.type === 'StyleSheet') ??
-		null
-	);
+	return style_element.children?.find((child) => child.type === 'StyleSheet') ?? null;
 }
 
 /**
- * @param {any} node
- * @param {any[]} [refs]
- * @returns {any[]}
+ * @param {AST.Node | AST.Node[]} node
+ * @param {ESTreeJSX.JSXAttribute[]} [refs]
+ * @returns {ESTreeJSX.JSXAttribute[]}
  */
 export function collect_style_ref_attributes(node, refs = []) {
-	if (!node || typeof node !== 'object') return refs;
-
 	if (Array.isArray(node)) {
 		for (const child of node) collect_style_ref_attributes(child, refs);
 		return refs;
 	}
 
+	if (!node || typeof node !== 'object') return refs;
+
 	if (is_style_element(node)) {
-		for (const attr of node.openingElement?.attributes || []) {
+		for (const attr of node.openingElement.attributes) {
 			if (is_ref_attribute(attr) && attr.value) {
 				refs.push(attr);
 			}
@@ -81,18 +84,15 @@ export function collect_style_ref_attributes(node, refs = []) {
 		return refs;
 	}
 
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
-			continue;
-		}
-		collect_style_ref_attributes(node[key], refs);
+	for (const child of child_nodes(node, 'css')) {
+		collect_style_ref_attributes(child, refs);
 	}
 
 	return refs;
 }
 
 /**
- * @param {any[]} ref_attributes
+ * @param {ESTreeJSX.JSXAttribute[]} ref_attributes
  * @param {AST.Expression} style_map
  * @param {StyleRefOptions} [options]
  * @returns {AST.Statement[]}
@@ -203,7 +203,7 @@ function visit_expression(expression, options) {
 }
 
 /**
- * @param {any} attr
+ * @param {ESTreeJSX.JSXAttribute} attr
  * @returns {AST.Expression | null}
  */
 function get_ref_attribute_expression(attr) {
@@ -216,28 +216,21 @@ function get_ref_attribute_expression(attr) {
 }
 
 /**
- * @param {any} attr
- * @returns {boolean}
+ * @param {ESTreeJSX.JSXAttributeNode} attr
+ * @returns {attr is ESTreeJSX.JSXAttribute}
  */
 function is_ref_attribute(attr) {
 	return (
-		attr?.type === 'JSXAttribute' && attr.name?.type === 'JSXIdentifier' && attr.name.name === 'ref'
+		attr.type === 'JSXAttribute' && attr.name.type === 'JSXIdentifier' && attr.name.name === 'ref'
 	);
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
- */
-function is_style_element(node) {
-	return !!node && node.type === 'JSXStyleElement';
-}
-
-/**
- * @param {any} css
- * @returns {Map<string, any>}
+ * @param {AST.CSS.StyleSheet} css
+ * @returns {TopScopedClasses}
  */
 function collect_style_class_map_entries(css) {
+	/** @type {TopScopedClasses} */
 	const entries = new Map();
 	collect_rule_class_map_entries(css, entries);
 	return entries;
@@ -249,7 +242,7 @@ function collect_style_class_map_entries(css) {
  * `create_style_class_map_from_stylesheet`, so marking and the generated map
  * always agree; calling both is harmless.
  *
- * @param {any} css
+ * @param {AST.CSS.StyleSheet} css
  * @returns {void}
  */
 export function mark_class_map_selectors(css) {
@@ -257,66 +250,59 @@ export function mark_class_map_selectors(css) {
 }
 
 /**
- * @param {any} node
- * @param {Map<string, any>} entries
- * @param {any} [enclosing_selector] the nearest prelude-level selector; classes
- *   found inside another selector (e.g. in `:global(...)` args) mark it as the
- *   selector that carries their class map entry
+ * The state threaded through the class-map collection walk: the nearest
+ * prelude-level selector. Classes found inside another selector (e.g. in
+ * `:global(...)` args) mark it as the selector that carries their class map
+ * entry.
+ *
+ * @param {AST.CSS.StyleSheet} css
+ * @param {TopScopedClasses} entries
  * @returns {void}
  */
-function collect_rule_class_map_entries(node, entries, enclosing_selector = null) {
-	if (!node || typeof node !== 'object') return;
+function collect_rule_class_map_entries(css, entries) {
+	walk(
+		/** @type {AST.CSS.Node} */ (css),
+		/** @type {ClassMapCollectionState} */ ({ enclosing_selector: null }),
+		/** @type {Visitors<AST.CSS.Node, ClassMapCollectionState>} */ ({
+			ComplexSelector(node, context) {
+				const enclosing_selector = context.state.enclosing_selector ?? node;
+				const class_selector = get_standalone_class_selector(node);
 
-	if (Array.isArray(node)) {
-		for (const child of node) collect_rule_class_map_entries(child, entries, enclosing_selector);
-		return;
-	}
+				if (class_selector) {
+					// Mark the prelude-level selector for every occurrence (not just the
+					// deduped first) so the render preparation of style expressions keeps
+					// exactly the selectors whose classes the map exposes.
+					enclosing_selector.metadata.class_map_selector = true;
+					const name = class_selector.name.replace(regex_backslash_and_following_character, '$1');
+					if (!entries.has(name)) {
+						entries.set(name, {
+							start: class_selector.start,
+							end: class_selector.end,
+							selector: class_selector,
+						});
+					}
+				}
 
-	if (node.type === 'ComplexSelector') {
-		enclosing_selector ??= node;
-		const class_selector = get_standalone_class_selector(node);
-		if (class_selector) {
-			// Mark the prelude-level selector for every occurrence (not just the
-			// deduped first) so the render preparation of style expressions keeps
-			// exactly the selectors whose classes the map exposes.
-			(enclosing_selector.metadata ??= {}).class_map_selector = true;
-			const name = class_selector.name.replace(regex_backslash_and_following_character, '$1');
-			if (!entries.has(name)) {
-				entries.set(name, {
-					start: class_selector.start,
-					end: class_selector.end,
-					selector: class_selector,
-				});
-			}
-		}
-	}
-
-	if (is_function_or_class_boundary(node)) {
-		return;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		collect_rule_class_map_entries(node[key], entries, enclosing_selector);
-	}
+				context.next({ enclosing_selector });
+			},
+		}),
+	);
 }
 
 /**
- * @param {any} complex_selector
- * @returns {any | null}
+ * @param {AST.CSS.ComplexSelector} complex_selector
+ * @returns {AST.CSS.ClassSelector | null}
  */
 function get_standalone_class_selector(complex_selector) {
-	if (complex_selector?.children?.length !== 1) return null;
+	if (complex_selector.children.length !== 1) return null;
 	const relative_selector = complex_selector.children[0];
 	if (
-		relative_selector?.metadata?.is_global ||
-		relative_selector?.metadata?.is_global_like ||
-		relative_selector?.selectors?.length !== 1
+		relative_selector.metadata.is_global ||
+		relative_selector.metadata.is_global_like ||
+		relative_selector.selectors.length !== 1
 	) {
 		return null;
 	}
 	const selector = relative_selector.selectors[0];
-	return selector?.type === 'ClassSelector' ? selector : null;
+	return selector.type === 'ClassSelector' ? selector : null;
 }

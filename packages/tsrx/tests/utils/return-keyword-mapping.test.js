@@ -1,3 +1,6 @@
+/** @import * as AST from 'estree' */
+/** @import { CodeMapping, CompileError, JsxPlatform } from '../../types/index' */
+
 import { describe, expect, it } from 'vitest';
 import { createJsxTransform, createVolarMappingsResult, parseModule } from '../../src/index.js';
 
@@ -15,6 +18,7 @@ import { createJsxTransform, createVolarMappingsResult, parseModule } from '../.
  * narrowest-match lookup and made hovering the clause resolve to nonsense.
  */
 
+/** @type {JsxPlatform} */
 const PLATFORM = {
 	name: 'return-mapping-test',
 	imports: {
@@ -27,8 +31,11 @@ const PLATFORM = {
 	validation: { requireUseServerForAwait: false },
 };
 
+/** @param {string} source */
 function volarMappings(source) {
+	/** @type {CompileError[]} */
 	const errors = [];
+	/** @type {AST.CommentWithLocation[]} */
 	const comments = [];
 	const ast = parseModule(source, 'App.tsrx', {
 		collect: true,
@@ -56,7 +63,13 @@ function volarMappings(source) {
 	return { code: transformed.code, mappings: result.mappings };
 }
 
-/** Every authored span a mapping claims at `offset`. */
+/**
+ * Every authored span a mapping claims at `offset`.
+ *
+ * @param {string} source
+ * @param {CodeMapping[]} mappings
+ * @param {number} offset
+ */
 function claimsAt(source, mappings, offset) {
 	const claims = [];
 	for (const mapping of mappings) {

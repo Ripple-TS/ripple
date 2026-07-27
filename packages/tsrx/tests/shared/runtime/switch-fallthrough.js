@@ -11,26 +11,22 @@ export function runSwitchFallthroughRuntimeTests() {
 	 * @returns {string | null}
 	 */
 	function text_of(class_name) {
-		const container = /** @type {HTMLElement} */ (/** @type {any} */ (globalThis).container);
-		return container.querySelector(`.${class_name}`)?.textContent ?? null;
+		return globalThis.container.querySelector(`.${class_name}`)?.textContent ?? null;
 	}
 
 	async function settle() {
-		const flush = /** @type {(() => Promise<void>) | undefined} */ (
-			/** @type {any} */ (globalThis).flush
-		);
+		const flush = globalThis.flush;
 		if (flush) {
 			await flush();
 		}
 	}
 
 	/**
-	 * @param {any} Component
+	 * @param {unknown} Component
 	 * @param {{ status: string }} props
 	 */
 	async function mount(Component, props) {
-		await globalThis
-			/** @type {any} */ .render(Component, props);
+		await globalThis.render(Component, props);
 		await settle();
 	}
 

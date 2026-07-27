@@ -156,7 +156,7 @@ function get_component_css_hash(state) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | AST.JSXStyleElement} node
+ * @param {AST.JSXStyleElement} node
  * @param {TransformClientContext} context
  * @returns {AST.ObjectExpression | null}
  */
@@ -3489,8 +3489,13 @@ const visitors = {
 				properties.push(b.prop('init', id, id, false, true));
 			}
 
+			// The block's own imports were hoisted to module scope by the
+			// ImportDeclaration visitor, so only statements are left behind.
+			const block_statements = /** @type {AST.Statement[]} */ (block.body);
 			const value = b.call(
-				b.thunk(b.block([...server_block_locals, ...block.body, b.return(b.object(properties))])),
+				b.thunk(
+					b.block([...server_block_locals, ...block_statements, b.return(b.object(properties))]),
+				),
 			);
 			value.loc = node.loc;
 

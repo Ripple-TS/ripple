@@ -1,3 +1,5 @@
+/** @import { MergeableRef, RefProp, RefValue, SpreadProps } from '../../types/runtime/ref' */
+
 import {
 	has_own_property,
 	get_descriptor,
@@ -15,8 +17,9 @@ const REF_VALUE = Symbol();
  * any of the supported syntaxes.  It does not process spreads, that is delegated to
  * `normalize_spread_props`.
  *
- * @param {...((node: any) => void | (() => void)) | { current: any } | { value: any } | null | undefined} refs
- * @returns {(node: any) => (() => void)}
+ * @template [T=Element]
+ * @param {...MergeableRef<T>} refs
+ * @returns {(node: T | null) => (() => void)}
  */
 export function mergeRefs(...refs) {
 	return (node) => {
@@ -32,14 +35,14 @@ export function mergeRefs(...refs) {
 					cleanups.push(() => ref(null));
 				}
 			} else if (is_ref_object(ref, 'current')) {
-				/** @type {{ current: any }} */ (ref).current = node;
+				ref.current = node;
 				cleanups.push(() => {
-					/** @type {{ current: any }} */ (ref).current = null;
+					ref.current = null;
 				});
 			} else if (is_ref_object(ref, 'value')) {
-				/** @type {{ value: any }} */ (ref).value = node;
+				ref.value = node;
 				cleanups.push(() => {
-					/** @type {{ value: any }} */ (ref).value = null;
+					ref.value = null;
 				});
 			}
 		}
@@ -52,17 +55,30 @@ export function mergeRefs(...refs) {
 export { is_ref_prop as isRefProp };
 
 /**
+ * A ref value that is a function is a callback ref — the bare-element branch of
+ * `RefValue` is never callable.
+ *
+ * @template T
+ * @param {RefValue<T>} value
+ * @returns {value is (node: T | null) => void | (() => void)}
+ */
+function is_ref_callback(value) {
+	return typeof value === 'function';
+}
+
+/**
  * @param {unknown} value
- * @returns {boolean}
+ * @returns {value is RefProp<Element>}
  */
 function is_ref_prop(value) {
 	return typeof value === 'function' && REF_VALUE in value;
 }
 
 /**
- * @param {any} ref_value
- * @param {any} node
- * @param {(value: any) => void} [set_ref_value]
+ * @template [T=Element]
+ * @param {RefValue<T>} ref_value
+ * @param {T | null} node
+ * @param {(value: T | null) => void} [set_ref_value]
  * @returns {void | (() => void)}
  */
 export function apply_ref_value(ref_value, node, set_ref_value) {
@@ -73,7 +89,7 @@ export function apply_ref_value(ref_value, node, set_ref_value) {
 			const cleanup = apply_ref_value(item, node);
 			if (typeof cleanup === 'function') {
 				cleanups.push(cleanup);
-			} else if (typeof item === 'function' && node !== null) {
+			} else if (is_ref_callback(item) && node !== null) {
 				cleanups.push(() => item(null));
 			}
 		}
@@ -85,7 +101,7 @@ export function apply_ref_value(ref_value, node, set_ref_value) {
 		return;
 	}
 
-	if (typeof ref_value === 'function') {
+	if (is_ref_callback(ref_value)) {
 		return ref_value(node);
 	}
 
@@ -111,13 +127,14 @@ export function apply_ref_value(ref_value, node, set_ref_value) {
 }
 
 /**
- * @param {() => any} get_ref_value
- * @param {(value: any) => void} [set_ref_value]
- * @returns {(node: any) => void | (() => void)}
+ * @template [T=Element]
+ * @param {() => RefValue<T>} get_ref_value
+ * @param {(value: T | null) => void} [set_ref_value]
+ * @returns {RefProp<T>}
  */
 export function create_ref_prop(get_ref_value, set_ref_value) {
 	/**
-	 * @param {any} node
+	 * @param {T | null} node
 	 * @returns {void | (() => void)}
 	 */
 	function ref_prop_callback(node) {
@@ -140,8 +157,9 @@ export function create_ref_prop(get_ref_value, set_ref_value) {
 }
 
 /**
- * @param {...any} refs
- * @returns {any}
+ * @template [T=Element]
+ * @param {...RefValue<T>} refs
+ * @returns {RefValue<T>} the single surviving ref, or a callback applying all
  */
 export function merge_ref_props(...refs) {
 	const filtered = refs.filter((ref) => ref != null);
@@ -155,7 +173,7 @@ export function merge_ref_props(...refs) {
 	}
 
 	/**
-	 * @param {any} node
+	 * @param {T | null} node
 	 * @returns {void | (() => void)}
 	 */
 	function merged_ref_prop(node) {
@@ -166,7 +184,7 @@ export function merge_ref_props(...refs) {
 			const cleanup = apply_ref_value(ref, node);
 			if (typeof cleanup === 'function') {
 				cleanups.push(cleanup);
-			} else if (typeof ref === 'function' && node !== null) {
+			} else if (is_ref_callback(ref) && node !== null) {
 				cleanups.push(() => ref(null));
 			}
 		}
@@ -182,36 +200,38 @@ export function merge_ref_props(...refs) {
 }
 
 /**
- * @param {Record<string | symbol, any> | null | undefined} props
- * @param {...any} outer_refs
- * @returns {Record<string | symbol, any> | null | undefined}
+ * @param {object | null | undefined} props a props bag; `object` rather than an
+ *   index signature so an interface-typed bag is accepted
+ * @param {...RefValue<Element>} outer_refs
+ * @returns {SpreadProps | null | undefined}
  */
 export function normalize_spread_props(props, ...outer_refs) {
 	if (props == null) {
 		return props;
 	}
 
-	/** @type {any[]} */
+	const source = /** @type {SpreadProps} */ (props);
+	/** @type {Array<RefValue<Element>>} */
 	const refs = [];
-	/** @type {Record<string | symbol, any>} */
-	let next = {};
+	/** @type {SpreadProps} */
+	const next = {};
 	let changed = false;
 	let existing_ref;
 
-	for (const key of Reflect.ownKeys(props)) {
-		const descriptor = get_descriptor(props, key);
+	for (const key of Reflect.ownKeys(source)) {
+		const descriptor = get_descriptor(source, key);
 		if (!descriptor?.enumerable) {
 			continue;
 		}
 
-		const value = /** @type {any} */ (props)[key];
+		const value = source[key];
 
 		if (key === 'ref') {
 			if (is_ref_prop(value)) {
 				refs.push(value);
 				changed = true;
 			} else {
-				existing_ref = value;
+				existing_ref = /** @type {RefValue<Element>} */ (value);
 			}
 			continue;
 		}
@@ -226,7 +246,7 @@ export function normalize_spread_props(props, ...outer_refs) {
 	}
 
 	if (!changed && outer_refs.length === 0) {
-		return props;
+		return source;
 	}
 
 	const merged_ref = merge_ref_props(existing_ref, ...refs, ...outer_refs);
@@ -243,9 +263,9 @@ export function normalize_spread_props(props, ...outer_refs) {
  * attribute but is non-enumerable so `{...normalized}` does not also pass it as
  * a DOM prop.
  *
- * @param {Record<string | symbol, any> | null | undefined} props
- * @param {...any} outer_refs
- * @returns {Record<string | symbol, any> | null | undefined}
+ * @param {object | null | undefined} props
+ * @param {...RefValue<Element>} outer_refs
+ * @returns {SpreadProps | null | undefined}
  */
 export function normalize_spread_props_for_ref_attr(props, ...outer_refs) {
 	const next = normalize_spread_props(props, ...outer_refs);
@@ -266,9 +286,10 @@ export function normalize_spread_props_for_ref_attr(props, ...outer_refs) {
 }
 
 /**
+ * @template {'current' | 'value'} K
  * @param {object} value
- * @param {'current' | 'value'} key
- * @returns {boolean}
+ * @param {K} key
+ * @returns {value is Record<K, unknown>}
  */
 function is_ref_object(value, key) {
 	if (is_dom_node(value)) {

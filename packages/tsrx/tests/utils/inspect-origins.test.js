@@ -1,3 +1,6 @@
+/** @import * as AST from 'estree' */
+/** @import { CompileError, JsxPlatform } from '../../types/index' */
+
 import { describe, expect, it } from 'vitest';
 import {
 	analyzeTsrx,
@@ -20,6 +23,7 @@ import {
  * invariant is the first test here, and it is the one that matters.
  */
 
+/** @type {JsxPlatform} */
 const PLATFORM = {
 	name: 'inspect-origins-test',
 	imports: {
@@ -41,8 +45,14 @@ const SOURCE = `export default function App() @{
 }
 `;
 
+/**
+ * @param {string} source
+ * @param {{ inspect?: boolean }} [options]
+ */
 function compile(source, { inspect = false } = {}) {
+	/** @type {CompileError[]} */
 	const errors = [];
+	/** @type {AST.CommentWithLocation[]} */
 	const comments = [];
 	const ast = parseModule(source, 'App.tsrx', {
 		collect: true,
@@ -108,9 +118,20 @@ describe('type-only inspect origins', () => {
 	});
 });
 
+/**
+ * @param {string} text
+ * @param {number} at
+ * @param {number} length
+ */
 const source_slice = (text, at, length) => text.slice(at, at + length);
 
-/** Does the print's source map carry a segment for this authored offset? */
+/**
+ * Does the print's source map carry a segment for this authored offset?
+ *
+ * @param {string} encoded
+ * @param {string} source
+ * @param {number} offset
+ */
 function mapReaches(encoded, source, offset) {
 	const lineStarts = [0];
 	for (let i = 0; i < source.length; i++) {
@@ -136,6 +157,7 @@ function mapReaches(encoded, source, offset) {
 }
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+/** @param {string} segment */
 function decodeVlq(segment) {
 	const values = [];
 	let shift = 0;

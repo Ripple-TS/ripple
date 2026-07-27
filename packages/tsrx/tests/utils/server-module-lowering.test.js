@@ -1,3 +1,6 @@
+/** @import * as AST from 'estree' */
+/** @import { CompileError, JsxPlatform } from '../../types/index' */
+
 import { describe, expect, it } from 'vitest';
 import { createJsxTransform, createVolarMappingsResult, parseModule } from '../../src/index.js';
 
@@ -12,6 +15,7 @@ import { createJsxTransform, createVolarMappingsResult, parseModule } from '../.
  * byte-identical passthrough.
  */
 
+/** @type {JsxPlatform} */
 const SERVER_MODULE_PLATFORM = {
 	name: 'server-module-test',
 	imports: {
@@ -30,6 +34,7 @@ const SERVER_MODULE_PLATFORM = {
 	serverModule: { blockName: 'server', importSpecifier: 'server' },
 };
 
+/** @type {JsxPlatform} */
 const PLAIN_PLATFORM = {
 	...SERVER_MODULE_PLATFORM,
 	name: 'plain-test',
@@ -44,15 +49,32 @@ const PARSE_OPTIONS = {
 };
 
 /**
+ * The mapping's semantic-token decision. Volar accepts either a boolean or an
+ * object with a predicate; the string-literal spans use the object form.
+ *
+ * @param {import('@volar/language-core').CodeMapping['data']['semantic']} semantic
+ * @returns {boolean | undefined}
+ */
+function should_highlight(semantic) {
+	return typeof semantic === 'object' ? semantic.shouldHighlight?.() : semantic;
+}
+
+/**
  * Mirrors a platform's editor pipeline: parse → type-only transform → Volar
  * mappings (the same wiring tsrx-react's `compile_to_volar_mappings` and
  * downstream octane's `compileToVolarMappings` use).
+ */
+/**
+ * @param {string} source
+ * @param {{ platform?: JsxPlatform, typeOnly?: boolean }} [options]
  */
 function compile_to_volar_mappings(
 	source,
 	{ platform = SERVER_MODULE_PLATFORM, typeOnly = true } = {},
 ) {
+	/** @type {CompileError[]} */
 	const errors = [];
+	/** @type {AST.CommentWithLocation[]} */
 	const comments = [];
 	const ast = parseModule(source, 'App.tsrx', { ...PARSE_OPTIONS, errors, comments });
 	const transform = createJsxTransform(platform);
@@ -339,7 +361,7 @@ describe('server-module type-only lowering', () => {
 				// ...while semantic TOKENS are disabled, so the editor never
 				// repaints part of the string literal as a namespace token.
 				expect(typeof mapping.data.semantic).toBe('object');
-				expect(mapping.data.semantic.shouldHighlight()).toBe(false);
+				expect(should_highlight(mapping.data.semantic)).toBe(false);
 				// Go-to-def / references on the specifier resolve to the block.
 				expect(mapping.data.navigation).toBe(true);
 				expect(mapping.data.verification).toBe(true);
@@ -356,7 +378,7 @@ describe('server-module type-only lowering', () => {
 				if (end <= literal_start || start >= literal_end) continue;
 				expect(start).toBe(inner_start);
 				expect(end).toBe(inner_start + inner_length);
-				expect(mapping.data.semantic.shouldHighlight()).toBe(false);
+				expect(should_highlight(mapping.data.semantic)).toBe(false);
 			}
 		});
 
@@ -402,9 +424,9 @@ describe('server-module type-only lowering', () => {
 				(m) => m.sourceOffsets[0] === place_order_offset && m.lengths[0] === 'placeOrder'.length,
 			);
 			expect(identifier_mapping).toBeDefined();
-			expect(identifier_mapping.data.semantic).toBe(true);
-			expect(identifier_mapping.data.navigation).toBe(true);
-			expect(identifier_mapping.data.completion).toBe(true);
+			expect(identifier_mapping?.data.semantic).toBe(true);
+			expect(identifier_mapping?.data.navigation).toBe(true);
+			expect(identifier_mapping?.data.completion).toBe(true);
 		});
 	});
 
@@ -413,13 +435,19 @@ describe('server-module type-only lowering', () => {
 		// channel) — same oracle as the shared source-mappings harness: the
 		// lowering is copy-on-write, so the parse consumed by the transform must
 		// remain byte-equal to a pristine parse.
+		/**
+		 * @param {unknown} value
+		 * @returns {unknown}
+		 */
 		const structural = (value) => {
 			if (Array.isArray(value)) return value.map(structural);
 			if (value && typeof value === 'object') {
+				/** @type {Record<string, unknown>} */
 				const out = {};
-				for (const key of Object.keys(value).sort()) {
+				const entries = /** @type {Record<string, unknown>} */ (value);
+				for (const key of Object.keys(entries).sort()) {
 					if (key === 'metadata') continue;
-					const child = value[key];
+					const child = entries[key];
 					if (typeof child === 'function') continue;
 					out[key] = structural(child);
 				}
@@ -453,7 +481,9 @@ describe('server-module type-only lowering', () => {
 				expect(structural(result.sourceAst)).toEqual(structural(pristine));
 				// Compiling the SAME program twice from one parse must be stable:
 				// the first run may not leave state behind that changes the second.
+				/** @type {CompileError[]} */
 				const errors = [];
+				/** @type {AST.CommentWithLocation[]} */
 				const comments = [];
 				const shared_ast = parseModule(source, 'App.tsrx', {
 					...PARSE_OPTIONS,

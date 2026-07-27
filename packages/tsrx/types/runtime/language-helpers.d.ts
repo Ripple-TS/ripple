@@ -14,12 +14,17 @@ export const array_prototype: typeof Array.prototype;
 export const has_own_property: typeof Object.prototype.hasOwnProperty;
 
 export function has_prototype_accessor(value: object, key: PropertyKey): boolean;
-export function array_slice(array_like: ArrayLike<any>, ...args: number[]): any[];
+export function array_slice<T>(array_like: ArrayLike<T>, ...args: number[]): T[];
 export function iterable_array_from<T>(
 	iterable: Iterable<T> | Iterator<T> | ArrayLike<T>,
 	index?: number,
 ): T[];
-export function exclude_prop_from_object(
-	props: Record<PropertyKey, any> | null | undefined,
-	exclude_prop: PropertyKey,
-): Record<PropertyKey, any>;
+/**
+ * The props bag minus one prop. Constrained to `object` rather than an index
+ * signature so an interface- or class-typed props bag is accepted; returns `{}`
+ * when `props` is nullish.
+ */
+export function exclude_prop_from_object<
+	T extends object = Record<PropertyKey, unknown>,
+	K extends PropertyKey = PropertyKey,
+>(props: T | null | undefined, exclude_prop: K): Omit<T, K>;

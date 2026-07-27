@@ -5,7 +5,8 @@
 	ScopeRootInterface,
 	Context,
 	ScopeConstructorInterface,
-	ScopeConstructorParameters
+	ScopeConstructorParameters,
+	ScopeState
 } from '../types/index';
  @import * as AST from 'estree';
  */
@@ -27,14 +28,12 @@ import * as b from './utils/builders.js';
  * @returns {{ scope: ScopeInterface, scopes: Map<AST.Node, ScopeInterface> }} Scope information
  */
 export function create_scopes(ast, root, parent, error_options) {
-	/** @typedef {{ scope: ScopeInterface }} State */
-
 	/** @type {Map<AST.Node, ScopeInterface>} */
 	const scopes = new Map();
 	const scope = new Scope(root, parent, false, error_options);
 	scopes.set(ast, scope);
 
-	/** @type {State} */
+	/** @type {ScopeState} */
 	const state = { scope };
 	/** @type {Array<[ScopeInterface, { node: AST.Identifier, path: AST.Node[] }]>} */
 	const references = [];
@@ -57,7 +56,7 @@ export function create_scopes(ast, root, parent, error_options) {
 	/**
 	 * Create a block scope
 	 * @param {AST.Node} node - AST node
-	 * @param {Context<AST.Node, State>} context - Visitor context
+	 * @param {Context<AST.Node, ScopeState>} context - Visitor context
 	 */
 	const create_block_scope = (node, { state, next }) => {
 		const scope = state.scope.child(true);

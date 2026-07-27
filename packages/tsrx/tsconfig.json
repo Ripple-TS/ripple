@@ -9,12 +9,13 @@
     "noEmitOnError": true,
     "noErrorTruncation": true,
     "allowSyntheticDefaultImports": true,
+    "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
     "types": ["node"],
     "strict": true,
     "allowJs": true,
     "checkJs": true
   },
-  "include": ["./src/", "./types/"],
+  "include": ["./src/", "./types/", "./tests/"],
   "exclude": ["node_modules", "dist"]
 }

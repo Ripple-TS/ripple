@@ -1,7 +1,9 @@
 /** @import * as AST from 'estree' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
+/** @import { BaseNodeMetaData, LazyBinding, LazyContext, LazyPattern, MaybeLocated } from '../../types/index' */
 
 import * as b from '../utils/builders.js';
-import { has_location, is_function_or_component_node } from '../utils/ast.js';
+import { has_location, is_ast_node, is_function_or_component_node } from '../utils/ast.js';
 
 /**
  * Lazy destructuring transform — framework-agnostic.
@@ -27,14 +29,6 @@ import { has_location, is_function_or_component_node } from '../utils/ast.js';
  */
 
 /**
- * @typedef {{ lazy_next_id: number }} LazyContext
- */
-
-/**
- * @typedef {{ source_name: string, read: (reference?: any) => any }} LazyBinding
- */
-
-/**
  * Create a fresh lazy-id allocation context.
  *
  * @returns {LazyContext}
@@ -52,9 +46,10 @@ function generate_lazy_id(context) {
 }
 
 /**
- * @param {any} node
- * @param {any} [loc_info]
- * @returns {any}
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {MaybeLocated | null} [loc_info]
+ * @returns {T}
  */
 function set_source_location(node, loc_info) {
 	if (has_location(loc_info)) {
@@ -67,10 +62,10 @@ function set_source_location(node, loc_info) {
 
 /**
  * @param {string} name
- * @param {any} [loc_info]
+ * @param {MaybeLocated | null} [loc_info]
  * @param {string} [source_name]
  * @param {number} [source_length]
- * @returns {any}
+ * @returns {AST.Identifier}
  */
 function create_generated_identifier(name, loc_info, source_name, source_length) {
 	const id = b.id(name);
@@ -80,8 +75,8 @@ function create_generated_identifier(name, loc_info, source_name, source_length)
 }
 
 /**
- * @param {any} pattern
- * @returns {{ start: number, end: number, loc: any, source_length: number } | null}
+ * @param {LazyPattern} pattern
+ * @returns {{ start: number, end: number, loc: AST.SourceLocation, source_length: number } | null}
  */
 function get_lazy_pattern_mapping_range(pattern) {
 	if (!has_location(pattern)) return null;
@@ -100,7 +95,7 @@ function get_lazy_pattern_mapping_range(pattern) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node} node
  * @returns {string | null}
  */
 function get_static_property_name(node) {
@@ -110,18 +105,23 @@ function get_static_property_name(node) {
 }
 
 /**
- * @param {any} type_annotation
- * @returns {Map<string, any>}
+ * The property keys of an inline object type annotation, by name.
+ *
+ * @param {AST.TSTypeAnnotation | undefined} type_annotation
+ * @returns {Map<string, AST.Identifier | AST.Literal>}
  */
 function get_type_property_keys(type_annotation) {
+	/** @type {Map<string, AST.Identifier | AST.Literal>} */
 	const keys = new Map();
-	const members = type_annotation?.typeAnnotation?.members;
-	if (!Array.isArray(members)) return keys;
+	const type = type_annotation?.typeAnnotation;
+	if (type?.type !== 'TSTypeLiteral') return keys;
 
-	for (const member of members) {
-		if (member.type !== 'TSPropertySignature' || !member.key) continue;
-		const name = get_static_property_name(member.key);
-		if (name != null && !keys.has(name)) keys.set(name, member.key);
+	for (const member of type.members) {
+		if (member.type !== 'TSPropertySignature') continue;
+		const key = member.key;
+		if (key.type !== 'Identifier' && key.type !== 'Literal') continue;
+		const name = get_static_property_name(key);
+		if (name != null && !keys.has(name)) keys.set(name, key);
 	}
 
 	return keys;
@@ -133,8 +133,8 @@ function get_type_property_keys(type_annotation) {
  * names (`&{ a: value, value }`), while the virtual param only exposes object
  * properties (`__lazy0: { a: ...; value: ... }`).
  *
- * @param {any} lazy_id
- * @param {any} pattern
+ * @param {AST.Identifier} lazy_id
+ * @param {LazyPattern} pattern
  */
 function set_lazy_param_binding_mappings(lazy_id, pattern) {
 	if (pattern.type !== 'ObjectPattern') return;
@@ -142,8 +142,9 @@ function set_lazy_param_binding_mappings(lazy_id, pattern) {
 	const type_keys = get_type_property_keys(lazy_id.typeAnnotation);
 	if (type_keys.size === 0) return;
 
+	/** @type {NonNullable<BaseNodeMetaData['lazy_param_binding_mappings']>} */
 	const mappings = [];
-	for (const prop of pattern.properties || []) {
+	for (const prop of pattern.properties) {
 		if (prop.type === 'RestElement' || prop.computed) continue;
 
 		const value = prop.value;
@@ -173,7 +174,7 @@ function set_lazy_param_binding_mappings(lazy_id, pattern) {
  * maps `first` → `S.pair[0]`. Handles `AssignmentPattern` (default values lost,
  * but the binding still resolves to the member chain). Skips `RestElement`.
  *
- * @param {any} pattern
+ * @param {LazyPattern} pattern
  * @param {string} source_name
  * @param {Map<string, LazyBinding>} lazy_bindings
  */
@@ -193,21 +194,21 @@ export function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
  * level composes its accessor onto `build_parent`, so leaves get the full
  * member chain (e.g. `source.outer.inner` for `&{ outer: &{ inner } }`).
  *
- * @param {any} pattern
+ * @param {LazyPattern} pattern
  * @param {string} source_name
- * @param {(reference?: any) => any} build_parent
+ * @param {LazyBinding['read']} build_parent
  * @param {Map<string, LazyBinding>} lazy_bindings
  */
 function collect_lazy_bindings_at(pattern, source_name, build_parent, lazy_bindings) {
 	if (pattern.type === 'ObjectPattern') {
-		for (const prop of pattern.properties || []) {
+		for (const prop of pattern.properties) {
 			if (prop.type === 'RestElement') continue;
 			const value = prop.value;
 			const actual = value.type === 'AssignmentPattern' ? value.left : value;
 			const key = prop.key;
 			const computed = prop.computed || key.type !== 'Identifier';
 
-			/** @type {(reference?: any) => any} */
+			/** @type {LazyBinding['read']} */
 			const build_self = (reference) =>
 				b.member(
 					build_parent(),
@@ -224,14 +225,14 @@ function collect_lazy_bindings_at(pattern, source_name, build_parent, lazy_bindi
 			}
 		}
 	} else if (pattern.type === 'ArrayPattern') {
-		for (let i = 0; i < (pattern.elements || []).length; i++) {
+		for (let i = 0; i < pattern.elements.length; i++) {
 			const element = pattern.elements[i];
 			if (!element) continue;
 			if (element.type === 'RestElement') continue;
 			const actual = element.type === 'AssignmentPattern' ? element.left : element;
 			const index = i;
 
-			/** @type {() => any} */
+			/** @type {LazyBinding['read']} */
 			const build_self = () => b.member(build_parent(), b.literal(index), true);
 
 			if (actual.type === 'Identifier') {
@@ -249,13 +250,13 @@ function collect_lazy_bindings_at(pattern, source_name, build_parent, lazy_bindi
  * `let &[x] = ...` variable declarations and statement-level `&[x] = expr;`
  * assignment expressions.
  *
- * @param {any[]} statements
+ * @param {AST.Program['body']} statements
  * @param {Map<string, LazyBinding>} lazy_bindings
  */
 export function collect_lazy_bindings_from_statements(statements, lazy_bindings) {
-	for (const stmt of statements || []) {
+	for (const stmt of statements) {
 		if (stmt.type === 'VariableDeclaration') {
-			for (const declarator of stmt.declarations || []) {
+			for (const declarator of stmt.declarations) {
 				visit_topmost_lazy_patterns(declarator.id, (lazy) => {
 					if (!lazy.metadata?.lazy_id) return;
 					collect_lazy_bindings(lazy, lazy.metadata.lazy_id, lazy_bindings);
@@ -282,8 +283,8 @@ export function collect_lazy_bindings_from_statements(statements, lazy_bindings)
  * patterns: their inner leaves are reached via accessor chains rooted at the
  * lazy pattern's synthesized id, not by further descent here.
  *
- * @param {any} pattern
- * @param {(node: any) => void} visit
+ * @param {AST.Node | null | undefined} pattern
+ * @param {(node: LazyPattern) => void} visit
  */
 function visit_topmost_lazy_patterns(pattern, visit) {
 	if (!pattern || typeof pattern !== 'object') return;
@@ -303,12 +304,12 @@ function visit_topmost_lazy_patterns(pattern, visit) {
 	}
 
 	if (pattern.type === 'ObjectPattern') {
-		for (const prop of pattern.properties || []) {
+		for (const prop of pattern.properties) {
 			if (prop.type === 'RestElement') visit_topmost_lazy_patterns(prop.argument, visit);
 			else visit_topmost_lazy_patterns(prop.value, visit);
 		}
 	} else {
-		for (const element of pattern.elements || []) {
+		for (const element of pattern.elements) {
 			if (element) visit_topmost_lazy_patterns(element, visit);
 		}
 	}
@@ -325,20 +326,21 @@ function visit_topmost_lazy_patterns(pattern, visit) {
  * that's not valid syntax — so they get a plain identifier with just source-range
  * info.
  *
- * @param {any} pattern
+ * @param {LazyPattern} pattern
+ * @param {string} lazy_id_name the id `preallocate_lazy_ids` assigned
  * @param {boolean} is_top
- * @returns {any}
+ * @returns {AST.Identifier}
  */
-function build_lazy_id_for_pattern(pattern, is_top) {
+function build_lazy_id_for_pattern(pattern, lazy_id_name, is_top) {
 	const pattern_range = get_lazy_pattern_mapping_range(pattern);
 	const lazy_id = pattern_range
 		? create_generated_identifier(
-				pattern.metadata.lazy_id,
+				lazy_id_name,
 				pattern_range,
 				undefined,
 				pattern_range.source_length,
 			)
-		: create_generated_identifier(pattern.metadata.lazy_id);
+		: create_generated_identifier(lazy_id_name);
 	if (!is_top) return lazy_id;
 	if (pattern.typeAnnotation) {
 		lazy_id.typeAnnotation = pattern.typeAnnotation;
@@ -355,9 +357,9 @@ function build_lazy_id_for_pattern(pattern, is_top) {
  * binds a single param (so a directly-lazy pattern can carry param-level type
  * info); recursive descent into child patterns passes `false`.
  *
- * @param {any} pattern
+ * @param {AST.Pattern} pattern
  * @param {boolean} [is_top]
- * @returns {any}
+ * @returns {AST.Pattern}
  */
 function replace_lazy_in_pattern(pattern, is_top = true) {
 	if (!pattern || typeof pattern !== 'object') return pattern;
@@ -372,13 +374,14 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
 	}
 	if (pattern.type !== 'ObjectPattern' && pattern.type !== 'ArrayPattern') return pattern;
 
-	if (pattern.lazy && pattern.metadata?.lazy_id) {
-		return build_lazy_id_for_pattern(pattern, is_top);
+	const lazy_id = pattern.metadata?.lazy_id;
+	if (pattern.lazy && lazy_id) {
+		return build_lazy_id_for_pattern(pattern, lazy_id, is_top);
 	}
 
 	if (pattern.type === 'ObjectPattern') {
 		let changed = false;
-		const new_properties = (pattern.properties || []).map((/** @type {any} */ prop) => {
+		const new_properties = pattern.properties.map((prop) => {
 			if (prop.type === 'RestElement') {
 				const new_arg = replace_lazy_in_pattern(prop.argument, false);
 				if (new_arg === prop.argument) return prop;
@@ -394,7 +397,7 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
 	}
 
 	let changed = false;
-	const new_elements = (pattern.elements || []).map((/** @type {any} */ element) => {
+	const new_elements = pattern.elements.map((element) => {
 		if (!element) return element;
 		const new_element = replace_lazy_in_pattern(element, false);
 		if (new_element !== element) changed = true;
@@ -414,11 +417,11 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
  * node whose subtree contains any lazy pattern, so `apply_lazy_transforms`
  * can take a constant-time fast path for purely non-lazy functions.
  *
- * @param {any} root
+ * @param {AST.Node} root
  * @param {LazyContext} context
  */
 export function preallocate_lazy_ids(root, context) {
-	/** @param {any} pattern */
+	/** @param {AST.Node | null | undefined} pattern */
 	const assign_id = (pattern) => {
 		visit_topmost_lazy_patterns(pattern, (lazy) => {
 			if (lazy.metadata?.lazy_id) return;
@@ -427,24 +430,26 @@ export function preallocate_lazy_ids(root, context) {
 	};
 
 	/**
-	 * @param {any} node
-	 * @returns {boolean} true if `node`'s subtree contains any lazy pattern.
+	 * @param {unknown} value
+	 * @returns {boolean} true if `value`'s subtree contains any lazy pattern.
 	 */
-	const visit = (node) => {
-		if (!node || typeof node !== 'object') return false;
-		if (Array.isArray(node)) {
+	const visit = (value) => {
+		if (!value || typeof value !== 'object') return false;
+		if (Array.isArray(value)) {
 			let found = false;
-			for (const child of node) {
+			for (const child of value) {
 				if (visit(child)) found = true;
 			}
 			return found;
 		}
+		if (!is_ast_node(value)) return false;
 
+		const node = value;
 		const is_function_like = is_function_or_component_node(node);
 
 		if (is_function_like) {
-			for (const param of node.params || []) {
-				assign_id(param?.type === 'AssignmentPattern' ? param.left : param);
+			for (const param of node.params) {
+				assign_id(param.type === 'AssignmentPattern' ? param.left : param);
 			}
 		}
 
@@ -454,7 +459,7 @@ export function preallocate_lazy_ids(root, context) {
 
 		if (
 			node.type === 'ExpressionStatement' &&
-			node.expression?.type === 'AssignmentExpression' &&
+			node.expression.type === 'AssignmentExpression' &&
 			node.expression.operator === '='
 		) {
 			assign_id(node.expression.left);
@@ -463,9 +468,10 @@ export function preallocate_lazy_ids(root, context) {
 		let found =
 			(node.type === 'ObjectPattern' || node.type === 'ArrayPattern') && node.lazy === true;
 
-		for (const key of Object.keys(node)) {
+		const entries = /** @type {AST.TraversableAstNode} */ (node);
+		for (const key of Object.keys(entries)) {
 			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-			if (visit(node[key])) found = true;
+			if (visit(entries[key])) found = true;
 		}
 
 		if (is_function_like && found) {
@@ -485,15 +491,15 @@ export function preallocate_lazy_ids(root, context) {
  * to `<__lazy0.Item>`. Returns null for a computed access (`__lazy0[0]`, from an
  * array destructure), which has no JSX-name form.
  *
- * @param {any} expr
- * @param {any} [source]
- * @returns {any | null}
+ * @param {AST.Expression | AST.Super} expr
+ * @param {MaybeLocated | null} [source]
+ * @returns {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | null}
  */
 function estree_member_to_jsx_name(expr, source) {
 	if (expr.type === 'Identifier') {
 		return set_source_location(b.jsx_id(expr.name), source);
 	}
-	if (expr.type === 'MemberExpression' && !expr.computed && expr.property?.type === 'Identifier') {
+	if (expr.type === 'MemberExpression' && !expr.computed && expr.property.type === 'Identifier') {
 		const object = estree_member_to_jsx_name(expr.object, source);
 		if (!object) return null;
 		return set_source_location(b.jsx_member(object, b.jsx_id(expr.property.name)), source);
@@ -507,9 +513,9 @@ function estree_member_to_jsx_name(expr, source) {
  * Returns null when the name does not reference a lazy binding (or the access has
  * no JSX-name form), so the caller leaves the original name untouched.
  *
- * @param {any} name
+ * @param {ESTreeJSX.TSRXJSXOpeningElement['name'] | null | undefined} name
  * @param {Map<string, LazyBinding>} lazy_bindings
- * @returns {any | null}
+ * @returns {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | null}
  */
 function rewrite_lazy_jsx_name(name, lazy_bindings) {
 	if (!name) return null;
@@ -526,15 +532,62 @@ function rewrite_lazy_jsx_name(name, lazy_bindings) {
 }
 
 /**
+ * Rewrite lazy-binding references in an arbitrary property value: node arrays
+ * and single nodes are transformed, everything else (strings, numbers, `null`,
+ * positional data) is returned as-is.
+ *
+ * @param {unknown} value
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {unknown}
+ */
+function apply_lazy_transforms_to_value(value, lazy_bindings) {
+	if (Array.isArray(value)) {
+		return value.map((child) => apply_lazy_transforms_to_value(child, lazy_bindings));
+	}
+	if (!is_ast_node(value)) return value;
+	return apply_lazy_transforms(value, lazy_bindings);
+}
+
+/**
+ * Rebuild `node` with rewritten slots. The transform never changes a slot's
+ * syntactic category — an expression stays an expression, a statement stays a
+ * statement — so the clone is the same kind of node as the original, which TS
+ * cannot verify through a spread of a widened slot value.
+ *
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {Partial<Record<keyof T, unknown>>} changes
+ * @returns {T}
+ */
+function rebuild(node, changes) {
+	return /** @type {T} */ ({ ...node, ...changes });
+}
+
+/**
+ * Rewrite a node that occupies a typed slot (an expression, a statement, a
+ * function body). The transform preserves the syntactic category of what it
+ * rewrites — an expression stays an expression, a statement stays a statement
+ * (a standalone `&[x] = …` statement becomes a `const` declaration) — so the
+ * result is re-typed to the slot it came from.
+ *
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {T}
+ */
+function apply_lazy_transforms_to_slot(node, lazy_bindings) {
+	return /** @type {T} */ (apply_lazy_transforms(node, lazy_bindings));
+}
+
+/**
  * Recursively rewrite lazy-binding references in `node`.
  *
- * @param {any} node
+ * @param {AST.Node} node
  * @param {Map<string, LazyBinding>} lazy_bindings
- * @returns {any}
+ * @returns {AST.Node}
  */
 export function apply_lazy_transforms(node, lazy_bindings) {
 	if (!node || typeof node !== 'object') return node;
-	if (Array.isArray(node)) return node.map((child) => apply_lazy_transforms(child, lazy_bindings));
 
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -543,7 +596,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 	) {
 		// Default parameter values are evaluated in the outer scope — transform them first.
 		let params_changed = false;
-		const new_params = (node.params || []).map((/** @type {any} */ param) => {
+		const new_params = node.params.map((param) => {
 			const transformed = transform_param_defaults(param, lazy_bindings);
 			if (transformed !== param) params_changed = true;
 			return transformed;
@@ -551,7 +604,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 
 		/** @type {Set<string>} */
 		const shadowed = new Set();
-		for (const param of node.params || []) {
+		for (const param of node.params) {
 			collect_shadowed_names(param, lazy_bindings, shadowed);
 		}
 
@@ -561,7 +614,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		/** @type {Map<string, LazyBinding>} */
 		const own_bindings = new Map();
 		let had_lazy_param = false;
-		for (const param of node.params || []) {
+		for (const param of node.params) {
 			visit_topmost_lazy_patterns(param, (lazy) => {
 				if (!lazy.metadata?.lazy_id) return;
 				had_lazy_param = true;
@@ -588,36 +641,38 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		// params to replace, defaults referencing outer lazy, or the body
 		// contains lazy descendants the BlockStatement handler will collect.
 		// In every case the body needs to be walked.
-		const new_body = apply_lazy_transforms(node.body, inner_bindings);
+		const new_body = apply_lazy_transforms_to_slot(node.body, inner_bindings);
 
 		const final_params_src = params_changed ? new_params : node.params;
 		const final_params = had_lazy_param ? replace_lazy_params(final_params_src) : final_params_src;
 
 		if (new_body !== node.body || final_params !== node.params) {
-			return { ...node, params: final_params, body: new_body };
+			return rebuild(node, { params: final_params, body: new_body });
 		}
 		return node;
 	}
 
 	if (node.type === 'BlockStatement' || node.type === 'Program') {
-		const block_bindings = collect_block_shadowed_names(node.body, lazy_bindings);
+		/** @type {AST.Program['body']} */
+		const body = node.body;
+		const block_bindings = collect_block_shadowed_names(body, lazy_bindings);
 		const after_shadow =
 			block_bindings.size > 0 ? remove_shadowed(lazy_bindings, block_bindings) : lazy_bindings;
 
 		/** @type {Map<string, LazyBinding>} */
 		const block_lazy = new Map();
-		collect_lazy_bindings_from_statements(node.body, block_lazy);
+		collect_lazy_bindings_from_statements(body, block_lazy);
 
 		const effective_bindings =
 			block_lazy.size > 0 ? new Map([...after_shadow, ...block_lazy]) : after_shadow;
 
 		let changed = false;
-		const new_body = node.body.map((/** @type {any} */ stmt) => {
-			const transformed = apply_lazy_transforms(stmt, effective_bindings);
+		const new_body = node.body.map((stmt) => {
+			const transformed = apply_lazy_transforms_to_slot(stmt, effective_bindings);
 			if (transformed !== stmt) changed = true;
 			return transformed;
 		});
-		return changed ? { ...node, body: new_body } : node;
+		return changed ? rebuild(node, { body: new_body }) : node;
 	}
 
 	if (node.type === 'CatchClause') {
@@ -626,8 +681,8 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		if (node.param) collect_shadowed_names(node.param, lazy_bindings, shadowed);
 		const effective_bindings =
 			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
-		const new_body = apply_lazy_transforms(node.body, effective_bindings);
-		if (new_body !== node.body) return { ...node, body: new_body };
+		const new_body = apply_lazy_transforms_to_slot(node.body, effective_bindings);
+		if (new_body !== node.body) return rebuild(node, { body: new_body });
 		return node;
 	}
 
@@ -642,16 +697,17 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		const effective_bindings =
 			shadowed.size > 0 ? remove_shadowed(lazy_bindings, shadowed) : lazy_bindings;
 		let changed = false;
-		const new_init = apply_lazy_transforms(node.init, effective_bindings);
+		const new_init = node.init && apply_lazy_transforms_to_slot(node.init, effective_bindings);
 		if (new_init !== node.init) changed = true;
-		const new_test = apply_lazy_transforms(node.test, effective_bindings);
+		const new_test = node.test && apply_lazy_transforms_to_slot(node.test, effective_bindings);
 		if (new_test !== node.test) changed = true;
-		const new_update = apply_lazy_transforms(node.update, effective_bindings);
+		const new_update =
+			node.update && apply_lazy_transforms_to_slot(node.update, effective_bindings);
 		if (new_update !== node.update) changed = true;
-		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		const new_body = apply_lazy_transforms_to_slot(node.body, effective_bindings);
 		if (new_body !== node.body) changed = true;
 		return changed
-			? { ...node, init: new_init, test: new_test, update: new_update, body: new_body }
+			? rebuild(node, { init: new_init, test: new_test, update: new_update, body: new_body })
 			: node;
 	}
 
@@ -675,11 +731,11 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		let changed = false;
 		// The right-hand side is evaluated in the outer scope (before the loop
 		// variable is bound), so use the unshadowed bindings there.
-		const new_right = apply_lazy_transforms(node.right, lazy_bindings);
+		const new_right = apply_lazy_transforms_to_slot(node.right, lazy_bindings);
 		if (new_right !== node.right) changed = true;
-		const new_body = apply_lazy_transforms(node.body, effective_bindings);
+		const new_body = apply_lazy_transforms_to_slot(node.body, effective_bindings);
 		if (new_body !== node.body) changed = true;
-		return changed ? { ...node, right: new_right, body: new_body } : node;
+		return changed ? rebuild(node, { right: new_right, body: new_body }) : node;
 	}
 
 	if (node.type === 'SwitchStatement') {
@@ -690,9 +746,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		// consequent — like the BlockStatement handler does for a block body — so
 		// references in any case resolve to the generated id, and an inner
 		// declaration shadowing an outer lazy name is dropped.
-		const all_consequents = node.cases.flatMap(
-			(/** @type {any} */ switch_case) => switch_case.consequent,
-		);
+		const all_consequents = node.cases.flatMap((switch_case) => switch_case.consequent);
 		const block_shadowed = collect_block_shadowed_names(all_consequents, lazy_bindings);
 		const after_shadow =
 			block_shadowed.size > 0 ? remove_shadowed(lazy_bindings, block_shadowed) : lazy_bindings;
@@ -707,26 +761,26 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		// The discriminant is evaluated before any case body runs, so it sees the
 		// bindings visible at the switch (outer, minus inner shadows), not a lazy
 		// binding declared inside a case body.
-		const new_discriminant = apply_lazy_transforms(node.discriminant, after_shadow);
+		const new_discriminant = apply_lazy_transforms_to_slot(node.discriminant, after_shadow);
 		if (new_discriminant !== node.discriminant) changed = true;
-		const new_cases = node.cases.map((/** @type {any} */ switch_case) => {
+		const new_cases = node.cases.map((switch_case) => {
 			let case_changed = false;
 			const new_test = switch_case.test
-				? apply_lazy_transforms(switch_case.test, effective_bindings)
+				? apply_lazy_transforms_to_slot(switch_case.test, effective_bindings)
 				: null;
 			if (new_test !== switch_case.test) case_changed = true;
-			const new_consequent = switch_case.consequent.map((/** @type {any} */ stmt) => {
-				const transformed = apply_lazy_transforms(stmt, effective_bindings);
+			const new_consequent = switch_case.consequent.map((stmt) => {
+				const transformed = apply_lazy_transforms_to_slot(stmt, effective_bindings);
 				if (transformed !== stmt) case_changed = true;
 				return transformed;
 			});
 			if (case_changed) {
 				changed = true;
-				return { ...switch_case, test: new_test, consequent: new_consequent };
+				return rebuild(switch_case, { test: new_test, consequent: new_consequent });
 			}
 			return switch_case;
 		});
-		return changed ? { ...node, discriminant: new_discriminant, cases: new_cases } : node;
+		return changed ? rebuild(node, { discriminant: new_discriminant, cases: new_cases }) : node;
 	}
 
 	// Standalone lazy destructuring assignment: `&[data] = track(0);` becomes
@@ -734,18 +788,20 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 	// via the enclosing BlockStatement handler.
 	if (
 		node.type === 'ExpressionStatement' &&
-		node.expression?.type === 'AssignmentExpression' &&
+		node.expression.type === 'AssignmentExpression' &&
 		node.expression.operator === '=' &&
-		(node.expression.left?.type === 'ObjectPattern' ||
-			node.expression.left?.type === 'ArrayPattern') &&
-		node.expression.left.lazy &&
-		node.expression.left.metadata?.lazy_id
+		(node.expression.left.type === 'ObjectPattern' ||
+			node.expression.left.type === 'ArrayPattern') &&
+		node.expression.left.lazy
 	) {
 		const pattern = node.expression.left;
-		const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
-		if (pattern.typeAnnotation) lazy_id.typeAnnotation = pattern.typeAnnotation;
-		const init = apply_lazy_transforms(node.expression.right, lazy_bindings);
-		return b.const(lazy_id, init);
+		const lazy_id_name = pattern.metadata?.lazy_id;
+		if (lazy_id_name !== undefined) {
+			const lazy_id = create_generated_identifier(lazy_id_name);
+			if (pattern.typeAnnotation) lazy_id.typeAnnotation = pattern.typeAnnotation;
+			const init = apply_lazy_transforms_to_slot(node.expression.right, lazy_bindings);
+			return b.const(lazy_id, init);
+		}
 	}
 
 	// Non-lazy outer assignment whose LHS contains nested lazy patterns:
@@ -766,7 +822,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 				expression: {
 					...node.expression,
 					left: new_left,
-					right: apply_lazy_transforms(node.expression.right, lazy_bindings),
+					right: apply_lazy_transforms_to_slot(node.expression.right, lazy_bindings),
 				},
 			};
 		}
@@ -782,7 +838,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		return {
 			...node,
 			left: binding.read(node.left),
-			right: apply_lazy_transforms(node.right, lazy_bindings),
+			right: apply_lazy_transforms_to_slot(node.right, lazy_bindings),
 		};
 	}
 
@@ -802,7 +858,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		return {
 			...node,
 			id: lazy_id,
-			init: apply_lazy_transforms(node.init, lazy_bindings),
+			init: node.init && apply_lazy_transforms_to_slot(node.init, lazy_bindings),
 		};
 	}
 
@@ -818,7 +874,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 			return {
 				...node,
 				id: new_id,
-				init: apply_lazy_transforms(node.init, lazy_bindings),
+				init: node.init && apply_lazy_transforms_to_slot(node.init, lazy_bindings),
 			};
 		}
 	}
@@ -841,9 +897,10 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 	if (node.type === 'JSXIdentifier') return node;
 
 	let changed = false;
-	/** @type {any} */
-	const clone = { ...node };
-	for (const key of Object.keys(node)) {
+	const entries = /** @type {AST.TraversableAstNode} */ (node);
+	/** @type {Record<string, unknown>} */
+	const clone = { ...entries };
+	for (const key of Object.keys(entries)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
 
 		// Skip non-computed, non-shorthand property keys (they are labels).
@@ -864,7 +921,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 			key === 'name' &&
 			(node.type === 'JSXOpeningElement' || node.type === 'JSXClosingElement')
 		) {
-			const jsx_name = rewrite_lazy_jsx_name(node[key], lazy_bindings);
+			const jsx_name = rewrite_lazy_jsx_name(node.name, lazy_bindings);
 			if (jsx_name) {
 				clone[key] = jsx_name;
 				changed = true;
@@ -872,29 +929,31 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 			}
 		}
 
-		const new_value = apply_lazy_transforms(node[key], lazy_bindings);
-		if (new_value !== node[key]) {
+		const new_value = apply_lazy_transforms_to_value(entries[key], lazy_bindings);
+		if (new_value !== entries[key]) {
 			clone[key] = new_value;
 			changed = true;
 		}
 	}
-	return changed ? clone : node;
+	return changed ? /** @type {AST.Node} */ (clone) : node;
 }
 
 /**
- * @param {any} param
+ * @template {AST.Pattern} T
+ * @param {T} param
  * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {T | AST.AssignmentPattern}
  */
 function transform_param_defaults(param, lazy_bindings) {
-	if (param?.type === 'AssignmentPattern') {
-		const new_right = apply_lazy_transforms(param.right, lazy_bindings);
+	if (param.type === 'AssignmentPattern') {
+		const new_right = apply_lazy_transforms_to_slot(param.right, lazy_bindings);
 		if (new_right !== param.right) return { ...param, right: new_right };
 	}
 	return param;
 }
 
 /**
- * @param {any} pattern
+ * @param {AST.Node | null | undefined} pattern
  * @param {Map<string, LazyBinding>} lazy_bindings
  * @param {Set<string>} shadowed
  */
@@ -913,7 +972,7 @@ function collect_shadowed_names(pattern, lazy_bindings, shadowed) {
 		return;
 	}
 	if (pattern.type === 'ObjectPattern') {
-		for (const prop of pattern.properties || []) {
+		for (const prop of pattern.properties) {
 			if (prop.type === 'RestElement') {
 				collect_shadowed_names(prop.argument, lazy_bindings, shadowed);
 			} else {
@@ -923,14 +982,14 @@ function collect_shadowed_names(pattern, lazy_bindings, shadowed) {
 		return;
 	}
 	if (pattern.type === 'ArrayPattern') {
-		for (const element of pattern.elements || []) {
+		for (const element of pattern.elements) {
 			if (element) collect_shadowed_names(element, lazy_bindings, shadowed);
 		}
 	}
 }
 
 /**
- * @param {any[]} statements
+ * @param {AST.Program['body']} statements
  * @param {Map<string, LazyBinding>} lazy_bindings
  * @returns {Set<string>}
  */
@@ -940,8 +999,8 @@ function collect_block_shadowed_names(statements, lazy_bindings) {
 	for (const stmt of statements) {
 		if (stmt.type === 'VariableDeclaration') {
 			for (const decl of stmt.declarations) {
-				if (decl.id?.metadata?.lazy_id) continue;
-				if (decl.id) collect_shadowed_names(decl.id, lazy_bindings, shadowed);
+				if (decl.id.metadata?.lazy_id) continue;
+				collect_shadowed_names(decl.id, lazy_bindings, shadowed);
 			}
 		} else if (stmt.type === 'FunctionDeclaration' && stmt.id) {
 			if (lazy_bindings.has(stmt.id.name)) shadowed.add(stmt.id.name);
@@ -967,8 +1026,8 @@ function remove_shadowed(lazy_bindings, shadowed) {
  * patterns. For `({ pair: &[a, b] })` returns `({ pair: __lazy0 })`. Leaves
  * params without any lazy descendants untouched.
  *
- * @param {any[]} params
- * @returns {any[]}
+ * @param {AST.Pattern[]} params
+ * @returns {AST.Pattern[]}
  */
 export function replace_lazy_params(params) {
 	return params.map((param) => {

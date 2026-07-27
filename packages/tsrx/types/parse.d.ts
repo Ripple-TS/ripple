@@ -35,10 +35,15 @@ declare module 'acorn' {
 	interface Parser {
 		readToken(...args: Parameters<ReadToken>): ReturnType<ReadToken>;
 	}
+
+	interface Token {
+		/** The tokenizer records a token's value; acorn's own types omit it. */
+		value: string | number | RegExp | bigint | null;
+	}
 }
 
 declare module 'esrap' {
-	export function print<V extends CoreCompiler.Visitors<AST.Node, any>>(
+	export function print<State, V extends CoreCompiler.Visitors<AST.Node, State>>(
 		ast: AST.Node,
 		visitors: V,
 		options?: ESRap.PrintOptions,
@@ -46,22 +51,22 @@ declare module 'esrap' {
 }
 
 declare module 'esrap/languages/tsx' {
-	export default function tsx<V extends CoreCompiler.Visitors<AST.Node, any>>(
+	export default function tsx<State, V extends CoreCompiler.Visitors<AST.Node, State>>(
 		options: Parse.ESRapTSOptions,
 	): V;
 }
 
 declare module 'zimmerframe' {
-	export function walk(
+	export function walk<State>(
 		node: AST.Node,
-		state: any,
-		visitors: CoreCompiler.Visitors<AST.Node, any>,
+		state: NoInfer<State>,
+		visitors: CoreCompiler.Visitors<AST.Node, State>,
 	): AST.Node;
 
-	export function walk(
+	export function walk<State>(
 		node: AST.CSS.Node,
-		state: any,
-		visitors: CoreCompiler.Visitors<AST.CSS.Node, any>,
+		state: NoInfer<State>,
+		visitors: CoreCompiler.Visitors<AST.CSS.Node, State>,
 	): AST.CSS.Node;
 }
 
@@ -129,7 +134,7 @@ export namespace Parse {
 		/** Valid flags for the current ECMAScript version */
 		validFlags: string;
 		/** Unicode properties data for the current ECMAScript version */
-		unicodeProperties: any;
+		unicodeProperties: unknown;
 		/** Source pattern string of the regular expression */
 		source: string;
 		/** Flags string of the regular expression */
@@ -1813,11 +1818,49 @@ export namespace Parse {
 			error: Error | null;
 			thrown: boolean;
 			aborted: boolean;
-			failState: any;
+			/** Opaque tokenizer state snapshot the parser restores on failure. */
+			failState: unknown;
 		};
 		parse(input: string, options: Options): AST.Program;
 
 		getElementName(node?: AST.Node): string | null;
+	}
+
+	/**
+	 * An acorn parser plugin: given the parser class built so far, returns a
+	 * subclass that overrides the hooks it needs.
+	 */
+	export type AcornPlugin = (BaseParser: ParserConstructor) => ParserConstructor;
+
+	/**
+	 * Options accepted by a parse function built with `createParser`. Everything
+	 * beyond `filename` is opt-in behaviour of the compile pipeline.
+	 */
+	export interface ParseFunctionOptions {
+		/** Collect non-fatal errors instead of throwing. */
+		collect?: boolean;
+		/** Loose (error-recovering) parse; implies `collect`. */
+		loose?: boolean;
+		/** Destination for collected errors when `collect`/`loose` is set. */
+		errors?: CoreCompiler.CompileError[];
+		/** Destination for the comments collected during the parse. */
+		comments?: AST.CommentWithLocation[];
+		/** Keep `ParenthesizedExpression` nodes in the output. */
+		preserveParens?: boolean;
+		/**
+		 * Record the source spans of `async`/`function` keywords on the program as
+		 * `tsrx_keyword_tokens` — the mapping collector needs them and no AST node
+		 * carries them.
+		 */
+		keywordTokens?: boolean;
+	}
+
+	/** A keyword span recorded by the `keywordTokens` parse option. */
+	export interface KeywordToken {
+		value: string;
+		start: number;
+		end: number;
+		loc: AST.SourceLocation;
 	}
 
 	/**

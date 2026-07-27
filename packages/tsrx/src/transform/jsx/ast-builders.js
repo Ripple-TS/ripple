@@ -108,7 +108,10 @@ function clone_jsx_member_expression(name, source_node) {
 export function add_extra_source_mappings_from_matching_expression(generated, source) {
 	if (!generated || !source || generated.type !== source.type) return;
 
-	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
+	if (
+		(generated.type === 'Identifier' && source.type === 'Identifier') ||
+		(generated.type === 'PrivateIdentifier' && source.type === 'PrivateIdentifier')
+	) {
 		if (!has_location(source)) return;
 		generated.metadata ??= { path: [] };
 		generated.metadata.extra_source_mappings ??= [];

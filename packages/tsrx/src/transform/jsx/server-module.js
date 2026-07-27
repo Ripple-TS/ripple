@@ -1,5 +1,5 @@
 /** @import * as AST from 'estree' */
-/** @import { JsxPlatform } from '@tsrx/core/types' */
+/** @import { JsxPlatform, MaybeLocated } from '@tsrx/core/types' */
 
 /**
  * Type-only lowering of a platform's `module <name> { … }` server-module
@@ -78,6 +78,7 @@
  */
 
 import * as b from '../../utils/builders.js';
+import { is_ast_node } from '../../utils/ast.js';
 
 const HOISTED_IMPORT_PREFIX = '__tsrx_server_import$';
 
@@ -101,12 +102,13 @@ const WALK_SKIP_KEYS = new Set([
  * them verbatim (where TS flags them) mirrors the build failure instead of
  * hiding it.
  *
- * @param {any} node
+ * @param {AST.Node} node
  * @param {string} block_name
+ * @returns {node is AST.TSModuleDeclaration}
  */
 function is_server_module_declaration(node, block_name) {
 	return (
-		node?.type === 'TSModuleDeclaration' &&
+		node.type === 'TSModuleDeclaration' &&
 		node.declare !== true &&
 		node.metadata?.module_keyword === 'module' &&
 		identifier_name(node.id) === block_name
@@ -114,7 +116,7 @@ function is_server_module_declaration(node, block_name) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {string | null}
  */
 function identifier_name(node) {
@@ -124,18 +126,25 @@ function identifier_name(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node} node
  * @param {string} import_specifier
+ * @returns {node is AST.ImportDeclaration}
  */
 function is_server_import(node, import_specifier) {
-	return node?.type === 'ImportDeclaration' && node.source?.value === import_specifier;
+	return (
+		node.type === 'ImportDeclaration' &&
+		node.source.type === 'Literal' &&
+		node.source.value === import_specifier
+	);
 }
 
 /**
  * Copy `node`'s authored location onto a replacement node.
- * @param {any} node
- * @param {any} source
- * @returns {any}
+ *
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {MaybeLocated | null | undefined} source
+ * @returns {T}
  */
 function with_location(node, source) {
 	if (source?.start != null) node.start = source.start;
@@ -161,15 +170,15 @@ function with_location(node, source) {
  * from the wrong length.
  *
  * @param {string} name
- * @param {any} literal
+ * @param {MaybeLocated} literal
  * @returns {AST.Identifier}
  */
 function string_span_namespace_ref(name, literal) {
 	const node = b.id(name);
 	node.metadata.string_literal_source_span = true;
 	if (
-		typeof literal?.start === 'number' &&
-		typeof literal?.end === 'number' &&
+		typeof literal.start === 'number' &&
+		typeof literal.end === 'number' &&
 		literal.end - literal.start >= 2
 	) {
 		node.start = literal.start + 1;
@@ -198,31 +207,32 @@ function string_span_namespace_ref(name, literal) {
  * the name as a conflict costs nothing but an alias, and keeps the lowering
  * from ever changing what the client half of the file typechecks against.
  *
- * @param {any} ast
- * @param {any} declaration
+ * @param {AST.Program} ast
+ * @param {AST.Node} declaration
  * @returns {Set<string>}
  */
 function collect_outside_identifier_names(ast, declaration) {
 	/** @type {Set<string>} */
 	const names = new Set();
+	/** @type {WeakSet<object>} */
 	const seen = new WeakSet();
-	/** @param {any} node */
-	function walk(node) {
-		if (node === null || typeof node !== 'object' || seen.has(node) || node === declaration) {
+	/** @param {unknown} value */
+	function walk(value) {
+		if (value === null || typeof value !== 'object' || seen.has(value) || value === declaration) {
 			return;
 		}
-		seen.add(node);
-		if (Array.isArray(node)) {
-			for (const child of node) walk(child);
+		seen.add(value);
+		if (Array.isArray(value)) {
+			for (const child of value) walk(child);
 			return;
 		}
-		if (typeof node.type !== 'string') return;
-		if (node.type === 'Identifier' || node.type === 'JSXIdentifier') {
-			names.add(node.name);
+		if (!is_ast_node(value)) return;
+		if (value.type === 'Identifier' || value.type === 'JSXIdentifier') {
+			names.add(value.name);
 		}
-		for (const [key, value] of Object.entries(node)) {
+		for (const [key, child] of Object.entries(value)) {
 			if (WALK_SKIP_KEYS.has(key)) continue;
-			if (value !== null && typeof value === 'object') walk(value);
+			if (child !== null && typeof child === 'object') walk(child);
 		}
 	}
 	walk(ast);
@@ -235,27 +245,25 @@ function collect_outside_identifier_names(ast, declaration) {
  * locations so hover / rename still target the source. `make_init`
  * builds a fresh init expression per call (nodes are never shared).
  *
- * @param {any[]} specifiers
+ * @param {AST.ImportSpecifier[]} specifiers
  * @param {() => AST.Expression} make_init
- * @param {any} loc_node
+ * @param {MaybeLocated} loc_node
+ * @returns {AST.VariableDeclaration}
  */
 function build_destructure(specifiers, make_init, loc_node) {
 	const pattern = with_location(
 		b.object_pattern(
-			/** @type {any} */ (
-				specifiers.map((specifier) =>
-					with_location(
-						b.prop(
-							'init',
-							{ ...specifier.imported },
-							{ ...specifier.local },
-							false,
-							specifier.imported?.type === 'Identifier' &&
-								specifier.imported.name === specifier.local?.name,
-						),
-						specifier,
+			specifiers.map((specifier) =>
+				with_location(
+					b.assignment_prop(
+						{ ...specifier.imported },
+						{ ...specifier.local },
+						false,
+						specifier.imported.type === 'Identifier' &&
+							specifier.imported.name === specifier.local.name,
 					),
-				)
+					specifier,
+				),
 			),
 		),
 		loc_node,
@@ -265,39 +273,23 @@ function build_destructure(specifiers, make_init, loc_node) {
 }
 
 /**
- * `<left>.<right>` qualified name. Callers pass a `right` that carries the
- * authored specifier span, so hover / rename on the imported name resolve.
- *
- * @param {AST.Identifier} left
- * @param {any} right
- */
-function qualified_name(left, right) {
-	return {
-		type: 'TSQualifiedName',
-		left,
-		right,
-		metadata: { path: [] },
-	};
-}
-
-/**
  * `type <local> = <left>.<right>;` for a type-only import specifier.
- * `right` defaults to the specifier's imported name; a DEFAULT import
+ * Callers pass the specifier's imported name as `right`; a DEFAULT import
  * passes `default` (which has no authored span of its own).
  *
- * @param {any} specifier
+ * `right` carries the authored specifier span, so hover / rename on the
+ * imported name resolve.
+ *
+ * @param {AST.ImportSpecifier | AST.ImportDefaultSpecifier} specifier
  * @param {() => AST.Identifier} make_left
- * @param {any} [right]
+ * @param {AST.Identifier} right
+ * @returns {AST.TSStatement<AST.TSTypeAliasDeclaration>}
  */
-function build_type_alias(specifier, make_left, right = { ...specifier.imported }) {
+function build_type_alias(specifier, make_left, right) {
 	return with_location(
 		b.ts_type_alias(
 			{ ...specifier.local },
-			/** @type {any} */ ({
-				type: 'TSTypeReference',
-				typeName: qualified_name(make_left(), right),
-				metadata: { path: [] },
-			}),
+			b.ts_type_reference(b.ts_qualified_name(make_left(), right)),
 		),
 		specifier,
 	);
@@ -309,20 +301,12 @@ function build_type_alias(specifier, make_left, right = { ...specifier.imported 
  * binding, where a `const` keeps only the value and a `type` alias only
  * the type.
  *
- * @param {any} specifier
- * @param {any} module_reference
+ * @param {AST.ImportDeclaration['specifiers'][number]} specifier
+ * @param {AST.EntityName} module_reference
+ * @returns {AST.TSStatement<AST.TSImportEqualsDeclaration>}
  */
 function build_import_equals(specifier, module_reference) {
-	return with_location(
-		/** @type {any} */ ({
-			type: 'TSImportEqualsDeclaration',
-			id: { ...specifier.local },
-			moduleReference: module_reference,
-			importKind: 'value',
-			metadata: { path: [] },
-		}),
-		specifier,
-	);
+	return with_location(b.ts_import_equals({ ...specifier.local }, module_reference), specifier);
 }
 
 /**
@@ -341,17 +325,22 @@ function build_import_equals(specifier, module_reference) {
  * `<ns>.default` is not (a JSON module's namespace has no `default`
  * member under bundler resolution).
  *
- * @param {any} statement
+ * @param {AST.ImportDeclaration} statement
  * @param {string} hoisted_name
+ * @returns {{ hoisted: AST.ImportDeclaration, aliases: AST.Node[] }}
  */
 function lower_colliding_import(statement, hoisted_name) {
 	const default_name = hoisted_name + '_default';
+	/** @type {AST.Node[]} */
 	const aliases = [];
+	/** @type {AST.ImportSpecifier[]} */
 	const destructured_specifiers = [];
 	let needs_default_hoist = false;
 	let needs_namespace_hoist = false;
 	for (const specifier of statement.specifiers) {
-		const type_only = statement.importKind === 'type' || specifier.importKind === 'type';
+		const type_only =
+			statement.importKind === 'type' ||
+			(specifier.type === 'ImportSpecifier' && specifier.importKind === 'type');
 		if (specifier.type === 'ImportNamespaceSpecifier') {
 			needs_namespace_hoist = true;
 			aliases.push(build_import_equals(specifier, b.id(hoisted_name)));
@@ -367,7 +356,7 @@ function lower_colliding_import(statement, hoisted_name) {
 				);
 				aliases.push(with_location(b.declaration('const', [declarator]), specifier));
 			}
-		} else if (specifier.imported?.type !== 'Identifier') {
+		} else if (specifier.imported.type !== 'Identifier') {
 			// String-named — neither an entity name nor a qualified type
 			// reference can hold a string, so type-only ones land here too:
 			// the destructure is the one PARSEABLE fallback, at the cost of
@@ -376,13 +365,15 @@ function lower_colliding_import(statement, hoisted_name) {
 			destructured_specifiers.push(specifier);
 		} else if (type_only) {
 			needs_namespace_hoist = true;
-			aliases.push(build_type_alias(specifier, () => b.id(hoisted_name)));
+			aliases.push(
+				build_type_alias(specifier, () => b.id(hoisted_name), { ...specifier.imported }),
+			);
 		} else {
 			needs_namespace_hoist = true;
 			aliases.push(
 				build_import_equals(
 					specifier,
-					qualified_name(b.id(hoisted_name), { ...specifier.imported }),
+					b.ts_qualified_name(b.id(hoisted_name), { ...specifier.imported }),
 				),
 			);
 		}
@@ -393,6 +384,7 @@ function lower_colliding_import(statement, hoisted_name) {
 
 	// Only the specifiers the aliases reference — an unreferenced mangled
 	// specifier would draw a spurious `noUnusedLocals` diagnostic.
+	/** @type {AST.ImportDeclaration['specifiers']} */
 	const hoist_specifiers = [];
 	if (needs_default_hoist) {
 		hoist_specifiers.push({
@@ -415,6 +407,7 @@ function lower_colliding_import(statement, hoisted_name) {
 			source: with_location({ ...statement.source }, statement.source),
 			importKind: 'value',
 			attributes: statement.attributes,
+			metadata: { path: [] },
 		},
 		statement,
 	);
@@ -425,13 +418,17 @@ function lower_colliding_import(statement, hoisted_name) {
  * Replace the server block with hoisted imports plus a namespace-valued
  * binding the checker can see through.
  *
- * @param {any} declaration
+ * @param {AST.TSModuleDeclaration} declaration
  * @param {Set<string>} outside_names
  * @param {string} block_name
+ * @returns {AST.Node[]}
  */
 function lower_declaration(declaration, outside_names, block_name) {
+	/** @type {AST.Node[]} */
 	const hoisted_imports = [];
+	/** @type {AST.Node[]} */
 	const aliases = [];
+	/** @type {AST.Node[]} */
 	const rest = [];
 	let hoisted_index = 0;
 
@@ -440,8 +437,8 @@ function lower_declaration(declaration, outside_names, block_name) {
 			rest.push(statement);
 			continue;
 		}
-		const collides = (statement.specifiers ?? []).some((/** @type {any} */ specifier) =>
-			outside_names.has(specifier.local?.name),
+		const collides = statement.specifiers.some((specifier) =>
+			outside_names.has(specifier.local.name),
 		);
 		if (!collides) {
 			// Authored node, hoisted as-is — its locations map 1:1.
@@ -462,15 +459,15 @@ function lower_declaration(declaration, outside_names, block_name) {
 	// Identifier (the authored id could be a string Literal, whose span then
 	// gets the same string-literal mapping treatment as the import source).
 	const id =
-		declaration.id?.type === 'Literal'
+		declaration.id.type === 'Literal'
 			? string_span_namespace_ref(block_name, declaration.id)
 			: with_location(b.id(block_name), declaration.id);
-	const namespace = {
+	const namespace = /** @type {AST.TSStatement<AST.TSModuleDeclaration>} */ ({
 		...declaration,
 		id,
 		metadata: { ...declaration.metadata, module_keyword: 'namespace' },
 		body: { ...declaration.body, body: [...aliases, ...rest] },
-	};
+	});
 	return [...hoisted_imports, namespace];
 }
 
@@ -488,13 +485,14 @@ function lower_declaration(declaration, outside_names, block_name) {
  * imports) are a hard compile error in the dialect — those statements
  * stay verbatim so the editor's TS2307 mirrors the build error.
  *
- * @param {any} statement
+ * @param {AST.ImportDeclaration} statement
  * @param {string} block_name
+ * @returns {AST.Node[]}
  */
 function lower_server_import(statement, block_name) {
-	const specifiers = statement.specifiers ?? [];
+	const specifiers = statement.specifiers;
 	if (specifiers.length === 0) return [];
-	if (specifiers.some((/** @type {any} */ s) => s.type !== 'ImportSpecifier')) {
+	if (!specifiers.every((specifier) => specifier.type === 'ImportSpecifier')) {
 		return [statement];
 	}
 
@@ -502,18 +500,23 @@ function lower_server_import(statement, block_name) {
 	// inner span, so hover / go-to-def on the module name resolves to the
 	// lowered block while the literal keeps its string coloring.
 	const namespace_ref = () => string_span_namespace_ref(block_name, statement.source);
+	/** @type {AST.Node[]} */
 	const lowered = [];
+	/** @type {AST.ImportSpecifier[]} */
 	const destructured_specifiers = [];
 	for (const specifier of specifiers) {
-		if (specifier.imported?.type !== 'Identifier') {
+		if (specifier.imported.type !== 'Identifier') {
 			// String-named — inexpressible in an entity name or qualified type
 			// reference alike, so type-only ones fall back here too.
 			destructured_specifiers.push(specifier);
 		} else if (statement.importKind === 'type' || specifier.importKind === 'type') {
-			lowered.push(build_type_alias(specifier, namespace_ref));
+			lowered.push(build_type_alias(specifier, namespace_ref, { ...specifier.imported }));
 		} else {
 			lowered.push(
-				build_import_equals(specifier, qualified_name(namespace_ref(), { ...specifier.imported })),
+				build_import_equals(
+					specifier,
+					b.ts_qualified_name(namespace_ref(), { ...specifier.imported }),
+				),
 			);
 		}
 	}
@@ -540,7 +543,9 @@ function lower_server_import(statement, block_name) {
  */
 export function lower_server_module_for_types(ast, server_module) {
 	const { blockName: block_name, importSpecifier: import_specifier } = server_module;
-	const body = /** @type {any[] | undefined} */ (ast?.body);
+	// estree's `Statement` union has no TS declarations in it, so the module
+	// body is scanned as plain nodes and re-typed on the way back out.
+	const body = /** @type {AST.Node[]} */ (ast?.body);
 	if (!Array.isArray(body)) return ast;
 	const declaration = body.find((node) => is_server_module_declaration(node, block_name));
 	// A body-less `module server;` only occurs mid-edit / in loose parses;
@@ -551,6 +556,7 @@ export function lower_server_module_for_types(ast, server_module) {
 	// The lowered namespace claims the authored block name at module scope; a
 	// block import local with the same name must be aliased out of its way.
 	outside_names.add(block_name);
+	/** @type {AST.Node[]} */
 	const new_body = [];
 	for (const statement of body) {
 		if (statement === declaration) {
@@ -561,5 +567,5 @@ export function lower_server_module_for_types(ast, server_module) {
 			new_body.push(statement);
 		}
 	}
-	return { ...ast, body: new_body };
+	return { ...ast, body: /** @type {AST.Program['body']} */ (new_body) };
 }
