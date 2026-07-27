@@ -2,15 +2,11 @@
  * Ambient declarations for the shared runtime fixtures.
  *
  * These files are compiled and executed by each target package's vitest
- * project, which supplies the mount helpers on `globalThis` and compiles the
- * `.tsrx` component fixtures through its own bundler plugin.
+ * project, which supplies the mount helpers on `globalThis`. The `.tsrx`
+ * component fixtures each carry a `.d.tsrx.ts` declaration beside them —
+ * a relative import never falls back to an ambient `declare module '*.tsrx'`,
+ * so the sidecar is what lets `pnpm typecheck` resolve them.
  */
-
-/** A `.tsrx` fixture module: every export is a compiled component. */
-declare module '*.tsrx' {
-	const components: { [name: string]: unknown };
-	export = components;
-}
 
 declare global {
 	/** Mounts a component into `container`; installed by the project's setup file. */

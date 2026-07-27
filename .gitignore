@@ -56,6 +56,10 @@ debug
 .build-hash
 .build-hash-built
 **/*.d.tsrx.ts
+# …except the hand-written declarations beside the shared runtime test
+# fixtures: a relative `.tsrx` import has no ambient fallback, so these are
+# what let `pnpm typecheck` resolve them. Nothing generates them.
+!packages/tsrx/tests/shared/runtime/*.d.tsrx.ts
 /tree-sitter
 
 # Temporary folders
