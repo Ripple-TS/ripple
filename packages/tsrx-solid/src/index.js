@@ -1,5 +1,5 @@
 /** @import * as AST from 'estree' */
-/** @import { CompileError, ParseOptions } from '@tsrx/core/types' */
+/** @import { BaseCompileOptions, CompileError, CompileResult, ParseOptions, VolarMappingsResult } from '@tsrx/core/types' */
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
 import { analyzeTsrx, createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
@@ -26,8 +26,8 @@ export function parse(source, filename, options) {
  * @template {string} T
  * @param {string} source
  * @param {NonEmptyString<T>} filename
- * @param {{ collect?: boolean, loose?: boolean }} [options]
- * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[] }}
+ * @param {BaseCompileOptions} [options]
+ * @returns {CompileResult}
  */
 export function compile(source, filename, options) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -59,10 +59,10 @@ export function compile(source, filename, options) {
  * @param {string} source
  * @param {NonEmptyString<T>} filename
  * @param {ParseOptions} [options]
- * @returns {import('@tsrx/core/types').VolarMappingsResult}
+ * @returns {VolarMappingsResult}
  */
 export function compile_to_volar_mappings(source, filename, options) {
-	const errors = /** @type {import('@tsrx/core/types').CompileError[]} */ ([]);
+	const errors = /** @type {CompileError[]} */ ([]);
 	const comments = /** @type {AST.CommentWithLocation[]} */ ([]);
 	const ast = parseModule(source, filename, {
 		...options,
