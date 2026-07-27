@@ -706,6 +706,8 @@ export const FeaturesPage = () => @{
 								from
 								<code class="inline-code">react</code>
 								,
+								<code class="inline-code">octane</code>
+								,
 								<code class="inline-code">preact/compat</code>
 								, or
 								<code class="inline-code">solid-js</code>

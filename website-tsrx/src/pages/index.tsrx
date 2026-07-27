@@ -122,8 +122,8 @@ export const IndexPage = () => @{
 						the compiled output.
 					</p>
 					<p class="section-body what-is-copy">
-						TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact,
-						Ripple, Solid, and Vue, with room for more targets over time. You can import
+						TSRX is framework-agnostic and interoperable. Today it compiles to Octane, React,
+						Preact, Ripple, Solid, and Vue, with room for more targets over time. You can import
 						<code class="inline-code">.tsrx</code>
 						modules from JS, TS, and TSX files and it just works.
 					</p>
@@ -246,8 +246,10 @@ export const IndexPage = () => @{
 						<code class="inline-code">@tsrx/ripple</code>
 						,
 						<code class="inline-code">@tsrx/solid</code>
-						, and
+						,
 						<code class="inline-code">@tsrx/vue</code>
+						, and
+						<code class="inline-code">octane/compiler</code>
 						transform the same AST into idiomatic output for their target runtimes, including scoped
 						CSS. New targets can be added as standalone compiler plugins without changing the
 						language itself.

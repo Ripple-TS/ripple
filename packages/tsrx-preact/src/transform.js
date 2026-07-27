@@ -11,13 +11,6 @@ import { createJsxTransform } from '@tsrx/core';
 export const DEFAULT_SUSPENSE_SOURCE = 'preact/compat';
 
 /**
- * Per-call compile options for tsrx-preact. Exposed publicly so the Vite
- * plugin's typings can extend them.
- *
- * @typedef {{ suspenseSource?: string }} CompileOptions
- */
-
-/**
  * Preact platform descriptor consumed by `createJsxTransform`.
  *
  * Differences from React:

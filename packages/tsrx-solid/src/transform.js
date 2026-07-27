@@ -1,6 +1,20 @@
 /** @import * as AST from 'estree' */
 /** @import * as ESTreeJSX from 'estree-jsx' */
-/** @import { JsxTransformContext as TransformContext } from '@tsrx/core/types' */
+/** @import { JsxPlatform, JsxTransformContext as TransformContext } from '@tsrx/core/types' */
+/**
+ * @import {
+ *   SolidBranchArrow,
+ *   SolidFunctionLike,
+ *   SolidIfBranch,
+ *   SolidIfTestBranch,
+ *   SolidLoweredList,
+ *   SolidLoweredStatement,
+ *   SolidMatchEntry,
+ *   SolidRenderNode,
+ *   SolidRenderSource,
+ *   SolidReturningIf,
+ * } from '../types/transform'
+ */
 
 import { walk } from 'zimmerframe';
 import {
@@ -26,6 +40,7 @@ import {
 	create_generated_identifier,
 	create_null_literal,
 	get_for_of_iteration_params,
+	has_location,
 	is_component_like_element,
 	planSwitchLift as plan_switch_lift,
 	is_bare_render_expression,
@@ -65,7 +80,7 @@ const TSRX_IF_CONTINUE_ERROR =
  * - `needs_show` / `needs_for` / etc. flags track which runtime
  *   primitives must be imported, injected by `inject_solid_imports`.
  *
- * @type {import('@tsrx/core/types').JsxPlatform}
+ * @type {JsxPlatform}
  */
 const solid_platform = {
 	name: 'Solid',
@@ -187,6 +202,20 @@ function get_await_keyword_start(await_node, source) {
 // =====================================================================
 
 /**
+ * Lower one body node to a Solid JSX child. Render sources (see
+ * {@link is_solid_render_child}) always come back as a JSX child; anything else
+ * is returned untouched.
+ *
+ * @overload
+ * @param {SolidRenderSource} node
+ * @param {TransformContext} transform_context
+ * @returns {ESTreeJSX.JSXRenderChild}
+ *
+ * @overload
+ * @param {AST.Node} node
+ * @param {TransformContext} transform_context
+ * @returns {AST.Node}
+ *
  * @param {AST.Node} node
  * @param {TransformContext} transform_context
  * @returns {AST.Node}
@@ -260,25 +289,32 @@ function to_jsx_child(node, transform_context) {
 }
 
 /**
- * @param {any} node
- * @returns {any}
+ * Retype an `@if`/`@for`/`@switch`/`@try` directive expression back to the
+ * statement form the lowering helpers consume. The directive node already
+ * carries every field its statement form needs — only the discriminant differs.
+ *
+ * @template {AST.JSXTemplateDirective} T
+ * @param {T} node
+ * @returns {Extract<AST.Statement, { type: T['statementType'] }>}
  */
 function jsx_control_expression_to_statement(node) {
-	if (!node?.statementType) return node;
-	return { ...node, type: node.statementType };
+	return /** @type {Extract<AST.Statement, { type: T['statementType'] }>} */ ({
+		...node,
+		type: node.statementType,
+	});
 }
 
 /**
  * Lower a native TSRX fragment body to a Solid JSX expression.
  *
- * @param {any} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformContext} transform_context
  * @param {boolean} [in_jsx_child]
- * @returns {any}
+ * @returns {SolidRenderNode}
  */
 function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	const children = (node.children || []).filter(
-		(/** @type {any} */ child) =>
+		(child) =>
 			child &&
 			child.type !== 'EmptyStatement' &&
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
@@ -303,13 +339,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 		expression = b.call(expression);
 	}
 
-	if (
-		in_jsx_child &&
-		expression.type !== 'JSXElement' &&
-		expression.type !== 'JSXFragment' &&
-		expression.type !== 'JSXText' &&
-		expression.type !== 'JSXExpressionContainer'
-	) {
+	if (in_jsx_child && expression.type !== 'JSXElement' && expression.type !== 'JSXFragment') {
 		return to_jsx_expression_container(expression, node);
 	}
 
@@ -337,9 +367,9 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
  *   - Fallback props (`<Show fallback>`, `<Switch fallback>`,
  *     `<Loading fallback>`): IIFE-wrapped via {@link iife_if_arrow}.
  *
- * @param {any[]} body_nodes
+ * @param {AST.Node[]} body_nodes
  * @param {TransformContext} transform_context
- * @returns {any}
+ * @returns {AST.Expression}
  */
 function body_to_jsx_child(body_nodes, transform_context) {
 	// When non-JSX statements are interleaved with JSX children, preserve
@@ -349,9 +379,9 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	// mutable variables instead of the value at its point in the source.
 	const interleaved = is_interleaved_body(body_nodes);
 
-	/** @type {any[]} */
+	/** @type {AST.Node[]} */
 	const statements = [];
-	/** @type {any[]} */
+	/** @type {ESTreeJSX.JSXRenderChild[]} */
 	const children = [];
 	let has_terminal_return = false;
 	let capture_index = 0;
@@ -386,7 +416,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 
 	// Branch body has non-JSX statements: wrap everything in an arrow so the
 	// statements run when (and only when) the branch actually renders.
-	/** @type {any[]} */
+	/** @type {AST.Node[]} */
 	const block_body = [...statements];
 	if (children.length > 0 || !has_terminal_return) {
 		block_body.push(
@@ -394,13 +424,13 @@ function body_to_jsx_child(body_nodes, transform_context) {
 		);
 	}
 
-	const arrow = b.arrow([], b.block(block_body));
-	/** @type {any} */ (arrow.metadata).is_branch_arrow = true;
+	const arrow = b.arrow([], lowered_block(block_body));
+	arrow.metadata.is_branch_arrow = true;
 	return arrow;
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function is_bare_return_statement(node) {
@@ -408,15 +438,7 @@ function is_bare_return_statement(node) {
 }
 
 /**
- * @param {any} node
- * @returns {any[]}
- */
-function get_if_consequent_body(node) {
-	return node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-}
-
-/**
- * @param {any[]} body_nodes
+ * @param {AST.Node[]} body_nodes
  * @returns {boolean}
  */
 function body_has_loop_skip(body_nodes) {
@@ -426,7 +448,7 @@ function body_has_loop_skip(body_nodes) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function is_loop_statement(node) {
@@ -441,7 +463,7 @@ function is_loop_statement(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function is_solid_render_control(node) {
@@ -459,11 +481,11 @@ function is_solid_render_control(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is SolidRenderSource}
  */
 function is_solid_render_child(node) {
-	if (!is_jsx_child(node)) {
+	if (!node || !is_jsx_child(node)) {
 		return false;
 	}
 
@@ -479,20 +501,23 @@ function is_solid_render_child(node) {
 }
 
 /**
- * @template T
- * @param {T} node
- * @returns {T}
+ * @param {AST.Statement} node
+ * @returns {AST.Statement}
  */
 function mark_solid_render_control(node) {
-	const next = /** @type {any} */ (node);
-	next.metadata = { ...(next.metadata || {}), solid_render_control: true };
+	// Copy rather than mutate: cloned nodes can share a metadata object.
+	node.metadata = { ...node.metadata, solid_render_control: true };
 	return node;
 }
 
 /**
- * @param {any[] | any} node
+ * Walks arbitrary values because it recurses through every own property of the
+ * subtree, not just the typed child slots.
+ *
+ * @param {unknown} node
  * @param {TransformContext} transform_context
  * @param {boolean} [is_root]
+ * @returns {void}
  */
 function validate_for_body_control_flow(node, transform_context, is_root = true) {
 	if (Array.isArray(node)) {
@@ -510,38 +535,43 @@ function validate_for_body_control_flow(node, transform_context, is_root = true)
 		return;
 	}
 
-	if (is_template_if_node(node)) {
+	const current = /** @type {AST.TraversableAstNode} */ (node);
+
+	if (is_template_if_node(current)) {
 		return;
 	}
 
-	if (node.type === 'ReturnStatement') {
-		error(TSRX_FOR_RETURN_ERROR, transform_context.filename, node, transform_context.errors);
+	if (current.type === 'ReturnStatement') {
+		error(TSRX_FOR_RETURN_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
-	if (node.type === 'BreakStatement') {
-		error(TSRX_FOR_BREAK_ERROR, transform_context.filename, node, transform_context.errors);
+	if (current.type === 'BreakStatement') {
+		error(TSRX_FOR_BREAK_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
-	if (node.type === 'ContinueStatement') {
-		error(TSRX_FOR_CONTINUE_ERROR, transform_context.filename, node, transform_context.errors);
-		return;
-	}
-
-	if (is_function_or_class_boundary(node) || (!is_root && is_loop_statement(node))) {
+	if (current.type === 'ContinueStatement') {
+		error(TSRX_FOR_CONTINUE_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
 
-	for (const key of Object.keys(node)) {
+	if (is_function_or_class_boundary(current) || (!is_root && is_loop_statement(current))) {
+		return;
+	}
+
+	for (const key of Object.keys(current)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		validate_for_body_control_flow(node[key], transform_context, false);
+		validate_for_body_control_flow(current[key], transform_context, false);
 	}
 }
 
 /**
- * @param {any[] | any} node
+ * See {@link validate_for_body_control_flow} for why this walks `unknown`.
+ *
+ * @param {unknown} node
  * @param {TransformContext} transform_context
+ * @returns {void}
  */
 function validate_if_body_control_flow(node, transform_context) {
 	if (Array.isArray(node)) {
@@ -555,45 +585,48 @@ function validate_if_body_control_flow(node, transform_context) {
 		return;
 	}
 
-	if (node.type === 'ReturnStatement') {
-		error(TSRX_IF_RETURN_ERROR, transform_context.filename, node, transform_context.errors);
+	const current = /** @type {AST.TraversableAstNode} */ (node);
+
+	if (current.type === 'ReturnStatement') {
+		error(TSRX_IF_RETURN_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
-	if (node.type === 'BreakStatement') {
-		error(TSRX_IF_BREAK_ERROR, transform_context.filename, node, transform_context.errors);
+	if (current.type === 'BreakStatement') {
+		error(TSRX_IF_BREAK_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
-	if (node.type === 'ContinueStatement') {
-		error(TSRX_IF_CONTINUE_ERROR, transform_context.filename, node, transform_context.errors);
+	if (current.type === 'ContinueStatement') {
+		error(TSRX_IF_CONTINUE_ERROR, transform_context.filename, current, transform_context.errors);
 		return;
 	}
 
-	if (is_function_or_class_boundary(node)) {
+	if (is_function_or_class_boundary(current)) {
 		return;
 	}
 
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(current)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		validate_if_body_control_flow(node[key], transform_context);
+		validate_if_body_control_flow(current[key], transform_context);
 	}
 }
 
 /**
- * @param {any[]} body_nodes
+ * @param {AST.Node[]} body_nodes
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {AST.Node[]}
  */
 function loop_body_to_callback_statements(body_nodes, transform_context) {
-	/** @type {any[]} */
+	/** @type {AST.Node[]} */
 	const statements = [];
-	/** @type {any[]} */
+	/** @type {ESTreeJSX.JSXRenderChild[]} */
 	const children = [];
 
 	/**
-	 * @param {any} source_node
-	 * @param {any[]} render_nodes
+	 * @param {AST.Node | null | undefined} source_node
+	 * @param {ESTreeJSX.JSXRenderChild[]} render_nodes
+	 * @returns {AST.ReturnStatement}
 	 */
 	const create_return_statement = (source_node, render_nodes) => {
 		const cloned = render_nodes.map((node) => clone_ast_node(node));
@@ -601,7 +634,10 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 		return set_loc(b.return(argument), source_node);
 	};
 
-	/** @param {any} source_node */
+	/**
+	 * @param {AST.Node | null | undefined} source_node
+	 * @returns {AST.ReturnStatement}
+	 */
 	const flush_children_to_return = (source_node) => {
 		const statement = create_return_statement(source_node, children);
 		children.length = 0;
@@ -624,7 +660,9 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 				transform_context,
 			);
 			prepend_render_nodes_to_return_statements(branch_statements, children);
-			statements.push(set_loc(b.if(child.test, b.block(branch_statements), null), child));
+			statements.push(
+				set_loc(b.if(returning_if_info.test, lowered_block(branch_statements), null), child),
+			);
 			continue;
 		}
 
@@ -646,8 +684,8 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 }
 
 /**
- * @param {any[]} statements
- * @param {any[]} render_nodes
+ * @param {AST.Node[]} statements
+ * @param {ESTreeJSX.JSXRenderChild[]} render_nodes
  * @returns {void}
  */
 function prepend_render_nodes_to_return_statements(statements, render_nodes) {
@@ -661,8 +699,10 @@ function prepend_render_nodes_to_return_statements(statements, render_nodes) {
 }
 
 /**
- * @param {any} node
- * @param {any[]} render_nodes
+ * See {@link validate_for_body_control_flow} for why this walks `unknown`.
+ *
+ * @param {unknown} node
+ * @param {ESTreeJSX.JSXRenderChild[]} render_nodes
  * @param {boolean} inside_nested_function
  * @returns {void}
  */
@@ -671,16 +711,18 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
 		return;
 	}
 
+	const current = /** @type {AST.TraversableAstNode} */ (node);
+
 	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
+		current.type === 'FunctionDeclaration' ||
+		current.type === 'FunctionExpression' ||
+		current.type === 'ArrowFunctionExpression'
 	) {
 		inside_nested_function = true;
 	}
 
-	if (!inside_nested_function && node.type === 'ReturnStatement') {
-		node.argument = combine_render_return_argument(render_nodes, node.argument);
+	if (!inside_nested_function && current.type === 'ReturnStatement') {
+		current.argument = combine_render_return_argument(render_nodes, current.argument);
 		return;
 	}
 
@@ -691,18 +733,18 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
 		return;
 	}
 
-	for (const key of Object.keys(node)) {
+	for (const key of Object.keys(current)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		prepend_render_nodes_to_return_statement(node[key], render_nodes, inside_nested_function);
+		prepend_render_nodes_to_return_statement(current[key], render_nodes, inside_nested_function);
 	}
 }
 
 /**
- * @param {any[]} render_nodes
- * @param {any} return_argument
- * @returns {any}
+ * @param {ESTreeJSX.JSXRenderChild[]} render_nodes
+ * @param {AST.Expression | null | undefined} return_argument
+ * @returns {AST.Expression}
  */
 function combine_render_return_argument(render_nodes, return_argument) {
 	const combined = render_nodes.map((node) => clone_ast_node(node));
@@ -715,8 +757,8 @@ function combine_render_return_argument(render_nodes, return_argument) {
 }
 
 /**
- * @param {any} argument
- * @returns {any}
+ * @param {AST.Expression | ESTreeJSX.JSXExpressionContainer} argument
+ * @returns {ESTreeJSX.JSXRenderChild}
  */
 function return_argument_to_render_node(argument) {
 	if (
@@ -731,7 +773,7 @@ function return_argument_to_render_node(argument) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function is_null_literal(node) {
@@ -742,7 +784,7 @@ function is_null_literal(node) {
  * Solid-specific binding of the core `isInterleavedBody` helper with this
  * target's render-child predicate.
  *
- * @param {any[]} body_nodes
+ * @param {AST.Node[]} body_nodes
  * @returns {boolean}
  */
 function is_interleaved_body(body_nodes) {
@@ -750,14 +792,14 @@ function is_interleaved_body(body_nodes) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
+ * @param {AST.Node | null | undefined} node
+ * @returns {node is SolidBranchArrow}
  */
 function is_branch_arrow(node) {
 	return (
-		node &&
+		!!node &&
 		node.type === 'ArrowFunctionExpression' &&
-		node.metadata &&
+		!!node.metadata &&
 		node.metadata.is_branch_arrow === true
 	);
 }
@@ -771,8 +813,9 @@ function is_branch_arrow(node) {
  *
  * If the input isn't a branch arrow, it's returned unchanged.
  *
- * @param {any} node
- * @returns {any}
+ * @template {AST.Expression} T
+ * @param {T} node
+ * @returns {T | SolidBranchArrow}
  */
 function to_function_child(node) {
 	if (!is_branch_arrow(node)) return node;
@@ -788,9 +831,9 @@ function to_function_child(node) {
  * to `<Errored fallback>`). Returns the arrow with its body replaced by the
  * merged block.
  *
- * @param {any} outer_arrow
- * @param {any} branch_body
- * @returns {any}
+ * @param {AST.ArrowFunctionExpression} outer_arrow
+ * @param {AST.Expression} branch_body
+ * @returns {AST.ArrowFunctionExpression}
  */
 function merge_branch_body_into_arrow(outer_arrow, branch_body) {
 	if (!is_branch_arrow(branch_body)) {
@@ -806,8 +849,8 @@ function merge_branch_body_into_arrow(outer_arrow, branch_body) {
 /**
  * Detect a top-level `if` branch with a bare `return` and no `else` branch.
  *
- * @param {any} node
- * @returns {{ consequent_body: any[], return_index: number } | null}
+ * @param {AST.Node | null | undefined} node
+ * @returns {SolidReturningIf | null}
  */
 function get_returning_if_info(node) {
 	if (!node || node.type !== 'IfStatement' || node.alternate) return null;
@@ -816,6 +859,7 @@ function get_returning_if_info(node) {
 
 	if (is_bare_return_statement(consequent)) {
 		return {
+			test: node.test,
 			consequent_body: [consequent],
 			return_index: 0,
 		};
@@ -825,6 +869,7 @@ function get_returning_if_info(node) {
 		const return_index = consequent.body.findIndex(is_bare_return_statement);
 		if (return_index !== -1) {
 			return {
+				test: node.test,
 				consequent_body: consequent.body,
 				return_index,
 			};
@@ -838,8 +883,9 @@ function get_returning_if_info(node) {
  * Wrap a branch arrow in an IIFE so it can be used as a prop value (e.g.
  * `<Show fallback={...}>`). Returns non-arrow inputs unchanged.
  *
- * @param {any} node
- * @returns {any}
+ * @template {AST.Expression} T
+ * @param {T} node
+ * @returns {T | AST.CallExpression}
  */
 function iife_if_arrow(node) {
 	if (!is_branch_arrow(node)) return node;
@@ -885,7 +931,9 @@ function if_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_switch = true;
 	transform_context.needs_match = true;
 
+	/** @type {AST.Expression | null} */
 	let fallback = null;
+	/** @type {SolidIfTestBranch[]} */
 	const match_branches = [];
 	for (const branch of branches) {
 		if (branch.test === null) {
@@ -898,26 +946,17 @@ function if_statement_to_jsx_child(node, transform_context) {
 	const attributes =
 		fallback !== null
 			? [
-					{
-						type: 'JSXAttribute',
-						name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-						value: to_jsx_expression_container(iife_if_arrow(fallback)),
-						metadata: { path: [] },
-					},
+					b.jsx_attribute(
+						b.jsx_id('fallback'),
+						to_jsx_expression_container(iife_if_arrow(fallback)),
+					),
 				]
 			: [];
 
 	const children = match_branches.map((branch) =>
 		create_jsx_element(
 			'Match',
-			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
-					value: to_jsx_expression_container(branch.test),
-					metadata: { path: [] },
-				},
-			],
+			[b.jsx_attribute(b.jsx_id('when'), to_jsx_expression_container(branch.test))],
 			[jsx_child_wrap(to_function_child(body_to_jsx_child(branch.body, transform_context)))],
 		),
 	);
@@ -929,12 +968,13 @@ function if_statement_to_jsx_child(node, transform_context) {
  * Flatten an if/else-if chain into an array of `{ test, body }` branches.
  * The final `else` (if present) is represented as `{ test: null, body }`.
  *
- * @param {any} node
- * @returns {{ test: any, body: any[] }[]}
+ * @param {AST.IfStatement} node
+ * @returns {[SolidIfTestBranch, ...SolidIfBranch[]]}
  */
 function flatten_if_chain(node) {
+	/** @type {SolidIfBranch[]} */
 	const branches = [];
-	/** @type {any} */
+	/** @type {AST.Statement | null | undefined} */
 	let current = node;
 	while (current && current.type === 'IfStatement') {
 		const consequent_body =
@@ -951,31 +991,22 @@ function flatten_if_chain(node) {
 		}
 		break;
 	}
-	return branches;
+	// The chain starts at an `IfStatement`, so the first arm always has a test.
+	return /** @type {[SolidIfTestBranch, ...SolidIfBranch[]]} */ (branches);
 }
 
 /**
- * @param {any} test
- * @param {any} children
- * @param {any} fallback
- * @returns {any}
+ * @param {AST.Expression} test
+ * @param {AST.Expression} children
+ * @param {AST.Expression | null | undefined} fallback
+ * @returns {AST.TSRXJSXElement}
  */
 function build_show_element(test, children, fallback) {
-	const attributes = [
-		{
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
-			value: to_jsx_expression_container(test),
-			metadata: { path: [] },
-		},
-	];
+	const attributes = [b.jsx_attribute(b.jsx_id('when'), to_jsx_expression_container(test))];
 	if (fallback !== null && fallback !== undefined) {
-		attributes.push({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-			value: to_jsx_expression_container(iife_if_arrow(fallback)),
-			metadata: { path: [] },
-		});
+		attributes.push(
+			b.jsx_attribute(b.jsx_id('fallback'), to_jsx_expression_container(iife_if_arrow(fallback))),
+		);
 	}
 	return create_jsx_element('Show', attributes, [jsx_child_wrap(to_function_child(children))]);
 }
@@ -995,7 +1026,7 @@ function build_show_element(test, children, fallback) {
  *
  * @param {AST.ForOfStatement} node
  * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXElement}
+ * @returns {AST.TSRXJSXElement}
  */
 function for_of_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_for = true;
@@ -1010,7 +1041,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	if (body_has_loop_skip(loop_body)) {
 		arrow = b.arrow(
 			loop_params,
-			b.block(loop_body_to_callback_statements(loop_body, transform_context)),
+			lowered_block(loop_body_to_callback_statements(loop_body, transform_context)),
 		);
 	} else {
 		// Placeholder body — merge_branch_body_into_arrow replaces it below.
@@ -1071,9 +1102,9 @@ function switch_statement_to_jsx_child(node, transform_context) {
 
 	const { case_info, case_helpers, setup_statements } = plan_switch_lift(node, transform_context);
 
-	/** @type {any} */
+	/** @type {AST.Expression | null} */
 	let fallback = null;
-	/** @type {Array<{ test: any, body_jsx: any }>} */
+	/** @type {SolidMatchEntry[]} */
 	const match_entries = [];
 
 	for (let i = 0; i < node.cases.length; i++) {
@@ -1081,7 +1112,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 		const info = case_info[i];
 		const helper = case_helpers[i];
 
-		/** @type {any} */
+		/** @type {AST.Expression} */
 		let body_jsx;
 		if (helper) {
 			// Lifted case: render the helper element directly. Use the
@@ -1117,14 +1148,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 	const match_children = match_entries.map(({ test, body_jsx }) =>
 		create_jsx_element(
 			'Match',
-			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
-					value: to_jsx_expression_container(test),
-					metadata: { path: [] },
-				},
-			],
+			[b.jsx_attribute(b.jsx_id('when'), to_jsx_expression_container(test))],
 			[jsx_child_wrap(to_function_child(body_jsx))],
 		),
 	);
@@ -1132,12 +1156,10 @@ function switch_statement_to_jsx_child(node, transform_context) {
 	const attributes =
 		fallback !== null
 			? [
-					{
-						type: 'JSXAttribute',
-						name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-						value: to_jsx_expression_container(iife_if_arrow(fallback)),
-						metadata: { path: [] },
-					},
+					b.jsx_attribute(
+						b.jsx_id('fallback'),
+						to_jsx_expression_container(iife_if_arrow(fallback)),
+					),
 				]
 			: [];
 
@@ -1189,7 +1211,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	}
 
 	const try_body_nodes = node.block.body || [];
-	/** @type {any} */
+	/** @type {ESTreeJSX.JSXRenderChild} */
 	let result = jsx_child_wrap(iife_if_arrow(body_to_jsx_child(try_body_nodes, transform_context)));
 
 	if (pending) {
@@ -1200,12 +1222,10 @@ function try_statement_to_jsx_child(node, transform_context) {
 		result = create_jsx_element(
 			'Loading',
 			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: to_jsx_expression_container(iife_if_arrow(fallback_content)),
-					metadata: { path: [] },
-				},
+				b.jsx_attribute(
+					b.jsx_id('fallback'),
+					to_jsx_expression_container(iife_if_arrow(fallback_content)),
+				),
 			],
 			[result],
 		);
@@ -1214,6 +1234,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (handler) {
 		transform_context.needs_errored = true;
 
+		/** @type {AST.Pattern[]} */
 		const catch_params = [];
 		if (handler.param) catch_params.push(handler.param);
 		else catch_params.push(create_generated_identifier('_error'));
@@ -1242,44 +1263,28 @@ function try_statement_to_jsx_child(node, transform_context) {
  * If `child` is already a JSX child node return it; otherwise wrap in
  * a JSXExpressionContainer so it can live inside a JSX element's children list.
  *
- * @param {any} child
- * @returns {any}
+ * @param {AST.Expression} child
+ * @returns {ESTreeJSX.JSXRenderChild}
  */
 function jsx_child_wrap(child) {
-	if (!child) return child;
 	if (child.type === 'JSXElement' || child.type === 'JSXFragment') return child;
 	return to_jsx_expression_container(child);
 }
 
 /**
  * @param {string} tag_name
- * @param {any[]} attributes
- * @param {any[]} children
- * @returns {any}
+ * @param {ESTreeJSX.JSXAttributeNode[]} attributes
+ * @param {AST.Node[]} children
+ * @returns {AST.TSRXJSXElement}
  */
 function create_jsx_element(tag_name, attributes, children) {
-	const name = { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } };
 	const filtered_children = children.filter(Boolean);
-	return {
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing: filtered_children.length === 0,
-			metadata: { path: [] },
-		},
-		closingElement:
-			filtered_children.length > 0
-				? {
-						type: 'JSXClosingElement',
-						name: { type: 'JSXIdentifier', name: tag_name, metadata: { path: [] } },
-						metadata: { path: [] },
-					}
-				: null,
-		children: filtered_children,
-		metadata: { path: [] },
-	};
+	const self_closing = filtered_children.length === 0;
+	return b.jsx_element_fresh(
+		b.jsx_opening_element(b.jsx_id(tag_name), attributes, self_closing),
+		self_closing ? null : b.jsx_closing_element(b.jsx_id(tag_name)),
+		filtered_children,
+	);
 }
 
 // =====================================================================
@@ -1302,19 +1307,21 @@ function create_jsx_element(tag_name, attributes, children) {
  * @returns {void}
  */
 function rewrite_solid_native_component_control_flow(program, transform_context) {
-	const rewritten = walk(/** @type {any} */ (program), transform_context, {
+	// `next()` returns the visited node of the same kind, which zimmerframe's
+	// signature widens back to the whole node union.
+	const rewritten = walk(/** @type {AST.Node} */ (program), transform_context, {
 		FunctionDeclaration(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
+			const inner = /** @type {AST.FunctionDeclaration} */ (next() ?? node);
 			rewrite_solid_native_component_function(inner, path.at(-1), state);
 			return inner;
 		},
 		FunctionExpression(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
+			const inner = /** @type {AST.FunctionExpression} */ (next() ?? node);
 			rewrite_solid_native_component_function(inner, path.at(-1), state);
 			return inner;
 		},
 		ArrowFunctionExpression(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
+			const inner = /** @type {AST.ArrowFunctionExpression} */ (next() ?? node);
 			rewrite_solid_native_component_function(inner, path.at(-1), state);
 			return inner;
 		},
@@ -1324,8 +1331,8 @@ function rewrite_solid_native_component_control_flow(program, transform_context)
 }
 
 /**
- * @param {any} fn
- * @param {any} parent
+ * @param {SolidFunctionLike} fn
+ * @param {AST.Node | undefined} parent
  * @param {TransformContext} transform_context
  * @returns {void}
  */
@@ -1355,7 +1362,7 @@ function rewrite_solid_native_component_function(fn, parent, transform_context) 
 	transform_context.available_bindings = body_bindings;
 
 	try {
-		fn.body = b.block(
+		fn.body = lowered_block(
 			solid_component_body_nodes_to_function_statements(effective_body, transform_context),
 			fn.body,
 		);
@@ -1365,11 +1372,11 @@ function rewrite_solid_native_component_function(fn, parent, transform_context) 
 }
 
 /**
- * @param {any[]} statements
- * @returns {{ nodes: any[], terminal: boolean, changed: boolean }}
+ * @param {AST.Node[]} statements
+ * @returns {SolidLoweredList}
  */
 function lower_solid_component_statement_list(statements) {
-	/** @type {any[]} */
+	/** @type {AST.Node[]} */
 	const nodes = [];
 	let changed = false;
 
@@ -1410,7 +1417,7 @@ function lower_solid_component_statement_list(statements) {
  * — through `if`/`switch`/`try`/block structure but not into nested functions,
  * JSX, or expressions. This is what the lowering treats as a render-affecting
  * terminal, so such control flow stays reactive even when written as plain JS.
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function control_flow_has_render_throw(node) {
@@ -1428,7 +1435,7 @@ function control_flow_has_render_throw(node) {
 				control_flow_has_render_throw(node.alternate)
 			);
 		case 'SwitchStatement':
-			return (node.cases || []).some((/** @type {any} */ switch_case) =>
+			return (node.cases || []).some((switch_case) =>
 				(switch_case.consequent || []).some(control_flow_has_render_throw),
 			);
 		case 'TryStatement':
@@ -1444,9 +1451,9 @@ function control_flow_has_render_throw(node) {
 }
 
 /**
- * @param {any} statement
- * @param {any[]} rest
- * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ * @param {AST.Node} statement
+ * @param {AST.Node[]} rest
+ * @returns {SolidLoweredStatement | null}
  */
 function lower_solid_component_control_statement(statement, rest) {
 	// A plain guard that *returns* JSX is ordinary JavaScript and must behave
@@ -1488,7 +1495,7 @@ function lower_solid_component_control_statement(statement, rest) {
 		const next_for = b.for_of(
 			statement.left,
 			statement.right,
-			b.block(lowered_body.nodes, statement.body),
+			lowered_block(lowered_body.nodes, statement.body),
 			statement.await,
 		);
 		next_for.index = statement.index;
@@ -1503,9 +1510,9 @@ function lower_solid_component_control_statement(statement, rest) {
 }
 
 /**
- * @param {any} node
- * @param {any[]} rest
- * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ * @param {AST.IfStatement} node
+ * @param {AST.Node[]} rest
+ * @returns {SolidLoweredStatement | null}
  */
 function lower_solid_component_if_statement(node, rest) {
 	const consequent = lower_solid_component_statement_list(get_statement_body(node.consequent));
@@ -1525,8 +1532,8 @@ function lower_solid_component_if_statement(node, rest) {
 				set_loc(
 					b.if(
 						node.test,
-						b.block(consequent.nodes, node.consequent),
-						b.block(alternate.nodes, node.alternate),
+						lowered_block(consequent.nodes, node.consequent),
+						lowered_block(alternate.nodes, node.alternate),
 					),
 					node,
 				),
@@ -1542,8 +1549,11 @@ function lower_solid_component_if_statement(node, rest) {
 				set_loc(
 					b.if(
 						node.test,
-						b.block(consequent.nodes, node.consequent),
-						b.block([...(alternate?.nodes || []), ...rest_result.nodes], node.alternate || node),
+						lowered_block(consequent.nodes, node.consequent),
+						lowered_block(
+							[...(alternate?.nodes || []), ...rest_result.nodes],
+							node.alternate || node,
+						),
 					),
 					node,
 				),
@@ -1559,8 +1569,8 @@ function lower_solid_component_if_statement(node, rest) {
 				set_loc(
 					b.if(
 						node.test,
-						b.block([...consequent.nodes, ...rest_result.nodes], node.consequent),
-						b.block(alternate.nodes, node.alternate),
+						lowered_block([...consequent.nodes, ...rest_result.nodes], node.consequent),
+						lowered_block(alternate.nodes, node.alternate),
 					),
 					node,
 				),
@@ -1575,8 +1585,8 @@ function lower_solid_component_if_statement(node, rest) {
 			set_loc(
 				b.if(
 					node.test,
-					b.block(consequent.nodes, node.consequent),
-					node.alternate ? b.block(alternate?.nodes || [], node.alternate) : null,
+					lowered_block(consequent.nodes, node.consequent),
+					node.alternate ? lowered_block(alternate?.nodes || [], node.alternate) : null,
 				),
 				node,
 			),
@@ -1586,9 +1596,9 @@ function lower_solid_component_if_statement(node, rest) {
 }
 
 /**
- * @param {any} node
- * @param {any[]} rest
- * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ * @param {AST.SwitchStatement} node
+ * @param {AST.Node[]} rest
+ * @returns {SolidLoweredStatement | null}
  */
 function lower_solid_component_switch_statement(node, rest) {
 	let has_default = false;
@@ -1596,8 +1606,8 @@ function lower_solid_component_switch_statement(node, rest) {
 	let all_cases_terminal = node.cases.length > 0;
 
 	const rest_result = rest.length > 0 ? lower_solid_component_statement_list(rest) : null;
-	/** @type {Array<{ switch_case: any, lowered: { nodes: any[], terminal: boolean, changed: boolean } }>} */
-	const lowered_cases = node.cases.map((/** @type {any} */ switch_case) => {
+	/** @type {Array<{ switch_case: AST.SwitchCase, lowered: SolidLoweredList }>} */
+	const lowered_cases = node.cases.map((switch_case) => {
 		if (switch_case.test === null) {
 			has_default = true;
 		}
@@ -1632,11 +1642,11 @@ function lower_solid_component_switch_statement(node, rest) {
 
 		all_cases_terminal &&= case_terminal;
 
-		return set_loc(b.switch_case(switch_case.test, next_consequent), switch_case);
+		return set_loc(lowered_switch_case(switch_case.test, next_consequent), switch_case);
 	});
 
 	if (!has_default && rest_result) {
-		cases.push(b.switch_case(null, rest_result.nodes));
+		cases.push(lowered_switch_case(null, rest_result.nodes));
 		has_default = true;
 		consumes_rest = true;
 		all_cases_terminal &&= rest_result.terminal;
@@ -1652,10 +1662,10 @@ function lower_solid_component_switch_statement(node, rest) {
 }
 
 /**
- * @param {any[]} case_nodes
- * @param {any[]} rest_nodes
+ * @param {AST.Node[]} case_nodes
+ * @param {AST.Node[]} rest_nodes
  * @param {boolean} is_last_case
- * @returns {any[]}
+ * @returns {AST.Node[]}
  */
 function merge_switch_rest_into_exiting_case(case_nodes, rest_nodes, is_last_case) {
 	const break_index = case_nodes.findIndex((node) => node?.type === 'BreakStatement');
@@ -1675,17 +1685,17 @@ function merge_switch_rest_into_exiting_case(case_nodes, rest_nodes, is_last_cas
 }
 
 /**
- * @param {any[]} nodes
- * @returns {any[]}
+ * @param {AST.Node[]} nodes
+ * @returns {AST.Node[]}
  */
 function clone_switch_rest_nodes(nodes) {
 	return nodes.map((node) => clone_ast_node(node, false));
 }
 
 /**
- * @param {any} node
- * @param {any[]} rest
- * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ * @param {AST.TryStatement} node
+ * @param {AST.Node[]} rest
+ * @returns {SolidLoweredStatement | null}
  */
 function lower_solid_component_try_statement(node, rest) {
 	const try_body = lower_solid_component_statement_list(node.block?.body || []);
@@ -1712,28 +1722,30 @@ function lower_solid_component_try_statement(node, rest) {
 			? b.catch_clause(
 					node.handler.param,
 					node.handler.resetParam,
-					b.block(catch_body.nodes, node.handler.body),
-					node.handler,
+					lowered_block(catch_body.nodes, node.handler.body),
+					has_location(node.handler) ? node.handler : undefined,
 				)
 			: node.handler;
-	const pending = node.pending ? b.block(pending_body?.nodes || [], node.pending) : null;
+	const pending = node.pending ? lowered_block(pending_body?.nodes || [], node.pending) : null;
 	const finalizer = node.finalizer;
 
 	return {
 		node: mark_solid_render_control(
-			set_loc(b.try(b.block(try_body.nodes, node.block), handler, finalizer, pending), node),
+			set_loc(b.try(lowered_block(try_body.nodes, node.block), handler, finalizer, pending), node),
 		),
 		terminal: try_body.terminal && (!handler || !!catch_body?.terminal),
 	};
 }
 
 /**
- * @param {any[]} body_nodes
+ * @param {AST.Node[]} body_nodes
  * @param {TransformContext} transform_context
- * @returns {AST.Statement[]}
+ * @returns {AST.Node[]}
  */
 function solid_component_body_nodes_to_function_statements(body_nodes, transform_context) {
+	/** @type {AST.Node[]} */
 	const statements = [];
+	/** @type {ESTreeJSX.JSXRenderChild[]} */
 	const render_nodes = [];
 	const interleaved = is_interleaved_body(body_nodes);
 	let capture_index = 0;
@@ -1770,8 +1782,8 @@ function solid_component_body_nodes_to_function_statements(body_nodes, transform
 }
 
 /**
- * @param {any} statement
- * @returns {any[] | null}
+ * @param {AST.Node | null | undefined} statement
+ * @returns {AST.Expression[] | null}
  */
 function return_statement_to_render_nodes(statement) {
 	if (!statement || statement.type !== 'ReturnStatement') {
@@ -1786,7 +1798,7 @@ function return_statement_to_render_nodes(statement) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Expression} node
  * @returns {boolean}
  */
 function is_nullish_render_return(node) {
@@ -1798,8 +1810,8 @@ function is_nullish_render_return(node) {
 }
 
 /**
- * @param {any} node
- * @returns {any[]}
+ * @param {AST.Statement | null | undefined} node
+ * @returns {AST.Node[]}
  */
 function get_statement_body(node) {
 	if (!node) return [];
@@ -1808,7 +1820,7 @@ function get_statement_body(node) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function is_render_expression_statement(node) {
@@ -1816,15 +1828,17 @@ function is_render_expression_statement(node) {
 }
 
 /**
- * @param {any} node
- * @returns {any | null}
+ * @param {AST.Node | null | undefined} node
+ * @returns {ESTreeJSX.JSXRenderChild | null}
  */
 function render_expression_statement_to_node(node) {
 	if (node?.type !== 'ExpressionStatement') {
 		return null;
 	}
 
-	const expression = node.expression;
+	// The pre-passes can leave a lowered JSX child in an expression slot, which
+	// estree's `Expression` union has no room for.
+	const expression = /** @type {SolidRenderNode} */ (node.expression);
 	if (
 		expression?.type === 'JSXElement' ||
 		expression?.type === 'JSXFragment' ||
@@ -1837,12 +1851,12 @@ function render_expression_statement_to_node(node) {
 }
 
 /**
- * @param {any} fn
- * @param {any} parent
+ * @param {SolidFunctionLike} fn
+ * @param {AST.Node | undefined} parent
  * @returns {string | null}
  */
 function get_function_like_name(fn, parent) {
-	if (fn.id?.type === 'Identifier') {
+	if ('id' in fn && fn.id?.type === 'Identifier') {
 		return fn.id.name;
 	}
 
@@ -1866,7 +1880,7 @@ function get_function_like_name(fn, parent) {
 }
 
 /**
- * @param {any} node
+ * @param {AST.Node | null | undefined} node
  * @returns {string | null}
  */
 function get_static_binding_name(node) {
@@ -1880,7 +1894,7 @@ function get_static_binding_name(node) {
 }
 
 /**
- * @param {any} key
+ * @param {AST.Node | null | undefined} key
  * @returns {string | null}
  */
 function get_static_property_name(key) {
@@ -1892,21 +1906,6 @@ function get_static_property_name(key) {
 	}
 	return null;
 }
-
-/**
- * @param {any} expr
- * @returns {any}
- */
-function negate_expression(expr) {
-	if (expr?.type === 'UnaryExpression' && expr.operator === '!') {
-		return clone_ast_node(expr.argument);
-	}
-
-	return b.unary('!', clone_ast_node(expr));
-}
-
-const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
 /**
  * Inject `import { Show, For, Switch, Match, Errored, Loading } from 'solid-js'`
@@ -2017,26 +2016,20 @@ function to_jsx_element(node, transform_context) {
 				node.closingElement || node,
 			);
 
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXElement',
-			openingElement,
-			closingElement,
-			children,
-			// Keep lowered dynamic tags recognizable to scoped-CSS passes and
-			// the static-hoist veto after the rebuild.
-			...(node.metadata?.dynamicElement === true
-				? { metadata: { path: [], dynamicElement: true } }
-				: null),
-		}),
-		node,
-	);
+	const element = b.jsx_element_fresh(openingElement, closingElement, children);
+	// Keep lowered dynamic tags recognizable to scoped-CSS passes and the
+	// static-hoist veto after the rebuild.
+	if (node.metadata?.dynamicElement === true) {
+		element.metadata.dynamicElement = true;
+	}
+
+	return set_loc(element, node);
 }
 
 /**
- * @param {any[]} children
+ * @param {AST.Node[]} children
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {AST.Node[]}
  */
 function create_element_children(children, transform_context) {
 	const visible_children = children;
@@ -2050,16 +2043,14 @@ function create_element_children(children, transform_context) {
 	// their locals scope to the block, matching the authored intent of
 	// mid-template locals.
 	const has_non_jsx_child = visible_children.some(
-		(/** @type {any} */ child) => child && !is_solid_render_child(child),
+		(child) => child && !is_solid_render_child(child),
 	);
 	if (has_non_jsx_child) {
 		const body_jsx = body_to_jsx_child(visible_children, transform_context);
 		return [jsx_child_wrap(iife_if_arrow(body_jsx))];
 	}
 
-	return visible_children
-		.map((/** @type {any} */ child) => to_jsx_child(child, transform_context))
-		.filter(Boolean);
+	return visible_children.map((child) => to_jsx_child(child, transform_context)).filter(Boolean);
 }
 
 /**
@@ -2082,55 +2073,59 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 }
 
 /**
- * @param {any[]} attrs
+ * @param {ESTreeJSX.JSXAttributeNode[]} attrs
  * @param {boolean} is_host
  * @param {TransformContext} transform_context
- * @returns {any[]}
+ * @returns {ESTreeJSX.JSXAttributeNode[]}
  */
 function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
 	if (!is_host) return attrs;
 
-	const ref_exprs = attrs
-		.filter((attr) => is_solid_jsx_ref_attribute(attr))
-		.map((attr) => attr.value.expression);
-	const needs_synthetic_spread_ref = ref_exprs.length > 0;
+	const needs_synthetic_spread_ref = attrs.some(is_solid_jsx_ref_attribute);
 
-	return attrs.flatMap((attr) => {
-		if (!attr || attr.type !== 'JSXSpreadAttribute') {
-			return [attr];
-		}
+	return attrs.flatMap(
+		/**
+		 * @param {ESTreeJSX.JSXAttributeNode} attr
+		 * @returns {ESTreeJSX.JSXAttributeNode[]}
+		 */
+		(attr) => {
+			if (!attr || attr.type !== 'JSXSpreadAttribute') {
+				return [attr];
+			}
 
-		transform_context.needs_normalize_spread_props = true;
-		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
+			transform_context.needs_normalize_spread_props = true;
+			const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
 
-		if (needs_synthetic_spread_ref) {
-			const normalized_id = create_generated_identifier(
-				create_solid_spread_props_name(transform_context),
-			);
-			const spread = {
-				...attr,
-				argument: clone_identifier(normalized_id),
-			};
-			const ref_attr = b.jsx_attribute(
-				b.jsx_id('ref'),
-				b.jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), attr),
-				false,
-				attr,
-			);
-			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
-			/** @type {any} */ (ref_attr.metadata).synthetic_ref = true;
-			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
+			if (needs_synthetic_spread_ref) {
+				const normalized_id = create_generated_identifier(
+					create_solid_spread_props_name(transform_context),
+				);
+				/** @type {ESTreeJSX.JSXSpreadAttribute} */
+				const spread = {
+					...attr,
+					argument: clone_identifier(normalized_id),
+				};
+				const loc_info = has_location(attr) ? attr : undefined;
+				const ref_attr = b.jsx_attribute(
+					b.jsx_id('ref'),
+					b.jsx_expression_container(b.member(clone_identifier(normalized_id), 'ref'), loc_info),
+					false,
+					loc_info,
+				);
+				ref_attr.metadata = { ...ref_attr.metadata, synthetic_ref: true };
+				add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
-			return [spread, ref_attr];
-		}
+				return [spread, ref_attr];
+			}
 
-		return [
-			{
-				...attr,
-				argument: normalized,
-			},
-		];
-	});
+			return [
+				{
+					...attr,
+					argument: normalized,
+				},
+			];
+		},
+	);
 }
 
 /**
@@ -2148,8 +2143,8 @@ function create_solid_spread_props_name(transform_context) {
 }
 
 /**
- * @param {any} attr
- * @returns {boolean}
+ * @param {ESTreeJSX.JSXAttributeNode | null | undefined} attr
+ * @returns {attr is ESTreeJSX.JSXRefAttribute}
  */
 function is_solid_jsx_ref_attribute(attr) {
 	return !!(
@@ -2169,16 +2164,38 @@ function is_solid_jsx_ref_attribute(attr) {
 
 /**
  * @param {AST.Expression} expression
- * @param {any} [source_node]
- * @returns {any}
+ * @param {AST.Node | AST.NodeWithLocation | null | undefined} [source_node]
+ * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXExpressionContainer',
-			expression: /** @type {any} */ (expression),
-			metadata: { path: [] },
-		}),
-		source_node,
+	return set_loc(b.jsx_expression_container(expression), source_node);
+}
+
+/**
+ * `b.block` for a statement list that is still mid-lowering — see
+ * {@link SolidLoweredList}. The list is narrowed back to real statements by
+ * {@link solid_component_body_nodes_to_function_statements} (component bodies)
+ * or {@link body_to_jsx_child} (branch bodies) before it reaches the printer.
+ *
+ * @param {AST.Node[]} nodes
+ * @param {AST.Node | null | undefined} [loc_info]
+ * @returns {AST.BlockStatement}
+ */
+function lowered_block(nodes, loc_info) {
+	return b.block(
+		/** @type {AST.Statement[]} */ (nodes),
+		has_location(loc_info) ? loc_info : undefined,
 	);
+}
+
+/**
+ * `b.switch_case` for a case body that is still mid-lowering. See
+ * {@link lowered_block}.
+ *
+ * @param {AST.Expression | null | undefined} test
+ * @param {AST.Node[]} consequent
+ * @returns {AST.SwitchCase}
+ */
+function lowered_switch_case(test, consequent) {
+	return b.switch_case(test ?? null, /** @type {AST.Statement[]} */ (consequent));
 }

@@ -27,6 +27,7 @@
     "@tsrx/ripple": "workspace:*",
     "@tsrx/solid": "workspace:*",
     "@tsrx/vue": "workspace:*",
+    "octane": "^0.1.6",
     "prettier": "catalog:",
     "shiki": "catalog:"
   },

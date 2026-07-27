@@ -9,7 +9,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'feature-card',
 		label: 'Feature card',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `export function FeatureCard({
   title,
   items,
@@ -79,7 +79,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) @{
   @if (status === 'active') {
     <span class="badge active">Online</span>
@@ -93,7 +93,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function TodoList({ items }: { items: { text: string }[] }) @{
   <ul>
     @for (const item of items; index i) {
@@ -105,7 +105,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
     @case 'loading': {
@@ -123,7 +123,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'error-boundary',
 		label: 'Error boundary',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function SafeProfile({ userId }: { userId: string }) @{
   @try {
     <UserProfile id={userId} />
@@ -137,7 +137,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	{
 		value: 'async-boundary',
 		label: 'Async boundary',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
 export function App() @{
@@ -151,7 +151,7 @@ export function App() @{
 	{
 		value: 'async-boundary-error',
 		label: 'Async + Error boundary',
-		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		targets: ['octane', 'react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
 export function App() @{
@@ -186,6 +186,27 @@ export function App() @{
     </style>
   </>
 }`,
+	},
+	{
+		value: 'octane-starter',
+		label: 'Octane starter',
+		targets: ['octane'],
+		source: `import { useEffect, useState } from 'octane';
+
+function App() @{
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = \`Count: \${count}\`;
+  });
+
+  <main>
+    <h1>Hello from TSRX + Octane</h1>
+    <button onClick={() => setCount(count + 1)}>Count: {count}</button>
+  </main>
+}
+
+export default App;`,
 	},
 	{
 		value: 'vue-starter',

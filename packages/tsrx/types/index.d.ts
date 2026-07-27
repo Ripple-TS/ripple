@@ -188,6 +188,17 @@ export interface BaseNodeMetaData {
 	/** Top-level scoped classes collected while pruning the component's CSS. */
 	topScopedClasses?: TopScopedClasses;
 	vapor_pending_fallback?: ESTreeJSX.JSXRenderNode;
+	/**
+	 * Solid: control flow that must lower into a reactive `<Show>`/`<For>`/
+	 * `<Switch>` rather than run once at setup time.
+	 */
+	solid_render_control?: boolean;
+	/**
+	 * Solid: a `() => { …; return jsx; }` wrapper built for a branch body that
+	 * carries setup statements, so the statements run only when the branch
+	 * renders. Callers place or inline the arrow depending on the slot.
+	 */
+	is_branch_arrow?: boolean;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
 		generated: AST.Identifier | AST.Literal;

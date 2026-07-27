@@ -10,6 +10,6 @@ export interface TsrxErrorBoundaryState {
 }
 
 export class TsrxErrorBoundary extends Component<TsrxErrorBoundaryProps, TsrxErrorBoundaryState> {
-	static getDerivedStateFromError(error: Error): { error: Error };
+	static getDerivedStateFromError(error: Error): TsrxErrorBoundaryState;
 	render(): ComponentChildren | VNode;
 }

@@ -53,6 +53,28 @@ const VUE_VITE_CONFIG_HTML = [
 	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const OCTANE_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">octane</span> <span class="str">@octanejs/vite-plugin</span>',
+	'<span class="ln">2</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">-D</span> <span class="str">vite</span>',
+].join('\n');
+
+const OCTANE_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">octane</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@octanejs/vite-plugin\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">5</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">octane</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const OCTANE_MOUNT_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">createRoot</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'octane\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">App</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'./App.tsrx\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw">const</span> <span class="prop">root</span> = <span class="fn">createRoot</span><span class="br">(</span><span class="prop">document</span>.<span class="fn">getElementById</span><span class="br">(</span><span class="str">\'root\'</span><span class="br">)</span>!<span class="br">)</span>;',
+	'<span class="ln">5</span> <span class="prop">root</span>.<span class="fn">render</span><span class="br">(</span><span class="prop">App</span>, <span class="br">{</span> <span class="prop">title</span>: <span class="str">\'Hello TSRX\'</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
 const REACT_RSPACK_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/rspack-plugin-react</span>',
 ].join('\n');
@@ -256,6 +278,7 @@ const NAV_GROUPS = [
 			{ id: 'vue-rspack', label: 'Vue + Rspack' },
 			{ id: 'vue-bun', label: 'Vue + Bun' },
 			{ id: 'ripple', label: 'Ripple' },
+			{ id: 'octane', label: 'Octane' },
 		],
 	},
 	{
@@ -283,7 +306,7 @@ export function GettingStartedPage() @{
 			<title>TSRX | Getting Started</title>
 			<meta
 				name="description"
-				content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
+				content="Get started with TSRX: install with Octane, React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
 			/>
 		</head>
 		<div class="app-shell">
@@ -313,8 +336,8 @@ export function GettingStartedPage() @{
 				<section class="hero">
 					<h1>Getting Started</h1>
 					<p class="lede">
-						Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor
-						tooling that makes
+						Set up TSRX with Octane, React, Preact, Solid, Vue, or Ripple and then wire in the
+						editor tooling that makes
 						<code class="inline-code">.tsrx</code>
 						files feel native in the rest of your repo.
 					</p>
@@ -666,6 +689,69 @@ export function GettingStartedPage() @{
 								,
 								<code class="inline-code">.tsrx</code>
 								files work out of the box — no additional packages needed.
+							</p>
+						</section>
+
+						<section class="doc-section" id="octane">
+							<h2 class="section-heading">Octane</h2>
+							<p class="section-body">
+								Octane is a compiler-first UI framework built on TSRX. Its published packages
+								require Node.js 22 or newer, and Octane is currently alpha software. Install the
+								runtime and Vite integration:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={OCTANE_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								Add the Octane plugin to a normal Vite app. A
+								<code class="inline-code">.tsrx</code>
+								file is always compiled by Octane; the same integration can also compile
+								Octane-owned
+								<code class="inline-code">.tsx</code>
+								,
+								<code class="inline-code">.ts</code>
+								, and
+								<code class="inline-code">.js</code>
+								modules.
+							</p>
+							<pre class="code-block">
+								<code innerHTML={OCTANE_VITE_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								Mount a TSRX component with Octane's root API:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={OCTANE_MOUNT_HTML} />
+							</pre>
+							<p class="section-body">
+								Import hooks such as
+								<code class="inline-code">useState</code>
+								and
+								<code class="inline-code">useEffect</code>
+								from
+								<code class="inline-code">octane</code>
+								. Octane derives omitted effect and memo dependency lists from their closures and
+								tracks hooks by call site, so conditional hooks are supported. DOM events are
+								native: use
+								<code class="inline-code">onInput</code>
+								for per-keystroke text updates, while
+								<code class="inline-code">onChange</code>
+								keeps the browser's commit behavior.
+							</p>
+							<p class="section-body">
+								The TSRX editor tooling detects an Octane-only project automatically. If a repo has
+								multiple TSRX target compilers, set
+								<code class="inline-code">{'"tsrx": { "compiler": "octane" }'}</code>
+								in the applicable
+								<code class="inline-code">tsconfig.json</code>
+								. See the
+								<a
+									class="inline-link"
+									href="https://octanejs.dev/docs/build-tools"
+									target="_blank"
+									rel="noopener noreferrer"
+								>Octane build tools guide</a>
+								for Rspack, Rsbuild, SSR, and mixed-toolchain setups.
 							</p>
 						</section>
 
