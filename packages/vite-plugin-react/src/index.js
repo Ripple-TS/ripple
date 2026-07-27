@@ -14,7 +14,21 @@
  *   (id: `\0${string}?tsrx-css&lang.css`): string,
  *   (id: string): string | null,
  * }} TsrxReactLoad
- * @typedef {Omit<Plugin, 'transform' | 'resolveId' | 'load'> & {
+ * @typedef {{
+ *   name: string,
+ *   transform: {
+ *     filter: { id: RegExp },
+ *     handler: (code: string, id: string) => { code: string, moduleType: 'tsx' },
+ *   },
+ * }} TsrxDepScanPlugin
+ * @typedef {() => {
+ *   optimizeDeps: {
+ *     extensions: string[],
+ *     rolldownOptions: { plugins: [TsrxDepScanPlugin] },
+ *   },
+ * }} TsrxReactConfigHook
+ * @typedef {Omit<Plugin, 'config' | 'transform' | 'resolveId' | 'load'> & {
+ *   config: TsrxReactConfigHook,
  *   transform: TsrxReactTransform,
  *   resolveId: TsrxReactResolveId,
  *   load: TsrxReactLoad,
@@ -59,6 +73,20 @@ export function tsrxReact(options = {}) {
 	return /** @type {TsrxReactPlugin} */ ({
 		name: '@tsrx/vite-plugin-react',
 		enforce: 'pre',
+
+		config() {
+			return {
+				optimizeDeps: {
+					// The scanner externalizes anything that is not a known JS
+					// type unless its extension is listed here, so without this
+					// entry the dep-scan plugin below never runs.
+					extensions: ['.tsrx'],
+					rolldownOptions: {
+						plugins: [create_dep_scan_plugin(jsxImportSource)],
+					},
+				},
+			};
+		},
 
 		resolveId(/** @type {string} */ source) {
 			if (!source.includes(CSS_QUERY)) return null;
@@ -119,6 +147,38 @@ export function tsrxReact(options = {}) {
 			return [...ctx.modules, css_mod];
 		},
 	});
+}
+
+/**
+ * Vite's dependency scanner runs through Rolldown without the main plugin
+ * pipeline, so on its own it cannot read `.tsrx` modules. Any npm dependency
+ * imported only from `.tsrx` files would then be discovered at request time
+ * instead of at startup, forcing a re-optimize and a full page reload.
+ * Registered under `optimizeDeps.rolldownOptions.plugins`, this plugin
+ * teaches the scan pass to compile `.tsrx` modules so their imports are
+ * crawled up front.
+ *
+ * @param {string} jsxImportSource
+ * @returns {TsrxDepScanPlugin}
+ */
+function create_dep_scan_plugin(jsxImportSource) {
+	return {
+		name: '@tsrx/vite-plugin-react:dep-scan',
+		transform: {
+			filter: { id: TSRX_EXTENSION_PATTERN },
+			handler(code, id) {
+				const { code: tsx_code } = compile(code, id);
+
+				// The main transform always emits automatic-runtime JSX, so the
+				// jsx runtime module is a dependency of every compiled `.tsrx`
+				// file. Import it explicitly so the scanner records it no matter
+				// how the scan's own jsx transform is configured.
+				const jsx_runtime_import = `import ${JSON.stringify(jsxImportSource + '/jsx-runtime')};\n`;
+
+				return { code: jsx_runtime_import + tsx_code, moduleType: 'tsx' };
+			},
+		},
+	};
 }
 
 export default tsrxReact;
