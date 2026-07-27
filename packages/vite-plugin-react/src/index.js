@@ -167,7 +167,20 @@ function create_dep_scan_plugin(jsxImportSource) {
 		transform: {
 			filter: { id: TSRX_EXTENSION_PATTERN },
 			handler(code, id) {
-				const { code: tsx_code } = compile(code, id);
+				/** @type {string} */
+				let tsx_code;
+
+				try {
+					({ code: tsx_code } = compile(code, id));
+				} catch {
+					// A single malformed `.tsrx` file must not fail the scan:
+					// vite reacts to a scan failure by skipping pre-bundling for
+					// the whole project. Hand back an empty module instead so the
+					// rest of the graph is still crawled, and let the main
+					// transform report the error at request time where it can be
+					// surfaced properly.
+					return { code: '', moduleType: 'tsx' };
+				}
 
 				// The main transform always emits automatic-runtime JSX, so the
 				// jsx runtime module is a dependency of every compiled `.tsrx`

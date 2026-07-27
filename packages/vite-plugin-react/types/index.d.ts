@@ -9,7 +9,24 @@ export interface TsrxReactTransformResult {
 	map: unknown;
 }
 
-export interface TsrxReactPlugin extends Omit<Plugin, 'transform' | 'resolveId' | 'load'> {
+export interface TsrxDepScanPlugin {
+	name: string;
+	transform: {
+		filter: { id: RegExp };
+		handler: (code: string, id: string) => { code: string; moduleType: 'tsx' };
+	};
+}
+
+export interface TsrxReactPlugin extends Omit<
+	Plugin,
+	'config' | 'transform' | 'resolveId' | 'load'
+> {
+	config: () => {
+		optimizeDeps: {
+			extensions: string[];
+			rolldownOptions: { plugins: [TsrxDepScanPlugin] };
+		};
+	};
 	transform: {
 		(code: string, id: `${string}.tsrx`): Promise<TsrxReactTransformResult>;
 		(code: string, id: string): Promise<TsrxReactTransformResult | null>;

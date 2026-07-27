@@ -10,4 +10,6 @@ and got discovered at request time instead, forcing a re-optimize and a full
 page reload. The plugin now registers a dep-scan plugin under
 `optimizeDeps.rolldownOptions.plugins` (plus the `.tsrx` entry in
 `optimizeDeps.extensions`) that compiles `.tsrx` modules for the scan pass, so
-their imports are crawled up front.
+their imports are crawled up front. A `.tsrx` file that fails to compile is
+skipped by the scan rather than failing it, so one malformed file no longer
+costs the project its dependency pre-bundling.
