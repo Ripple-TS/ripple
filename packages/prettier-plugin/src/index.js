@@ -821,9 +821,9 @@ function buildInlineArrayCommentDoc(comments) {
 }
 
 /**
- * Print an object or method key
- * @param {AST.Property | AST.MethodDefinition} node - The property or method node
- * @param {AstPath<AST.Property | AST.MethodDefinition>} path - The AST path
+ * Print an object, method, or class field key
+ * @param {AST.Property | AST.MethodDefinition | AST.PropertyDefinition} node - The property or method node
+ * @param {AstPath<AST.Property | AST.MethodDefinition | AST.PropertyDefinition>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc[]}
@@ -2146,14 +2146,18 @@ function printRippleNode(node, path, options, print, args) {
 		}
 
 		case 'TSModuleDeclaration': {
-			nodeContent = [
-				node.declare ? 'declare ' : '',
-				node.metadata?.module_keyword ?? 'module',
-				' ',
-				path.call(print, 'id'),
-				' ',
-				path.call(print, 'body'),
-			];
+			// `declare global` augments the global scope; printing it as
+			// `declare module global` declares an unrelated module named `global`.
+			nodeContent = node.global
+				? [node.declare ? 'declare ' : '', path.call(print, 'id'), ' ', path.call(print, 'body')]
+				: [
+						node.declare ? 'declare ' : '',
+						node.metadata?.module_keyword ?? 'module',
+						' ',
+						path.call(print, 'id'),
+						' ',
+						path.call(print, 'body'),
+					];
 			break;
 		}
 
@@ -2560,6 +2564,43 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'TSParameterProperty': {
+			// A constructor parameter property declares a class field. Losing
+			// the modifiers loses the field, so this must not fall through to
+			// the unknown-node path.
+			/** @type {Doc[]} */
+			const parts = [];
+
+			if (node.accessibility) {
+				parts.push(node.accessibility, ' ');
+			}
+
+			if (node.override) {
+				parts.push('override ');
+			}
+
+			if (node.readonly) {
+				parts.push('readonly ');
+			}
+
+			parts.push(path.call(print, 'parameter'));
+			nodeContent = parts;
+			break;
+		}
+
+		case 'StaticBlock': {
+			nodeContent =
+				node.body && node.body.length > 0
+					? group([
+							'static {',
+							indent([hardline, join(hardline, path.map(print, 'body'))]),
+							hardline,
+							'}',
+						])
+					: 'static {}';
+			break;
+		}
+
 		case 'TSExpressionWithTypeArguments': {
 			/** @type {Doc[]} */
 			const parts = [];
@@ -2812,8 +2853,11 @@ function printVariableDeclaration(node, path, options, print) {
 	const declarations = path.map(print, 'declarations');
 	const declarationParts = join(', ', declarations);
 
+	// `declare` makes the binding ambient (no emit) — never a for-loop head
+	const declarePrefix = node.declare ? 'declare ' : '';
+
 	if (!isForLoopInit) {
-		return [kind, ' ', declarationParts, semi(options)];
+		return [declarePrefix, kind, ' ', declarationParts, semi(options)];
 	}
 
 	return [kind, ' ', declarationParts];
@@ -4017,6 +4061,16 @@ function printObjectExpression(node, path, options, print, args) {
 function printClassDeclaration(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+
+	// Ambient/abstract markers change what the class is, so they must survive
+	if (node.declare) {
+		parts.push('declare ');
+	}
+
+	if (node.abstract) {
+		parts.push('abstract ');
+	}
+
 	parts.push('class');
 
 	// Class name (optional for ClassExpression)
@@ -4147,6 +4201,11 @@ function printPropertyDefinition(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
 
+	// `declare` must lead the modifier list
+	if (node.declare) {
+		parts.push('declare ');
+	}
+
 	// Access modifiers (public, private, protected)
 	if (node.accessibility) {
 		parts.push(node.accessibility);
@@ -4158,13 +4217,28 @@ function printPropertyDefinition(node, path, options, print) {
 		parts.push('static ');
 	}
 
+	// Abstract / override keywords
+	if (node.abstract) {
+		parts.push('abstract ');
+	}
+
+	if (node.override) {
+		parts.push('override ');
+	}
+
 	// Readonly keyword
 	if (node.readonly) {
 		parts.push('readonly ');
 	}
 
-	// Property name
-	parts.push(path.call(print, 'key'));
+	// `accessor` turns the field into a getter/setter pair — not decoration
+	if (node.accessor) {
+		parts.push('accessor ');
+	}
+
+	// Property name. Must go through printKey so a computed key keeps its
+	// brackets — `[key] = 1` and `key = 1` name different fields.
+	parts.push(...printKey(node, path, options, print));
 
 	// Optional marker
 	if (node.optional) {
@@ -4209,6 +4283,15 @@ function printMethodDefinition(node, path, options, print) {
 	// Static keyword
 	if (node.static) {
 		parts.push('static ');
+	}
+
+	// Abstract / override keywords
+	if (node.abstract) {
+		parts.push('abstract ');
+	}
+
+	if (node.override) {
+		parts.push('override ');
 	}
 
 	// Method kind and name
@@ -4258,12 +4341,14 @@ function printMethodDefinition(node, path, options, print) {
 		parts.push(': ', path.call(print, 'value', 'returnType'));
 	}
 
-	// Method body
-	parts.push(' ');
+	// Method body. Bodiless members (abstract, declared, overload signatures)
+	// terminate with a semicolon — inventing an empty body makes an abstract
+	// method concrete.
 	if (node.value && node.value.body) {
+		parts.push(' ');
 		parts.push(path.call(print, 'value', 'body'));
 	} else {
-		parts.push('{}');
+		parts.push(semi(options));
 	}
 
 	return parts;
@@ -4639,6 +4724,10 @@ function printTSUnionType(node, path, print, args) {
 function printTSEnumDeclaration(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+
+	if (node.declare) {
+		parts.push('declare ');
+	}
 
 	// Handle 'const enum' vs 'enum'
 	if (node.const) {
@@ -5576,7 +5665,19 @@ function printTSTypeLiteral(node, path, options, print) {
 function printTSPropertySignature(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	parts.push(path.call(print, 'key'));
+
+	// `readonly` is part of the declared type, not decoration — dropping it
+	// silently widens the member to mutable.
+	if (node.readonly) {
+		parts.push('readonly ');
+	}
+
+	// Computed keys keep their brackets — `[Symbol.iterator]` is not `Symbol.iterator`
+	if (node.computed) {
+		parts.push('[', path.call(print, 'key'), ']');
+	} else {
+		parts.push(path.call(print, 'key'));
+	}
 
 	if (node.optional) {
 		parts.push('?');
@@ -5602,8 +5703,20 @@ function printTSMethodSignature(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
 
-	// Print the method name/key
-	parts.push(path.call(print, 'key'));
+	// Accessor kind — without it `get x(): number` and `set x(v: number)`
+	// both collapse to `x(...)`, which is a different (and duplicated) member.
+	if (node.kind === 'get') {
+		parts.push('get ');
+	} else if (node.kind === 'set') {
+		parts.push('set ');
+	}
+
+	// Print the method name/key, keeping brackets on computed keys
+	if (node.computed) {
+		parts.push('[', path.call(print, 'key'), ']');
+	} else {
+		parts.push(path.call(print, 'key'));
+	}
 
 	// Add optional marker if present
 	if (node.optional) {
@@ -5825,6 +5938,10 @@ function printTSIndexSignature(node, path, options, print) {
 function printTSConstructorType(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+	// `abstract new () => T` only accepts abstract constructors
+	if (node.abstract) {
+		parts.push('abstract ');
+	}
 	parts.push('new ');
 	parts.push('(');
 	const hasParameters = Array.isArray(node.parameters) && node.parameters.length > 0;

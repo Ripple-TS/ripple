@@ -6972,4 +6972,177 @@ function g() {
 			expect(result).toBeWithNewline(expected);
 		});
 	});
+
+	// A formatter may never change what the source declares. Every modifier
+	// below is load-bearing: dropping it silently retypes or redefines the
+	// member, and the result still compiles, so nothing catches it downstream.
+	describe('TypeScript modifiers survive formatting', () => {
+		/**
+		 * Assert the input is already formatted and comes back byte-identical.
+		 * @param {string} source
+		 */
+		const expectUnchanged = async (source) => {
+			const result = await format(source);
+			expect(result).toBeWithNewline(source);
+		};
+
+		it('keeps readonly on interface members', async () => {
+			await expectUnchanged(`export interface BenchRow {
+  readonly id: number;
+  readonly label: string;
+  mutable: string;
+}`);
+		});
+
+		it('keeps readonly on type literal members', async () => {
+			await expectUnchanged(`type Row = {
+  readonly id: number;
+  readonly label?: string;
+  mutable: string;
+};`);
+		});
+
+		it('keeps readonly on nested type literal members', async () => {
+			await expectUnchanged(`interface Outer {
+  readonly inner: {
+    readonly deep: number;
+  };
+}`);
+		});
+
+		it('keeps readonly on index signatures', async () => {
+			await expectUnchanged(`interface Bag {
+  readonly [key: string]: number;
+}`);
+		});
+
+		it('keeps readonly array and tuple type operators', async () => {
+			await expectUnchanged(`interface Lists {
+  xs: readonly string[];
+  ys: ReadonlyArray<number>;
+  pair: readonly [number, string];
+}`);
+		});
+
+		it('keeps get and set accessor kinds on method signatures', async () => {
+			await expectUnchanged(`interface Box {
+  get value(): number;
+  set value(next: number);
+}`);
+		});
+
+		it('keeps class field modifiers', async () => {
+			await expectUnchanged(`class Fields {
+  readonly a = 1;
+  static readonly b = 2;
+  private readonly c = 3;
+  protected d = 4;
+  public e = 5;
+  declare f: number;
+  accessor g = 6;
+}`);
+		});
+
+		it('keeps abstract on classes and their members', async () => {
+			await expectUnchanged(`abstract class Shape {
+  abstract area(): number;
+  abstract readonly sides: number;
+  protected abstract render(): void;
+}`);
+		});
+
+		it('keeps override on class members', async () => {
+			await expectUnchanged(`class Derived extends Base {
+  override toString(): string {
+    return "";
+  }
+  override readonly tag: string = "derived";
+}`);
+		});
+
+		it('keeps modifiers on constructor parameter properties', async () => {
+			await expectUnchanged(`class Point {
+  readonly origin = 0;
+  constructor(private readonly x: number, public y: string) {}
+}`);
+		});
+
+		it('keeps declare on ambient declarations', async () => {
+			await expectUnchanged(`declare const version: number;
+declare function init(): void;
+declare class Ambient {}
+declare enum Level {
+  A = 1,
+}`);
+		});
+
+		it('keeps declare global rather than declaring a module named global', async () => {
+			await expectUnchanged(`declare global {
+  interface Window {
+    readonly octane: number;
+  }
+}`);
+		});
+
+		it('keeps declare module', async () => {
+			await expectUnchanged(`declare module "octane" {
+  const x: number;
+}`);
+		});
+
+		it('keeps const enum', async () => {
+			await expectUnchanged(`const enum Flags {
+  None = 0,
+}`);
+		});
+
+		it('keeps abstract on constructor types', async () => {
+			await expectUnchanged(`type Ctor = abstract new () => object;`);
+		});
+
+		it('keeps class static blocks', async () => {
+			await expectUnchanged(`class WithStatic {
+  static {
+    console.log(1);
+  }
+}`);
+		});
+
+		it('keeps readonly through the mapped type modifier forms', async () => {
+			await expectUnchanged(`type Frozen = { readonly [K in keyof T]: T[K] };`);
+			await expectUnchanged(`type Thawed = { -readonly [K in keyof T]: T[K] };`);
+		});
+
+		it('terminates bodiless class members with a semicolon, not an empty body', async () => {
+			const input = `abstract class Shape {
+	abstract area(): number;
+}`;
+
+			const result = await format(input);
+			expect(result).not.toContain('{}');
+		});
+
+		it('keeps brackets on computed signature keys', async () => {
+			await expectUnchanged(`interface Iterable {
+  readonly [Symbol.iterator]: () => void;
+  [Symbol.asyncIterator](): void;
+}`);
+		});
+
+		it('keeps brackets on computed class field keys', async () => {
+			await expectUnchanged(`class Keyed { [key] = 1; readonly [other] = 2; }`);
+		});
+
+		it('normalises readonly onto reformatted interface members', async () => {
+			const input = `interface Row {readonly   id:number
+      readonly label : string}`;
+			const expected = `interface Row {
+  readonly id: number;
+  readonly label: string;
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+	});
 });

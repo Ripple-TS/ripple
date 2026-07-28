@@ -303,6 +303,8 @@ declare module 'estree' {
 		typeParameters?: TSTypeParameterDeclaration;
 		accessibility?: Accessibility;
 		optional?: boolean;
+		abstract?: boolean;
+		override?: boolean;
 	}
 
 	interface PropertyDefinition {
@@ -310,18 +312,26 @@ declare module 'estree' {
 		readonly?: boolean;
 		optional?: boolean;
 		definite?: boolean;
+		abstract?: boolean;
+		override?: boolean;
+		declare?: boolean;
+		accessor?: boolean;
 	}
 
 	interface ClassDeclaration {
 		typeParameters?: AST.TSTypeParameterDeclaration;
 		superTypeParameters?: AST.TSTypeParameterInstantiation;
 		implements?: AST.TSClassImplements[];
+		abstract?: boolean;
+		declare?: boolean;
 	}
 
 	interface ClassExpression {
 		typeParameters?: AST.TSTypeParameterDeclaration;
 		superTypeParameters?: AST.TSTypeParameterInstantiation;
 		implements?: AST.TSClassImplements[];
+		abstract?: boolean;
+		declare?: boolean;
 	}
 
 	interface Identifier extends AST.TrackedNode {
