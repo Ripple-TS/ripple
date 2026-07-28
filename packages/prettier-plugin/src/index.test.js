@@ -7229,4 +7229,213 @@ export const alias = Named;`;
 			expect(result).toBeWithNewline(expected);
 		});
 	});
+
+	describe('decorators survive formatting', () => {
+		/**
+		 * Assert the input is already formatted and comes back byte-identical.
+		 * @param {string} source
+		 */
+		const expectUnchanged = async (source) => {
+			const result = await format(source);
+			expect(result).toBeWithNewline(source);
+		};
+
+		it('keeps decorators in every position', async () => {
+			await expectUnchanged(`@sealed
+class A {
+  @log
+  method() {}
+  @inject accessor x = 1;
+  m(@param() a: number) {}
+}`);
+		});
+
+		it('keeps a decorator on a class declaration', async () => {
+			await expectUnchanged(`@sealed
+class Widget {
+  render() {
+    return 1;
+  }
+}`);
+		});
+
+		it('gives each class decorator its own line', async () => {
+			const input = `@first @second class Widget {}`;
+			const expected = `@first
+@second
+class Widget {}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps a class member decorator on its own line', async () => {
+			await expectUnchanged(`class Store {
+  @observable
+  count = 0;
+
+  @action
+  increment() {
+    this.count++;
+  }
+}`);
+		});
+
+		it('keeps a class member decorator inline when it was written inline', async () => {
+			await expectUnchanged(`class Store {
+  @observable count = 0;
+  @inject accessor service = null;
+
+  @action increment() {
+    this.count++;
+  }
+}`);
+		});
+
+		it('keeps several inline decorators on one member', async () => {
+			await expectUnchanged(`class Store {
+  @first @second count = 0;
+
+  ping() {
+    return 1;
+  }
+}`);
+		});
+
+		it('moves an inline decorator too long for the line onto its own line', async () => {
+			const input = `class Store {
+  @veryLongDecoratorNameHere({ option: 1, another: 2, third: 3, fourth: 4 }) method() {
+    return 1;
+  }
+}`;
+			const expected = `class Store {
+  @veryLongDecoratorNameHere({ option: 1, another: 2, third: 3, fourth: 4 })
+  method() {
+    return 1;
+  }
+}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps decorators alongside other member modifiers', async () => {
+			await expectUnchanged(`class Store {
+  @dec static base = 1;
+  @dec declare readonly id: number;
+
+  @dec
+  @other
+  private static async *walk() {
+    yield 1;
+  }
+}`);
+		});
+
+		it('keeps decorators on accessors and computed keys', async () => {
+			await expectUnchanged(`class Store {
+  @dec ["computed"] = 1;
+
+  @dec
+  @other()
+  get value() {
+    return 1;
+  }
+
+  @dec set value(next) {
+    this.inner = next;
+  }
+}`);
+		});
+
+		it('keeps decorators built from member and call expressions', async () => {
+			await expectUnchanged(`@dec.nested.deep({ a: 1 })
+class Widget {}`);
+		});
+
+		it('keeps parameter decorators inline', async () => {
+			await expectUnchanged(`class Store {
+  handle(@inject() service: Service, @body() payload: Payload) {
+    return service;
+  }
+}`);
+		});
+
+		it('keeps parameter decorators before parameter property modifiers', async () => {
+			await expectUnchanged(`class Store {
+  constructor(@inject private readonly service: Service) {
+    this.ready = true;
+  }
+}`);
+		});
+
+		it('keeps decorators above the export keyword', async () => {
+			await expectUnchanged(`@sealed
+export class Widget {}`);
+		});
+
+		it('hoists decorators written after the export keyword', async () => {
+			const input = `export @sealed class Widget {}`;
+			const expected = `@sealed
+export class Widget {}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps decorators on a default-exported class', async () => {
+			await expectUnchanged(`@sealed
+export default class Widget {}`);
+		});
+
+		// Hoisting these above `export default` would change what they decorate
+		// and strand the parens, which a second pass then drops — turning the
+		// class expression into a declaration and leaking its name into module
+		// scope.
+		it('keeps decorators inside a parenthesized default export', async () => {
+			await expectUnchanged(`export default (
+  @sealed
+  class Named {}
+);`);
+		});
+
+		it('does not hoist decorators out of a parenthesized default export', async () => {
+			const input = `export default (@sealed class Named {});`;
+			const expected = `export default (
+  @sealed
+  class Named {}
+);`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('keeps decorators on a class expression', async () => {
+			await expectUnchanged(`const Widget =
+  @sealed
+  class {};`);
+		});
+
+		it('keeps decorators alongside leading comments', async () => {
+			await expectUnchanged(`// widget entry point
+@sealed
+class Widget {
+  // the counter
+  @observable
+  count = 0;
+
+  ping() {
+    return 1;
+  }
+}`);
+		});
+
+		it('keeps blank lines between decorated classes', async () => {
+			await expectUnchanged(`@first
+class A {}
+
+@second
+class B {}`);
+		});
+	});
 });

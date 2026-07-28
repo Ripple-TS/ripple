@@ -16,6 +16,12 @@
 
 /** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText' | 'printWidth'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
 
+/**
+ * Any node the parser may hang decorators off. The individual node types do not
+ * declare the property, so reading it needs a cast.
+ * @typedef {AST.Node & { decorators?: AST.Decorator[] }} MaybeDecoratedNode
+ */
+
 /** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, suppressOwnParens?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, noBreakInside?: boolean, expandLastArg?: boolean, preferInlineSimpleUnionType?: boolean }} PrintArgs */
 
 import { parseModule } from '@tsrx/core';
@@ -854,6 +860,152 @@ function printKey(node, path, options, print) {
 	}
 
 	return parts;
+}
+
+/**
+ * Read a node's decorator list, if it has one.
+ * @param {AST.Node | null | undefined} node - The AST node
+ * @returns {AST.Decorator[]} The decorators, or an empty array
+ */
+function getDecorators(node) {
+	const decorators = /** @type {MaybeDecoratedNode | null | undefined} */ (node)?.decorators;
+	return Array.isArray(decorators) ? decorators : [];
+}
+
+/**
+ * Whether an ancestor prints this node's decorators, so the node must not print
+ * them again. Two positions hoist decorators out of the node that owns them:
+ *
+ * - `@dec export class A {}` and `export @dec class A {}` produce identical
+ *   ASTs, so the export printer emits them above the `export` keyword.
+ * - A parameter property's decorators live on the inner parameter, but belong
+ *   before the modifiers: `@inject private readonly x: Foo`.
+ *
+ * A parenthesized default export is not hoisted: its decorators apply to the
+ * expression inside the parens, and lifting them above `export default` would
+ * both change what they decorate and strand the parens.
+ * @param {AST.Node} node - The AST node
+ * @param {AstPath} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function decoratorsPrintedByParent(node, path, options) {
+	const parent = /** @type {AST.Node | null} */ (path.getParentNode());
+
+	if (!parent) {
+		return false;
+	}
+
+	if (parent.type === 'ExportDefaultDeclaration') {
+		return parent.declaration === node && !isParenthesizedDefaultExport(parent, options);
+	}
+
+	if (parent.type === 'ExportNamedDeclaration') {
+		return parent.declaration === node;
+	}
+
+	if (parent.type === 'TSParameterProperty') {
+		return /** @type {AST.Node} */ (/** @type {unknown} */ (parent.parameter)) === node;
+	}
+
+	return false;
+}
+
+/**
+ * Whether a node is a class member, whose decorators may sit either on their
+ * own line or inline with the member.
+ * @param {AST.Node} node - The AST node
+ * @returns {boolean}
+ */
+function isClassMember(node) {
+	return node.type === 'PropertyDefinition' || node.type === 'MethodDefinition';
+}
+
+/**
+ * Whether a class member's decorators must each go on their own line, which is
+ * how they were written when any of them is followed by a newline.
+ * @param {AST.Node} node - The decorated node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function shouldBreakDecorators(node, options) {
+	const text = options.originalText;
+
+	if (typeof text !== 'string') {
+		return false;
+	}
+
+	return getDecorators(node).some(
+		(decorator) => typeof decorator.end === 'number' && hasNewline(text, decorator.end),
+	);
+}
+
+/**
+ * Print a decorator list as a prefix for the node it decorates, including the
+ * separator that follows the last decorator.
+ *
+ * Classes always put each decorator on its own line. A class member keeps the
+ * lines it was written with, and when it was written inline the decorators get
+ * their own group, so a decorator too long to share the member's line moves to
+ * its own line rather than breaking apart. Everywhere else — parameters, most
+ * notably — decorators stay inline.
+ * @param {AST.Node} node - The decorated node
+ * @param {AstPath} path - The AST path, positioned at the decorated node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]} The prefix parts, or an empty array when there are none
+ */
+function printDecorators(node, path, options, print) {
+	if (getDecorators(node).length === 0) {
+		return [];
+	}
+
+	const printed = /** @type {Doc[]} */ (path.map(print, 'decorators'));
+	const isClass = node.type === 'ClassDeclaration' || node.type === 'ClassExpression';
+
+	if (isClass || (isClassMember(node) && shouldBreakDecorators(node, options))) {
+		return [join(hardline, printed), hardline];
+	}
+
+	if (isClassMember(node)) {
+		return [group([join(line, printed), line])];
+	}
+
+	return [join(' ', printed), ' '];
+}
+
+/**
+ * Print the decorators of an exported declaration, which belong above the
+ * `export` keyword rather than on the declaration itself. A parenthesized
+ * default export keeps its decorators inside the parens, so it prints none
+ * here — see {@link decoratorsPrintedByParent}.
+ * @param {AST.ExportNamedDeclaration | AST.ExportDefaultDeclaration} node - The export node
+ * @param {AstPath} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]} The prefix parts, or an empty array when there are none
+ */
+function printDeclarationDecorators(node, path, options, print) {
+	const declaration = /** @type {AST.Node | null | undefined} */ (node.declaration);
+
+	if (getDecorators(declaration).length === 0) {
+		return [];
+	}
+
+	if (
+		node.type === 'ExportDefaultDeclaration' &&
+		isParenthesizedDefaultExport(/** @type {AST.ExportDefaultDeclaration} */ (node), options)
+	) {
+		return [];
+	}
+
+	return /** @type {Doc[]} */ (
+		path.call(
+			(declarationPath) =>
+				printDecorators(/** @type {AST.Node} */ (declaration), declarationPath, options, print),
+			'declaration',
+		)
+	);
 }
 
 /**
@@ -2571,6 +2723,21 @@ function printRippleNode(node, path, options, print, args) {
 			/** @type {Doc[]} */
 			const parts = [];
 
+			// The parser hangs the decorators off the inner parameter, but they
+			// are written before the modifiers: `@inject private readonly x: T`.
+			const parameter = /** @type {AST.Node} */ (/** @type {unknown} */ (node.parameter));
+
+			if (getDecorators(parameter).length > 0) {
+				parts.push(
+					.../** @type {Doc[]} */ (
+						path.call(
+							(parameterPath) => printDecorators(parameter, parameterPath, options, print),
+							'parameter',
+						)
+					),
+				);
+			}
+
 			if (node.accessibility) {
 				parts.push(node.accessibility, ' ');
 			}
@@ -2658,11 +2825,22 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'Decorator':
+			nodeContent = ['@', path.call(print, 'expression')];
+			break;
+
 		default:
 			// Fallback for unknown node types
 			console.warn('Unknown node type:', node.type);
 			nodeContent = '/* Unknown: ' + node.type + ' */';
 			break;
+	}
+
+	// Decorators have runtime effects, so every decorated node prints them —
+	// unless an ancestor hoisted them out (see `decoratorsPrintedByParent`).
+	const decorated = /** @type {AST.Node} */ (node);
+	if (getDecorators(decorated).length > 0 && !decoratorsPrintedByParent(decorated, path, options)) {
+		nodeContent = [...printDecorators(decorated, path, options, print), nodeContent];
 	}
 
 	return finishRippleNode(/** @type {AST.Node} */ (node), parts, nodeContent);
@@ -2784,6 +2962,7 @@ function printExportNamedDeclaration(node, path, options, print) {
 	if (node.declaration) {
 		/** @type {Doc[]} */
 		const parts = [];
+		parts.push(...printDeclarationDecorators(node, path, options, print));
 		parts.push('export ');
 		parts.push(path.call(print, 'declaration'));
 		return parts;
@@ -3101,12 +3280,22 @@ function isParenthesizedDefaultExport(node, options) {
 function printExportDefaultDeclaration(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+	parts.push(...printDeclarationDecorators(node, path, options, print));
 	parts.push('export default ');
 
 	if (isParenthesizedDefaultExport(node, options)) {
 		// An expression export, not a declaration: it keeps its parens and
 		// takes a statement terminator.
-		parts.push('(', path.call(print, 'declaration'), ')', semi(options));
+		const declaration = path.call(print, 'declaration');
+
+		if (getDecorators(/** @type {AST.Node} */ (node.declaration)).length > 0) {
+			// The decorators stay inside the parens, each on its own line, so
+			// the whole expression is indented to keep them off column zero.
+			parts.push('(', indent([hardline, declaration]), hardline, ')', semi(options));
+			return parts;
+		}
+
+		parts.push('(', declaration, ')', semi(options));
 		return parts;
 	}
 
@@ -5566,6 +5755,12 @@ function printVariableDeclarator(node, path, options, print) {
 	if (node.init) {
 		const id = path.call(print, 'id');
 		const init = path.call(print, 'init');
+
+		// A decorated class expression leads with its decorators on their own
+		// lines, so the whole thing moves below the `=` to stay indented.
+		if (node.init.type === 'ClassExpression' && getDecorators(node.init).length > 0) {
+			return [id, ' =', indent([hardline, init])];
+		}
 
 		// For conditional expressions that will break, put them on a new line
 		if (node.init.type === 'ConditionalExpression') {

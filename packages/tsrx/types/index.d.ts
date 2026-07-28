@@ -361,8 +361,16 @@ declare module 'estree' {
 		tracked?: boolean;
 	}
 
+	// A `@decorator` on a class, class member, or parameter. The parser emits
+	// these, but estree has no node type for them.
+	interface Decorator extends AST.BaseNode {
+		type: 'Decorator';
+		expression: AST.Expression;
+	}
+
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
+		Decorator: Decorator;
 		JSXSpreadChild: ESTreeJSX.JSXSpreadChild;
 		TSRXImportDeclaration: TSRXImportDeclaration;
 		TSRXJSXElement: TSRXJSXElement;
