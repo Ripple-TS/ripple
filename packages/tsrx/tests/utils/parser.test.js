@@ -4518,3 +4518,97 @@ describe('casts around JSX in attribute values', () => {
 		assert_type(container.expression, 'MemberExpression');
 	});
 });
+
+describe('expression-container children inside JSX attribute values', () => {
+	// After an element parsed inside a child `{ … }` container of a JSX-valued
+	// attribute, the container's closing `}` has already popped its own brace
+	// context, leaving the tail [tc_oTag, b_expr, tc_expr] — the same shape a
+	// statement-bodied attribute leaks when the attribute's own container
+	// closes. The after-element fixup treated it as that leak and stripped the
+	// attribute container's brace plus the outer element's children context, so
+	// the `=` of the following attribute tokenized as template text and failed.
+	// In the child-container case the stack sits below the enclosing
+	// expression's depth, which now gates the strip.
+
+	/**
+	 * Name of a `JSXElement`'s opening tag.
+	 *
+	 * @param {AST.Node} node
+	 * @returns {string}
+	 */
+	function elementName(node) {
+		return as_type(as_type(node, 'JSXElement').openingElement.name, 'JSXIdentifier').name;
+	}
+
+	it('parses a ternary of elements in the value before another attribute', () => {
+		const element = findElement(
+			`export function App({ ok }: any) {
+	return (
+		<Host
+			slot={
+				<button>
+					{ok ? <X /> : <Y />}
+				</button>
+			}
+			onChange={(d: any) => go(d)}
+		/>
+	);
+}`,
+			'Host',
+		);
+		const value = as_type(attributeExpression(element.openingElement.attributes[0]), 'JSXElement');
+		expect(openingName(value).name).toBe('button');
+		const container = as_type(
+			found(node_children(value).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		);
+		const conditional = as_type(container.expression, 'ConditionalExpression');
+		expect(elementName(conditional.consequent)).toBe('X');
+		expect(elementName(conditional.alternate)).toBe('Y');
+		const handler = as_type(
+			attributeExpression(element.openingElement.attributes[1]),
+			'ArrowFunctionExpression',
+		);
+		expect(handler.params).toHaveLength(1);
+	});
+
+	it('parses a lone element in a child container before another attribute', () => {
+		const element = findElement(
+			`export function App() {
+	return <Host slot={<button>{<X />}</button>} onChange={(d: any) => go(d)} />;
+}`,
+			'Host',
+		);
+		const value = as_type(attributeExpression(element.openingElement.attributes[0]), 'JSXElement');
+		expect(openingName(value).name).toBe('button');
+		const container = as_type(
+			found(node_children(value).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		);
+		expect(elementName(container.expression)).toBe('X');
+		assert_type(
+			attributeExpression(element.openingElement.attributes[1]),
+			'ArrowFunctionExpression',
+		);
+	});
+
+	it('still strips the leak for a directive-bodied attribute value', () => {
+		const element = findElement(
+			`export function App() {
+	return <Card
+		content={
+			<div>
+				@if (foo) {
+					<span />
+				}
+			</div>
+		}
+	/>;
+}`,
+			'Card',
+		);
+		const value = as_type(attributeExpression(element.openingElement.attributes[0]), 'JSXElement');
+		expect(openingName(value).name).toBe('div');
+		expect(as_type(element.openingElement, 'JSXOpeningElement').selfClosing).toBe(true);
+	});
+});

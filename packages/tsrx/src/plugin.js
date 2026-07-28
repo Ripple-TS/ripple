@@ -2440,9 +2440,15 @@ export function TSRXPlugin(config) {
 				}
 				// Statement-bodied native template attributes can leave the attribute's
 				// expression contexts above the still-open JSX tag context. Strip
-				// those so a following `/>` stays in JSX opening-tag mode.
+				// those so a following `/>` stays in JSX opening-tag mode. Once the
+				// stack has unwound below the enclosing expression's depth the same
+				// tail shape means something else: the `}` closed an inner child
+				// container (its own brace context already popped) and the tc_expr
+				// belongs to a still-open element between the attribute brace and
+				// this one — stripping would drop the attribute container's brace.
 				if (
 					this.type === tt.braceR &&
+					ctx.length >= enclosing_context_depth &&
 					top === tstc.tc_expr &&
 					second === b_expr &&
 					ctx[ci - 2] === tstc.tc_oTag
