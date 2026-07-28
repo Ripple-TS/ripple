@@ -115,9 +115,9 @@ const COMPILER_STUBS = {
 	},
 };
 `,
-	// Octane ships its compiler inside the `octane` package at
-	// `src/compiler/volar.js` and exports the contract under a camelCase name —
-	// this stub mirrors the real published shape so the tests cover the
+	// Octane ships its compiler inside the `octane` package under
+	// `<layout>/compiler/volar.js` and exports the contract under a camelCase name
+	// — this stub mirrors the real published shape so the tests cover the
 	// plugin's entry-path override AND its module-shape normalization.
 	octane: `module.exports = {
 	compileToVolarMappings(source, filename) {
@@ -198,11 +198,23 @@ const DECLARED_COMPILER_STUB = COMPILER_STUBS.octane.replace('compiler:octane', 
  */
 
 /**
+ * Published `octane` releases only ship `dist/` and expose the compiler through
+ * the `./compiler/volar` export; `octane-src` models a source checkout of the
+ * same package, which the plugin still falls back to.
+ */
+const OCTANE_LAYOUT_DIRS = {
+	octane: 'dist',
+	'octane-src': 'src',
+};
+
+/** @typedef {keyof typeof COMPILER_STUBS | keyof typeof OCTANE_LAYOUT_DIRS} FixtureCompilerName */
+
+/**
  * @typedef {object} WorkspaceFixtureConfig
  * @property {Record<string, unknown>} package_json
  * @property {unknown} [tsconfig_json]
  * @property {unknown} [nested_tsconfig_json]
- * @property {(keyof typeof COMPILER_STUBS)[]} compilers
+ * @property {FixtureCompilerName[]} compilers
  * @property {DeclaredCompilerFixture[]} [declared_compilers]
  * @property {boolean} [imports_escape]
  */
@@ -299,6 +311,17 @@ export const WORKSPACE_CONFIGS = {
 			},
 		},
 		compilers: ['octane'],
+	},
+	'octane-src-only': {
+		package_json: {
+			name: '@octanejs/fixture-octane-src-only-project',
+			private: true,
+			devDependencies: {
+				octane: 'workspace:*',
+				'@octanejs/vite-plugin': 'workspace:*',
+			},
+		},
+		compilers: ['octane-src'],
 	},
 	'both-octane': {
 		package_json: {
@@ -451,15 +474,19 @@ export const WORKSPACE_CONFIGS = {
 /** @type {string[]} */
 const created_workspaces = [];
 
-/** @param {string} workspace_dir @param {keyof typeof COMPILER_STUBS} compiler_name */
+/** @param {string} workspace_dir @param {FixtureCompilerName} compiler_name */
 function write_compiler_stub(workspace_dir, compiler_name) {
-	if (compiler_name === 'octane') {
+	if (compiler_name === 'octane' || compiler_name === 'octane-src') {
 		// Octane's layout: the compiler entry lives INSIDE the octane package.
+		const octane_layout_dir = OCTANE_LAYOUT_DIRS[compiler_name];
 		const package_dir = path.join(workspace_dir, 'node_modules', 'octane');
-		const compiler_dir = path.join(package_dir, 'src', 'compiler');
+		const compiler_dir = path.join(package_dir, octane_layout_dir, 'compiler');
 		fs.mkdirSync(compiler_dir, { recursive: true });
-		write_json(path.join(package_dir, 'package.json'), { name: 'octane' });
-		fs.writeFileSync(path.join(compiler_dir, 'volar.js'), COMPILER_STUBS[compiler_name]);
+		write_json(path.join(package_dir, 'package.json'), {
+			name: 'octane',
+			exports: { './compiler/volar': `./${octane_layout_dir}/compiler/volar.js` },
+		});
+		fs.writeFileSync(path.join(compiler_dir, 'volar.js'), COMPILER_STUBS.octane);
 		return;
 	}
 	const package_dir = path.join(workspace_dir, 'node_modules', '@tsrx', compiler_name);

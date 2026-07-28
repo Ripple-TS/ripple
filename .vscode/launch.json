@@ -15,7 +15,7 @@
       "outFiles": ["${workspaceFolder}/packages/vscode-plugin/dist/**/*.js"],
       "sourceMaps": true,
       "env": {
-        "RIPPLE_DEBUG": "true"
+        "TSRX_DEBUG": "true"
       }
     },
     {

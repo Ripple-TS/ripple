@@ -140,7 +140,7 @@ export async function activate(context) {
 		execArgv: [],
 		env: {
 			...process.env,
-			RIPPLE_DEBUG: process.env.RIPPLE_DEBUG === 'false' ? 'false' : 'true',
+			TSRX_DEBUG: process.env.TSRX_DEBUG === 'false' ? 'false' : 'true',
 		},
 	};
 
@@ -148,7 +148,7 @@ export async function activate(context) {
 		execArgv: ['--nolazy', '--inspect'],
 		env: {
 			...process.env,
-			RIPPLE_DEBUG: process.env.RIPPLE_DEBUG === 'false' ? 'false' : 'true',
+			TSRX_DEBUG: process.env.TSRX_DEBUG === 'false' ? 'false' : 'true',
 		},
 	};
 

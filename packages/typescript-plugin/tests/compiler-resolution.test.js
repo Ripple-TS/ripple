@@ -137,8 +137,27 @@ describe('typescript-plugin compiler resolution', () => {
 			);
 		});
 
-		it('selects the octane compiler (package-internal entry path) in an octane-only project', () => {
+		it('selects the octane compiler (published dist entry path) in an octane-only project', () => {
 			const workspace = create_fixture_workspace('octane-only');
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const expected = path.join(
+				workspace,
+				'node_modules',
+				'octane',
+				'dist',
+				'compiler',
+				'volar.js',
+			);
+
+			expect(find_workspace_compiler_entry_for_file(file_name, fs.existsSync, new Map())).toBe(
+				expected,
+			);
+		});
+
+		// Octane source checkouts expose the same entry under `src/`, which stays
+		// supported now that published releases ship only `dist/`.
+		it('falls back to the octane source entry path when no dist build is installed', () => {
+			const workspace = create_fixture_workspace('octane-src-only');
 			const file_name = path.join(workspace, 'src', 'App.tsrx');
 			const expected = path.join(
 				workspace,
@@ -161,7 +180,7 @@ describe('typescript-plugin compiler resolution', () => {
 				workspace,
 				'node_modules',
 				'octane',
-				'src',
+				'dist',
 				'compiler',
 				'volar.js',
 			);
@@ -299,12 +318,13 @@ describe('typescript-plugin compiler resolution', () => {
 			{ name: 'solid-only', expected: ['@tsrx', 'solid'] },
 			{ name: 'preact-only', expected: ['@tsrx', 'preact'] },
 			{ name: 'vue-only', expected: ['@tsrx', 'vue'] },
-			{ name: 'octane-only', expected: ['octane', 'src', 'compiler', 'volar.js'] },
+			{ name: 'octane-only', expected: ['octane', 'dist', 'compiler', 'volar.js'] },
+			{ name: 'octane-src-only', expected: ['octane', 'src', 'compiler', 'volar.js'] },
 			{ name: 'both', expected: ['@tsrx', 'ripple'] },
 			{ name: 'both-react', expected: ['@tsrx', 'react'] },
 			{ name: 'both-preact', expected: ['@tsrx', 'preact'] },
 			{ name: 'both-vue', expected: ['@tsrx', 'vue'] },
-			{ name: 'both-octane', expected: ['octane', 'src', 'compiler', 'volar.js'] },
+			{ name: 'both-octane', expected: ['octane', 'dist', 'compiler', 'volar.js'] },
 		];
 
 		for (const test_case of cases) {
@@ -335,6 +355,7 @@ describe('typescript-plugin compiler resolution', () => {
 			{ name: 'both', compiler: '@tsrx/ripple', is_ripple: true },
 			{ name: 'both-react', compiler: '@tsrx/react', is_ripple: false },
 			{ name: 'octane-only', compiler: 'octane', is_ripple: false },
+			{ name: 'octane-src-only', compiler: 'octane', is_ripple: false },
 			{ name: 'both-octane', compiler: 'octane', is_ripple: false },
 		];
 

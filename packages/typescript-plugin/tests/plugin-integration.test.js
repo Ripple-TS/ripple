@@ -79,7 +79,7 @@ function prepare_fixture(workspace_name, configure, file_parts = ['src', 'App.ts
 
 /** @param {WorkspaceName} workspace_name @param {FixtureConfigurator} [configure] @param {string[]} [file_parts] */
 async function compile_debug_fixture(workspace_name, configure, file_parts = ['src', 'App.tsrx']) {
-	vi.stubEnv('RIPPLE_DEBUG', 'true');
+	vi.stubEnv('TSRX_DEBUG', 'true');
 	vi.resetModules();
 	const error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 	const warning_spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -284,18 +284,30 @@ describe('typescript-plugin language plugin integration', () => {
 	});
 
 	// Octane exercises BOTH octane-specific paths at once: the package-internal
-	// compiler entry (src/compiler/volar.js instead of the @tsrx/* layout) and
+	// compiler entry (dist/compiler/volar.js instead of the @tsrx/* layout) and
 	// the camelCase `compileToVolarMappings` module-shape normalization.
-	it('creates virtual code with the octane compiler in an octane project', () => {
-		const plugin = create_plugin();
-		const workspace = create_fixture_workspace('octane-only');
-		const file_name = path.join(workspace, 'src', 'App.tsrx');
-		const virtual_code = create_virtual_code(plugin, file_name, 'export default <div>Hello</div>;');
+	/** @type {Array<[string, WorkspaceName]>} */
+	const octane_layout_cases = [
+		['published dist layout', 'octane-only'],
+		['source checkout layout', 'octane-src-only'],
+	];
+	it.each(octane_layout_cases)(
+		'creates virtual code with the octane compiler (%s)',
+		(_, workspace_name) => {
+			const plugin = create_plugin();
+			const workspace = create_fixture_workspace(workspace_name);
+			const file_name = path.join(workspace, 'src', 'App.tsrx');
+			const virtual_code = create_virtual_code(
+				plugin,
+				file_name,
+				'export default <div>Hello</div>;',
+			);
 
-		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
-		expect(virtual_code.generatedCode).toContain('compiler:octane');
-		expect(virtual_code.generatedCode).toContain(file_name);
-	});
+			expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
+			expect(virtual_code.generatedCode).toContain('compiler:octane');
+			expect(virtual_code.generatedCode).toContain(file_name);
+		},
+	);
 
 	it('prefers the octane compiler when other compilers also exist in an octane project', () => {
 		const plugin = create_plugin();

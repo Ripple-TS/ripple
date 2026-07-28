@@ -35,7 +35,13 @@ const { log, logWarning, logError } = createLogging('[Ripple Language]');
 /** @type {Set<string>} */
 const loggedCompilationFailures = new Set();
 export const RIPPLE_EXTENSIONS = ['.tsrx'];
-/** @typedef {[string, string[], string[], string[], string[]?]} CompilerCandidate */
+/**
+ * `[package name, package directory parts, supported extensions, package hints, entry candidates?]`.
+ * Entry candidates are relative to the package directory and are probed in order,
+ * so a package that ships both a build output and its sources lists the published
+ * layout first.
+ * @typedef {[string, string[], string[], string[], string[][]?]} CompilerCandidate
+ */
 /** @type {CompilerCandidate[]} */
 export const COMPILER_CANDIDATES = [
 	[
@@ -73,11 +79,17 @@ export const COMPILER_CANDIDATES = [
 		['node_modules', 'octane'],
 		['.tsrx'],
 		['octane', '@octanejs/vite-plugin'],
-		['src', 'compiler', 'volar.js'],
+		// Published `octane` releases only ship `dist/` and expose the compiler as
+		// `octane/compiler/volar`; the `src/` layout is kept for source checkouts.
+		[
+			['dist', 'compiler', 'volar.js'],
+			['src', 'compiler', 'volar.js'],
+		],
 	],
 ];
 
-const DEFAULT_COMPILER_ENTRY_PARTS = ['src', 'index.js'];
+/** @type {string[][]} */
+const DEFAULT_COMPILER_ENTRY_CANDIDATES = [['src', 'index.js']];
 
 /**
  * @param {string} file_name
@@ -1059,14 +1071,17 @@ export function find_workspace_compiler_entry_for_file(
 				compiler_dir_parts,
 				supported_extensions,
 				package_hints,
-				entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
+				entry_candidates = DEFAULT_COMPILER_ENTRY_CANDIDATES,
 			] of COMPILER_CANDIDATES) {
 				if (!supported_extensions.includes(ext)) {
 					continue;
 				}
-				const full_path = [dir, ...compiler_dir_parts, ...entry_parts].join('/');
-				if (exists_sync(full_path)) {
-					available_candidates.push([compiler_name, full_path, package_hints]);
+				for (const entry_parts of entry_candidates) {
+					const full_path = [dir, ...compiler_dir_parts, ...entry_parts].join('/');
+					if (exists_sync(full_path)) {
+						available_candidates.push([compiler_name, full_path, package_hints]);
+						break;
+					}
 				}
 			}
 
@@ -1121,15 +1136,18 @@ export function get_compiler_entry_for_file(normalized_file_name, options) {
 			compiler_dir_parts,
 			supported_extensions,
 			package_hints,
-			entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
+			entry_candidates = DEFAULT_COMPILER_ENTRY_CANDIDATES,
 		] of COMPILER_CANDIDATES) {
 			if (!supported_extensions.includes(ext)) {
 				continue;
 			}
 			const full_path = path.join(current_dir, ...compiler_dir_parts);
-			const entry_path = path.join(full_path, ...entry_parts);
-			if (fs.existsSync(entry_path)) {
-				available_candidates.push([compiler_name, entry_path, package_hints]);
+			for (const entry_parts of entry_candidates) {
+				const entry_path = path.join(full_path, ...entry_parts);
+				if (fs.existsSync(entry_path)) {
+					available_candidates.push([compiler_name, entry_path, package_hints]);
+					break;
+				}
 			}
 		}
 
@@ -1180,11 +1198,13 @@ export function get_tsrx_compiler_name_for_file(file_name, options) {
 		compiler_dir_parts,
 		,
 		,
-		entry_parts = DEFAULT_COMPILER_ENTRY_PARTS,
+		entry_candidates = DEFAULT_COMPILER_ENTRY_CANDIDATES,
 	] of COMPILER_CANDIDATES) {
-		const suffix = '/' + [...compiler_dir_parts, ...entry_parts].join('/');
-		if (normalized_entry.endsWith(suffix)) {
-			return compiler_name;
+		for (const entry_parts of entry_candidates) {
+			const suffix = '/' + [...compiler_dir_parts, ...entry_parts].join('/');
+			if (normalized_entry.endsWith(suffix)) {
+				return compiler_name;
+			}
 		}
 	}
 
