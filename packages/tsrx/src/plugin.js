@@ -4595,17 +4595,35 @@ export function TSRXPlugin(config) {
 					// text never starts at `<`, so drop the leaked context and re-read the
 					// tag instead of emitting an empty node.
 					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
-						if (this.input.charCodeAt(this.start + 1) === CharCode.slash) {
-							// The re-read closing tag's `jsxTagEnd` pops the element's own
-							// children `tc_expr` itself, so keep exactly one and pop only the
-							// leaked extras above it. Popping all of them (e.g. for an element
-							// directly inside an attribute-value `{ … }` container, where the
-							// context below is the container's brace) would make the closing
-							// tag pop the enclosing container/tag context instead.
-							while (
-								this.curContext() === tstc.tc_expr &&
-								this.context[this.context.length - 2] === tstc.tc_expr
+						if (this.#jsxExpressionContainerDepth > 0) {
+							// Inside a `{ … }` container the whole-stack counts below are
+							// blind: the enclosing template's `tc_expr` contexts sit on the
+							// stack but their elements are not on the container-scoped
+							// `#path`. Scope both counts to the container instead — each
+							// element opened inside it (all on `#path` above the container's
+							// baseline) still owns one `tc_expr` that its closing tag's
+							// `jsxTagEnd` pops itself, so only the run's excess above that
+							// quota is leaked. Popping deeper would make a re-read closing
+							// tag pop the container's brace or the enclosing tag context.
+							const path_baseline = this.#expressionContainerPathBaselines.at(-1) ?? 0;
+							let open_elements = 0;
+							for (let i = path_baseline; i < this.#path.length; i++) {
+								if (this.#isNativeTemplateNode(this.#path[i])) open_elements++;
+							}
+							let run = 0;
+							for (
+								let i = this.context.length - 1;
+								i >= 0 && this.context[i] === tstc.tc_expr;
+								i--
 							) {
+								run++;
+							}
+							while (run > open_elements && this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+								run--;
+							}
+						} else if (this.input.charCodeAt(this.start + 1) === CharCode.slash) {
+							while (this.curContext() === tstc.tc_expr) {
 								this.context.pop();
 							}
 						} else {

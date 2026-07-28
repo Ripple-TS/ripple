@@ -4342,4 +4342,72 @@ describe('multi-line JSX elements as attribute values', () => {
 		);
 		expect(as_type(child_element.openingElement.name, 'JSXIdentifier').name).toBe('i');
 	});
+
+	// The stale-text fixup must keep one `tc_expr` context per element still open
+	// inside the container — not a fixed count. Two levels of paired nesting and
+	// a sibling element after a nested close each caught a wrong quota.
+
+	it('parses two levels of paired nesting before another attribute', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div>
+			<section>
+				<span>x</span>
+			</section>
+		</div>}
+		other={1}
+	/>
+}`,
+			'Child',
+		);
+		expectDivSpanValue(element);
+		const other = as_type(attributeExpression(element.openingElement.attributes[1]), 'Literal');
+		expect(other.value).toBe(1);
+	});
+
+	it('parses two levels of paired nesting on a paired tag with children', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div>
+			<section>
+				<span>x</span>
+			</section>
+		</div>}
+	>
+		<i>child</i>
+	</Child>
+}`,
+			'Child',
+		);
+		expectDivSpanValue(element);
+		const child_element = as_type(
+			found(node_children(element).find((c) => c.type === 'JSXElement')),
+			'JSXElement',
+		);
+		expect(as_type(child_element.openingElement.name, 'JSXIdentifier').name).toBe('i');
+	});
+
+	it('parses a sibling element after a nested close inside the value', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div>
+			<span>x</span>
+			<b>y</b>
+		</div>}
+		other={1}
+	/>
+}`,
+			'Child',
+		);
+		const value = as_type(attributeExpression(element.openingElement.attributes[0]), 'JSXElement');
+		const tags = node_children(value)
+			.filter((c) => c.type === 'JSXElement')
+			.map((c) => as_type(as_type(c, 'JSXElement').openingElement.name, 'JSXIdentifier').name);
+		expect(tags).toEqual(['span', 'b']);
+		const other = as_type(attributeExpression(element.openingElement.attributes[1]), 'Literal');
+		expect(other.value).toBe(1);
+	});
 });
