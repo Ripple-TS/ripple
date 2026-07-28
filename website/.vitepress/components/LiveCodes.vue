@@ -254,7 +254,7 @@ export default function Counter() {
 
       <button onClick={() => count--}>"-"</button>
       <button onClick={() => count++}>"+"</button>
-      if (count !== 0) {
+      @if (count !== 0) {
         <div>
           <button onClick={() => count = 0}>"Reset"</button>
         </div>
