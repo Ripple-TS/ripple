@@ -4596,7 +4596,16 @@ export function TSRXPlugin(config) {
 					// tag instead of emitting an empty node.
 					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
 						if (this.input.charCodeAt(this.start + 1) === CharCode.slash) {
-							while (this.curContext() === tstc.tc_expr) {
+							// The re-read closing tag's `jsxTagEnd` pops the element's own
+							// children `tc_expr` itself, so keep exactly one and pop only the
+							// leaked extras above it. Popping all of them (e.g. for an element
+							// directly inside an attribute-value `{ … }` container, where the
+							// context below is the container's brace) would make the closing
+							// tag pop the enclosing container/tag context instead.
+							while (
+								this.curContext() === tstc.tc_expr &&
+								this.context[this.context.length - 2] === tstc.tc_expr
+							) {
 								this.context.pop();
 							}
 						} else {

@@ -4271,3 +4271,75 @@ describe('keywordTokens parse option', () => {
 		expect(ast.tsrx_keyword_tokens).toBeUndefined();
 	});
 });
+
+describe('multi-line JSX elements as attribute values', () => {
+	// A paired element with element children spread over multiple lines inside an
+	// attribute's `{ … }` container used to unbalance the tokenizer context stack:
+	// the stale-text fixup before its closing tag popped the element's own
+	// children context, so the token after the container's `}` (the tag's `>`,
+	// `/>`, or a following attribute) tokenized as template text and failed.
+
+	/**
+	 * The `prop` attribute's value, asserted to be a `<div>` wrapping a `<span>`.
+	 *
+	 * @param {AST.TSRXJSXElement} element
+	 */
+	function expectDivSpanValue(element) {
+		const value = as_type(attributeExpression(element.openingElement.attributes[0]), 'JSXElement');
+		expect(openingName(value).name).toBe('div');
+		expect(node_children(value).some((c) => c.type === 'JSXElement')).toBe(true);
+	}
+
+	it('parses one before other attributes of a self-closing tag', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div>
+			<span>x</span>
+		</div>}
+		other={1}
+	/>
+}`,
+			'Child',
+		);
+		expectDivSpanValue(element);
+		const other = as_type(attributeExpression(element.openingElement.attributes[1]), 'Literal');
+		expect(other.value).toBe(1);
+	});
+
+	it('parses one as the sole attribute of a self-closing tag', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div>
+			<span>x</span>
+		</div>}
+	/>
+}`,
+			'Child',
+		);
+		expectDivSpanValue(element);
+		expect(as_type(element.openingElement, 'JSXOpeningElement').selfClosing).toBe(true);
+	});
+
+	it('parses one on a paired tag with children', () => {
+		const element = findElement(
+			`export function App() @{
+	<Child
+		prop={<div id="a">
+			<span>x</span>
+		</div>}
+	>
+		<i>child</i>
+	</Child>
+}`,
+			'Child',
+		);
+		expectDivSpanValue(element);
+		const child_element = as_type(
+			found(node_children(element).find((c) => c.type === 'JSXElement')),
+			'JSXElement',
+		);
+		expect(as_type(child_element.openingElement.name, 'JSXIdentifier').name).toBe('i');
+	});
+});
