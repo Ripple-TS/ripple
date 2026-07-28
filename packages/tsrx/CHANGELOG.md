@@ -1,5 +1,15 @@
 # @tsrx/core
 
+## 0.1.54
+
+### Patch Changes
+
+- [#1401](https://github.com/Ripple-TS/ripple/pull/1401)
+  [`d85f9f3`](https://github.com/Ripple-TS/ripple/commit/d85f9f3a8a4f8ed8f77ce54f87fa4387d586884c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix parsing for JSX-valued
+  attributes whose element has an expression-container child with JSX inside (e.g.
+  `slot={<button>{ok ? <X /> : <Y />}</button>}`) followed by another attribute.
+
 ## 0.1.53
 
 ### Patch Changes
