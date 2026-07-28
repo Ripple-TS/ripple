@@ -7145,4 +7145,88 @@ declare enum Level {
 			expect(result).toBeWithNewline(expected);
 		});
 	});
+
+	// `export default (class Named {})` is an expression: `Named` is bound only
+	// inside the class body. `export default class Named {}` is a declaration:
+	// `Named` becomes a module-scoped binding. Dropping the parens swaps one for
+	// the other, and the file still compiles, so nothing catches it downstream.
+	describe('export default parentheses survive formatting', () => {
+		/**
+		 * Assert the input is already formatted and comes back byte-identical.
+		 * @param {string} source
+		 */
+		const expectUnchanged = async (source) => {
+			const result = await format(source);
+			expect(result).toBeWithNewline(source);
+		};
+
+		it('keeps parens around a named class expression', async () => {
+			await expectUnchanged(`export default (class Named {});`);
+		});
+
+		it('keeps parens around an anonymous class expression', async () => {
+			await expectUnchanged(`export default (class {});`);
+		});
+
+		it('keeps parens around a class expression with a superclass', async () => {
+			await expectUnchanged(`export default (class Named extends Base {});`);
+		});
+
+		it('keeps parens around a named function expression', async () => {
+			await expectUnchanged(`export default (function foo() {});`);
+		});
+
+		it('keeps parens around an anonymous function expression', async () => {
+			await expectUnchanged(`export default (function () {});`);
+		});
+
+		it('does not leak the class expression name into module scope', async () => {
+			const input = `export default (class Named {});
+export const alias = Named;`;
+
+			await expectUnchanged(input);
+		});
+
+		it('collapses redundant parens down to one pair', async () => {
+			const input = `export default ((class Named {}));`;
+			const expected = `export default (class Named {});`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('collapses a multiline parenthesized class expression', async () => {
+			const input = `export default (
+  class Named {}
+);`;
+			const expected = `export default (class Named {});`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('omits the terminator when semi is disabled', async () => {
+			const input = `export default (class Named {});`;
+			const expected = `export default (class Named {})`;
+
+			const result = await format(input, { semi: false });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('leaves an unparenthesized class declaration alone', async () => {
+			await expectUnchanged(`export default class Named {}`);
+		});
+
+		it('leaves an unparenthesized function declaration alone', async () => {
+			await expectUnchanged(`export default function foo() {}`);
+		});
+
+		it('does not invent parens around other default exports', async () => {
+			const input = `export default (0);`;
+			const expected = `export default 0`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+	});
 });

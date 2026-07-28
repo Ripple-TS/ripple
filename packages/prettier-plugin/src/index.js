@@ -3019,6 +3019,78 @@ function isTemplateExpression(node) {
 }
 
 /**
+ * Remove line and block comments from a span of source text.
+ * @param {string} text - Source text
+ * @returns {string} - The text with every comment replaced by nothing
+ */
+function stripComments(text) {
+	let result = '';
+
+	for (let i = 0; i < text.length; i++) {
+		if (text.charAt(i) === '/' && text.charAt(i + 1) === '*') {
+			const close = text.indexOf('*/', i + 2);
+			i = close === -1 ? text.length : close + 1;
+			continue;
+		}
+		if (text.charAt(i) === '/' && text.charAt(i + 1) === '/') {
+			while (i < text.length && !isCharNewLine(text.charAt(i))) {
+				i++;
+			}
+			continue;
+		}
+		result += text.charAt(i);
+	}
+
+	return result;
+}
+
+/**
+ * Check whether `export default` wraps its declaration in parentheses.
+ *
+ * The parens are load-bearing for a named class or function expression:
+ * `export default (class Named {})` binds `Named` only inside the class body,
+ * while `export default class Named {}` binds it module-wide. Dropping them
+ * silently turns the expression into a declaration.
+ *
+ * The node type alone cannot tell the two apart. Node spans exclude the
+ * parens, and a decorated `export default @dec class Named {}` also parses as
+ * a ClassExpression even though it is a declaration, so the source text
+ * between the keyword and the declaration has to be consulted.
+ *
+ * @param {AST.ExportDefaultDeclaration} node - The export default node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function isParenthesizedDefaultExport(node, options) {
+	const declaration = node.declaration;
+
+	if (
+		!declaration ||
+		(declaration.type !== 'ClassExpression' && declaration.type !== 'FunctionExpression')
+	) {
+		return false;
+	}
+
+	const text = options.originalText;
+
+	if (typeof text !== 'string') {
+		return false;
+	}
+
+	const start = options.locStart(/** @type {AST.NodeWithLocation} */ (node));
+	const end = options.locStart(/** @type {AST.NodeWithLocation} */ (declaration));
+
+	if (!(start < end)) {
+		return false;
+	}
+
+	// Only the keyword, whitespace, comments and opening parens can appear
+	// here, so a trailing `(` after stripping comments means the declaration
+	// was parenthesized.
+	return stripComments(text.slice(start, end)).trimEnd().endsWith('(');
+}
+
+/**
  * Print an export default declaration
  * @param {AST.ExportDefaultDeclaration} node - The export default node
  * @param {AstPath<AST.ExportDefaultDeclaration>} path - The AST path
@@ -3030,6 +3102,14 @@ function printExportDefaultDeclaration(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
 	parts.push('export default ');
+
+	if (isParenthesizedDefaultExport(node, options)) {
+		// An expression export, not a declaration: it keeps its parens and
+		// takes a statement terminator.
+		parts.push('(', path.call(print, 'declaration'), ')', semi(options));
+		return parts;
+	}
+
 	parts.push(path.call(print, 'declaration'));
 	return parts;
 }
