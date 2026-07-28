@@ -7223,10 +7223,134 @@ export const alias = Named;`;
 
 		it('does not invent parens around other default exports', async () => {
 			const input = `export default (0);`;
-			const expected = `export default 0`;
+			const expected = `export default 0;`;
 
 			const result = await format(input);
 			expect(result).toBeWithNewline(expected);
+		});
+	});
+
+	// `export default <expression>` is a statement and terminates; only the
+	// declaration forms end at their closing brace. Dropping the `;` lets ASI
+	// pull the next line into the exported expression.
+	describe('export default terminators', () => {
+		/**
+		 * Assert the input is already formatted and comes back byte-identical.
+		 * @param {string} source
+		 */
+		const expectUnchanged = async (source) => {
+			const result = await format(source);
+			expect(result).toBeWithNewline(source);
+		};
+
+		it('terminates an identifier export', async () => {
+			await expectUnchanged(`export default foo;`);
+		});
+
+		it('terminates an object export', async () => {
+			await expectUnchanged(`export default { a: 1 };`);
+		});
+
+		it('terminates an array export', async () => {
+			await expectUnchanged(`export default [1, 2];`);
+		});
+
+		it('terminates a numeric literal export', async () => {
+			await expectUnchanged(`export default 42;`);
+		});
+
+		it('terminates an arrow function export', async () => {
+			await expectUnchanged(`export default (a, b) => a + b;`);
+		});
+
+		it('terminates a call expression export', async () => {
+			await expectUnchanged(`export default createStore();`);
+		});
+
+		it('terminates an `as` expression export', async () => {
+			await expectUnchanged(`export default foo as Bar;`);
+		});
+
+		// Without the terminator these two lines reparse as the single call
+		// `export default foo(function () {})();`.
+		it('does not let a following paren line join the exported expression', async () => {
+			await expectUnchanged(`export default foo;
+(function () {})();`);
+		});
+
+		it('does not let a following bracket line join the exported expression', async () => {
+			await expectUnchanged(`export default foo;
+[1, 2].forEach(log);`);
+		});
+
+		it('does not let a following template line join the exported expression', async () => {
+			await expectUnchanged('export default foo;\n`side effect`;');
+		});
+
+		it('omits the terminator when semi is disabled', async () => {
+			const input = `export default foo;`;
+			const expected = `export default foo`;
+
+			const result = await format(input, { semi: false });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('leaves a class declaration unterminated', async () => {
+			await expectUnchanged(`export default class Named {}`);
+		});
+
+		it('leaves an abstract class declaration unterminated', async () => {
+			await expectUnchanged(`export default abstract class A {}`);
+		});
+
+		it('leaves a function declaration unterminated', async () => {
+			await expectUnchanged(`export default function foo() {}`);
+		});
+
+		it('leaves an interface declaration unterminated', async () => {
+			await expectUnchanged(`export default interface Foo {}`);
+		});
+
+		// A decorated default export parses as a ClassExpression but is still a
+		// declaration, so it must not pick up a terminator.
+		it('leaves a decorated class declaration unterminated', async () => {
+			const input = `export default @dec class Named {}`;
+			const expected = `@dec
+export default class Named {}`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+	});
+
+	// `export default function () {}` is the one position where a
+	// FunctionDeclaration may be anonymous.
+	describe('anonymous default-exported function declarations', () => {
+		/**
+		 * Assert the input is already formatted and comes back byte-identical.
+		 * @param {string} source
+		 */
+		const expectUnchanged = async (source) => {
+			const result = await format(source);
+			expect(result).toBeWithNewline(source);
+		};
+
+		it('prints an anonymous function declaration', async () => {
+			await expectUnchanged(`export default function () {}`);
+		});
+
+		it('prints an anonymous async function declaration', async () => {
+			await expectUnchanged(`export default async function () {}`);
+		});
+
+		it('prints an anonymous generator declaration', async () => {
+			await expectUnchanged(`export default function* () {}`);
+		});
+
+		it('prints an anonymous function declaration with parameters', async () => {
+			await expectUnchanged(`export default function (a, b) {
+  return a + b;
+}`);
 		});
 	});
 

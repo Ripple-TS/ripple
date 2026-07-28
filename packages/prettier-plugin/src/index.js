@@ -3236,7 +3236,7 @@ function stripComments(text) {
  * a ClassExpression even though it is a declaration, so the source text
  * between the keyword and the declaration has to be consulted.
  *
- * @param {AST.ExportDefaultDeclaration} node - The export default node
+ * @param {AST.TSRXExportDefaultDeclaration} node - The export default node
  * @param {RippleFormatOptions} options - Prettier options
  * @returns {boolean}
  */
@@ -3270,6 +3270,50 @@ function isParenthesizedDefaultExport(node, options) {
 }
 
 /**
+ * Whether an `export default` takes a statement terminator.
+ *
+ * The grammar admits two shapes after the keyword. A HoistableDeclaration,
+ * ClassDeclaration or TypeScript declaration form is a *declaration* and ends
+ * at its closing brace. Everything else is an AssignmentExpression, which is a
+ * *statement* and needs a `;`.
+ *
+ * Omitting it is an ASI hazard rather than a cosmetic slip: the next line is
+ * swallowed into the exported expression whenever it starts with `(`, `[`,
+ * a template literal, `+`, `-`, or `/`. `export default foo;` followed by
+ * `(function () {})();` silently becomes the single call
+ * `export default foo(function () {})();`.
+ *
+ * The node type alone cannot decide this. A decorated
+ * `export default @dec class Named {}` parses as a ClassExpression but is
+ * still a declaration, so the two expression node types defer to
+ * {@link isParenthesizedDefaultExport}, which reads the source.
+ *
+ * @param {AST.TSRXExportDefaultDeclaration} node - The export default node
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function defaultExportNeedsSemicolon(node, options) {
+	const declaration = node.declaration;
+
+	if (!declaration) {
+		return false;
+	}
+
+	switch (declaration.type) {
+		case 'FunctionDeclaration':
+		case 'ClassDeclaration':
+		case 'TSDeclareFunction':
+		case 'TSInterfaceDeclaration':
+			return false;
+		case 'ClassExpression':
+		case 'FunctionExpression':
+			return isParenthesizedDefaultExport(node, options);
+		default:
+			return true;
+	}
+}
+
+/**
  * Print an export default declaration
  * @param {AST.ExportDefaultDeclaration} node - The export default node
  * @param {AstPath<AST.ExportDefaultDeclaration>} path - The AST path
@@ -3283,23 +3327,26 @@ function printExportDefaultDeclaration(node, path, options, print) {
 	parts.push(...printDeclarationDecorators(node, path, options, print));
 	parts.push('export default ');
 
+	// Declaration forms end at their closing brace; expression forms are
+	// statements and terminate.
+	const terminator = defaultExportNeedsSemicolon(node, options) ? semi(options) : '';
+
 	if (isParenthesizedDefaultExport(node, options)) {
-		// An expression export, not a declaration: it keeps its parens and
-		// takes a statement terminator.
+		// An expression export, not a declaration: it keeps its parens.
 		const declaration = path.call(print, 'declaration');
 
 		if (getDecorators(/** @type {AST.Node} */ (node.declaration)).length > 0) {
 			// The decorators stay inside the parens, each on its own line, so
 			// the whole expression is indented to keep them off column zero.
-			parts.push('(', indent([hardline, declaration]), hardline, ')', semi(options));
+			parts.push('(', indent([hardline, declaration]), hardline, ')', terminator);
 			return parts;
 		}
 
-		parts.push('(', declaration, ')', semi(options));
+		parts.push('(', declaration, ')', terminator);
 		return parts;
 	}
 
-	parts.push(path.call(print, 'declaration'));
+	parts.push(path.call(print, 'declaration'), terminator);
 	return parts;
 }
 
@@ -3852,7 +3899,13 @@ function printFunctionDeclaration(node, path, options, print) {
 	}
 
 	parts.push(' ');
-	parts.push(node.id.name);
+
+	// `export default function () {}` is an anonymous FunctionDeclaration, the
+	// one position where the name is optional. The space stays either way, so
+	// the parameter list is not glued to the keyword.
+	if (node.id) {
+		parts.push(node.id.name);
+	}
 
 	// Add TypeScript generics if present
 	if (node.typeParameters) {

@@ -715,6 +715,19 @@ declare module 'estree' {
 		declaration?: TSRXDeclaration | null | undefined;
 	}
 
+	/**
+	 * estree's `ExportDefaultDeclaration` predates the two TypeScript-only
+	 * declaration forms the parser puts in this slot: `export default interface
+	 * Foo {}` yields a `TSInterfaceDeclaration`, and the overload signature
+	 * `export default function foo();` yields a `TSDeclareFunction`.
+	 */
+	interface TSRXExportDefaultDeclaration extends Omit<AST.ExportDefaultDeclaration, 'declaration'> {
+		declaration:
+			| AST.ExportDefaultDeclaration['declaration']
+			| AST.TSDeclareFunction
+			| AST.TSInterfaceDeclaration;
+	}
+
 	interface TSRXProgram extends Omit<Program, 'body'> {
 		body: (Program['body'][number] | FunctionExpression)[];
 	}
