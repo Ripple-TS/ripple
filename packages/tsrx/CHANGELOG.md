@@ -1,5 +1,18 @@
 # @tsrx/core
 
+## 0.1.53
+
+### Patch Changes
+
+- [#1399](https://github.com/Ripple-TS/ripple/pull/1399)
+  [`7eaf6e8`](https://github.com/Ripple-TS/ripple/commit/7eaf6e8b21f83b73845b8bcd6bc50cc9f8886871)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix a parse error for `as`
+  casts around parenthesized JSX in attribute values
+  (`prop={((c) => (<Col />)) as any}`). The after-element context fixup popped a
+  still-open outer `(` as if it were leaked, so the outer `)` popped the attribute
+  container's brace and the `as` tokenized as a JSX name instead of starting the
+  cast.
+
 ## 0.1.52
 
 ### Patch Changes
