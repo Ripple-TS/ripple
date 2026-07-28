@@ -1,5 +1,58 @@
 # @tsrx/vite-plugin-react
 
+## 0.0.83
+
+### Patch Changes
+
+- [#1394](https://github.com/Ripple-TS/ripple/pull/1394)
+  [`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: make `.tsrx` imports
+  visible to Vite's dependency scanner in every plugin
+
+  Vite's dep scanner runs through Rolldown without the main plugin pipeline, so
+  any npm dependency imported only from `.tsrx` files was invisible at startup and
+  got discovered at request time instead, forcing a re-optimize and a full page
+  reload. Only `@tsrx/vite-plugin-react` handled this; `@tsrx/vite-plugin-preact`,
+  `@tsrx/vite-plugin-solid` and `@ripple-ts/vite-plugin` now do too.
+
+  `@tsrx/core` gains a `@tsrx/core/vite/dep-scan` entry point with the two plugin
+  shapes this needs: `createDepScanTransformPlugin` for plugins that transform
+  `.tsrx` ids directly, and `createDepScanLoadPlugin` for plugins that rewrite
+  them to a virtual `<path>.tsx` form. Both swallow compile failures, so a single
+  malformed file no longer costs the whole project its dependency pre-bundling.
+
+  Also fixes the scan's own JSX transform, which defaults to React's automatic
+  runtime. It was emitting an unresolvable `react/jsx-dev-runtime` import into
+  Preact, Solid and Vue projects, which failed the scan outright — the React-only
+  form of this bug appeared when `jsxImportSource` was set to a non-React runtime.
+  The React and Preact plugins now point that transform at the configured import
+  source, and the Solid and Vue plugins leave JSX untransformed during the scan
+  since their own JSX stage runs downstream.
+
+- [#1392](https://github.com/Ripple-TS/ripple/pull/1392)
+  [`85bad97`](https://github.com/Ripple-TS/ripple/commit/85bad9705c6139074246b51f7d55d957d55c4eb5)
+  Thanks [@jamiedavenport](https://github.com/jamiedavenport)! - fix: make `.tsrx`
+  imports visible to Vite's dependency scanner
+
+  Vite's dep scanner runs through Rolldown without the main plugin pipeline, so
+  any npm dependency imported only from `.tsrx` files was invisible at startup and
+  got discovered at request time instead, forcing a re-optimize and a full page
+  reload. The plugin now registers a dep-scan plugin under
+  `optimizeDeps.rolldownOptions.plugins` (plus the `.tsrx` entry in
+  `optimizeDeps.extensions`) that compiles `.tsrx` modules for the scan pass, so
+  their imports are crawled up front. A `.tsrx` file that fails to compile is
+  skipped by the scan rather than failing it, so one malformed file no longer
+  costs the project its dependency pre-bundling.
+
+- Updated dependencies
+  [[`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c),
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a),
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)]:
+  - @tsrx/core@0.1.51
+  - @tsrx/react@0.2.51
+
 ## 0.0.82
 
 ### Patch Changes

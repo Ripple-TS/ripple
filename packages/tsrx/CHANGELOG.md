@@ -1,5 +1,139 @@
 # @tsrx/core
 
+## 0.1.51
+
+### Patch Changes
+
+- [#1394](https://github.com/Ripple-TS/ripple/pull/1394)
+  [`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: make `.tsrx` imports
+  visible to Vite's dependency scanner in every plugin
+
+  Vite's dep scanner runs through Rolldown without the main plugin pipeline, so
+  any npm dependency imported only from `.tsrx` files was invisible at startup and
+  got discovered at request time instead, forcing a re-optimize and a full page
+  reload. Only `@tsrx/vite-plugin-react` handled this; `@tsrx/vite-plugin-preact`,
+  `@tsrx/vite-plugin-solid` and `@ripple-ts/vite-plugin` now do too.
+
+  `@tsrx/core` gains a `@tsrx/core/vite/dep-scan` entry point with the two plugin
+  shapes this needs: `createDepScanTransformPlugin` for plugins that transform
+  `.tsrx` ids directly, and `createDepScanLoadPlugin` for plugins that rewrite
+  them to a virtual `<path>.tsx` form. Both swallow compile failures, so a single
+  malformed file no longer costs the whole project its dependency pre-bundling.
+
+  Also fixes the scan's own JSX transform, which defaults to React's automatic
+  runtime. It was emitting an unresolvable `react/jsx-dev-runtime` import into
+  Preact, Solid and Vue projects, which failed the scan outright — the React-only
+  form of this bug appeared when `jsxImportSource` was set to a non-React runtime.
+  The React and Preact plugins now point that transform at the configured import
+  source, and the Solid and Vue plugins leave JSX untransformed during the scan
+  since their own JSX stage runs downstream.
+
+- [#1386](https://github.com/Ripple-TS/ripple/pull/1386)
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(parser): recognize
+  control-flow directives inside element-valued attribute expressions
+
+  JSX inside an attribute-value `{ … }` container now parses through the TSRX
+  template path, so `prop={<h1>@if (ok) { … } @else { … }</h1>}` behaves the same
+  as assigning the element to a variable first. Previously the directive was
+  either kept as literal text or — when no whitespace preceded the `@` — re-parsed
+  into an untransformed directive node that crashed the printer.
+
+  Also fixes template text loss around directives: text (and significant inline
+  whitespace) preceding a directive or an `=` was silently dropped in
+  container-nested elements, and inline spaces between a sibling element and a
+  directive were dropped inside `@switch` bodies and value-position directives
+  (`const v = @if …`). Sibling whitespace now survives uniformly, matching how the
+  browser renders it; newline-containing layout indentation is still removed.
+
+- [#1389](https://github.com/Ripple-TS/ripple/pull/1389)
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - chore(types): type the parser
+  plugin without `any`
+
+  Every `any` cast in the acorn plugin is gone, and the type declarations it was
+  papering over now describe what the parser actually produces:
+  `jsx_parseOpeningElementAt` returns `TSRXJSXOpeningElement | JSXOpeningFragment`
+  instead of the plain `JSXOpeningElement` it never emits for `<>` or a dynamic
+  `<{expr}>` tag, `TSRXJSXFragment` carries the loose-mode `unclosed` flag, and
+  `TSRXJSXClosingElement` carries the `isDynamic` flag both halves of a dynamic
+  tag get. `@sveltejs/acorn-typescript`'s `tsTryParseAndCatch` and
+  `tsParseTypeArgumentsInExpression` are declared on the parser interface, and the
+  in-place node retypes (statement to `JSX*Expression` directive, opening/closing
+  element to fragment, the under-construction template node's discriminant and
+  opening/closing slots) go through named views in the types package. Parser
+  behavior is unchanged.
+
+- [#1391](https://github.com/Ripple-TS/ripple/pull/1391)
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace every `any` in
+  `@tsrx/solid`, `@tsrx/vue`, `@tsrx/react` and `@tsrx/preact` with the real AST,
+  compiler and framework types, and move each package's `@typedef` blocks into its
+  `types/` declarations.
+
+  `@tsrx/solid`'s transform carried the bulk of it: all 126 `any` annotations are
+  gone, replaced by the parser's AST types plus a new `types/transform.d.ts`
+  describing the shapes the Solid lowering passes around (`SolidRenderSource`,
+  `SolidIfBranch`, `SolidLoweredList`, `SolidBranchArrow`, …).
+  `is_solid_render_child` and `is_branch_arrow` are now type predicates,
+  `to_jsx_child` declares that a render source always lowers to a JSX child, and
+  the hand-built `JSXElement`/`JSXAttribute` object literals are built through the
+  shared builders instead — so generated attributes carry the `shorthand` field
+  the type requires. The two places where a statement list is still mid-lowering
+  go through `lowered_block`/`lowered_switch_case`, which name that invariant
+  instead of hiding it behind `any`. Three unreachable helpers
+  (`get_if_consequent_body`, `negate_expression`, `TEMPLATE_FRAGMENT_ERROR`) were
+  dropped.
+
+  `@tsrx/vue`'s error boundary no longer casts the `vue` namespace to `any` at
+  every call: the Vapor renderer's runtime-internal helpers are declared once in
+  `types/vapor-runtime.d.ts` (`VaporRuntime`, `VaporBlock`, `VaporFragment`,
+  `VaporComponentInstance`), the namespace is narrowed to that interface a single
+  time, and `EffectScope` comes from `vue`'s own published export.
+  `TsrxErrorBoundaryProps` describes its render callbacks as returning `unknown`
+  rather than `any`, matching what the boundary actually does with them.
+
+  The React and Preact error boundaries declare their props and state through
+  `TsrxErrorBoundaryProps`/`TsrxErrorBoundaryState` instead of an `any`
+  constructor parameter, Preact's `CompileOptions` typedef moved from
+  `src/transform.js` to `types/index.d.ts` where the declaration already lived,
+  and all four `compile` entry points return the shared `CompileResult` (a typed
+  `map`) instead of an inline shape with `map: any`.
+
+  `@tsrx/core`'s `BaseNodeMetaData` declares the two flags Solid's transform sets
+  (`solid_render_control`, `is_branch_arrow`), alongside the Vue-specific flags
+  already there.
+
+- [#1390](https://github.com/Ripple-TS/ripple/pull/1390)
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace every `any` in
+  `@tsrx/core` with the real AST, CSS, parser and runtime types, move all
+  remaining `@typedef` blocks into the package's `types/` declarations, and
+  typecheck `packages/tsrx/tests` alongside `src` and `types`.
+
+  Public type declarations gained accuracy along the way: `TSModuleDeclaration.id`
+  accepts a string literal, `TSModuleBlock.body` allows imports and exports,
+  `AnalysisResult` declares its `module` field,
+  `ImportDeclaration`/`ImportExpression` declare their legacy
+  `assertions`/`arguments` slots, `Program` declares `tsrx_keyword_tokens`, and
+  `zimmerframe`'s `walk` plus esrap's `print`/`tsx` are generic over their state
+  instead of `any`. New builders (`ts_qualified_name`, `ts_import_equals`,
+  `assignment_prop`) and shared helpers (`node_children`, `is_style_element`)
+  replace hand-built nodes and duplicated predicates.
+
+  The published runtime declarations keep their reach: `normalize_spread_props`,
+  `normalize_spread_props_for_ref_attr` and `exclude_prop_from_object` accept any
+  object — an interface- or class-typed props bag included — rather than only an
+  index-signature type, and `exclude_prop_from_object` now returns `Omit<T, K>` so
+  the surviving props stay readable. `create_ref_prop` and `apply_ref_value` now
+  resolve their node type through a `RefTarget` overload that mirrors the
+  runtime's own resolution order, so a ref to an element carrying a `value`
+  property (`input`, `button`, `select`, `textarea`, `option`, `li`, `progress`,
+  `meter`, `output`, `data`) resolves to the element instead of to `string`.
+  Type-level tests pin the inferred types of every published ref and language
+  helper, so a signature change that degrades editor completion fails a test.
+
 ## 0.1.50
 
 ### Patch Changes

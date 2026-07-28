@@ -1,5 +1,57 @@
 # @tsrx/preact
 
+## 0.1.51
+
+### Patch Changes
+
+- [#1391](https://github.com/Ripple-TS/ripple/pull/1391)
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace every `any` in
+  `@tsrx/solid`, `@tsrx/vue`, `@tsrx/react` and `@tsrx/preact` with the real AST,
+  compiler and framework types, and move each package's `@typedef` blocks into its
+  `types/` declarations.
+
+  `@tsrx/solid`'s transform carried the bulk of it: all 126 `any` annotations are
+  gone, replaced by the parser's AST types plus a new `types/transform.d.ts`
+  describing the shapes the Solid lowering passes around (`SolidRenderSource`,
+  `SolidIfBranch`, `SolidLoweredList`, `SolidBranchArrow`, …).
+  `is_solid_render_child` and `is_branch_arrow` are now type predicates,
+  `to_jsx_child` declares that a render source always lowers to a JSX child, and
+  the hand-built `JSXElement`/`JSXAttribute` object literals are built through the
+  shared builders instead — so generated attributes carry the `shorthand` field
+  the type requires. The two places where a statement list is still mid-lowering
+  go through `lowered_block`/`lowered_switch_case`, which name that invariant
+  instead of hiding it behind `any`. Three unreachable helpers
+  (`get_if_consequent_body`, `negate_expression`, `TEMPLATE_FRAGMENT_ERROR`) were
+  dropped.
+
+  `@tsrx/vue`'s error boundary no longer casts the `vue` namespace to `any` at
+  every call: the Vapor renderer's runtime-internal helpers are declared once in
+  `types/vapor-runtime.d.ts` (`VaporRuntime`, `VaporBlock`, `VaporFragment`,
+  `VaporComponentInstance`), the namespace is narrowed to that interface a single
+  time, and `EffectScope` comes from `vue`'s own published export.
+  `TsrxErrorBoundaryProps` describes its render callbacks as returning `unknown`
+  rather than `any`, matching what the boundary actually does with them.
+
+  The React and Preact error boundaries declare their props and state through
+  `TsrxErrorBoundaryProps`/`TsrxErrorBoundaryState` instead of an `any`
+  constructor parameter, Preact's `CompileOptions` typedef moved from
+  `src/transform.js` to `types/index.d.ts` where the declaration already lived,
+  and all four `compile` entry points return the shared `CompileResult` (a typed
+  `map`) instead of an inline shape with `map: any`.
+
+  `@tsrx/core`'s `BaseNodeMetaData` declares the two flags Solid's transform sets
+  (`solid_render_control`, `is_branch_arrow`), alongside the Vue-specific flags
+  already there.
+
+- Updated dependencies
+  [[`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c),
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a),
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)]:
+  - @tsrx/core@0.1.51
+
 ## 0.1.50
 
 ### Patch Changes

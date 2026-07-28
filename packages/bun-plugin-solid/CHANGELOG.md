@@ -1,5 +1,13 @@
 # @tsrx/bun-plugin-solid
 
+## 0.0.45
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a)]:
+  - @tsrx/solid@0.1.51
+
 ## 0.0.44
 
 ### Patch Changes

@@ -1,5 +1,29 @@
 # @tsrx/prettier-plugin
 
+## 0.3.113
+
+### Patch Changes
+
+- [#1388](https://github.com/Ripple-TS/ripple/pull/1388)
+  [`22e524c`](https://github.com/Ripple-TS/ripple/commit/22e524c62cc976987ea7919dcc76aefc712160c0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: print bigint and numeric
+  literals from their source form
+
+  Formatting a file containing a bigint literal threw
+  `TypeError: Do not know how to serialize a BigInt`, because every non-string
+  literal was reprinted with `JSON.stringify(node.value)`. Literals now print from
+  `raw`: bigints keep their radix (`0xffn`), and numeric literals keep their
+  radix, digit separators, and exponent (`0xff`, `1_000_000`, `1e21`) instead of
+  being rewritten to their decimal value.
+
+- Updated dependencies
+  [[`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c),
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a),
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)]:
+  - @tsrx/core@0.1.51
+
 ## 0.3.112
 
 ### Patch Changes

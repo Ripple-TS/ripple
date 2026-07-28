@@ -1,5 +1,105 @@
 # @tsrx/ripple
 
+## 0.1.52
+
+### Patch Changes
+
+- [#1386](https://github.com/Ripple-TS/ripple/pull/1386)
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(transform): lower
+  template elements in expression-container and attribute-value positions
+
+  An element inside a child expression container (`<div>{<h1>…</h1>}</div>`) or an
+  attribute value (`prop={<h1>…</h1>}`) now lowers to a `tsrx_element` value in
+  both client and server output — matching what the same element assigned to a
+  variable produces. Previously the client leaked raw JSX into the compiled output
+  (broken at runtime) and both modes crashed the printer when the element
+  contained control-flow directives. Ternary and directive-valued attributes on
+  the server are fixed by the same change.
+
+  Expression children are now classified by provable type: an expression that
+  provably evaluates to a text primitive (string, number, boolean, bigint,
+  null/undefined — literals, operators, `String()`/`Number()`/`Boolean()`, `as`
+  casts, typed bindings and members) keeps the inline text fast paths, and
+  everything else renders through the value-aware expression paths — so an element
+  passed as a prop and rendered via `{props.header}` produces its markup instead
+  of `[object Object]`. `<title>` expression children always use the escaping text
+  path, keeping hydration markers out of `document.title`.
+
+  Also fixes a latent client codegen crash: a text expression following inlined
+  text in the same template text run (e.g. `<div>label: {String(f())}</div>`)
+  anchored past the end of the coalesced text node; such expressions now render
+  through a comment-anchored `_$_.expression`.
+
+- [#1386](https://github.com/Ripple-TS/ripple/pull/1386)
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: render fragment children
+  inline with zero extra DOM
+
+  An authored `<>…</>` in children position previously compiled to a comment
+  anchor plus a runtime `tsrx_element` expression on the client while the server
+  inlined its content bare — an extra comment node and render unit per fragment,
+  and a client/server DOM shape mismatch that broke hydration of fragment
+  children. Template fragments in children position now flatten during child
+  normalization: their children render inline in the parent template (text runs
+  merge across the former fragment boundary), adding no DOM nodes at all.
+  Code-block chain fragments, generated value wrappers, and component root render
+  fragments keep their existing lowering; the to_ts view keeps authored fragments
+  verbatim. `<head>` extraction and value-position classification look through
+  flattened fragments.
+
+- [#1386](https://github.com/Ripple-TS/ripple/pull/1386)
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: merge provably-primitive
+  call-containing expressions into text runs
+
+  Adjacent text and expression children previously refused to merge whenever the
+  expression contained a call, leaving shapes like
+  `<div>label: {String(f())}</div>` split into a text run plus a separate anchor —
+  which crashed client rendering (the text anchor coalesced with the preceding
+  template text) and could not hydrate against the server's inlined output. An
+  expression that provably evaluates to a text primitive now merges into the run,
+  so both targets render one shared text node. Merged operands are nullish-guarded
+  (`String(v ?? '')`) so nullish values contribute nothing, except provably-string
+  operands and non-nullish primitive literals, which concatenate bare.
+
+- [#1390](https://github.com/Ripple-TS/ripple/pull/1390)
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace every `any` in
+  `@tsrx/core` with the real AST, CSS, parser and runtime types, move all
+  remaining `@typedef` blocks into the package's `types/` declarations, and
+  typecheck `packages/tsrx/tests` alongside `src` and `types`.
+
+  Public type declarations gained accuracy along the way: `TSModuleDeclaration.id`
+  accepts a string literal, `TSModuleBlock.body` allows imports and exports,
+  `AnalysisResult` declares its `module` field,
+  `ImportDeclaration`/`ImportExpression` declare their legacy
+  `assertions`/`arguments` slots, `Program` declares `tsrx_keyword_tokens`, and
+  `zimmerframe`'s `walk` plus esrap's `print`/`tsx` are generic over their state
+  instead of `any`. New builders (`ts_qualified_name`, `ts_import_equals`,
+  `assignment_prop`) and shared helpers (`node_children`, `is_style_element`)
+  replace hand-built nodes and duplicated predicates.
+
+  The published runtime declarations keep their reach: `normalize_spread_props`,
+  `normalize_spread_props_for_ref_attr` and `exclude_prop_from_object` accept any
+  object — an interface- or class-typed props bag included — rather than only an
+  index-signature type, and `exclude_prop_from_object` now returns `Omit<T, K>` so
+  the surviving props stay readable. `create_ref_prop` and `apply_ref_value` now
+  resolve their node type through a `RefTarget` overload that mirrors the
+  runtime's own resolution order, so a ref to an element carrying a `value`
+  property (`input`, `button`, `select`, `textarea`, `option`, `li`, `progress`,
+  `meter`, `output`, `data`) resolves to the element instead of to `string`.
+  Type-level tests pin the inferred types of every published ref and language
+  helper, so a signature change that degrades editor completion fails a test.
+
+- Updated dependencies
+  [[`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c),
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a),
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)]:
+  - @tsrx/core@0.1.51
+
 ## 0.1.51
 
 ### Patch Changes

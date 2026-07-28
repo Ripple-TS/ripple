@@ -1,5 +1,35 @@
 # ripple
 
+## 0.3.113
+
+### Patch Changes
+
+- [#1389](https://github.com/Ripple-TS/ripple/pull/1389)
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(types): widen
+  `Component`'s return type to everything the runtime renders
+
+  `Component` declared `(props: T) => void | TSRXElement`, so a component that
+  returned a string, number, bigint, boolean, `null`, or an array — all of which
+  both runtimes render — was rejected at `mount`, `hydrate`, and the server
+  `render`. The return type is now the new exported `Renderable` union, which
+  mirrors the shared dispatch in `render_value`/`render_expression`: elements
+  render, arrays flatten recursively, nullish renders nothing, everything else is
+  stringified. Promises, functions, and symbols stay rejected because neither
+  runtime renders them.
+
+- Updated dependencies
+  [[`6404d3c`](https://github.com/Ripple-TS/ripple/commit/6404d3cc679fde2eb83ec85c9cd98b653f3f2fed),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`7ad580e`](https://github.com/Ripple-TS/ripple/commit/7ad580efd24b338b4774add06afdcdd8876c954c),
+  [`6eaa2f3`](https://github.com/Ripple-TS/ripple/commit/6eaa2f3e6cd18973d57df06eae770313dd061a1a),
+  [`6025176`](https://github.com/Ripple-TS/ripple/commit/6025176000cafa50d924add8e9a878fe37c0c22b),
+  [`9ffd4ba`](https://github.com/Ripple-TS/ripple/commit/9ffd4ba3e5982acb79a02efe0379abdc14c092a1)]:
+  - @tsrx/core@0.1.51
+  - @tsrx/ripple@0.1.52
+
 ## 0.3.112
 
 ### Patch Changes
