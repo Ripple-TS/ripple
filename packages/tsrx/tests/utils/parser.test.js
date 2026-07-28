@@ -4411,3 +4411,110 @@ describe('multi-line JSX elements as attribute values', () => {
 		expect(other.value).toBe(1);
 	});
 });
+
+describe('casts around JSX in attribute values', () => {
+	// A balanced element inside nested parens leaves the token-context stack
+	// already unwound below the enclosing expression's depth, so the
+	// after-element fixup must not pop the still-open outer `(` — doing so made
+	// the outer `)` pop the attribute container's brace instead, and the `as`
+	// that followed tokenized as a JSX name, never reaching the cast parse.
+
+	/**
+	 * The attribute value's `… as any` cast, asserted and unwrapped.
+	 *
+	 * @param {AST.TSRXJSXElement} element
+	 * @param {number} index
+	 * @returns {AST.Expression}
+	 */
+	function attributeCastExpression(element, index) {
+		const cast = as_type(
+			attributeExpression(element.openingElement.attributes[index]),
+			'TSAsExpression',
+		);
+		return cast.expression;
+	}
+
+	it('parses a cast parenthesized arrow returning parenthesized JSX', () => {
+		const element = findElement(
+			`export function App() {
+	return <Host prop={((c: any) => (<Col id={c.id} />)) as any} />;
+}`,
+			'Host',
+		);
+		const arrow = as_type(attributeCastExpression(element, 0), 'ArrowFunctionExpression');
+		const body = as_type(arrow.body, 'JSXElement');
+		expect(as_type(body.openingElement.name, 'JSXIdentifier').name).toBe('Col');
+	});
+
+	it('parses a cast arrow returning a paired element with an expression child', () => {
+		const element = findElement(
+			`export function App() {
+	return <Host prop={((c: any) => (<Col a={c.a}>{c.name}</Col>)) as any} />;
+}`,
+			'Host',
+		);
+		const arrow = as_type(attributeCastExpression(element, 0), 'ArrowFunctionExpression');
+		const body = as_type(arrow.body, 'JSXElement');
+		const container = as_type(
+			found(node_children(body).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		);
+		assert_type(container.expression, 'MemberExpression');
+	});
+
+	it('parses a cast call whose argument is an arrow returning JSX', () => {
+		const element = findElement(
+			`export function App() {
+	return <Host prop={fn((c: any) => (<Col id={c.id} />)) as any} />;
+}`,
+			'Host',
+		);
+		const call = as_type(attributeCastExpression(element, 0), 'CallExpression');
+		const arrow = as_type(call.arguments[0], 'ArrowFunctionExpression');
+		assert_type(arrow.body, 'JSXElement');
+	});
+
+	it('parses a cast around doubly parenthesized JSX', () => {
+		const element = findElement(
+			`export function App() {
+	return <Host prop={((<Col id={c.id} />)) as any} />;
+}`,
+			'Host',
+		);
+		const value = as_type(attributeCastExpression(element, 0), 'JSXElement');
+		expect(as_type(value.openingElement.name, 'JSXIdentifier').name).toBe('Col');
+	});
+
+	it('parses a multi-line cast arrow inside a cast element array', () => {
+		const element = findElement(
+			`export function Table() {
+	const state = useTableState({
+		children: [
+			<TableHeader
+				key="head"
+				columns={columns}
+				children={
+					((c: any) => (
+						<Column key={c.id} isRowHeader={c.isRowHeader}>
+							{c.name}
+						</Column>
+					)) as any
+				}
+			/>,
+		] as any,
+		selectionMode: 'multiple',
+	});
+	return <div>{state.collection.size}</div>;
+}`,
+			'TableHeader',
+		);
+		const arrow = as_type(attributeCastExpression(element, 2), 'ArrowFunctionExpression');
+		const body = as_type(arrow.body, 'JSXElement');
+		expect(as_type(body.openingElement.name, 'JSXIdentifier').name).toBe('Column');
+		const container = as_type(
+			found(node_children(body).find((c) => c.type === 'JSXExpressionContainer')),
+			'JSXExpressionContainer',
+		);
+		assert_type(container.expression, 'MemberExpression');
+	});
+});

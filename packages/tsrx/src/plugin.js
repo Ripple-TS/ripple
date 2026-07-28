@@ -2348,8 +2348,9 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+			 * @param {number} enclosing_context_depth
 			 */
-			#popTokenContextsAfterTemplateExpressionElement(node) {
+			#popTokenContextsAfterTemplateExpressionElement(node, enclosing_context_depth) {
 				// A fragment in expression position (`() => <>…</>`) leaves the tokenizer
 				// at `exprAllowed === false`, unlike a self-closing element. When the next
 				// token is a `;` or ASI can insert one, the following statement may
@@ -2452,13 +2453,20 @@ export function TSRXPlugin(config) {
 				// Closing token after the template at expression position. For `}`
 				// only pop if it actually closes this `b_expr` — otherwise the
 				// brace targets an inner callback/object body that should pop it
-				// naturally on the next token step.
+				// naturally on the next token step. Only compensate while the stack
+				// has not unwound below the enclosing expression's depth: a balanced
+				// element leaves the stack at that depth and the closing token's own
+				// `updateContext` then pops its real opener (going one below), so a
+				// remaining `(`/`[`/b_expr on top belongs to a still-open outer
+				// group — popping it would make the group's own closer pop the
+				// context underneath it (e.g. an attribute container's brace).
 				if (
-					(this.type === tt.braceR &&
+					ctx.length >= enclosing_context_depth &&
+					((this.type === tt.braceR &&
 						top === b_expr &&
 						(this.#countFollowingRightBraces() === 0 || second === b_expr)) ||
-					(this.type === tt.parenR && top?.token === '(') ||
-					(this.type === tt.bracketR && top?.token === '[')
+						(this.type === tt.parenR && top?.token === '(') ||
+						(this.type === tt.bracketR && top?.token === '['))
 				) {
 					ctx.pop();
 					this.exprAllowed = false;
@@ -4314,11 +4322,15 @@ export function TSRXPlugin(config) {
 					}
 				}
 
+				// This element's `jsxTagStart` has already pushed its own `tc_expr` and
+				// `tc_oTag`, so everything below them is the enclosing expression's
+				// stack — the depth a balanced element parse must return to.
+				const enclosing_context_depth = this.context.length - 2;
 				this.next();
 				const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 					/** @type {unknown} */ (this.parseElement())
 				);
-				this.#popTokenContextsAfterTemplateExpressionElement(parsed);
+				this.#popTokenContextsAfterTemplateExpressionElement(parsed, enclosing_context_depth);
 				return parsed;
 			}
 
