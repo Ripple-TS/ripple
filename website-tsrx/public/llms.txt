@@ -69,6 +69,32 @@ npm install octane @octanejs/vite-plugin
 Vue's Vite setup should use `tsrxVue()` from `@tsrx/vite-plugin-vue`,
 and editor/typecheck configs should set `jsxImportSource: 'vue-jsx-vapor'`.
 
+### Runtime helper imports for published libraries
+
+Compiler output uses compiler-package helper subpaths by default, so applications
+can continue installing only their target compiler package. Published component
+libraries can instead depend on the matching small runtime package:
+`@tsrx/react-runtime`, `@tsrx/preact-runtime`, `@tsrx/solid-runtime`, or
+`@tsrx/vue-runtime`.
+
+Pass `runtimeImports: 'direct'` to a target compiler or its Vite, Rspack, or Bun
+integration to emit those direct runtime imports. React's Turbopack helper accepts
+the same option as its second argument:
+
+```js
+const result = compile(source, filename, { runtimeImports: 'direct' });
+
+const vitePlugin = tsrxReact({ runtimeImports: 'direct' });
+const rspackPlugin = new TsrxReactRspackPlugin({ runtimeImports: 'direct' });
+const bunPlugin = tsrxReactBun({ runtimeImports: 'direct' });
+const nextConfig = tsrxReactTurbopack({}, { runtimeImports: 'direct' });
+```
+
+Use direct imports when publishing compiled components and declare the matching
+renderer runtime package as a production dependency. The default
+`runtimeImports: 'compiler'` mode remains appropriate for applications that own
+their TSRX compilation.
+
 ### Octane setup
 
 Octane is a compiler-first, React-compatible UI framework built on TSRX. It is

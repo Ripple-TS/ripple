@@ -1052,6 +1052,9 @@ importers:
       '@sveltejs/acorn-typescript':
         specifier: catalog:default
         version: 1.0.13(acorn@8.17.0)
+      '@tsrx/runtime':
+        specifier: workspace:*
+        version: link:../tsrx-runtime
       '@types/estree':
         specifier: catalog:default
         version: 1.0.8
@@ -1126,6 +1129,9 @@ importers:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/preact-runtime':
+        specifier: workspace:*
+        version: link:../tsrx-preact-runtime
       esrap:
         specifier: ^2.3.2
         version: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -1146,11 +1152,23 @@ importers:
         specifier: catalog:default
         version: 5.9.3
 
+  packages/tsrx-preact-runtime:
+    dependencies:
+      '@tsrx/runtime':
+        specifier: workspace:*
+        version: link:../tsrx-runtime
+      preact:
+        specifier: '>=10'
+        version: 10.29.1
+
   packages/tsrx-react:
     dependencies:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/react-runtime':
+        specifier: workspace:*
+        version: link:../tsrx-react-runtime
       esrap:
         specifier: ^2.3.2
         version: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -1173,6 +1191,19 @@ importers:
       typescript:
         specifier: catalog:default
         version: 5.9.3
+
+  packages/tsrx-react-runtime:
+    dependencies:
+      '@tsrx/runtime':
+        specifier: workspace:*
+        version: link:../tsrx-runtime
+      react:
+        specifier: '>=18'
+        version: 19.2.4
+    devDependencies:
+      '@types/react':
+        specifier: catalog:default
+        version: 19.2.14
 
   packages/tsrx-ripple:
     dependencies:
@@ -1208,6 +1239,8 @@ importers:
         specifier: catalog:default
         version: 3.17.5
 
+  packages/tsrx-runtime: {}
+
   packages/tsrx-solid:
     dependencies:
       '@solidjs/web':
@@ -1216,6 +1249,9 @@ importers:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/solid-runtime':
+        specifier: workspace:*
+        version: link:../tsrx-solid-runtime
       esrap:
         specifier: ^2.3.2
         version: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -1236,11 +1272,26 @@ importers:
         specifier: catalog:default
         version: 5.9.3
 
+  packages/tsrx-solid-runtime:
+    dependencies:
+      '@solidjs/web':
+        specifier: catalog:default
+        version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
+      '@tsrx/runtime':
+        specifier: workspace:*
+        version: link:../tsrx-runtime
+      solid-js:
+        specifier: catalog:default
+        version: 2.0.0-beta.15
+
   packages/tsrx-vue:
     dependencies:
       '@tsrx/core':
         specifier: workspace:*
         version: link:../tsrx
+      '@tsrx/vue-runtime':
+        specifier: workspace:*
+        version: link:../tsrx-vue-runtime
       esrap:
         specifier: ^2.3.2
         version: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -1266,6 +1317,18 @@ importers:
       typescript:
         specifier: catalog:default
         version: 5.9.3
+
+  packages/tsrx-vue-runtime:
+    dependencies:
+      '@tsrx/runtime':
+        specifier: workspace:*
+        version: link:../tsrx-runtime
+      vue:
+        specifier: '>=3.5'
+        version: 3.5.29(typescript@5.9.3)
+      vue-jsx-vapor:
+        specifier: '>=3.2.14'
+        version: 3.2.14(csstype@3.2.3)(esbuild@0.27.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3))
 
   packages/turbopack-plugin-react:
     dependencies:
