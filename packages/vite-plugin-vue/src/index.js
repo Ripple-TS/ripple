@@ -1,9 +1,11 @@
 /** @import { Plugin } from 'vite' */
+/** @import { DepScanLoadPlugin } from '@tsrx/core/types/vite/dep-scan' */
 
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { isAbsolute, resolve as pathResolve } from 'node:path';
 import { compile } from '@tsrx/vue';
+import { createDepScanLoadPlugin } from '@tsrx/core/vite/dep-scan';
 import vueJsxVaporModule from 'vue-jsx-vapor/vite';
 import { createVaporInteropPlugin } from './interop.js';
 
@@ -123,6 +125,14 @@ function create_tsrx_vue_plugin(options) {
 				},
 				optimizeDeps: {
 					rolldownOptions: {
+						// The scan runs its own jsx transform over the tsx the
+						// dep-scan plugin hands back, and it defaults to react's
+						// automatic runtime — which no Vue project has installed, so
+						// the scan would fail on an unresolvable
+						// `react/jsx-dev-runtime`. Vue's own jsx handling belongs to
+						// `vue-jsx-vapor` downstream; the scan only needs the
+						// imports, so leave the jsx alone.
+						transform: { jsx: 'preserve' },
 						plugins: [create_tsrx_vue_scan_plugin(isVirtual, toRealPath)],
 					},
 				},
@@ -214,26 +224,15 @@ function create_tsrx_vue_plugin(options) {
  *
  * @param {(id: string) => boolean} isVirtual
  * @param {(id: string) => string} toRealPath
+ * @returns {DepScanLoadPlugin}
  */
 function create_tsrx_vue_scan_plugin(isVirtual, toRealPath) {
-	return {
+	return createDepScanLoadPlugin({
 		name: '@tsrx/vite-plugin-vue:dep-scan',
-		/**
-		 * @param {string} id
-		 */
-		async load(id) {
-			if (!isVirtual(id)) return null;
-
-			const realPath = toRealPath(id.split('?')[0]);
-			const source = await readFile(realPath, 'utf-8');
-			const { code } = compile(source, realPath);
-
-			return {
-				code,
-				moduleType: 'tsx',
-			};
-		},
-	};
+		isVirtual,
+		toRealPath,
+		compile,
+	});
 }
 
 export default tsrxVue;

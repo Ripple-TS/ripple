@@ -428,6 +428,11 @@ export default defineConfig({
 					include: ['packages/tsrx/tests/utils/**/*.test.js'],
 					environment: 'node',
 					globals: true,
+					// The `*-types` suites here spin up a TypeScript program per
+					// assertion, which can run past the 5s default once the rest of
+					// the suite is competing for workers. They assert diagnostics,
+					// not speed, so the timeout is only here to catch a hang.
+					testTimeout: 30_000,
 				},
 				plugins: [],
 			},
@@ -435,6 +440,15 @@ export default defineConfig({
 				test: {
 					name: 'tsrx-analyze',
 					include: ['packages/tsrx/tests/analyze/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
+					name: 'tsrx-vite',
+					include: ['packages/tsrx/tests/vite/**/*.test.js'],
 					environment: 'node',
 					globals: true,
 				},

@@ -1,4 +1,5 @@
 /** @import { Plugin } from 'vite' */
+/** @import { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan' */
 
 /**
  * @typedef {{ code: string, map: unknown }} TsrxReactTransformResult
@@ -14,17 +15,13 @@
  *   (id: `\0${string}?tsrx-css&lang.css`): string,
  *   (id: string): string | null,
  * }} TsrxReactLoad
- * @typedef {{
- *   name: string,
- *   transform: {
- *     filter: { id: RegExp },
- *     handler: (code: string, id: string) => { code: string, moduleType: 'tsx' },
- *   },
- * }} TsrxDepScanPlugin
  * @typedef {() => {
  *   optimizeDeps: {
  *     extensions: string[],
- *     rolldownOptions: { plugins: [TsrxDepScanPlugin] },
+ *     rolldownOptions: {
+ *       transform: { jsx: { importSource: string } },
+ *       plugins: [DepScanTransformPlugin],
+ *     },
  *   },
  * }} TsrxReactConfigHook
  * @typedef {Omit<Plugin, 'config' | 'transform' | 'resolveId' | 'load'> & {
@@ -37,6 +34,7 @@
 
 import { transformWithOxc } from 'vite';
 import { compile } from '@tsrx/react';
+import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 
 const TSRX_EXTENSION_PATTERN = /\.tsrx$/;
 const CSS_QUERY = '?tsrx-css&lang.css';
@@ -82,6 +80,12 @@ export function tsrxReact(options = {}) {
 					// entry the dep-scan plugin below never runs.
 					extensions: ['.tsrx'],
 					rolldownOptions: {
+						// The scan runs its own jsx transform over the tsx the
+						// dep-scan plugin hands back, and that transform defaults to
+						// react's runtime. Point it at the configured source, or the
+						// scan fails outright on an unresolvable
+						// `react/jsx-dev-runtime` in a project that has no react.
+						transform: { jsx: { importSource: jsxImportSource } },
 						plugins: [create_dep_scan_plugin(jsxImportSource)],
 					},
 				},
@@ -150,48 +154,21 @@ export function tsrxReact(options = {}) {
 }
 
 /**
- * Vite's dependency scanner runs through Rolldown without the main plugin
- * pipeline, so on its own it cannot read `.tsrx` modules. Any npm dependency
- * imported only from `.tsrx` files would then be discovered at request time
- * instead of at startup, forcing a re-optimize and a full page reload.
- * Registered under `optimizeDeps.rolldownOptions.plugins`, this plugin
- * teaches the scan pass to compile `.tsrx` modules so their imports are
- * crawled up front.
- *
  * @param {string} jsxImportSource
- * @returns {TsrxDepScanPlugin}
+ * @returns {DepScanTransformPlugin}
  */
 function create_dep_scan_plugin(jsxImportSource) {
-	return {
+	return createDepScanTransformPlugin({
 		name: '@tsrx/vite-plugin-react:dep-scan',
-		transform: {
-			filter: { id: TSRX_EXTENSION_PATTERN },
-			handler(code, id) {
-				/** @type {string} */
-				let tsx_code;
-
-				try {
-					({ code: tsx_code } = compile(code, id));
-				} catch {
-					// A single malformed `.tsrx` file must not fail the scan:
-					// vite reacts to a scan failure by skipping pre-bundling for
-					// the whole project. Hand back an empty module instead so the
-					// rest of the graph is still crawled, and let the main
-					// transform report the error at request time where it can be
-					// surfaced properly.
-					return { code: '', moduleType: 'tsx' };
-				}
-
-				// The main transform always emits automatic-runtime JSX, so the
-				// jsx runtime module is a dependency of every compiled `.tsrx`
-				// file. Import it explicitly so the scanner records it no matter
-				// how the scan's own jsx transform is configured.
-				const jsx_runtime_import = `import ${JSON.stringify(jsxImportSource + '/jsx-runtime')};\n`;
-
-				return { code: jsx_runtime_import + tsx_code, moduleType: 'tsx' };
-			},
-		},
-	};
+		filter: TSRX_EXTENSION_PATTERN,
+		compile,
+		// The main transform always emits automatic-runtime JSX, so the jsx
+		// runtime module is a dependency of every compiled `.tsrx` file. Import
+		// it explicitly so the scanner records it no matter how the scan's own
+		// jsx transform is configured — in dev it resolves `jsx-dev-runtime`,
+		// while the transform below emits plain `jsx-runtime`.
+		imports: [jsxImportSource + '/jsx-runtime'],
+	});
 }
 
 export default tsrxReact;

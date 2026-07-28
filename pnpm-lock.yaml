@@ -1083,6 +1083,9 @@ importers:
       typescript:
         specifier: catalog:default
         version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.1.5(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
       vscode-languageserver-types:
         specifier: catalog:default
         version: 3.17.5
@@ -1322,6 +1325,9 @@ importers:
       '@ripple-ts/adapter':
         specifier: workspace:*
         version: link:../adapter
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
@@ -1341,13 +1347,13 @@ importers:
 
   packages/vite-plugin-preact:
     dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/preact':
         specifier: workspace:*
         version: link:../tsrx-preact
     devDependencies:
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
       preact:
         specifier: catalog:default
         version: 10.29.1
@@ -1360,6 +1366,9 @@ importers:
 
   packages/vite-plugin-react:
     dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/react':
         specifier: workspace:*
         version: link:../tsrx-react
@@ -1367,9 +1376,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.100.10
         version: 5.100.10(react@19.2.4)
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
       '@types/react':
         specifier: catalog:default
         version: 19.2.14
@@ -1397,6 +1403,9 @@ importers:
 
   packages/vite-plugin-solid:
     dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/solid':
         specifier: workspace:*
         version: link:../tsrx-solid
@@ -1404,9 +1413,6 @@ importers:
       '@solidjs/web':
         specifier: catalog:default
         version: 2.0.0-beta.15(solid-js@2.0.0-beta.15)
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
       solid-js:
         specifier: catalog:default
         version: 2.0.0-beta.15
@@ -1422,13 +1428,13 @@ importers:
 
   packages/vite-plugin-vue:
     dependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@tsrx/vue':
         specifier: workspace:*
         version: link:../tsrx-vue
     devDependencies:
-      '@tsrx/core':
-        specifier: workspace:*
-        version: link:../tsrx
       typescript:
         specifier: catalog:default
         version: 5.9.3

@@ -20,13 +20,13 @@
     }
   },
   "dependencies": {
+    "@tsrx/core": "workspace:*",
     "@tsrx/preact": "workspace:*"
   },
   "peerDependencies": {
     "vite": "*"
   },
   "devDependencies": {
-    "@tsrx/core": "workspace:*",
     "preact": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default"

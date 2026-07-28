@@ -20,13 +20,13 @@
     }
   },
   "dependencies": {
+    "@tsrx/core": "workspace:*",
     "@tsrx/solid": "workspace:*"
   },
   "peerDependencies": {
     "vite": "*"
   },
   "devDependencies": {
-    "@tsrx/core": "workspace:*",
     "@solidjs/web": "catalog:default",
     "solid-js": "catalog:default",
     "typescript": "catalog:default",

@@ -30,6 +30,13 @@
     "./types/helpers": {
       "types": "./types/helpers.d.ts"
     },
+    "./types/vite/dep-scan": {
+      "types": "./types/vite/dep-scan.d.ts"
+    },
+    "./vite/dep-scan": {
+      "types": "./src/vite/dep-scan.js",
+      "default": "./src/vite/dep-scan.js"
+    },
     "./runtime/ref": {
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"
@@ -56,6 +63,7 @@
     },
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
     "./test-harness/compile": "./tests/shared/compile.js",
+    "./test-harness/dep-scan": "./tests/shared/dep-scan.js",
     "./test-harness/runtime/*": "./tests/shared/runtime/*.js",
     "./test-harness/runtime/*.js": "./tests/shared/runtime/*.js",
     "./test-harness/runtime/*.tsrx": "./tests/shared/runtime/*.tsrx"
@@ -77,6 +85,7 @@
     "@typescript-eslint/types": "catalog:default",
     "@volar/language-core": "catalog:default",
     "typescript": "catalog:default",
+    "vite": "catalog:default",
     "vscode-languageserver-types": "catalog:default"
   },
   "files": [

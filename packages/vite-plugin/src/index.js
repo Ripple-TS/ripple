@@ -5,6 +5,7 @@
 /// <reference types="@tsrx/ripple/types/rpc" />
 
 import { compile } from '@tsrx/ripple';
+import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -374,6 +375,32 @@ export function ripple(inlineOptions = {}) {
 		return loadedRippleConfig;
 	}
 
+	/**
+	 * Makes `.tsrx` modules readable by vite's dependency scanner, which runs
+	 * through Rolldown without this plugin's transform. Spread into every
+	 * `optimizeDeps` returned from the config hook below.
+	 */
+	const dep_scan_config = {
+		// The scanner externalizes anything that is not a known JS type unless
+		// its extension is listed here, so without this entry the dep-scan
+		// plugin never runs.
+		extensions: RIPPLE_EXTENSIONS,
+		rolldownOptions: {
+			plugins: [
+				createDepScanTransformPlugin({
+					name: 'vite-plugin-ripple:dep-scan',
+					filter: RIPPLE_EXTENSION_PATTERN,
+					// `compile` emits plain JS with its runtime imports already in
+					// place, so the scan needs no prelude and no TS-aware module
+					// type. The scan only ever runs in dev, and the import set is
+					// identical across dev/hmr settings.
+					compile: (code, id) => compile(code, id, { mode: 'client', dev: true, hmr: false }),
+					moduleType: 'js',
+				}),
+			],
+		},
+	};
+
 	/** @type {[RipplePlugin, ...Plugin[]]} */
 	const plugins = [
 		{
@@ -468,6 +495,7 @@ export function ripple(inlineOptions = {}) {
 					const excluded = userConfig.optimizeDeps?.exclude || [];
 					return {
 						optimizeDeps: {
+							...dep_scan_config,
 							exclude: excluded,
 						},
 					};
@@ -501,6 +529,7 @@ export function ripple(inlineOptions = {}) {
 				// Return a config hook that will merge with user's config
 				return {
 					optimizeDeps: {
+						...dep_scan_config,
 						exclude: allExclude,
 					},
 				};

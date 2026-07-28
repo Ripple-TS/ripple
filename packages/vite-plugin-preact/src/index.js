@@ -1,4 +1,5 @@
 /** @import { Plugin } from 'vite' */
+/** @import { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan' */
 
 /**
  * @typedef {{ code: string, map: unknown }} TsrxPreactTransformResult
@@ -14,7 +15,17 @@
  *   (id: `\0${string}?tsrx-css&lang.css`): string,
  *   (id: string): string | null,
  * }} TsrxPreactLoad
- * @typedef {Omit<Plugin, 'transform' | 'resolveId' | 'load'> & {
+ * @typedef {() => {
+ *   optimizeDeps: {
+ *     extensions: string[],
+ *     rolldownOptions: {
+ *       transform: { jsx: { importSource: string } },
+ *       plugins: [DepScanTransformPlugin],
+ *     },
+ *   },
+ * }} TsrxPreactConfigHook
+ * @typedef {Omit<Plugin, 'config' | 'transform' | 'resolveId' | 'load'> & {
+ *   config: TsrxPreactConfigHook,
  *   transform: TsrxPreactTransform,
  *   resolveId: TsrxPreactResolveId,
  *   load: TsrxPreactLoad,
@@ -23,6 +34,7 @@
 
 import { transformWithOxc } from 'vite';
 import { compile } from '@tsrx/preact';
+import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 
 const TSRX_EXTENSION_PATTERN = /\.tsrx$/;
 const CSS_QUERY = '?tsrx-css&lang.css';
@@ -65,6 +77,26 @@ export function tsrxPreact(options = {}) {
 	return /** @type {TsrxPreactPlugin} */ ({
 		name: '@tsrx/vite-plugin-preact',
 		enforce: 'pre',
+
+		config() {
+			return {
+				optimizeDeps: {
+					// The scanner externalizes anything that is not a known JS
+					// type unless its extension is listed here, so without this
+					// entry the dep-scan plugin below never runs.
+					extensions: ['.tsrx'],
+					rolldownOptions: {
+						// The scan runs its own jsx transform over the tsx the
+						// dep-scan plugin hands back, and that transform defaults to
+						// react's runtime. Point it at the configured source, or the
+						// scan fails outright on an unresolvable
+						// `react/jsx-dev-runtime` in a project that has no react.
+						transform: { jsx: { importSource: jsxImportSource } },
+						plugins: [create_dep_scan_plugin(jsxImportSource, compile_options)],
+					},
+				},
+			};
+		},
 
 		resolveId(/** @type {string} */ source) {
 			if (!source.includes(CSS_QUERY)) return null;
@@ -124,6 +156,25 @@ export function tsrxPreact(options = {}) {
 			ctx.server.moduleGraph.invalidateModule(css_mod);
 			return [...ctx.modules, css_mod];
 		},
+	});
+}
+
+/**
+ * @param {string} jsxImportSource
+ * @param {{ suspenseSource?: string }} compile_options
+ * @returns {DepScanTransformPlugin}
+ */
+function create_dep_scan_plugin(jsxImportSource, compile_options) {
+	return createDepScanTransformPlugin({
+		name: '@tsrx/vite-plugin-preact:dep-scan',
+		filter: TSRX_EXTENSION_PATTERN,
+		compile: (code, id) => compile(code, id, compile_options),
+		// The main transform always emits automatic-runtime JSX, so the jsx
+		// runtime module is a dependency of every compiled `.tsrx` file. Import
+		// it explicitly so the scanner records it no matter how the scan's own
+		// jsx transform is configured — in dev it resolves `jsx-dev-runtime`,
+		// while the transform above emits plain `jsx-runtime`.
+		imports: [jsxImportSource + '/jsx-runtime'],
 	});
 }
 

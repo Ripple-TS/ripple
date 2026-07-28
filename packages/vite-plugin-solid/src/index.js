@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve as path_resolve, isAbsolute } from 'node:path';
 import { compile } from '@tsrx/solid';
+import { createDepScanLoadPlugin } from '@tsrx/core/vite/dep-scan';
 
 const DEFAULT_TSRX_PATTERN = /\.tsrx$/;
 const VIRTUAL_TSX_SUFFIX = '.tsx';
@@ -73,6 +74,31 @@ export function tsrxSolid(options = {}) {
 	return {
 		name: '@tsrx/vite-plugin-solid',
 		enforce: 'pre',
+
+		config() {
+			return {
+				optimizeDeps: {
+					rolldownOptions: {
+						// The scan runs its own jsx transform over the tsx the
+						// dep-scan plugin hands back, and it defaults to react's
+						// automatic runtime — which no Solid project has installed,
+						// so the scan would fail on an unresolvable
+						// `react/jsx-dev-runtime`. Solid's own jsx handling belongs
+						// to `vite-plugin-solid` downstream; the scan only needs the
+						// imports, so leave the jsx alone.
+						transform: { jsx: 'preserve' },
+						plugins: [
+							createDepScanLoadPlugin({
+								name: '@tsrx/vite-plugin-solid:dep-scan',
+								isVirtual: is_virtual,
+								toRealPath: to_real_path,
+								compile,
+							}),
+						],
+					},
+				},
+			};
+		},
 
 		configResolved(config) {
 			root_dir = config.root;

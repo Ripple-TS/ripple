@@ -1,108 +1,37 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { optimizeDeps, resolveConfig } from 'vite';
+import { scanFixture } from '@tsrx/core/test-harness/dep-scan';
 import { tsrxReact } from '../src/index.js';
 
 const fixtures_dir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
-const fixture_root = join(fixtures_dir, 'scan');
-const scan_error_root = join(fixtures_dir, 'scan-error');
 
-/** Source that fails to parse, so `compile` throws. */
-const MALFORMED_SOURCE = `export function Broken() @{
-	<div>{ <<< }</div>
-}`;
+const MAIN = `import { App } from './App.tsrx';
 
-/**
- * The scan-error fixture is written at test time rather than committed. It
- * hinges on a `.tsrx` file that cannot compile, and such a file in the tree is
- * reported as a fatal error by the language server and refused by prettier —
- * neither of which a TS directive can suppress, since the file never reaches
- * TypeScript. Its valid siblings are generated alongside it so the fixture
- * stays in one piece rather than half on disk and half here.
- */
-const SCAN_ERROR_FILES = {
-	'index.html': `<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-	</head>
-	<body>
-		<div id="root"></div>
-		<script type="module" src="/main.tsx"></script>
-	</body>
-</html>
-`,
-	'main.tsx': `import { Broken } from './Broken.tsrx';
-import { Good } from './Good.tsrx';
+console.log(App);
+`;
 
-console.log(Broken, Good);
-`,
-	'Broken.tsrx': MALFORMED_SOURCE,
-	// The import here is what the scan has to keep finding despite its
-	// malformed sibling.
-	'Good.tsrx': `import { QueryClient } from '@tanstack/react-query';
+/** Imports a dependency that nothing else in the fixture reaches. */
+const APP = `import { QueryClient } from '@tanstack/react-query';
 
 const client = new QueryClient();
 
-export function Good() @{
+export function App() @{
 	const label = String(client.isFetching());
 
 	<div>{label}</div>
 }
-`,
-};
+`;
+
+/** Fails to parse, so `compile` throws. */
+const MALFORMED = `export function Broken() @{
+	<div>{ <<< }</div>
+}`;
 
 /**
  * @param {ReturnType<typeof tsrxReact>} plugin
  */
 function get_scan_plugin(plugin) {
 	return plugin.config().optimizeDeps.rolldownOptions.plugins[0];
-}
-
-/**
- * Materialize {@link SCAN_ERROR_FILES} under `tests/fixtures/scan-error`, which
- * has to sit inside the package so imports resolve against its `node_modules`.
- *
- * @returns {void}
- */
-function write_scan_error_fixture() {
-	mkdirSync(scan_error_root, { recursive: true });
-
-	for (const [name, source] of Object.entries(SCAN_ERROR_FILES)) {
-		writeFileSync(join(scan_error_root, name), source);
-	}
-}
-
-/**
- * Run vite's dep optimizer over a fixture the way `vite dev` does at startup,
- * into a throwaway cache dir so runs stay independent.
- *
- * @param {string} root
- * @returns {Promise<string[]>} the pre-bundled dependency ids
- */
-async function scan_fixture(root) {
-	const cache_dir = mkdtempSync(join(tmpdir(), 'tsrx-react-scan-'));
-
-	try {
-		const config = await resolveConfig(
-			{
-				root,
-				configFile: false,
-				cacheDir: cache_dir,
-				logLevel: 'silent',
-				plugins: [tsrxReact()],
-			},
-			'serve',
-		);
-
-		const metadata = await optimizeDeps(config, true);
-
-		return Object.keys(metadata.optimized);
-	} finally {
-		rmSync(cache_dir, { recursive: true, force: true });
-	}
 }
 
 describe('@tsrx/vite-plugin-react dep scan', () => {
@@ -119,25 +48,33 @@ describe('@tsrx/vite-plugin-react dep scan', () => {
 		expect(scan_plugins[0].transform.filter.id.test('/app/src/App.tsx')).toBe(false);
 	});
 
-	it('compiles .tsrx sources for the scanner with the tsx module type', () => {
-		const scan_plugin = get_scan_plugin(tsrxReact());
-		const source = `import { QueryClient } from '@tanstack/react-query';
-const client = new QueryClient();
-export function App() @{
-	<div>{String(client.isFetching())}</div>
-}`;
+	it('points the scan jsx transform at the configured import source', () => {
+		expect(tsrxReact().config().optimizeDeps.rolldownOptions.transform).toEqual({
+			jsx: { importSource: 'react' },
+		});
 
-		const result = scan_plugin.transform.handler(source, '/virtual/App.tsrx');
+		// Left at react's default, the scan would emit an unresolvable
+		// `react/jsx-dev-runtime` import into a project that has no react and
+		// fail outright.
+		expect(
+			tsrxReact({ jsxImportSource: 'preact' }).config().optimizeDeps.rolldownOptions.transform,
+		).toEqual({ jsx: { importSource: 'preact' } });
+	});
+
+	it('compiles .tsrx sources for the scanner with the tsx module type', async () => {
+		const scan_plugin = get_scan_plugin(tsrxReact());
+
+		const result = await scan_plugin.transform.handler(APP, '/virtual/App.tsrx');
 
 		expect(result.moduleType).toBe('tsx');
 		expect(result.code).toContain(`from '@tanstack/react-query'`);
 		expect(result.code).toContain('import "react/jsx-runtime"');
 	});
 
-	it('honors jsxImportSource for the scanner jsx runtime import', () => {
+	it('honors jsxImportSource for the scanner jsx runtime import', async () => {
 		const scan_plugin = get_scan_plugin(tsrxReact({ jsxImportSource: 'preact' }));
 
-		const result = scan_plugin.transform.handler(
+		const result = await scan_plugin.transform.handler(
 			`export function App() @{
 	<div>{'hi'}</div>
 }`,
@@ -147,7 +84,7 @@ export function App() @{
 		expect(result.code).toContain('import "preact/jsx-runtime"');
 	});
 
-	it('does not inject the css virtual module import into scan output', () => {
+	it('does not inject the css virtual module import into scan output', async () => {
 		const scan_plugin = get_scan_plugin(tsrxReact());
 		const source = `export function App() @{
 	<>
@@ -161,37 +98,44 @@ export function App() @{
 	</>
 }`;
 
-		const result = scan_plugin.transform.handler(source, '/virtual/App.tsrx');
+		const result = await scan_plugin.transform.handler(source, '/virtual/App.tsrx');
 
 		expect(result.code).not.toContain('tsrx-css');
 	});
 
-	it('returns an empty module instead of throwing on a malformed .tsrx file', () => {
+	it('returns an empty module instead of throwing on a malformed .tsrx file', async () => {
 		const scan_plugin = get_scan_plugin(tsrxReact());
-		const source = `export function App() @{
-	<div>{ <<< }</div>
-}`;
 
-		const result = scan_plugin.transform.handler(source, '/virtual/App.tsrx');
+		const result = await scan_plugin.transform.handler(MALFORMED, '/virtual/App.tsrx');
 
 		expect(result).toEqual({ code: '', moduleType: 'tsx' });
 	});
 
 	it('discovers dependencies imported only from .tsrx files at scan time', async () => {
-		const optimized = await scan_fixture(fixture_root);
+		const optimized = await scanFixture({
+			root: join(fixtures_dir, 'scan'),
+			files: { 'main.tsx': MAIN, 'App.tsrx': APP },
+			plugins: [tsrxReact()],
+		});
 
 		expect(optimized).toContain('@tanstack/react-query');
 	}, 60_000);
 
 	it('still pre-bundles the rest of the graph when a .tsrx file fails to compile', async () => {
-		write_scan_error_fixture();
+		const optimized = await scanFixture({
+			root: join(fixtures_dir, 'scan-error'),
+			files: {
+				'main.tsx': `import { App } from './App.tsrx';
+import { Broken } from './Broken.tsrx';
 
-		try {
-			const optimized = await scan_fixture(scan_error_root);
+console.log(App, Broken);
+`,
+				'App.tsrx': APP,
+				'Broken.tsrx': MALFORMED,
+			},
+			plugins: [tsrxReact()],
+		});
 
-			expect(optimized).toContain('@tanstack/react-query');
-		} finally {
-			rmSync(scan_error_root, { recursive: true, force: true });
-		}
+		expect(optimized).toContain('@tanstack/react-query');
 	}, 60_000);
 });

@@ -36,7 +36,11 @@ describe('runtime imports', () => {
 		expect(barrel_imports).toEqual([]);
 	});
 
-	it('exports Fragment from both public runtimes', async () => {
+	// Pulls both entire runtime module graphs through vite's transform pipeline
+	// on a cold cache, which can take well past the 5s default when the rest of
+	// the suite is competing for workers. The assertion is about exports, not
+	// speed, so give the imports room rather than letting load decide.
+	it('exports Fragment from both public runtimes', { timeout: 30_000 }, async () => {
 		const [client, server] = await Promise.all([
 			import('../../src/runtime/index-client.js'),
 			import('../../src/runtime/index-server.js'),

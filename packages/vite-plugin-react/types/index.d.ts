@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import type { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan';
 
 export interface TsrxReactPluginOptions {
 	jsxImportSource?: string;
@@ -9,14 +10,6 @@ export interface TsrxReactTransformResult {
 	map: unknown;
 }
 
-export interface TsrxDepScanPlugin {
-	name: string;
-	transform: {
-		filter: { id: RegExp };
-		handler: (code: string, id: string) => { code: string; moduleType: 'tsx' };
-	};
-}
-
 export interface TsrxReactPlugin extends Omit<
 	Plugin,
 	'config' | 'transform' | 'resolveId' | 'load'
@@ -24,7 +17,10 @@ export interface TsrxReactPlugin extends Omit<
 	config: () => {
 		optimizeDeps: {
 			extensions: string[];
-			rolldownOptions: { plugins: [TsrxDepScanPlugin] };
+			rolldownOptions: {
+				transform: { jsx: { importSource: string } };
+				plugins: [DepScanTransformPlugin];
+			};
 		};
 	};
 	transform: {

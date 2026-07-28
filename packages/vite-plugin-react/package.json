@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
+    "@tsrx/core": "workspace:*",
     "@tsrx/react": "workspace:*"
   },
   "peerDependencies": {
@@ -27,7 +28,6 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.100.10",
-    "@tsrx/core": "workspace:*",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",
