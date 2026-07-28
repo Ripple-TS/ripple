@@ -1,1 +1,1 @@
-export * from '@tsrx/core/runtime/iterable';
+export * from '@tsrx/preact-runtime/iterable';

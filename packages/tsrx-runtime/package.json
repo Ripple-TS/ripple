@@ -1,0 +1,34 @@
+{
+  "name": "@tsrx/runtime",
+  "description": "Renderer-neutral runtime helpers for TSRX compiled output",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx-runtime"
+  },
+  "exports": {
+    "./ref": {
+      "types": "./types/ref.d.ts",
+      "default": "./src/ref.js"
+    },
+    "./iterable": {
+      "types": "./types/iterable.d.ts",
+      "default": "./src/iterable.js"
+    },
+    "./language-helpers": {
+      "types": "./types/language-helpers.d.ts",
+      "default": "./src/language-helpers.js"
+    }
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

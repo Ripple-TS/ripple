@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
+    "@tsrx/vue-runtime": "workspace:*",
     "esrap": "catalog:default",
     "is-reference": "catalog:default",
     "zimmerframe": "catalog:default"

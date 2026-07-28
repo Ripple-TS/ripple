@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
+    "@tsrx/preact-runtime": "workspace:*",
     "esrap": "catalog:default",
     "zimmerframe": "catalog:default"
   },

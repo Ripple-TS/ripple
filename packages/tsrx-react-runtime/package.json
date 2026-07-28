@@ -1,0 +1,43 @@
+{
+  "name": "@tsrx/react-runtime",
+  "description": "Runtime helpers for TSRX React compiled output",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tsrx-react-runtime"
+  },
+  "exports": {
+    "./error-boundary": {
+      "types": "./types/error-boundary.d.ts",
+      "default": "./src/error-boundary.js"
+    },
+    "./ref": {
+      "types": "./types/ref.d.ts",
+      "default": "./src/ref.js"
+    },
+    "./iterable": {
+      "types": "./types/iterable.d.ts",
+      "default": "./src/iterable.js"
+    }
+  },
+  "dependencies": {
+    "@tsrx/runtime": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:default"
+  },
+  "files": [
+    "src",
+    "types"
+  ]
+}

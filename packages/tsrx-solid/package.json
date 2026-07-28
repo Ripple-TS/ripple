@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@tsrx/core": "workspace:*",
+    "@tsrx/solid-runtime": "workspace:*",
     "esrap": "catalog:default",
     "zimmerframe": "catalog:default"
   },

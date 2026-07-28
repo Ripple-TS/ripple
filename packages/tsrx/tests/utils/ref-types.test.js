@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { check_types } from '../shared/type-diagnostics.js';
 
 /**
- * These assert the shape consumers get from `@tsrx/core/runtime/ref`, whose
+ * These assert the shape consumers get from `@tsrx/runtime/ref` through the
+ * compatibility declarations at `@tsrx/core/runtime/ref`, whose
  * declarations are hand-written and easy to regress: every published ref helper
  * is reachable from authored JSX, so a widened parameter or an inferred `any`
  * shows up as worse editor completion long before it shows up as a bug.

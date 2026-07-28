@@ -69,6 +69,7 @@
     "./test-harness/runtime/*.tsrx": "./tests/shared/runtime/*.tsrx"
   },
   "dependencies": {
+    "@tsrx/runtime": "workspace:*",
     "@jridgewell/sourcemap-codec": "catalog:default",
     "@noble/hashes": "catalog:default",
     "@sveltejs/acorn-typescript": "catalog:default",
