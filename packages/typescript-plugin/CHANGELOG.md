@@ -1,5 +1,37 @@
 # @tsrx/typescript-plugin
 
+## 0.3.117
+
+### Patch Changes
+
+- [#1408](https://github.com/Ripple-TS/ripple/pull/1408)
+  [`cd97962`](https://github.com/Ripple-TS/ripple/commit/cd97962752b42ac12b66dc98f0489f3918d63dba)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: detect the published
+  Octane compiler under `dist/`, and rename `RIPPLE_DEBUG` to `TSRX_DEBUG`
+
+  Automatic compiler detection only probed `octane/src/compiler/volar.js`, a path
+  that published `octane` releases do not ship — they contain `dist/` and expose
+  the compiler as `octane/compiler/volar`. Every `.tsrx` file in an Octane project
+  therefore reported `Ripple compiler not found` and was parsed as plain
+  TypeScript unless the project declared
+  `"tsrx": { "compiler": "octane/compiler/volar" }` by hand.
+
+  Candidates can now list several entry paths, and Octane probes
+  `dist/compiler/volar.js` first, falling back to `src/compiler/volar.js` for
+  source checkouts.
+
+  The debug logging environment variable is now `TSRX_DEBUG` instead of
+  `RIPPLE_DEBUG`. The old name is no longer read, so anything that sets it —
+  scripts, launch configs, CI — needs updating to keep verbose language-tooling
+  logs.
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.55
+  - @tsrx/react@0.2.55
+  - @tsrx/ripple@0.1.56
+  - @tsrx/solid@0.1.55
+  - @tsrx/vue@0.1.55
+
 ## 0.3.116
 
 ### Patch Changes

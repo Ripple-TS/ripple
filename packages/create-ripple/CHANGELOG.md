@@ -1,5 +1,12 @@
 # create-ripple
 
+## 0.3.117
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/cli@0.3.117
+
 ## 0.3.116
 
 ### Patch Changes

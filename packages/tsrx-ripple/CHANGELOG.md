@@ -1,5 +1,15 @@
 # @tsrx/ripple
 
+## 0.1.56
+
+### Patch Changes
+
+- Updated dependencies
+  [[`9b654b2`](https://github.com/Ripple-TS/ripple/commit/9b654b29339c14e79f8377491946c1419417a002),
+  [`5e4b38e`](https://github.com/Ripple-TS/ripple/commit/5e4b38ec26c8268b60e3ca4319eb37f8a07b3078),
+  [`7136920`](https://github.com/Ripple-TS/ripple/commit/7136920028537f336c9404493d8c9fde80105408)]:
+  - @tsrx/core@0.1.55
+
 ## 0.1.55
 
 ### Patch Changes

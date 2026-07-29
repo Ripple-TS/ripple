@@ -1,5 +1,80 @@
 # @tsrx/core
 
+## 0.1.55
+
+### Patch Changes
+
+- [#1404](https://github.com/Ripple-TS/ripple/pull/1404)
+  [`9b654b2`](https://github.com/Ripple-TS/ripple/commit/9b654b29339c14e79f8377491946c1419417a002)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix: stop dropping TypeScript
+  modifiers when formatting
+
+  Formatting silently rewrote what the source declared. `readonly` was dropped
+  from interface and type-literal members, turning `readonly id: number` into a
+  mutable `id: number`; `abstract` was dropped from classes and their members (and
+  abstract methods gained an empty body, making them concrete); and `declare`,
+  `override`, `accessor`, accessor kinds on method signatures (`get`/`set`),
+  `abstract new`, `declare global` (printed as `declare module global`), computed
+  keys, class static blocks, and constructor parameter properties were dropped or
+  mangled the same way.
+
+  All of these now round-trip, and `@tsrx/core`'s AST types carry the class
+  modifiers the printer needs.
+
+- [#1406](https://github.com/Ripple-TS/ripple/pull/1406)
+  [`5e4b38e`](https://github.com/Ripple-TS/ripple/commit/5e4b38ec26c8268b60e3ca4319eb37f8a07b3078)
+  Thanks [@trueadm](https://github.com/trueadm)! - fix: stop dropping decorators
+  when formatting
+
+  The printer had no decorator handling at all, so formatting silently deleted
+  every `@decorator` in a `.tsrx` file — on class declarations, methods, fields,
+  accessors, and parameters alike. Decorators have runtime effects, so this
+  changed what the code did.
+
+  All four positions now round-trip, following prettier's line breaking: class
+  decorators each take their own line, class member decorators keep the lines they
+  were written with (and an inline decorator too long to share the member's line
+  moves to its own), and parameter decorators stay inline. Decorators on an
+  exported class print above the `export` keyword, and a parameter property's
+  decorators print before its modifiers. `@tsrx/core`'s AST types now carry the
+  `Decorator` node the printer needs.
+
+- [#1409](https://github.com/Ripple-TS/ripple/pull/1409)
+  [`7136920`](https://github.com/Ripple-TS/ripple/commit/7136920028537f336c9404493d8c9fde80105408)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix: terminate expression
+  default exports, and print anonymous default-exported functions
+
+  `export default <expression>` is a statement and needs a `;`, but the printer
+  only emitted one for the parenthesized class and function expressions handled in
+  the previous fix. Every other expression form lost its terminator:
+  `export default foo;` was formatted to `export default foo`.
+
+  That is an ASI hazard, not a cosmetic difference. The following line is pulled
+  into the exported expression whenever it starts with `(`, `[`, a template
+  literal, `+`, `-`, or `/`, so
+
+  ```ts
+  export default foo;
+  (function () {})();
+  ```
+
+  was reformatted into the single call `export default foo(function () {})()`.
+
+  The terminator is now decided by whether the export is a declaration or an
+  expression. The declaration forms — `class`, `function`, `interface`, an
+  overload signature, and the decorated `export default @dec class Named {}` that
+  parses as a `ClassExpression` — still end at their closing brace.
+
+  Separately, `export default function () {}` crashed the printer. It is the one
+  position where a `FunctionDeclaration` may be anonymous, and the printer read
+  the name unconditionally. Anonymous default-exported functions, async functions,
+  and generators now print.
+
+  `@tsrx/core` gains `TSRXExportDefaultDeclaration`, which models the two
+  TypeScript-only declaration forms the parser puts in that slot —
+  `export default interface Foo {}` and `export default function foo();` — that
+  estree's `ExportDefaultDeclaration` does not.
+
 ## 0.1.54
 
 ### Patch Changes
