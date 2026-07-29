@@ -153,7 +153,7 @@ function get_module_declaration_name(node) {
  * @returns {boolean}
  */
 function is_submodule_declaration(node) {
-	return node.type === 'TSModuleDeclaration' && node.metadata?.module_keyword === 'module';
+	return node.type === 'TSModuleDeclaration' && node.declare !== true && node.kind === 'module';
 }
 
 /**

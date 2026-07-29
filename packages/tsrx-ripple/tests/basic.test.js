@@ -5,6 +5,7 @@ import {
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { find_exact_mapping } from '../../tsrx/src/source-map-utils.js';
+import { check_types } from '../../tsrx/tests/shared/type-diagnostics.js';
 
 runSharedClassFunctionComponentTests({
 	compile,
@@ -16,6 +17,37 @@ runSharedComponentParamsTests({
 	compile,
 	compile_to_volar_mappings,
 	name: 'ripple',
+});
+
+describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
+	it('preserves global augmentations without submodule diagnostics', () => {
+		const source =
+			'export {};\n' +
+			'declare global {\n' +
+			'\tvar __tsrxGlobalValue: string | undefined;\n' +
+			'}\n' +
+			'const globalValue = globalThis.__tsrxGlobalValue;\n';
+		const typeOutput = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const runtimeOutputs = [
+			compile(source, 'App.tsrx', { loose: true }),
+			compile(source, 'App.tsrx', { loose: true, mode: 'server' }),
+		];
+
+		expect(typeOutput.errors).toEqual([]);
+		expect(typeOutput.code).toContain('declare global');
+		expect(typeOutput.code).not.toContain('declare module global');
+		expect(check_types(typeOutput.code)).toEqual({
+			errors: [],
+			types: { globalValue: 'string | undefined' },
+		});
+		for (const result of runtimeOutputs) {
+			expect(result.errors).toEqual([]);
+			expect(result.code).not.toContain('declare global');
+			expect(result.code).not.toContain('declare module global');
+			expect(result.code).not.toContain('var __tsrxGlobalValue');
+			expect(result.code).toContain('globalThis.__tsrxGlobalValue');
+		}
+	});
 });
 
 describe('@tsrx/ripple deferred imports', () => {

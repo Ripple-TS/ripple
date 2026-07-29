@@ -511,7 +511,8 @@ function get_submodule_import_source_name(node) {
 function is_server_module_declaration(node) {
 	return (
 		node.type === 'TSModuleDeclaration' &&
-		/** @type {AST.TSModuleDeclaration} */ (node).metadata?.module_keyword === 'module' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).declare !== true &&
+		/** @type {AST.TSModuleDeclaration} */ (node).kind === 'module' &&
 		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
 		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
 			'server'
@@ -3004,6 +3005,9 @@ const visitors = {
 	},
 
 	TSModuleDeclaration(node, context) {
+		if (node.declare) {
+			return b.empty;
+		}
 		if (!is_server_module_declaration(node)) {
 			return context.next();
 		}

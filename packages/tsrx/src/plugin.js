@@ -299,12 +299,32 @@ export function TSRXPlugin(config) {
 			finishNode(node, type) {
 				const finished = super.finishNode(node, type);
 				if (type === 'TSModuleDeclaration') {
-					const start = /** @type {number} */ (finished.start);
-					const source = this.input.slice(start, start + 'namespace'.length);
-					finished.metadata ??= { path: [] };
-					finished.metadata.module_keyword = source.startsWith('namespace')
-						? 'namespace'
-						: 'module';
+					const declaration = /** @type {AST.TSModuleDeclaration} */ (finished);
+					const start = /** @type {number} */ (declaration.start);
+					// acorn-typescript still exposes the legacy `global` flag without
+					// TSESTree's replacement `kind`; replace it at the parser boundary
+					// so downstream consumers only receive the current discriminator.
+					const legacy = /** @type {{ global?: boolean }} */ (declaration);
+					const prefix = this.input
+						.slice(start, declaration.id.start)
+						.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, ' ')
+						.trim();
+					const kind =
+						declaration.kind ??
+						(legacy.global ? 'global' : prefix.endsWith('namespace') ? 'namespace' : 'module');
+					/** @type {AST.TSModuleDeclaration | null} */
+					let current = declaration;
+					while (current !== null) {
+						const current_legacy = /** @type {{ global?: boolean }} */ (current);
+						current.kind = kind;
+						delete current_legacy.global;
+						current.metadata ??= { path: [] };
+						current.metadata.module_keyword = kind;
+						const body = /** @type {AST.TSModuleBlock | AST.TSModuleDeclaration} */ (
+							/** @type {unknown} */ (current.body)
+						);
+						current = body?.type === 'TSModuleDeclaration' ? body : null;
+					}
 				}
 				return finished;
 			}

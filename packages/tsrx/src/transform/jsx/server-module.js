@@ -110,7 +110,7 @@ function is_server_module_declaration(node, block_name) {
 	return (
 		node.type === 'TSModuleDeclaration' &&
 		node.declare !== true &&
-		node.metadata?.module_keyword === 'module' &&
+		node.kind === 'module' &&
 		identifier_name(node.id) === block_name
 	);
 }
@@ -465,6 +465,7 @@ function lower_declaration(declaration, outside_names, block_name) {
 	const namespace = /** @type {AST.TSStatement<AST.TSModuleDeclaration>} */ ({
 		...declaration,
 		id,
+		kind: 'namespace',
 		metadata: { ...declaration.metadata, module_keyword: 'namespace' },
 		body: { ...declaration.body, body: [...aliases, ...rest] },
 	});

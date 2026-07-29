@@ -2300,16 +2300,17 @@ function printRippleNode(node, path, options, print, args) {
 		case 'TSModuleDeclaration': {
 			// `declare global` augments the global scope; printing it as
 			// `declare module global` declares an unrelated module named `global`.
-			nodeContent = node.global
-				? [node.declare ? 'declare ' : '', path.call(print, 'id'), ' ', path.call(print, 'body')]
-				: [
-						node.declare ? 'declare ' : '',
-						node.metadata?.module_keyword ?? 'module',
-						' ',
-						path.call(print, 'id'),
-						' ',
-						path.call(print, 'body'),
-					];
+			nodeContent =
+				node.kind === 'global'
+					? [node.declare ? 'declare ' : '', path.call(print, 'id'), ' ', path.call(print, 'body')]
+					: [
+							node.declare ? 'declare ' : '',
+							node.kind,
+							' ',
+							path.call(print, 'id'),
+							' ',
+							path.call(print, 'body'),
+						];
 			break;
 		}
 

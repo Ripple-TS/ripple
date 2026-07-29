@@ -343,7 +343,8 @@ function get_submodule_import_source_name(node) {
 function is_server_module_declaration(node) {
 	return (
 		node.type === 'TSModuleDeclaration' &&
-		/** @type {AST.TSModuleDeclaration} */ (node).metadata?.module_keyword === 'module' &&
+		/** @type {AST.TSModuleDeclaration} */ (node).declare !== true &&
+		/** @type {AST.TSModuleDeclaration} */ (node).kind === 'module' &&
 		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
 		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
 			'server'
@@ -3464,6 +3465,9 @@ const visitors = {
 	},
 
 	TSModuleDeclaration(node, context) {
+		if (!context.state.to_ts && node.declare) {
+			return b.empty;
+		}
 		if (!is_server_module_declaration(node)) {
 			return context.next();
 		}
@@ -5998,6 +6002,15 @@ function create_tsx_with_typescript_support(comments) {
 			if (node.typeParameters) {
 				context.visit(node.typeParameters);
 			}
+		},
+		TSModuleDeclaration(node, context) {
+			if (node.kind !== 'global') {
+				base_tsx.TSModuleDeclaration?.(node, context);
+				return;
+			}
+			if (node.declare) context.write('declare ');
+			context.visit(node.id);
+			context.visit(node.body);
 		},
 		AssignmentPattern(node, context) {
 			// We need to make sure that the whole AssignmentPattern has a start and end mapping

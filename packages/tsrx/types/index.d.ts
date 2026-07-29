@@ -106,7 +106,7 @@ export interface BaseNodeMetaData {
 	has_template?: boolean;
 	source_name?: string;
 	source_length?: number;
-	module_keyword?: 'module' | 'namespace';
+	module_keyword?: 'global' | 'module' | 'namespace';
 	/**
 	 * Generated identifier whose SOURCE span sits inside an authored string
 	 * literal (e.g. a server-module lowering's namespace reference carrying
@@ -1302,7 +1302,7 @@ declare module 'estree' {
 	}
 	interface TSModuleDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSModuleDeclaration>,
-		'body' | 'id'
+		'body' | 'global' | 'id'
 	> {
 		body: TSModuleBlock;
 		/** A string literal for `declare module '<specifier>'`. */

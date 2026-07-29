@@ -130,7 +130,7 @@ export function create_scopes(ast, root, parent, error_options) {
 		},
 
 		TSModuleDeclaration(node, { state, next }) {
-			const is_submodule = node.metadata?.module_keyword === 'module';
+			const is_submodule = node.declare !== true && node.kind === 'module';
 			if (is_submodule && node.id?.type === 'Identifier') {
 				state.scope.declare(node.id, 'normal', 'module', node);
 			}

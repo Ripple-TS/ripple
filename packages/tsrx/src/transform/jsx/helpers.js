@@ -180,12 +180,18 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 			}
 		},
 		TSModuleDeclaration: (node, context) => {
-			// Ambient `declare module '…' { … }` must keep its `declare` — the
-			// typeOnly/volar output is real TS and `module '…' { … }` alone is a
-			// syntax error (TS1035). Non-ambient `module name { }` blocks have no
-			// `declare` and print unchanged.
+			// `declare global` is represented as a TSModuleDeclaration whose id is
+			// `global`; adding `module` changes it into an unrelated named module.
+			// Ambient `declare module '…' { … }` must still keep its `declare` —
+			// the typeOnly/volar output is real TS and `module '…' { … }` alone is
+			// a syntax error (TS1035).
 			if (node.declare) context.write('declare ');
-			context.write(node.metadata?.module_keyword ?? 'module');
+			if (node.kind === 'global') {
+				context.visit(node.id);
+				context.visit(node.body);
+				return;
+			}
+			context.write(node.kind);
 			context.write(' ');
 			context.visit(node.id);
 			context.visit(node.body);

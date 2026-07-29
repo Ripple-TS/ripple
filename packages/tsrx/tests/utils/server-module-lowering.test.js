@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { createJsxTransform, createVolarMappingsResult, parseModule } from '../../src/index.js';
+import { check_types } from '../shared/type-diagnostics.js';
 
 /**
  * Type-only lowering of the opt-in server-module dialect
@@ -113,6 +114,52 @@ const DIALECT_SOURCE =
 	"\tconst pending = placeOrder('r1');\n" +
 	'\t<button>{String(pending)}</button>\n' +
 	'}\n';
+
+describe('ordinary TypeScript module declarations in type-only output', () => {
+	it('preserves global augmentations and their globalThis types', () => {
+		const source =
+			'export {};\n' +
+			'declare global {\n' +
+			'\tvar __tsrxGlobalValue: string | undefined;\n' +
+			'}\n' +
+			'const globalValue = globalThis.__tsrxGlobalValue;\n';
+		const globalDeclaration = parseModule(source, 'App.tsrx', PARSE_OPTIONS).body[1];
+		const namedModule = parseModule('declare module global {}', 'App.tsrx', PARSE_OPTIONS).body[0];
+		const declaredNamespace = parseModule(
+			'declare namespace Outer.Inner {}',
+			'App.tsrx',
+			PARSE_OPTIONS,
+		).body[0];
+		const result = compile_to_volar_mappings(source, {
+			platform: PLAIN_PLATFORM,
+		});
+
+		expect(globalDeclaration).toMatchObject({
+			type: 'TSModuleDeclaration',
+			kind: 'global',
+		});
+		expect(globalDeclaration).not.toHaveProperty('global');
+		expect(namedModule).toMatchObject({
+			type: 'TSModuleDeclaration',
+			kind: 'module',
+		});
+		expect(declaredNamespace).toMatchObject({
+			type: 'TSModuleDeclaration',
+			kind: 'namespace',
+			body: {
+				type: 'TSModuleDeclaration',
+				kind: 'namespace',
+			},
+		});
+		expect(result.errors).toEqual([]);
+		expect(result.code).toContain('declare global');
+		expect(result.code).not.toContain('declare module global');
+		expect(check_types(result.code)).toEqual({
+			errors: [],
+			types: { globalValue: 'string | undefined' },
+		});
+	});
+});
 
 describe('server-module type-only lowering', () => {
 	it('hoists block imports and lowers the block to a namespace keeping the authored name and id location', () => {
