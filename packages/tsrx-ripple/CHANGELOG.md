@@ -1,5 +1,19 @@
 # @tsrx/ripple
 
+## 0.1.57
+
+### Patch Changes
+
+- [#1411](https://github.com/Ripple-TS/ripple/pull/1411)
+  [`f03a5af`](https://github.com/Ripple-TS/ripple/commit/f03a5af4c455135767a959f6b45eb3ddb7fadd8f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Normalize TypeScript module
+  declarations to the `kind` discriminator, preserve `declare global` in type-only
+  output, and erase ambient modules from Ripple client and server output.
+
+- Updated dependencies
+  [[`f03a5af`](https://github.com/Ripple-TS/ripple/commit/f03a5af4c455135767a959f6b45eb3ddb7fadd8f)]:
+  - @tsrx/core@0.1.56
+
 ## 0.1.56
 
 ### Patch Changes
