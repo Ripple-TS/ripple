@@ -489,6 +489,15 @@ export default defineConfig({
 			},
 			{
 				test: {
+					name: 'vscode-plugin',
+					include: ['packages/vscode-plugin/tests/**/*.test.js'],
+					environment: 'node',
+					globals: true,
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'tsrx-mcp',
 					include: ['packages/tsrx-mcp/tests/**/*.test.js'],
 					environment: 'node',
