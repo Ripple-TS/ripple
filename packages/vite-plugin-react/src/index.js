@@ -15,7 +15,7 @@
  *   (id: `\0${string}?tsrx-css&lang.css`): string,
  *   (id: string): string | null,
  * }} TsrxReactLoad
- * @typedef {() => {
+ * @typedef {{
  *   optimizeDeps: {
  *     extensions: string[],
  *     rolldownOptions: {
@@ -23,9 +23,13 @@
  *       plugins: [DepScanTransformPlugin],
  *     },
  *   },
- * }} TsrxReactConfigHook
- * @typedef {Omit<Plugin, 'config' | 'transform' | 'resolveId' | 'load'> & {
- *   config: TsrxReactConfigHook,
+ * }} TsrxReactEnvironmentConfig
+ * @typedef {(
+ *   name: string,
+ *   config: import('vite').EnvironmentOptions,
+ * ) => TsrxReactEnvironmentConfig | undefined} TsrxReactConfigEnvironmentHook
+ * @typedef {Omit<Plugin, 'configEnvironment' | 'transform' | 'resolveId' | 'load'> & {
+ *   configEnvironment: TsrxReactConfigEnvironmentHook,
  *   transform: TsrxReactTransform,
  *   resolveId: TsrxReactResolveId,
  *   load: TsrxReactLoad,
@@ -72,24 +76,14 @@ export function tsrxReact(options = {}) {
 		name: '@tsrx/vite-plugin-react',
 		enforce: 'pre',
 
-		config() {
-			return {
-				optimizeDeps: {
-					// The scanner externalizes anything that is not a known JS
-					// type unless its extension is listed here, so without this
-					// entry the dep-scan plugin below never runs.
-					extensions: ['.tsrx'],
-					rolldownOptions: {
-						// The scan runs its own jsx transform over the tsx the
-						// dep-scan plugin hands back, and that transform defaults to
-						// react's runtime. Point it at the configured source, or the
-						// scan fails outright on an unresolvable
-						// `react/jsx-dev-runtime` in a project that has no react.
-						transform: { jsx: { importSource: jsxImportSource } },
-						plugins: [create_dep_scan_plugin(jsxImportSource)],
-					},
-				},
-			};
+		configEnvironment(name, config) {
+			const discovers_dependencies =
+				name === 'client' || config.optimizeDeps?.noDiscovery === false;
+			if (!discovers_dependencies) {
+				return;
+			}
+
+			return create_dep_scan_config(jsxImportSource);
 		},
 
 		resolveId(/** @type {string} */ source) {
@@ -151,6 +145,29 @@ export function tsrxReact(options = {}) {
 			return [...ctx.modules, css_mod];
 		},
 	});
+}
+
+/**
+ * @param {string} jsxImportSource
+ * @returns {TsrxReactEnvironmentConfig}
+ */
+function create_dep_scan_config(jsxImportSource) {
+	return {
+		optimizeDeps: {
+			// The scanner externalizes anything that is not a known JS type
+			// unless its extension is listed here, so without this entry the
+			// dep-scan plugin below never runs.
+			extensions: ['.tsrx'],
+			rolldownOptions: {
+				// The scan runs its own jsx transform over the tsx the dep-scan
+				// plugin hands back, and that transform defaults to react's runtime.
+				// Point it at the configured source, or the scan fails outright on
+				// an unresolvable `react/jsx-dev-runtime` in a project without react.
+				transform: { jsx: { importSource: jsxImportSource } },
+				plugins: [create_dep_scan_plugin(jsxImportSource)],
+			},
+		},
+	};
 }
 
 /**

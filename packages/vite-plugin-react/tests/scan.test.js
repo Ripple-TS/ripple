@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scanFixture } from '@tsrx/core/test-harness/dep-scan';
+import { scanEnvironmentFixture, scanFixture } from '@tsrx/core/test-harness/dep-scan';
 import { tsrxReact } from '../src/index.js';
 
 const fixtures_dir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
@@ -29,15 +29,29 @@ const MALFORMED = `export function Broken() @{
 
 /**
  * @param {ReturnType<typeof tsrxReact>} plugin
+ * @param {string} [name]
+ * @param {import('vite').EnvironmentOptions} [options]
+ */
+function get_environment_config(plugin, name = 'client', options = {}) {
+	const config = plugin.configEnvironment(name, options);
+	if (!config) {
+		throw new Error(`Missing dependency scan config for environment ${name}`);
+	}
+
+	return config;
+}
+
+/**
+ * @param {ReturnType<typeof tsrxReact>} plugin
  */
 function get_scan_plugin(plugin) {
-	return plugin.config().optimizeDeps.rolldownOptions.plugins[0];
+	return get_environment_config(plugin).optimizeDeps.rolldownOptions.plugins[0];
 }
 
 describe('@tsrx/vite-plugin-react dep scan', () => {
-	it('registers the .tsrx extension and the dep-scan plugin via the config hook', () => {
+	it('registers the .tsrx extension and dep-scan plugin for the client environment', () => {
 		const plugin = tsrxReact();
-		const config = plugin.config();
+		const config = get_environment_config(plugin);
 
 		expect(config.optimizeDeps.extensions).toEqual(['.tsrx']);
 
@@ -48,8 +62,27 @@ describe('@tsrx/vite-plugin-react dep scan', () => {
 		expect(scan_plugins[0].transform.filter.id.test('/app/src/App.tsx')).toBe(false);
 	});
 
+	it('registers the dep-scan config for server environments with discovery enabled', () => {
+		const plugin = tsrxReact();
+		const config = get_environment_config(plugin, 'ssr', {
+			optimizeDeps: { noDiscovery: false },
+		});
+
+		expect(config.optimizeDeps.extensions).toEqual(['.tsrx']);
+		expect(config.optimizeDeps.rolldownOptions.plugins).toHaveLength(1);
+	});
+
+	it('does not register the dep-scan config for server environments without discovery', () => {
+		const plugin = tsrxReact();
+
+		expect(plugin.configEnvironment('ssr', {})).toBeUndefined();
+		expect(
+			plugin.configEnvironment('ssr', { optimizeDeps: { noDiscovery: true } }),
+		).toBeUndefined();
+	});
+
 	it('points the scan jsx transform at the configured import source', () => {
-		expect(tsrxReact().config().optimizeDeps.rolldownOptions.transform).toEqual({
+		expect(get_environment_config(tsrxReact()).optimizeDeps.rolldownOptions.transform).toEqual({
 			jsx: { importSource: 'react' },
 		});
 
@@ -57,7 +90,8 @@ describe('@tsrx/vite-plugin-react dep scan', () => {
 		// `react/jsx-dev-runtime` import into a project that has no react and
 		// fail outright.
 		expect(
-			tsrxReact({ jsxImportSource: 'preact' }).config().optimizeDeps.rolldownOptions.transform,
+			get_environment_config(tsrxReact({ jsxImportSource: 'preact' })).optimizeDeps.rolldownOptions
+				.transform,
 		).toEqual({ jsx: { importSource: 'preact' } });
 	});
 
@@ -119,6 +153,23 @@ describe('@tsrx/vite-plugin-react dep scan', () => {
 		});
 
 		expect(optimized).toContain('@tanstack/react-query');
+	}, 60_000);
+
+	it('discovers .tsrx dependencies in the initial scan for a named SSR environment', async () => {
+		const discovered = await scanEnvironmentFixture({
+			root: join(fixtures_dir, 'scan-ssr'),
+			files: { 'main.tsx': MAIN, 'App.tsrx': APP },
+			plugins: [tsrxReact()],
+			name: 'ssr',
+			environment: {
+				optimizeDeps: {
+					entries: ['main.tsx'],
+					noDiscovery: false,
+				},
+			},
+		});
+
+		expect(discovered).toContain('@tanstack/react-query');
 	}, 60_000);
 
 	it('still pre-bundles the rest of the graph when a .tsrx file fails to compile', async () => {
