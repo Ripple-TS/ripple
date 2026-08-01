@@ -1,5 +1,14 @@
 # @tsrx/vite-plugin-react
 
+## 0.0.89
+
+### Patch Changes
+
+- [#1413](https://github.com/Ripple-TS/ripple/pull/1413)
+  [`9401e36`](https://github.com/Ripple-TS/ripple/commit/9401e36acd870c41d9438f4560a02af75d7b07d9)
+  Thanks [@jamiedavenport](https://github.com/jamiedavenport)! - Register the TSRX
+  dependency scanner for server environments that enable dependency discovery.
+
 ## 0.0.88
 
 ### Patch Changes
