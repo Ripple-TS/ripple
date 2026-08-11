@@ -252,53 +252,11 @@ impl zed::Extension for TsrxExtension {
     ) -> Result<zed::Command, String> {
         let binary_path = self.language_server_binary_path(language_server_id, worktree)?;
 
-        // Wrap the spawn in a shell snippet that prints an actionable error if
-        // the bin disappears between detection and exec. Needed because we
-        // cannot probe paths under node_modules from inside the wasm sandbox,
-        // so the project-local path returned by system_binary_path is a guess
-        // (we trust package.json + that the user ran their package manager).
-        // If the guess is wrong, this gives the user a clear message and
-        // recovery steps instead of a bare OS-level "no such file" error.
-        let (os, _) = zed::current_platform();
-        let mut env = worktree.shell_env();
-        env.push(("RIPPLE_LSP_BIN".into(), binary_path.clone()));
-        env.push(("RIPPLE_LSP_PKG".into(), PACKAGE_NAME.into()));
-
-        let cmd = match os {
-            zed::Os::Windows => zed::Command {
-                command: "cmd".into(),
-                args: vec![
-                    "/c".into(),
-                    "if exist \"%RIPPLE_LSP_BIN%\" ( \
-                       \"%RIPPLE_LSP_BIN%\" --stdio \
-                     ) else ( \
-                       echo [ripple-language-server] not found at \"%RIPPLE_LSP_BIN%\". \
-Run `pnpm install` ^(or `npm install`^) in your project, \
-or remove \"%RIPPLE_LSP_PKG%\" from your dependencies to use the auto-installed version. 1>&2 \
-                       & exit /b 127 \
-                     )".into(),
-                ],
-                env,
-            },
-            _ => zed::Command {
-                command: "/bin/sh".into(),
-                args: vec![
-                    "-c".into(),
-                    "if [ -x \"$RIPPLE_LSP_BIN\" ]; then \
-                       exec \"$RIPPLE_LSP_BIN\" --stdio; \
-                     else \
-                       printf '%s\\n' \
-                         \"[ripple-language-server] not found at $RIPPLE_LSP_BIN. \
-Run \\`pnpm install\\` (or \\`npm install\\`) in your project, \
-or remove \\\"$RIPPLE_LSP_PKG\\\" from your dependencies to use the auto-installed version.\" >&2; \
-                       exit 127; \
-                     fi".into(),
-                ],
-                env,
-            },
-        };
-
-        Ok(cmd)
+        Ok(zed::Command {
+            command: binary_path,
+            args: vec!["--stdio".into()],
+            env: worktree.shell_env(),
+        })
     }
 }
 
