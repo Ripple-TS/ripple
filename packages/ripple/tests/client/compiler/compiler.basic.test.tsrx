@@ -1293,12 +1293,21 @@ export function App() @{
 		expect(result).toContain('_$_.spread_props(');
 	});
 
-	it('rejects less-than comparisons at line start in element children without whitespace', () => {
+	it('reads a less-than at line start in element children as literal text', () => {
 		const source = `function TodoList({ items }: { items: { text: string }[] }) @{
 	<ul>var a = 3
 	<4;</ul>
 		}`;
-
-		expect(() => parse(source, 'App.tsrx')).toThrow();
+		const ast = parse(source, 'App.tsrx');
+		const returned = get_returned_tsrx(ast.body[0]);
+		const ul =
+			returned.type === 'JSXElement'
+				? returned
+				: returned.children.find((n: AST.Node) => n.type === 'JSXElement') as ESTreeJSX.JSXElement;
+		expect((ul.openingElement.name as ESTreeJSX.JSXIdentifier).name).toBe('ul');
+		expect(ul.children).toHaveLength(1);
+		const text = ul.children[0] as unknown as { type: string; value: string };
+		expect(text.type).toBe('JSXText');
+		expect(text.value).toBe('var a = 3\n\t<4;');
 	});
 });

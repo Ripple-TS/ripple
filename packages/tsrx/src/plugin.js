@@ -109,6 +109,28 @@ function get_argument_clash_reported_names(check_clashes) {
 }
 
 /**
+ * A `<` opens a tag only when the character after it can begin one: `/` for a
+ * closing tag, `>` for a fragment, `{` for a dynamic tag, or an element or
+ * component name start. Any other character, or end of input, leaves the `<`
+ * as literal text.
+ * @param {string} input
+ * @param {number} index Index of the `<`.
+ */
+function can_start_tag_after_lt(input, index) {
+	const next = index + 1 < input.length ? input.charCodeAt(index + 1) : -1;
+	return (
+		next === CharCode.slash ||
+		next === CharCode.greaterThan ||
+		next === CharCode.openBrace ||
+		next === CharCode.at ||
+		next === CharCode.dollar ||
+		next === CharCode.underscore ||
+		(next >= CharCode.uppercaseA && next <= CharCode.uppercaseZ) ||
+		(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ)
+	);
+}
+
+/**
  * @param {string} input
  * @param {number} i
  */
@@ -623,7 +645,7 @@ export function TSRXPlugin(config) {
 					}
 					const ch = this.input.charCodeAt(index);
 					if (
-						ch === CharCode.lessThan ||
+						(ch === CharCode.lessThan && can_start_tag_after_lt(this.input, index)) ||
 						ch === CharCode.openBrace ||
 						ch === CharCode.closeBrace ||
 						this.#isCodeBlockStart(index) ||
@@ -1146,7 +1168,7 @@ export function TSRXPlugin(config) {
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
 					if (
-						ch === CharCode.lessThan ||
+						(ch === CharCode.lessThan && can_start_tag_after_lt(this.input, index)) ||
 						ch === CharCode.openBrace ||
 						ch === CharCode.closeBrace ||
 						this.#isJSXControlFlowDirectiveAt(index) ||
@@ -1247,16 +1269,8 @@ export function TSRXPlugin(config) {
 				const index = skip_whitespace_from(this.input, this.start);
 				const ch = this.input.charCodeAt(index);
 				if (ch === CharCode.lessThan) {
-					const next = this.input.charCodeAt(index + 1);
-					if (next === CharCode.slash) return false;
-					const tagLike =
-						next === CharCode.greaterThan ||
-						next === CharCode.openBrace ||
-						next === CharCode.at ||
-						next === CharCode.dollar ||
-						next === CharCode.underscore ||
-						(next >= CharCode.uppercaseA && next <= CharCode.uppercaseZ) ||
-						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ);
+					if (this.input.charCodeAt(index + 1) === CharCode.slash) return false;
+					const tagLike = can_start_tag_after_lt(this.input, index);
 					const previous = this.#previousNonSpaceTabIndex(index);
 					const afterSemicolon =
 						previous >= 0 && this.input.charCodeAt(previous) === CharCode.semicolon;
@@ -2895,7 +2909,7 @@ export function TSRXPlugin(config) {
 				this.#suppressTemplateRawTextToken = false;
 				const context = this.curContext();
 				if (
-					code !== CharCode.lessThan &&
+					(code !== CharCode.lessThan || !can_start_tag_after_lt(this.input, this.pos)) &&
 					code !== CharCode.greaterThan &&
 					code !== CharCode.openBrace &&
 					code !== CharCode.closeBrace &&
@@ -2933,17 +2947,7 @@ export function TSRXPlugin(config) {
 					return super.readToken(code);
 				}
 				if (code === CharCode.lessThan) {
-					const next = this.input.charCodeAt(this.pos + 1);
-					const isTagLikeAfterLt =
-						next === CharCode.slash ||
-						next === CharCode.greaterThan ||
-						next === CharCode.openBrace ||
-						next === CharCode.at ||
-						next === CharCode.dollar ||
-						next === CharCode.underscore ||
-						(next >= CharCode.uppercaseA && next <= CharCode.uppercaseZ) ||
-						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ);
-					if (this.exprAllowed && isTagLikeAfterLt) {
+					if (this.exprAllowed && can_start_tag_after_lt(this.input, this.pos)) {
 						++this.pos;
 						return this.finishToken(tstt.jsxTagStart);
 					}
@@ -3058,21 +3062,7 @@ export function TSRXPlugin(config) {
 					// <Something>...</Something>\n\n<Child />
 					// <head><style>...</style></head>
 					// We only do this when '<' is in a tag-like position.
-					const isWhitespaceAfterLt =
-						nextChar === CharCode.space ||
-						nextChar === CharCode.tab ||
-						nextChar === CharCode.lineFeed ||
-						nextChar === CharCode.carriageReturn;
-					const isTagLikeAfterLt =
-						!isWhitespaceAfterLt &&
-						(nextChar === CharCode.slash ||
-							nextChar === CharCode.greaterThan ||
-							nextChar === CharCode.openBrace ||
-							nextChar === CharCode.at ||
-							nextChar === CharCode.dollar ||
-							nextChar === CharCode.underscore ||
-							(nextChar >= CharCode.uppercaseA && nextChar <= CharCode.uppercaseZ) ||
-							(nextChar >= CharCode.lowercaseA && nextChar <= CharCode.lowercaseZ));
+					const isTagLikeAfterLt = can_start_tag_after_lt(this.input, this.pos);
 					const prevAllowsTagStart =
 						prevNonWhitespaceChar === null ||
 						prevNonWhitespaceChar === CharCode.lineFeed || // '\n'
@@ -3099,7 +3089,7 @@ export function TSRXPlugin(config) {
 							prevNonWhitespaceChar === CharCode.openBrace ||
 							prevNonWhitespaceChar === CharCode.greaterThan
 						) {
-							if (!isWhitespaceAfterLt) {
+							if (isTagLikeAfterLt) {
 								++this.pos;
 								return this.finishToken(tstt.jsxTagStart);
 							}
@@ -4136,6 +4126,16 @@ export function TSRXPlugin(config) {
 
 						case CharCode.lessThan:
 						case CharCode.openBrace:
+							// This path reads the children of an element nested in a `{ … }`
+							// expression container, where the raw-text intercept in `readToken`
+							// is off, so the literal-`<` rule has to be applied here too. Keep
+							// scanning rather than finishing the token: the `<` belongs to the
+							// text run, and finishing here would emit an empty text token when
+							// it is the run's first character.
+							if (ch === CharCode.lessThan && !can_start_tag_after_lt(this.input, this.pos)) {
+								++this.pos;
+								break;
+							}
 							if (out || this.pos > chunkStart) {
 								return this.finishToken(tstt.jsxText, out + this.input.slice(chunkStart, this.pos));
 							}
@@ -4629,10 +4629,13 @@ export function TSRXPlugin(config) {
 				} else if (this.type === tstt.jsxText) {
 					// A nested element with its own body can leak a JSX expression context,
 					// so the whitespace after its closing tag is mis-tokenized as a stale
-					// text token whose start was advanced onto the following `<`. Real JSX
-					// text never starts at `<`, so drop the leaked context and re-read the
-					// tag instead of emitting an empty node.
-					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
+					// text token whose start was advanced onto the following `<`. Text never
+					// starts at a `<` that can open a tag, so drop the leaked context and
+					// re-read the tag instead of emitting an empty node.
+					if (
+						this.input.charCodeAt(this.start) === CharCode.lessThan &&
+						can_start_tag_after_lt(this.input, this.start)
+					) {
 						if (this.#jsxExpressionContainerDepth > 0) {
 							// Inside a `{ … }` container the whole-stack counts below are
 							// blind: the enclosing template's `tc_expr` contexts sit on the

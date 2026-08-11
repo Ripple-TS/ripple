@@ -4612,3 +4612,55 @@ describe('expression-container children inside JSX attribute values', () => {
 		expect(as_type(element.openingElement, 'JSXOpeningElement').selfClosing).toBe(true);
 	});
 });
+
+// A `<` in markup child position only opens a tag when the next character can
+// begin one. Anything else — a digit, an operator, an emoji, whitespace — is a
+// literal `<` in the text, the same rule the HTML tokenizer uses. Every case
+// below throws `Unexpected token` before this rule.
+describe('literal `<` in markup text', () => {
+	it('reads a `<` that cannot start a tag as text', () => {
+		for (const [label, source, text] of [
+			['digit', `function App() { return <span><3</span>; }`, '<3'],
+			['operator', `function App() { return <span><= arrow</span>; }`, '<= arrow'],
+			['non-ASCII', `function App() { return <span><\u{1F600}</span>; }`, '<\u{1F600}'],
+			['surrounding spaces', `function App() { return <span>a < b</span>; }`, 'a < b'],
+			['template body', `function App() @{ <span><3</span> }`, '<3'],
+		]) {
+			const span = findElement(source, 'span');
+
+			expect(
+				span.children.map((child) => child.type),
+				label,
+			).toEqual(['JSXText']);
+			expect(child(span, 0, 'JSXText').value, label).toBe(text);
+		}
+	});
+
+	it('keeps a literal `<` as text when a real tag follows it', () => {
+		const div = findElement(`function App() { return <div><3<span>x</span></div>; }`, 'div');
+
+		expect(div.children.map((child) => child.type)).toEqual(['JSXText', 'JSXElement']);
+		expect(child(div, 0, 'JSXText').value).toBe('<3');
+		expect(openingName(child(div, 1, 'JSXElement')).name).toBe('span');
+	});
+
+	// An element nested in a `{ … }` expression container reads its children
+	// through `jsx_readToken` rather than the raw-text token path, so the rule
+	// has to hold there too.
+	it('reads a `<` that cannot start a tag as text inside an expression container', () => {
+		for (const [label, source, text] of [
+			['digit', `function App() @{ <div>{<span><3</span>}</div> }`, '<3'],
+			['operator', `function App() @{ <div>{<span><= x</span>}</div> }`, '<= x'],
+			['surrounding spaces', `function App() @{ <div>{<span>a < b</span>}</div> }`, 'a < b'],
+			['JSX return', `function App() { return <div>{<span><3</span>}</div>; }`, '<3'],
+		]) {
+			const span = findElement(source, 'span');
+
+			expect(
+				span.children.map((child) => child.type),
+				label,
+			).toEqual(['JSXText']);
+			expect(child(span, 0, 'JSXText').value, label).toBe(text);
+		}
+	});
+});
