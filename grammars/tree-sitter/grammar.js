@@ -83,6 +83,10 @@ module.exports = grammar({
 		[$.variable_declaration, $.lexical_declaration],
 		[$.field_definition, $.method_definition],
 		[$.type, $.type_identifier],
+		[$.type, $.type_identifier, $.generic_type],
+		[$.type, $.type_identifier, $.nested_type_identifier],
+		[$.type, $.generic_type],
+		[$.type, $.nested_type_identifier],
 		[$.class_declaration, $.class_expression],
 		[$.primary_expression, $.literal_type],
 		[$.primary_expression, $.type, $.type_identifier],
@@ -101,6 +105,9 @@ module.exports = grammar({
 		[$.statement_block, $.object, $.object_type],
 		[$.object, $.object_type],
 		[$.method_definition, $.property_signature],
+		[$.method_definition, $.method_signature],
+		[$.method_definition, $.method_signature, $.index_signature, $.property_signature],
+		[$.method_definition, $.method_signature, $.property_signature],
 		[$.required_parameter, $.primary_expression, $.type, $.type_identifier],
 		[$.pattern, $.primary_expression, $.type, $.type_identifier],
 		[$.primary_expression, $.jsx_element_name, $.type_parameter],
@@ -112,6 +119,7 @@ module.exports = grammar({
 		[$.object_pattern, $.object, $.object_type],
 		[$.pattern, $.type, $.type_identifier],
 		[$.array_type, $.function_type],
+		[$._type_annotation, $.array_type],
 		[$.intersection_type, $.function_type],
 		[$.union_type, $.function_type],
 		[$.for_in_statement, $.primary_expression],
@@ -231,6 +239,7 @@ module.exports = grammar({
 				$.new_expression,
 				$.yield_expression,
 				$.parenthesized_expression,
+				$.as_expression,
 			),
 
 		_expression_statement_primary_expression: ($) =>
@@ -401,6 +410,8 @@ module.exports = grammar({
 				$.class_declaration,
 				$.lexical_declaration,
 				$.variable_declaration,
+				$.interface_declaration,
+				$.type_alias_declaration,
 			),
 
 		fragment_declaration: ($) =>
@@ -745,6 +756,61 @@ module.exports = grammar({
 				field('body', $.class_body),
 			),
 
+		interface_declaration: ($) =>
+			seq(
+				'interface',
+				field('name', $.type_identifier),
+				optional(field('type_parameters', $.type_parameters)),
+				optional($.extends_type_clause),
+				field('body', $.interface_body),
+			),
+
+		extends_type_clause: ($) => seq('extends', commaSep1($.type)),
+
+		// Members are separated by `;`, `,`, or just a newline (via ASI).
+		interface_body: ($) =>
+			seq(
+				'{',
+				repeat(
+					seq(
+						choice($.property_signature, $.method_signature, $.index_signature),
+						optional(choice($._semicolon, ',')),
+					),
+				),
+				'}',
+			),
+
+		method_signature: ($) =>
+			seq(
+				optional('readonly'),
+				optional(choice('get', 'set')),
+				field('name', $.property_name),
+				optional('?'),
+				optional(field('type_parameters', $.type_parameters)),
+				field('parameters', $.formal_parameters),
+				optional($._type_annotation),
+			),
+
+		index_signature: ($) =>
+			seq(
+				optional('readonly'),
+				'[',
+				field('name', $.identifier),
+				$._type_annotation,
+				']',
+				$._type_annotation,
+			),
+
+		type_alias_declaration: ($) =>
+			seq(
+				'type',
+				field('name', $.type_identifier),
+				optional(field('type_parameters', $.type_parameters)),
+				'=',
+				field('value', $.type),
+				$._semicolon,
+			),
+
 		class_heritage: ($) =>
 			choice(
 				seq('extends', $.expression),
@@ -859,7 +925,10 @@ module.exports = grammar({
 				$.new_expression,
 				$.yield_expression,
 				$.parenthesized_expression,
+				$.as_expression,
 			),
+
+		as_expression: ($) => prec.left(PREC.REL, seq($.expression, 'as', choice('const', $.type))),
 
 		primary_expression: ($) =>
 			choice(
@@ -1048,6 +1117,7 @@ module.exports = grammar({
 				seq(
 					'new',
 					field('constructor', $.primary_expression),
+					optional(field('type_arguments', $.type_arguments)),
 					optional(field('arguments', $.arguments)),
 				),
 			),
@@ -1383,7 +1453,21 @@ module.exports = grammar({
 
 		type_arguments: ($) => seq('<', commaSep1($.type), optional(','), '>'),
 
-		object_type: ($) => seq('{', commaSep($.property_signature), optional(','), '}'),
+		// Object type members separate with `,` or `;` (`{ x: number; y: string }`).
+		object_type: ($) =>
+			seq(
+				'{',
+				optional(
+					seq(
+						$._object_type_member,
+						repeat(seq(choice(',', ';'), $._object_type_member)),
+						optional(choice(',', ';')),
+					),
+				),
+				'}',
+			),
+
+		_object_type_member: ($) => choice($.property_signature, $.method_signature, $.index_signature),
 
 		property_signature: ($) =>
 			seq(optional('readonly'), field('name', $.property_name), optional('?'), $._type_annotation),

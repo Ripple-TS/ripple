@@ -260,6 +260,8 @@
 [
   "function"
   "class"
+  "interface"
+  "type"
   "extends"
   "implements"
   "new"
@@ -294,6 +296,9 @@
 ; Properties
 (property_signature
   name: (property_name) @property)
+
+(method_signature
+  name: (property_name) @function.method)
 
 (pair
   key: (property_name) @property)
