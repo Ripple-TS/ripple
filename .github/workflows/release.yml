@@ -38,7 +38,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Disallow major and minor bumps in changesets
-        run: pnpm changeset:check
+        run: node scripts/check-changesets.js
 
       - name: Create or update release pull request
         id: changesets

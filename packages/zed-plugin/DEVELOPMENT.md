@@ -59,9 +59,10 @@ Zed extension registry:
 pnpm changeset
 ```
 
-The Changesets release PR bumps `package.json` and synchronizes the version in
-`extension.toml`. When that release PR is merged, the publish workflow creates an
-`@ripple-ts/zed-plugin@<version>` tag and opens the registry update PR through the
+The Changesets release PR bumps `package.json` and synchronizes both the version
+and grammar revision in `extension.toml`. When that release PR is merged, the
+publish workflow creates an `@ripple-ts/zed-plugin@<version>` tag and opens the
+registry update PR through the
 [`leonidaz/extensions`](https://github.com/leonidaz/extensions) fork. The
 extension is published after the Zed registry maintainers merge that PR.
 
@@ -76,9 +77,10 @@ scopes.
 If you update the tree-sitter grammar in `grammars/tree-sitter`:
 
 1. Update query files in `languages/tsrx/` if needed
-2. Run `pnpm sync-zed-grammar-rev` to update the `rev` field in `extension.toml`
+2. Commit the generated tree-sitter grammar artifacts
 3. Test locally
-4. Add a patch changeset for `@ripple-ts/zed-plugin`
+4. Add a patch changeset for `@ripple-ts/zed-plugin`; the Changesets release PR
+   updates the `rev` field in `extension.toml`
 
 ### After Language Server Changes
 

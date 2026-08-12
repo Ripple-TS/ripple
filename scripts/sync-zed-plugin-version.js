@@ -45,6 +45,7 @@ if (extensionVersion !== zedPlugin.version) {
 	);
 	writeFileSync(extensionTomlPath, extensionToml);
 	console.log(`zed extension.toml version: ${extensionVersion} → ${zedPlugin.version}`);
+	await import('./sync-zed-grammar-rev.js');
 } else {
 	console.log(`zed extension.toml version already at ${zedPlugin.version}, skipping`);
 }
