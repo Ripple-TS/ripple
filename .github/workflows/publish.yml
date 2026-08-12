@@ -51,3 +51,55 @@ jobs:
           PNPM_CONFIG_PROVENANCE: true
           # keep for now just in case
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Detect Zed extension release
+        id: zed
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          previous_version="$({
+            git show "${BEFORE_SHA}:packages/zed-plugin/extension.toml" || true
+          } | sed -n 's/^version = "\([^"]*\)"/\1/p')"
+          version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' packages/zed-plugin/extension.toml)"
+
+          if [ -z "$previous_version" ] || [ -z "$version" ]; then
+            echo "Could not determine the previous and current Zed extension versions." >&2
+            exit 1
+          fi
+
+          if [ "$previous_version" = "$version" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "tag=@ripple-ts/zed-plugin@$version" >> "$GITHUB_OUTPUT"
+
+      - name: Tag Zed extension release
+        if: steps.zed.outputs.changed == 'true'
+        env:
+          ZED_TAG: ${{ steps.zed.outputs.tag }}
+        run: |
+          if git show-ref --verify --quiet "refs/tags/$ZED_TAG"; then
+            tagged_sha="$(git rev-list -n 1 "$ZED_TAG")"
+            if [ "$tagged_sha" != "$GITHUB_SHA" ]; then
+              echo "$ZED_TAG already points to $tagged_sha instead of $GITHUB_SHA." >&2
+              exit 1
+            fi
+            exit 0
+          fi
+
+          git tag "$ZED_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$ZED_TAG"
+
+      - name: Submit Zed extension update
+        if: steps.zed.outputs.changed == 'true'
+        uses: huacnlee/zed-extension-action@82920ff0876879f65ffbcfa3403589114a8919c6
+        with:
+          extension-name: tsrx
+          push-to: leonidaz/extensions
+          tag: ${{ steps.zed.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Classic PAT owned by leonidaz with repo and workflow scopes.
+          COMMITTER_TOKEN: ${{ secrets.ZED_EXTENSION_TOKEN }}

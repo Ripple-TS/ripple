@@ -52,30 +52,22 @@ zed-plugin/
 
 ## Publishing to Zed Extensions Registry
 
-1. **Fork** https://github.com/zed-industries/extensions
-   - Must fork to personal account, not organization
+Add a patch changeset for `@ripple-ts/zed-plugin` when a change should reach the
+Zed extension registry:
 
-2. **Add as submodule**:
+```bash
+pnpm changeset
+```
 
-   ```bash
-   cd /path/to/forked/extensions
-   git submodule add https://github.com/Ripple-TS/ripple.git extensions/tsrx
-   ```
+The Changesets release PR bumps `package.json` and synchronizes the version in
+`extension.toml`. When that release PR is merged, the publish workflow creates an
+`@ripple-ts/zed-plugin@<version>` tag and opens the registry update PR through the
+[`leonidaz/extensions`](https://github.com/leonidaz/extensions) fork. The
+extension is published after the Zed registry maintainers merge that PR.
 
-   **Important**: Use HTTPS URL, not SSH
-
-3. **Update extensions.toml**:
-
-   ```toml
-   [tsrx]
-   submodule = "extensions/tsrx"
-   path = "packages/zed-plugin"
-   version = "0.0.82"
-   ```
-
-4. **Create Pull Request** to zed-industries/extensions
-
-5. **Once merged**, the extension will automatically publish to the registry
+The workflow requires a `ZED_EXTENSION_TOKEN` Actions secret containing a classic
+GitHub personal access token owned by `leonidaz` with `repo` and `workflow`
+scopes.
 
 ## Updating the Extension
 
@@ -86,8 +78,7 @@ If you update the tree-sitter grammar in `grammars/tree-sitter`:
 1. Update query files in `languages/tsrx/` if needed
 2. Run `pnpm sync-zed-grammar-rev` to update the `rev` field in `extension.toml`
 3. Test locally
-4. Bump version in `extension.toml`
-5. Submit PR to zed-extensions repo (if published)
+4. Add a patch changeset for `@ripple-ts/zed-plugin`
 
 ### After Language Server Changes
 

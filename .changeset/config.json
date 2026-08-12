@@ -35,7 +35,6 @@
     "@ripple-ts/tree-sitter",
     "@ripple-ts/nvim-plugin",
     "@ripple-ts/intellij-plugin",
-    "@ripple-ts/sublime-text-plugin",
-    "@ripple-ts/zed-plugin"
+    "@ripple-ts/sublime-text-plugin"
   ]
 }
