@@ -9143,317 +9143,85 @@
     }
   ],
   "conflicts": [
-    [
-      "primary_expression",
-      "pattern"
-    ],
-    [
-      "primary_expression",
-      "object"
-    ],
-    [
-      "array_pattern",
-      "array"
-    ],
-    [
-      "object_pattern",
-      "object"
-    ],
-    [
-      "statement_block",
-      "object"
-    ],
-    [
-      "statement_block",
-      "object",
-      "jsx_expression"
-    ],
-    [
-      "object",
-      "jsx_expression"
-    ],
-    [
-      "method_definition",
-      "arrow_function"
-    ],
-    [
-      "arrow_function",
-      "property_name"
-    ],
-    [
-      "shorthand_property_identifier",
-      "shorthand_property_identifier_pattern"
-    ],
+    ["primary_expression", "pattern"],
+    ["primary_expression", "object"],
+    ["array_pattern", "array"],
+    ["object_pattern", "object"],
+    ["statement_block", "object"],
+    ["statement_block", "object", "jsx_expression"],
+    ["object", "jsx_expression"],
+    ["method_definition", "arrow_function"],
+    ["arrow_function", "property_name"],
+    ["shorthand_property_identifier", "shorthand_property_identifier_pattern"],
     [
       "primary_expression",
       "shorthand_property_identifier",
       "shorthand_property_identifier_pattern"
     ],
-    [
-      "labeled_statement",
-      "arrow_function",
-      "property_name"
-    ],
-    [
-      "primary_expression",
-      "property_name"
-    ],
-    [
-      "assignment_expression",
-      "shorthand_property_identifier_pattern"
-    ],
-    [
-      "import_statement"
-    ],
-    [
-      "required_parameter",
-      "primary_expression"
-    ],
-    [
-      "pattern",
-      "assignment_expression"
-    ],
-    [
-      "jsx_element_name",
-      "jsx_non_namespaced_element_name"
-    ],
-    [
-      "jsx_element_name",
-      "type_parameter"
-    ],
-    [
-      "primary_expression",
-      "jsx_element_name"
-    ],
-    [
-      "primary_expression",
-      "jsx_member_name"
-    ],
-    [
-      "primary_expression",
-      "jsx_element"
-    ],
-    [
-      "rest_pattern",
-      "primary_expression"
-    ],
-    [
-      "variable_declaration",
-      "lexical_declaration"
-    ],
-    [
-      "field_definition",
-      "method_definition"
-    ],
-    [
-      "type",
-      "type_identifier"
-    ],
-    [
-      "type",
-      "type_identifier",
-      "generic_type"
-    ],
-    [
-      "type",
-      "type_identifier",
-      "nested_type_identifier"
-    ],
-    [
-      "type",
-      "generic_type"
-    ],
-    [
-      "type",
-      "nested_type_identifier"
-    ],
-    [
-      "class_declaration",
-      "class_expression"
-    ],
-    [
-      "primary_expression",
-      "literal_type"
-    ],
-    [
-      "primary_expression",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "primary_expression",
-      "generic_type"
-    ],
-    [
-      "primary_expression",
-      "nested_type_identifier"
-    ],
-    [
-      "arrow_function",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "primary_expression",
-      "arrow_function"
-    ],
-    [
-      "fragment_declaration"
-    ],
-    [
-      "computed_property_name",
-      "array"
-    ],
-    [
-      "assignment_expression",
-      "initializer"
-    ],
-    [
-      "do_statement"
-    ],
-    [
-      "component_statement",
-      "primary_expression"
-    ],
-    [
-      "expression_statement",
-      "component_statement"
-    ],
-    [
-      "function_declaration",
-      "function_expression"
-    ],
-    [
-      "required_parameter",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "statement_block",
-      "object",
-      "object_type"
-    ],
-    [
-      "object",
-      "object_type"
-    ],
-    [
-      "method_definition",
-      "property_signature"
-    ],
-    [
-      "method_definition",
-      "method_signature"
-    ],
-    [
-      "method_definition",
-      "method_signature",
-      "index_signature",
-      "property_signature"
-    ],
-    [
-      "method_definition",
-      "method_signature",
-      "property_signature"
-    ],
-    [
-      "required_parameter",
-      "primary_expression",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "pattern",
-      "primary_expression",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "primary_expression",
-      "jsx_element_name",
-      "type_parameter"
-    ],
-    [
-      "spread_element",
-      "jsx_expression"
-    ],
-    [
-      "if_statement"
-    ],
-    [
-      "switch_default"
-    ],
-    [
-      "switch_case"
-    ],
-    [
-      "object_pattern",
-      "object_type"
-    ],
-    [
-      "object_pattern",
-      "object",
-      "object_type"
-    ],
-    [
-      "pattern",
-      "type",
-      "type_identifier"
-    ],
-    [
-      "array_type",
-      "function_type"
-    ],
-    [
-      "_type_annotation",
-      "array_type"
-    ],
-    [
-      "intersection_type",
-      "function_type"
-    ],
-    [
-      "union_type",
-      "function_type"
-    ],
-    [
-      "for_in_statement",
-      "primary_expression"
-    ],
-    [
-      "jsx_template_block",
-      "primary_expression"
-    ],
-    [
-      "jsx_template_block"
-    ],
-    [
-      "statement_block",
-      "jsx_expression"
-    ],
-    [
-      "statement_block",
-      "component_statement"
-    ],
-    [
-      "declaration",
-      "component_statement"
-    ],
-    [
-      "jsx_statement_container",
-      "primary_expression"
-    ],
-    [
-      "declaration",
-      "jsx_statement_container"
-    ],
-    [
-      "jsx_statement_container",
-      "object"
-    ],
-    [
-      "jsx_try_expression"
-    ]
+    ["labeled_statement", "arrow_function", "property_name"],
+    ["primary_expression", "property_name"],
+    ["assignment_expression", "shorthand_property_identifier_pattern"],
+    ["import_statement"],
+    ["required_parameter", "primary_expression"],
+    ["pattern", "assignment_expression"],
+    ["jsx_element_name", "jsx_non_namespaced_element_name"],
+    ["jsx_element_name", "type_parameter"],
+    ["primary_expression", "jsx_element_name"],
+    ["primary_expression", "jsx_member_name"],
+    ["primary_expression", "jsx_element"],
+    ["rest_pattern", "primary_expression"],
+    ["variable_declaration", "lexical_declaration"],
+    ["field_definition", "method_definition"],
+    ["type", "type_identifier"],
+    ["type", "type_identifier", "generic_type"],
+    ["type", "type_identifier", "nested_type_identifier"],
+    ["type", "generic_type"],
+    ["type", "nested_type_identifier"],
+    ["class_declaration", "class_expression"],
+    ["primary_expression", "literal_type"],
+    ["primary_expression", "type", "type_identifier"],
+    ["primary_expression", "generic_type"],
+    ["primary_expression", "nested_type_identifier"],
+    ["arrow_function", "type", "type_identifier"],
+    ["primary_expression", "arrow_function"],
+    ["fragment_declaration"],
+    ["computed_property_name", "array"],
+    ["assignment_expression", "initializer"],
+    ["do_statement"],
+    ["component_statement", "primary_expression"],
+    ["expression_statement", "component_statement"],
+    ["function_declaration", "function_expression"],
+    ["required_parameter", "type", "type_identifier"],
+    ["statement_block", "object", "object_type"],
+    ["object", "object_type"],
+    ["method_definition", "property_signature"],
+    ["method_definition", "method_signature"],
+    ["method_definition", "method_signature", "index_signature", "property_signature"],
+    ["method_definition", "method_signature", "property_signature"],
+    ["required_parameter", "primary_expression", "type", "type_identifier"],
+    ["pattern", "primary_expression", "type", "type_identifier"],
+    ["primary_expression", "jsx_element_name", "type_parameter"],
+    ["spread_element", "jsx_expression"],
+    ["if_statement"],
+    ["switch_default"],
+    ["switch_case"],
+    ["object_pattern", "object_type"],
+    ["object_pattern", "object", "object_type"],
+    ["pattern", "type", "type_identifier"],
+    ["array_type", "function_type"],
+    ["_type_annotation", "array_type"],
+    ["intersection_type", "function_type"],
+    ["union_type", "function_type"],
+    ["for_in_statement", "primary_expression"],
+    ["jsx_template_block", "primary_expression"],
+    ["jsx_template_block"],
+    ["statement_block", "jsx_expression"],
+    ["statement_block", "component_statement"],
+    ["declaration", "component_statement"],
+    ["jsx_statement_container", "primary_expression"],
+    ["declaration", "jsx_statement_container"],
+    ["jsx_statement_container", "object"],
+    ["jsx_try_expression"]
   ],
   "precedences": [],
   "externals": [
@@ -9491,12 +9259,6 @@
     "_jsx_statement_container_statement",
     "_jsx_statement_container_output"
   ],
-  "supertypes": [
-    "statement",
-    "declaration",
-    "expression",
-    "primary_expression",
-    "pattern"
-  ],
+  "supertypes": ["statement", "declaration", "expression", "primary_expression", "pattern"],
   "reserved": {}
 }
