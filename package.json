@@ -58,5 +58,10 @@
   },
   "dependencies": {
     "@types/eslint": "catalog:default"
+  },
+  "pnpm": {
+    "overrides": {
+      "seroval": "1.5.3"
+    }
   }
 }
