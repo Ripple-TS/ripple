@@ -256,6 +256,10 @@
   "as"
 ] @keyword.control.import
 
+; Type assertions (`value as const`) are not import syntax; re-scope their
+; `as` after the group above so this more specific pattern takes precedence.
+(as_expression "as" @keyword)
+
 ; Other keywords
 [
   "function"

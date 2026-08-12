@@ -1453,19 +1453,9 @@ module.exports = grammar({
 
 		type_arguments: ($) => seq('<', commaSep1($.type), optional(','), '>'),
 
-		// Object type members separate with `,` or `;` (`{ x: number; y: string }`).
+		// Members separate with `,`, `;`, or just a newline (via ASI), like interface_body.
 		object_type: ($) =>
-			seq(
-				'{',
-				optional(
-					seq(
-						$._object_type_member,
-						repeat(seq(choice(',', ';'), $._object_type_member)),
-						optional(choice(',', ';')),
-					),
-				),
-				'}',
-			),
+			seq('{', repeat(seq($._object_type_member, optional(choice($._semicolon, ',')))), '}'),
 
 		_object_type_member: ($) => choice($.property_signature, $.method_signature, $.index_signature),
 

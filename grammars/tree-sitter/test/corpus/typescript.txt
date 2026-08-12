@@ -224,3 +224,31 @@ let p: { x: number; y: string };
               (identifier))
             (type
               (predefined_type))))))))
+
+==================
+Object Type With Newline-Separated Members
+==================
+
+let q: {
+	x: number
+	y: string
+};
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      (identifier)
+      (type
+        (object_type
+          (property_signature
+            (property_name
+              (identifier))
+            (type
+              (predefined_type)))
+          (property_signature
+            (property_name
+              (identifier))
+            (type
+              (predefined_type))))))))
