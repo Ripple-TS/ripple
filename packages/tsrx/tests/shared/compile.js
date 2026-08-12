@@ -1968,6 +1968,30 @@ export function runSharedCompileTests({
 		});
 	});
 
+	describe(`[${name}] literal \`<\` in text`, () => {
+		// The TSRX parser reads a `<` that cannot start a tag as literal text
+		// (`<span><3</span>`), but the compiled output is re-parsed by a JSX
+		// toolchain (esbuild, Babel, SWC) that forbids a bare `<` in text, so the
+		// printer must emit it as `&lt;` — which decodes back to the same string.
+		it('escapes a literal `<` in text as `&lt;`', () => {
+			const { code } = compile(
+				`export function App() { return <span><3 and a < b</span>; }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<span>&lt;3 and a &lt; b</span>');
+		});
+
+		it('escapes `<` in a raw-text script body', () => {
+			const { code } = compile(
+				`export function App() { return <div><script>if (a < b) x();</script></div>; }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<script>if (a &lt; b) x();</script>');
+		});
+	});
+
 	describe(`[${name}] fragment expression children`, () => {
 		// A bare expression placed directly as a JSX child reads as JSX text
 		// (`<>{a}b</>` renders the letter "b"), so every expression that ends up

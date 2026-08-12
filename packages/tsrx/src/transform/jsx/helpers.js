@@ -152,6 +152,15 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 			context.visit(value.body);
 		},
 
+		// TSRX text may contain a literal `<` — one that cannot start a tag
+		// (`<span><3</span>`) or a raw-text `<script>` body — but the printed TSX
+		// is re-parsed by a JSX toolchain (esbuild, Babel, SWC), and JSX forbids
+		// a bare `<` in text. Emit it as `&lt;`, which those parsers decode back
+		// to the same string.
+		JSXText: (node, context) => {
+			context.write(node.value.replace(/</g, '&lt;'), node);
+		},
+
 		// esrap's JSXOpeningElement printer doesn't emit `typeArguments`, so generic
 		// component tags like `<RenderProp<User>>` lose the `<User>` in the output.
 		JSXOpeningElement: (node, context) => {
