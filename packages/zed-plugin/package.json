@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/zed-plugin",
-  "version": "0.0.85",
+  "version": "0.0.86",
   "description": "Zed editor support for TSRX and Ripple",
   "private": true,
   "main": "index.js",
@@ -14,7 +14,7 @@
   "author": "Dominic Gannaway",
   "license": "MIT",
   "config": {
-    "@ripple-ts/language-server": "0.3.118"
+    "@ripple-ts/language-server": "0.3.119"
   },
   "packageManager": "pnpm@11.15.1"
 }

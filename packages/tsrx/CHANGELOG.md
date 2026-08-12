@@ -1,5 +1,17 @@
 # @tsrx/core
 
+## 0.1.57
+
+### Patch Changes
+
+- [#1417](https://github.com/Ripple-TS/ripple/pull/1417)
+  [`2e65731`](https://github.com/Ripple-TS/ripple/commit/2e657313feb272ef7c32510f8e2aa3de1b53ccb3)
+  Thanks [@thejackshelton](https://github.com/thejackshelton)! - Treat `<` in
+  markup text as a literal character when it cannot start a tag, so
+  `<span><3</span>` parses instead of throwing `Unexpected token`. The JSX printer
+  emits such text (and raw-text `<script>` bodies) with `<` escaped as `&lt;`, so
+  the compiled output of JSX targets stays parseable by downstream toolchains
+
 ## 0.1.56
 
 ### Patch Changes

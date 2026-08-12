@@ -1,5 +1,12 @@
 # @tsrx/rspack-plugin-preact
 
+## 0.0.73
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.57
+
 ## 0.0.72
 
 ### Patch Changes
