@@ -680,10 +680,8 @@ export namespace Parse {
 		getTokenFromCodeInType(code: number): void;
 
 		/**
-		 * Snapshot the tokenizer state a lookahead restores from.
-		 * Added by @sveltejs/acorn-typescript, which keeps `context` by
-		 * reference; the TSRX plugin overrides this to snapshot it by value so a
-		 * lookahead cannot mutate the caller's context stack.
+		 * Get the current tokenizer state used by lookahead parsing.
+		 * Added by @sveltejs/acorn-typescript.
 		 */
 		getCurLookaheadState(): LookaheadState;
 

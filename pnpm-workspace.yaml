@@ -2,6 +2,8 @@
 
 # policies
 minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@sveltejs/acorn-typescript@1.0.13'
 minimumReleaseAgeIgnoreMissingTime: true
 minimumReleaseAgeStrict: false
 trustPolicy: no-downgrade
@@ -24,7 +26,7 @@ allowBuilds:
 prettier_common: &prettier_common ^3.9.6
 ts_common: &ts_common ^5.9.3
 ts_eslint_parser: &ts_eslint_parser ^8.56.1
-esrap_common: &esrap_common ^2.3.0
+esrap_common: &esrap_common ^2.3.2
 
 packages:
   - packages/*
@@ -70,7 +72,7 @@ catalogs:
     '@modelcontextprotocol/sdk': ^1.29.0
     '@noble/hashes': ^2.2.0
     '@rollup/pluginutils': ^5.3.0
-    '@sveltejs/acorn-typescript': ^1.0.11
+    '@sveltejs/acorn-typescript': ^1.0.13
     '@solidjs/web': '2.0.0-beta.15'
     '@tailwindcss/vite': ^4.1.12
     '@types/adm-zip': ^0.5.8
