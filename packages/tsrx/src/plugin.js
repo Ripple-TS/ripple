@@ -2895,6 +2895,35 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Make acorn-typescript's lookahead non-destructive to the TOKENIZER
+			 * CONTEXT STACK.
+			 *
+			 * `getCurLookaheadState()` snapshots `context` by REFERENCE (unlike its
+			 * sibling `cloneCurLookaheadState()`, which slices it), and
+			 * `setLookaheadState()` restores that same array — so any context a
+			 * lookahead pushes while scanning ahead survives the "restore".
+			 *
+			 * `tsIsUnambiguouslyStartOfFunctionType` is the case that bites: for an
+			 * EMPTY parameter list it consumes `(` — pushing a context — and returns
+			 * as soon as it sees `)`, never popping. One context is then left on the
+			 * stack for the rest of the parse. Inside a template that shifts every
+			 * later token one frame out of phase, so the `>` closing an element's
+			 * opening tag is tokenized as JSX text and reported as
+			 * "Unexpected token `>`. Did you mean `&gt;`?" — see the regression test
+			 * for `<Comp fallback={(reset: () => void) => …}>`.
+			 *
+			 * Snapshotting by value keeps lookahead a pure query, which is what every
+			 * caller already assumes. This also covers `tryParse`'s failState restore.
+			 *
+			 * @returns {ReturnType<Parse.Parser['getCurLookaheadState']>}
+			 */
+			getCurLookaheadState() {
+				const state = super.getCurLookaheadState();
+				if (state.context) state.context = state.context.slice();
+				return state;
+			}
+
+			/**
 			 * `<T,>(x: T) => x` and `<T>(x: T): T => x` should parse as generic
 			 * arrow functions, not JSX elements. acorn-typescript's `readToken`
 			 * can otherwise tokenize `<` as `jsxTagStart` when expression parsing

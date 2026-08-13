@@ -4664,3 +4664,72 @@ describe('literal `<` in markup text', () => {
 		}
 	});
 });
+
+describe('function types in JSX attribute values', () => {
+	// Deciding whether `(` opens a function type scans ahead, and that scan is
+	// only supposed to be a query. Its state snapshot aliased the tokenizer's
+	// context stack, so for an EMPTY parameter list — where the scan consumes
+	// `(` and returns the moment it sees `)` — the context that `(` pushed was
+	// never popped. Every later token then sat one frame out of phase, and the
+	// `>` closing the element's opening tag was tokenized as JSX text:
+	// "Unexpected token `>`. Did you mean `&gt;`?".
+	//
+	// A non-empty list (`(n: number) => void`) scans far enough to balance, so
+	// only the empty-parens spellings below ever broke.
+
+	it('parses a callback prop whose parameter is a no-argument function type', () => {
+		const element = findElement(
+			`export function App(props: { failed: boolean }) @{
+	<Boundary fallback={(reset: () => void) => <button onClick={() => reset()}>{'retry'}</button>}>
+		<Child failed={props.failed} />
+	</Boundary>
+}`,
+			'Boundary',
+		);
+		const arrow = as_type(
+			attributeExpression(element.openingElement.attributes[0]),
+			'ArrowFunctionExpression',
+		);
+		expect(as_type(arrow.params[0], 'Identifier').name).toBe('reset');
+		// The element's own children still parse — the stale context used to
+		// swallow the opening tag's `>` and everything after it.
+		expect(as_type(element.children[0], 'JSXElement')).toBeTruthy();
+	});
+
+	it('parses the no-argument function type in every spelling that leaked a context', () => {
+		for (const [label, type] of [
+			['bare', '() => void'],
+			['returning a value', '() => string'],
+			['returning a generic', '() => Promise<void>'],
+			['as an object member', '{ go: () => void }'],
+		]) {
+			const element = findElement(
+				`export function App() @{ <Host on={(cb: ${type}) => 'x'}>{'c'}</Host> }`,
+				'Host',
+			);
+			const arrow = as_type(
+				attributeExpression(element.openingElement.attributes[0]),
+				'ArrowFunctionExpression',
+			);
+			expect(as_type(arrow.params[0], 'Identifier').name, label).toBe('cb');
+		}
+	});
+
+	it('keeps a following attribute and a sibling element in the same tag', () => {
+		// The leak was positional, so what comes AFTER the offending attribute is
+		// what a narrower fix could still get wrong.
+		const element = findElement(
+			`export function App() @{
+	<Host on={(cb: () => void) => 'x'} id="after">
+		<Sibling />
+	</Host>
+}`,
+			'Host',
+		);
+		const [, id] = element.openingElement.attributes;
+		expect(as_type(as_type(id, 'JSXAttribute').name, 'JSXIdentifier').name).toBe('id');
+		expect(
+			as_type(as_type(element.children[0], 'JSXElement').openingElement.name, 'JSXIdentifier').name,
+		).toBe('Sibling');
+	});
+});
