@@ -1,5 +1,17 @@
 # @tsrx/core
 
+## 0.1.58
+
+### Patch Changes
+
+- [#1423](https://github.com/Ripple-TS/ripple/pull/1423)
+  [`10c6c3d`](https://github.com/Ripple-TS/ripple/commit/10c6c3df0f5dfccf9be34c556afee1c87c678bde)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix a parse error on a callback
+  prop whose parameter has a no-argument function type, such as
+  `<Boundary fallback={(reset: () => void) => …}>`, by upgrading
+  `@sveltejs/acorn-typescript` to a version that restores parser state after
+  speculative parse branches.
+
 ## 0.1.57
 
 ### Patch Changes

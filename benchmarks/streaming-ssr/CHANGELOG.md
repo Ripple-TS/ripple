@@ -1,5 +1,14 @@
 # @benchmarks/streaming-ssr
 
+## 0.0.29
+
+### Patch Changes
+
+- Updated dependencies []:
+  - ripple@0.3.120
+  - @tsrx/ripple@0.1.59
+  - @tsrx/solid@0.1.58
+
 ## 0.0.28
 
 ### Patch Changes
