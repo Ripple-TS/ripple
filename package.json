@@ -58,5 +58,10 @@
   },
   "dependencies": {
     "@types/eslint": "catalog:default"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": "7.5.21"
+    }
   }
 }
