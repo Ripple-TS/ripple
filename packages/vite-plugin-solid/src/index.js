@@ -93,7 +93,7 @@ export function tsrxSolid(options = {}) {
 								name: '@tsrx/vite-plugin-solid:dep-scan',
 								isVirtual: is_virtual,
 								toRealPath: to_real_path,
-								compile,
+								compile: (code, id) => compile(code, id, compile_options),
 							}),
 						],
 					},
