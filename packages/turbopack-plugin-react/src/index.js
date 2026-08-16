@@ -23,29 +23,47 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  */
 
 /**
- * @returns {{ condition: { all: any[] }, loaders: string[], as: string }}
+ * @typedef {{ runtimeImports?: 'compiler' | 'direct' }} TsrxReactTurbopackOptions
  */
-export function create_tsrx_react_turbopack_rule() {
+
+/**
+ * @param {TsrxReactTurbopackOptions} [options]
+ * @returns {{ condition: { all: any[] }, loaders: Array<string | { loader: string, options: TsrxReactTurbopackOptions }>, as: string }}
+ */
+export function create_tsrx_react_turbopack_rule(options = {}) {
 	return {
 		condition: {
 			all: [{ not: 'foreign' }, { not: { query: CSS_QUERY } }],
 		},
-		loaders: [TURBOPACK_JS_LOADER],
+		loaders: [with_loader_options(TURBOPACK_JS_LOADER, options)],
 		as: '*.tsx',
 	};
 }
 
 /**
- * @returns {{ condition: { all: any[] }, loaders: string[], type: string }}
+ * @param {TsrxReactTurbopackOptions} [options]
+ * @returns {{ condition: { all: any[] }, loaders: Array<string | { loader: string, options: TsrxReactTurbopackOptions }>, type: string }}
  */
-export function create_tsrx_react_turbopack_css_rule() {
+export function create_tsrx_react_turbopack_css_rule(options = {}) {
 	return {
 		condition: {
 			all: [{ not: 'foreign' }, { query: CSS_QUERY }],
 		},
-		loaders: [TURBOPACK_CSS_LOADER],
+		loaders: [with_loader_options(TURBOPACK_CSS_LOADER, options)],
 		type: 'css',
 	};
+}
+
+/**
+ * Preserve the original string loader shape unless the caller has compiler
+ * options that Turbopack needs to pass into the loader.
+ *
+ * @param {string} loader
+ * @param {TsrxReactTurbopackOptions} options
+ * @returns {string | { loader: string, options: TsrxReactTurbopackOptions }}
+ */
+function with_loader_options(loader, options) {
+	return options.runtimeImports === undefined ? loader : { loader, options };
 }
 
 /**
@@ -62,10 +80,14 @@ function merge_resolve_extensions(resolve_extensions) {
 
 /**
  * @param {any} existing_rule
+ * @param {TsrxReactTurbopackOptions} options
  * @returns {any}
  */
-function merge_tsrx_rule(existing_rule) {
-	const rules = [create_tsrx_react_turbopack_rule(), create_tsrx_react_turbopack_css_rule()];
+function merge_tsrx_rule(existing_rule, options) {
+	const rules = [
+		create_tsrx_react_turbopack_rule(options),
+		create_tsrx_react_turbopack_css_rule(options),
+	];
 	if (!existing_rule) return rules;
 	return Array.isArray(existing_rule) ? [...rules, ...existing_rule] : [...rules, existing_rule];
 }
@@ -80,12 +102,13 @@ function merge_tsrx_rule(existing_rule) {
  * finish the JSX transform.
  *
  * @param {NextTurbopackConfig} [next_config]
+ * @param {TsrxReactTurbopackOptions} [options]
  * @returns {NextTurbopackConfig}
  */
-export function tsrxReactTurbopack(next_config = {}) {
+export function tsrxReactTurbopack(next_config = {}, options = {}) {
 	const turbopack = next_config.turbopack ?? {};
 	const rules = { ...(turbopack.rules ?? {}) };
-	rules['*.tsrx'] = merge_tsrx_rule(rules['*.tsrx']);
+	rules['*.tsrx'] = merge_tsrx_rule(rules['*.tsrx'], options);
 
 	return {
 		...next_config,

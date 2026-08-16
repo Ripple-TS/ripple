@@ -115,7 +115,7 @@ describe('@tsrx/rspack-plugin-react css-loader', () => {
 
 describe('@tsrx/rspack-plugin-react plugin', () => {
 	it('registers module rules for .tsrx and sibling css query', () => {
-		const plugin = new TsrxReactRspackPlugin();
+		const plugin = new TsrxReactRspackPlugin({ runtimeImports: 'direct' });
 		const compiler = {
 			options: {
 				module: { rules: [] },
@@ -135,9 +135,11 @@ describe('@tsrx/rspack-plugin-react plugin', () => {
 		expect(jsRule.test.toString()).toContain('tsrx');
 		expect(jsRule.use).toHaveLength(2);
 		expect(jsRule.use[0].loader).toBe('builtin:swc-loader');
+		expect(jsRule.use[1].options.runtimeImports).toBe('direct');
 
 		expect(cssRule.resourceQuery.toString()).toContain('tsrx-css');
 		expect(cssRule.type).toBe('css/auto');
+		expect(cssRule.use[0].options.runtimeImports).toBe('direct');
 	});
 
 	it('respects a user-provided jsxImportSource', () => {

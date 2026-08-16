@@ -17,14 +17,29 @@ function call_load(plugin, id) {
  * Pluck the main tsrx-vue plugin (the one with the load hook for `.tsrx.tsx`
  * virtual ids) out of the array returned by `tsrxVue()`.
  */
-function get_main_plugin() {
-	const plugins = tsrxVue();
+function get_main_plugin(options) {
+	const plugins = tsrxVue(options);
 	const main = plugins.find((p) => p.name === '@tsrx/vite-plugin-vue');
 	if (!main) throw new Error('@tsrx/vite-plugin-vue plugin not found');
 	return main;
 }
 
 describe('@tsrx/vite-plugin-vue source maps', () => {
+	it('forwards direct runtime imports to the compiler', async () => {
+		const plugin = get_main_plugin({ runtimeImports: 'direct' });
+		const dir = mkdtempSync(join(tmpdir(), 'tsrx-vue-runtime-'));
+		const real_path = join(dir, 'App.tsrx');
+		writeFileSync(
+			real_path,
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+		);
+
+		const result = await call_load(plugin, real_path + '.tsx');
+		expect(/** @type {any} */ (result).code).toContain("from '@tsrx/vue-runtime/ref'");
+	});
+
 	it('maps the compiled output back to the original tsrx source', async () => {
 		const plugin = get_main_plugin();
 		const dir = mkdtempSync(join(tmpdir(), 'tsrx-vue-'));

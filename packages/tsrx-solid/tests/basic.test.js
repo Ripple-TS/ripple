@@ -18,6 +18,25 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: true,
 });
 
+describe('@tsrx/solid direct runtime imports', () => {
+	it('emits the target runtime package import for ref normalization', () => {
+		const { code } = compile(
+			`function Child(props) @{
+				<input {...props} />
+			}
+
+			function App() @{
+				<Child title="hello" />
+			}`,
+			'App.tsrx',
+			{ runtimeImports: 'direct' },
+		);
+
+		expect(code).toContain("from '@tsrx/solid-runtime/ref'");
+		expect(code).not.toContain("from '@tsrx/solid/ref'");
+	});
+});
+
 runSharedTsxExpressionTsrxTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });

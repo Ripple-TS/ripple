@@ -9,11 +9,13 @@ export interface TsrxVueRspackVaporOptions {
 
 export interface TsrxVueRspackPluginOptions {
 	vapor?: TsrxVueRspackVaporOptions;
+	runtimeImports?: 'compiler' | 'direct';
 }
 
 export declare class TsrxVueRspackPlugin implements RspackPluginInstance {
 	constructor(options?: TsrxVueRspackPluginOptions);
-	options: TsrxVueRspackPluginOptions;
+	options: Pick<TsrxVueRspackPluginOptions, 'vapor'> &
+		Required<Pick<TsrxVueRspackPluginOptions, 'runtimeImports'>>;
 	apply(compiler: Compiler): void;
 }
 

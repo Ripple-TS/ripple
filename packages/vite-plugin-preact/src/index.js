@@ -48,6 +48,7 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * @param {{
  *   jsxImportSource?: string,
  *   suspenseSource?: string,
+ *   runtimeImports?: 'compiler' | 'direct',
  * }} [options]
  * @returns {TsrxPreactPlugin}
  */
@@ -55,6 +56,7 @@ export function tsrxPreact(options = {}) {
 	const jsxImportSource = options.jsxImportSource ?? 'preact';
 	const compile_options = {
 		suspenseSource: options.suspenseSource,
+		runtimeImports: options.runtimeImports,
 	};
 
 	/** @type {Map<string, string>} */

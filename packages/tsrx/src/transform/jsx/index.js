@@ -561,7 +561,17 @@ export function createJsxTransform(platform) {
 	 * @returns {JsxTransformResult}
 	 */
 	function transform(ast, source, filename, options) {
-		const suspense_source = options?.suspenseSource ?? platform.imports.suspense;
+		const effective_platform =
+			options?.runtimeImports === 'direct' && platform.directRuntimeImports
+				? {
+						...platform,
+						imports: {
+							...platform.imports,
+							...platform.directRuntimeImports,
+						},
+					}
+				: platform;
+		const suspense_source = options?.suspenseSource ?? effective_platform.imports.suspense;
 		const collect = !!(options?.collect || options?.loose);
 		/** @type {AST.CSS.StyleSheet[]} */
 		const stylesheets = [];
@@ -570,7 +580,7 @@ export function createJsxTransform(platform) {
 
 		/** @type {TransformContext} */
 		const transform_context = {
-			platform,
+			platform: effective_platform,
 			local_statement_component_index: 0,
 			needs_error_boundary: false,
 			needs_suspense: false,
@@ -811,7 +821,7 @@ export function createJsxTransform(platform) {
 		if (platform.hooks?.injectImports) {
 			platform.hooks.injectImports(expanded, transform_context, suspense_source);
 		} else {
-			inject_try_imports(expanded, transform_context, platform, suspense_source);
+			inject_try_imports(expanded, transform_context, effective_platform, suspense_source);
 		}
 
 		// Lower any `@{ … }` code blocks left in generated helper bodies before the

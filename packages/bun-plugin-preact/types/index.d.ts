@@ -5,6 +5,7 @@ export interface TsrxPreactBunPluginOptions {
 	exclude?: RegExp | RegExp[];
 	jsxImportSource?: string;
 	suspenseSource?: string;
+	runtimeImports?: 'compiler' | 'direct';
 	emitCss?: boolean;
 }
 

@@ -16,6 +16,34 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: false,
 });
 
+describe('@tsrx/react direct runtime imports', () => {
+	it('emits target runtime package imports for every runtime helper surface', () => {
+		const { code } = compile(
+			`function Child(props) @{
+				<input {...props} />
+			}
+
+			export function App() @{
+				const items = [1, 2, 3];
+				@try {
+					@for (const item of items) {
+						<Child key={item} />
+					}
+				} @catch (error) {
+					<p>{error.message}</p>
+				}
+			}`,
+			'App.tsrx',
+			{ runtimeImports: 'direct' },
+		);
+
+		expect(code).toContain("from '@tsrx/react-runtime/error-boundary'");
+		expect(code).toContain("from '@tsrx/react-runtime/ref'");
+		expect(code).toContain("from '@tsrx/react-runtime/iterable'");
+		expect(code).not.toMatch(/from '@tsrx\/react\//);
+	});
+});
+
 runSharedTsxExpressionTsrxTests({ compile, name: 'react', classAttrName: 'class' });
 runSharedCompileTests({
 	compile,

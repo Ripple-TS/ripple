@@ -19,6 +19,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	emitCss?: boolean,
  * 	solid?: object,
+ * 	runtimeImports?: 'compiler' | 'direct',
  * }} TsrxSolidBunPluginOptions
  */
 
@@ -99,6 +100,7 @@ async function transform_solid(source, file_path, solid_options) {
  */
 export function tsrxSolid(options = {}) {
 	const emit_css = options.emitCss ?? true;
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
@@ -122,7 +124,7 @@ export function tsrxSolid(options = {}) {
 					if (!should_compile(options, args.path)) return undefined;
 
 					const source = await readFile(args.path, 'utf-8');
-					const { code, css } = compile(source, args.path);
+					const { code, css } = compile(source, args.path, compile_options);
 					const css_id = to_css_id(args.path);
 
 					let output = code;

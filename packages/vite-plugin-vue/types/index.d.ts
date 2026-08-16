@@ -1,6 +1,7 @@
 import type { Plugin } from 'vite';
 
 export interface TsrxVueOptions {
+	runtimeImports?: 'compiler' | 'direct';
 	/**
 	 * Regular expression matched against file paths to decide which modules
 	 * the plugin should compile as tsrx sources. Defaults to `/\.tsrx$/`.

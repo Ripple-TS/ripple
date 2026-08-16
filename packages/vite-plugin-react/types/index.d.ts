@@ -3,6 +3,7 @@ import type { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan';
 
 export interface TsrxReactPluginOptions {
 	jsxImportSource?: string;
+	runtimeImports?: 'compiler' | 'direct';
 }
 
 export interface TsrxReactTransformResult {

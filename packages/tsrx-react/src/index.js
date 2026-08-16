@@ -47,7 +47,7 @@ export function compile(source, filename, options) {
 		ast,
 		source,
 		filename,
-		collect ? { collect: true, loose: !!options?.loose, errors, comments } : undefined,
+		collect ? { ...options, collect: true, loose: !!options?.loose, errors, comments } : options,
 	);
 	return { ...result, errors };
 }
@@ -58,7 +58,7 @@ export function compile(source, filename, options) {
  * @template {string} T
  * @param {string} source
  * @param {NonEmptyString<T>} filename
- * @param {ParseOptions} [options]
+ * @param {ParseOptions & BaseCompileOptions} [options]
  * @returns {VolarMappingsResult}
  */
 export function compile_to_volar_mappings(source, filename, options) {
@@ -81,6 +81,7 @@ export function compile_to_volar_mappings(source, filename, options) {
 		comments,
 	});
 	const transformed = transform(ast, source, filename, {
+		...options,
 		collect: true,
 		loose: !!options?.loose,
 		typeOnly: true,

@@ -8,6 +8,7 @@ export interface TsrxVueBunPluginVaporOptions {
 }
 
 export interface TsrxVueBunPluginOptions {
+	runtimeImports?: 'compiler' | 'direct';
 	include?: RegExp;
 	exclude?: RegExp | RegExp[];
 	emitCss?: boolean;

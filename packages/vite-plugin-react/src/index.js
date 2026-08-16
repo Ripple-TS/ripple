@@ -49,11 +49,12 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * `jsx-runtime`. Per-component `<style>` blocks are emitted as virtual CSS
  * modules that are imported by the compiled JS output.
  *
- * @param {{ jsxImportSource?: string }} [options]
+ * @param {{ jsxImportSource?: string, runtimeImports?: 'compiler' | 'direct' }} [options]
  * @returns {TsrxReactPlugin}
  */
 export function tsrxReact(options = {}) {
 	const jsxImportSource = options.jsxImportSource ?? 'react';
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
@@ -64,7 +65,7 @@ export function tsrxReact(options = {}) {
 	 * @returns {void}
 	 */
 	function update_css_cache(source, id) {
-		const { css } = compile(source, id);
+		const { css } = compile(source, id, compile_options);
 		if (css) {
 			css_cache.set(id, css);
 		} else {
@@ -83,7 +84,7 @@ export function tsrxReact(options = {}) {
 				return;
 			}
 
-			return create_dep_scan_config(jsxImportSource);
+			return create_dep_scan_config(jsxImportSource, compile_options);
 		},
 
 		resolveId(/** @type {string} */ source) {
@@ -102,7 +103,7 @@ export function tsrxReact(options = {}) {
 		async transform(/** @type {string} */ code, /** @type {string} */ id) {
 			if (!TSRX_EXTENSION_PATTERN.test(id)) return null;
 
-			let { code: tsx_code, css, map } = compile(code, id);
+			let { code: tsx_code, css, map } = compile(code, id, compile_options);
 
 			let source = tsx_code;
 			if (css) {
@@ -149,9 +150,10 @@ export function tsrxReact(options = {}) {
 
 /**
  * @param {string} jsxImportSource
+ * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
  * @returns {TsrxReactEnvironmentConfig}
  */
-function create_dep_scan_config(jsxImportSource) {
+function create_dep_scan_config(jsxImportSource, compile_options) {
 	return {
 		optimizeDeps: {
 			// The scanner externalizes anything that is not a known JS type
@@ -164,7 +166,7 @@ function create_dep_scan_config(jsxImportSource) {
 				// Point it at the configured source, or the scan fails outright on
 				// an unresolvable `react/jsx-dev-runtime` in a project without react.
 				transform: { jsx: { importSource: jsxImportSource } },
-				plugins: [create_dep_scan_plugin(jsxImportSource)],
+				plugins: [create_dep_scan_plugin(jsxImportSource, compile_options)],
 			},
 		},
 	};
@@ -172,13 +174,14 @@ function create_dep_scan_config(jsxImportSource) {
 
 /**
  * @param {string} jsxImportSource
+ * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
  * @returns {DepScanTransformPlugin}
  */
-function create_dep_scan_plugin(jsxImportSource) {
+function create_dep_scan_plugin(jsxImportSource, compile_options) {
 	return createDepScanTransformPlugin({
 		name: '@tsrx/vite-plugin-react:dep-scan',
 		filter: TSRX_EXTENSION_PATTERN,
-		compile,
+		compile: (code, id) => compile(code, id, compile_options),
 		// The main transform always emits automatic-runtime JSX, so the jsx
 		// runtime module is a dependency of every compiled `.tsrx` file. Import
 		// it explicitly so the scanner records it no matter how the scan's own

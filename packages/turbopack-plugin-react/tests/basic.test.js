@@ -9,9 +9,10 @@ import {
 
 /**
  * @param {string} resourcePath
+ * @param {{ runtimeImports?: 'compiler' | 'direct' }} [options]
  * @returns {{ context: object, promise: Promise<{ err: unknown, output: string | null, map: unknown }> }}
  */
-function create_loader_context(resourcePath) {
+function create_loader_context(resourcePath, options = {}) {
 	/** @type {(value: { err: unknown, output: string | null, map: unknown }) => void} */
 	let resolve;
 	const promise = new Promise((r) => {
@@ -19,6 +20,9 @@ function create_loader_context(resourcePath) {
 	});
 	const context = {
 		resourcePath,
+		getOptions() {
+			return options;
+		},
 		async() {
 			return (
 				/** @type {unknown} */ err,
@@ -143,6 +147,23 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 			output.indexOf('import "/virtual/App.tsrx?tsrx-css&lang.css";'),
 		);
 	});
+
+	it('forwards direct runtime imports to the compiler', async () => {
+		const { context, promise } = create_loader_context('/virtual/App.tsrx', {
+			runtimeImports: 'direct',
+		});
+
+		tsrx_react_turbopack_loader.call(
+			context,
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+		);
+
+		const { err, output } = await promise;
+		expect(err).toBeNull();
+		expect(output).toContain("from '@tsrx/react-runtime/ref'");
+	});
 });
 
 describe('@tsrx/turbopack-plugin-react css loader', () => {
@@ -230,6 +251,14 @@ describe('@tsrx/turbopack-plugin-react config helper', () => {
 			},
 			type: 'css',
 		});
+	});
+
+	it('passes runtime import options to both loaders', () => {
+		const config = tsrxReactTurbopack({}, { runtimeImports: 'direct' });
+		const rules = config.turbopack.rules['*.tsrx'];
+
+		expect(rules[0].loaders[0].options).toEqual({ runtimeImports: 'direct' });
+		expect(rules[1].loaders[0].options).toEqual({ runtimeImports: 'direct' });
 	});
 
 	it('prepends the tsrx rule when a user already configured one', () => {

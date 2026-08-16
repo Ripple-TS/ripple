@@ -15,6 +15,33 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: false,
 });
 
+describe('@tsrx/preact direct runtime imports', () => {
+	it('emits target runtime package imports for every runtime helper surface', () => {
+		const { code } = compile(
+			`function Child(props) @{
+				<input {...props} />
+			}
+
+			export function App({ items }: { items: Set<string> }) @{
+				@try {
+					@for (const item of items) {
+						<Child key={item} />
+					}
+				} @catch (error) {
+					<p>{error.message}</p>
+				}
+			}`,
+			'App.tsrx',
+			{ runtimeImports: 'direct' },
+		);
+
+		expect(code).toContain("from '@tsrx/preact-runtime/error-boundary'");
+		expect(code).toContain("from '@tsrx/preact-runtime/ref'");
+		expect(code).toContain("from '@tsrx/preact-runtime/iterable'");
+		expect(code).not.toMatch(/from '@tsrx\/preact\//);
+	});
+});
+
 runSharedTsxExpressionTsrxTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });

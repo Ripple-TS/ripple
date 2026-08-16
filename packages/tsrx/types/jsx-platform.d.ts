@@ -83,6 +83,11 @@ export interface JsxTransformContext {
  */
 export interface JsxTransformOptions {
 	/**
+	 * Selects compiler-package compatibility imports or direct renderer runtime
+	 * package imports. Defaults to `'compiler'`.
+	 */
+	runtimeImports?: 'compiler' | 'direct';
+	/**
 	 * Override the import source used for `Suspense` in try-block transforms.
 	 * Falls back to `platform.imports.suspense`. Preact uses this to let the
 	 * host pick `preact/compat` vs. another compat entry point.
@@ -409,6 +414,17 @@ export interface JsxPlatform {
 		 * `'@tsrx/core/runtime/iterable'`. Solid and Vue lower for-of via their
 		 * own iteration components and leave this unset.
 		 */
+		forOfIterableHelper?: string;
+	};
+
+	/**
+	 * Runtime-helper import sources used when a compile call opts into direct
+	 * runtime imports. Fields omitted here continue using `imports`.
+	 */
+	directRuntimeImports?: {
+		errorBoundary?: string;
+		mergeRefs?: string;
+		refProp?: string;
 		forOfIterableHelper?: string;
 	};
 

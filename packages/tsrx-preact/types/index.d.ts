@@ -23,4 +23,6 @@ export { isRefProp } from './ref.js';
 
 export const compile: CompileFn<CompileOptions & BaseCompileOptions>;
 
-export const compile_to_volar_mappings: VolarCompileFn<ParseOptions & CompileOptions>;
+export const compile_to_volar_mappings: VolarCompileFn<
+	ParseOptions & CompileOptions & BaseCompileOptions
+>;

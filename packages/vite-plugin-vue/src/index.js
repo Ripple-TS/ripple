@@ -83,6 +83,7 @@ function create_tsrx_vue_plugin(options) {
 	let rootDir = process.cwd();
 
 	const includePattern = options.include ?? DEFAULT_TSRX_PATTERN;
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/**
 	 * @param {string} path
@@ -133,7 +134,7 @@ function create_tsrx_vue_plugin(options) {
 						// `vue-jsx-vapor` downstream; the scan only needs the
 						// imports, so leave the jsx alone.
 						transform: { jsx: 'preserve' },
-						plugins: [create_tsrx_vue_scan_plugin(isVirtual, toRealPath)],
+						plugins: [create_tsrx_vue_scan_plugin(isVirtual, toRealPath, compile_options)],
 					},
 				},
 			};
@@ -186,7 +187,7 @@ function create_tsrx_vue_plugin(options) {
 
 			const realPath = toRealPath(id.split('?')[0]);
 			const source = await readFile(realPath, 'utf-8');
-			let { code, css, map } = compile(source, realPath);
+			let { code, css, map } = compile(source, realPath, compile_options);
 
 			if (css) {
 				cssCache.set(realPath, css);
@@ -224,14 +225,15 @@ function create_tsrx_vue_plugin(options) {
  *
  * @param {(id: string) => boolean} isVirtual
  * @param {(id: string) => string} toRealPath
+ * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
  * @returns {DepScanLoadPlugin}
  */
-function create_tsrx_vue_scan_plugin(isVirtual, toRealPath) {
+function create_tsrx_vue_scan_plugin(isVirtual, toRealPath, compile_options) {
 	return createDepScanLoadPlugin({
 		name: '@tsrx/vite-plugin-vue:dep-scan',
 		isVirtual,
 		toRealPath,
-		compile,
+		compile: (code, id) => compile(code, id, compile_options),
 	});
 }
 

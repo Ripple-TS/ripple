@@ -7,7 +7,7 @@ import { compile } from '@tsrx/vue';
  * scoped CSS emitted by its `<style>` block. Invoked when rspack resolves the
  * sibling `?tsrx-css&lang.css` import prepended by the JS loader.
  *
- * @this {LoaderContext<object>}
+ * @this {LoaderContext<{ runtimeImports?: 'compiler' | 'direct' }>}
  * @param {string} source
  * @returns {void}
  */
@@ -16,7 +16,7 @@ export default function cssLoader(source) {
 	const resourcePath = this.resourcePath;
 
 	try {
-		const { css } = compile(source, resourcePath);
+		const { css } = compile(source, resourcePath, this.getOptions?.());
 		callback(null, css);
 	} catch (/** @type {any} */ err) {
 		callback(err);

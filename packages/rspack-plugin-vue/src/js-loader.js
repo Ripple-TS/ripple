@@ -7,7 +7,7 @@ import { compile } from '@tsrx/vue';
  * present, prepends an `import` to the sibling virtual CSS module so rspack can
  * include the styles in the asset graph.
  *
- * @this {LoaderContext<object>}
+ * @this {LoaderContext<{ runtimeImports?: 'compiler' | 'direct' }>}
  * @param {string} source
  * @returns {void}
  */
@@ -16,7 +16,7 @@ export default function jsLoader(source) {
 	const resourcePath = this.resourcePath;
 
 	try {
-		const { code, map, css } = compile(source, resourcePath);
+		const { code, map, css } = compile(source, resourcePath, this.getOptions?.());
 
 		let output = code;
 		/** @type {typeof map | null} */

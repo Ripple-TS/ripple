@@ -2227,6 +2227,12 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 export interface BaseCompileOptions {
 	collect?: boolean;
 	loose?: boolean;
+	/**
+	 * Selects where generated runtime helper imports resolve from. The default
+	 * `'compiler'` mode preserves compiler-package compatibility subpaths;
+	 * `'direct'` targets the renderer's small runtime package.
+	 */
+	runtimeImports?: 'compiler' | 'direct';
 }
 
 /**

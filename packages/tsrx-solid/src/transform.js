@@ -96,6 +96,9 @@ const solid_platform = {
 		errorBoundary: 'solid-js',
 		refProp: '@tsrx/solid/ref',
 	},
+	directRuntimeImports: {
+		refProp: '@tsrx/solid-runtime/ref',
+	},
 	jsx: {
 		rewriteClassAttr: false,
 		// Solid's runtime accepts an array of refs natively, so multiple
@@ -1916,17 +1919,18 @@ function get_static_property_name(key) {
  */
 function inject_solid_imports(program, transform_context) {
 	rewrite_solid_native_component_control_flow(program, transform_context);
+	const ref_prop_source = transform_context.platform.imports.refProp;
 
-	if (transform_context.needs_normalize_spread_props) {
+	if (transform_context.needs_normalize_spread_props && ref_prop_source) {
 		program.body.unshift(
 			b.import_declaration(
 				[b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME)],
-				'@tsrx/solid/ref',
+				ref_prop_source,
 			),
 		);
 	}
 
-	if (transform_context.needs_normalize_spread_props_for_ref_attr) {
+	if (transform_context.needs_normalize_spread_props_for_ref_attr && ref_prop_source) {
 		program.body.unshift(
 			b.import_declaration(
 				[
@@ -1935,7 +1939,7 @@ function inject_solid_imports(program, transform_context) {
 						NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 					),
 				],
-				'@tsrx/solid/ref',
+				ref_prop_source,
 			),
 		);
 	}

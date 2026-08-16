@@ -25,6 +25,12 @@ const react_platform = {
 		refProp: '@tsrx/react/ref',
 		forOfIterableHelper: '@tsrx/react/runtime/iterable',
 	},
+	directRuntimeImports: {
+		errorBoundary: '@tsrx/react-runtime/error-boundary',
+		mergeRefs: '@tsrx/react-runtime/ref',
+		refProp: '@tsrx/react-runtime/ref',
+		forOfIterableHelper: '@tsrx/react-runtime/iterable',
+	},
 	jsx: {
 		rewriteClassAttr: false,
 		classAttrName: 'className',

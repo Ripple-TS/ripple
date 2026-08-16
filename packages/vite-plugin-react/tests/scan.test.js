@@ -118,6 +118,18 @@ describe('@tsrx/vite-plugin-react dep scan', () => {
 		expect(result.code).toContain('import "preact/jsx-runtime"');
 	});
 
+	it('forwards direct runtime imports during dependency scanning', async () => {
+		const scan_plugin = get_scan_plugin(tsrxReact({ runtimeImports: 'direct' }));
+		const result = await scan_plugin.transform.handler(
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+			'/virtual/App.tsrx',
+		);
+
+		expect(result.code).toContain("from '@tsrx/react-runtime/ref'");
+	});
+
 	it('does not inject the css virtual module import into scan output', async () => {
 		const scan_plugin = get_scan_plugin(tsrxReact());
 		const source = `export function App() @{

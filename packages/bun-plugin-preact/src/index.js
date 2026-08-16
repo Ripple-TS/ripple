@@ -13,6 +13,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	jsxImportSource?: string,
  * 	suspenseSource?: string,
+ * 	runtimeImports?: 'compiler' | 'direct',
  * 	emitCss?: boolean,
  * }} TsrxPreactBunPluginOptions
  */
@@ -93,6 +94,7 @@ export function tsrxPreact(options = {}) {
 	const emit_css = options.emitCss ?? true;
 	const compile_options = {
 		suspenseSource: options.suspenseSource,
+		runtimeImports: options.runtimeImports,
 	};
 
 	/** @type {Map<string, string>} */

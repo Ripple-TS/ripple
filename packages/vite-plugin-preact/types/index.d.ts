@@ -3,6 +3,7 @@ import type { Plugin } from 'vite';
 export interface TsrxPreactPluginOptions {
 	jsxImportSource?: string;
 	suspenseSource?: string;
+	runtimeImports?: 'compiler' | 'direct';
 }
 
 export function tsrxPreact(options?: TsrxPreactPluginOptions): Plugin;
