@@ -989,6 +989,8 @@ declare module 'estree-jsx' {
 	interface JSXOpeningElement {
 		metadata: BaseNodeMetaData & {
 			native_tsrx_pretransformed?: boolean;
+			/** Type-only host ref/spread normalization has already run for this element. */
+			host_ref_spread_lowered?: boolean;
 		};
 	}
 

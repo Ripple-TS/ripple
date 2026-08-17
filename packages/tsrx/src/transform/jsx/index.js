@@ -728,9 +728,24 @@ export function createJsxTransform(platform) {
 				// hooks can inspect the original JSX child shape.
 				const raw_children = node_children(node).map((child) => ({ ...child }));
 				const inner = /** @type {AST.TSRXJSXElement} */ (next() ?? node);
+				const in_jsx_child = in_jsx_child_context(path);
 				const hook = platform.hooks?.transformElement;
-				if (hook) return hook(inner, state, raw_children);
-				return to_jsx_element(inner, state, raw_children, in_jsx_child_context(path));
+				const produced = hook
+					? hook(inner, state, raw_children)
+					: to_jsx_element(inner, state, raw_children, in_jsx_child);
+				// A host element carrying `ref` plus a spread lowers to a generated
+				// `let X = __normalize_spread_props_for_ref_attr(…)` that rides on the
+				// element's metadata for a later pass to hoist. Only the render-block
+				// statement builder and the native-directive path hoist it, so an
+				// element in plain-JS expression position — a ternary arm, a concise
+				// arrow body, a declarator init, a callback body, an attribute value, an
+				// array element — reaches neither: the declaration is dropped while the
+				// rewritten attributes still reference the name, and the type-only print
+				// carries an undefined identifier (TS2304). Wrap it in the same IIFE the
+				// native-directive path already uses.
+				return state.typeOnly && produced.type !== 'JSXSpreadChild' && produced.type !== 'JSXText'
+					? wrap_jsx_setup_declarations(produced, in_jsx_child)
+					: produced;
 			},
 
 			JSXExpressionContainer(node, { next, state }) {
@@ -791,7 +806,7 @@ export function createJsxTransform(platform) {
 					return visited;
 				}
 				const is_component = is_component_like_jsx_name(visited.name);
-				return b.jsx_opening_element(
+				const lowered = b.jsx_opening_element(
 					visited.name,
 					merge_duplicate_refs(
 						normalize_host_ref_spreads(visited.attributes || [], !is_component, transform_context),
@@ -801,6 +816,17 @@ export function createJsxTransform(platform) {
 					visited.typeArguments,
 					has_location(visited) ? visited : undefined,
 				);
+				// `normalize_host_ref_spreads` is NOT idempotent: run twice it reads the
+				// `ref={[authored, __spread_props1.ref]}` array it just produced as an
+				// AUTHORED ref and lowers again, emitting a second helper binding and a
+				// nested ref array. The attribute list cannot answer "already lowered"
+				// on its own — `merge_duplicate_refs` rebuilds the merged `ref` without
+				// the `synthetic_ref` marker — so record it on the element instead.
+				lowered.metadata = {
+					...(lowered.metadata || {}),
+					host_ref_spread_lowered: true,
+				};
+				return lowered;
 			},
 		});
 
@@ -2291,19 +2317,20 @@ function node_contains_native_tsrx_template(node) {
 
 /**
  * @param {AST.NativeTSRXNode} node
- * @returns {AST.CSS.StyleSheet | null}
+ * @param {boolean} allow_multiple
+ * @returns {AST.CSS.StyleSheet[] | null}
  */
-function collect_tsrx_stylesheet(node) {
+function collect_tsrx_stylesheets(node, allow_multiple) {
 	/** @type {AST.CSS.StyleSheet[]} */
 	const styles = [];
 	collect_style_elements(node_children(node), styles);
 
 	if (styles.length === 0) return null;
-	if (styles.length > 1) {
+	if (styles.length > 1 && !allow_multiple) {
 		throw new Error('TSRX fragments can only have one style tag');
 	}
 
-	return styles[0];
+	return styles;
 }
 
 /**
@@ -2312,14 +2339,30 @@ function collect_tsrx_stylesheet(node) {
  * @returns {JsxStyleContext | null}
  */
 function prepare_tsrx_fragment_styles(node, transform_context) {
-	const css = collect_tsrx_stylesheet(node);
-	if (!css) return null;
+	// Type-only output must stay analyzable: a throw here makes language hosts
+	// (tsrx-tsc, editors) fall back to presenting the RAW source as the virtual
+	// TSX, so every CSS brace in the file becomes a TSX parse error. Platforms
+	// whose runtime dialect allows one scope to split its CSS across several
+	// `<style>` tags are valid input here, and platforms that forbid it still
+	// report the rule through their own runtime compiler.
+	const sheets = collect_tsrx_stylesheets(node, transform_context.typeOnly);
+	if (!sheets) return null;
 
+	const css = sheets[0];
 	const style_refs = collect_style_ref_attributes(node);
-	// `prune_css` inside marks the matching selectors as used/scoped; selectors
-	// that match no element render commented out, like the Ripple target.
-	apply_css_definition_metadata(node, css, transform_context, style_refs.length > 0);
-	transform_context.stylesheets.push(css);
+	// A component scope keeps ONE hash even when its CSS is split across
+	// several `<style>` tags: rebase every sheet onto the first sheet's hash
+	// before scoping, so selector rewriting and the DOM hash annotation below
+	// agree. `apply_css_definition_metadata` accumulates into the component's
+	// `styleClasses`/`topScopedClasses` metadata, so per-sheet calls compose
+	// into one class map for style refs.
+	for (const sheet of sheets) {
+		sheet.hash = css.hash;
+		// `prune_css` inside marks the matching selectors as used/scoped; selectors
+		// that match no element render commented out, like the Ripple target.
+		apply_css_definition_metadata(node, sheet, transform_context, style_refs.length > 0);
+		transform_context.stylesheets.push(sheet);
+	}
 	const fragment = annotate_tsrx_with_hash(
 		node,
 		css.hash,
@@ -6120,8 +6163,16 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 	}
 	const hook = transform_context.platform.hooks?.transformElementAttributes;
 	const result = hook ? hook(attrs, transform_context, element) : attrs;
+	// An element in plain-JS expression position reaches BOTH lowering sites —
+	// the JSXOpeningElement visitor above and this dispatch — so without the
+	// marker its host ref/spread is lowered twice. Scoped to the type-only
+	// print: runtime emit for the other platforms sharing this transform keeps
+	// its existing output.
+	const already_lowered =
+		transform_context.typeOnly &&
+		element?.openingElement?.metadata?.host_ref_spread_lowered === true;
 	return merge_duplicate_refs(
-		normalize_host_ref_spreads(result, !is_component, transform_context),
+		already_lowered ? result : normalize_host_ref_spreads(result, !is_component, transform_context),
 		transform_context,
 	);
 }
