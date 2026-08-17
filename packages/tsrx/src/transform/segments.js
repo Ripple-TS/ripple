@@ -885,7 +885,7 @@ export function convert_source_map_to_mappings(
 										definition: {
 											description: `CSS class selector for '.${name}'`,
 											location: {
-												embeddedId: get_style_region_id(css.hash),
+												embeddedId: get_style_region_id(cssLocation.regionHash ?? css.hash),
 												start: cssLocation.start,
 												end: cssLocation.end,
 											},

@@ -90,6 +90,16 @@ const SPLIT_STYLE_SOURCE =
 	'\t</>;\n' +
 	'}\n';
 
+const SPLIT_STYLE_DEFINITION_SOURCE =
+	'export function Split() {\n' +
+	'\treturn <>\n' +
+	'\t\t<section class="mailbox">one</section>\n' +
+	'\t\t<aside class="active">two</aside>\n' +
+	'\t\t<style>.mailbox { color: red; }</style>\n' +
+	'\t\t<style>.active { color: blue; }</style>\n' +
+	'\t</>;\n' +
+	'}\n';
+
 const REF_SPREAD_PROPS_TYPE =
 	'type Props = {\n' +
 	'\tnodeRef: (node: SVGTextElement | null) => void;\n' +
@@ -183,6 +193,25 @@ describe('type-only JSX analysis', () => {
 		expect(() => compile_source(SPLIT_STYLE_SOURCE, false)).toThrow(
 			'TSRX fragments can only have one style tag',
 		);
+	});
+
+	it('maps classes to the split style block that defines them', () => {
+		const result = compile_source(SPLIT_STYLE_DEFINITION_SOURCE);
+		const css_mapping_ids = result.cssMappings.map(
+			(mapping) => mapping.data.customData?.embeddedId,
+		);
+		const active_offset =
+			SPLIT_STYLE_DEFINITION_SOURCE.indexOf('class="active"') + 'class="'.length;
+		const active_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === active_offset && mapping.data.customData?.definition,
+		);
+		const active_definition = active_mapping?.data.customData?.definition;
+
+		expect(css_mapping_ids).toHaveLength(2);
+		expect(
+			typeof active_definition === 'object' ? active_definition.location?.embeddedId : undefined,
+		).toBe(css_mapping_ids[1]);
 	});
 
 	it('declares generated host ref/spread bindings in every element position', () => {

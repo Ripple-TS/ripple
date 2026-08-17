@@ -2092,6 +2092,8 @@ export type TopScopedClasses = Map<
 		start: number;
 		end: number;
 		selector: AST.CSS.ClassSelector;
+		/** Source `<style>` region for editor definition navigation. */
+		regionHash?: string;
 	}
 >;
 

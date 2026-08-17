@@ -1091,6 +1091,7 @@ function inject_dynamic_import(program, transform_context) {
  * @param {AST.CSS.StyleSheet} css
  * @param {TransformContext} transform_context
  * @param {boolean} [export_top_scoped_classes]
+ * @param {string} [region_hash]
  * @returns {void}
  */
 function apply_css_definition_metadata(
@@ -1098,6 +1099,7 @@ function apply_css_definition_metadata(
 	css,
 	transform_context,
 	export_top_scoped_classes = false,
+	region_hash = css.hash,
 ) {
 	analyze_css(css);
 
@@ -1108,7 +1110,7 @@ function apply_css_definition_metadata(
 
 	const prune = () => {
 		for (const element of elements) {
-			prune_css(css, element, style_classes, top_scoped_classes);
+			prune_css(css, element, style_classes, top_scoped_classes, region_hash);
 		}
 	};
 
@@ -2357,10 +2359,17 @@ function prepare_tsrx_fragment_styles(node, transform_context) {
 	// `styleClasses`/`topScopedClasses` metadata, so per-sheet calls compose
 	// into one class map for style refs.
 	for (const sheet of sheets) {
+		const region_hash = sheet.hash;
 		sheet.hash = css.hash;
 		// `prune_css` inside marks the matching selectors as used/scoped; selectors
 		// that match no element render commented out, like the Ripple target.
-		apply_css_definition_metadata(node, sheet, transform_context, style_refs.length > 0);
+		apply_css_definition_metadata(
+			node,
+			sheet,
+			transform_context,
+			style_refs.length > 0,
+			region_hash,
+		);
 		transform_context.stylesheets.push(sheet);
 	}
 	const fragment = annotate_tsrx_with_hash(
