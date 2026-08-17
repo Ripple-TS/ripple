@@ -2218,6 +2218,9 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 	dev?: boolean;
 }
 
+/** Selects where generated runtime helper imports resolve from. */
+export type RuntimeImportMode = 'compiler' | 'direct';
+
 /**
  * Common base options accepted by every TSRX target's `compile` entry point.
  * Targets that need extra knobs (e.g. ripple's `mode`/`dev`/`hmr`, preact's
@@ -2232,7 +2235,7 @@ export interface BaseCompileOptions {
 	 * `'compiler'` mode preserves compiler-package compatibility subpaths;
 	 * `'direct'` targets the renderer's small runtime package.
 	 */
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 }
 
 /**

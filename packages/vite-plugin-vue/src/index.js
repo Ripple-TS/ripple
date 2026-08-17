@@ -1,5 +1,6 @@
 /** @import { Plugin } from 'vite' */
 /** @import { DepScanLoadPlugin } from '@tsrx/core/types/vite/dep-scan' */
+/** @import { RuntimeImportMode } from '@tsrx/vue' */
 
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -225,7 +226,7 @@ function create_tsrx_vue_plugin(options) {
  *
  * @param {(id: string) => boolean} isVirtual
  * @param {(id: string) => string} toRealPath
- * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
+ * @param {{ runtimeImports?: RuntimeImportMode }} compile_options
  * @returns {DepScanLoadPlugin}
  */
 function create_tsrx_vue_scan_plugin(isVirtual, toRealPath, compile_options) {

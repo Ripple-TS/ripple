@@ -1,4 +1,5 @@
 /** @import { Compiler, RspackPluginInstance } from '@rspack/core' */
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,7 +24,7 @@ const CSS_QUERY_PATTERN = /tsrx-css/;
  */
 export class TsrxPreactRspackPlugin {
 	/**
-	 * @param {{ jsxImportSource?: string, suspenseSource?: string, runtimeImports?: 'compiler' | 'direct' }} [options]
+	 * @param {{ jsxImportSource?: string, suspenseSource?: string, runtimeImports?: RuntimeImportMode }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {

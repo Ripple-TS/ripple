@@ -1,6 +1,8 @@
 import type { Program } from 'estree';
 import type { BaseCompileOptions, CompileFn, ParseOptions, VolarCompileFn } from '@tsrx/core/types';
 
+export type { RuntimeImportMode } from '@tsrx/core/types';
+
 export function parse(source: string, filename?: string, options?: ParseOptions): Program;
 
 export { Dynamic, type DynamicProps } from './dynamic.js';

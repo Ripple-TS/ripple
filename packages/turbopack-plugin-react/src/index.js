@@ -1,3 +1,5 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,7 +25,7 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  */
 
 /**
- * @typedef {{ runtimeImports?: 'compiler' | 'direct' }} TsrxReactTurbopackOptions
+ * @typedef {{ runtimeImports?: RuntimeImportMode }} TsrxReactTurbopackOptions
  */
 
 /**

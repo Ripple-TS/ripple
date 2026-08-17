@@ -1,4 +1,5 @@
 /** @import { BunPlugin } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/solid' */
 
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -19,7 +20,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	emitCss?: boolean,
  * 	solid?: object,
- * 	runtimeImports?: 'compiler' | 'direct',
+ * 	runtimeImports?: RuntimeImportMode,
  * }} TsrxSolidBunPluginOptions
  */
 

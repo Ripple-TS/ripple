@@ -1,9 +1,11 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import { compile } from '@tsrx/react';
 
 /**
  * @typedef {{
  * 	resourcePath: string,
- * 	getOptions?: () => { runtimeImports?: 'compiler' | 'direct' },
+ * 	getOptions?: () => { runtimeImports?: RuntimeImportMode },
  * 	async: () => (err: unknown, output?: string | null, map?: unknown) => void,
  * }} LoaderContext
  */

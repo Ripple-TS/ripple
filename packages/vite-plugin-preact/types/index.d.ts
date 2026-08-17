@@ -1,9 +1,10 @@
 import type { Plugin } from 'vite';
+import type { RuntimeImportMode } from '@tsrx/preact';
 
 export interface TsrxPreactPluginOptions {
 	jsxImportSource?: string;
 	suspenseSource?: string;
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 }
 
 export function tsrxPreact(options?: TsrxPreactPluginOptions): Plugin;

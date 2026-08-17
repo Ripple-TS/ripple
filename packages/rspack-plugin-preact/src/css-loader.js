@@ -1,5 +1,7 @@
 /** @import { LoaderContext } from '@rspack/core' */
 
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
+
 import { compile } from '@tsrx/preact';
 
 /**
@@ -7,7 +9,7 @@ import { compile } from '@tsrx/preact';
  * the scoped CSS emitted by its `<style>` block. Invoked when rspack resolves
  * the sibling `?tsrx-css&lang.css` import prepended by the JS loader.
  *
- * @this {LoaderContext<{ suspenseSource?: string, runtimeImports?: 'compiler' | 'direct' }>}
+ * @this {LoaderContext<{ suspenseSource?: string, runtimeImports?: RuntimeImportMode }>}
  * @param {string} source
  * @returns {void}
  */

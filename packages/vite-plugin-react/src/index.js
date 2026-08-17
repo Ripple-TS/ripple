@@ -1,5 +1,6 @@
 /** @import { Plugin } from 'vite' */
 /** @import { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan' */
+/** @import { RuntimeImportMode } from '@tsrx/react' */
 
 /**
  * @typedef {{ code: string, map: unknown }} TsrxReactTransformResult
@@ -49,7 +50,7 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * `jsx-runtime`. Per-component `<style>` blocks are emitted as virtual CSS
  * modules that are imported by the compiled JS output.
  *
- * @param {{ jsxImportSource?: string, runtimeImports?: 'compiler' | 'direct' }} [options]
+ * @param {{ jsxImportSource?: string, runtimeImports?: RuntimeImportMode }} [options]
  * @returns {TsrxReactPlugin}
  */
 export function tsrxReact(options = {}) {
@@ -150,7 +151,7 @@ export function tsrxReact(options = {}) {
 
 /**
  * @param {string} jsxImportSource
- * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
+ * @param {{ runtimeImports?: RuntimeImportMode }} compile_options
  * @returns {TsrxReactEnvironmentConfig}
  */
 function create_dep_scan_config(jsxImportSource, compile_options) {
@@ -174,7 +175,7 @@ function create_dep_scan_config(jsxImportSource, compile_options) {
 
 /**
  * @param {string} jsxImportSource
- * @param {{ runtimeImports?: 'compiler' | 'direct' }} compile_options
+ * @param {{ runtimeImports?: RuntimeImportMode }} compile_options
  * @returns {DepScanTransformPlugin}
  */
 function create_dep_scan_plugin(jsxImportSource, compile_options) {

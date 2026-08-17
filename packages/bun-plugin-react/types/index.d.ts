@@ -1,7 +1,8 @@
 import type { BunPlugin } from 'bun';
+import type { RuntimeImportMode } from '@tsrx/react';
 
 export interface TsrxReactBunPluginOptions {
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 	include?: RegExp;
 	exclude?: RegExp | RegExp[];
 	jsxImportSource?: string;

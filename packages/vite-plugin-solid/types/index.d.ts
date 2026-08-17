@@ -1,7 +1,8 @@
 import type { Plugin } from 'vite';
+import type { RuntimeImportMode } from '@tsrx/solid';
 
 export interface TsrxSolidOptions {
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 	/**
 	 * Regular expression matched against file paths to decide which modules
 	 * the plugin should compile as tsrx sources. Defaults to `/\.tsrx$/`,

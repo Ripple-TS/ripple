@@ -1,7 +1,7 @@
 import type * as AST from 'estree';
 import type * as ESTreeJSX from 'estree-jsx';
 import type { RawSourceMap } from 'source-map';
-import type { CompileError, JsxHelperComponent, JsxHelperState } from './index';
+import type { CompileError, JsxHelperComponent, JsxHelperState, RuntimeImportMode } from './index';
 
 /**
  * Result returned by a JSX platform transform (React, Preact, Solid).
@@ -86,7 +86,7 @@ export interface JsxTransformOptions {
 	 * Selects compiler-package compatibility imports or direct renderer runtime
 	 * package imports. Defaults to `'compiler'`.
 	 */
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 	/**
 	 * Override the import source used for `Suspense` in try-block transforms.
 	 * Falls back to `platform.imports.suspense`. Preact uses this to let the

@@ -1,9 +1,10 @@
 import type { Compiler, RspackPluginInstance } from '@rspack/core';
+import type { RuntimeImportMode } from '@tsrx/preact';
 
 export interface TsrxPreactRspackPluginOptions {
 	jsxImportSource?: string;
 	suspenseSource?: string;
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 }
 
 export declare class TsrxPreactRspackPlugin implements RspackPluginInstance {

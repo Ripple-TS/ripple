@@ -1,4 +1,5 @@
 import type { BunPlugin } from 'bun';
+import type { RuntimeImportMode } from '@tsrx/vue';
 
 export interface TsrxVueBunPluginVaporOptions {
 	macros?: boolean | object;
@@ -8,7 +9,7 @@ export interface TsrxVueBunPluginVaporOptions {
 }
 
 export interface TsrxVueBunPluginOptions {
-	runtimeImports?: 'compiler' | 'direct';
+	runtimeImports?: RuntimeImportMode;
 	include?: RegExp;
 	exclude?: RegExp | RegExp[];
 	emitCss?: boolean;

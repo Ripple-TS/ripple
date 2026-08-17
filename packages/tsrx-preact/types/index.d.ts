@@ -1,6 +1,8 @@
 import type { Program } from 'estree';
 import type { BaseCompileOptions, CompileFn, ParseOptions, VolarCompileFn } from '@tsrx/core/types';
 
+export type { RuntimeImportMode } from '@tsrx/core/types';
+
 /**
  * Per-call compile options for tsrx-preact. Exposed publicly so the Vite
  * plugin's typings can extend them.

@@ -1,4 +1,5 @@
 /** @import { Compiler, RspackPluginInstance } from '@rspack/core' */
+/** @import { RuntimeImportMode } from '@tsrx/solid' */
 
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -29,7 +30,7 @@ const CSS_QUERY_PATTERN = /tsrx-css/;
  */
 export class TsrxSolidRspackPlugin {
 	/**
-	 * @param {{ hot?: boolean, runtimeImports?: 'compiler' | 'direct' }} [options]
+	 * @param {{ hot?: boolean, runtimeImports?: RuntimeImportMode }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {

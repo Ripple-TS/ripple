@@ -1,3 +1,5 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import { compile } from '@tsrx/react';
 
 const CSS_QUERY = '?tsrx-css&lang.css';
@@ -99,7 +101,7 @@ function prepend_css_import(code, resource_path) {
 /**
  * @typedef {{
  * 	resourcePath: string,
- * 	getOptions?: () => { runtimeImports?: 'compiler' | 'direct' },
+ * 	getOptions?: () => { runtimeImports?: RuntimeImportMode },
  * 	async: () => (err: unknown, output?: string | null, map?: unknown) => void,
  * }} LoaderContext
  */

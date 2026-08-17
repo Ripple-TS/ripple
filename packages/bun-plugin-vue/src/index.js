@@ -1,4 +1,5 @@
 /** @import { BunPlugin, Target, Transpiler } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/vue' */
 
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -25,7 +26,7 @@ const DEFAULT_VAPOR_OPTIONS = {
  * 	include?: RegExp,
  * 	exclude?: RegExp | RegExp[],
  * 	emitCss?: boolean,
- * 	runtimeImports?: 'compiler' | 'direct',
+ * 	runtimeImports?: RuntimeImportMode,
  * 	vapor?: {
  * 		macros?: boolean | object,
  * 		compiler?: { runtimeModuleName?: string },

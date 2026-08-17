@@ -1,3 +1,5 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import { describe, expect, it } from 'vitest';
 import tsrx_react_turbopack_css_loader from '../src/css-loader.js';
 import tsrx_react_turbopack_loader from '../src/loader.js';
@@ -9,7 +11,7 @@ import {
 
 /**
  * @param {string} resourcePath
- * @param {{ runtimeImports?: 'compiler' | 'direct' }} [options]
+ * @param {{ runtimeImports?: RuntimeImportMode }} [options]
  * @returns {{ context: object, promise: Promise<{ err: unknown, output: string | null, map: unknown }> }}
  */
 function create_loader_context(resourcePath, options = {}) {

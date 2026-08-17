@@ -1,4 +1,5 @@
 /** @import { BunPlugin, Target, Transpiler } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
 
 import { readFile } from 'node:fs/promises';
 import { compile } from '@tsrx/preact';
@@ -13,7 +14,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	jsxImportSource?: string,
  * 	suspenseSource?: string,
- * 	runtimeImports?: 'compiler' | 'direct',
+ * 	runtimeImports?: RuntimeImportMode,
  * 	emitCss?: boolean,
  * }} TsrxPreactBunPluginOptions
  */
