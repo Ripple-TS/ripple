@@ -85,6 +85,7 @@
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
     "@volar/language-core": "catalog:default",
+    "@volar/source-map": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vscode-languageserver-types": "catalog:default"

@@ -34,11 +34,19 @@ import {
 	build_line_offsets,
 	get_mapping_from_node,
 } from '../source-map-utils.js';
-import { should_preserve_comment } from '../comment-utils.js';
+import { should_preserve_jsx_tooling_comment, format_comment } from '../comment-utils.js';
 import { has_location } from '../utils/ast.js';
 
 const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
 const RETURN_KEYWORD = 'return';
+const EXPORT_KEYWORD = 'export';
+const BLOCK_DECLARATION_TYPES = new Set([
+	'FunctionDeclaration',
+	'ClassDeclaration',
+	'TSInterfaceDeclaration',
+	'TSEnumDeclaration',
+	'TSModuleDeclaration',
+]);
 
 /**
  * @param {string} value
@@ -419,6 +427,88 @@ export function convert_source_map_to_mappings(
 	}
 
 	/**
+	 * A comment's end can share a source coordinate with the next declaration,
+	 * and synthetic file pragmas can share offset zero with the first export.
+	 * Select the position that actually prints this node's opening text instead
+	 * of treating the first source-map entry as an unambiguous boundary.
+	 * @param {AST.Position} position
+	 * @param {string} text
+	 * @returns {number | undefined}
+	 */
+	function generated_offset_for_text(position, text) {
+		const positions = src_to_gen_map.get(`${position.line}:${position.column}`);
+		for (const generated of positions ?? []) {
+			const offset = loc_to_offset(generated.line, generated.column, gen_line_offsets);
+			if (generated_code.startsWith(text, offset)) return offset;
+		}
+	}
+
+	/**
+	 * @param {AST.NodeWithLocation} node
+	 * @param {string} start_text
+	 * @returns {CodeMapping | undefined}
+	 */
+	function declaration_mapping(node, start_text) {
+		const start = generated_offset_for_text(node.loc.start, start_text);
+		if (start === undefined) return;
+		const positions = src_to_gen_map.get(`${node.loc.end.line}:${node.loc.end.column}`);
+		for (const generated of positions ?? []) {
+			const end = loc_to_offset(generated.line, generated.column, gen_line_offsets);
+			if (end < start) continue;
+			return {
+				sourceOffsets: [node.start],
+				lengths: [node.end - node.start],
+				generatedOffsets: [start],
+				generatedLengths: [end - start],
+				data: { ...mapping_data_verify_only, customData: {} },
+			};
+		}
+	}
+
+	/** @param {AST.ExportNamedDeclaration | AST.ExportDefaultDeclaration | AST.ExportAllDeclaration} node */
+	function add_export_mapping(node) {
+		if (!has_location(node)) return;
+		const mapping = declaration_mapping(node, EXPORT_KEYWORD);
+		if (mapping) {
+			const declaration = node.type === 'ExportAllDeclaration' ? null : node.declaration;
+			const end = mapping.generatedOffsets[0] + mapping.generatedLengths[0];
+			// A semicolon-free source declaration shares its end with its last
+			// expression. The first map entry then precedes the statement's emitted
+			// semicolon. Block declarations are different: a following `;` is an
+			// empty statement, not part of TypeScript's declaration range.
+			if (
+				generated_code[end] === ';' &&
+				(!declaration || !BLOCK_DECLARATION_TYPES.has(declaration.type))
+			) {
+				mapping.generatedLengths[0]++;
+			}
+			// Full declaration queries need both endpoints in the same Volar
+			// mapping, not a linear claim over the generated body. A transformed
+			// component can contain synthetic imports, tags, and helper calls that
+			// must not acquire source locations merely because it is exported.
+			const generated_start = mapping.generatedOffsets[0];
+			const generated_end = generated_start + mapping.generatedLengths[0];
+			mapping.sourceOffsets = [node.start, node.end];
+			mapping.generatedOffsets = [generated_start, generated_end];
+			mapping.lengths = [0, 0];
+			mapping.generatedLengths = [0, 0];
+			mappings.push(mapping);
+		}
+		tokens.push({
+			source: EXPORT_KEYWORD,
+			generated: EXPORT_KEYWORD,
+			loc: {
+				start: node.loc.start,
+				end: {
+					line: node.loc.start.line,
+					column: node.loc.start.column + EXPORT_KEYWORD.length,
+				},
+			},
+			metadata: {},
+		});
+	}
+
+	/**
 	 * Needed for a mapping that includes the computed brackets for diagnostics
 	 * @param {AST.MethodDefinition | AST.Property} node
 	 * @param {CodeMapping[]} mappings
@@ -464,25 +554,24 @@ export function convert_source_map_to_mappings(
 			if (!Array.isArray(comments)) continue;
 
 			for (const comment of comments) {
-				if (!has_location(comment) || !should_preserve_comment(comment)) continue;
+				if (!has_location(comment) || !should_preserve_jsx_tooling_comment(comment)) continue;
 
 				const comment_key = `${comment.start}:${comment.end}`;
 				if (mapped_comments.has(comment_key)) continue;
 				mapped_comments.add(comment_key);
 
-				try {
-					mappings.push(
-						get_mapping_from_node(
-							comment,
-							src_to_gen_map,
-							gen_line_offsets,
-							mapping_data_verify_only,
-						),
-					);
-				} catch {
-					// Comments that were not emitted in generated TSX have no source-map
-					// segment. They should not produce Volar mappings.
-				}
+				const text = format_comment(comment);
+				const start = generated_offset_for_text(comment.loc.start, text);
+				// A stripped or moved comment must not claim another node's shared
+				// source coordinate. The printer writes this exact formatted text.
+				if (start === undefined) continue;
+				mappings.push({
+					sourceOffsets: [comment.start],
+					lengths: [comment.end - comment.start],
+					generatedOffsets: [start],
+					generatedLengths: [text.length],
+					data: { ...mapping_data_verify_only, customData: {} },
+				});
 			}
 		}
 	}
@@ -704,6 +793,7 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'ExportNamedDeclaration') {
+				add_export_mapping(node);
 				if (node.specifiers && node.specifiers.length > 0) {
 					for (const specifier of node.specifiers) {
 						visit(specifier);
@@ -715,12 +805,14 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'ExportDefaultDeclaration') {
+				add_export_mapping(node);
 				// Visit the declaration
 				if (node.declaration) {
 					visit(/** @type {AST.Node} */ (node.declaration));
 				}
 				return;
 			} else if (node.type === 'ExportAllDeclaration') {
+				add_export_mapping(node);
 				// Nothing to visit (just source string)
 				return;
 			} else if (node.type === 'JSXOpeningElement') {
@@ -1908,6 +2000,24 @@ export function convert_source_map_to_mappings(
 				}
 				return;
 			} else if (node.type === 'TSPropertySignature') {
+				if (has_location(node)) {
+					const start_text = node.readonly
+						? 'readonly'
+						: node.computed
+							? '['
+							: node.key.type === 'Identifier'
+								? node.key.name
+								: source.slice(node.start, node.key.end);
+					const mapping = declaration_mapping(node, start_text);
+					if (mapping) {
+						const end = mapping.generatedOffsets[0] + mapping.generatedLengths[0];
+						// esrap's containing type/interface prints member separators
+						// after the property's own end marker. TS includes that `;`
+						// in its PropertySignature range, even when it was not authored.
+						if (generated_code[end] === ';') mapping.generatedLengths[0]++;
+						mappings.push(mapping);
+					}
+				}
 				// Property signature in type
 				if (node.key) {
 					visit(node.key);
@@ -2354,7 +2464,11 @@ export function convert_source_map_to_mappings(
 
 	// Add a mapping for the very beginning of the file to handle import additions
 	// This ensures that code actions adding imports at the top work correctly
-	if (!isImportDeclarationPresent && mappings.length > 0 && mappings[0].sourceOffsets[0] > 0) {
+	if (
+		!isImportDeclarationPresent &&
+		mappings.length > 0 &&
+		(mappings[0].sourceOffsets[0] > 0 || mappings[0].generatedOffsets[0] > 0)
+	) {
 		mappings.unshift({
 			sourceOffsets: [0],
 			generatedOffsets: [0],

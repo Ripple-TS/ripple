@@ -92,6 +92,7 @@ catalogs:
     '@volar/language-core': ~2.4.28
     '@volar/language-service': ~2.4.28
     '@volar/language-server': ~2.4.28
+    '@volar/source-map': ~2.4.28
     '@volar/typescript': ~2.4.28
     '@volar/vscode': ~2.4.28
     '@vscode/vsce': ^3.9.1

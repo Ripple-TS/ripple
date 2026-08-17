@@ -90,6 +90,9 @@ catalogs:
     '@volar/language-service':
       specifier: ~2.4.28
       version: 2.4.28
+    '@volar/source-map':
+      specifier: ~2.4.28
+      version: 2.4.28
     '@volar/typescript':
       specifier: ~2.4.28
       version: 2.4.28
@@ -1084,6 +1087,9 @@ importers:
         specifier: catalog:default
         version: 8.56.1
       '@volar/language-core':
+        specifier: catalog:default
+        version: 2.4.28
+      '@volar/source-map':
         specifier: catalog:default
         version: 2.4.28
       typescript:
