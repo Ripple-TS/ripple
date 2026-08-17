@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.1.60
+
+### Patch Changes
+
+- [#1429](https://github.com/Ripple-TS/ripple/pull/1429)
+  [`481d934`](https://github.com/Ripple-TS/ripple/commit/481d934aa17a275aa588d945b4c65b421076f89c)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep multi-style components and
+  host ref/spread elements analyzable in type-only virtual TSX output.
+
 ## 0.1.59
 
 ### Patch Changes
