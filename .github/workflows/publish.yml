@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: npm-publish
 
 permissions: {}
 
