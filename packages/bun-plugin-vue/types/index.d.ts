@@ -9,6 +9,7 @@ export interface TsrxVueBunPluginVaporOptions {
 }
 
 export interface TsrxVueBunPluginOptions {
+	/** Direct mode requires `@tsrx/vue-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 	include?: RegExp;
 	exclude?: RegExp | RegExp[];

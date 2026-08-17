@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import type { RuntimeImportMode } from '@tsrx/solid';
 
 export interface TsrxSolidOptions {
+	/** Direct mode requires `@tsrx/solid-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 	/**
 	 * Regular expression matched against file paths to decide which modules

@@ -2218,7 +2218,12 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 	dev?: boolean;
 }
 
-/** Selects where generated runtime helper imports resolve from. */
+/**
+ * Selects where generated runtime helper imports resolve from. Direct mode
+ * emits bare imports from the target's standalone runtime package; the package
+ * that owns the generated modules must declare that runtime as a direct
+ * production dependency.
+ */
 export type RuntimeImportMode = 'compiler' | 'direct';
 
 /**
@@ -2233,7 +2238,8 @@ export interface BaseCompileOptions {
 	/**
 	 * Selects where generated runtime helper imports resolve from. The default
 	 * `'compiler'` mode preserves compiler-package compatibility subpaths;
-	 * `'direct'` targets the renderer's small runtime package.
+	 * `'direct'` targets the renderer's small runtime package, which the package
+	 * owning the generated modules must declare as a direct production dependency.
 	 */
 	runtimeImports?: RuntimeImportMode;
 }

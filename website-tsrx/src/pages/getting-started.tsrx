@@ -195,6 +195,13 @@ const VUE_BUN_CONFIG_HTML = [
 	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
 ].join('\n');
 
+const DIRECT_RUNTIME_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">@tsrx/react-runtime</span> <span class="comment"># React</span>',
+	'<span class="ln">2</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">@tsrx/preact-runtime</span> <span class="comment"># Preact</span>',
+	'<span class="ln">3</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">@tsrx/solid-runtime</span> <span class="comment"># Solid</span>',
+	'<span class="ln">4</span> <span class="fn">pnpm</span> <span class="prop">add</span> <span class="str">@tsrx/vue-runtime</span> <span class="comment"># Vue</span>',
+].join('\n');
+
 const PRETTIER_INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">prettier</span> <span class="str">@tsrx/prettier-plugin</span>',
 ].join('\n');
@@ -277,6 +284,7 @@ const NAV_GROUPS = [
 			{ id: 'vue-vite', label: 'Vue + Vite' },
 			{ id: 'vue-rspack', label: 'Vue + Rspack' },
 			{ id: 'vue-bun', label: 'Vue + Bun' },
+			{ id: 'direct-runtime-imports', label: 'Direct runtime imports' },
 			{ id: 'ripple', label: 'Ripple' },
 			{ id: 'octane', label: 'Octane' },
 		],
@@ -677,6 +685,35 @@ export function GettingStartedPage() @{
 								in your
 								<code class="inline-code">tsconfig.json</code>
 								.
+							</p>
+						</section>
+
+						<section class="doc-section" id="direct-runtime-imports">
+							<p class="section-kicker">Build output</p>
+							<h2 class="section-heading">Direct runtime imports</h2>
+							<p class="section-body">
+								By default, generated helper imports use the target compiler package. If you set
+								<code class="inline-code">runtimeImports: 'direct'</code>
+								on a compiler or build integration, generated modules instead contain bare imports
+								from the matching standalone runtime namespace. The package that owns those source
+								or generated modules must declare that runtime as a direct production dependency.
+							</p>
+							<pre class="code-block">
+								<code innerHTML={DIRECT_RUNTIME_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								Install only the package matching your target. Vite, Rspack, Turbopack, and Bun may
+								bundle the helper implementation into application chunks, while SSR and library
+								builds may leave the import external. They do not provide the runtime package, so it
+								must be resolvable during the build in either case. Do not rely on package-manager
+								hoisting or on the compiler's transitive runtime dependency.
+							</p>
+							<p class="section-body">
+								For a published library, keep the compiler and build integration in
+								<code class="inline-code">devDependencies</code>
+								and put the matching runtime package in
+								<code class="inline-code">dependencies</code>
+								so consumers can resolve any externalized helper imports.
 							</p>
 						</section>
 

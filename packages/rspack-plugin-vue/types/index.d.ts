@@ -10,6 +10,7 @@ export interface TsrxVueRspackVaporOptions {
 
 export interface TsrxVueRspackPluginOptions {
 	vapor?: TsrxVueRspackVaporOptions;
+	/** Direct mode requires `@tsrx/vue-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 }
 

@@ -12,6 +12,7 @@ export interface NextTurbopackConfig {
 }
 
 export interface TsrxReactTurbopackOptions {
+	/** Direct mode requires `@tsrx/react-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 }
 

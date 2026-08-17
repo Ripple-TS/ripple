@@ -4,6 +4,7 @@ import type { RuntimeImportMode } from '@tsrx/preact';
 export interface TsrxPreactRspackPluginOptions {
 	jsxImportSource?: string;
 	suspenseSource?: string;
+	/** Direct mode requires `@tsrx/preact-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 }
 

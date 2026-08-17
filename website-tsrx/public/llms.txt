@@ -69,7 +69,7 @@ npm install octane @octanejs/vite-plugin
 Vue's Vite setup should use `tsrxVue()` from `@tsrx/vite-plugin-vue`,
 and editor/typecheck configs should set `jsxImportSource: 'vue-jsx-vapor'`.
 
-### Runtime helper imports for published libraries
+### Runtime helper imports
 
 Compiler output uses compiler-package helper subpaths by default, so applications
 can continue installing only their target compiler package. Published component
@@ -90,10 +90,27 @@ const bunPlugin = tsrxReactBun({ runtimeImports: 'direct' });
 const nextConfig = tsrxReactTurbopack({}, { runtimeImports: 'direct' });
 ```
 
-Use direct imports when publishing compiled components and declare the matching
-renderer runtime package as a production dependency. The default
+When `runtimeImports: 'direct'` is enabled, the package that owns the source or
+generated modules must declare the matching runtime as a direct production
+dependency. Install only the package for the selected target:
+
+```bash
+pnpm add @tsrx/react-runtime  # React
+pnpm add @tsrx/preact-runtime # Preact
+pnpm add @tsrx/solid-runtime  # Solid
+pnpm add @tsrx/vue-runtime    # Vue
+```
+
+The integrations emit bare runtime imports; they do not provide the runtime
+namespace. An application builder may bundle the helpers into its output, while
+SSR and library builds may leave them external, but the package must be resolvable
+during the build either way. Do not rely on dependency hoisting or on a target
+compiler's transitive runtime dependency.
+
+For published components, keep the compiler and build integration in
+`devDependencies` and put the matching runtime in `dependencies`. The default
 `runtimeImports: 'compiler'` mode remains appropriate for applications that own
-their TSRX compilation.
+their TSRX compilation and install the target compiler package.
 
 ### Octane setup
 

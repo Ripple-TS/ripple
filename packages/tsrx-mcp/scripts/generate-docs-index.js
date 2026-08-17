@@ -292,7 +292,7 @@ Source: website-tsrx/src/pages/features.tsrx#dynamic`,
 			slug: 'target-integration',
 			title: 'Target Integration',
 			use_cases:
-				'runtime target, compiler package, target-specific setup, skills, runtime semantics',
+				'runtime target, compiler package, target-specific setup, runtimeImports, direct runtime dependency, skills, runtime semantics',
 			content: `# Target Integration
 
 TSRX authoring syntax is shared, but output and runtime semantics are target-defined.
@@ -305,9 +305,18 @@ Target-specific layers should own:
 - compiler warnings and semantic restrictions
 - examples that depend on a specific rendering runtime
 
+Compiler-package helper imports are the default. If a target compiler or build integration uses \`runtimeImports: 'direct'\`, the package that owns the source or generated modules must declare the matching standalone runtime as a direct production dependency:
+
+- React: \`@tsrx/react-runtime\`
+- Preact: \`@tsrx/preact-runtime\`
+- Solid: \`@tsrx/solid-runtime\`
+- Vue: \`@tsrx/vue-runtime\`
+
+Build tools may bundle these helpers or leave their bare imports external, but they do not provide the runtime package. It must be resolvable during the build; do not rely on hoisting or on a compiler's transitive dependency.
+
 When helping in an existing project, detect the target before generating code. If no target-specific layer is available, stay within target-neutral TSRX syntax and ask for confirmation before assuming runtime APIs.
 
-Source: website-tsrx/src/pages/getting-started.tsrx`,
+Source: website-tsrx/src/pages/getting-started.tsrx#direct-runtime-imports`,
 		},
 		{
 			slug: 'tooling',

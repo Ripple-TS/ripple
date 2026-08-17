@@ -57,6 +57,18 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(content).not.toContain('<Dynamic is=');
 	});
 
+	it('documents direct runtime dependencies for every standalone target runtime', () => {
+		const content = find_documentation_section('target-integration')?.content ?? '';
+
+		expect(content).toContain("`runtimeImports: 'direct'`");
+		expect(content).toContain('`@tsrx/react-runtime`');
+		expect(content).toContain('`@tsrx/preact-runtime`');
+		expect(content).toContain('`@tsrx/solid-runtime`');
+		expect(content).toContain('`@tsrx/vue-runtime`');
+		expect(content).toContain('direct production dependency');
+		expect(content).toContain('do not provide the runtime package');
+	});
+
 	it('keeps the checked-in generated docs fresh', async () => {
 		expect(readFileSync(generated_docs_path, 'utf8')).toBe(await generate_docs_index());
 	});

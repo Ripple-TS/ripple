@@ -84,7 +84,9 @@ export interface JsxTransformContext {
 export interface JsxTransformOptions {
 	/**
 	 * Selects compiler-package compatibility imports or direct renderer runtime
-	 * package imports. Defaults to `'compiler'`.
+	 * package imports. Defaults to `'compiler'`. Direct mode requires the package
+	 * owning generated modules to declare the target runtime as a direct
+	 * production dependency.
 	 */
 	runtimeImports?: RuntimeImportMode;
 	/**

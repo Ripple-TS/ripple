@@ -3,6 +3,7 @@ import type { RuntimeImportMode } from '@tsrx/react';
 
 export interface TsrxReactRspackPluginOptions {
 	jsxImportSource?: string;
+	/** Direct mode requires `@tsrx/react-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 }
 

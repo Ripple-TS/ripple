@@ -3,6 +3,7 @@ import type { RuntimeImportMode } from '@tsrx/solid';
 
 export interface TsrxSolidRspackPluginOptions {
 	hot?: boolean;
+	/** Direct mode requires `@tsrx/solid-runtime` as a direct production dependency. */
 	runtimeImports?: RuntimeImportMode;
 }
 
