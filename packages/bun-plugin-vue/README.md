@@ -36,5 +36,7 @@ Bun.plugin(tsrxVue());
 ## Options
 
 - `vapor`: options forwarded to `vue-jsx-vapor`.
+- `runtimeImports`: helper import mode (`'compiler'` by default, or `'direct'` for
+  published output that depends on `@tsrx/vue-runtime`).
 - `emitCss`: whether to emit virtual CSS imports (default: `true`).
 - `include`, `exclude`: regex filters for source files.

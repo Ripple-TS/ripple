@@ -26,8 +26,11 @@ export function App() @{
  * `tsrxVue` returns a plugin array; the tsrx plugin itself owns the config
  * hook that registers the dep-scan plugin.
  */
-function get_config() {
-	const plugin = tsrxVue().find((p) => /** @type {any} */ (p).name === '@tsrx/vite-plugin-vue');
+/** @param {import('../types/index.js').TsrxVueOptions} [options] */
+function get_config(options) {
+	const plugin = tsrxVue(options).find(
+		(p) => /** @type {any} */ (p).name === '@tsrx/vite-plugin-vue',
+	);
 
 	return /** @type {any} */ (plugin).config();
 }
@@ -67,6 +70,21 @@ describe('@tsrx/vite-plugin-vue dep scan', () => {
 
 			expect(result.moduleType).toBe('tsx');
 			expect(result.code).toContain(`from 'vue'`);
+		});
+
+		it('forwards direct runtime imports during dependency scanning', async () => {
+			writeFileSync(
+				join(dir, 'App.tsrx'),
+				`export function App(props) @{
+					<input {...props} />
+				}`,
+			);
+
+			const scan_plugin = get_config({ runtimeImports: 'direct' }).optimizeDeps.rolldownOptions
+				.plugins[0];
+			const result = await scan_plugin.load(join(dir, 'App.tsrx.tsx'));
+
+			expect(result.code).toContain("from '@tsrx/vue-runtime/ref'");
 		});
 
 		it('ignores ids that are not the virtual tsrx form', async () => {

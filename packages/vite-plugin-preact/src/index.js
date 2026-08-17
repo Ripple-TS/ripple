@@ -163,7 +163,7 @@ export function tsrxPreact(options = {}) {
 
 /**
  * @param {string} jsxImportSource
- * @param {{ suspenseSource?: string }} compile_options
+ * @param {{ suspenseSource?: string, runtimeImports?: 'compiler' | 'direct' }} compile_options
  * @returns {DepScanTransformPlugin}
  */
 function create_dep_scan_plugin(jsxImportSource, compile_options) {

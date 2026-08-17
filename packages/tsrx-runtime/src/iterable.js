@@ -3,7 +3,7 @@
  * @template U
  * @param {Iterable<T> | Iterator<T>} iterable
  * @param {(item: T, index: number, is_last: boolean) => U} fn
- * @param {() => U | U[]} [tail]
+ * @param {(() => U | U[]) | null} [tail]
  * @param {() => U | U[]} [empty]
  * @returns {U[]}
  */
@@ -71,7 +71,7 @@ export function map_iterable(iterable, fn, tail, empty) {
  * @template U
  * @param {Array<T>} array
  * @param {(item: T, index: number, is_last: boolean) => U} fn
- * @param {() => U | U[]} [tail]
+ * @param {(() => U | U[]) | null} [tail]
  * @param {() => U | U[]} [empty]
  * @returns {U[]}
  */

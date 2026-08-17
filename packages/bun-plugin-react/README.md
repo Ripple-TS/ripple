@@ -36,5 +36,7 @@ Bun.plugin(tsrxReact());
 ## Options
 
 - `jsxImportSource`: automatic JSX runtime import source (default: `'react'`).
+- `runtimeImports`: helper import mode (`'compiler'` by default, or `'direct'` for
+  published output that depends on `@tsrx/react-runtime`).
 - `emitCss`: whether to emit virtual CSS imports (default: `true`).
 - `include`, `exclude`: regex filters for source files.

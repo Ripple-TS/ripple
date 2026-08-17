@@ -36,5 +36,7 @@ Bun.plugin(tsrxSolid());
 ## Options
 
 - `solid`: options forwarded to `babel-preset-solid`.
+- `runtimeImports`: helper import mode (`'compiler'` by default, or `'direct'` for
+  published output that depends on `@tsrx/solid-runtime`).
 - `emitCss`: whether to emit virtual CSS imports (default: `true`).
 - `include`, `exclude`: regex filters for source files.
