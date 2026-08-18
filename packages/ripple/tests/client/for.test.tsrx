@@ -234,6 +234,45 @@ describe('for statements', () => {
 		expect(container.querySelectorAll('.item').length).toBe(2);
 	});
 
+	it('keyed for inserts multiple new items in the middle in correct order', () => {
+		function App() @{
+			let &[items] = track([
+				{ id: 'a', text: 'A' },
+				{ id: 'c', text: 'C' },
+				{ id: 'd', text: 'D' },
+			]);
+			<>
+				@for (const item of items; key item.id) {
+					<div class="item">{item.text}</div>
+				}
+				<button
+					onClick={() => {
+						items = [
+							{ id: 'a', text: 'A' },
+							{ id: 'b1', text: 'B1' },
+							{ id: 'b2', text: 'B2' },
+							{ id: 'c', text: 'C' },
+							{ id: 'd', text: 'D' },
+						];
+					}}
+				>{'Insert'}</button>
+			</>
+		}
+
+		render(App);
+
+		const getTexts = () => Array.from(container.querySelectorAll('.item')).map(
+			(el) => el.textContent,
+		);
+
+		expect(getTexts()).toEqual(['A', 'C', 'D']);
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(getTexts()).toEqual(['A', 'B1', 'B2', 'C', 'D']);
+	});
+
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
 		function App() @{
 			let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));

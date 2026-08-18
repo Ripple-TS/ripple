@@ -479,10 +479,10 @@ function reconcile_by_key(
 
 	if (j > a_end) {
 		if (j <= b_end) {
+			var insert_target = block_start(a_blocks, a_end + 1, a_length, anchor);
 			while (j <= b_end) {
 				b_val = b[j];
-				var target = block_start(a_blocks, j, a_length, anchor);
-				b_blocks[j] = create_item(target, b_val, j, render_fn, is_indexed, true);
+				b_blocks[j] = create_item(insert_target, b_val, j, render_fn, is_indexed, true);
 				j++;
 			}
 		}
@@ -766,10 +766,10 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 
 	if (j > a_end) {
 		if (j <= b_end) {
+			var insert_target = block_start(a_blocks, a_end + 1, a_length, anchor);
 			while (j <= b_end) {
 				b_val = b[j];
-				var target = block_start(a_blocks, j, a_length, anchor);
-				b_blocks[j] = create_item(target, b_val, j, render_fn, is_indexed, false);
+				b_blocks[j] = create_item(insert_target, b_val, j, render_fn, is_indexed, false);
 				j++;
 			}
 		}
