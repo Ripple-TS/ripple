@@ -22,8 +22,11 @@ export function App() @{
 }
 `;
 
-function get_scan_plugin() {
-	const config = /** @type {any} */ (tsrxSolid()).config();
+/**
+ * @param {import('../types/index.js').TsrxSolidOptions} [options]
+ */
+function get_scan_plugin(options) {
+	const config = /** @type {any} */ (tsrxSolid(options)).config();
 
 	return config.optimizeDeps.rolldownOptions.plugins[0];
 }
@@ -64,6 +67,21 @@ describe('@tsrx/vite-plugin-solid dep scan', () => {
 
 			expect(result.moduleType).toBe('tsx');
 			expect(result.code).toContain(`from 'solid-js'`);
+		});
+
+		it('forwards direct runtime imports during dependency scanning', async () => {
+			writeFileSync(
+				join(dir, 'App.tsrx'),
+				`export function App(props) @{
+					<input {...props} />
+				}`,
+			);
+
+			const result = await get_scan_plugin({ runtimeImports: 'direct' }).load(
+				join(dir, 'App.tsrx.tsx'),
+			);
+
+			expect(result.code).toContain("from '@tsrx/solid-runtime/ref'");
 		});
 
 		it('ignores ids that are not the virtual tsrx form', async () => {

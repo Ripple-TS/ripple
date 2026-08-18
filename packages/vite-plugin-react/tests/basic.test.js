@@ -1,6 +1,18 @@
 import { tsrxReact } from '../src/index.js';
 
 describe('@tsrx/vite-plugin-react basic', () => {
+	it('forwards direct runtime imports to the compiler', async () => {
+		const plugin = tsrxReact({ runtimeImports: 'direct' });
+		const transformed = await plugin.transform(
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+			'/virtual/App.tsrx',
+		);
+
+		expect(transformed?.code).toContain('@tsrx/react-runtime/ref');
+	});
+
 	it('injects and serves a virtual css module for styled components', async () => {
 		const plugin = tsrxReact();
 		const id = '/virtual/App.tsrx';

@@ -680,6 +680,12 @@ export namespace Parse {
 		getTokenFromCodeInType(code: number): void;
 
 		/**
+		 * Get the current tokenizer state used by lookahead parsing.
+		 * Added by @sveltejs/acorn-typescript.
+		 */
+		getCurLookaheadState(): LookaheadState;
+
+		/**
 		 * Get current position as Position object
 		 * @returns { line: number, column: number, index: number }
 		 */

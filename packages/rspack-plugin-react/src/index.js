@@ -1,4 +1,5 @@
 /** @import { Compiler, RspackPluginInstance } from '@rspack/core' */
+/** @import { RuntimeImportMode } from '@tsrx/react' */
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,11 +24,12 @@ const CSS_QUERY_PATTERN = /tsrx-css/;
  */
 export class TsrxReactRspackPlugin {
 	/**
-	 * @param {{ jsxImportSource?: string }} [options]
+	 * @param {{ jsxImportSource?: string, runtimeImports?: RuntimeImportMode }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {
 			jsxImportSource: options.jsxImportSource ?? 'react',
+			runtimeImports: options.runtimeImports ?? 'compiler',
 		};
 	}
 
@@ -82,6 +84,9 @@ export class TsrxReactRspackPlugin {
 					},
 					{
 						loader: JS_LOADER,
+						options: {
+							runtimeImports: this.options.runtimeImports,
+						},
 					},
 				],
 			},
@@ -92,6 +97,9 @@ export class TsrxReactRspackPlugin {
 				use: [
 					{
 						loader: CSS_LOADER,
+						options: {
+							runtimeImports: this.options.runtimeImports,
+						},
 					},
 				],
 			},

@@ -1,4 +1,5 @@
 /** @import { BunPlugin, Target, Transpiler } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/react' */
 
 import { readFile } from 'node:fs/promises';
 import { compile } from '@tsrx/react';
@@ -13,6 +14,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	jsxImportSource?: string,
  * 	emitCss?: boolean,
+ * 	runtimeImports?: RuntimeImportMode,
  * }} TsrxReactBunPluginOptions
  */
 
@@ -90,6 +92,7 @@ function create_transpiler(jsx_import_source, target) {
 export function tsrxReact(options = {}) {
 	const jsx_import_source = options.jsxImportSource ?? 'react';
 	const emit_css = options.emitCss ?? true;
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
@@ -118,7 +121,7 @@ export function tsrxReact(options = {}) {
 					if (!should_compile(options, args.path)) return undefined;
 
 					const source = await readFile(args.path, 'utf-8');
-					const { code, css } = compile(source, args.path);
+					const { code, css } = compile(source, args.path, compile_options);
 					const css_id = to_css_id(args.path);
 
 					let output = code;

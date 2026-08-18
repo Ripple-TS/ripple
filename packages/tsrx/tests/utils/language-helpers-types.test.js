@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { check_types } from '../shared/type-diagnostics.js';
 
 /**
- * `@tsrx/core/runtime/language-helpers` is imported by every target's generated
- * output and by the Ripple runtime, so its declarations decide what the checker
- * knows about compiled code. These pin the element types the helpers preserve —
+ * `@tsrx/runtime/language-helpers` owns the declarations consumed through
+ * `@tsrx/core/runtime/language-helpers`, so they decide what the checker knows
+ * about compiled code. These pin the element types the helpers preserve —
  * an `any` here silently disables checking wherever the helpers are emitted.
  */
 

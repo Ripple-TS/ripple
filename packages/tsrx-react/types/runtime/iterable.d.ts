@@ -1,1 +1,1 @@
-export * from '@tsrx/core/runtime/iterable';
+export * from '@tsrx/react-runtime/iterable';

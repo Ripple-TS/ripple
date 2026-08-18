@@ -18,6 +18,7 @@ declare module '@rspack/core' {
 	}
 
 	export interface LoaderContext<TOptions = object> {
+		getOptions(): TOptions;
 		async(): (
 			error?: Error | null,
 			content?: string,

@@ -1,8 +1,11 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import { compile } from '@tsrx/react';
 
 /**
  * @typedef {{
  * 	resourcePath: string,
+ * 	getOptions?: () => { runtimeImports?: RuntimeImportMode },
  * 	async: () => (err: unknown, output?: string | null, map?: unknown) => void,
  * }} LoaderContext
  */
@@ -20,7 +23,7 @@ export default function tsrx_react_turbopack_css_loader(source) {
 	const callback = this.async();
 
 	try {
-		const { css } = compile(source, this.resourcePath);
+		const { css } = compile(source, this.resourcePath, this.getOptions?.());
 		callback(null, css);
 	} catch (/** @type {any} */ err) {
 		callback(err);

@@ -30,16 +30,21 @@ export function is_triple_slash_directive(comment) {
 }
 
 /**
+ * @param {AST.CommentWithLocation} comment
+ * @returns {boolean}
+ */
+export function is_jsdoc_comment(comment) {
+	return comment.type === 'Block' && comment.value.startsWith('*');
+}
+
+/**
  * Check if a comment is a JSDoc comment with TypeScript annotations
  * Examples: block comments containing `@type`, `@typedef`, `@param`, `@returns`, etc.
  * @param {AST.CommentWithLocation} comment
  * @returns {boolean}
  */
 export function is_jsdoc_ts_annotation(comment) {
-	if (comment.type !== 'Block') return false;
-
-	// JSDoc comments start with /** which means the value starts with * after /* is stripped
-	if (!comment.value.startsWith('*')) return false;
+	if (!is_jsdoc_comment(comment)) return false;
 
 	// Check if it contains TypeScript-relevant tags
 	const tsAnnotations = [
@@ -81,6 +86,36 @@ export function should_preserve_comment(comment) {
 		is_triple_slash_directive(comment) ||
 		is_jsdoc_ts_annotation(comment) ||
 		is_jsx_pragma(comment)
+	);
+}
+
+/**
+ * Declaration generators also consume documentation and custom `// @...`
+ * annotations from JSX-backed virtual TypeScript. Keep this broader policy
+ * separate from the legacy to_ts printer's semantic-comment policy.
+ * @param {AST.CommentWithLocation} comment
+ * @returns {boolean}
+ */
+export function should_preserve_jsx_tooling_comment(comment) {
+	return (
+		should_preserve_comment(comment) ||
+		is_jsdoc_comment(comment) ||
+		(comment.type === 'Line' && comment.value.trimStart().startsWith('@'))
+	);
+}
+
+/**
+ * Only file-wide directives may move ahead of generated imports or hoists.
+ * In particular, @ts-ignore/@ts-expect-error and declaration JSDoc must stay
+ * with the statement they describe.
+ * @param {AST.CommentWithLocation} comment
+ * @returns {boolean}
+ */
+export function is_file_level_pragma(comment) {
+	return (
+		is_jsx_pragma(comment) ||
+		is_triple_slash_directive(comment) ||
+		(comment.type === 'Line' && /^\s*@ts-(?:no)?check\b/.test(comment.value))
 	);
 }
 

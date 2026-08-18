@@ -45,6 +45,11 @@ const vue_platform = {
 		mergeRefs: '@tsrx/vue/ref',
 		refProp: '@tsrx/vue/ref',
 	},
+	directRuntimeImports: {
+		errorBoundary: '@tsrx/vue-runtime/error-boundary',
+		mergeRefs: '@tsrx/vue-runtime/ref',
+		refProp: '@tsrx/vue-runtime/ref',
+	},
 	jsx: {
 		rewriteClassAttr: false,
 		multiRefStrategy: 'merge-refs',
@@ -1252,6 +1257,9 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * @returns {void}
  */
 function inject_vue_imports(program, transform_context) {
+	const merge_refs_source = transform_context.platform.imports.mergeRefs;
+	const ref_prop_source = transform_context.platform.imports.refProp;
+
 	if (transform_context.needs_define_vapor_component) {
 		ensure_named_import(program, 'vue-jsx-vapor', 'defineVaporComponent');
 	}
@@ -1265,26 +1273,30 @@ function inject_vue_imports(program, transform_context) {
 	}
 
 	if (transform_context.needs_error_boundary) {
-		ensure_named_import(program, '@tsrx/vue/error-boundary', 'TsrxErrorBoundary');
-	}
-
-	if (transform_context.needs_merge_refs) {
-		ensure_named_import(program, '@tsrx/vue/ref', 'mergeRefs', MERGE_REFS_INTERNAL_NAME);
-	}
-
-	if (transform_context.needs_normalize_spread_props) {
 		ensure_named_import(
 			program,
-			'@tsrx/vue/ref',
+			transform_context.platform.imports.errorBoundary,
+			'TsrxErrorBoundary',
+		);
+	}
+
+	if (transform_context.needs_merge_refs && merge_refs_source) {
+		ensure_named_import(program, merge_refs_source, 'mergeRefs', MERGE_REFS_INTERNAL_NAME);
+	}
+
+	if (transform_context.needs_normalize_spread_props && ref_prop_source) {
+		ensure_named_import(
+			program,
+			ref_prop_source,
 			'normalize_spread_props',
 			NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 		);
 	}
 
-	if (transform_context.needs_normalize_spread_props_for_ref_attr) {
+	if (transform_context.needs_normalize_spread_props_for_ref_attr && ref_prop_source) {
 		ensure_named_import(
 			program,
-			'@tsrx/vue/ref',
+			ref_prop_source,
 			'normalize_spread_props_for_ref_attr',
 			NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 		);

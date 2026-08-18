@@ -35,6 +35,12 @@ const preact_platform = {
 		refProp: '@tsrx/preact/ref',
 		forOfIterableHelper: '@tsrx/preact/runtime/iterable',
 	},
+	directRuntimeImports: {
+		errorBoundary: '@tsrx/preact-runtime/error-boundary',
+		mergeRefs: '@tsrx/preact-runtime/ref',
+		refProp: '@tsrx/preact-runtime/ref',
+		forOfIterableHelper: '@tsrx/preact-runtime/iterable',
+	},
 	jsx: {
 		rewriteClassAttr: false,
 		multiRefStrategy: 'merge-refs',

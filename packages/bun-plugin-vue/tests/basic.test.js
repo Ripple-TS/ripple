@@ -231,6 +231,25 @@ describe('@tsrx/bun-plugin-vue', () => {
 		}
 	});
 
+	it('forwards direct runtime imports to the compiler', async () => {
+		const dir = await mkdtemp(path.join(os.tmpdir(), 'tsrx-bun-plugin-vue-runtime-'));
+		try {
+			const file_path = path.join(dir, 'App.tsrx');
+			await writeFile(
+				file_path,
+				`export function App(props) @{
+					<input {...props} />
+				}`,
+			);
+
+			const hooks = setup_plugin({ runtimeImports: 'direct' });
+			const transformed = await load_tsrx(hooks, file_path);
+			expect(transformed?.contents).toContain('@tsrx/vue-runtime/ref');
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
+
 	it('honors exclude filters', async () => {
 		const hooks = setup_plugin({ exclude: /ignored\.tsrx$/ }, { target: 'browser' });
 		const transformed = await load_tsrx(hooks, '/project/ignored.tsrx');

@@ -1,4 +1,5 @@
 /** @import { Compiler, RspackPluginInstance } from '@rspack/core' */
+/** @import { RuntimeImportMode } from '@tsrx/vue' */
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,11 +27,12 @@ const SOURCE_EXTENSION_PATTERN = /\.[cm]?[jt]sx?$/;
  */
 export class TsrxVueRspackPlugin {
 	/**
-	 * @param {{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }} [options]
+	 * @param {{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } }, runtimeImports?: RuntimeImportMode }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {
 			vapor: options.vapor,
+			runtimeImports: options.runtimeImports ?? 'compiler',
 		};
 	}
 
@@ -92,6 +94,9 @@ export class TsrxVueRspackPlugin {
 					},
 					{
 						loader: JS_LOADER,
+						options: {
+							runtimeImports: this.options.runtimeImports,
+						},
 					},
 				],
 			},
@@ -102,6 +107,9 @@ export class TsrxVueRspackPlugin {
 				use: [
 					{
 						loader: CSS_LOADER,
+						options: {
+							runtimeImports: this.options.runtimeImports,
+						},
 					},
 				],
 			},

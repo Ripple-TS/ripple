@@ -17,6 +17,30 @@ runSharedSourceMappingTests({
 	name: 'vue',
 	rejectsComponentAwait: true,
 });
+
+describe('@tsrx/vue direct runtime imports', () => {
+	it('emits target runtime package imports for error boundaries and refs', () => {
+		const { code } = compile(
+			`function Child(props) @{
+				<input {...props} />
+			}
+
+			function App() @{
+				@try {
+					<Child />
+				} @catch (error) {
+					<p>{error.message}</p>
+				}
+			}`,
+			'App.tsrx',
+			{ runtimeImports: 'direct' },
+		);
+
+		expect(code).toContain("from '@tsrx/vue-runtime/error-boundary'");
+		expect(code).toContain("from '@tsrx/vue-runtime/ref'");
+		expect(code).not.toMatch(/from '@tsrx\/vue\//);
+	});
+});
 runSharedTsxExpressionTsrxTests({ compile, name: 'vue', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'vue', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });

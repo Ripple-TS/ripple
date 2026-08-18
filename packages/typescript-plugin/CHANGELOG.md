@@ -1,5 +1,40 @@
 # @tsrx/typescript-plugin
 
+## 0.3.122
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.60
+  - @tsrx/react@0.2.60
+  - @tsrx/ripple@0.1.61
+  - @tsrx/solid@0.1.60
+  - @tsrx/vue@0.1.60
+
+## 0.3.121
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2aa2b6f`](https://github.com/Ripple-TS/ripple/commit/2aa2b6f4beff43b61badd1fb7d11433e9e4f52b3),
+  [`6d3417e`](https://github.com/Ripple-TS/ripple/commit/6d3417eb3852a9f0085b273f07079a3b12323712)]:
+  - @tsrx/react@0.2.59
+  - @tsrx/preact@0.1.59
+  - @tsrx/solid@0.1.59
+  - @tsrx/vue@0.1.59
+  - @tsrx/ripple@0.1.60
+
+## 0.3.120
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.58
+  - @tsrx/react@0.2.58
+  - @tsrx/ripple@0.1.59
+  - @tsrx/solid@0.1.58
+  - @tsrx/vue@0.1.58
+
 ## 0.3.119
 
 ### Patch Changes

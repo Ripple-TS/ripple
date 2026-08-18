@@ -37,5 +37,17 @@ Bun.plugin(tsrxPreact());
 
 - `jsxImportSource`: automatic JSX runtime import source (default: `'preact'`).
 - `suspenseSource`: module used by the compiler for Suspense imports.
+- `runtimeImports`: helper import mode (`'compiler'` by default, or `'direct'` for
+  standalone runtime imports).
 - `emitCss`: whether to emit virtual CSS imports (default: `true`).
 - `include`, `exclude`: regex filters for source files.
+
+When using `runtimeImports: 'direct'`, install the runtime as a direct production
+dependency of the package that owns the compiled modules:
+
+```bash
+pnpm add @tsrx/preact-runtime
+```
+
+Bun may bundle the helpers into its output, but this plugin only emits bare
+`@tsrx/preact-runtime/*` imports and does not provide the runtime package.

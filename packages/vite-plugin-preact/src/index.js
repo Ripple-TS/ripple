@@ -1,5 +1,6 @@
 /** @import { Plugin } from 'vite' */
 /** @import { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan' */
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
 
 /**
  * @typedef {{ code: string, map: unknown }} TsrxPreactTransformResult
@@ -48,6 +49,7 @@ const CSS_QUERY = '?tsrx-css&lang.css';
  * @param {{
  *   jsxImportSource?: string,
  *   suspenseSource?: string,
+ *   runtimeImports?: RuntimeImportMode,
  * }} [options]
  * @returns {TsrxPreactPlugin}
  */
@@ -55,6 +57,7 @@ export function tsrxPreact(options = {}) {
 	const jsxImportSource = options.jsxImportSource ?? 'preact';
 	const compile_options = {
 		suspenseSource: options.suspenseSource,
+		runtimeImports: options.runtimeImports,
 	};
 
 	/** @type {Map<string, string>} */
@@ -161,7 +164,7 @@ export function tsrxPreact(options = {}) {
 
 /**
  * @param {string} jsxImportSource
- * @param {{ suspenseSource?: string }} compile_options
+ * @param {{ suspenseSource?: string, runtimeImports?: RuntimeImportMode }} compile_options
  * @returns {DepScanTransformPlugin}
  */
 function create_dep_scan_plugin(jsxImportSource, compile_options) {

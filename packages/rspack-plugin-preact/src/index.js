@@ -1,4 +1,5 @@
 /** @import { Compiler, RspackPluginInstance } from '@rspack/core' */
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,12 +24,13 @@ const CSS_QUERY_PATTERN = /tsrx-css/;
  */
 export class TsrxPreactRspackPlugin {
 	/**
-	 * @param {{ jsxImportSource?: string, suspenseSource?: string }} [options]
+	 * @param {{ jsxImportSource?: string, suspenseSource?: string, runtimeImports?: RuntimeImportMode }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {
 			jsxImportSource: options.jsxImportSource ?? 'preact',
 			suspenseSource: options.suspenseSource,
+			runtimeImports: options.runtimeImports ?? 'compiler',
 		};
 	}
 
@@ -85,6 +87,7 @@ export class TsrxPreactRspackPlugin {
 						loader: JS_LOADER,
 						options: {
 							suspenseSource: this.options.suspenseSource,
+							runtimeImports: this.options.runtimeImports,
 						},
 					},
 				],
@@ -98,6 +101,7 @@ export class TsrxPreactRspackPlugin {
 						loader: CSS_LOADER,
 						options: {
 							suspenseSource: this.options.suspenseSource,
+							runtimeImports: this.options.runtimeImports,
 						},
 					},
 				],

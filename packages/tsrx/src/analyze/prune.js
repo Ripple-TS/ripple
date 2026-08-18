@@ -15,6 +15,8 @@ const BACKWARD = 1;
 // since the code is synchronous, this is safe
 /** @type {string} */
 let css_hash;
+/** @type {string} */
+let css_region_hash;
 /** @type {StyleClasses} */
 let style_identifier_classes;
 /** @type {TopScopedClasses} */
@@ -300,6 +302,7 @@ function apply_selector(relative_selectors, rule, element, direction) {
 								start: selector.start,
 								end: selector.end,
 								selector: selector,
+								regionHash: css_region_hash,
 							});
 						}
 					}
@@ -1107,10 +1110,12 @@ function rule_has_animation(rule) {
  * @param {AST.TSRXElementNode} element
  * @param {StyleClasses} styleClasses
  * @param {TopScopedClasses} topScopedClasses
+ * @param {string} [regionHash]
  * @return {void}
  */
-export function prune_css(css, element, styleClasses, topScopedClasses) {
+export function prune_css(css, element, styleClasses, topScopedClasses, regionHash = css.hash) {
 	css_hash = css.hash;
+	css_region_hash = regionHash;
 	style_identifier_classes = styleClasses;
 	top_scoped_classes = topScopedClasses;
 
@@ -1152,6 +1157,7 @@ export function prune_css(css, element, styleClasses, topScopedClasses) {
 							start: class_selector.start,
 							end: class_selector.end,
 							selector: class_selector,
+							regionHash: css_region_hash,
 						});
 					}
 				}

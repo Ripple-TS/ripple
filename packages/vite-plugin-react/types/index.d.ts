@@ -1,8 +1,11 @@
 import type { EnvironmentOptions, Plugin } from 'vite';
+import type { RuntimeImportMode } from '@tsrx/react';
 import type { DepScanTransformPlugin } from '@tsrx/core/types/vite/dep-scan';
 
 export interface TsrxReactPluginOptions {
 	jsxImportSource?: string;
+	/** Direct mode requires `@tsrx/react-runtime` as a direct production dependency. */
+	runtimeImports?: RuntimeImportMode;
 }
 
 export interface TsrxReactTransformResult {

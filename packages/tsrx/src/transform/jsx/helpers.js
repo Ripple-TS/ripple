@@ -2,7 +2,13 @@
 /** @import * as ESRap from 'esrap' */
 
 import tsx from 'esrap/languages/tsx';
-import { should_preserve_comment, format_comment } from '../../comment-utils.js';
+import {
+	should_preserve_comment,
+	should_preserve_jsx_tooling_comment,
+	is_file_level_pragma,
+	format_comment,
+} from '../../comment-utils.js';
+import { has_location } from '../../utils/ast.js';
 import { with_deferred_imports } from '../imports.js';
 
 /**
@@ -69,25 +75,64 @@ export function set_node_path_metadata(node, path) {
  * (structural tokens carry one-character source locations). typeOnly/volar
  * prints opt in — their maps are consumed positionally by the language
  * tooling and never shipped; build prints stay sparse.
- * @param {AST.CommentWithLocation[]} [comments] Source comments; the ones
- * `should_preserve_comment` classifies as semantic-to-TS (`@ts-nocheck`,
- * `@jsxImportSource`, triple-slash references, …) and that LEAD the program
- * are re-emitted at the top of the printed output. The generated TSX is real
- * TS input — dropping a leading pragma changes how the whole file checks.
+ * @param {AST.CommentWithLocation[]} [comments] Source comments. In type-only
+ * output, file-wide pragmas lead the program while documentation and scoped
+ * annotations stay with their declarations, members, or statements. A sparse
+ * print with explicitly supplied comments retains its existing leading-pragma
+ * behavior. Ordinary build callers supply no comments.
  */
 export function tsx_with_ts_locations(boundary_tokens = false, comments = undefined) {
 	const base = with_deferred_imports(tsx({ boundaryTokens: boundary_tokens }));
 	const { _: base_visitor, ...base_visitors } = base;
+	const preserve_comments = comments !== undefined;
+	const preserve_owner_comments = boundary_tokens && preserve_comments;
+	/** @type {Set<string> | null} */
+	const emitted_comments = preserve_comments ? new Set() : null;
+
+	/**
+	 * @param {AST.CommentWithLocation} comment
+	 * @param {ESRap.Context} context
+	 */
+	const write_preserved_comment = (comment, context) => {
+		if (
+			!emitted_comments ||
+			!(preserve_owner_comments
+				? should_preserve_jsx_tooling_comment(comment)
+				: should_preserve_comment(comment))
+		) {
+			return;
+		}
+		const key = `${comment.start}:${comment.end}:${comment.type}:${comment.value}`;
+		if (emitted_comments.has(key)) return;
+		emitted_comments.add(key);
+		if (comment.loc) context.location(comment.loc.start.line, comment.loc.start.column);
+		context.write(format_comment(comment));
+		if (comment.loc) context.location(comment.loc.end.line, comment.loc.end.column);
+		context.newline();
+	};
+
+	/**
+	 * @param {AST.Node} node
+	 * @param {ESRap.Context} context
+	 */
+	const write_leading_comments = (node, context) => {
+		if (!node.leadingComments || !is_comment_owner(node)) return;
+		for (const comment of node.leadingComments) {
+			if (has_location(comment)) write_preserved_comment(comment, context);
+		}
+	};
 
 	const leading_preserved = (/** @type {AST.Program} */ program) => {
-		if (!comments?.length) return [];
+		if (!preserve_comments || !comments?.length) return [];
 		// Injected statements (dynamic-import/try-import prepends) carry no
 		// loc; anchor "leading" on the first statement that maps to source,
 		// else every preserved comment in the file would hoist to the top.
 		const first = program.body.find((node) => node.loc);
 		return comments.filter(
 			(comment) =>
-				should_preserve_comment(comment) &&
+				(preserve_owner_comments
+					? is_file_level_pragma(comment)
+					: should_preserve_comment(comment)) &&
 				(first?.loc == null ||
 					(comment.loc &&
 						(comment.loc.end.line < first.loc.start.line ||
@@ -100,10 +145,7 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 	const wrappers = {
 		Program: (node, context) => {
 			for (const comment of leading_preserved(node)) {
-				if (comment.loc) context.location(comment.loc.start.line, comment.loc.start.column);
-				context.write(format_comment(comment));
-				if (comment.loc) context.location(comment.loc.end.line, comment.loc.end.column);
-				context.newline();
+				write_preserved_comment(comment, context);
 			}
 			/** @type {NonNullable<typeof base.Program>} */ (base.Program)(node, context);
 		},
@@ -206,8 +248,13 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 			context.visit(node.body);
 		},
 		_(node, context, visit) {
+			if (preserve_owner_comments) write_leading_comments(node, context);
 			const visit_with_locations = () => {
-				if (!LOCATION_WRAPPED_NODE_TYPES.has(node.type) || !node.loc) {
+				if (
+					!node.loc ||
+					(!LOCATION_WRAPPED_NODE_TYPES.has(node.type) &&
+						!(boundary_tokens && TOOLING_LOCATION_WRAPPED_NODE_TYPES.has(node.type)))
+				) {
 					visit(node);
 					return;
 				}
@@ -225,6 +272,44 @@ export function tsx_with_ts_locations(boundary_tokens = false, comments = undefi
 
 	return { ...base_visitors, ...wrappers };
 }
+
+/**
+ * A newline is safe before a statement/declaration or a member, but not before
+ * an arbitrary expression: `return /** @type {number} *\/ 1` must not become a
+ * bare return, and `throw` forbids a line terminator before its argument.
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_comment_owner(node) {
+	return (
+		node.type.endsWith('Declaration') ||
+		node.type.endsWith('Statement') ||
+		COMMENT_OWNER_NODE_TYPES.has(node.type)
+	);
+}
+
+const COMMENT_OWNER_NODE_TYPES = new Set([
+	'VariableDeclarator',
+	'Property',
+	'PropertyDefinition',
+	'AccessorProperty',
+	'MethodDefinition',
+	'TSAbstractPropertyDefinition',
+	'TSAbstractAccessorProperty',
+	'TSAbstractMethodDefinition',
+	'TSPropertySignature',
+	'TSMethodSignature',
+	'TSIndexSignature',
+	'TSEnumMember',
+	'TSExportAssignment',
+]);
+
+const TOOLING_LOCATION_WRAPPED_NODE_TYPES = new Set([
+	'ExportNamedDeclaration',
+	'ExportDefaultDeclaration',
+	'ExportAllDeclaration',
+	'TSPropertySignature',
+]);
 
 // Be careful when adding visitors that are already defined in `wrappers`.
 // JSXOpeningElement is intentionally in both places: its custom printer still

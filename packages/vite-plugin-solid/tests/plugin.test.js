@@ -48,6 +48,21 @@ function resolved_id(result) {
 }
 
 describe('@tsrx/vite-plugin-solid routing', () => {
+	it('forwards direct runtime imports to the compiler', async () => {
+		const plugin = tsrxSolid({ runtimeImports: 'direct' });
+		const dir = mkdtempSync(join(tmpdir(), 'tsrx-solid-runtime-'));
+		const real_path = join(dir, 'App.tsrx');
+		writeFileSync(
+			real_path,
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+		);
+
+		const result = await call_load(plugin, real_path + '.tsx');
+		expect(/** @type {any} */ (result).code).toContain("from '@tsrx/solid-runtime/ref'");
+	});
+
 	describe('default include', () => {
 		const plugin = tsrxSolid();
 

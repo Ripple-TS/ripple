@@ -28,6 +28,7 @@ export function tsrxSolid(options = {}) {
 	let root_dir = process.cwd();
 
 	const include_pattern = options.include ?? DEFAULT_TSRX_PATTERN;
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/**
 	 * Decide whether a real (on-disk) path should be treated as a tsrx
@@ -92,7 +93,7 @@ export function tsrxSolid(options = {}) {
 								name: '@tsrx/vite-plugin-solid:dep-scan',
 								isVirtual: is_virtual,
 								toRealPath: to_real_path,
-								compile,
+								compile: (code, id) => compile(code, id, compile_options),
 							}),
 						],
 					},
@@ -145,7 +146,7 @@ export function tsrxSolid(options = {}) {
 
 			const real_path = to_real_path(id.split('?')[0]);
 			const source = await readFile(real_path, 'utf-8');
-			let { code, css, map } = compile(source, real_path);
+			let { code, css, map } = compile(source, real_path, compile_options);
 
 			if (css) {
 				css_cache.set(real_path, css);

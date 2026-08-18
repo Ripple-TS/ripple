@@ -1,5 +1,39 @@
 # @tsrx/vite-plugin-solid
 
+## 0.0.90
+
+### Patch Changes
+
+- Updated dependencies
+  [[`481d934`](https://github.com/Ripple-TS/ripple/commit/481d934aa17a275aa588d945b4c65b421076f89c)]:
+  - @tsrx/core@0.1.60
+  - @tsrx/solid@0.1.60
+
+## 0.0.89
+
+### Patch Changes
+
+- [#1398](https://github.com/Ripple-TS/ripple/pull/1398)
+  [`6d3417e`](https://github.com/Ripple-TS/ripple/commit/6d3417eb3852a9f0085b273f07079a3b12323712)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Split compiler-emitted
+  helpers into shared and renderer-specific runtime packages, and add opt-in
+  direct runtime imports across supported build integrations.
+- Updated dependencies
+  [[`4fea7fc`](https://github.com/Ripple-TS/ripple/commit/4fea7fc9a1277abe47a5b5c67eeda2e253c9e6d5),
+  [`2aa2b6f`](https://github.com/Ripple-TS/ripple/commit/2aa2b6f4beff43b61badd1fb7d11433e9e4f52b3),
+  [`6d3417e`](https://github.com/Ripple-TS/ripple/commit/6d3417eb3852a9f0085b273f07079a3b12323712)]:
+  - @tsrx/core@0.1.59
+  - @tsrx/solid@0.1.59
+
+## 0.0.88
+
+### Patch Changes
+
+- Updated dependencies
+  [[`10c6c3d`](https://github.com/Ripple-TS/ripple/commit/10c6c3df0f5dfccf9be34c556afee1c87c678bde)]:
+  - @tsrx/core@0.1.58
+  - @tsrx/solid@0.1.58
+
 ## 0.0.87
 
 ### Patch Changes

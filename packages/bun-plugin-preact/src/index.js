@@ -1,4 +1,5 @@
 /** @import { BunPlugin, Target, Transpiler } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/preact' */
 
 import { readFile } from 'node:fs/promises';
 import { compile } from '@tsrx/preact';
@@ -13,6 +14,7 @@ const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
  * 	exclude?: RegExp | RegExp[],
  * 	jsxImportSource?: string,
  * 	suspenseSource?: string,
+ * 	runtimeImports?: RuntimeImportMode,
  * 	emitCss?: boolean,
  * }} TsrxPreactBunPluginOptions
  */
@@ -93,6 +95,7 @@ export function tsrxPreact(options = {}) {
 	const emit_css = options.emitCss ?? true;
 	const compile_options = {
 		suspenseSource: options.suspenseSource,
+		runtimeImports: options.runtimeImports,
 	};
 
 	/** @type {Map<string, string>} */

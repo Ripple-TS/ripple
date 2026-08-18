@@ -69,7 +69,7 @@ export function compile(source, filename, compile_options) {
  * @template {string} T
  * @param {string} source
  * @param {NonEmptyString<T>} filename
- * @param {ParseOptions & CompileOptions} [options]
+ * @param {ParseOptions & CompileOptions & BaseCompileOptions} [options]
  * @returns {VolarMappingsResult}
  */
 export function compile_to_volar_mappings(source, filename, options) {

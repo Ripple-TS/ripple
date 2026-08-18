@@ -989,6 +989,8 @@ declare module 'estree-jsx' {
 	interface JSXOpeningElement {
 		metadata: BaseNodeMetaData & {
 			native_tsrx_pretransformed?: boolean;
+			/** Type-only host ref/spread normalization has already run for this element. */
+			host_ref_spread_lowered?: boolean;
 		};
 	}
 
@@ -2090,6 +2092,8 @@ export type TopScopedClasses = Map<
 		start: number;
 		end: number;
 		selector: AST.CSS.ClassSelector;
+		/** Source `<style>` region for editor definition navigation. */
+		regionHash?: string;
 	}
 >;
 
@@ -2219,6 +2223,14 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 }
 
 /**
+ * Selects where generated runtime helper imports resolve from. Direct mode
+ * emits bare imports from the target's standalone runtime package; the package
+ * that owns the generated modules must declare that runtime as a direct
+ * production dependency.
+ */
+export type RuntimeImportMode = 'compiler' | 'direct';
+
+/**
  * Common base options accepted by every TSRX target's `compile` entry point.
  * Targets that need extra knobs (e.g. ripple's `mode`/`dev`/`hmr`, preact's
  * `suspenseSource`) intersect their own option type with this base when
@@ -2227,6 +2239,13 @@ export interface VolarCompileOptions extends Omit<ParseOptions, 'errors' | 'comm
 export interface BaseCompileOptions {
 	collect?: boolean;
 	loose?: boolean;
+	/**
+	 * Selects where generated runtime helper imports resolve from. The default
+	 * `'compiler'` mode preserves compiler-package compatibility subpaths;
+	 * `'direct'` targets the renderer's small runtime package, which the package
+	 * owning the generated modules must declare as a direct production dependency.
+	 */
+	runtimeImports?: RuntimeImportMode;
 }
 
 /**

@@ -1,3 +1,5 @@
+/** @import { RuntimeImportMode } from '@tsrx/react' */
+
 import { compile } from '@tsrx/react';
 
 const CSS_QUERY = '?tsrx-css&lang.css';
@@ -99,6 +101,7 @@ function prepend_css_import(code, resource_path) {
 /**
  * @typedef {{
  * 	resourcePath: string,
+ * 	getOptions?: () => { runtimeImports?: RuntimeImportMode },
  * 	async: () => (err: unknown, output?: string | null, map?: unknown) => void,
  * }} LoaderContext
  */
@@ -117,7 +120,7 @@ export default function tsrx_react_turbopack_loader(source) {
 	const callback = this.async();
 
 	try {
-		const { code, map, css } = compile(source, this.resourcePath);
+		const { code, map, css } = compile(source, this.resourcePath, this.getOptions?.());
 		const output = css ? prepend_css_import(code, this.resourcePath) : code;
 		const output_map = css ? null : map;
 

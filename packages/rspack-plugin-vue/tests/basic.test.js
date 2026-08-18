@@ -164,7 +164,7 @@ createVaporApp(App).use(vaporInteropPlugin).mount('#root');`;
 
 describe('@tsrx/rspack-plugin-vue plugin', () => {
 	it('registers module rules for .tsrx and sibling css query', () => {
-		const plugin = new TsrxVueRspackPlugin();
+		const plugin = new TsrxVueRspackPlugin({ runtimeImports: 'direct' });
 		const compiler = {
 			options: {
 				module: { rules: [] },
@@ -193,9 +193,11 @@ describe('@tsrx/rspack-plugin-vue plugin', () => {
 			syntax: 'typescript',
 			tsx: false,
 		});
+		expect(jsRule.use[2].options.runtimeImports).toBe('direct');
 
 		expect(cssRule.resourceQuery.toString()).toContain('tsrx-css');
 		expect(cssRule.type).toBe('css/auto');
+		expect(cssRule.use[0].options.runtimeImports).toBe('direct');
 	});
 
 	it('passes custom vapor options to the loader', () => {

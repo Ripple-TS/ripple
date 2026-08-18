@@ -1,1 +1,1 @@
-export * from '@tsrx/core/runtime/ref';
+export * from '@tsrx/preact-runtime/ref';

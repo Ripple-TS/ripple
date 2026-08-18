@@ -1,4 +1,5 @@
 /** @import { BunPlugin, Target, Transpiler } from 'bun' */
+/** @import { RuntimeImportMode } from '@tsrx/vue' */
 
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -25,6 +26,7 @@ const DEFAULT_VAPOR_OPTIONS = {
  * 	include?: RegExp,
  * 	exclude?: RegExp | RegExp[],
  * 	emitCss?: boolean,
+ * 	runtimeImports?: RuntimeImportMode,
  * 	vapor?: {
  * 		macros?: boolean | object,
  * 		compiler?: { runtimeModuleName?: string },
@@ -128,6 +130,7 @@ function resolve_vapor_options(options) {
 export function tsrxVue(options = {}) {
 	const emit_css = options.emitCss ?? true;
 	const vapor_options = resolve_vapor_options(options.vapor);
+	const compile_options = { runtimeImports: options.runtimeImports };
 
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
@@ -156,7 +159,7 @@ export function tsrxVue(options = {}) {
 					if (!should_compile(options, args.path)) return undefined;
 
 					const source = await readFile(args.path, 'utf-8');
-					const { code, css } = compile(source, args.path);
+					const { code, css } = compile(source, args.path, compile_options);
 					const css_id = to_css_id(args.path);
 
 					let output = code;

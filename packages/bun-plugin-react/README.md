@@ -36,5 +36,17 @@ Bun.plugin(tsrxReact());
 ## Options
 
 - `jsxImportSource`: automatic JSX runtime import source (default: `'react'`).
+- `runtimeImports`: helper import mode (`'compiler'` by default, or `'direct'` for
+  standalone runtime imports).
 - `emitCss`: whether to emit virtual CSS imports (default: `true`).
 - `include`, `exclude`: regex filters for source files.
+
+When using `runtimeImports: 'direct'`, install the runtime as a direct production
+dependency of the package that owns the compiled modules:
+
+```bash
+pnpm add @tsrx/react-runtime
+```
+
+Bun may bundle the helpers into its output, but this plugin only emits bare
+`@tsrx/react-runtime/*` imports and does not provide the runtime package.

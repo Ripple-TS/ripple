@@ -106,7 +106,7 @@ describe('@tsrx/rspack-plugin-solid css-loader', () => {
 
 describe('@tsrx/rspack-plugin-solid plugin', () => {
 	it('registers module rules for .tsrx and sibling css query', () => {
-		const plugin = new TsrxSolidRspackPlugin();
+		const plugin = new TsrxSolidRspackPlugin({ runtimeImports: 'direct' });
 		const compiler = {
 			options: {
 				mode: 'development',
@@ -134,9 +134,11 @@ describe('@tsrx/rspack-plugin-solid plugin', () => {
 			isTSX: true,
 		});
 		expect(jsRule.use[0].options.plugins[0]).toContain('solid-refresh');
+		expect(jsRule.use[1].options.runtimeImports).toBe('direct');
 
 		expect(cssRule.resourceQuery.toString()).toContain('tsrx-css');
 		expect(cssRule.type).toBe('css/auto');
+		expect(cssRule.use[0].options.runtimeImports).toBe('direct');
 	});
 
 	it('disables solid-refresh in production mode by default', () => {

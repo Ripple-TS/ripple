@@ -1,0 +1,7 @@
+{
+  "extends": "../tsrx/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "types/**/*"]
+}

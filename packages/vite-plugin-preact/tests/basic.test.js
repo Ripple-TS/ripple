@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { tsrxPreact } from '../src/index.js';
 
 describe('@tsrx/vite-plugin-preact basic', () => {
+	it('forwards direct runtime imports to the compiler', async () => {
+		const plugin = tsrxPreact({ runtimeImports: 'direct' });
+		const transformed = await plugin.transform(
+			`export function App(props) @{
+				<input {...props} />
+			}`,
+			'/virtual/App.tsrx',
+		);
+
+		expect(transformed?.code).toContain('@tsrx/preact-runtime/ref');
+	});
+
 	it('injects and serves a virtual css module for styled components', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
