@@ -1,5 +1,13 @@
 # ripple-news-bench
 
+## 0.0.39
+
+### Patch Changes
+
+- Updated dependencies
+  [[`8b5abd7`](https://github.com/Ripple-TS/ripple/commit/8b5abd7021a23b7651608fb26ff7e59ed5b4a18c)]:
+  - ripple@0.3.123
+
 ## 0.0.38
 
 ### Patch Changes
