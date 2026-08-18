@@ -273,6 +273,39 @@ describe('for statements', () => {
 		expect(getTexts()).toEqual(['A', 'B1', 'B2', 'C', 'D']);
 	});
 
+	it('ref-based for inserts multiple new items in the middle in correct order', () => {
+		const a = { text: 'A' };
+		const c = { text: 'C' };
+		const d = { text: 'D' };
+
+		function App() @{
+			let &[items] = track([a, c, d]);
+			<>
+				@for (const item of items) {
+					<div class="item">{item.text}</div>
+				}
+				<button
+					onClick={() => {
+						items = [a, { text: 'B1' }, { text: 'B2' }, c, d];
+					}}
+				>{'Insert'}</button>
+			</>
+		}
+
+		render(App);
+
+		const getTexts = () => Array.from(container.querySelectorAll('.item')).map(
+			(el) => el.textContent,
+		);
+
+		expect(getTexts()).toEqual(['A', 'C', 'D']);
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(getTexts()).toEqual(['A', 'B1', 'B2', 'C', 'D']);
+	});
+
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
 		function App() @{
 			let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
