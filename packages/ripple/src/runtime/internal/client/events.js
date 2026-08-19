@@ -29,6 +29,20 @@ var root_event_handles = new Set();
 var root_target = null;
 
 /**
+ * Multiple Portals (or a Portal plus the app root) can share the same target
+ * element (most commonly `document.body`). `handle_root_events` used to be
+ * called once per Portal with no notion of sharing: the first call's cleanup
+ * would tear down the delegated listeners for *all* callers the moment that
+ * one Portal's content changed or unmounted, even while siblings targeting
+ * the same element were still relying on them (e.g. a Modal closing would
+ * silently break click delegation for a still-open SideSheet, since both
+ * portal to `document.body`). Ref-count per target so cleanup only runs once
+ * every caller for that target has released it.
+ * @type {Map<Element, { count: number, registered_events: Set<string> }>}
+ */
+var root_target_refs = new Map();
+
+/**
  * @param {AddEventOptions} options
  * @returns {AddEventListenerOptions}
  */
@@ -381,9 +395,14 @@ export function delegate(events) {
 
 /** @param {Element} target */
 export function handle_root_events(target) {
-	/** @type {Set<string>} */
-	var registered_events = new Set();
+	var ref = root_target_refs.get(target);
+	if (ref === undefined) {
+		ref = { count: 0, registered_events: new Set() };
+		root_target_refs.set(target, ref);
+	}
+	ref.count += 1;
 	root_target = target;
+	var registered_events = ref.registered_events;
 
 	/**
 	 * @typedef {Object} EventHandleOptions
@@ -417,14 +436,30 @@ export function handle_root_events(target) {
 	event_handle(array_from(all_registered_events));
 	root_event_handles.add(event_handle);
 
+	var released = false;
+
 	return () => {
-		for (var event_name of registered_events) {
+		if (released) return;
+		released = true;
+
+		root_event_handles.delete(event_handle);
+
+		var current_ref = root_target_refs.get(target);
+		if (current_ref === undefined) return;
+
+		current_ref.count -= 1;
+		if (current_ref.count > 0) return;
+
+		// Last caller for this target: actually tear down the shared listeners.
+		root_target_refs.delete(target);
+		for (var event_name of current_ref.registered_events) {
 			target.removeEventListener(
 				event_name,
 				/** @type {EventListener} */ (handle_event_propagation),
 			);
 		}
-		root_event_handles.delete(event_handle);
-		root_target = null;
+		if (root_target === target) {
+			root_target = null;
+		}
 	};
 }
