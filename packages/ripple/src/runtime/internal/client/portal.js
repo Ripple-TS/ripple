@@ -38,6 +38,14 @@ export function Portal(props) {
 		}
 
 		try {
+			// Root event delegation lives in its own render block so it only
+			// re-runs when `props.target` changes — a children-only update must
+			// not release and re-acquire the target's delegated listeners.
+			render(() => {
+				const cleanup_events = handle_root_events(/** @type {Element} */ (props.target));
+				return cleanup_events;
+			});
+
 			render(() => {
 				const next_target = props.target;
 				const next_children = props.children;
@@ -60,8 +68,6 @@ export function Portal(props) {
 				anchor = create_text();
 				/** @type {Element} */ (target).append(anchor);
 
-				const cleanup_events = handle_root_events(/** @type {Element} */ (target));
-
 				var block = /** @type {Block} */ (active_block);
 
 				b = branch(() => {
@@ -74,7 +80,6 @@ export function Portal(props) {
 				dom_end = b?.s?.end;
 
 				return () => {
-					cleanup_events();
 					/** @type {Text} */ (anchor).remove();
 					if (dom_start && dom_end) {
 						remove_block_dom(dom_start, dom_end);

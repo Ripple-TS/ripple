@@ -25,22 +25,31 @@ var all_registered_events = new Set();
 /** @type {Set<(events: Array<string>) => void>} */
 var root_event_handles = new Set();
 
-/** @type {Element | null} */
-var root_target = null;
-
 /**
- * Multiple Portals (or a Portal plus the app root) can share the same target
- * element (most commonly `document.body`). `handle_root_events` used to be
- * called once per Portal with no notion of sharing: the first call's cleanup
- * would tear down the delegated listeners for *all* callers the moment that
- * one Portal's content changed or unmounted, even while siblings targeting
- * the same element were still relying on them (e.g. a Modal closing would
- * silently break click delegation for a still-open SideSheet, since both
- * portal to `document.body`). Ref-count per target so cleanup only runs once
- * every caller for that target has released it.
+ * Active root delegation targets, ref-counted per target. Multiple callers of
+ * `handle_root_events` can share one target element — sibling Portals both
+ * targeting `document.body`, a Portal targeting the app's mount target, or
+ * nested mounts. The shared delegated listeners for a target may only be torn
+ * down once every caller for that target has released it, otherwise
+ * unmounting one Portal silently kills event delegation for its siblings.
  * @type {Map<Element, { count: number, registered_events: Set<string> }>}
  */
 var root_target_refs = new Map();
+
+/**
+ * Delegated handling only works for elements strictly below a root delegation
+ * target: the root listener's propagation walk never visits the target itself
+ * or anything above it, so a delegated handler stored there would never fire.
+ * @param {EventTarget} element
+ */
+function is_root_target_or_above(element) {
+	for (var target of root_target_refs.keys()) {
+		if (element === target || /** @type {Element} */ (element).contains?.(target)) {
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
  * @param {AddEventOptions} options
@@ -77,9 +86,8 @@ export function on(element, type, handler, options = {}) {
 		element === window ||
 		element === document ||
 		element === document.body ||
-		element === root_target ||
 		element instanceof MediaQueryList ||
-		/** @type {Element} */ (element).contains(root_target)
+		is_root_target_or_above(element)
 	) {
 		opts.delegated = false;
 	}
@@ -395,13 +403,12 @@ export function delegate(events) {
 
 /** @param {Element} target */
 export function handle_root_events(target) {
-	var ref = root_target_refs.get(target);
-	if (ref === undefined) {
-		ref = { count: 0, registered_events: new Set() };
-		root_target_refs.set(target, ref);
-	}
+	var ref = root_target_refs.get(target) ?? {
+		count: 0,
+		registered_events: /** @type {Set<string>} */ (new Set()),
+	};
 	ref.count += 1;
-	root_target = target;
+	root_target_refs.set(target, ref);
 	var registered_events = ref.registered_events;
 
 	/**
@@ -444,22 +451,18 @@ export function handle_root_events(target) {
 
 		root_event_handles.delete(event_handle);
 
-		var current_ref = root_target_refs.get(target);
-		if (current_ref === undefined) return;
-
-		current_ref.count -= 1;
-		if (current_ref.count > 0) return;
+		// The map entry for `target` is always this `ref`: it is only deleted
+		// when the count hits 0, which requires this cleanup to have run.
+		ref.count -= 1;
+		if (ref.count > 0) return;
 
 		// Last caller for this target: actually tear down the shared listeners.
 		root_target_refs.delete(target);
-		for (var event_name of current_ref.registered_events) {
+		for (var event_name of registered_events) {
 			target.removeEventListener(
 				event_name,
 				/** @type {EventListener} */ (handle_event_propagation),
 			);
-		}
-		if (root_target === target) {
-			root_target = null;
 		}
 	};
 }

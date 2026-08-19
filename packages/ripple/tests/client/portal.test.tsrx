@@ -202,6 +202,48 @@ describe('Portal', () => {
 		},
 	);
 
+	it('retargets portal when target changes and keeps click delegation working', () => {
+		const target1 = document.createElement('div');
+		const target2 = document.createElement('div');
+		document.body.appendChild(target1);
+		document.body.appendChild(target2);
+
+		function TestRetargetPortal() @{
+			let &[useSecond] = track(false);
+			let &[clicks] = track(0);
+			<>
+				<button class="swap" onClick={() => (useSecond = true)}>{'Swap'}</button>
+				<Portal target={useSecond ? target2 : target1}>
+					<div class="test-portal">
+						<span class="clicks">{String(clicks)}</span>
+						<button class="portal-btn" onClick={() => clicks++}>{'Click'}</button>
+					</div>
+				</Portal>
+			</>
+		}
+
+		render(TestRetargetPortal);
+
+		expect(target1.querySelector('.portal-btn')).toBeTruthy();
+		target1.querySelector('.portal-btn').click();
+		flushSync();
+		expect(target1.querySelector('.clicks').textContent).toBe('1');
+
+		container.querySelector('.swap').click();
+		flushSync();
+
+		// Content moved to the new target, and delegation must follow it there.
+		expect(target1.querySelector('.portal-btn')).toBeNull();
+		expect(target2.querySelector('.portal-btn')).toBeTruthy();
+
+		target2.querySelector('.portal-btn').click();
+		flushSync();
+		expect(target2.querySelector('.clicks').textContent).toBe('2');
+
+		document.body.removeChild(target1);
+		document.body.removeChild(target2);
+	});
+
 	it('handles portal with reactive content', () => {
 		function TestReactivePortal() @{
 			let &[count] = track(0);

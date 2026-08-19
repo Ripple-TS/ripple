@@ -1,5 +1,5 @@
 import type { OnEventListenerRemover } from 'ripple';
-import { effect, flushSync, on, track } from 'ripple';
+import { effect, flushSync, on, Portal, track } from 'ripple';
 
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
@@ -31,6 +31,38 @@ describe('on() event handler', () => {
 		flushSync();
 		expect(count1Div.textContent).toBe('1');
 		expect(count2Div.textContent).toBe('1');
+	});
+
+	it('attaches directly on a root delegation target even when a portal roots elsewhere', () => {
+		// Regression test: `on()` must not delegate handlers attached to any
+		// active root delegation target. With a single `root_target` global,
+		// a Portal targeting a sibling layer overwrote it, so `on(container)`
+		// took the delegated path and its handler never fired.
+		const layer = document.createElement('div');
+		document.body.appendChild(layer);
+
+		function App() @{
+			<>
+				<button class="inner">{'Inner'}</button>
+				<Portal target={layer}>
+					<div class="layer-content">{'Layer content'}</div>
+				</Portal>
+			</>
+		}
+
+		render(App);
+
+		let calls = 0;
+		const off = on(container, 'click', () => {
+			calls++;
+		});
+
+		container.querySelector('.inner').click();
+		flushSync();
+		expect(calls).toBe(1);
+
+		off();
+		layer.remove();
 	});
 
 	it('should attach and remove a single event handler', () => {
