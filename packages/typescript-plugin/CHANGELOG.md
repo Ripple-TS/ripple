@@ -1,5 +1,7 @@
 # @tsrx/typescript-plugin
 
+## 0.3.124
+
 ## 0.3.123
 
 ## 0.3.122
