@@ -3,21 +3,21 @@ local M = {}
 local function resolve_parser_install_info(plugin)
 	if plugin and type(plugin.dir) == 'string' and plugin.dir ~= '' then
 		return {
-			path = plugin.dir,
+			url = plugin.dir,
 			location = 'grammars/tree-sitter',
-			files = { 'src/parser.c' },
+			files = { 'src/parser.c', 'src/scanner.c' },
 		}
 	end
 
 	return {
 		url = 'https://github.com/Ripple-TS/ripple',
 		location = 'grammars/tree-sitter',
-		files = { 'src/parser.c' },
+		files = { 'src/parser.c', 'src/scanner.c' },
 	}
 end
 
-function add_ripple(plugin)
-	require('nvim-treesitter.parsers').ripple = {
+local function add_ripple(plugin)
+	require('nvim-treesitter.parsers').list.ripple = {
 		install_info = resolve_parser_install_info(plugin),
 		filetype = 'ripple',
 	}
