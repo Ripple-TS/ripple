@@ -27,10 +27,3 @@ jobs:
       - name: Build CLI
         working-directory: ./packages/cli
         run: pnpm build
-
-      - name: Build ESLint parser
-        working-directory: ./packages/eslint-parser
-        run: pnpm build
-
-      - name: Sync agent configurations
-        run: pnpm agents:sync

@@ -3,9 +3,11 @@ import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs';
 import { npmCommandsMarkdownPlugin } from 'vitepress-plugin-npm-commands';
 /** @import { DefaultTheme } from 'vitepress'; */
 
-import rippleGrammar from '../../grammars/textmate/ripple.tmLanguage.json';
+// Vendored for Ripple documentation highlighting. The canonical TSRX grammar
+// is maintained in https://github.com/tsrx-org/tsrx.
+import tsrxGrammar from './tsrx.tmLanguage.json';
 const modifiedGrammar = {
-	...rippleGrammar,
+	...tsrxGrammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
 };
 

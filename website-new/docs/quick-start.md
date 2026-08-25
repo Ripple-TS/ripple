@@ -31,15 +31,15 @@ npm run dev // [!=npm auto]
 
 ### VS Code
 
-Ripple maintains a Volar-based
-[VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin).
+The TSRX project maintains the Volar-based
+[TSRX Syntax for VS Code](https://marketplace.visualstudio.com/items?itemName=TSRX.tsrx-vscode-plugin).
 
 It provides syntax highlighting for `.tsrx` files by default, real-time
 diagnostics for compilation errors, and typescript integration for type checking
 and autocompletion.
 
 If you're using a fork of VSCode, the extension is also available on
-[OpenVSX](https://open-vsx.org/extension/ripple-ts/vscode-plugin).
+[Open VSX](https://open-vsx.org/extension/TSRX/tsrx-vscode-plugin).
 
 ### WebStorm/IntelliJ
 
@@ -47,19 +47,18 @@ There isn't a dedicated plugin at the moment, but you can use the
 [TextMate bundle](#textmate-bundle) to add syntax highlighting and the language
 server for diagnostics and autocompletion:
 
-1. Install the Ripple language server:
+1. Install the TSRX language server:
 
 ```sh
-npm install -g '@ripple-ts/language-server' // [!=npm auto]
+npm install -g '@tsrx/language-server' // [!=npm auto]
 ```
 
 2. Install the [LSP4IJ plugin](https://plugins.jetbrains.com/plugin/23257-lsp4ij).
 3. Go to `Settings` > `Languages & Frameworks` > `Language Servers`.
 4. Click `+` to add a new language server.
-5. Specify `Ripple` as the name and `'@ripple-ts/language-server' --stdio` as the
-   command.
+5. Specify `TSRX` as the name and `tsrx-language-server --stdio` as the command.
 6. In the `Mappings` > `File name patterns`, click `+` to add a new pattern.
-7. Specify `*.tsrx` as the pattern and `ripple` as the language id.
+7. Specify `*.tsrx` as the pattern and `tsrx` as the language ID.
 
 You should see diagnostics and autocompletion in `.tsrx` files now.
 
@@ -69,10 +68,10 @@ There isn't a dedicated plugin at the moment, but you can use the
 [TextMate bundle](#textmate-bundle) to add syntax highlighting and the language
 server for diagnostics and autocompletion:
 
-1. Install the Ripple language server:
+1. Install the TSRX language server:
 
 ```sh
-npm install -g '@ripple-ts/language-server' // [!=npm auto]
+npm install -g '@tsrx/language-server' // [!=npm auto]
 ```
 
 2. Press <kbd>Ctrl/Cmd+Shift+P</kbd>, type `Install Package Control`, and press
@@ -93,9 +92,9 @@ npm install -g '@ripple-ts/language-server' // [!=npm auto]
 ```json
 {
   "clients": {
-    "Ripple": {
+    "TSRX": {
       "enabled": true,
-      "command": ["'@ripple-ts/language-server'", "--stdio"],
+      "command": ["tsrx-language-server", "--stdio"],
       "selector": "source.tsrx"
     }
   }
@@ -106,27 +105,27 @@ You should see diagnostics and autocompletion in `.tsrx` files now.
 
 ### TextMate bundle
 
-Ripple also maintains a TextMate bundle that provides syntax highlighting for
-Ripple files in editors that support TextMate grammars, such as WebStorm/IntelliJ
-and Sublime Text.
+The TSRX project also maintains a TextMate bundle that provides syntax
+highlighting for TSRX files in editors that support TextMate grammars, such as
+WebStorm/IntelliJ and Sublime Text.
 
-1. Create a directory named `Ripple.tmbundle`.
-2. Create a directory named `Syntaxes` inside the `Ripple.tmbundle` directory.
+1. Create a directory named `TSRX.tmbundle`.
+2. Create a directory named `Syntaxes` inside the `TSRX.tmbundle` directory.
 3. Save the
-   [`ripple.tmLanguage`](https://github.com/Ripple-TS/ripple/blob/main/assets/Ripple.tmbundle/Syntaxes/ripple.tmLanguage)
+   [`tsrx.tmLanguage`](https://github.com/tsrx-org/tsrx/blob/main/assets/TSRX.tmbundle/Syntaxes/tsrx.tmLanguage)
    file into the `Syntaxes` directory.
 4. Install it:
    - **WebStorm/IntelliJ**:
      1. Save the
-        [`info.plist`](https://github.com/Ripple-TS/ripple/blob/main/assets/Ripple.tmbundle/info.plist)
-        file into the `Ripple.tmbundle` directory.
+        [`info.plist`](https://github.com/tsrx-org/tsrx/blob/main/assets/TSRX.tmbundle/info.plist)
+        file into the `TSRX.tmbundle` directory.
      2. Go to `Settings` > `Editor` > `TextMate Bundles`, click the `+` icon, and
-        select the `Ripple.tmbundle` directory.
-   3. All Ripple files should now have syntax highlighting.
+        select the `TSRX.tmbundle` directory.
+   3. All TSRX files should now have syntax highlighting.
    - **Sublime Text**:
-     1. Go to `Preferences` > `Browse Packages`, and move the `Ripple.tmbundle`
+     1. Go to `Preferences` > `Browse Packages`, and move the `TSRX.tmbundle`
         directory into the opened folder.
-     2. You should now be able to select `Ripple` in `View` > `Syntax`.
+     2. You should now be able to select `TSRX` in `View` > `Syntax`.
 
 ## Getting Help
 

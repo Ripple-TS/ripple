@@ -1,27 +1,54 @@
 # Ripple Project Guide for AI Agents
 
 Ripple is a TypeScript-first UI framework and monorepo maintained by Dominic
-Gannaway. The current authoring format is centered on `.tsrx` files and the shared
-TSRX compiler stack. Older `.ripple`-specific docs and compiler details still
-exist in repo history and changelogs, but they are not the right default source of
-truth for current work.
+Gannaway. This repository owns the Ripple runtime, Ripple-specific compiler
+target, adapters, scaffolding, and framework integrations. The shared `.tsrx`
+language, compiler core, non-Ripple targets, language tooling, editor plugins, and
+syntax grammars are maintained in
+[`tsrx-org/tsrx`](https://github.com/tsrx-org/tsrx).
 
 ## Start From Current Sources
 
 Use the nearest live source rather than historical summaries:
 
-- `website-tsrx/public/llms.txt` for current target-neutral TSRX syntax,
-  compiler-facing authoring guidance, and examples
-- `website/public/llms.txt` for Ripple runtime APIs, Ripple target behavior, and
+- `website/public/llms.txt` for Ripple runtime APIs, target behavior, and
   Ripple-specific authoring guidance
-- `README.md` for project overview, positioning, and quick-start examples
+- [tsrx.dev](https://tsrx.dev) for target-neutral TSRX syntax, tooling, and the
+  language specification
+- `README.md` for the Ripple overview, positioning, and quick-start examples
 - `packages/*/README.md` for package-specific usage and public APIs
-- `vitest.config.js` for the current test projects and file globs
+- `vitest.config.js` for the current Ripple test projects and file globs
 - `package.json` for workspace-wide scripts such as `rules:generate`, `test`,
   `format`, `format:check`, and `typecheck`
 
-If a guide in this repo conflicts with nearby code or package READMEs, trust the
-nearby code and current package docs.
+If a guide conflicts with nearby code or package READMEs, trust the nearby code
+and current package docs.
+
+## Repository Boundary
+
+This repository contains only Ripple-owned source:
+
+- `packages/ripple/`: runtime, DOM behavior, hydration, SSR, reactivity, types,
+  and server helpers
+- `packages/tsrx-ripple/`: the Ripple-specific `@tsrx/ripple` compiler target
+- `packages/vite-plugin/` and `packages/rollup-plugin/`: Ripple bundler
+  integrations
+- `packages/adapter/`, `packages/adapter-node/`, `packages/adapter-bun/`, and
+  `packages/adapter-vercel/`: deployment and platform adapters
+- `packages/cli/`, `packages/create-ripple/`, and `templates/`: Ripple scaffolding
+- `playground/ripple/`, `benchmarks/`, `website/`, and `website-new/`: Ripple
+  examples, performance work, and documentation
+
+Shared `@tsrx/*` packages are registry dependencies. Do not recreate moved
+compiler, formatter, linter, language-server, grammar, editor-plugin, or
+non-Ripple target source here. Route changes in those areas to `tsrx-org/tsrx`;
+update Ripple only when its target integration must adapt.
+
+The intended dependency direction is Ripple -> published TSRX packages. Do not add
+a workspace link, Git dependency, or copied source that reverses that boundary.
+`@tsrx/ripple` is the deliberate exception in package naming: its source and
+publishing authority remain in this repository because it implements Ripple
+runtime semantics.
 
 ## RuleSync
 
@@ -43,38 +70,10 @@ After changing RuleSync content, run:
 pnpm rules:generate
 ```
 
-## Monorepo Map
-
-This is a pnpm monorepo. The current high-level layout is:
-
-- `packages/tsrx/`: core parser, transforms, and shared compiler infrastructure
-- `packages/tsrx-ripple/`, `packages/tsrx-react/`, `packages/tsrx-solid/`,
-  `packages/tsrx-preact/`: target-specific compiler layers
-- `packages/ripple/`: Ripple runtime, server helpers, and framework behavior
-- `packages/vite-plugin/`, `packages/rollup-plugin/`,
-  `packages/vite-plugin-react/`, `packages/vite-plugin-solid/`,
-  `packages/vite-plugin-preact/`, `packages/rspack-plugin-react/`,
-  `packages/turbopack-plugin-react/`: bundler integrations
-- `packages/adapter/`, `packages/adapter-node/`, `packages/adapter-bun/`,
-  `packages/adapter-vercel/`: deployment and platform adapters
-- `packages/language-server/`, `packages/typescript-plugin/`,
-  `packages/vscode-plugin/`, `packages/intellij-plugin/`, `packages/nvim-plugin/`,
-  `packages/sublime-text-plugin/`, `packages/zed-plugin/`: editor and language
-  tooling
-- `packages/eslint-parser/`, `packages/eslint-plugin/`,
-  `packages/prettier-plugin/`, `packages/prettier-plugin-ripple/`: linting and
-  formatting
-- `packages/create-ripple/`, `templates/`, `playground/`: scaffolding and local
-  examples
-- `website/`, `website-new/`, `website-tsrx/`: documentation and website work
-
-When routing a change, prefer the package that directly owns the behavior rather
-than editing generated output, tests, or editor integrations first.
-
 ## Current Working Assumptions
 
 - Default component files are `.tsrx`. Do not describe the project as primarily
-  using `.ripple` files unless the local file you are editing actually does.
+  using `.ripple` files unless the local historical context requires it.
 - Prefer the current TSRX component shape: `function Component(props) @{ ... }`
   when setup and output share a scope, or
   `function Component(props) { return <div />; }` for simple single-root output.
@@ -88,8 +87,6 @@ than editing generated output, tests, or editor integrations first.
   setup.
 - Use `@if`, `@for`, `@switch`, and `@try` for template control flow. Plain
   JavaScript control flow remains ordinary setup code.
-- Some packages still preserve compatibility or historical references. Treat them
-  as compatibility context, not the default architecture description.
 - Use `pnpm` for all package management and workspace scripts.
 - Follow the conventions of the package you are changing. This repo mixes plain
   JavaScript, JSDoc-typed JavaScript, and TypeScript depending on package.
@@ -98,20 +95,15 @@ than editing generated output, tests, or editor integrations first.
 
 ## Finding The Right Package
 
-Use these rough routing rules:
-
-- Ripple syntax, parsing, source transforms, or shared AST behavior:
-  `packages/tsrx/` and the relevant target package under `packages/tsrx-*`
+- Ripple compiler lowering, analysis, or target semantics: `packages/tsrx-ripple/`
 - Ripple runtime behavior, hydration, reactivity, DOM updates, or server output:
   `packages/ripple/`
-- Vite, Rollup, Rspack, Turbopack, or adapter behavior: the relevant plugin or
-  adapter package in `packages/`
-- Diagnostics, completions, hover, definitions, or editor integration:
-  `packages/language-server/`, `packages/typescript-plugin/`, and editor plugin
-  packages
-- Formatting or lint behavior: `packages/prettier-plugin/`,
-  `packages/prettier-plugin-ripple/`, `packages/eslint-parser/`, or
-  `packages/eslint-plugin/`
+- Ripple Vite, Rollup, or adapter behavior: the relevant retained package under
+  `packages/`
+- Ripple project generation: `packages/cli/`, `packages/create-ripple/`, and
+  `templates/`
+- Target-neutral TSRX parsing, diagnostics, formatting, linting, language-server
+  behavior, editor integration, or non-Ripple targets: `tsrx-org/tsrx`
 
 ## Validation
 
@@ -125,39 +117,41 @@ pnpm format:check
 pnpm test
 pnpm test --project ripple-client
 pnpm test --project ripple-server
+pnpm test --project ripple-hydration
+pnpm test --project tsrx-ripple
 pnpm typecheck
+pnpm changeset:check
 ```
 
-Current Vitest projects are defined in `vitest.config.js`. Ripple runtime suites
-use `.test.tsrx` files for many client, server, and compat tests, while tooling
-packages often use `.test.js` or `.test.ts`.
+Ripple runtime suites use `.test.tsrx` files for many client, server, and
+hydration tests. Tooling packages often use `.test.js` files.
 
-## Changesets
+## Changesets And Publishing
 
 Add a changeset for user-facing package changes. Skip changesets for docs-only,
 test-only, and internal tooling updates.
 
-Only use `patch` changesets. Do not use `minor` or `major` bump types in this
-repo; prerelease packages must stay on the patch track until a release plan
-explicitly changes that policy.
+Only use `patch` changesets. Do not use `minor` or `major` bump types until a
+release plan explicitly changes that policy.
 
 ```bash
 pnpm changeset
-```
-
-Validate pending changesets before versioning or publishing:
-
-```bash
 pnpm changeset:check
 ```
 
+The publishing workflow is restricted to the Ripple-owned allowlist in
+`scripts/check-publish-packages.js`. Do not add a moved `@tsrx/*` package to that
+allowlist. `@tsrx/ripple` remains the sole `@tsrx`-scoped package published from
+this repository.
+
 ## Practical Guidance For Agents
 
-- Prefer the current docs in `website-tsrx/public/llms.txt` and
-  `website/public/llms.txt` over stale architectural summaries.
+- Prefer Ripple docs in `website/public/llms.txt` and target-neutral guidance at
+  `tsrx.dev` over stale architectural summaries.
+- Treat `@tsrx/core` and generic tooling as external published dependencies,
+  including in tests and examples.
 - Avoid copying removed compiler APIs, old package layouts, or legacy `.ripple`
   examples into new guidance.
-- If you need exact behavior, read the owning package and its tests instead of
-  relying on a repo-wide summary.
+- If exact behavior is unclear, read the owning retained package and its tests.
 - Keep documentation updates short and durable. High-level guidance ages better
   than detailed internal call lists.

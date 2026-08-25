@@ -11,7 +11,7 @@
     "@babel/core": "catalog:default",
     "@solidjs/web": "catalog:default",
     "@tsrx/ripple": "workspace:*",
-    "@tsrx/solid": "workspace:*",
+    "@tsrx/solid": "catalog:default",
     "babel-preset-solid": "catalog:default",
     "react": "catalog:default",
     "react-dom": "catalog:default",

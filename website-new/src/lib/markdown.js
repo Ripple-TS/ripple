@@ -1,8 +1,9 @@
 import { Marked } from 'marked';
 import { createHighlighter } from 'shiki';
 
-// Import the Ripple TextMate grammar directly (bundled by Vite at build time)
-import ripple_grammar from '../../../grammars/textmate/ripple.tmLanguage.json';
+// Vendored by the Ripple website for build-time highlighting. The canonical
+// TSRX grammar is maintained in https://github.com/tsrx-org/tsrx.
+import tsrx_grammar from '../../../website/.vitepress/tsrx.tmLanguage.json';
 
 /**
  * Escape HTML special characters.
@@ -30,7 +31,7 @@ for (const [file_path, content] of Object.entries(docs_files)) {
 	docs_map[slug] = /** @type {string} */ (content);
 }
 const modified_grammar = {
-	...ripple_grammar,
+	...tsrx_grammar,
 	embeddedLangs: ['jsx', 'tsx', 'css'],
 };
 

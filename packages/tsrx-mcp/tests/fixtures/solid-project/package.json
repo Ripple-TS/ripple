@@ -1,9 +1,0 @@
-{
-  "name": "tsrx-mcp-solid-fixture",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@tsrx/solid": "workspace:*",
-    "@tsrx/vite-plugin-solid": "workspace:*"
-  }
-}

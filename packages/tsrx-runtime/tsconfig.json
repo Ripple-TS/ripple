@@ -1,4 +1,0 @@
-{
-  "extends": "../tsrx/tsconfig.json",
-  "include": ["src/**/*", "types/**/*"]
-}

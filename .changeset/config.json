@@ -4,25 +4,14 @@
   "commit": false,
   "fixed": [
     [
-      "@tsrx/core"
-    ],
-    [
-      "@tsrx/ripple"
-    ],
-    [
       "ripple",
       "@ripple-ts/cli",
       "create-ripple",
-      "@tsrx/eslint-parser",
-      "@tsrx/eslint-plugin",
-      "@ripple-ts/language-server",
-      "@tsrx/prettier-plugin",
       "@ripple-ts/adapter",
       "@ripple-ts/adapter-node",
       "@ripple-ts/adapter-bun",
       "@ripple-ts/adapter-vercel",
       "@ripple-ts/rollup-plugin",
-      "@tsrx/typescript-plugin",
       "@ripple-ts/vite-plugin"
     ]
   ],
@@ -31,10 +20,6 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@ripple-ts/playground",
-    "@ripple-ts/tree-sitter",
-    "@ripple-ts/nvim-plugin",
-    "@ripple-ts/intellij-plugin",
-    "@ripple-ts/sublime-text-plugin"
+    "@ripple-ts/playground"
   ]
 }

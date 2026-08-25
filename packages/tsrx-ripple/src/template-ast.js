@@ -11,6 +11,8 @@
  * transforms — which walk the same tree — always agree on node identity.
  */
 
+// @ts-check
+
 import { builders, isTemplateDirective as is_template_directive } from '@tsrx/core';
 const b = builders;
 

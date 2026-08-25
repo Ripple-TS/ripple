@@ -1,3 +1,5 @@
+// @ts-check
+
 /** @import * as AST from 'estree' */
 /** @import { CompileOptions, CompileError, ParseOptions } from '../types/index' */
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */

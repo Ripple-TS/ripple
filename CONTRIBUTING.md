@@ -5,6 +5,11 @@ and Svelte into one cohesive package. Built as a love letter to frontend
 development, Ripple introduces a JS/TS-first approach with `.tsrx` modules that
 provide an excellent developer experience for both humans and LLMs.
 
+This repository owns the Ripple runtime, Ripple compiler target, adapters,
+scaffolding, and framework integrations. Target-neutral TSRX language,
+compiler-core, formatting, linting, language-server, grammar, and editor work is
+maintained in [tsrx-org/tsrx](https://github.com/tsrx-org/tsrx).
+
 The [Open Source Guides](https://opensource.guide/) website offers valuable
 resources for individuals, communities, and companies looking to contribute to
 open source projects. Both newcomers and experienced contributors will find these
@@ -127,11 +132,14 @@ You'll need [Node.js](https://nodejs.org/) and
 
 ### Development Workflow
 
-Since Ripple is in development, the build process may evolve. Currently:
+Run the smallest checks that cover your change:
 
-- Run development builds and watch for changes as needed
-- Test your changes thoroughly
-- Ensure TypeScript compilation succeeds (if working with TS code)
+- `pnpm test --project ripple-client` for client runtime work
+- `pnpm test --project ripple-server` for SSR work
+- `pnpm test --project ripple-hydration` for hydration work
+- `pnpm test --project tsrx-ripple` for Ripple compiler-target work
+- `pnpm typecheck` for source changes
+- `pnpm format:check` before submitting
 
 ### Testing
 
@@ -143,8 +151,6 @@ While our test suite is still being developed, please:
 - Document your testing approach in the PR description
 
 ### Code Style
-
-We'll be implementing consistent code formatting soon. For now:
 
 - Follow existing code patterns in the repository
 - Use meaningful variable and function names
@@ -175,7 +181,7 @@ pnpm changeset
 This will prompt you to:
 
 1. Select the packages affected by your change
-2. Choose the semver bump type (patch/minor/major)
+2. Choose a `patch` bump (the only bump type currently allowed)
 3. Write a summary of your changes (this becomes the changelog entry)
 
 The command creates a markdown file in `.changeset/` that should be committed with
@@ -186,9 +192,8 @@ your PR. When your PR is merged, the release workflow will automatically:
 
 **When to add a changeset:**
 
-- Bug fixes → `patch`
-- New features (backwards compatible) → `minor`
-- Breaking changes → `major`
+- User-facing changes use `patch` while the project remains prerelease.
+- Do not select `minor` or `major`; CI rejects those bump types.
 
 **When NOT to add a changeset:**
 

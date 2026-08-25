@@ -21,7 +21,6 @@ function get_variable_types(code) {
 			'ripple/jsx-runtime': ['packages/ripple/src/jsx-runtime.d.ts'],
 			ripple: ['packages/ripple/types/index.d.ts'],
 			'#public': ['packages/ripple/types/index.d.ts'],
-			'@tsrx/core/types/helpers': ['packages/tsrx/types/helpers.d.ts'],
 		},
 	};
 	const host = ts.createCompilerHost(options);

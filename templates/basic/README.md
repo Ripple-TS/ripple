@@ -41,7 +41,7 @@ Prettier is configured in `.prettierrc` with the following settings:
 
 ### VS Code Integration
 
-For the best development experience, install the [Prettier VS Code plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and the [TSRX VS Code extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin).
+For the best development experience, install the [Prettier VS Code plugin](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [TSRX Syntax for VS Code](https://marketplace.visualstudio.com/items?itemName=TSRX.tsrx-vscode-plugin).
 
 ## Learn More
 

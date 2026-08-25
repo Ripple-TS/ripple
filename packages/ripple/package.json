@@ -73,7 +73,7 @@
     "clsx": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",
-    "@tsrx/core": "workspace:*",
+    "@tsrx/core": "catalog:default",
     "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {

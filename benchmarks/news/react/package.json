@@ -12,8 +12,8 @@
     "react-dom": "catalog:default"
   },
   "devDependencies": {
-    "@tsrx/react": "workspace:*",
-    "@tsrx/vite-plugin-react": "workspace:*",
+    "@tsrx/react": "catalog:default",
+    "@tsrx/vite-plugin-react": "catalog:default",
     "vite": "catalog:default"
   }
 }

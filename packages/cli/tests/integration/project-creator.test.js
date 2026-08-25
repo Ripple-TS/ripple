@@ -311,9 +311,9 @@ describe('createProject integration tests', () => {
 		const vscodeSettings = JSON.parse(
 			readFileSync(join(projectPath, '.vscode', 'settings.json'), 'utf-8'),
 		);
-		expect(vscodeSettings['tailwindCSS.includeLanguages']).toEqual({ ripple: 'html' });
+		expect(vscodeSettings['tailwindCSS.includeLanguages']).toEqual({ tsrx: 'html' });
+		expect(vscodeSettings['files.associations']).toEqual({ '*.tsrx': 'tsrx' });
 		expect(vscodeSettings['tailwindCSS.classAttributes']).toEqual(['class', 'className']);
-		expect(vscodeSettings['files.associations']).toEqual({ '*.tsrx': 'ripple' });
 		expect(vscodeSettings['editor.quickSuggestions']).toEqual({ strings: true });
 	});
 

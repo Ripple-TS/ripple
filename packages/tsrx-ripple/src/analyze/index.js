@@ -1,4 +1,6 @@
 /** @import {AnalyzeOptions} from '../../types/index'  */
+// @ts-check
+
 /**
 @import {
 	AnalysisResult,
@@ -1676,7 +1678,7 @@ const visitors = {
 			const binding = context.state.scope.get(node.object.name);
 			const tracked_numeric_index = get_tracked_numeric_index(node);
 
-			if (binding && binding.metadata?.is_ripple_object) {
+			if (binding && binding.metadata?.is_tsrx_object) {
 				const internalProperties = new Set(['__v', 'a', 'b', 'c', 'f']);
 
 				let propertyName = null;
@@ -1820,7 +1822,7 @@ const visitors = {
 								callee.property.name === 'trackAsync' ||
 								callee.property.name === 'tracked'))
 					) {
-						binding.metadata = { ...binding.metadata, is_ripple_object: true };
+						binding.metadata = { ...binding.metadata, is_tsrx_object: true };
 					}
 				}
 				visit(declarator, state);

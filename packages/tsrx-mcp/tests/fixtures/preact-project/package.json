@@ -1,9 +1,0 @@
-{
-  "name": "tsrx-mcp-preact-fixture",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@tsrx/preact": "workspace:*",
-    "@tsrx/vite-plugin-preact": "workspace:*"
-  }
-}

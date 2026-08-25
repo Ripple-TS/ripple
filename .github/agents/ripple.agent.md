@@ -11,18 +11,19 @@ that combines the best parts of React, Solid, and Svelte.
 - Ripple component syntax and `.tsrx` files
 - Reactivity system: `track()`, `RippleArray`, `RippleMap`, etc. (imported from
   `ripple`)
-- Compiler architecture (parse → analyze → transform)
+- Ripple-specific compiler analysis and lowering in `packages/tsrx-ripple`
 - SSR and hydration mechanisms
 - Runtime internals (blocks, events, DOM operations)
-- Editor tooling (language server, Prettier plugin, ESLint plugin)
+- Integration with the published compiler and tooling from `tsrx-org/tsrx`
 
 ## Key Resources
 
 For detailed documentation, refer to:
 
-- [AGENTS.md](../AGENTS.md) - Full project guide
+- [AGENTS.md](../../AGENTS.md) - Full project guide
 - [website/public/llms.txt](../../website/public/llms.txt) - Comprehensive Ripple
   documentation
+- [tsrx.dev](https://tsrx.dev) - Target-neutral TSRX language and tooling docs
 
 ## Code Conventions
 
@@ -36,8 +37,8 @@ For detailed documentation, refer to:
 ### Creating a Component
 
 ```tsrx
-component Button(label: string, onClick: () => void) {
-  <button onclick={onClick}>{label}</button>
+function Button({ label, onClick }: { label: string; onClick: () => void }) {
+  return <button onClick={onClick}>{label}</button>;
 }
 ```
 
@@ -46,14 +47,18 @@ component Button(label: string, onClick: () => void) {
 ```tsrx
 import { track } from 'ripple';
 
-let count = track(0); // tracked value
-let doubled = track(() => @count * 2); // derived value
+function Counter() @{
+  let &[count] = track(0);
+
+  <button onClick={() => count++}>{count}</button>
+}
 ```
 
 ### Validation Commands
 
 ```bash
 pnpm test           # Run all tests
+pnpm typecheck      # Type-check retained packages
 pnpm format         # Format code
 pnpm format:check   # Check formatting
 ```

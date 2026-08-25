@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
 @import * as AST from 'estree';
 @import * as ESTreeJSX from 'estree-jsx';

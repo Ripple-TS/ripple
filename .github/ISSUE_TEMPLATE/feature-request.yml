@@ -8,6 +8,8 @@ body:
       value: |
         Thanks for suggesting a new feature! Please check existing issues and discussions first.
 
+        This repository tracks Ripple runtime and framework features. Propose target-neutral TSRX syntax, compiler-core, tooling, grammar, and editor features in [tsrx-org/tsrx](https://github.com/tsrx-org/tsrx/issues/new/choose).
+
   - type: dropdown
     id: category
     attributes:
@@ -16,8 +18,8 @@ body:
       options:
         - "Performance Enhancement"
         - "Developer Experience"
-        - "Syntax/Language Improvement"
-        - "Tooling Integration"
+        - "Ripple Compiler"
+        - "Ripple Integration"
         - "Documentation"
         - "Testing/Quality"
         - "Other"

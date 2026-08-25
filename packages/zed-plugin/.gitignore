@@ -1,6 +1,0 @@
-# Rust/Cargo
-target/
-
-# Zed build artifacts (grammar checkout + compiled wasm)
-grammars/
-extension.wasm

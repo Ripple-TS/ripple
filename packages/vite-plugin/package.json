@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@ripple-ts/adapter": "workspace:*",
-    "@tsrx/core": "workspace:*",
+    "@tsrx/core": "catalog:default",
     "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {

@@ -8,6 +8,8 @@ body:
       value: |
         Thanks for taking the time to report this issue! Please search existing issues first to avoid duplicates.
 
+        This repository tracks Ripple runtime, Ripple-target compiler, adapter, CLI, and bundler issues. For target-neutral TSRX syntax/compiler-core, formatter, linter, language-server, grammar, or editor-plugin bugs, use [tsrx-org/tsrx](https://github.com/tsrx-org/tsrx/issues/new/choose).
+
   - type: dropdown
     id: category
     attributes:

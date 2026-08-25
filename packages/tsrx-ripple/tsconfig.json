@@ -13,7 +13,8 @@
     "types": ["node"],
     "strict": true,
     "allowJs": true,
-    "checkJs": true
+    "checkJs": false,
+    "maxNodeModuleJsDepth": 2
   },
   "include": ["./src/", "./types/"],
   "exclude": ["node_modules", "dist"]

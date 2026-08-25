@@ -6,10 +6,13 @@ on:
     tags: ["!**"]
     paths:
       - "packages/**"
+      - "benchmarks/**"
       - "package.json"
+      - "playground/ripple/**"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "scripts/**"
+      - "templates/**"
       - "vitest.config.js"
       - ".changeset/**"
       - ".github/workflows/ci.yml"
@@ -18,10 +21,13 @@ on:
     branches: [main, develop]
     paths:
       - "packages/**"
+      - "benchmarks/**"
       - "package.json"
+      - "playground/ripple/**"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "scripts/**"
+      - "templates/**"
       - "vitest.config.js"
       - ".changeset/**"
       - ".github/workflows/ci.yml"
@@ -48,7 +54,6 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        # tree-sitter-cli downloads its binary from GitHub without retrying.
         run: |
           for attempt in 1 2 3; do
             if pnpm install --prod false --frozen-lockfile; then
@@ -65,10 +70,6 @@ jobs:
 
       - name: Build cli
         working-directory: ./packages/cli
-        run: pnpm build
-
-      - name: Build eslint-parser
-        working-directory: ./packages/eslint-parser
         run: pnpm build
 
       - name: Run tests
@@ -130,8 +131,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Disallow major and minor bumps in changesets
-        run: node scripts/check-changesets.js
+      - name: Validate changesets and publishing allowlist
+        run: node scripts/check-changesets.js && node scripts/check-publish-packages.js
 
   typecheck:
     runs-on: ubuntu-latest

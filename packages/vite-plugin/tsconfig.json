@@ -6,6 +6,7 @@
     "lib": ["esnext"],
     "allowJs": true,
     "checkJs": true,
+    "maxNodeModuleJsDepth": 1,
     "noEmit": true,
     "strict": true,
     "esModuleInterop": true,

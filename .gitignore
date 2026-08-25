@@ -13,12 +13,8 @@ coverage
 
 .claude/settings.json
 
-packages/vscode-plugin/*.vsix
 playground/src
 playground/ripple/src
-playground/react/src
-playground/solid/src
-playground/vue/src
 
 website/.vitepress/dist/
 website/.vitepress/cache/
@@ -56,7 +52,6 @@ debug
 .build-hash
 .build-hash-built
 **/*.d.tsrx.ts
-/tree-sitter
 
 # Temporary folders
 tmp/

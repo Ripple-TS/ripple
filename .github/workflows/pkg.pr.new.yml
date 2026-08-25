@@ -92,16 +92,14 @@ jobs:
       - name: Publish
         run: |
           pnpm dlx pkg-pr-new publish \
-            './packages/eslint-plugin' \
-            './packages/eslint-parser' \
-            './packages/typescript-plugin' \
             './packages/create-ripple' \
-            './packages/prettier-plugin' \
             './packages/ripple' \
             './packages/adapter' \
             './packages/adapter-node' \
             './packages/adapter-bun' \
+            './packages/adapter-vercel' \
             './packages/rollup-plugin' \
+            './packages/tsrx-ripple' \
             './packages/vite-plugin' \
             './packages/cli' \
             --compact \

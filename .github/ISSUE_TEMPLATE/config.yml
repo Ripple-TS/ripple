@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: TSRX language and tooling issues
+    url: https://github.com/tsrx-org/tsrx/issues/new/choose
+    about: Report target-neutral syntax, compiler-core, formatter, linter, language-server, grammar, or editor-plugin issues
   - name: Discord Chat
     url: https://discord.gg/JBF2ySrh2W
     about: Ask questions and discuss ideas with other users real-time

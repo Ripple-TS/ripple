@@ -1,6 +1,8 @@
 /** @import * as AST from 'estree'; */
 /** @import * as ESTreeJSX from 'estree-jsx'; */
 /** @import { RawSourceMap } from 'source-map'; */
+// @ts-check
+
 /**
 @import {
 	TransformServerContext,

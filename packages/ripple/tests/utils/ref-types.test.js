@@ -18,9 +18,6 @@ function get_diagnostics(source) {
 		baseUrl: root,
 		types: [],
 		paths: {
-			'@tsrx/core/runtime/ref': ['packages/tsrx/types/runtime/ref.d.ts'],
-			'@tsrx/core/types': ['packages/tsrx/types/index.d.ts'],
-			'@tsrx/core/types/helpers': ['packages/tsrx/types/helpers.d.ts'],
 			'#public': ['packages/ripple/types/index.d.ts'],
 			ripple: ['packages/ripple/types/index.d.ts'],
 			'ripple/jsx-runtime': ['packages/ripple/src/jsx-runtime.d.ts'],

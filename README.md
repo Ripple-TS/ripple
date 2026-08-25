@@ -415,14 +415,17 @@ export function Page() @{
 ## Editor Support
 
 Install the
-[Ripple VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin)
-for syntax highlighting, diagnostics, TypeScript integration, and completions.
+[TSRX Syntax for VS Code](https://marketplace.visualstudio.com/items?itemName=TSRX.tsrx-vscode-plugin)
+for syntax highlighting, diagnostics, TypeScript integration, and completions. The
+shared language, compiler infrastructure, formatter, linter, and editor
+integrations are maintained in [tsrx-org/tsrx](https://github.com/tsrx-org/tsrx).
 
 ## Resources
 
 - [Full Documentation](https://www.ripple-ts.com/docs)
 - [Interactive Playground](https://www.ripple-ts.com/playground)
 - [TSRX Website](https://tsrx.dev)
+- [TSRX language and tooling issues](https://github.com/tsrx-org/tsrx/issues)
 - [GitHub Issues](https://github.com/Ripple-TS/ripple/issues)
 - [Discord Community](https://discord.gg/JBF2ySrh2W)
 - [npm Package](https://www.npmjs.com/package/ripple)

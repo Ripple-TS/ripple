@@ -1,23 +1,6 @@
-import {
-	runSharedClassFunctionComponentTests,
-	runSharedComponentParamsTests,
-} from '@tsrx/core/test-harness/compile';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
-import { find_exact_mapping } from '../../tsrx/src/source-map-utils.js';
-import { check_types } from '../../tsrx/tests/shared/type-diagnostics.js';
-
-runSharedClassFunctionComponentTests({
-	compile,
-	compile_to_volar_mappings,
-	name: 'ripple',
-});
-
-runSharedComponentParamsTests({
-	compile,
-	compile_to_volar_mappings,
-	name: 'ripple',
-});
+import { check_types, find_exact_mapping } from './test-utils.js';
 
 describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
 	it('preserves global augmentations without submodule diagnostics', () => {

@@ -2,23 +2,6 @@
   "version": "0.2.1",
   "configurations": [
     {
-      "name": "VSCode Extension",
-      "type": "extensionHost",
-      "request": "launch",
-      "autoAttachChildProcesses": true,
-      "preLaunchTask": "build-vscode-plugin",
-      "args": [
-        "--disable-extension=ripple-ts.ripple-ts-vscode-plugin",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-plugin/",
-        "${workspaceFolder}/playground"
-      ],
-      "outFiles": ["${workspaceFolder}/packages/vscode-plugin/dist/**/*.js"],
-      "sourceMaps": true,
-      "env": {
-        "TSRX_DEBUG": "true"
-      }
-    },
-    {
       "name": "Ripple Tests - Current Tab",
       "type": "node",
       "request": "launch",
@@ -60,7 +43,7 @@
       "name": "Volar Codegen / Mappings",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
+      "cwd": "${workspaceFolder}/playground/ripple",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "debug-volar"],
       "console": "integratedTerminal",
@@ -71,7 +54,7 @@
       "name": "SSR Rendering",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
+      "cwd": "${workspaceFolder}/playground/ripple",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "debug-ssr"],
       "console": "integratedTerminal",
@@ -82,8 +65,8 @@
       "name": "SSR Runtime - From Compiled",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
-      "program": "${workspaceFolder}/playground/ssr-dev.js",
+      "cwd": "${workspaceFolder}/playground/ripple",
+      "program": "${workspaceFolder}/playground/ripple/ssr-dev.js",
       "env": {
         "DEBUG_APP": "true"
       },
@@ -95,7 +78,7 @@
       "name": "Client Rendering",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
+      "cwd": "${workspaceFolder}/playground/ripple",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "debug-client"],
       "console": "integratedTerminal",
@@ -106,7 +89,7 @@
       "name": "Client Runtime - Vite",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/playground",
+      "cwd": "${workspaceFolder}/playground/ripple",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["run", "dev"],
       "console": "integratedTerminal",
@@ -120,7 +103,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/playground",
+      "webRoot": "${workspaceFolder}/playground/ripple",
       "runtimeArgs": [
         "--auto-open-devtools-for-tabs",
         "--user-data-dir=${workspaceFolder}/.vscode/chrome-client-debug-profile"
@@ -139,10 +122,10 @@
       "type": "node",
       "request": "launch",
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/playground",
+      "cwd": "${workspaceFolder}/playground/ripple",
       "runtimeExecutable": "node",
       "runtimeArgs": ["--inspect"],
-      "program": "${workspaceFolder}/playground/node_modules/vite/bin/vite.js",
+      "program": "${workspaceFolder}/playground/ripple/node_modules/vite/bin/vite.js",
       "args": ["--host"],
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**"],

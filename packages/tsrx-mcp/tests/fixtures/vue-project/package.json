@@ -1,9 +1,0 @@
-{
-  "name": "tsrx-mcp-vue-fixture",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@tsrx/vue": "workspace:*",
-    "@tsrx/vite-plugin-vue": "workspace:*"
-  }
-}

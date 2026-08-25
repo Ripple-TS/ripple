@@ -242,11 +242,11 @@ export default defineConfig({
 		const vscodeSettings = JSON.stringify(
 			{
 				'tailwindCSS.includeLanguages': {
-					ripple: 'html',
+					tsrx: 'html',
 				},
 				'tailwindCSS.classAttributes': ['class', 'className'],
 				'files.associations': {
-					'*.tsrx': 'ripple',
+					'*.tsrx': 'tsrx',
 				},
 				'editor.quickSuggestions': {
 					strings: true,
@@ -275,6 +275,7 @@ function updateDependencyVersions(packageJson) {
 		'@tsrx/prettier-plugin': 'latest',
 		'@tsrx/eslint-plugin': 'latest',
 		'@tsrx/eslint-parser': 'latest',
+		'@tsrx/language-server': 'latest',
 		'@tsrx/typescript-plugin': 'latest',
 	};
 

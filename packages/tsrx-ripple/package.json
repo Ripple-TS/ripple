@@ -23,10 +23,11 @@
     }
   },
   "dependencies": {
-    "@tsrx/core": "workspace:*",
-    "zimmerframe": "catalog:default",
+    "@tsrx/core": "catalog:default",
     "esrap": "catalog:default",
-    "is-reference": "catalog:default"
+    "is-reference": "catalog:default",
+    "source-map": "catalog:default",
+    "zimmerframe": "catalog:default"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",
