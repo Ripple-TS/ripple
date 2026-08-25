@@ -38,7 +38,7 @@ For detailed documentation, refer to:
 
 ```tsrx
 function Button({ label, onClick }: { label: string; onClick: () => void }) @{
-  <button onClick={onClick}>{label}</button>
+  <button {onClick}>{label}</button>
 }
 ```
 
