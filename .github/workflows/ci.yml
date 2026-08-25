@@ -131,8 +131,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Validate changesets and publishing allowlist
-        run: node scripts/check-changesets.js && node scripts/check-publish-packages.js
+      - name: Disallow major and minor bumps in changesets
+        run: node scripts/check-changesets.js
 
   typecheck:
     runs-on: ubuntu-latest

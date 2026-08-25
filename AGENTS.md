@@ -143,10 +143,10 @@ pnpm changeset
 pnpm changeset:check
 ```
 
-The publishing workflow is restricted to the Ripple-owned allowlist in
-`scripts/check-publish-packages.js`. Do not add a moved `@tsrx/*` package to that
-allowlist. `@tsrx/ripple` remains the sole `@tsrx`-scoped package published from
-this repository.
+Changesets discovers publishable packages from the pnpm workspace. Keep
+non-publishable projects marked `private: true`, and use `.changeset/config.json`
+for release grouping and temporary ignores. `@tsrx/ripple` remains the sole
+`@tsrx`-scoped package published from this repository.
 
 ## Practical Guidance For Agents
 

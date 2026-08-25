@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changeset": "changeset && node scripts/check-changesets.js",
-    "changeset:check": "node scripts/check-changesets.js && node scripts/check-publish-packages.js",
+    "changeset:check": "node scripts/check-changesets.js",
     "changeset:version": "pnpm changeset:check && changeset version",
     "changeset:publish": "pnpm changeset:check && changeset publish",
     "bench": "node benchmarks/tracked-values.js",

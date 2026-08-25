@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate changesets and publishing allowlist
+      - name: Disallow major and minor bumps in changesets
         run: pnpm changeset:check
 
       - name: Publish to npm
