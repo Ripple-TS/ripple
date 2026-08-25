@@ -37,8 +37,8 @@ For detailed documentation, refer to:
 ### Creating a Component
 
 ```tsrx
-function Button({ label, onClick }: { label: string; onClick: () => void }) {
-  return <button onClick={onClick}>{label}</button>;
+function Button({ label, onClick }: { label: string; onClick: () => void }) @{
+  <button onClick={onClick}>{label}</button>
 }
 ```
 
