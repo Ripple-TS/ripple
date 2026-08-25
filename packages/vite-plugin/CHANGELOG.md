@@ -1,5 +1,20 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.125
+
+### Patch Changes
+
+- [#1437](https://github.com/Ripple-TS/ripple/pull/1437)
+  [`71747c0`](https://github.com/Ripple-TS/ripple/commit/71747c088d549cd3ec85fb78744acf0273b8f6a8)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Consume the shared TSRX
+  compiler and tooling from their published packages after moving target-neutral
+  source to `tsrx-org/tsrx`. New Ripple projects now use the
+  `@tsrx/language-server`, TSRX editor identity, and published TSRX integrations.
+- Updated dependencies
+  [[`71747c0`](https://github.com/Ripple-TS/ripple/commit/71747c088d549cd3ec85fb78744acf0273b8f6a8)]:
+  - @tsrx/ripple@0.1.62
+  - @ripple-ts/adapter@0.3.125
+
 ## 0.3.124
 
 ### Patch Changes
