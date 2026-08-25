@@ -29,17 +29,14 @@ allowBuilds:
   sharp: true
   tldjs: true
 
+# variables used in the catalog
+prettier_common: &prettier_common ^3.9.6
+ts_common: &ts_common ^5.9.3
+ts_eslint_parser: &ts_eslint_parser ^8.56.1
+esrap_common: &esrap_common ^2.3.2
+
 packages:
-  - packages/adapter
-  - packages/adapter-bun
-  - packages/adapter-node
-  - packages/adapter-vercel
-  - packages/cli
-  - packages/create-ripple
-  - packages/ripple
-  - packages/rollup-plugin
-  - packages/tsrx-ripple
-  - packages/vite-plugin
+  - packages/*
   - playground/ripple
   - website
   - website-new
@@ -55,7 +52,7 @@ packages:
   - benchmarks/streaming-ssr
 
 overrides:
-  esrap: ^2.3.2
+  esrap: *esrap_common
   semver: ^7.7.4
   # Solid 2.0 SSR alignment: vite-plugin-solid@3.0.0-next.5 pulls
   # babel-preset-solid@2.0.0-beta.7 transitively (→ babel-plugin-jsx-dom-expressions
@@ -91,7 +88,7 @@ catalogs:
     '@tsrx/typescript-plugin': ^0.3.126
     '@tsrx/vite-plugin-react': ^0.0.94
     '@tsrx/vite-plugin-solid': ^0.0.91
-    '@typescript-eslint/parser': ^8.56.1
+    '@typescript-eslint/parser': *ts_eslint_parser
     '@typescript-eslint/types': ^8.40.0
     '@vercel/nft': ^1.3.2
     '@volar/language-core': ~2.4.28
@@ -102,7 +99,7 @@ catalogs:
     devalue: ^5.8.1
     eslint: ^10.3.0
     esm-env: ^1.2.2
-    esrap: ^2.3.2
+    esrap: *esrap_common
     is-reference: ^3.0.3
     jsdom: ^29.0.2
     kleur: ^4.1.5
@@ -112,7 +109,7 @@ catalogs:
     ora: ^9.3.0
     playwright: ^1.61.0
     polka: ^1.0.0-next.25
-    prettier: ^3.9.6
+    prettier: *prettier_common
     prompts: ^2.4.2
     react: ^19.2.0
     react-dom: ^19.2.0
@@ -123,7 +120,7 @@ catalogs:
     source-map: ^0.7.6
     tsdown: ^0.22.0
     type-fest: ^5.6.0
-    typescript: ^5.9.3
+    typescript: *ts_common
     uvu: ^0.5.6
     vite: ^8.1.5
     vitepress: 2.0.0-alpha.12
@@ -134,9 +131,9 @@ catalogs:
     wait-on: ^9.0.10
     zimmerframe: ^1.1.2
   peer:
-    '@typescript-eslint/parser': ^8.56.1
+    '@typescript-eslint/parser': *ts_eslint_parser
     eslint: '>=9.0.0'
     prettier: '>=2.0.0'
     ripple: '*'
     tailwindcss: ^4.1.12
-    typescript: ^5.9.3
+    typescript: *ts_common
