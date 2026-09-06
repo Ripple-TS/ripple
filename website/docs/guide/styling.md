@@ -139,7 +139,7 @@ export function App() @{
 ## What a scope is
 
 A scope is one list of children, the children of an element or of a fragment,
-that holds at least one block. The block belongs to the list it is written in and
+that holds at least one style block. The style block belongs to the list it is written in and
 styles the other items of that list and their descendants. These lists count:
 
 - The children of a DOM element.
@@ -265,160 +265,6 @@ With `A`, `B`, and `C` as the hash classes of the fragment and the two branches,
 the compiled classes are `status A`, `ok A B`, and `wait A C`, and the three
 sheets come out in that order. The same class name can mean different things in
 `@if` and `@else`.
-
-## Global Styles
-
-By default, every rule is scoped. To reach outside the scope, use the
-`:global(...)` pseudo-class or a `:global` block. Where the `:global` sits decides
-how far the rule reaches:
-
-<Code>
-
-```tsrx
-export function App() @{
-  <>
-    <div class="container">
-      <Child />
-    </div>
-
-    <style>
-      /* Scoped to App only */
-      .container {
-        padding: 1rem;
-      }
-
-      /* Global - Not Recommended - applies to any .highlight in any component */
-      :global(.highlight) {
-        color: red;
-        font-weight: bold;
-      }
-
-      /* Global - Recommended - scoped parent with global child selector */
-      .container :global(.nested) {
-        margin-left: 2rem;
-      }
-
-      /* Global block - everything inside is global */
-      div :global {
-        .header {
-          font-size: 3rem;
-        }
-      }
-    </style>
-  </>
-}
-
-function Child() {
-  return <div>
-    <h2 class="header">This is a header with font-size 3rem</h2>
-    <span class="highlight">This will be red and bold</span>
-    <p class="nested">This will have left margin</p>
-  </div>
-}
-```
-
-</Code>
-
-- **Bare** `:global(.toast)` becomes `.toast`: a page-wide rule that matches
-  anywhere, exactly like a rule in a global stylesheet.
-- **Prefixed** `.container :global(.nested)` becomes
-  `.container.tsrx-1a20093c .nested`: only elements below your scoped
-  container, a child component's internals included. It can never climb up.
-- **Leading** `:global(.theme-dark) .card` becomes `.theme-dark .card.tsrx-1a20093c`:
-  your own element, only when an ancestor carries the class.
-- **Compound** `.card:global(.is-open)` becomes `.card.tsrx-1a20093c.is-open`:
-  your own element, with a class another library toggles on it.
-- **Block** `:global { … }` drops the wrapper and leaves every rule inside it
-  unscoped. Nested under a scoped rule, `.post { :global { pre { … } } }`, it
-  reaches only below that rule, like the prefixed form with the prefix written
-  once.
-
-`:global(...)` may only start or end a selector. In the middle,
-`.card :global(.x) .title`, it is the `tsrx-css-global-placement` error.
-
-### Which one to use
-
-Reach for `:global` only when a prop cannot do the job. Start from what you want:
-
-| I want to …                                                                        | Use …                                                                                                                                                                                 |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Style my own elements                                                              | A block beside them. Nothing global.                                                                                                                                                  |
-| Share a look across several of my own components                                   | Assign a theme and `<style apply={theme} />` in each ([how](#apply-a-theme-to-a-scope)).                                                                                              |
-| Let a child component pick up my styles                                            | Pass `theme.$class`, or a class-map entry such as `theme.card`, as a prop ([how](#opt-single-elements-in-with-class)). A child you own can also take its own block beside its markup. |
-| Style a child I cannot change (a third-party component, rendered HTML or markdown) | `.wrapper :global(.their-class)`, or `.wrapper { :global { … } }` for several classes, with a scoped selector in front.                                                               |
-| React to page-level state (a theme class or attribute on `<html>`)                 | `:global(.theme-dark) .card` or `:global([data-theme='dark']) .card`.                                                                                                                 |
-| Style my element with a class another library toggles on it                        | `.card:global(.is-open)`.                                                                                                                                                             |
-| Write page-wide rules (`body`, resets, fonts)                                      | A `.css` file the page links, not a bare `:global`.                                                                                                                                   |
-
-For a child you own, pass the class instead of reaching in with `:global`. With
-a prop, the dependency is visible in code, the child decides which of its
-elements take the class, renaming a class inside the child cannot silently break
-the parent, and the hash keeps the rule on the elements that carry it. With
-`.wrapper :global(.their-class)` the child has no say and cannot see who styles
-it, so keep that form for children you cannot change, and always put a scoped
-selector in front so the rule cannot reach ancestors or unrelated components.
-
-A bare `:global(.toast)` is a global stylesheet hidden inside a component: it
-matches anywhere on the page, and nothing on the matched element points back to
-the file that wrote it. Keep it for page-level elements, and prefer a `.css` file
-the page links for those.
-
-### Global Keyframes
-
-Keyframes are scoped by default. To create global keyframes that can be shared
-across components, prefix the animation name with `-global-`:
-
-<Code>
-
-```tsrx
-export function App() @{
-  <>
-    <div class="parent">
-      <Child />
-    </div>
-
-    <style>
-      /* Scoped keyframe - only usable within App */
-      @keyframes slideIn {
-        from {
-          transform: translateX(-100%);
-        }
-        to {
-          transform: translateX(0);
-        }
-      }
-
-      /* Global keyframe - usable in any component */
-      @keyframes -global-fadeIn {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-
-      .parent {
-        animation: slideIn 1s;
-      }
-    </style>
-  </>
-}
-
-function Child() @{
-  <>
-    <div class="child">Child content</div>
-
-    <style>
-      .child {
-        animation: fadeIn 1s; /* Uses global fadeIn from App */
-      }
-    </style>
-  </>
-}
-```
-
-</Code>
 
 ## Assign a block to get a class map
 
@@ -624,6 +470,160 @@ export function App() @{
 Reading `theme.$class` is what makes `theme` a theme: the `div, h2` rule survives
 even though nothing exports or applies the block. Opt one element into several
 themes with `class={[a.$class, b.$class]}`.
+
+## Global Styles
+
+By default, every rule is scoped. To reach outside the scope, use the
+`:global(...)` pseudo-class or a `:global` block. Where the `:global` sits decides
+how far the rule reaches:
+
+<Code>
+
+```tsrx
+export function App() @{
+  <>
+    <div class="container">
+      <Child />
+    </div>
+
+    <style>
+      /* Scoped to App only */
+      .container {
+        padding: 1rem;
+      }
+
+      /* Global - Not Recommended - applies to any .highlight in any component */
+      :global(.highlight) {
+        color: red;
+        font-weight: bold;
+      }
+
+      /* Global - Recommended - scoped parent with global child selector */
+      .container :global(.nested) {
+        margin-left: 2rem;
+      }
+
+      /* Global block - everything inside is global */
+      div :global {
+        .header {
+          font-size: 3rem;
+        }
+      }
+    </style>
+  </>
+}
+
+function Child() {
+  return <div>
+    <h2 class="header">This is a header with font-size 3rem</h2>
+    <span class="highlight">This will be red and bold</span>
+    <p class="nested">This will have left margin</p>
+  </div>
+}
+```
+
+</Code>
+
+- **Bare** `:global(.toast)` becomes `.toast`: a page-wide rule that matches
+  anywhere, exactly like a rule in a global stylesheet.
+- **Prefixed** `.container :global(.nested)` becomes
+  `.container.tsrx-1a20093c .nested`: only elements below your scoped
+  container, a child component's internals included. It can never climb up.
+- **Leading** `:global(.theme-dark) .card` becomes `.theme-dark .card.tsrx-1a20093c`:
+  your own element, only when an ancestor carries the class.
+- **Compound** `.card:global(.is-open)` becomes `.card.tsrx-1a20093c.is-open`:
+  your own element, with a class another library toggles on it.
+- **Block** `:global { … }` drops the wrapper and leaves every rule inside it
+  unscoped. Nested under a scoped rule, `.post { :global { pre { … } } }`, it
+  reaches only below that rule, like the prefixed form with the prefix written
+  once.
+
+`:global(...)` may only start or end a selector. In the middle,
+`.card :global(.x) .title`, it is the `tsrx-css-global-placement` error.
+
+### Which one to use
+
+Reach for `:global` only when a prop cannot do the job. Start from what you want:
+
+| I want to …                                                                        | Use …                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Style my own elements                                                              | A block beside them. Nothing global.                                                                                                                                                  |
+| Share a look across several of my own components                                   | Assign a theme and `<style apply={theme} />` in each ([how](#apply-a-theme-to-a-scope)).                                                                                              |
+| Let a child component pick up my styles                                            | Pass `theme.$class`, or a class-map entry such as `theme.card`, as a prop ([how](#opt-single-elements-in-with-class)). A child you own can also take its own block beside its markup. |
+| Style a child I cannot change (a third-party component, rendered HTML or markdown) | `.wrapper :global(.their-class)`, or `.wrapper { :global { … } }` for several classes, with a scoped selector in front.                                                               |
+| React to page-level state (a theme class or attribute on `<html>`)                 | `:global(.theme-dark) .card` or `:global([data-theme='dark']) .card`.                                                                                                                 |
+| Style my element with a class another library toggles on it                        | `.card:global(.is-open)`.                                                                                                                                                             |
+| Write page-wide rules (`body`, resets, fonts)                                      | A `.css` file the page links, not a bare `:global`.                                                                                                                                   |
+
+For a child you own, pass the class instead of reaching in with `:global`. With
+a prop, the dependency is visible in code, the child decides which of its
+elements take the class, renaming a class inside the child cannot silently break
+the parent, and the hash keeps the rule on the elements that carry it. With
+`.wrapper :global(.their-class)` the child has no say and cannot see who styles
+it, so keep that form for children you cannot change, and always put a scoped
+selector in front so the rule cannot reach ancestors or unrelated components.
+
+A bare `:global(.toast)` is a global stylesheet hidden inside a component: it
+matches anywhere on the page, and nothing on the matched element points back to
+the file that wrote it. Keep it for page-level elements, and prefer a `.css` file
+the page links for those.
+
+### Global Keyframes
+
+Keyframes are scoped by default. To create global keyframes that can be shared
+across components, prefix the animation name with `-global-`:
+
+<Code>
+
+```tsrx
+export function App() @{
+  <>
+    <div class="parent">
+      <Child />
+    </div>
+
+    <style>
+      /* Scoped keyframe - only usable within App */
+      @keyframes slideIn {
+        from {
+          transform: translateX(-100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+
+      /* Global keyframe - usable in any component */
+      @keyframes -global-fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .parent {
+        animation: slideIn 1s;
+      }
+    </style>
+  </>
+}
+
+function Child() @{
+  <>
+    <div class="child">Child content</div>
+
+    <style>
+      .child {
+        animation: fadeIn 1s; /* Uses global fadeIn from App */
+      }
+    </style>
+  </>
+}
+```
+
+</Code>
 
 ## Which rule wins
 
