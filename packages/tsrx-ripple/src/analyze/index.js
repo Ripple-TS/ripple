@@ -11,7 +11,6 @@
 	Visitor,
 	Visitors,
 	Binding,
-	TopScopedClasses,
 } from '../../types/index';
  */
 /**
@@ -25,9 +24,6 @@ import {
 	ScopeRoot,
 	isVoidElement,
 	extractPaths,
-	analyzeCss,
-	pruneCss,
-	collectStyleRefAttributes,
 	error,
 	getReturnKeywordNode,
 	isEventAttribute,
@@ -60,7 +56,6 @@ import {
 	build_lazy_array_rest,
 	build_lazy_array_set,
 	build_lazy_array_update,
-	collect_tsrx_stylesheet,
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
@@ -88,6 +83,7 @@ import {
 	rendered_template_children,
 } from '../template-ast.js';
 import is_reference from 'is-reference';
+import { prepare_style_scopes } from '../style-scopes.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
@@ -1199,44 +1195,17 @@ function visit_function(node, context) {
 			}
 		}
 
-		/** @type {Array<AST.TSRXJSXElement | AST.JSXStyleElement>} */
-		const elements = [];
 		const metadata = {};
-		const styleClasses = new Map();
-		/** @type {TopScopedClasses} */
-		const topScopedClasses = new Map();
-		const render_body = get_native_tsrx_function_body(node, context.state.scopes);
+		// Memoize the render body now so the transforms share one expansion.
+		get_native_tsrx_function_body(node, context.state.scopes);
 		const component_state = {
 			...context.state,
 			component: node,
-			elements,
 			function_depth: (context.state.function_depth ?? 0) + 1,
 			metadata,
 		};
 
 		context.next(component_state);
-
-		const css = collect_tsrx_stylesheet(render_body);
-		node.metadata.component_css = css;
-
-		if (css !== null) {
-			analyzeCss(css);
-			const prune = () => {
-				for (const element of elements) {
-					pruneCss(css, element, styleClasses, topScopedClasses);
-				}
-			};
-			prune();
-			if (collectStyleRefAttributes(render_body).length > 0) {
-				for (const [className, classInfo] of topScopedClasses) {
-					styleClasses.set(className, classInfo.selector ?? classInfo);
-				}
-				prune();
-			}
-			if (topScopedClasses.size > 0) {
-				node.metadata.topScopedClasses = topScopedClasses;
-			}
-		}
 
 		if (node.type !== 'ArrowFunctionExpression' && node.id) {
 			context.state.analysis.component_metadata.push({
@@ -2342,11 +2311,8 @@ const visitors = {
 
 		mark_control_flow_has_template(context.path, node);
 
-		if (context.state.elements) {
-			context.state.elements.push(node);
-		}
-
-		// Children are stylesheet AST — nothing to analyze.
+		// Children are stylesheet AST — nothing to analyze; the style pre-pass
+		// (`style-scopes.js`) owns scoping, pruning, and `apply`.
 	},
 
 	JSXElement(node, context) {
@@ -2366,8 +2332,8 @@ const visitors = {
 		const is_dynamic = is_dynamic_element(node);
 		const is_dom_element = is_element_dom_element(node);
 		// Dynamic tags (`<{expr}>`) resolve at runtime: scoped CSS pruning must
-		// keep type selectors (the tag could be any element) and collect the
-		// element so its classes match and receive the scope hash.
+		// keep type selectors (the tag could be any element), and the element
+		// receives the scope classes like a DOM element.
 		if (is_dynamic) {
 			node.metadata.dynamicElement = true;
 		}
@@ -2452,10 +2418,6 @@ const visitors = {
 
 			const is_void = isVoidElement(/** @type {AST.Identifier} */ (element_id).name);
 
-			if (state.elements) {
-				state.elements.push(node);
-			}
-
 			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					const attr_name = get_attribute_name_node(attr);
@@ -2537,10 +2499,6 @@ const visitors = {
 				);
 			}
 		} else {
-			if (is_dynamic && state.elements) {
-				state.elements.push(node);
-			}
-
 			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
 					attribute_names.add(get_attribute_name_node(attr));
@@ -2783,6 +2741,7 @@ export function analyze(ast, filename, options = {}) {
 		},
 		errors,
 		comments,
+		stylesheets: [],
 	});
 
 	walk(
@@ -2806,6 +2765,10 @@ export function analyze(ast, filename, options = {}) {
 	);
 
 	validate_server_module_imports(analysis, filename, collect);
+
+	// Style scopes need every element's ancestor path, which the walk above
+	// records, so they are resolved last.
+	prepare_style_scopes(ast, analysis, filename, collect);
 
 	return analysis;
 }

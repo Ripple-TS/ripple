@@ -355,8 +355,11 @@ names. Do not use removed dynamic tag syntax such as `<@tag />`,
 
 ## Styles
 
-`<style>` blocks are static CSS scoped to the current template. Use CSS custom
-properties for runtime values.
+A `<style>` block is static CSS scoped to its siblings: it styles the items
+written beside it and everything below them, never the element that contains
+it. The compiler adds a hash class to every selector in the block and to every
+element the block reaches, so rules do not leak into parents, outer siblings,
+child components, or the page. Use CSS custom properties for runtime values.
 
 ```tsrx
 import { track } from 'ripple';
@@ -365,33 +368,115 @@ export function Card() @{
 	let &[tone] = track('rebeccapurple');
 
 	<>
-		<section class="card" style={{ '--tone': tone }}>
-			<h2>Card</h2>
-		</section>
 		<style>
 			.card {
 				border: 1px solid var(--tone);
 				padding: 1rem;
 			}
 		</style>
+		<section class="card" style={{ '--tone': tone }}>
+			<h2>Card</h2>
+		</section>
 	</>
 }
 ```
 
-Use `:global(...)` to opt out of scoping. Module-scope style expressions expose
-scoped class names that can be passed as props.
+- A block lives in the children list of an element or fragment, beside the
+  output it styles. A `@{ ... }` body or an `@if`/`@for`/`@switch`/`@try` branch
+  renders one output node and a block counts as one, so wrap the block and its
+  markup in a fragment: `<><style>...</style><div /></>`.
+- Raw CSS in `<style>` is TSRX syntax: it needs a `@{ ... }` body or a branch
+  around it. In a plain function that returns JSX, write `<style>{css}</style>`,
+  an ordinary element the compiler leaves alone.
+- Blocks among the same children share one hash class and one stylesheet. A
+  nested element or fragment whose children hold a block is a nested scope with
+  its own hash; elements carry the hash of every scope around them, outer first.
+  Outer rules reach nested scopes; inner rules never reach out.
+- A block inside an `@if`/`@for` branch styles only the elements that branch
+  renders, but its CSS always ships, because CSS is static.
+- A selector that matches nothing the block can reach, including a selector
+  that only matches the containing element, is removed as unused and left as a
+  `/* (unused) ... */` comment.
+- A scoped block accepts only the `ref` and `apply` attributes.
+- Use `:global(...)` to reach outside the scope: `:global(.x)` is page-wide,
+  `.card :global(.x)` reaches only below your scoped `.card`, `:global(.dark)
+  .card` reacts to an ancestor's class, `.card:global(.is-open)` matches a class
+  another library toggles. `:global { ... }` does the same for every rule inside
+  it. `:global` may only start or end a selector. Prefer passing a class from a
+  theme to a child you own; keep `:global` for children you cannot change, with
+  a scoped selector in front.
+- CSS comes out in source order, outer scope first: a scope's blocks stay one
+  group, nested scopes follow their parent, sibling scopes follow source order,
+  an assigned block sits at its declaration, and an applied theme comes before
+  the block that applies it. At equal specificity the later rule wins.
+
+Assigning a `<style>` block to a variable produces a **class map** instead of a
+scoped block: `$class` is the block's hash class (after the classes of any theme
+it applies) and every standalone class selector becomes a key whose value is
+the hash class plus the class name. The declaration can sit at module scope or
+inside a component body. Pass these strings to child components as props.
 
 ```tsrx
-const styles = <style>
-	.highlight {
-		background: #e8f5e9;
+export const theme = <style>
+	div {
+		color: green;
+	}
+	.dark {
+		color: purple;
 	}
 </style>;
+// theme.$class -> 'tsrx-1a2b3c4d'
+// theme.dark -> 'tsrx-1a2b3c4d dark'
 
 export function Badge() {
-	return <span class={styles.highlight}>New</span>;
+	return <span class={theme.dark}>New</span>;
 }
 ```
+
+- A block that is exported, applied, or whose `$class` is read is a **theme**
+  and keeps every selector, element and descendant selectors included. A block
+  only read through its class keys keeps only its standalone class selectors.
+- `$class` is reserved; a standalone `<style>` at module scope is an error.
+
+`<style apply={theme} />` adds the theme's `$class` to every element of the
+scope it sits in, so the theme's element and descendant rules reach them as if
+the theme had been written there. `<style apply={theme}>...</style>` applies the
+theme and declares the scope's own block in one tag.
+
+```tsrx
+import { theme } from './theme.tsrx';
+
+export function Panel() @{
+	<>
+		<style apply={theme}>
+			div {
+				color: black;
+			}
+		</style>
+		<span class={theme.dark}>Purple</span>
+		<div>Black: the local rule beats the theme's green</div>
+	</>
+}
+```
+
+- `apply={[a, b]}` applies several themes; `const accent = <style apply={base}>`
+  composes at the definition, and `accent.$class` lists `base`'s classes first;
+  `export const bundle = <style apply={[a, b]} />;` bundles themes with no CSS
+  of its own.
+- The target must be an identifier, member expression, or array of those,
+  naming a block declared earlier in the module or imported. A same-module theme
+  becomes a string literal in the class attribute; an imported theme is read at
+  runtime through `theme.$class`.
+- To opt single elements in instead of a whole scope, give them
+  `class={theme.$class}`; a child component can receive `theme.$class` through a
+  prop and put it on its own elements.
+- An element's class list is: its own classes, the hash classes of the scopes
+  around it outer to inner, then the applied themes' classes.
+- On the client the Vite plugin emits one virtual CSS module per `.tsrx` file,
+  imported after the module's own imports. On the server, `render` returns the
+  hashes of the scopes it rendered as `css` (an applied theme before the scope
+  that applies it); a class map registers its sheet when one of its entries is
+  read. Style errors are compile errors with `tsrx-style-*` codes.
 
 ## Context
 
@@ -581,6 +666,9 @@ Do:
 - Use JSX text for literal children.
 - Use `@for` for rendered lists and `@if` for conditional rendering.
 - Use Ripple collections for reactive collection state.
+- Put a `<style>` block beside the elements it styles, inside a fragment or
+  element; assign a block to a variable to share it as a theme (`apply`,
+  `$class`) or class map.
 
 Do not:
 
@@ -588,6 +676,8 @@ Do not:
 - Use raw `if`, `for`, `switch`, or `try` as rendered control flow.
 - Treat plain text inside a template as JavaScript; it is JSX text.
 - Put JavaScript expressions inside `<style>` blocks.
+- Expect a `<style>` block to style the element that contains it, or write raw
+  CSS in a `<style>` inside a plain function that returns JSX.
 - Invent imports or runtime APIs outside the `ripple` package or the active
   bundler integration.
 

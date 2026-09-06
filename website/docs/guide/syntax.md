@@ -33,7 +33,9 @@ element directly. When a template scope mixes TypeScript setup and rendered
 output, wrap the scope in `@{...}`. Setup comes first and the container must
 finish with exactly one output node: a JSX element, a JSX fragment, or JSX
 control flow such as `@if`, `@for`, `@switch`, or `@try`. CSS text inside
-`<style>` blocks keeps CSS rules, not template rules.
+`<style>` blocks keeps CSS rules, not template rules, and a block styles the
+elements beside it, so it sits next to them in a fragment or element (see
+[Styling](/docs/guide/styling)).
 
 ```tsrx
 export function MyComponent({ name }: { name: string | null }) @{

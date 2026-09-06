@@ -94,6 +94,13 @@ pnpm rules:generate
   setup.
 - Use `@if`, `@for`, `@switch`, and `@try` for template control flow. Plain
   JavaScript control flow remains ordinary setup code.
+- A `<style>` block is scoped to its siblings: it styles the elements beside it
+  and everything below them, never the element that contains it. Put the block and
+  its markup side by side in a fragment or element, inside a `@{ ... }` body or a
+  control-flow branch. Blocks among the same children share one hash; nested
+  children lists with blocks are nested scopes. Assign a block to a variable for a
+  theme (`theme.$class`, `<style apply={theme} />`) or class map; raw CSS in a
+  `<style>` inside a plain `return <div />` function is an error.
 - Use `pnpm` for all package management and workspace scripts.
 - Follow the conventions of the package you are changing. This repo mixes plain
   JavaScript, JSDoc-typed JavaScript, and TypeScript depending on package.

@@ -1252,7 +1252,12 @@ export function set_output_target(target) {
  * @returns {void}
  */
 export function output_register_css(hash) {
-	/** @type {Block} */ (active_block).o.register_css(hash);
+	// A style class map is read wherever its value is used, including outside
+	// a render (a module-level `theme.$class` read); only a render has a
+	// request to register the CSS with.
+	if (active_block !== null) {
+		active_block.o.register_css(hash);
+	}
 }
 
 /**

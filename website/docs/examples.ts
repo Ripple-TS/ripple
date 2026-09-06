@@ -74,6 +74,157 @@ function DynamicClasses() @{
 }`,
 	},
 	{
+		title: 'Scoped Styles & Themes',
+		code: `import { track } from 'ripple';
+
+// A <style> block styles the elements beside it and everything below them,
+// never the element that contains it. Assigned to a variable it becomes a
+// theme: an object with $class (its hash class) plus one key per class
+// selector. Exported, applied, or $class-read blocks keep every selector.
+const base = <style>
+	article {
+		font-family: system-ui, sans-serif;
+		border-radius: 12px;
+		padding: 1rem 1.25rem;
+	}
+	h2 {
+		margin: 0 0 0.5rem;
+		font-size: 1.1rem;
+	}
+</style>;
+
+// A theme can apply another theme: light.$class carries base's hash too.
+const light = <style apply={base}>
+	article {
+		background: #f6f7fb;
+		color: #1a1c2c;
+	}
+	.accent {
+		color: #5b4bff;
+	}
+</style>;
+
+const dark = <style apply={base}>
+	article {
+		background: #1a1c2c;
+		color: #f6f7fb;
+	}
+	.accent {
+		color: #ffb454;
+	}
+</style>;
+
+// Reading accent.$class makes this block a theme, so its element rules
+// survive, and only the elements that carry accent.$class pick them up.
+const accent = <style>
+	p {
+		border-left: 3px solid #5b4bff;
+		padding-left: 0.5rem;
+	}
+	strong {
+		color: #5b4bff;
+	}
+</style>;
+
+// A child puts a passed class on the elements it chooses; its own scope
+// hash follows, so its local rules still reach them.
+function Footnote({ parentClass }: { parentClass: string }) @{
+	<>
+		<style>
+			p {
+				margin: 0;
+				font-size: 0.9rem;
+			}
+		</style>
+		<p class={parentClass}>
+			<strong class={parentClass}>Footnote:</strong> a child opted in through a prop.
+		</p>
+	</>
+}
+
+// Each card applies a theme to its own scope: the theme's article and h2
+// rules reach every element here, while the card's local rules stay local.
+function LightCard() @{
+	<>
+		<style apply={light}>
+			p {
+				margin: 0;
+			}
+		</style>
+		<article>
+			<h2>Light card</h2>
+			<p>{'Accent class: ' + light.accent}</p>
+			<p class={light.accent}>A class-map entry carries its hash.</p>
+		</article>
+	</>
+}
+
+function DarkCard() @{
+	<>
+		<style apply={dark}>
+			p {
+				margin: 0;
+			}
+		</style>
+		<article>
+			<h2>Dark card</h2>
+			<p class={dark.accent}>Same markup, other theme.</p>
+		</article>
+	</>
+}
+
+export default function App() @{
+	let &[expanded] = track(false);
+
+	<>
+		<style>
+			.stack {
+				display: grid;
+				gap: 0.75rem;
+				justify-items: start;
+			}
+			button {
+				padding: 0.4rem 0.9rem;
+				border-radius: 8px;
+				border: 1px solid #8886;
+				background: transparent;
+				color: inherit;
+				cursor: pointer;
+			}
+		</style>
+		<div class="stack">
+			<LightCard />
+			<DarkCard />
+			<p class={accent.$class}>Opted in with accent.$class; apply would stamp every element.</p>
+			<p>An untouched sibling.</p>
+			<Footnote parentClass={accent.$class} />
+			<button onClick={() => (expanded = !expanded)}>
+				{expanded ? 'Collapse' : 'Expand'}
+			</button>
+			@if (expanded) {
+				<>
+					<style>
+						.note {
+							color: #17803d;
+						}
+					</style>
+					<p class="note">Rules in a branch reach only that branch.</p>
+				</>
+			} @else {
+				<>
+					<style>
+						.note {
+							opacity: 0.6;
+						}
+					</style>
+					<p class="note">Same class name, a different scope.</p>
+				</>
+			}
+		</div>
+	</>
+}`,
+	},
+	{
 		title: 'Components',
 		code: `
 function Card() @{

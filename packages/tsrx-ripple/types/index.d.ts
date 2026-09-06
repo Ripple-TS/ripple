@@ -5,6 +5,7 @@
  */
 import type * as AST from 'estree';
 import type {
+	AnalysisResult as CoreAnalysisResult,
 	CompileFn,
 	CompileOptions,
 	CompileResult,
@@ -14,6 +15,22 @@ import type {
 } from '@tsrx/core/types';
 
 export type * from '@tsrx/core/types';
+
+/**
+ * One thing the server registers with the active request before a component
+ * renders its template: a stylesheet hash, or a `theme.$class` read whose
+ * getter registers an imported theme's sheet (see `src/style-scopes.js`).
+ */
+export type StyleRegistration = string | AST.Expression;
+
+/**
+ * Ripple's analysis result: the shared shape plus what the style pre-pass
+ * (`src/style-scopes.js`) computed for the module.
+ */
+export interface AnalysisResult extends CoreAnalysisResult {
+	/** Every stylesheet of the module, in CSS emission order. */
+	stylesheets: AST.CSS.StyleSheet[];
+}
 
 /**
  * Ripple's compile result extends the shared {@link CompileResult} with a

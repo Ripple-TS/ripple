@@ -59,6 +59,28 @@ function get_variable_types(code) {
 }
 
 describe('@tsrx/ripple Volar JSX expression types', () => {
+	it('types a style class map with $class and verifies apply targets on the style stand-in', () => {
+		const { code } = compile_to_volar_mappings(
+			`
+const base = <style>div { color: red; }</style>;
+const theme = <style apply={base}>.dark { color: purple; }</style>;
+const cls = theme.$class;
+const dark = theme.dark;
+export function App() @{
+	<>
+		<style apply={[base, theme]}>.in { margin: 0; }</style>
+		<div class={theme.$class}>{'in'}</div>
+	</>
+}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+		expect(code).toContain('<style data-tsrx-apply={[base.$class, theme.$class]}></style>');
+		const types = get_variable_types(code);
+		expect(types.get('cls')).toBe('string');
+		expect(types.get('dark')).toBe('string');
+	});
+
 	it('types JSX expression values as TSRXElement', () => {
 		const source = `
 function App() @{

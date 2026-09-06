@@ -671,7 +671,9 @@ describe('dynamic DOM elements', () => {
 		expect(innerScopes).toHaveLength(1);
 		expect(innerScopes[0]).not.toBe(outerScope);
 
-		expect(innerInnerScopes).toHaveLength(0);
+		// Every element of the child's scope carries the child's hash, and none
+		// of the parent's.
+		expect(innerInnerScopes).toEqual(innerScopes);
 	});
 
 	it('doesn\'t add scoping class to dynamically rendered component', () => {
@@ -708,7 +710,8 @@ describe('dynamic DOM elements', () => {
 		const innerScopes = Array.from(p.classList).filter((c) => c.startsWith('tsrx-'));
 
 		expect(outerScopes).toHaveLength(1);
-		expect(innerScopes).toHaveLength(0);
+		// The child's own scope reaches its <p>; the parent's never does.
+		expect(innerScopes).toEqual(outerScopes);
 	});
 
 	it('handles ref on dynamic element passed through component with reactive props', () => {

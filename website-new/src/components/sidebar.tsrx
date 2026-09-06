@@ -1,7 +1,7 @@
 import { track } from 'ripple';
 
-export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: string }) {
-	return <>
+export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: string }) @{
+	<>
 		<aside class="Sidebar">
 			<div class="curtain" />
 			<nav class="nav" id="SidebarNav" aria-labelledby="sidebar-aria-label" tabindex="-1">
@@ -203,7 +203,7 @@ export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: 
 				}
 			}
 		</style>
-	</>;
+	</>
 }
 
 function SidebarGroup({

@@ -316,8 +316,9 @@ export function SearchBox() @{
 
 ### Scoped Styles
 
-`<style>` blocks are static CSS and are scoped to the template. Use CSS custom
-properties for runtime values.
+`<style>` blocks are static CSS scoped to their siblings: a block styles the
+elements beside it and everything below them, never the element that contains it.
+Use CSS custom properties for runtime values.
 
 ```tsx
 import { track } from 'ripple';
@@ -342,17 +343,36 @@ export function Notice() @{
 }
 ```
 
-Module-scope style expressions can expose scoped class names:
+A `<style>` block assigned to a variable becomes a theme: an object with `$class`,
+its hash class, plus one key per class selector. Pass the strings as props, apply
+the whole theme to a scope with `<style apply={theme} />`, or opt single elements
+in with `class={theme.$class}`:
 
 ```tsx
-const styles = <style>
+export const theme = <style>
+  article {
+    font-family: system-ui;
+  }
   .highlight {
     background: #e8f5e9;
   }
 </style>;
 
 export function Badge() {
-  return <span class={styles.highlight}>New</span>;
+  return <span class={theme.highlight}>New</span>;
+}
+
+export function Card() @{
+  <>
+    <style apply={theme}>
+      h2 {
+        margin: 0;
+      }
+    </style>
+    <article>
+      <h2>Themed, with a local override</h2>
+    </article>
+  </>
 }
 ```
 

@@ -1,5 +1,5 @@
-export function Layout({ children }) {
-	return <>
+export function Layout({ children }) @{
+	<>
 		<main>
 			<div class="container">{children}</div>
 
@@ -176,5 +176,5 @@ export function Layout({ children }) {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

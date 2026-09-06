@@ -16,18 +16,13 @@
 import {
 	builders,
 	escape,
-	analyzeCss,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	renderCssResult,
 	renderStylesheets,
-	prepareStylesheetForRender,
-	collectStyleRefAttributes,
-	createStyleClassMap,
+	buildStyleClassMap,
 	createStyleClassMapFromStylesheet,
-	createStyleRefSetupStatements,
 	getStyleElementStylesheet,
-	CSS_HASH_IDENTIFIER,
 	obfuscateIdentifier,
 	BLOCK_CLOSE,
 	BLOCK_OPEN,
@@ -41,6 +36,7 @@ import ts from 'esrap/languages/ts';
 import path from 'node:path';
 import { print } from 'esrap';
 import is_reference from 'is-reference';
+import { get_style_registrations } from '../../style-scopes.js';
 import {
 	determine_namespace_for_children,
 	escape_html,
@@ -84,6 +80,8 @@ import {
 	is_text_primitive_expression,
 	collect_head_elements,
 	is_flattenable_template_fragment,
+	get_scope_class_chain,
+	build_scope_class_expression,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -117,48 +115,41 @@ function is_traversable_ast_node(value) {
 }
 
 /**
- * @param {TransformServerState} state
- * @returns {AST.CSS.StyleSheet | null}
- */
-function get_component_css(state) {
-	return state.component?.metadata.component_css ?? null;
-}
-
-/**
- * @param {TransformServerState} state
- * @returns {string | null}
- */
-function get_component_css_hash(state) {
-	return get_component_css(state)?.hash ?? null;
-}
-
-/**
+ * The class-map object of an assigned block (`const theme = <style>…</style>`)
+ * on the server: every entry is a getter that registers the CSS it stands for
+ * with the active request before returning the class string, so a request
+ * collects exactly the sheets it rendered. `$class` registers the applied
+ * themes' sheets before the block's own (their runtime reads register
+ * themselves through the same getters); a named entry carries only the
+ * block's own hash. The sheet itself was prepared by the style pre-pass at
+ * its declaration position.
  * @param {AST.JSXStyleElement} node
- * @param {TransformServerContext} context
- * @returns {AST.ObjectExpression | null}
- */
-function build_style_class_map_expression(node, context) {
-	const stylesheet = getStyleElementStylesheet(node);
-	if (!stylesheet) {
-		return null;
-	}
-
-	analyzeCss(stylesheet);
-	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet, true));
-	return create_server_style_class_map_expression(stylesheet);
-}
-
-/**
- * @param {AST.CSS.StyleSheet} stylesheet
  * @returns {AST.ObjectExpression}
  */
-function create_server_style_class_map_expression(stylesheet) {
-	const style_map = createStyleClassMapFromStylesheet(stylesheet);
+function build_style_class_map_expression(node) {
+	const stylesheet = getStyleElementStylesheet(node);
+	const applied = node.metadata.tsrx_style_class_parts ?? [];
+	const style_map = stylesheet
+		? createStyleClassMapFromStylesheet(stylesheet, { applied })
+		: buildStyleClassMap(new Map(), null, { applied });
+	const own_hash = stylesheet?.hash ?? null;
+	/** @type {string[]} */
+	const class_hashes = [];
+	for (const part of applied) {
+		if (typeof part === 'string' && !class_hashes.includes(part)) class_hashes.push(part);
+	}
+	if (own_hash !== null && !class_hashes.includes(own_hash)) class_hashes.push(own_hash);
+
 	return b.object(
 		style_map.properties.map((property) => {
 			if (property.type !== 'Property') {
 				return property;
 			}
+			const is_class =
+				property.key.type === 'Literal'
+					? property.key.value === '$class'
+					: property.key.type === 'Identifier' && property.key.name === '$class';
+			const hashes = is_class ? class_hashes : own_hash === null ? [] : [own_hash];
 			return b.prop(
 				'get',
 				/** @type {AST.Expression} */ (property.key),
@@ -166,13 +157,30 @@ function create_server_style_class_map_expression(stylesheet) {
 					null,
 					[],
 					b.block([
-						b.stmt(b.call('_$_.output_register_css', b.literal(stylesheet.hash))),
+						...hashes.map((hash) => b.stmt(b.call('_$_.output_register_css', b.literal(hash)))),
 						b.return(/** @type {AST.Expression} */ (property.value)),
 					]),
 				),
 				property.computed,
 			);
 		}),
+	);
+}
+
+/**
+ * What a component registers with the request before rendering its template
+ * (see `style-scopes.js`): each scope's applied themes first — a hash to
+ * register, or a `theme.$class` read whose getter registers an imported
+ * theme's sheet — then the scope's own hash, so an applied theme's CSS
+ * always precedes the scope that applies it.
+ * @param {AST.Function} node
+ * @returns {AST.Statement[]}
+ */
+function build_style_registration_statements(node) {
+	return get_style_registrations(node).map((entry) =>
+		typeof entry === 'string'
+			? b.stmt(b.call('_$_.output_register_css', b.literal(entry)))
+			: b.stmt(b.unary('void', clone_ast_node(entry, false))),
 	);
 }
 
@@ -1261,14 +1269,7 @@ function transform_native_tsrx_function(node, context) {
 	}
 
 	/** @type {AST.Statement[]} */
-	const body_statements = [];
-	const css = get_component_css({ ...context.state, component: node });
-	if (css !== null) {
-		const hash_id = b.id(CSS_HASH_IDENTIFIER);
-		const hash = b.var(hash_id, b.literal(css.hash));
-		context.state.stylesheets.push(css);
-		body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
-	}
+	const body_statements = build_style_registration_statements(node);
 
 	const raw_render_body = get_native_tsrx_function_body(node, context.state.scopes);
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
@@ -1280,16 +1281,9 @@ function transform_native_tsrx_function(node, context) {
 		(render_scope_node && context.state.scopes.get(render_scope_node)) ||
 		context.state.scopes.get(node) ||
 		context.state.scope;
-	const style_ref_setup = css
-		? createStyleRefSetupStatements(
-				collectStyleRefAttributes(raw_render_body),
-				createStyleClassMap(node, css),
-				{
-					allowMutableRefTarget: true,
-					createTempIdentifier: () => b.id(component_scope.generate('style_ref')),
-				},
-			)
-		: [];
+	// `<style ref>` class maps of the scopes inside this function (see
+	// `style-scopes.js`) are assigned before the template renders.
+	const style_ref_setup = node.metadata.tsrx_style_ref_statements ?? [];
 	const render_body = strip_tsrx_style_elements(
 		insert_style_ref_setup_statements(raw_render_body, style_ref_setup, context.state.scopes),
 		context.state.scopes,
@@ -1303,10 +1297,6 @@ function transform_native_tsrx_function(node, context) {
 				scope: component_scope,
 				is_tsrx_element: false,
 				regular_js: false,
-				applyParentCssScope:
-					node.metadata?.synthetic_children === true
-						? context.state.applyParentCssScope
-						: undefined,
 			},
 		}),
 	);
@@ -2227,13 +2217,11 @@ const visitors = {
 			is_native_tsrx_value_position(context.path, node) ||
 			is_regular_js_statement_position(context.path)
 		) {
-			const expression = build_style_class_map_expression(node, context);
-			if (expression) {
-				if (is_regular_js_statement_position(context.path)) {
-					return b.stmt(expression);
-				}
-				return expression;
+			const expression = build_style_class_map_expression(node);
+			if (is_regular_js_statement_position(context.path)) {
+				return b.stmt(expression);
 			}
+			return expression;
 		}
 
 		// Component styles render nothing on the server — their CSS is extracted
@@ -2293,9 +2281,10 @@ const visitors = {
 			const is_void = is_void_element(/** @type {AST.Identifier} */ (element_id).name);
 			const use_self_closing_syntax = is_self_closing(node) && is_void;
 			const tag_name = b.literal(/** @type {AST.Identifier} */ (element_id).name);
-			/** @type {AST.CSS.StyleSheet['hash'] | null} */
-			const scoping_hash =
-				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
+			// The scope hashes and applied theme classes the style pre-pass
+			// stamped on this element: a literal, or a runtime concatenation
+			// when an imported theme's `$class` is part of it.
+			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 			/** @type {AST.Expression | null} */
 			let inner_html_expression = null;
 			/** @type {AST.Identifier | null} */
@@ -2410,23 +2399,26 @@ const visitors = {
 
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
-				if (attr_value.type === 'Literal') {
-					let value = attr_value.value;
-
-					if (scoping_hash) {
-						value = `${scoping_hash} ${value}`;
-					}
-
-					handle_static_attr('class', value);
+				if (
+					attr_value.type === 'Literal' &&
+					(scope_class === null || scope_class.type === 'Literal')
+				) {
+					handle_static_attr(
+						'class',
+						scope_class === null
+							? attr_value.value
+							: `${attr_value.value} ${/** @type {string} */ (scope_class.value)}`,
+					);
 				} else {
 					const metadata = { tracking: false };
-					let expression = /** @type {AST.Expression} */ (
-						visit(attr_value, { ...state, metadata })
-					);
+					let expression =
+						attr_value.type === 'Literal'
+							? b.literal(attr_value.value)
+							: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
 
-					if (scoping_hash) {
+					if (scope_class !== null) {
 						// Pass array to clsx so it can handle objects properly
-						expression = b.array([expression, b.literal(scoping_hash)]);
+						expression = b.array([expression, scope_class]);
 					}
 
 					state.init?.push(
@@ -2435,8 +2427,26 @@ const visitors = {
 						),
 					);
 				}
-			} else if (scoping_hash) {
-				handle_static_attr('class', scoping_hash, is_spreading ? 'unshift' : 'push');
+			} else if (scope_class !== null) {
+				if (scope_class.type === 'Literal') {
+					handle_static_attr(
+						'class',
+						/** @type {string} */ (scope_class.value),
+						is_spreading ? 'unshift' : 'push',
+					);
+				} else if (is_spreading) {
+					// A `class` in the spread overrides this one, and `spread_attrs`
+					// then merges the scope classes back in.
+					/** @type {(AST.Property | AST.SpreadElement)[]} */ (spread_attributes).unshift(
+						b.prop('init', b.literal('class'), scope_class),
+					);
+				} else {
+					state.init?.push(
+						b.stmt(
+							b.call(b.id('_$_.output_push'), b.call('_$_.attr', b.literal('class'), scope_class)),
+						),
+					);
+				}
 			}
 
 			if (spread_attributes !== null && spread_attributes.length > 0) {
@@ -2446,11 +2456,7 @@ const visitors = {
 					b.stmt(
 						b.call(
 							b.id('_$_.output_push'),
-							b.call(
-								'_$_.spread_attrs',
-								spread_attributes_id,
-								scoping_hash ? b.literal(scoping_hash) : undefined,
-							),
+							b.call('_$_.spread_attrs', spread_attributes_id, scope_class ?? undefined),
 						),
 					),
 				);
@@ -2512,12 +2518,6 @@ const visitors = {
 							state: {
 								...state,
 								init,
-								...(state.applyParentCssScope
-									? {
-											applyParentCssScope:
-												state.applyParentCssScope || get_component_css_hash(state),
-										}
-									: {}),
 							},
 						}),
 					);
@@ -2539,12 +2539,6 @@ const visitors = {
 							state: {
 								...state,
 								init,
-								...(state.applyParentCssScope
-									? {
-											applyParentCssScope:
-												state.applyParentCssScope || get_component_css_hash(state),
-										}
-									: {}),
 							},
 						}),
 					);
@@ -2576,7 +2570,9 @@ const visitors = {
 			/** @type {AST.Property | null} */
 			let children_prop = null;
 
-			const apply_parent_css_scope = state.applyParentCssScope;
+			// Only a dynamic `<{tag}>` element carries scope classes here; a
+			// component's host elements belong to its own scopes.
+			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 
 			for (const attr of element_attributes) {
 				if (attr.type === 'JSXAttribute') {
@@ -2599,13 +2595,11 @@ const visitors = {
 										})
 									);
 
-						const scoped_hash = get_component_css_hash(state);
-						if (attr_name === 'class' && node.metadata.scoped && scoped_hash) {
-							if (property.type === 'Literal') {
-								property = b.literal(`${scoped_hash} ${property.value}`);
-							} else {
-								property = b.array([property, b.literal(scoped_hash)]);
-							}
+						if (attr_name === 'class' && scope_class !== null) {
+							property =
+								property.type === 'Literal' && scope_class.type === 'Literal'
+									? b.literal(`${property.value} ${/** @type {string} */ (scope_class.value)}`)
+									: b.array([property, scope_class]);
 						}
 
 						if (attr_name === 'children') {
@@ -2631,14 +2625,12 @@ const visitors = {
 				}
 			}
 
-			if (node.metadata.scoped && get_component_css(state)) {
+			if (scope_class !== null) {
 				const hasClassAttr = element_attributes.some(
 					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
-					const name = is_spreading ? '#class' : 'class';
-					const value = /** @type {string} */ (get_component_css_hash(state));
-					props.push(b.prop('init', b.key(name), b.literal(value)));
+					props.push(b.prop('init', b.key(is_spreading ? '#class' : 'class'), scope_class));
 				}
 			}
 
@@ -2665,12 +2657,6 @@ const visitors = {
 						visit(create_native_tsrx_render_function([], children_filtered, node), {
 							...context.state,
 							regular_js: false,
-							...(apply_parent_css_scope || get_component_css(state)
-								? {
-										applyParentCssScope:
-											apply_parent_css_scope || get_component_css_hash(state) || undefined,
-									}
-								: {}),
 							scope: component_scope,
 							namespace: child_namespace,
 						})
@@ -3569,7 +3555,8 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		init: null,
 		scope: analysis.scope,
 		scopes: analysis.scopes,
-		stylesheets: [],
+		// Filled by the style pre-pass in CSS emission order.
+		stylesheets: analysis.stylesheets,
 		component_metadata,
 		ancestor_server_block: undefined,
 		server_block_locals: [],
@@ -3601,14 +3588,19 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	body.push(...program.body);
 
-	// Register each stylesheet's CSS so the runtime can serialize it
+	// Register each scope's CSS by hash so the runtime can serialize it. The
+	// blocks of one scope share a hash and register as one sheet, in order.
 	if (css) {
+		/** @type {Map<string, AST.CSS.StyleSheet[]>} */
+		const sheets_by_hash = new Map();
 		for (const stylesheet of state.stylesheets) {
-			const css_for_component = renderStylesheets([stylesheet]);
+			const group = sheets_by_hash.get(stylesheet.hash);
+			if (group) group.push(stylesheet);
+			else sheets_by_hash.set(stylesheet.hash, [stylesheet]);
+		}
+		for (const [hash, sheets] of sheets_by_hash) {
 			body.push(
-				b.stmt(
-					b.call('_$_.register_css', b.literal(stylesheet.hash), b.literal(css_for_component)),
-				),
+				b.stmt(b.call('_$_.register_css', b.literal(hash), b.literal(renderStylesheets(sheets)))),
 			);
 		}
 	}

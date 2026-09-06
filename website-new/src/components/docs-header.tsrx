@@ -1,5 +1,5 @@
-export function DocsHeader() {
-	return <>
+export function DocsHeader() @{
+	<>
 		<header class="Header">
 			<div class="HeaderBar has-sidebar">
 				<div class="wrapper">
@@ -493,5 +493,5 @@ export function DocsHeader() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }
