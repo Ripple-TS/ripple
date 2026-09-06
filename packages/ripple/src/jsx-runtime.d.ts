@@ -1,4 +1,11 @@
-import type { AddEventObject, FragmentProps, RefKey, RefValue, TSRXElement } from '#public';
+import type {
+	AddEventObject,
+	Component,
+	FragmentProps,
+	RefKey,
+	RefValue,
+	TSRXElement,
+} from '#public';
 import type { Nullable } from '@tsrx/core/types/helpers';
 export type { RefValue } from '#public';
 
@@ -8,8 +15,8 @@ export type { RefValue } from '#public';
  * renderable TSRX values when used in expression positions.
  */
 
-// Ripple components are usually imperative, but helpers can return TSRX values.
-export type ComponentType<P = {}> = (props: P) => void | TSRXElement;
+// JSX accepts the same component return values as the public runtime APIs.
+export type ComponentType<P = {}> = Component<P>;
 
 /**
  * Create a JSX element (for elements with children)
