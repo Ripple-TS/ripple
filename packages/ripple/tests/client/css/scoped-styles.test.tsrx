@@ -355,6 +355,36 @@ export function Status({ ready }: { ready: boolean }) @{
 		expect(hashes(container.querySelector('div'))).toHaveLength(1);
 	});
 
+	it('keeps the scope classes of a static class when a spread brings its own class', () => {
+		function Card(&{ ...rest }: { class?: string }) @{
+			<>
+				<style apply={importedTheme}>
+					.box {
+						color: red;
+					}
+				</style>
+				<div id="box" class="box" {...rest}>{'x'}</div>
+				<style>
+					.plain {
+						margin: 0;
+					}
+				</style>
+			</>
+		}
+
+		function App() @{
+			<Card class="from-spread" />
+		}
+
+		render(App);
+
+		const box = container.querySelector('#box');
+		const [local] = hashes(box);
+		expect(local).toBeTruthy();
+		expect(hashes(box)).toEqual([local, ...tokens(importedTheme.$class)]);
+		expect(box?.classList.contains('box')).toBe(true);
+	});
+
 	it('keeps the scope classes while a dynamic class value changes', () => {
 		function App() @{
 			let &[active] = track(false);

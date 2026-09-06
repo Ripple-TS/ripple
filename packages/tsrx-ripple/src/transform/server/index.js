@@ -2399,7 +2399,12 @@ const visitors = {
 
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
-				if (
+				if (attr_value.type === 'Literal' && is_spreading && scope_class !== null) {
+					// The spread may carry a `class` of its own; `spread_attrs` merges
+					// the scope classes into whichever `class` wins, so they are not
+					// written here as well.
+					handle_static_attr('class', attr_value.value);
+				} else if (
 					attr_value.type === 'Literal' &&
 					(scope_class === null || scope_class.type === 'Literal')
 				) {

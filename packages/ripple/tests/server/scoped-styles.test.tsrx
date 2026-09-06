@@ -175,6 +175,35 @@ describe('sibling-scoped style blocks (server)', () => {
 	});
 });
 
+describe('spreads with an imported theme (server)', () => {
+	it('merges the scope classes of a static class into the spread once', async () => {
+		function Card(&{ ...rest }: { class?: string }) @{
+			<>
+				<style apply={importedTheme}>
+					.box {
+						color: red;
+					}
+				</style>
+				<div id="box" class="box" {...rest}>{'x'}</div>
+			</>
+		}
+
+		function App() @{
+			<Card class="from-spread" />
+		}
+
+		const { body } = await render(App);
+		expect(body.match(/class=/g)).toHaveLength(1);
+		const { document } = parseHtml(body);
+
+		const box = document.querySelector('#box');
+		const [local] = hashes(box);
+		expect(local).toBeTruthy();
+		expect(hashes(box)).toEqual([local, ...tokens(importedTheme.$class)]);
+		expect(box?.classList.contains('box')).toBe(true);
+	});
+});
+
 describe('$class and apply (server)', () => {
 	it(
 		'applies a same-module theme and registers its sheet before the scope that applies it',

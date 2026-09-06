@@ -2818,7 +2818,17 @@ const visitors = {
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
 				if (attr_value.type === 'Literal') {
-					if (scope_class === null || scope_class.type === 'Literal') {
+					if (is_spreading && scope_class !== null) {
+						// The spread may carry a `class` of its own that replaces this
+						// one, so the scope classes ride separately as `#class`, which
+						// the runtime adds after every other attribute.
+						handle_static_attr('class', attr_value.value);
+						if (scope_class.type === 'Literal') {
+							handle_static_attr('#class', /** @type {string} */ (scope_class.value));
+						} else {
+							spread_attributes?.push(b.prop('init', b.literal('#class'), scope_class));
+						}
+					} else if (scope_class === null || scope_class.type === 'Literal') {
 						handle_static_attr(
 							'class',
 							scope_class === null
