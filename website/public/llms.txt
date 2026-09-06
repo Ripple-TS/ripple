@@ -404,7 +404,17 @@ export function Card() @{
   another library toggles. `:global { ... }` does the same for every rule inside
   it. `:global` may only start or end a selector. Prefer passing a class from a
   theme to a child you own; keep `:global` for children you cannot change, with
-  a scoped selector in front.
+  a scoped selector in front:
+
+  | I want to ...                                              | Use ...                                                                                  |
+  | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+  | Style my own elements                                      | A `<style>` block beside them; nothing global                                            |
+  | Share a look across my own components                      | A theme and `<style apply={theme} />` in each                                            |
+  | Let a child component pick up my styles                    | Pass `theme.$class` or `theme.card` as a prop                                            |
+  | Style a child I cannot change (third-party, rendered HTML) | `.wrapper :global(.their-class)`, or `.wrapper { :global { ... } }`; scoped prefix first |
+  | React to page-level state                                  | `:global(.theme-dark) .card` or `:global([data-theme='dark']) .card`                     |
+  | Style my element with a class another library toggles     | `.card:global(.is-open)`                                                                 |
+  | Page-wide rules (`body`, resets, fonts)                    | A `.css` file the page links, not a bare `:global`                                       |
 - CSS comes out in source order, outer scope first: a scope's blocks stay one
   group, nested scopes follow their parent, sibling scopes follow source order,
   an assigned block sits at its declaration, and an applied theme comes before

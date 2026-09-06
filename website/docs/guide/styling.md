@@ -336,13 +336,32 @@ function Child() {
 `:global(...)` may only start or end a selector. In the middle,
 `.card :global(.x) .title`, it is the `tsrx-css-global-placement` error.
 
-Reach for `:global` only when a prop cannot do the job. To style a child you own,
-pass it a class from a theme (see [Apply a theme](#apply-a-theme-to-a-scope) and
-[Passing scoped classes](#passing-scoped-classes-to-child-components)) instead:
-the dependency is a visible prop, and the child decides which of its elements
-take the class. Keep `:global` for a child you cannot change, always with a scoped
-selector in front, and put page-wide rules such as `body` resets in a `.css` file
-the page links.
+### Which one to use
+
+Reach for `:global` only when a prop cannot do the job. Start from what you want:
+
+| I want to …                                                                        | Use …                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Style my own elements                                                              | A block beside them. Nothing global.                                                                                                                                                  |
+| Share a look across several of my own components                                   | Assign a theme and `<style apply={theme} />` in each ([how](#apply-a-theme-to-a-scope)).                                                                                              |
+| Let a child component pick up my styles                                            | Pass `theme.$class`, or a class-map entry such as `theme.card`, as a prop ([how](#opt-single-elements-in-with-class)). A child you own can also take its own block beside its markup. |
+| Style a child I cannot change (a third-party component, rendered HTML or markdown) | `.wrapper :global(.their-class)`, or `.wrapper { :global { … } }` for several classes, with a scoped selector in front.                                                               |
+| React to page-level state (a theme class or attribute on `<html>`)                 | `:global(.theme-dark) .card` or `:global([data-theme='dark']) .card`.                                                                                                                 |
+| Style my element with a class another library toggles on it                        | `.card:global(.is-open)`.                                                                                                                                                             |
+| Write page-wide rules (`body`, resets, fonts)                                      | A `.css` file the page links, not a bare `:global`.                                                                                                                                   |
+
+For a child you own, pass the class instead of reaching in with `:global`. With
+a prop, the dependency is visible in code, the child decides which of its
+elements take the class, renaming a class inside the child cannot silently break
+the parent, and the hash keeps the rule on the elements that carry it. With
+`.wrapper :global(.their-class)` the child has no say and cannot see who styles
+it, so keep that form for children you cannot change, and always put a scoped
+selector in front so the rule cannot reach ancestors or unrelated components.
+
+A bare `:global(.toast)` is a global stylesheet hidden inside a component: it
+matches anywhere on the page, and nothing on the matched element points back to
+the file that wrote it. Keep it for page-level elements, and prefer a `.css` file
+the page links for those.
 
 ### Global Keyframes
 
