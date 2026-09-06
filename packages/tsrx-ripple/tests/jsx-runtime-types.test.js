@@ -13,6 +13,7 @@ function get_variable_types(code) {
 		moduleResolution: ts.ModuleResolutionKind.Bundler,
 		target: ts.ScriptTarget.ESNext,
 		noEmit: true,
+		strictNullChecks: true,
 		skipLibCheck: true,
 		skipDefaultLibCheck: true,
 		types: [],
@@ -59,6 +60,68 @@ function get_variable_types(code) {
 }
 
 describe('@tsrx/ripple Volar JSX expression types', () => {
+	it('accepts public Component props and renderable return values as JSX components', () => {
+		const source = `
+import type { Component } from 'ripple';
+
+function Composite({ PropComp }: { PropComp: Component<{ label: string }> }) @{
+	<PropComp label="hello" />
+}
+
+const Text: Component<{ label: string }> = ({ label }) => label;
+const StringValue = () => 'hello';
+const NumberValue = () => 42;
+const BigIntValue = () => 1n;
+const BooleanValue = () => false;
+const NullValue = () => null;
+const UndefinedValue = () => undefined;
+const VoidValue = () => {};
+const ArrayValue = () => [<p>hello</p>, ['world', 42, null]] as const;
+
+export function App() @{
+	<>
+		<Composite PropComp={Text} />
+		<StringValue />
+		<NumberValue />
+		<BigIntValue />
+		<BooleanValue />
+		<NullValue />
+		<UndefinedValue />
+		<VoidValue />
+		<ArrayValue />
+	</>
+}
+`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
+	});
+
+	it('preserves JSX prop checking and rejects non-renderable component types', () => {
+		get_variable_types(`
+import 'ripple/jsx-runtime';
+import type { Component } from 'ripple';
+
+declare const Text: Component<{ label: string }>;
+// @ts-expect-error required component props must be supplied
+const missing = <Text />;
+// @ts-expect-error component props retain their declared types
+const wrong = <Text label={42} />;
+
+const PromiseValue = async () => 'hello';
+const FunctionValue = () => () => 'hello';
+const SymbolValue = () => Symbol('hello');
+const ElementValue = <p>hello</p>;
+// @ts-expect-error promises are not renderable
+const promise = <PromiseValue />;
+// @ts-expect-error returned functions are not renderable
+const fn = <FunctionValue />;
+// @ts-expect-error symbols are not renderable
+const symbol = <SymbolValue />;
+// @ts-expect-error an element value is not a component function
+const element = <ElementValue />;
+`);
+	});
+
 	it('types a style class map with $class and verifies apply targets on the style stand-in', () => {
 		const { code } = compile_to_volar_mappings(
 			`
