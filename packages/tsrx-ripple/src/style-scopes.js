@@ -54,6 +54,7 @@ import {
 	builders,
 	clone_ast_node,
 	collectStyleRefAttributes,
+	createScopeRoot,
 	createStyleClassMap,
 	createStyleRefSetupStatements,
 	DIAGNOSTIC_CODES,
@@ -404,8 +405,10 @@ function collect_own_blocks(children) {
  * the list's items and their subtrees, nested scopes included, stopping at
  * function boundaries and skipping `<head>` and `<style>` hosts. Each element
  * comes with the ancestor chain it has INSIDE the scope, which `pruneCss`
- * reads for combinators — the containing element is not part of it, so a
- * selector that only matches the container is pruned.
+ * reads for combinators: rooted at a fragment holding the items, so `+` and
+ * `~` between top-level items find their siblings, while the containing
+ * element is not part of it and a selector that only matches the container
+ * is pruned.
  *
  * @param {AST.Node[]} items
  * @returns {Array<{ element: AST.TSRXJSXElement, path: AST.Node[] }>}
@@ -430,7 +433,8 @@ function collect_scope_elements(items) {
 		each_child(node, (child) => visit(child, child_path));
 	};
 
-	for (const item of items) visit(item, []);
+	const root = [createScopeRoot(items)];
+	for (const item of items) visit(item, root);
 	return elements;
 }
 

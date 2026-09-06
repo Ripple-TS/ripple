@@ -25,32 +25,32 @@ catalogs:
       specifier: ^4.1.12
       version: 4.2.1
     '@tsrx/core':
-      specifier: ^0.1.66
-      version: 0.1.66
+      specifier: ^0.1.67
+      version: 0.1.67
     '@tsrx/eslint-plugin':
-      specifier: ^0.3.132
-      version: 0.3.132
+      specifier: ^0.3.133
+      version: 0.3.133
     '@tsrx/language-server':
-      specifier: ^0.3.132
-      version: 0.3.132
+      specifier: ^0.3.133
+      version: 0.3.133
     '@tsrx/prettier-plugin':
-      specifier: ^0.3.132
-      version: 0.3.132
+      specifier: ^0.3.133
+      version: 0.3.133
     '@tsrx/react':
-      specifier: ^0.2.66
-      version: 0.2.66
+      specifier: ^0.2.67
+      version: 0.2.67
     '@tsrx/solid':
-      specifier: ^0.1.66
-      version: 0.1.66
+      specifier: ^0.1.67
+      version: 0.1.67
     '@tsrx/typescript-plugin':
-      specifier: ^0.3.132
-      version: 0.3.132
+      specifier: ^0.3.133
+      version: 0.3.133
     '@tsrx/vite-plugin-react':
-      specifier: ^0.0.99
-      version: 0.0.99
+      specifier: ^0.0.100
+      version: 0.0.100
     '@tsrx/vite-plugin-solid':
-      specifier: ^0.0.96
-      version: 0.0.96
+      specifier: ^0.0.97
+      version: 0.0.97
     '@types/bun':
       specifier: ^1.3.9
       version: 1.3.10
@@ -212,10 +212,10 @@ importers:
         version: link:packages/vite-plugin
       '@tsrx/core':
         specifier: catalog:default
-        version: 0.1.66(@typescript-eslint/types@8.56.1)
+        version: 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/prettier-plugin':
         specifier: catalog:default
-        version: 0.3.132(@typescript-eslint/types@8.56.1)(prettier@3.9.6)
+        version: 0.3.133(@typescript-eslint/types@8.56.1)(prettier@3.9.6)
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:packages/tsrx-ripple
@@ -304,10 +304,10 @@ importers:
     devDependencies:
       '@tsrx/react':
         specifier: catalog:default
-        version: 0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4)
+        version: 0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4)
       '@tsrx/vite-plugin-react':
         specifier: catalog:default
-        version: 0.0.99(@typescript-eslint/types@8.56.1)(react@19.2.4)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 0.0.100(@typescript-eslint/types@8.56.1)(react@19.2.4)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       vite:
         specifier: catalog:default
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
@@ -336,10 +336,10 @@ importers:
     devDependencies:
       '@tsrx/solid':
         specifier: catalog:default
-        version: 0.1.66(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
+        version: 0.1.67(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
       '@tsrx/vite-plugin-solid':
         specifier: catalog:default
-        version: 0.0.96(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
+        version: 0.0.97(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       vite:
         specifier: catalog:default
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
@@ -462,7 +462,7 @@ importers:
         version: link:../../packages/tsrx-ripple
       '@tsrx/solid':
         specifier: catalog:default
-        version: 0.1.66(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
+        version: 0.1.67(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
       babel-preset-solid:
         specifier: 2.0.0-beta.15
         version: 2.0.0-beta.15(@babel/core@7.29.0(supports-color@7.2.0))(solid-js@2.0.0-beta.15)
@@ -566,7 +566,7 @@ importers:
     dependencies:
       '@tsrx/core':
         specifier: catalog:default
-        version: 0.1.66(@typescript-eslint/types@8.56.1)
+        version: 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
@@ -616,7 +616,7 @@ importers:
     dependencies:
       '@tsrx/core':
         specifier: catalog:default
-        version: 0.1.66(@typescript-eslint/types@8.56.1)
+        version: 0.1.67(@typescript-eslint/types@8.56.1)
       esrap:
         specifier: ^2.3.2
         version: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -656,7 +656,7 @@ importers:
         version: link:../adapter
       '@tsrx/core':
         specifier: catalog:default
-        version: 0.1.66(@typescript-eslint/types@8.56.1)
+        version: 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
@@ -688,13 +688,13 @@ importers:
         version: 4.2.1(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
       '@tsrx/eslint-plugin':
         specifier: catalog:default
-        version: 0.3.132(@tsrx/eslint-parser@0.3.132(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
+        version: 0.3.133(@tsrx/eslint-parser@0.3.133(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
       '@tsrx/language-server':
         specifier: catalog:default
-        version: 0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
@@ -756,7 +756,7 @@ importers:
         version: link:../packages/vite-plugin
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
       ripple:
         specifier: workspace:*
         version: link:../packages/ripple
@@ -2031,35 +2031,32 @@ packages:
   '@toon-format/toon@2.1.0':
     resolution: {integrity: sha512-JwWptdF5eOA0HaQxbKAzkpQtR4wSWTEfDlEy/y3/4okmOAX1qwnpLZMmtEWr+ncAhTTY1raCKH0kteHhSXnQqg==}
 
-  '@tsrx/core@0.1.61':
-    resolution: {integrity: sha512-JOGLL9iiuFbx6vcbjRziVddDJO6CZFtH5idWn0Mw4Rt92O5oPMPM0GeyqD5fFuGFo7K6zu7f+74jUGlYv56doQ==}
+  '@tsrx/core@0.1.67':
+    resolution: {integrity: sha512-6QUOOX6hQdmGsQy2/pj6eKHLibmsD1kOjQh/N7UVzWCaehiIoQy7R/BbX0BlD2f25+uAUR4jzCMBfgYHfTmGdQ==}
 
-  '@tsrx/core@0.1.66':
-    resolution: {integrity: sha512-u5EfjVPYJFnuMhPXnkaqELs7KFWFowX4KaaS374JGmNnXIzI/m8jDg1RvlLbaD4OwfYMWChVg//hxFYQeQNBlQ==}
-
-  '@tsrx/eslint-parser@0.3.132':
-    resolution: {integrity: sha512-qNLKYYUhMCaU4vjQhjb9k1M6u0rR5dVoRHRYVLFU1nbuHp0FbOtHjI7G+2hQ3x6FnHLDihafSVyazChWEBca8Q==}
+  '@tsrx/eslint-parser@0.3.133':
+    resolution: {integrity: sha512-j57ut0HlCsw8h4FRt+Jul3dBAB5Iv2zA3RWZ6fwn/HmYwVOK1yaQ3mcq1C83xgYKZk2b0BL5jabCy+QiG1xLQQ==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       eslint: '>=9.0.0'
 
-  '@tsrx/eslint-plugin@0.3.132':
-    resolution: {integrity: sha512-E72tvMaQIjkS29F4cVm0s9o58dRKgC+ZAhae3biOpOTx1pMXf+BPkbJ2mr9f4l7ber6LMsV758GSMPyX/LdWRg==}
+  '@tsrx/eslint-plugin@0.3.133':
+    resolution: {integrity: sha512-4HkF/6SBY2n1JvhtABhEYYKMZbEc0idEvgInRxNiFwmTd7TbgVLMKmF8mIjarJ49udbAURc3jpTl/SYErHn1zQ==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
-      '@tsrx/eslint-parser': 0.3.132
+      '@tsrx/eslint-parser': 0.3.133
       '@typescript-eslint/parser': ^8.56.1
       eslint: '>=9.0.0'
 
-  '@tsrx/language-server@0.3.132':
-    resolution: {integrity: sha512-onSYF4tsyGCOzyGymqMFLEeRAty7hCjGarZuTrRLUWDXWJQEZ/anStuFPIuK5noWsvcTO5SqxJeUg55wlzdauA==}
+  '@tsrx/language-server@0.3.133':
+    resolution: {integrity: sha512-LrMI4jh4ZE0MBOrM6FgE+IenrBloOz5bqja+h7P6aOLDTs9t2CaHFC7Q3GCTssLOrM9X8tuu+tdYUn9JL8wWiQ==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
       typescript: ^5.9.3
 
-  '@tsrx/prettier-plugin@0.3.132':
-    resolution: {integrity: sha512-/BCi+akaKz1QD8TwrSm/zbh1zX+M7eXR9cwz270BSB4M7zpvi5ASKkw0CUTgiYQHM9R+BpAPrOLRtet9u6JLzw==}
+  '@tsrx/prettier-plugin@0.3.133':
+    resolution: {integrity: sha512-anhEuvYlwTIOWLquHdYzIixbB1Cxv1z0jACb6Si/3Lx5dH6W6wSWer3fN93xfjXQiyn0NDWVohoAInN0PLoz1A==}
     peerDependencies:
       prettier: '>=2.0.0'
 
@@ -2068,16 +2065,13 @@ packages:
     peerDependencies:
       react: '>=18'
 
-  '@tsrx/react@0.2.66':
-    resolution: {integrity: sha512-sRUbrKpKmpdfhx5rQai5wYGcyietn/c7L9q5lXQxPKla7+rBkGLEp6rrzcClH5ufGRY71jIUno3aB1+Pzwfxuw==}
+  '@tsrx/react@0.2.67':
+    resolution: {integrity: sha512-ztEZIOGfKYYvcNos606r27+euDkO1f6lPs+xL21hKCq1tJhpBLTQGs3fripsIU/pDukb6dAiZLTGgH9U3A+Sxg==}
     peerDependencies:
       react: '>=18'
 
   '@tsrx/ripple@0.1.62':
     resolution: {integrity: sha512-903lYUwLNXrtMYOsMtOlrPgdZ9OL0MS06jG4Qbpc2enG3y2sGfwXrZfKnDdKn+1rdtkw5Eb5WGOnN1KxUGuZpw==}
-
-  '@tsrx/runtime@0.1.1':
-    resolution: {integrity: sha512-R7n2forc2XQvqCYpYMqGij1tCwoPILBubRczQ2Kbjj3d6naiseEq6qfMmljEkKp14ERYHstx7ISrw2wY7Ml0DA==}
 
   '@tsrx/runtime@0.1.5':
     resolution: {integrity: sha512-sZHTOr2OOGg+EcebZoTeznomydrA4FdvJDfp95lPTj+mq5KpfRT4W6gnO6RoEESrSfL/Ti+V0xzZbA5BYTDBKw==}
@@ -2088,21 +2082,21 @@ packages:
       '@solidjs/web': 2.0.0-rc.3
       solid-js: 2.0.0-rc.3
 
-  '@tsrx/solid@0.1.66':
-    resolution: {integrity: sha512-YJMpvrP+8dieKyD302J5pupGr0KdbfubABa8zSeKWzZuJZbBkL3Z+fBFxxAMZrKLsiXLEM0c00b2ukezjT5l8w==}
+  '@tsrx/solid@0.1.67':
+    resolution: {integrity: sha512-g+1OGcLqgjlPuwsyyu0vrTsDXgq+IH1mOocCMQ6ILdsc7lW0XXsplEIHlhhu/UXffCYNy7ndUK5jroah65yLSQ==}
     peerDependencies:
       '@solidjs/web': 2.0.0-rc.3
       solid-js: 2.0.0-rc.3
 
-  '@tsrx/typescript-plugin@0.3.132':
-    resolution: {integrity: sha512-ruMhyh7N7EC6oA/PyhmQTkOU6RDVrzbrxiWUnFcNuEzHooeZgkHuNSItPIDSr3At2tx0LpiiJkyWV8kvfj0IhA==}
+  '@tsrx/typescript-plugin@0.3.133':
+    resolution: {integrity: sha512-IncamGk0y+rj3oRe286UBFTZRrMlJIzqUEIYeAOMA60YCI/yh6jB623fc0pwqFK+BDahJubvbbsAQzboTGSzpg==}
     hasBin: true
     peerDependencies:
-      '@tsrx/preact': 0.1.66
-      '@tsrx/react': 0.2.66
+      '@tsrx/preact': 0.1.67
+      '@tsrx/react': 0.2.67
       '@tsrx/ripple': ^0.1.61
-      '@tsrx/solid': 0.1.66
-      '@tsrx/vue': 0.1.66
+      '@tsrx/solid': 0.1.67
+      '@tsrx/vue': 0.1.67
       octane: '*'
       typescript: ^5.9.3
     peerDependenciesMeta:
@@ -2119,13 +2113,13 @@ packages:
       octane:
         optional: true
 
-  '@tsrx/vite-plugin-react@0.0.99':
-    resolution: {integrity: sha512-ovSq1rqSkPBZSOX+eGOXlXiqEsp9YljHiiElfqnIQXeVobXoahMzUSmL2/S0jJ2t23Lmft+kgww61H4K3LQGGQ==}
+  '@tsrx/vite-plugin-react@0.0.100':
+    resolution: {integrity: sha512-kI9d6dgG51EYGADdMucce5Y4bC5HRQznk8b4227267gWOLkLWVKXmhmeInMZiX1Jh6LIZhgaB2cGrUUUR2QaZg==}
     peerDependencies:
       vite: '*'
 
-  '@tsrx/vite-plugin-solid@0.0.96':
-    resolution: {integrity: sha512-G3X8yT28xu6XsdweiHSzb3ZVH2WARnF6tFDUB/2dApPfwEsyfnPZkfbcHZz0817sedPgkdqoRh/7wH98r/1nOg==}
+  '@tsrx/vite-plugin-solid@0.0.97':
+    resolution: {integrity: sha512-t0N4u23HdVTMN5/W32l/nS+0TvnwgHEWhgfEfy/o84nfHePZf19SxgSrBfcFQwDG53Iop5OfXS6kJi6/dqTepA==}
     peerDependencies:
       vite: '*'
 
@@ -6200,24 +6194,7 @@ snapshots:
 
   '@toon-format/toon@2.1.0': {}
 
-  '@tsrx/core@0.1.61(@typescript-eslint/types@8.56.1)':
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-      '@noble/hashes': 2.2.0
-      '@sveltejs/acorn-typescript': 1.0.13(acorn@8.17.0)
-      '@tsrx/runtime': 0.1.1
-      '@types/estree': 1.0.8
-      '@types/estree-jsx': 1.0.5
-      acorn: 8.17.0
-      esrap: 2.3.2(@typescript-eslint/types@8.56.1)
-      is-reference: 3.0.3
-      magic-string: 0.30.21
-      zimmerframe: 1.1.4
-    transitivePeerDependencies:
-      - '@typescript-eslint/types'
-    optional: true
-
-  '@tsrx/core@0.1.66(@typescript-eslint/types@8.56.1)':
+  '@tsrx/core@0.1.67(@typescript-eslint/types@8.56.1)':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@noble/hashes': 2.2.0
@@ -6232,23 +6209,23 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/eslint-parser@0.3.132(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@tsrx/eslint-parser@0.3.133(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       eslint: 10.3.0(jiti@2.6.1)(supports-color@7.2.0)
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/eslint-plugin@0.3.132(@tsrx/eslint-parser@0.3.132(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@tsrx/eslint-plugin@0.3.133(@tsrx/eslint-parser@0.3.133(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
     dependencies:
-      '@tsrx/eslint-parser': 0.3.132(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
+      '@tsrx/eslint-parser': 0.3.133(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
       '@typescript-eslint/parser': 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       eslint: 10.3.0(jiti@2.6.1)(supports-color@7.2.0)
 
-  '@tsrx/language-server@0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)':
+  '@tsrx/language-server@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
-      '@tsrx/typescript-plugin': 0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
+      '@tsrx/typescript-plugin': 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)
       '@volar/language-server': 2.4.28
       typescript: 5.9.3
       volar-service-css: 0.0.70(@volar/language-service@2.4.28)
@@ -6265,9 +6242,9 @@ snapshots:
       - '@volar/language-service'
       - octane
 
-  '@tsrx/prettier-plugin@0.3.132(@typescript-eslint/types@8.56.1)(prettier@3.9.6)':
+  '@tsrx/prettier-plugin@0.3.133(@typescript-eslint/types@8.56.1)(prettier@3.9.6)':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       prettier: 3.9.6
     transitivePeerDependencies:
       - '@typescript-eslint/types'
@@ -6277,9 +6254,9 @@ snapshots:
       '@tsrx/runtime': 0.1.5
       react: 19.2.4
 
-  '@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4)':
+  '@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4)':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/react-runtime': 0.1.5(react@19.2.4)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       react: 19.2.4
@@ -6289,16 +6266,13 @@ snapshots:
 
   '@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1)':
     dependencies:
-      '@tsrx/core': 0.1.61(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       is-reference: 3.0.3
       source-map: 0.7.6
       zimmerframe: 1.1.4
     transitivePeerDependencies:
       - '@typescript-eslint/types'
-    optional: true
-
-  '@tsrx/runtime@0.1.1':
     optional: true
 
   '@tsrx/runtime@0.1.5': {}
@@ -6316,10 +6290,10 @@ snapshots:
       solid-js: 2.0.0-rc.3
     optional: true
 
-  '@tsrx/solid@0.1.66(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)':
+  '@tsrx/solid@0.1.67(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)':
     dependencies:
       '@solidjs/web': 2.0.0-beta.15(solid-js@2.0.0-beta.15)
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/solid-runtime': 0.1.5(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(solid-js@2.0.0-beta.15)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       solid-js: 2.0.0-beta.15
@@ -6327,10 +6301,10 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)':
+  '@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)':
     dependencies:
       '@solidjs/web': 2.0.0-rc.3(solid-js@2.0.0-rc.3)
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       '@tsrx/solid-runtime': 0.1.5(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(solid-js@2.0.0-rc.3)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       solid-js: 2.0.0-rc.3
@@ -6339,30 +6313,30 @@ snapshots:
       - '@typescript-eslint/types'
     optional: true
 
-  '@tsrx/typescript-plugin@0.3.132(@tsrx/react@0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)':
+  '@tsrx/typescript-plugin@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4))(@tsrx/ripple@0.1.62(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.1.6(@typescript-eslint/types@8.56.1))(typescript@5.9.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       '@volar/typescript': 2.4.28
       typescript: 5.9.3
     optionalDependencies:
-      '@tsrx/react': 0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4)
+      '@tsrx/react': 0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4)
       '@tsrx/ripple': 0.1.62(@typescript-eslint/types@8.56.1)
-      '@tsrx/solid': 0.1.66(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)
+      '@tsrx/solid': 0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)
       octane: 0.1.6(@typescript-eslint/types@8.56.1)
 
-  '@tsrx/vite-plugin-react@0.0.99(@typescript-eslint/types@8.56.1)(react@19.2.4)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
+  '@tsrx/vite-plugin-react@0.0.100(@typescript-eslint/types@8.56.1)(react@19.2.4)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
-      '@tsrx/react': 0.2.66(@typescript-eslint/types@8.56.1)(react@19.2.4)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
+      '@tsrx/react': 0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.4)
       vite: 8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
     transitivePeerDependencies:
       - '@typescript-eslint/types'
       - react
 
-  '@tsrx/vite-plugin-solid@0.0.96(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
+  '@tsrx/vite-plugin-solid@0.0.97(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))':
     dependencies:
-      '@tsrx/core': 0.1.66(@typescript-eslint/types@8.56.1)
-      '@tsrx/solid': 0.1.66(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
+      '@tsrx/solid': 0.1.67(@solidjs/web@2.0.0-beta.15(solid-js@2.0.0-beta.15))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-beta.15)
       vite: 8.1.5(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
     transitivePeerDependencies:
       - '@solidjs/web'
@@ -8207,7 +8181,7 @@ snapshots:
 
   octane@0.1.6(@typescript-eslint/types@8.56.1):
     dependencies:
-      '@tsrx/core': 0.1.61(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
       devalue: 5.8.1
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
     transitivePeerDependencies:
