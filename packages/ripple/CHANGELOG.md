@@ -1,5 +1,25 @@
 # ripple
 
+## 0.3.127
+
+### Patch Changes
+
+- [#1447](https://github.com/Ripple-TS/ripple/pull/1447)
+  [`d824f7b`](https://github.com/Ripple-TS/ripple/commit/d824f7b790991f89b0935e05ceb78e2214ab3394)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Align JSX component types
+  with the public `Component` type so component props and functions returning
+  renderable primitives or arrays are accepted as JSX tags.
+
+- [#1448](https://github.com/Ripple-TS/ripple/pull/1448)
+  [`6c47f52`](https://github.com/Ripple-TS/ripple/commit/6c47f527a790e1b86ed7ff770e9c19f213d4881a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Qualify JSX element types
+  with the Ripple namespace and use DetailedHTMLProps for HTML tag hovers while
+  preserving Ripple's attribute, event, and ref types.
+
+- Updated dependencies
+  [[`ac4361e`](https://github.com/Ripple-TS/ripple/commit/ac4361e2dd1e93c29f44196cfe3b703124083fd0)]:
+  - @tsrx/ripple@0.1.64
+
 ## 0.3.126
 
 ### Patch Changes
