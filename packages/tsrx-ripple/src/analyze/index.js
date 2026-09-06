@@ -65,6 +65,7 @@ import {
 	get_directive_value_wrapper,
 	analyze_directive_wrapping_values,
 	is_tsrx_component_function,
+	has_lazy_pattern,
 } from '../utils.js';
 import {
 	get_attribute_name_node,
@@ -1079,12 +1080,20 @@ function is_param_tracked_type(type_annotation, context) {
 }
 
 /**
- * Sets up lazy transforms for any lazy subpatterns nested inside a function or component param.
+ * Sets up lazy transforms for declarations and function or component parameters.
  * @param {AST.Pattern} pattern
  * @param {AnalysisContext} context
  * @param {AST.TypeNode | undefined} [type_annotation]
+ * @param {boolean} [writable]
+ * @param {boolean} [is_track_call]
  */
-function setup_nested_lazy_param_transforms(pattern, context, type_annotation = undefined) {
+function setup_lazy_pattern_transforms(
+	pattern,
+	context,
+	type_annotation = undefined,
+	writable = true,
+	is_track_call = false,
+) {
 	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
 
 	switch (pattern.type) {
@@ -1102,11 +1111,11 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 		}
 
 		case 'AssignmentPattern':
-			setup_nested_lazy_param_transforms(pattern.left, context, pattern_type_annotation);
+			setup_lazy_pattern_transforms(pattern.left, context, pattern_type_annotation, writable);
 			return;
 
 		case 'RestElement':
-			setup_nested_lazy_param_transforms(pattern.argument, context, pattern_type_annotation);
+			setup_lazy_pattern_transforms(pattern.argument, context, pattern_type_annotation, writable);
 			return;
 
 		case 'ObjectPattern':
@@ -1117,7 +1126,13 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 					pattern.type === 'ArrayPattern' &&
 					is_param_tracked_type(pattern_type_annotation, context);
 
-				setup_lazy_transforms(pattern, param_id, context.state, true, is_tracked_type);
+				setup_lazy_transforms(
+					pattern,
+					param_id,
+					context.state,
+					writable,
+					is_track_call || is_tracked_type,
+				);
 				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
 				return;
 			}
@@ -1129,20 +1144,26 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 						property,
 					);
 					if (property.type === 'RestElement') {
-						setup_nested_lazy_param_transforms(
+						setup_lazy_pattern_transforms(
 							property.argument,
 							context,
 							property_type_annotation,
+							writable,
 						);
 					} else {
-						setup_nested_lazy_param_transforms(property.value, context, property_type_annotation);
+						setup_lazy_pattern_transforms(
+							property.value,
+							context,
+							property_type_annotation,
+							writable,
+						);
 					}
 				}
 			} else {
 				for (let i = 0; i < pattern.elements.length; i += 1) {
 					const element = pattern.elements[i];
 					if (element !== null) {
-						setup_nested_lazy_param_transforms(
+						setup_lazy_pattern_transforms(
 							element,
 							context,
 							get_array_element_type_annotation(
@@ -1150,6 +1171,7 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 								i,
 								element.type === 'RestElement',
 							),
+							writable,
 						);
 					}
 				}
@@ -1182,7 +1204,7 @@ function visit_function(node, context) {
 				if (props.lazy) {
 					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
 				} else {
-					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
+					setup_lazy_pattern_transforms(props, context, get_pattern_type_annotation(props));
 				}
 			} else if (props.type === 'AssignmentPattern') {
 				error(
@@ -1227,7 +1249,7 @@ function visit_function(node, context) {
 			get_pattern_type_annotation(param) ?? param_node.typeAnnotation?.typeAnnotation;
 
 		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
-			setup_nested_lazy_param_transforms(param, context, param_type_annotation);
+			setup_lazy_pattern_transforms(param, context, param_type_annotation);
 		}
 	}
 
@@ -1796,21 +1818,16 @@ const visitors = {
 				}
 				visit(declarator, state);
 			} else {
-				// Handle lazy destructuring patterns
-				if (
-					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
-					declarator.id.lazy
-				) {
-					const lazy_id = b.id(state.scope.generate('lazy'));
-					const writable = node.kind !== 'const';
-					const call_name =
-						declarator.init?.type === 'CallExpression' &&
-						is_ripple_track_call(declarator.init.callee, context);
-					const init_is_track = call_name === 'track' || call_name === 'trackAsync';
-					setup_lazy_transforms(declarator.id, lazy_id, state, writable, !!init_is_track);
-					// Store the generated identifier name on the pattern for the transform phase
-					declarator.id.metadata = { ...declarator.id.metadata, lazy_id: lazy_id.name };
-				}
+				const call_name =
+					declarator.init?.type === 'CallExpression' &&
+					is_ripple_track_call(declarator.init.callee, context);
+				setup_lazy_pattern_transforms(
+					declarator.id,
+					context,
+					undefined,
+					node.kind !== 'const',
+					call_name === 'track' || call_name === 'trackAsync',
+				);
 
 				visit(declarator, state);
 			}
@@ -2720,6 +2737,26 @@ export function analyze(ast, filename, options = {}) {
 	const errors = options.errors ?? [];
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
+
+	// Bare lazy loop targets introduce per-iteration bindings. Give them a
+	// declaration before scope creation so references and shadowing are analyzed
+	// exactly like the explicit declaration form.
+	/** @type {Visitor<AST.ForOfStatement | AST.ForInStatement, null, AST.Node>} */
+	const normalize_loop = (node, context) => {
+		if (node.left.type === 'VariableDeclaration' || !has_lazy_pattern(node.left)) {
+			return context.next();
+		}
+		return context.visit({
+			...node,
+			left: b.declaration('const', [b.declarator(/** @type {AST.Pattern} */ (node.left))]),
+		});
+	};
+	ast = /** @type {AST.Program} */ (
+		walk(ast, null, {
+			ForOfStatement: normalize_loop,
+			ForInStatement: normalize_loop,
+		})
+	);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,

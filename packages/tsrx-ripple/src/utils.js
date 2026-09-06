@@ -2411,16 +2411,43 @@ function normalize_child(node, normalized, context) {
 }
 
 /**
- * Replaces any lazy subpatterns in a parameter pattern with their generated identifiers.
+ * @param {AST.Pattern | AST.MemberExpression} pattern
+ * @returns {boolean}
+ */
+export function has_lazy_pattern(pattern) {
+	switch (pattern.type) {
+		case 'ObjectPattern':
+			return (
+				!!pattern.lazy ||
+				pattern.properties.some((property) =>
+					has_lazy_pattern(property.type === 'RestElement' ? property.argument : property.value),
+				)
+			);
+		case 'ArrayPattern':
+			return (
+				!!pattern.lazy ||
+				pattern.elements.some((element) => element !== null && has_lazy_pattern(element))
+			);
+		case 'AssignmentPattern':
+			return has_lazy_pattern(pattern.left);
+		case 'RestElement':
+			return has_lazy_pattern(pattern.argument);
+		default:
+			return false;
+	}
+}
+
+/**
+ * Replaces lazy subpatterns in declarations and parameters with their generated identifiers.
  * This is used by client and server transforms so nested lazy destructuring can coexist
- * with otherwise normal object/array params.
+ * with otherwise normal object/array patterns.
  * @param {AST.Pattern} pattern
  * @returns {AST.Pattern}
  */
-export function replace_lazy_param_pattern(pattern) {
+export function replace_lazy_pattern(pattern) {
 	switch (pattern.type) {
 		case 'AssignmentPattern':
-			return { ...pattern, left: replace_lazy_param_pattern(pattern.left) };
+			return { ...pattern, left: replace_lazy_pattern(pattern.left) };
 
 		case 'ObjectPattern':
 			if (pattern.lazy && pattern.metadata?.lazy_id) {
@@ -2431,8 +2458,8 @@ export function replace_lazy_param_pattern(pattern) {
 				...pattern,
 				properties: pattern.properties.map((property) =>
 					property.type === 'RestElement'
-						? { ...property, argument: replace_lazy_param_pattern(property.argument) }
-						: { ...property, value: replace_lazy_param_pattern(property.value) },
+						? { ...property, argument: replace_lazy_pattern(property.argument) }
+						: { ...property, value: replace_lazy_pattern(property.value) },
 				),
 			};
 
@@ -2444,12 +2471,12 @@ export function replace_lazy_param_pattern(pattern) {
 			return {
 				...pattern,
 				elements: pattern.elements.map((element) =>
-					element === null ? null : replace_lazy_param_pattern(element),
+					element === null ? null : replace_lazy_pattern(element),
 				),
 			};
 
 		case 'RestElement':
-			return { ...pattern, argument: replace_lazy_param_pattern(pattern.argument) };
+			return { ...pattern, argument: replace_lazy_pattern(pattern.argument) };
 
 		default:
 			return pattern;

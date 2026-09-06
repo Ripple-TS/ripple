@@ -83,7 +83,8 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
-	replace_lazy_param_pattern,
+	replace_lazy_pattern,
+	has_lazy_pattern,
 	ripple_import_requires_block,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
@@ -528,7 +529,7 @@ function visit_function(node, context) {
 		}
 		const pattern = param_out.type === 'AssignmentPattern' ? param_out.left : param_out;
 		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-			const transformed_pattern = replace_lazy_param_pattern(pattern);
+			const transformed_pattern = replace_lazy_pattern(pattern);
 			if (param_out.type === 'AssignmentPattern') {
 				return /** @type {AST.AssignmentPattern} */ ({ ...param_out, left: transformed_pattern });
 			}
@@ -661,7 +662,7 @@ function transform_native_tsrx_function(node, context) {
 				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 			if (!props_param.lazy) {
-				props = replace_lazy_param_pattern(
+				props = replace_lazy_pattern(
 					/** @type {AST.Pattern} */ (
 						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
 					),
@@ -2171,14 +2172,8 @@ const visitors = {
 			let id = declarator.id;
 
 			if (!context.state.to_ts) {
-				// Replace lazy destructuring patterns with the generated identifier
-				if (
-					(id.type === 'ObjectPattern' || id.type === 'ArrayPattern') &&
-					id.lazy &&
-					id.metadata?.lazy_id
-				) {
-					id = b.id(id.metadata.lazy_id);
-				} else if (id.typeAnnotation) {
+				id = replace_lazy_pattern(id);
+				if (id.typeAnnotation) {
 					id = { ...id, typeAnnotation: undefined };
 				}
 			} else if ((id.type === 'ObjectPattern' || id.type === 'ArrayPattern') && id.lazy) {
@@ -3351,6 +3346,37 @@ const visitors = {
 		}
 
 		context.next();
+	},
+
+	ForInStatement(node, context) {
+		if (
+			!context.state.to_ts ||
+			node.left.type !== 'VariableDeclaration' ||
+			!node.left.declarations.some((declarator) => has_lazy_pattern(declarator.id))
+		) {
+			return context.next();
+		}
+
+		// TypeScript disallows destructuring in a for-in header. Keep the
+		// authored pattern in the body so its bindings still infer from the key.
+		const key = b.id(context.state.scope.generate('key'));
+		const declaration = /** @type {AST.VariableDeclaration} */ (context.visit(node.left));
+		const body = /** @type {AST.Statement} */ (context.visit(node.body));
+		return {
+			...node,
+			left: b.declaration('const', [b.declarator(key)]),
+			right: /** @type {AST.Expression} */ (context.visit(node.right)),
+			body: b.block([
+				{
+					...declaration,
+					declarations: declaration.declarations.map((declarator) => ({
+						...declarator,
+						init: key,
+					})),
+				},
+				body,
+			]),
+		};
 	},
 
 	ForOfStatement: visit_for_of_statement,
