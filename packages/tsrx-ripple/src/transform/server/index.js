@@ -48,7 +48,7 @@ import {
 	is_binding_function,
 	is_ripple_track_call,
 	is_ripple_import,
-	replace_lazy_param_pattern,
+	replace_lazy_pattern,
 	create_native_tsrx_render_function,
 	get_native_tsrx_function_body,
 	is_native_tsrx_function_node,
@@ -997,13 +997,8 @@ function transform_variable_declaration(node, context) {
 	for (const declarator of node.declarations) {
 		let declarator_id = declarator.id;
 		if (!context.state.to_ts) {
-			if (
-				(declarator_id.type === 'ObjectPattern' || declarator_id.type === 'ArrayPattern') &&
-				declarator_id.lazy &&
-				declarator_id.metadata?.lazy_id
-			) {
-				declarator_id = b.id(declarator_id.metadata.lazy_id);
-			} else if (declarator_id.typeAnnotation) {
+			declarator_id = replace_lazy_pattern(declarator_id);
+			if (declarator_id.typeAnnotation) {
 				declarator_id = { ...declarator_id, typeAnnotation: undefined };
 			}
 		}
@@ -1259,7 +1254,7 @@ function transform_native_tsrx_function(node, context) {
 			if (props_param.lazy) {
 				props_param_output = b.id('__props');
 			} else {
-				props_param_output = replace_lazy_param_pattern(
+				props_param_output = replace_lazy_pattern(
 					props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param,
 				);
 			}
@@ -1357,7 +1352,7 @@ function strip_function_params(params) {
 		// Replace lazy destructuring params with generated identifiers
 		const pattern = stripped.type === 'AssignmentPattern' ? stripped.left : stripped;
 		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-			const transformed_pattern = replace_lazy_param_pattern(pattern);
+			const transformed_pattern = replace_lazy_pattern(pattern);
 			return stripped.type === 'AssignmentPattern'
 				? /** @type {AST.AssignmentPattern} */ ({ ...stripped, left: transformed_pattern })
 				: transformed_pattern;
