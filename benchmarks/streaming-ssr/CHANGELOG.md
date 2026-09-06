@@ -1,5 +1,16 @@
 # @benchmarks/streaming-ssr
 
+## 0.0.36
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d824f7b`](https://github.com/Ripple-TS/ripple/commit/d824f7b790991f89b0935e05ceb78e2214ab3394),
+  [`6c47f52`](https://github.com/Ripple-TS/ripple/commit/6c47f527a790e1b86ed7ff770e9c19f213d4881a),
+  [`ac4361e`](https://github.com/Ripple-TS/ripple/commit/ac4361e2dd1e93c29f44196cfe3b703124083fd0)]:
+  - ripple@0.3.127
+  - @tsrx/ripple@0.1.64
+
 ## 0.0.35
 
 ### Patch Changes

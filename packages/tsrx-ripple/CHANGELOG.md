@@ -1,5 +1,15 @@
 # @tsrx/ripple
 
+## 0.1.64
+
+### Patch Changes
+
+- [#1445](https://github.com/Ripple-TS/ripple/pull/1445)
+  [`ac4361e`](https://github.com/Ripple-TS/ripple/commit/ac4361e2dd1e93c29f44196cfe3b703124083fd0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix lazy destructuring in
+  bare JavaScript loop targets and nested declaration patterns in client and
+  server output, with corresponding TypeScript editor output.
+
 ## 0.1.63
 
 ### Patch Changes
