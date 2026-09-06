@@ -1,5 +1,5 @@
-export function DocsFooter() {
-	return <>
+export function DocsFooter() @{
+	<>
 		<footer class="docs-footer">
 			<div class="footer-content">
 				<p class="footer-message">Released under the MIT License.</p>
@@ -26,5 +26,5 @@ export function DocsFooter() {
 				line-height: 24px;
 			}
 		</style>
-	</>;
+	</>
 }

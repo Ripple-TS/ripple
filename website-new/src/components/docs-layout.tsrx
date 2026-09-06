@@ -18,8 +18,8 @@ export function DocsLayout({
 	nextLink?: { href: string; text: string } | null;
 	toc?: { href: string; text: string }[];
 	currentPath?: string;
-}) {
-	return <>
+}) @{
+	<>
 		<head>
 			<title>{title} | Ripple</title>
 			<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -934,5 +934,5 @@ export function DocsLayout({
 				}
 			}
 		</style>
-	</>;
+	</>
 }

@@ -1,5 +1,5 @@
-export function Header() {
-	return <>
+export function Header() @{
+	<>
 		<h1 class="sr-only">Ripple</h1>
 		<img
 			src="/images/ripple-logo-horizontal.png"
@@ -53,5 +53,5 @@ export function Header() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

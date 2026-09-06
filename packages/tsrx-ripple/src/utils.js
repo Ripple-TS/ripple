@@ -1059,63 +1059,51 @@ export function is_style_element(node) {
 }
 
 /**
- * @param {AST.Node[]} nodes
- * @returns {AST.CSS.StyleSheet | null}
+ * The classes the style pre-pass stamped on an element (see
+ * `style-scopes.js`): the hash of every enclosing sibling scope, outer first,
+ * then the applied themes' classes — string literals when statically known,
+ * `theme.$class` reads otherwise. Empty for an element outside every scope.
+ * @param {AST.Node} node
+ * @returns {Array<string | AST.Expression>}
  */
-export function collect_tsrx_stylesheet(nodes) {
-	/** @type {AST.CSS.StyleSheet[]} */
-	const styles = [];
-	collect_style_elements(nodes, styles, false);
-	if (styles.length === 0) return null;
-	if (styles.length > 1) {
-		throw new Error('TSRX fragments can only have one style tag');
-	}
-	return styles[0];
+export function get_scope_class_chain(node) {
+	const parts = node.metadata?.tsrx_scope_class;
+	return parts ? [...parts.hashes, ...parts.applied] : [];
 }
 
 /**
- * @param {AST.Node | AST.Node[]} node
- * @param {AST.CSS.StyleSheet[]} styles
- * @param {boolean} inside_head
- * @returns {void}
+ * One expression for a class chain: a string literal when every part is
+ * static, otherwise a `+` concatenation with the static runs folded together
+ * (`'a b ' + theme.$class + ' c'`). Runtime reads are cloned so every use
+ * prints on its own. `null` for an empty chain.
+ * @param {Array<string | AST.Expression>} chain
+ * @returns {AST.Expression | null}
  */
-function collect_style_elements(node, styles, inside_head) {
-	if (!node) return;
-	if (Array.isArray(node)) {
-		for (const child of node) collect_style_elements(child, styles, inside_head);
-		return;
-	}
-	if (node.metadata?.regular_js) {
-		return;
-	}
-	if (is_style_element(node)) {
-		if (!inside_head) {
-			const stylesheet = node.children?.find((child) => child.type === 'StyleSheet');
-			if (stylesheet) {
-				styles.push(stylesheet);
-			}
+export function build_scope_class_expression(chain) {
+	if (chain.length === 0) return null;
+	/** @type {AST.Expression | null} */
+	let result = null;
+	let pending = '';
+	/** @param {AST.Expression} expression */
+	const append = (expression) => {
+		result = result ? b.binary('+', result, expression) : expression;
+	};
+	for (const part of chain) {
+		if (typeof part === 'string') {
+			pending = pending ? `${pending} ${part}` : part;
+			continue;
 		}
-		return;
+		if (result) {
+			append(b.literal(pending ? ` ${pending} ` : ' '));
+		} else if (pending) {
+			append(b.literal(`${pending} `));
+		}
+		pending = '';
+		append(clone_ast_node(part, false));
 	}
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
-	) {
-		return;
-	}
-	const next_inside_head =
-		inside_head || (is_template_element(node) && get_element_identifier(node)?.name === 'head');
-	if ('children' in node && Array.isArray(node.children)) {
-		collect_style_elements(/** @type {AST.Node[]} */ (node.children), styles, next_inside_head);
-	}
-	if (node.type === 'BlockStatement') {
-		collect_style_elements(node.body, styles, next_inside_head);
-	}
-	if (node.type === 'IfStatement') {
-		collect_style_elements(node.consequent, styles, next_inside_head);
-		if (node.alternate) collect_style_elements(node.alternate, styles, next_inside_head);
-	}
+	if (!result) return b.literal(pending);
+	if (pending) append(b.literal(` ${pending}`));
+	return result;
 }
 
 /**

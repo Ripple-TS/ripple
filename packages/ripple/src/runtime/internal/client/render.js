@@ -140,8 +140,9 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 	} else if (key === 'style') {
 		set_style(element, value, prev.style);
 	} else if (key === '#class') {
-		// Special case for static class when spreading props
-		element.classList.add(value);
+		// Special case for the scope classes of an element that spreads props:
+		// one token per scope hash and applied theme.
+		element.classList.add(...String(value).split(' ').filter(Boolean));
 	} else if (typeof key === 'string' && is_event_attribute(key)) {
 		// Handle event handlers in spread props
 		if (remove_listeners[key]) {

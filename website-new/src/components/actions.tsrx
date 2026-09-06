@@ -1,5 +1,5 @@
-export function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) {
-	return <>
+export function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) @{
+	<>
 		<div class="social-links">
 			<a
 				href="https://github.com/Ripple-TS/ripple"
@@ -147,5 +147,5 @@ export function Actions({ playgroundVisible = false }: { playgroundVisible: bool
 				fill: currentColor;
 			}
 		</style>
-	</>;
+	</>
 }

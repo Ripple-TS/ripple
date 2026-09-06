@@ -318,7 +318,7 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(css).toContain(`div.${cssHash} { color: red; }`);
 		expect(css).toContain(`.host.${cssHash} { color: blue; }`);
 		expect(css).toContain('/* (unused) .unused { color: green; }*/');
-		expect(code).toContain(`class: '${cssHash} host'`);
+		expect(code).toContain(`class: 'host ${cssHash}'`);
 	});
 
 	it('emits valid to_ts output for dynamic tags', () => {

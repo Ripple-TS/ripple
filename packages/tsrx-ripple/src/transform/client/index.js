@@ -30,7 +30,6 @@ import tsx from 'esrap/languages/tsx';
 import {
 	builders,
 	clone_ast_node,
-	analyzeCss,
 	IS_CONTROLLED,
 	IS_INDEXED,
 	ROOT_CONTROLLED,
@@ -43,11 +42,8 @@ import {
 	obfuscateIdentifier,
 	object,
 	renderCssResult,
-	prepareStylesheetForRender,
-	collectStyleRefAttributes,
-	createStyleClassMap,
+	buildStyleClassMap,
 	createStyleClassMapFromStylesheet,
-	createStyleRefSetupStatements,
 	getStyleElementStylesheet,
 	getOriginalEventName,
 	has_location,
@@ -117,6 +113,8 @@ import {
 	is_text_primitive_expression,
 	collect_head_elements,
 	is_flattenable_template_fragment,
+	get_scope_class_chain,
+	build_scope_class_expression,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -142,45 +140,91 @@ import {
 import is_reference from 'is-reference';
 
 /**
- * @param {TransformClientState} state
- * @returns {AST.CSS.StyleSheet | null}
- */
-function get_component_css(state) {
-	return state.component?.metadata.component_css ?? null;
-}
-
-/**
- * @param {TransformClientState} state
- * @returns {string | null}
- */
-function get_component_css_hash(state) {
-	return get_component_css(state)?.hash ?? null;
-}
-
-/**
+ * The class-map object of an assigned block (`const theme = <style>…</style>`):
+ * `$class` first — the applied themes' classes, then the block's own hash —
+ * followed by one entry per standalone class selector. The sheet itself was
+ * prepared by the style pre-pass at its declaration position.
  * @param {AST.JSXStyleElement} node
  * @param {TransformClientContext} context
- * @returns {AST.ObjectExpression | null}
+ * @returns {AST.ObjectExpression}
  */
 function build_style_class_map_expression(node, context) {
 	const stylesheet = getStyleElementStylesheet(node);
-	if (!stylesheet) {
-		return null;
+	const applied = node.metadata.tsrx_style_class_parts ?? [];
+	const class_map = stylesheet
+		? createStyleClassMapFromStylesheet(stylesheet, { applied })
+		: buildStyleClassMap(new Map(), null, { applied });
+	if (context.state.to_ts) {
+		add_type_only_style_anchor(node, context);
 	}
-
-	analyzeCss(stylesheet);
-	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet, true));
-	const class_map = createStyleClassMapFromStylesheet(stylesheet);
-	if (!context.state.to_ts) {
-		return class_map;
-	}
-
-	add_type_only_style_anchor(node, context);
 	return class_map;
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | AST.JSXStyleElement} node
+ * The synthesized `$class` read of a type-only `apply` target borrows the
+ * target's position for verification only, so a TypeScript error on it (the
+ * target is not a style object) lands on the authored identifier, while
+ * hover and navigation on that identifier stay the target's own.
+ * @param {AST.Node} target
+ * @returns {AST.Identifier}
+ */
+function type_only_class_read(target) {
+	const id = b.id('$class', has_location(target) ? target : undefined);
+	if (has_location(target)) {
+		id.metadata = {
+			...id.metadata,
+			verify_only: true,
+			source_length: target.end - target.start,
+		};
+	}
+	return id;
+}
+
+/**
+ * The attributes of a type-only `<style>` stand-in: `apply` becomes a
+ * `data-tsrx-apply` attribute reading `$class` of each target, so TypeScript
+ * checks that every target is a style object. Other attributes carry no
+ * type information and are dropped.
+ * @param {AST.JSXStyleElement} node
+ * @returns {ESTreeJSX.JSXAttribute[]}
+ */
+function type_only_style_attributes(node) {
+	/** @type {ESTreeJSX.JSXAttribute[]} */
+	const attributes = [];
+	for (const attr of get_element_attributes(node)) {
+		if (attr.type !== 'JSXAttribute' || get_attribute_name(attr) !== 'apply') continue;
+		const value = attr.value;
+		if (
+			value?.type !== 'JSXExpressionContainer' ||
+			value.expression.type === 'JSXEmptyExpression'
+		) {
+			continue;
+		}
+		/** @param {AST.Expression} target */
+		const read = (target) => b.member(clone_ast_node(target), type_only_class_read(target));
+		const expression = value.expression;
+		const reads =
+			expression.type === 'ArrayExpression'
+				? b.array(
+						expression.elements.map((element) =>
+							element && element.type !== 'SpreadElement' ? read(element) : element,
+						),
+					)
+				: read(expression);
+		attributes.push(
+			b.jsx_attribute(b.jsx_id('data-tsrx-apply'), b.jsx_expression_container(reads)),
+		);
+	}
+	return attributes;
+}
+
+/**
+ * The hoisted stand-in of an assigned block, so the `<style>` tag keeps a
+ * mapping. It carries no `apply` reads: hoisting them above the declarations
+ * they name would be a use before declaration, and the class-map object
+ * already reads an imported target's `$class` (a same-module target is
+ * resolved by the analyzer).
+ * @param {AST.JSXStyleElement} node
  * @param {TransformClientContext} context
  * @returns {void}
  */
@@ -639,17 +683,9 @@ function transform_native_tsrx_function(node, context) {
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
 	const is_synthetic_children = node.metadata?.synthetic_children === true;
 	const raw_render_body = get_native_tsrx_function_body(node, context.state.scopes);
-	const css = get_component_css({ ...context.state, component: node });
-	const style_ref_setup = css
-		? createStyleRefSetupStatements(
-				collectStyleRefAttributes(raw_render_body),
-				createStyleClassMap(node, css),
-				{
-					allowMutableRefTarget: true,
-					createTempIdentifier: () => b.id(component_scope.generate('style_ref')),
-				},
-			)
-		: [];
+	// `<style ref>` class maps of the scopes inside this function (see
+	// `style-scopes.js`) are assigned before the template renders.
+	const style_ref_setup = node.metadata.tsrx_style_ref_statements ?? [];
 	const render_body = strip_tsrx_style_elements(
 		insert_style_ref_setup_statements(raw_render_body, style_ref_setup, context.state.scopes),
 		context.state.scopes,
@@ -671,13 +707,8 @@ function transform_native_tsrx_function(node, context) {
 			scope: component_scope,
 			is_tsrx_element: false,
 			regular_js: false,
-			applyParentCssScope: is_synthetic_children ? context.state.applyParentCssScope : undefined,
 		},
 	});
-
-	if (css) {
-		context.state.stylesheets.push(css);
-	}
 
 	const value_params = [...node.params];
 	if (value_params.length > 0) {
@@ -2362,12 +2393,10 @@ const visitors = {
 			is_regular_js_statement_position(context.path)
 		) {
 			const expression = build_style_class_map_expression(node, context);
-			if (expression) {
-				if (is_regular_js_statement_position(context.path)) {
-					return b.stmt(expression);
-				}
-				return expression;
+			if (is_regular_js_statement_position(context.path)) {
+				return b.stmt(expression);
 			}
+			return expression;
 		}
 
 		if (state.to_ts) {
@@ -2520,9 +2549,10 @@ const visitors = {
 			const local_updates = [];
 			const element_name = /** @type {AST.Identifier} */ (element_id).name;
 			const is_void = is_void_element(element_name);
-			/** @type {AST.CSS.StyleSheet['hash'] | null} */
-			const scoping_hash =
-				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
+			// The scope hashes and applied theme classes the style pre-pass
+			// stamped on this element: a literal, or a runtime concatenation
+			// when an imported theme's `$class` is part of it.
+			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 			const inner_html_attribute = get_inner_html_attribute(node);
 
 			state.template?.push(`<${element_name}`);
@@ -2781,16 +2811,46 @@ const visitors = {
 				}
 			}
 
+			const is_html_class =
+				context.state.namespace === 'html' &&
+				/** @type {AST.Identifier} */ (element_id).name !== 'svg';
+
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
 				if (attr_value.type === 'Literal') {
-					let value = attr_value.value;
-
-					if (scoping_hash) {
-						value = `${scoping_hash} ${value}`;
+					if (is_spreading && scope_class !== null) {
+						// The spread may carry a `class` of its own that replaces this
+						// one, so the scope classes ride separately as `#class`, which
+						// the runtime adds after every other attribute.
+						handle_static_attr('class', attr_value.value);
+						if (scope_class.type === 'Literal') {
+							handle_static_attr('#class', /** @type {string} */ (scope_class.value));
+						} else {
+							spread_attributes?.push(b.prop('init', b.literal('#class'), scope_class));
+						}
+					} else if (scope_class === null || scope_class.type === 'Literal') {
+						handle_static_attr(
+							'class',
+							scope_class === null
+								? attr_value.value
+								: `${attr_value.value} ${/** @type {string} */ (scope_class.value)}`,
+						);
+					} else {
+						// An applied theme is read at runtime, so the class is set
+						// when the element renders.
+						const id = state.flush_node?.();
+						state.init?.push(
+							b.stmt(
+								b.call(
+									'_$_.set_class',
+									id,
+									b.literal(attr_value.value),
+									scope_class,
+									b.literal(is_html_class),
+								),
+							),
+						);
 					}
-
-					handle_static_attr('class', value);
 				} else {
 					const id = state.flush_node?.();
 					const metadata = { tracking: false };
@@ -2798,27 +2858,38 @@ const visitors = {
 						visit(attr_value, { ...state, metadata })
 					);
 
-					const hash_arg = scoping_hash ? b.literal(scoping_hash) : undefined;
-					const is_html =
-						context.state.namespace === 'html' &&
-						/** @type {AST.Identifier} */ (element_id).name !== 'svg';
+					const hash_arg = scope_class ?? undefined;
 
 					if (metadata.tracking) {
 						local_updates.push({
 							operation: (key) =>
-								b.stmt(b.call('_$_.set_class', id, key, hash_arg, b.literal(is_html))),
+								b.stmt(b.call('_$_.set_class', id, key, hash_arg, b.literal(is_html_class))),
 							expression,
 							identity: attr_value,
 							initial: b.call(b.id('Symbol')),
 						});
 					} else {
 						state.init?.push(
-							b.stmt(b.call('_$_.set_class', id, expression, hash_arg, b.literal(is_html))),
+							b.stmt(b.call('_$_.set_class', id, expression, hash_arg, b.literal(is_html_class))),
 						);
 					}
 				}
-			} else if (scoping_hash) {
-				handle_static_attr(is_spreading ? '#class' : 'class', scoping_hash);
+			} else if (scope_class !== null) {
+				if (scope_class.type === 'Literal') {
+					handle_static_attr(
+						is_spreading ? '#class' : 'class',
+						/** @type {string} */ (scope_class.value),
+					);
+				} else if (is_spreading) {
+					spread_attributes?.push(b.prop('init', b.literal('#class'), scope_class));
+				} else {
+					const id = state.flush_node?.();
+					state.init?.push(
+						b.stmt(
+							b.call('_$_.set_class', id, b.literal(null), scope_class, b.literal(is_html_class)),
+						),
+					);
+				}
 			}
 
 			if (style_attribute !== null) {
@@ -2953,7 +3024,9 @@ const visitors = {
 				state.template?.push('<!>');
 			}
 
-			const apply_parent_css_scope = state.applyParentCssScope;
+			// Only a dynamic `<{tag}>` element carries scope classes here; a
+			// component's host elements belong to its own scopes.
+			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 
 			const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
@@ -2989,13 +3062,11 @@ const visitors = {
 							}
 						}
 
-						const scoped_hash = get_component_css_hash(state);
-						if (attr_name === 'class' && node.metadata.scoped && scoped_hash) {
-							if (property.type === 'Literal') {
-								property = b.literal(`${scoped_hash} ${property.value}`);
-							} else {
-								property = b.array([property, b.literal(scoped_hash)]);
-							}
+						if (attr_name === 'class' && scope_class !== null) {
+							property =
+								property.type === 'Literal' && scope_class.type === 'Literal'
+									? b.literal(`${property.value} ${/** @type {string} */ (scope_class.value)}`)
+									: b.array([property, scope_class]);
 						}
 
 						if (metadata.tracking) {
@@ -3052,14 +3123,12 @@ const visitors = {
 				}
 			}
 
-			if (node.metadata.scoped && get_component_css(state)) {
+			if (scope_class !== null) {
 				const hasClassAttr = element_attributes.some(
 					(attr) => attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class',
 				);
 				if (!hasClassAttr) {
-					const name = is_spreading ? '#class' : 'class';
-					const value = /** @type {string} */ (get_component_css_hash(state));
-					props.push(b.prop('init', b.key(name), b.literal(value)));
+					props.push(b.prop('init', b.key(is_spreading ? '#class' : 'class'), scope_class));
 				}
 			}
 
@@ -3087,13 +3156,6 @@ const visitors = {
 						visit(children_component, {
 							...state,
 							regular_js: false,
-							...(apply_parent_css_scope || get_component_css(state)
-								? {
-										applyParentCssScope:
-											apply_parent_css_scope ||
-											/** @type {string} */ (get_component_css_hash(state)),
-									}
-								: {}),
 							scope: /** @type {ScopeInterface} */ (component_scope),
 							namespace: child_namespace,
 							is_tsrx_element: true,
@@ -4433,9 +4495,9 @@ function transform_ts_child(node, context) {
 		);
 	} else if (node.type === 'JSXStyleElement') {
 		// to_ts: emit an empty `<style>` element for type-only mappings. The CSS
-		// children are TSRX stylesheet AST, never printed as TSX children, and
-		// style attributes were never carried over.
-		const jsxElement = b.jsx_element(node, [], []);
+		// children are TSRX stylesheet AST, never printed as TSX children; only
+		// `apply` carries type information (see type_only_style_attributes).
+		const jsxElement = b.jsx_element(node, type_only_style_attributes(node), []);
 		disable_style_anchor_verification(jsxElement);
 		if (!state.init) {
 			return jsxElement;
@@ -4951,6 +5013,20 @@ function is_rendered_template_child(parent, node) {
 			is_rendered_template_child(/** @type {AST.Node} */ (child), node)
 		) {
 			return true;
+		}
+		// A `@{ … }` child renders through its lowered template child (see
+		// lower_code_block_children), which stands in the parent's children
+		// list in its place.
+		const item = /** @type {AST.Node} */ (child);
+		if (item.type === 'JSXCodeBlock') {
+			const lowered = item.metadata?.tsrx_template_child?.child ?? item.render ?? null;
+			if (lowered === node) return true;
+			if (
+				is_flattenable_template_fragment(/** @type {AST.Node} */ (lowered), false) &&
+				is_rendered_template_child(/** @type {AST.Node} */ (lowered), node)
+			) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -6903,7 +6979,8 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		scopes: analysis.scopes,
 		ancestor_server_block: undefined,
 		server_block_locals: [],
-		stylesheets: [],
+		// Filled by the style pre-pass in CSS emission order.
+		stylesheets: analysis.stylesheets,
 		to_ts,
 		filename,
 		namespace: 'html',

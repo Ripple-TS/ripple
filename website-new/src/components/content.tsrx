@@ -1,5 +1,5 @@
-export function Content() {
-	return <>
+export function Content() @{
+	<>
 		<div class="content-section">
 			<h2 class="description">
 				Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte
@@ -124,5 +124,5 @@ export function Content() {
 				font-size: 0.9em;
 			}
 		</style>
-	</>;
+	</>
 }

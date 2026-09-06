@@ -2,8 +2,8 @@ import { compile } from '@tsrx/ripple';
 
 describe('basic client > styling', () => {
 	it('renders with styling scoped to component', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
+			<>
 				<div class="styled-container">
 					<h1>{'Styled heading'}</h1>
 					<p class="text">{'Styled paragraph'}</p>
@@ -24,7 +24,7 @@ describe('basic client > styling', () => {
 						font-size: 14px;
 					}
 				</style>
-			</>;
+			</>
 		}
 
 		render(Basic);

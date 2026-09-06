@@ -14,6 +14,7 @@ A summary:
 3. **Effects**: Use `effect()` for side effects that depend on reactive values
 4. **Components**: Keep components focused and type props with TypeScript
    interfaces or type aliases
-5. **Styling**: Use scoped `<style>` elements for component-specific styles
+5. **Styling**: Put a scoped `<style>` block beside the elements it styles, and
+   assign a block to a variable to share it as a theme (`apply`) or class map
 6. **Collections**: Use `RippleArray`, `RippleObject`, `RippleMap`, and
    `RippleSet` for reactive collections instead of regular mutable objects
