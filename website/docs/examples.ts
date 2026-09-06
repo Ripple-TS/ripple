@@ -77,7 +77,7 @@ function DynamicClasses() @{
 		title: 'Scoped Styles & Themes',
 		code: `import { track } from 'ripple';
 
-// A <style> block styles the elements beside it and everything below them,
+// A style block styles the elements beside it and everything below them,
 // never the element that contains it. Assigned to a variable it becomes a
 // theme: an object with $class (its hash class) plus one key per class
 // selector. Exported, applied, or $class-read blocks keep every selector.
