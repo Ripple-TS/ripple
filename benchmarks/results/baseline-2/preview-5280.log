@@ -1,0 +1,7 @@
+$ vite preview --port 5280 --strictPort
+8:31:23 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/async-waterfall/svelte - using default configuration.
+  ➜  Local:   http://localhost:5280/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/async-waterfall/svelte:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] svelte-async-bench@0.0.1 preview: `vite preview --port 5280 --strictPort`
+Exit status 143

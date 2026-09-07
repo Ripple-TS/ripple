@@ -1,0 +1,14 @@
+$ vite build
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 51 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 0.24 kB │ gzip:  0.21 kB
+dist/assets/index-5n6L8AgH.js  92.05 kB │ gzip: 30.86 kB
+
+[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
+  - octane (89%)
+  - vite:terser (10%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 3.19s

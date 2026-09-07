@@ -1,0 +1,6 @@
+$ vite preview --port 5253 --strictPort
+  ➜  Local:   http://localhost:5253/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/chat-stream/ripple:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] ripple-chat-stream@0.0.1 preview: `vite preview --port 5253 --strictPort`
+Exit status 143

@@ -1,0 +1,6 @@
+$ vite preview --port 5193 --strictPort
+  ➜  Local:   http://localhost:5193/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/signal-favoring/ripple:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] ripple-signal-bench@0.0.2 preview: `vite preview --port 5193 --strictPort`
+Exit status 143

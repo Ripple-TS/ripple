@@ -1,0 +1,7 @@
+$ vite preview --port 5276 --strictPort
+8:51:21 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/signal-favoring/svelte - using default configuration.
+  ➜  Local:   http://localhost:5276/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/signal-favoring/svelte:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] svelte-signal-bench@0.0.0 preview: `vite preview --port 5276 --strictPort`
+Exit status 143

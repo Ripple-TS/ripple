@@ -1,0 +1,9 @@
+$ vite build
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 6 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 0.54 kB │ gzip:  0.32 kB
+dist/assets/index-CK_RkNgK.js  27.48 kB │ gzip: 10.24 kB
+
+✓ built in 800ms

@@ -1,0 +1,2135 @@
+
+=== js-framework (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-jsbench
+Building octane-jsx-jsbench
+Building react-jsbench
+Building ripple-jsbench
+Building solid-jsbench
+Building vue-vapor-jsbench
+Building preact-jsbench
+Building svelte-jsbench
+Building inferno-jsbench
+Running octane-tsrx (http://localhost:5176/) × 8…
+Running octane-jsx (http://localhost:5177/) × 8…
+Running react (http://localhost:5175/) × 8…
+Running ripple (http://localhost:5178/) × 8…
+Running solid (http://localhost:5179/) × 8…
+Running vue-vapor (http://localhost:5180/) × 8…
+Running preact (http://localhost:5260/) × 8…
+Running svelte (http://localhost:5271/) × 8…
+Running inferno (http://localhost:5320/) × 8…
+
+Op       | octane-tsrx               | octane-jsx                | react                     | ripple                    | solid                     | vue-vapor                 | preact                    | svelte                    | inferno                   
+---------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------
+run     | 7.80 (min 6.90)           | 8.40 (min 7.60)           | 16.20 (min 15.90)         | 6.70 (min 6.40)           | 6.10 (min 5.50)           | 8.20 (min 6.70)           | 23.30 (min 21.90)         | 10.00 (min 8.70)          | 8.90 (min 7.40)           
+replace | 16.20 (min 13.20)         | 16.90 (min 14.80)         | 27.40 (min 24.40)         | 13.60 (min 12.60)         | 15.30 (min 14.60)         | 14.10 (min 13.20)         | 39.30 (min 37.10)         | 19.90 (min 16.70)         | 15.50 (min 15.10)         
+add     | 7.10 (min 5.90)           | 11.60 (min 9.80)          | 16.30 (min 14.90)         | 7.50 (min 6.00)           | 7.00 (min 6.50)           | 6.90 (min 6.20)           | 22.20 (min 20.40)         | 9.90 (min 9.60)           | 8.70 (min 8.00)           
+update  | 1.00 (min 0.70)           | 2.80 (min 2.60)           | 1.80 (min 1.60)           | 0.60 (min 0.50)           | 2.70 (min 2.50)           | 0.70 (min 0.50)           | 2.80 (min 2.60)           | 1.30 (min 1.20)           | 1.20 (min 1.00)           
+select  | 0.30 (min 0.20)           | 2.10 (min 2.00)           | 1.00 (min 0.90)           | 0.60 (min 0.60)           | 0.90 (min 0.70)           | 0.20 (min 0.20)           | 1.30 (min 1.30)           | 1.50 (min 1.40)           | 0.60 (min 0.50)           
+swap    | 0.80 (min 0.50)           | 3.00 (min 2.80)           | 12.10 (min 11.90)         | 1.00 (min 0.90)           | 1.00 (min 0.90)           | 0.60 (min 0.40)           | 1.30 (min 1.20)           | 1.20 (min 1.00)           | 1.00 (min 0.90)           
+remove  | 0.60 (min 0.60)           | 2.50 (min 2.10)           | 1.40 (min 1.20)           | 0.70 (min 0.50)           | 0.60 (min 0.50)           | 0.40 (min 0.20)           | 1.40 (min 1.30)           | 0.80 (min 0.70)           | 0.60 (min 0.50)           
+runlots | 66.70 (min 59.10)         | 77.90 (min 72.30)         | 370.10 (min 367.00)       | 66.40 (min 60.80)         | 58.40 (min 54.60)         | 68.40 (min 66.30)         | 220.40 (min 210.10)       | 76.90 (min 74.30)         | 71.80 (min 66.60)         
+select_lots| 0.30 (min 0.20)           | 20.70 (min 19.30)         | 5.60 (min 5.40)           | 4.40 (min 4.20)           | 5.50 (min 4.90)           | 0.20 (min 0.20)           | 6.90 (min 6.80)           | 9.40 (min 8.00)           | 3.00 (min 2.80)           
+clear   | 75.30 (min 71.10)         | 78.30 (min 72.20)         | 120.70 (min 108.60)       | 65.70 (min 61.80)         | 70.30 (min 67.30)         | 64.60 (min 61.00)         | 86.90 (min 82.20)         | 64.60 (min 59.50)         | 59.50 (min 54.10)         
+#ins1k  | 1000                      | 1000                      | 1000                      | 0                         | 1000                      | 1000                      | 1000                      | 0                         | 1000                      
+#frag1k | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         
+#ins10k | 10000                     | 10000                     | 10000                     | 0                         | 10000                     | 10000                     | 10000                     | 0                         | 10000                     
+#frag10k| 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         
+#insadd | 1000                      | 1000                      | 1000                      | 0                         | 1000                      | 1000                      | 1000                      | 0                         | 1000                      
+#inspre | 100                       | 100                       | 100                       | 0                         | 100                       | 100                       | 100                       | 0                         | 100                       
+#insapp | 100                       | 100                       | 100                       | 0                         | 100                       | 100                       | 100                       | 0                         | 100                       
+#insmid | 100                       | 100                       | 100                       | 0                         | 100                       | 100                       | 100                       | 0                         | 100                       
+
+octane-jsx / octane-tsrx ratio (score; <1 means octane-jsx faster):
+  run      1.14x  -- slower
+  replace  1.07x  -- slower
+  add      1.60x  -- slower
+  update   3.29x  -- slower
+  select   7.57x  -- slower
+  swap     3.97x  -- slower
+  remove   3.84x  -- slower
+  runlots  1.19x  -- slower
+  select_lots 71.50x  -- slower
+  clear    1.07x  -- slower
+
+react / octane-tsrx ratio (score; <1 means react faster):
+  run      2.16x  -- slower
+  replace  1.78x  -- slower
+  add      2.46x  -- slower
+  update   2.17x  -- slower
+  select   3.50x  -- slower
+  swap     16.83x  -- slower
+  remove   2.39x  -- slower
+  runlots  5.69x  -- slower
+  select_lots 19.71x  -- slower
+  clear    1.65x  -- slower
+
+ripple / octane-tsrx ratio (score; <1 means ripple faster):
+  run      0.93x  ++ faster
+  replace  0.88x  ++ faster
+  add      1.02x  == ~equal
+  update   0.71x  ++ faster
+  select   2.21x  -- slower
+  swap     1.31x  -- slower
+  remove   1.00x  == ~equal
+  runlots  1.01x  == ~equal
+  select_lots 15.36x  -- slower
+  clear    0.89x  ++ faster
+
+solid / octane-tsrx ratio (score; <1 means solid faster):
+  run      0.79x  ++ faster
+  replace  0.99x  == ~equal
+  add      1.03x  == ~equal
+  update   3.12x  -- slower
+  select   2.79x  -- slower
+  swap     1.36x  -- slower
+  remove   0.97x  == ~equal
+  runlots  0.89x  ++ faster
+  select_lots 18.79x  -- slower
+  clear    0.96x  == ~equal
+
+vue-vapor / octane-tsrx ratio (score; <1 means vue-vapor faster):
+  run      1.07x  -- slower
+  replace  0.92x  ++ faster
+  add      0.98x  == ~equal
+  update   0.79x  ++ faster
+  select   0.86x  ++ faster
+  swap     0.75x  ++ faster
+  remove   0.55x  ++ faster
+  runlots  1.05x  -- slower
+  select_lots 0.79x  ++ faster
+  clear    0.88x  ++ faster
+
+preact / octane-tsrx ratio (score; <1 means preact faster):
+  run      3.06x  -- slower
+  replace  2.56x  -- slower
+  add      3.29x  -- slower
+  update   3.19x  -- slower
+  select   4.64x  -- slower
+  swap     1.75x  -- slower
+  remove   2.26x  -- slower
+  runlots  3.38x  -- slower
+  select_lots 24.50x  -- slower
+  clear    1.19x  -- slower
+
+svelte / octane-tsrx ratio (score; <1 means svelte faster):
+  run      1.29x  -- slower
+  replace  1.34x  -- slower
+  add      1.48x  -- slower
+  update   1.52x  -- slower
+  select   5.14x  -- slower
+  swap     1.56x  -- slower
+  remove   1.29x  -- slower
+  runlots  1.18x  -- slower
+  select_lots 31.36x  -- slower
+  clear    0.90x  ++ faster
+
+inferno / octane-tsrx ratio (score; <1 means inferno faster):
+  run      1.14x  -- slower
+  replace  1.01x  == ~equal
+  add      1.27x  -- slower
+  update   1.33x  -- slower
+  select   2.07x  -- slower
+  swap     1.33x  -- slower
+  remove   0.94x  ++ faster
+  runlots  1.07x  -- slower
+  select_lots 10.64x  -- slower
+  clear    0.80x  ++ faster
+
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-js-framework-all.json
+
+=== js-framework-reorder (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Running octane-tsrx (http://localhost:5176/) × 8 (+2 warmup, per-op gate)…
+Running octane-jsx (http://localhost:5177/) × 8 (+2 warmup, per-op gate)…
+Running react (http://localhost:5175/) × 8 (+2 warmup, per-op gate)…
+Running ripple (http://localhost:5178/) × 8 (+2 warmup, per-op gate)…
+Running solid (http://localhost:5179/) × 8 (+2 warmup, per-op gate)…
+Running vue-vapor (http://localhost:5180/) × 8 (+2 warmup, per-op gate)…
+Running preact (http://localhost:5260/) × 8 (+2 warmup, per-op gate)…
+Running svelte (http://localhost:5271/) × 8 (+2 warmup, per-op gate)…
+Running inferno (http://localhost:5320/) × 8 (+2 warmup, per-op gate)…
+
+Op            | octane-tsrx               | octane-jsx                | react                     | ripple                    | solid                     | vue-vapor                 | preact                    | svelte                    | inferno                   
+--------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------
+reverse      | 3.17 (min 3.10)           | 4.70 (min 4.63)           | 5.63 (min 5.47)           | 3.20 (min 3.13)           | 3.15 (min 1.78)           | 6.38 (min 5.13)           | 9.95 (min 8.63)           | 46.17 (min 43.82)         | 4.92 (min 4.30)           
+shuffle      | 3.30 (min 3.22)           | 4.90 (min 4.88)           | 5.07 (min 4.55)           | 3.40 (min 3.38)           | 3.33 (min 2.00)           | 6.97 (min 5.40)           | 8.80 (min 8.55)           | 5.93 (min 5.38)           | 5.20 (min 4.90)           
+rotatef      | 0.22 (min 0.21)           | 1.47 (min 1.44)           | 3.84 (min 3.61)           | 0.23 (min 0.22)           | 0.29 (min 0.24)           | 2.74 (min 2.46)           | 0.55 (min 0.51)           | 0.35 (min 0.33)           | 0.45 (min 0.39)           
+rotateb      | 0.20 (min 0.20)           | 1.45 (min 1.43)           | 0.30 (min 0.29)           | 0.21 (min 0.20)           | 0.22 (min 0.21)           | 0.75 (min 0.54)           | 0.57 (min 0.50)           | 0.24 (min 0.23)           | 0.38 (min 0.35)           
+prepend100   | 1.00 (min 0.90)           | 2.70 (min 2.50)           | 2.30 (min 2.10)           | 1.00 (min 0.90)           | 1.20 (min 1.10)           | 1.20 (min 0.90)           | 4.30 (min 4.20)           | 2.50 (min 1.90)           | 1.40 (min 1.30)           
+append100    | 1.00 (min 0.80)           | 2.70 (min 2.60)           | 1.90 (min 1.90)           | 0.80 (min 0.80)           | 1.10 (min 0.90)           | 1.10 (min 0.90)           | 4.40 (min 3.70)           | 2.20 (min 1.90)           | 1.30 (min 1.20)           
+insertmid100 | 0.90 (min 0.80)           | 2.70 (min 2.60)           | 2.20 (min 2.00)           | 0.80 (min 0.70)           | 1.10 (min 1.00)           | 1.00 (min 1.00)           | 4.20 (min 4.00)           | 2.10 (min 1.90)           | 1.70 (min 1.30)           
+removefirst  | 0.12 (min 0.12)           | 1.44 (min 1.43)           | 0.35 (min 0.33)           | 0.15 (min 0.15)           | 0.18 (min 0.17)           | 0.14 (min 0.12)           | 0.71 (min 0.56)           | 0.38 (min 0.34)           | 0.21 (min 0.19)           
+removeevery10| 0.42 (min 0.41)           | 1.01 (min 1.00)           | 0.50 (min 0.40)           | 0.49 (min 0.43)           | 0.59 (min 0.29)           | 0.88 (min 0.76)           | 0.88 (min 0.85)           | 0.71 (min 0.28)           | 0.74 (min 0.61)           
+displace3    | 0.23 (min 0.23)           | 1.64 (min 1.63)           | 0.37 (min 0.36)           | 0.31 (min 0.30)           | 0.33 (min 0.29)           | 0.84 (min 0.65)           | 5.64 (min 5.17)           | 0.39 (min 0.36)           | 0.47 (min 0.42)           
+displace4    | 0.26 (min 0.23)           | 1.66 (min 1.62)           | 0.38 (min 0.37)           | 0.31 (min 0.25)           | 0.36 (min 0.31)           | 0.76 (min 0.70)           | 5.69 (min 5.24)           | 0.40 (min 0.36)           | 0.46 (min 0.44)           
+displace5    | 0.26 (min 0.23)           | 1.65 (min 1.63)           | 0.38 (min 0.38)           | 0.29 (min 0.28)           | 0.41 (min 0.35)           | 0.78 (min 0.68)           | 5.42 (min 5.12)           | 0.41 (min 0.38)           | 0.49 (min 0.45)           
+displace6    | 0.27 (min 0.22)           | 1.65 (min 1.63)           | 0.39 (min 0.37)           | 0.38 (min 0.28)           | 0.41 (min 0.39)           | 0.91 (min 0.73)           | 5.24 (min 5.11)           | 0.42 (min 0.36)           | 0.50 (min 0.45)           
+displace8    | 0.28 (min 0.23)           | 1.67 (min 1.61)           | 0.41 (min 0.39)           | 0.30 (min 0.26)           | 0.53 (min 0.37)           | 0.82 (min 0.70)           | 5.47 (min 5.20)           | 0.43 (min 0.38)           | 0.50 (min 0.47)           
+
+octane-jsx / octane-tsrx ratio (score; <1 means octane-jsx faster):
+  reverse       1.50x  -- slower
+  shuffle       1.50x  -- slower
+  rotatef       6.71x  -- slower
+  rotateb       7.23x  -- slower
+  prepend100    2.65x  -- slower
+  append100     2.81x  -- slower
+  insertmid100  3.14x  -- slower
+  removefirst   11.77x  -- slower
+  removeevery10 2.38x  -- slower
+  displace3     7.27x  -- slower
+  displace4     6.60x  -- slower
+  displace5     6.51x  -- slower
+  displace6     6.51x  -- slower
+  displace8     6.32x  -- slower
+
+react / octane-tsrx ratio (score; <1 means react faster):
+  reverse       1.79x  -- slower
+  shuffle       1.58x  -- slower
+  rotatef       17.84x  -- slower
+  rotateb       1.48x  -- slower
+  prepend100    2.45x  -- slower
+  append100     1.98x  -- slower
+  insertmid100  2.48x  -- slower
+  removefirst   2.83x  -- slower
+  removeevery10 1.22x  -- slower
+  displace3     1.63x  -- slower
+  displace4     1.50x  -- slower
+  displace5     1.52x  -- slower
+  displace6     1.52x  -- slower
+  displace8     1.53x  -- slower
+
+ripple / octane-tsrx ratio (score; <1 means ripple faster):
+  reverse       1.02x  == ~equal
+  shuffle       1.03x  == ~equal
+  rotatef       1.07x  -- slower
+  rotateb       1.03x  == ~equal
+  prepend100    1.04x  == ~equal
+  append100     0.88x  ++ faster
+  insertmid100  0.89x  ++ faster
+  removefirst   1.26x  -- slower
+  removeevery10 1.28x  -- slower
+  displace3     1.34x  -- slower
+  displace4     1.15x  -- slower
+  displace5     1.25x  -- slower
+  displace6     1.21x  -- slower
+  displace8     1.12x  -- slower
+
+solid / octane-tsrx ratio (score; <1 means solid faster):
+  reverse       0.77x  ++ faster
+  shuffle       0.79x  ++ faster
+  rotatef       1.27x  -- slower
+  rotateb       1.09x  -- slower
+  prepend100    1.22x  -- slower
+  append100     1.17x  -- slower
+  insertmid100  1.18x  -- slower
+  removefirst   1.47x  -- slower
+  removeevery10 1.10x  -- slower
+  displace3     1.43x  -- slower
+  displace4     1.33x  -- slower
+  displace5     1.57x  -- slower
+  displace6     1.67x  -- slower
+  displace8     2.06x  -- slower
+
+vue-vapor / octane-tsrx ratio (score; <1 means vue-vapor faster):
+  reverse       2.09x  -- slower
+  shuffle       2.29x  -- slower
+  rotatef       12.29x  -- slower
+  rotateb       3.44x  -- slower
+  prepend100    1.18x  -- slower
+  append100     1.12x  -- slower
+  insertmid100  1.18x  -- slower
+  removefirst   1.10x  -- slower
+  removeevery10 2.11x  -- slower
+  displace3     3.50x  -- slower
+  displace4     2.95x  -- slower
+  displace5     3.20x  -- slower
+  displace6     3.46x  -- slower
+  displace8     2.95x  -- slower
+
+preact / octane-tsrx ratio (score; <1 means preact faster):
+  reverse       3.02x  -- slower
+  shuffle       2.74x  -- slower
+  rotatef       2.47x  -- slower
+  rotateb       2.89x  -- slower
+  prepend100    4.53x  -- slower
+  append100     5.06x  -- slower
+  insertmid100  4.82x  -- slower
+  removefirst   6.42x  -- slower
+  removeevery10 2.04x  -- slower
+  displace3     24.54x  -- slower
+  displace4     21.59x  -- slower
+  displace5     21.12x  -- slower
+  displace6     20.71x  -- slower
+  displace8     20.55x  -- slower
+
+svelte / octane-tsrx ratio (score; <1 means svelte faster):
+  reverse       14.52x  -- slower
+  shuffle       1.79x  -- slower
+  rotatef       1.62x  -- slower
+  rotateb       1.22x  -- slower
+  prepend100    2.45x  -- slower
+  append100     2.23x  -- slower
+  insertmid100  2.30x  -- slower
+  removefirst   3.04x  -- slower
+  removeevery10 1.21x  -- slower
+  displace3     1.81x  -- slower
+  displace4     1.61x  -- slower
+  displace5     1.64x  -- slower
+  displace6     1.56x  -- slower
+  displace8     1.64x  -- slower
+
+inferno / octane-tsrx ratio (score; <1 means inferno faster):
+  reverse       1.61x  -- slower
+  shuffle       1.61x  -- slower
+  rotatef       1.89x  -- slower
+  rotateb       1.84x  -- slower
+  prepend100    1.53x  -- slower
+  append100     1.37x  -- slower
+  insertmid100  1.75x  -- slower
+  removefirst   1.72x  -- slower
+  removeevery10 1.63x  -- slower
+  displace3     2.08x  -- slower
+  displace4     1.91x  -- slower
+  displace5     1.87x  -- slower
+  displace6     1.98x  -- slower
+  displace8     1.93x  -- slower
+
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-js-framework-reorder-all.json
+
+=== recursive-context (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-recursive-bench
+Building octane-jsx-recursive-bench
+Building react-recursive-bench
+Building ripple-recursive-bench
+Building solid-recursive-bench
+Building vue-vapor-recursive-bench
+Building preact-recursive-bench
+Building svelte-recursive-bench
+Building inferno-recursive-bench
+Running octane-tsrx (http://localhost:5185/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running octane-jsx (http://localhost:5188/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Repeating octane-jsx for order-balanced dialect pair…
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Repeating octane-tsrx for order-balanced dialect pair…
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running react (http://localhost:5186/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running ripple (http://localhost:5184/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running solid (http://localhost:5187/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running vue-vapor (http://localhost:5189/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running preact (http://localhost:5264/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running svelte (http://localhost:5275/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+Running inferno (http://localhost:5327/) × 20 (+10 warmup)…
+  → semantic gate
+  → mount
+  → update_root
+  → update_partial
+  → partial_unmount/remount
+  → unmount
+
+Op               | octane-tsrx                     | octane-jsx                      | react                           | ripple                          | solid                           | vue-vapor                       | preact                          | svelte                          | inferno                         
+-----------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------
+mount           | 29.30 (min 25.20, sd 1.90)      | 34.00 (min 30.10, sd 1.69)      | 23.50 (min 21.90, sd 1.12)      | 21.80 (min 20.70, sd 1.81)      | 21.40 (min 18.70, sd 1.40)      | 48.10 (min 42.70, sd 2.42)      | 15.80 (min 14.90, sd 0.78)      | 68.20 (min 64.20, sd 3.37)      | 7.10 (min 6.70, sd 0.35)        
+update_root     | 5.00 (min 4.50, sd 0.49)        | 5.60 (min 4.90, sd 0.76)        | 2.90 (min 2.20, sd 0.59)        | 2.10 (min 1.50, sd 0.42)        | 2.20 (min 1.80, sd 0.57)        | 1.60 (min 1.30, sd 0.42)        | 6.70 (min 5.10, sd 1.00)        | 3.30 (min 2.70, sd 0.37)        | 1.40 (min 1.10, sd 0.23)        
+update_partial  | 0.30 (min 0.20, sd 0.09)        | 0.50 (min 0.30, sd 0.19)        | 0.30 (min 0.20, sd 0.11)        | 0.10 (min 0.00, sd 0.05)        | 0.20 (min 0.10, sd 0.09)        | 0.10 (min 0.00, sd 0.07)        | 0.30 (min 0.20, sd 0.10)        | 0.30 (min 0.20, sd 0.06)        | 0.10 (min 0.00, sd 0.07)        
+partial_unmount | 0.20 (min 0.10, sd 0.12)        | 0.20 (min 0.10, sd 0.08)        | 0.30 (min 0.20, sd 0.06)        | 0.10 (min 0.00, sd 0.07)        | 0.30 (min 0.10, sd 0.08)        | 0.20 (min 0.10, sd 0.13)        | 0.20 (min 0.10, sd 0.09)        | 0.30 (min 0.10, sd 0.08)        | 0.10 (min 0.00, sd 0.07)        
+partial_remount | 0.40 (min 0.30, sd 0.10)        | 0.70 (min 0.60, sd 0.12)        | 0.40 (min 0.30, sd 0.08)        | 0.60 (min 0.30, sd 0.12)        | 0.60 (min 0.50, sd 0.09)        | 0.60 (min 0.50, sd 0.07)        | 0.40 (min 0.30, sd 0.07)        | 1.70 (min 1.40, sd 0.25)        | 0.20 (min 0.10, sd 0.08)        
+unmount         | 1.80 (min 0.50, sd 0.68)        | 2.00 (min 0.60, sd 0.89)        | 2.90 (min 1.40, sd 0.70)        | 1.40 (min 0.10, sd 0.55)        | 1.90 (min 0.60, sd 0.92)        | 3.10 (min 1.60, sd 0.82)        | 1.80 (min 0.50, sd 0.74)        | 2.90 (min 2.40, sd 0.57)        | 1.70 (min 0.20, sd 0.61)        
+
+order-balanced octane-jsx / octane-tsrx dialect ratio:
+  mount            1.17x
+  update_root      1.12x
+  update_partial   1.50x
+  partial_unmount  1.14x
+  partial_remount  1.60x
+  unmount          0.87x
+
+octane-tsrx / vue-vapor ratio (score; <1 means octane-tsrx faster):
+  mount            0.60x  ++ faster
+  update_root      2.92x  -- slower
+  update_partial   2.44x  -- slower
+  partial_unmount  0.94x  ++ faster
+  partial_remount  0.72x  ++ faster
+  unmount          0.59x  ++ faster
+
+octane-jsx / vue-vapor ratio (score; <1 means octane-jsx faster):
+  mount            0.70x  ++ faster
+  update_root      3.32x  -- slower
+  update_partial   3.89x  -- slower
+  partial_unmount  1.06x  -- slower
+  partial_remount  1.26x  -- slower
+  unmount          0.63x  ++ faster
+
+react / vue-vapor ratio (score; <1 means react faster):
+  mount            0.48x  ++ faster
+  update_root      1.73x  -- slower
+  update_partial   2.67x  -- slower
+  partial_unmount  1.62x  -- slower
+  partial_remount  0.66x  ++ faster
+  unmount          0.88x  ++ faster
+
+ripple / vue-vapor ratio (score; <1 means ripple faster):
+  mount            0.47x  ++ faster
+  update_root      1.26x  -- slower
+  update_partial   1.00x  == ~equal
+  partial_unmount  0.38x  ++ faster
+  partial_remount  0.91x  ++ faster
+  unmount          0.33x  ++ faster
+
+solid / vue-vapor ratio (score; <1 means solid faster):
+  mount            0.45x  ++ faster
+  update_root      1.32x  -- slower
+  update_partial   1.89x  -- slower
+  partial_unmount  1.25x  -- slower
+  partial_remount  1.00x  == ~equal
+  unmount          0.55x  ++ faster
+
+preact / vue-vapor ratio (score; <1 means preact faster):
+  mount            0.31x  ++ faster
+  update_root      3.60x  -- slower
+  update_partial   2.89x  -- slower
+  partial_unmount  0.75x  ++ faster
+  partial_remount  0.70x  ++ faster
+  unmount          0.51x  ++ faster
+
+svelte / vue-vapor ratio (score; <1 means svelte faster):
+  mount            1.40x  -- slower
+  update_root      1.90x  -- slower
+  update_partial   2.00x  -- slower
+  partial_unmount  1.13x  -- slower
+  partial_remount  2.62x  -- slower
+  unmount          1.06x  -- slower
+
+inferno / vue-vapor ratio (score; <1 means inferno faster):
+  mount            0.14x  ++ faster
+  update_root      0.88x  ++ faster
+  update_partial   0.89x  ++ faster
+  partial_unmount  0.56x  ++ faster
+  partial_remount  0.26x  ++ faster
+  unmount          0.45x  ++ faster
+
+locality ratio (update_partial / update_root, lower = better scoping):
+  octane-tsrx      0.055x  (ideal: ~0.03)
+  octane-jsx       0.077x  (ideal: ~0.03)
+  react            0.102x  (ideal: ~0.03)
+  ripple           0.053x  (ideal: ~0.03)
+  solid            0.095x  (ideal: ~0.03)
+  vue-vapor        0.066x  (ideal: ~0.03)
+  preact           0.053x  (ideal: ~0.03)
+  svelte           0.070x  (ideal: ~0.03)
+  inferno          0.067x  (ideal: ~0.03)
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-recursive-context-all.json
+
+=== signal-favoring (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-signal-bench
+Building octane-jsx-signal-bench
+Building react-signal-bench
+Building ripple-signal-bench
+Building solid-signal-bench
+Building vue-vapor-signal-bench
+Building preact-signal-bench
+Building svelte-signal-bench
+Building inferno-signal-bench
+Running octane-tsrx (http://localhost:5190/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running octane-jsx (http://localhost:5194/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Repeating octane-jsx for order-balanced dialect pair…
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Repeating octane-tsrx for order-balanced dialect pair…
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running react (http://localhost:5192/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running ripple (http://localhost:5193/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running solid (http://localhost:5191/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running vue-vapor (http://localhost:5183/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running preact (http://localhost:5265/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running svelte (http://localhost:5276/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+Running inferno (http://localhost:5329/) × 20 (+5 warmup)…
+  → semantic gate
+  → mount
+  → bump_shallow (C1)
+  → bump_middle (C51)
+  → bump_deep (C91)
+  → bump_sweep (10 bumps, flush each)
+  → bump_sweep_batched (10 bumps, 1 flush, ancestor-first)
+  → bump_sweep_reverse (10 bumps, 1 flush, descendant-first)
+  → unmount
+
+Op             | octane-tsrx                     | octane-jsx                      | react                           | ripple                          | solid                           | vue-vapor                       | preact                          | svelte                          | inferno                         
+---------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------
+mount         | 10.10 (min 9.20, sd 1.09)       | 10.90 (min 9.90, sd 1.06)       | 10.40 (min 9.50, sd 0.88)       | 7.50 (min 6.60, sd 0.36)        | 6.60 (min 6.40, sd 0.13)        | 7.00 (min 6.40, sd 0.49)        | 5.00 (min 4.90, sd 0.15)        | 6.60 (min 6.30, sd 0.22)        | 4.00 (min 3.90, sd 0.088)       
+bump_shallow  | 0.004 (min 0.002, sd 0.002)     | 0.040 (min 0.034, sd 0.015)     | 0.010 (min 0.006, sd 0.004)     | 0.002 (min 0.000, sd 0.002)     | 0.006 (min 0.002, sd 0.003)     | 0.002 (min 0.000, sd 0.002)     | 0.16 (min 0.15, sd 0.017)       | 0.010 (min 0.006, sd 0.002)     | 0.038 (min 0.030, sd 0.012)     
+bump_middle   | 0.004 (min 0.002, sd 0.002)     | 0.022 (min 0.018, sd 0.008)     | 0.044 (min 0.034, sd 0.009)     | 0.002 (min 0.000, sd 0.001)     | 0.004 (min 0.004, sd 0.002)     | 0.002 (min 0.000, sd 0.002)     | 0.076 (min 0.066, sd 0.011)     | 0.008 (min 0.006, sd 0.002)     | 0.020 (min 0.016, sd 0.006)     
+bump_deep     | 0.006 (min 0.002, sd 0.002)     | 0.006 (min 0.006, sd 0.004)     | 0.098 (min 0.084, sd 0.011)     | 0.002 (min 0.000, sd 0.001)     | 0.004 (min 0.002, sd 0.003)     | 0.002 (min 0.000, sd 0.002)     | 0.020 (min 0.014, sd 0.003)     | 0.008 (min 0.008, sd 0.002)     | 0.006 (min 0.004, sd 0.002)     
+bump_sweep    | 0.044 (min 0.032, sd 0.008)     | 0.17 (min 0.15, sd 0.015)       | 0.43 (min 0.39, sd 0.037)       | 0.016 (min 0.012, sd 0.006)     | 0.028 (min 0.024, sd 0.006)     | 0.020 (min 0.012, sd 0.006)     | 0.78 (min 0.68, sd 0.063)       | 0.060 (min 0.052, sd 0.010)     | 0.22 (min 0.17, sd 0.022)       
+bump_sweep_batched| 0.036 (min 0.028, sd 0.007)     | 0.072 (min 0.056, sd 0.022)     | 0.13 (min 0.11, sd 0.015)       | 0.008 (min 0.004, sd 0.004)     | 0.016 (min 0.012, sd 0.004)     | 0.012 (min 0.004, sd 0.006)     | 0.16 (min 0.13, sd 0.030)       | 0.028 (min 0.024, sd 0.007)     | 0.21 (min 0.18, sd 0.019)       
+bump_sweep_reverse| 0.036 (min 0.024, sd 0.009)     | 0.068 (min 0.056, sd 0.017)     | 0.12 (min 0.11, sd 0.010)       | 0.008 (min 0.004, sd 0.004)     | 0.016 (min 0.012, sd 0.004)     | 0.012 (min 0.008, sd 0.003)     | 0.18 (min 0.15, sd 0.024)       | 0.028 (min 0.028, sd 0.007)     | 0.22 (min 0.17, sd 0.018)       
+unmount       | 0.10 (min 0.000, sd 0.13)       | 0.30 (min 0.000, sd 0.18)       | 0.30 (min 0.20, sd 0.13)        | 0.10 (min 0.000, sd 0.13)       | 0.10 (min 0.000, sd 0.14)       | 0.10 (min 0.000, sd 0.13)       | 0.20 (min 0.000, sd 0.21)       | 0.10 (min 0.000, sd 0.14)       | 0.20 (min 0.000, sd 0.19)       
+
+order-balanced octane-jsx / octane-tsrx dialect ratio:
+  mount          1.09x
+  bump_shallow   8.77x
+  bump_middle    4.66x
+  bump_deep      1.79x
+  bump_sweep     4.52x
+  bump_sweep_batched 2.23x
+  bump_sweep_reverse 2.02x
+  unmount        1.37x
+
+octane-tsrx / vue-vapor ratio (score; <1 means octane-tsrx faster):
+  mount          1.48x  -- slower
+  bump_shallow   1.83x  -- slower
+  bump_middle    2.29x  -- slower
+  bump_deep      3.33x  -- slower
+  bump_sweep     1.93x  -- slower
+  bump_sweep_batched 3.47x  -- slower
+  bump_sweep_reverse 2.71x  -- slower
+  unmount        1.75x  -- slower
+
+octane-jsx / vue-vapor ratio (score; <1 means octane-jsx faster):
+  mount          1.62x  -- slower
+  bump_shallow   24.67x  -- slower
+  bump_middle    11.86x  -- slower
+  bump_deep      4.17x  -- slower
+  bump_sweep     8.00x  -- slower
+  bump_sweep_batched 7.74x  -- slower
+  bump_sweep_reverse 5.83x  -- slower
+  unmount        4.25x  -- slower
+
+react / vue-vapor ratio (score; <1 means react faster):
+  mount          1.58x  -- slower
+  bump_shallow   5.83x  -- slower
+  bump_middle    24.00x  -- slower
+  bump_deep      63.83x  -- slower
+  bump_sweep     21.12x  -- slower
+  bump_sweep_batched 13.74x  -- slower
+  bump_sweep_reverse 10.42x  -- slower
+  unmount        5.75x  -- slower
+
+ripple / vue-vapor ratio (score; <1 means ripple faster):
+  mount          1.10x  -- slower
+  bump_shallow   1.00x  == ~equal
+  bump_middle    1.29x  -- slower
+  bump_deep      1.00x  == ~equal
+  bump_sweep     0.63x  ++ faster
+  bump_sweep_batched 0.84x  ++ faster
+  bump_sweep_reverse 0.67x  ++ faster
+  unmount        2.00x  -- slower
+
+solid / vue-vapor ratio (score; <1 means solid faster):
+  mount          0.97x  == ~equal
+  bump_shallow   2.67x  -- slower
+  bump_middle    2.43x  -- slower
+  bump_deep      2.83x  -- slower
+  bump_sweep     1.44x  -- slower
+  bump_sweep_batched 1.89x  -- slower
+  bump_sweep_reverse 1.42x  -- slower
+  unmount        1.75x  -- slower
+
+preact / vue-vapor ratio (score; <1 means preact faster):
+  mount          0.75x  ++ faster
+  bump_shallow   105.33x  -- slower
+  bump_middle    41.57x  -- slower
+  bump_deep      12.00x  -- slower
+  bump_sweep     36.95x  -- slower
+  bump_sweep_batched 17.16x  -- slower
+  bump_sweep_reverse 15.08x  -- slower
+  unmount        3.00x  -- slower
+
+svelte / vue-vapor ratio (score; <1 means svelte faster):
+  mount          0.95x  == ~equal
+  bump_shallow   6.83x  -- slower
+  bump_middle    4.71x  -- slower
+  bump_deep      5.83x  -- slower
+  bump_sweep     2.73x  -- slower
+  bump_sweep_batched 3.11x  -- slower
+  bump_sweep_reverse 2.46x  -- slower
+  unmount        2.00x  -- slower
+
+inferno / vue-vapor ratio (score; <1 means inferno faster):
+  mount          0.59x  ++ faster
+  bump_shallow   23.50x  -- slower
+  bump_middle    10.43x  -- slower
+  bump_deep      3.83x  -- slower
+  bump_sweep     10.32x  -- slower
+  bump_sweep_batched 21.26x  -- slower
+  bump_sweep_reverse 17.17x  -- slower
+  unmount        3.25x  -- slower
+
+cascade ratio (bump_shallow / bump_deep, signal frameworks should be near 1.0):
+  octane-tsrx    0.55x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  octane-jsx     5.92x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  react          0.09x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  ripple         1.00x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  solid          0.94x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  vue-vapor      1.00x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  preact         8.78x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  svelte         1.17x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+  inferno        6.13x  (uncached hooks ~10x; compiled React can skip descendants; signals ~1x)
+
+coalescing ratio (bump_sweep_batched / bump_sweep, lower = bigger win from batching):
+  octane-tsrx    0.84x
+  octane-jsx     0.45x
+  react          0.30x
+  ripple         0.62x
+  solid          0.61x
+  vue-vapor      0.46x
+  preact         0.22x
+  svelte         0.53x
+  inferno        0.96x
+
+order-sensitivity ratio (bump_sweep_reverse / bump_sweep_batched, ~1.0 = order-independent):
+  octane-tsrx    1.04x  (on means)
+  octane-jsx     0.91x  (on means)
+  react          0.96x  (on means)
+  ripple         1.02x  (on means)
+  solid          0.96x  (on means)
+  vue-vapor      1.07x  (on means)
+  preact         1.09x  (on means)
+  svelte         1.04x  (on means)
+  inferno        1.02x  (on means)
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-signal-favoring-all.json
+
+=== news (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+building octane-tsrx (production)…
+
+The Octane Times — SSR + hydration bench  (octane-tsrx, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.11 |   0.15 |   0.09 |   0.26
+hydrate    (ms) |   6.48 |   6.70 |   5.60 |   7.50
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-octane-tsrx.json
+building octane-jsx (production)…
+
+The Octane Times — SSR + hydration bench  (octane-jsx, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.11 |   0.13 |   0.10 |   0.28
+hydrate    (ms) |   8.64 |   8.80 |   7.00 |   9.70
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-octane-jsx.json
+building react (production)…
+
+The Octane Times — SSR + hydration bench  (react, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.36 |   0.37 |   0.34 |   0.59
+hydrate    (ms) |   9.55 |   9.20 |   8.60 |  11.20
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-react.json
+building ripple (production)…
+
+The Octane Times — SSR + hydration bench  (ripple, production)
+document: 50 article cards, 46.1 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.24 |   0.24 |   0.17 |   0.39
+hydrate    (ms) |   4.56 |   4.50 |   3.80 |   5.10
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-ripple.json
+building solid (production)…
+
+The Octane Times — SSR + hydration bench  (solid, production)
+document: 50 article cards, 41.8 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.07 |   0.08 |   0.06 |   0.25
+hydrate    (ms) |   7.94 |   7.90 |   6.70 |   8.40
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-solid.json
+building vue-vapor (production)…
+
+The Octane Times — SSR + hydration bench  (vue-vapor, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.10 |   0.10 |   0.08 |   0.25
+hydrate    (ms) |   5.83 |   5.90 |   5.20 |   6.70
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-vue-vapor.json
+building preact (production)…
+
+The Octane Times — SSR + hydration bench  (preact, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.32 |   0.33 |   0.31 |   0.68
+hydrate    (ms) |   4.89 |   5.00 |   4.20 |   5.40
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-preact.json
+building svelte (production)…
+7:16:40 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/news/svelte - using default configuration.
+7:16:40 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/news/svelte - using default configuration.
+
+The Octane Times — SSR + hydration bench  (svelte, production)
+document: 50 article cards, 41.7 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.09 |   0.09 |   0.07 |   0.19
+hydrate    (ms) |   5.29 |   5.30 |   4.20 |   5.60
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-svelte.json
+building inferno (production)…
+
+The Octane Times — SSR + hydration bench  (inferno, production)
+document: 50 article cards, 41.4 KB HTML
+
+Metric          |  score | median |    min |    p95
+----------------+--------+--------+--------+--------
+SSR render (ms) |   0.23 |   0.28 |   0.20 |   0.50
+hydrate    (ms) |   2.78 |   2.80 |   2.50 |   3.20
+
+correctness: cards=50  no-rebuild=true  interactive=true
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-news-inferno.json
+
+=== todomvc (octane-tsrx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-todomvc
+Building react-todomvc
+Building ripple-todomvc
+Building solid-todomvc
+Building vue-vapor-todomvc
+Building preact-todomvc
+Building svelte-todomvc
+Building inferno-todomvc
+Running octane-tsrx (http://localhost:5240/) × 8…
+Running react (http://localhost:5241/) × 8…
+Running ripple (http://localhost:5243/) × 8…
+Running solid (http://localhost:5242/) × 8…
+Running vue-vapor (http://localhost:5244/) × 8…
+Running preact (http://localhost:5261/) × 8…
+Running svelte (http://localhost:5272/) × 8…
+Running inferno (http://localhost:5321/) × 8…
+
+Op            | octane-tsrx               | react                     | ripple                    | solid                     | vue-vapor                 | preact                    | svelte                    | inferno                   
+--------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------
+add100       | 8.00 (min 5.80)           | 31.40 (min 29.50)         | 4.80 (min 4.00)           | 5.90 (min 5.20)           | 5.00 (min 4.40)           | 26.50 (min 24.90)         | 7.10 (min 6.50)           | 11.10 (min 9.80)          
+toggleAllOn  | 1.20 (min 0.90)           | 1.30 (min 1.10)           | 0.40 (min 0.30)           | 2.20 (min 1.90)           | 0.50 (min 0.40)           | 1.10 (min 0.90)           | 0.80 (min 0.60)           | 0.60 (min 0.50)           
+toggleAllOff | 1.00 (min 0.90)           | 1.40 (min 1.10)           | 0.50 (min 0.20)           | 2.00 (min 1.80)           | 0.40 (min 0.30)           | 0.90 (min 0.80)           | 0.80 (min 0.70)           | 0.70 (min 0.40)           
+complete25   | 2.30 (min 2.00)           | 16.20 (min 13.70)         | 1.50 (min 1.20)           | 2.30 (min 2.10)           | 1.10 (min 0.80)           | 11.70 (min 11.20)         | 2.40 (min 2.10)           | 4.40 (min 4.00)           
+filterCycle  | 2.20 (min 1.90)           | 3.60 (min 3.50)           | 1.50 (min 1.30)           | 2.10 (min 1.90)           | 2.00 (min 1.50)           | 3.10 (min 2.80)           | 2.60 (min 2.10)           | 2.20 (min 1.80)           
+edit10       | 11.20 (min 9.80)          | 14.80 (min 12.60)         | 2.00 (min 1.80)           | 3.10 (min 2.90)           | 2.40 (min 2.00)           | 10.10 (min 9.60)          | 5.10 (min 4.10)           | 5.00 (min 4.40)           
+clearCompleted| 0.60 (min 0.40)           | 1.30 (min 0.90)           | 0.50 (min 0.30)           | 0.60 (min 0.60)           | 0.50 (min 0.40)           | 0.90 (min 0.60)           | 0.50 (min 0.40)           | 0.70 (min 0.50)           
+destroy25    | 1.80 (min 1.50)           | 14.20 (min 13.10)         | 1.30 (min 1.00)           | 1.80 (min 1.40)           | 1.20 (min 1.10)           | 11.30 (min 9.60)          | 2.00 (min 1.70)           | 4.60 (min 4.00)           
+#rowCls25    | 25                        | 25                        | 25                        | 0                         | 25                        | 25                        | 25                        | 25                        
+#nodes       | 729                       | 623                       | 727                       | 724                       | 726                       | 623                       | 1035                      | 623                       
+#elems       | 517                       | 517                       | 517                       | 517                       | 517                       | 517                       | 517                       | 517                       
+#text        | 106                       | 106                       | 108                       | 207                       | 209                       | 106                       | 416                       | 106                       
+#cmnts       | 106                       | 0                         | 102                       | 0                         | 0                         | 0                         | 102                       | 0                         
+#empty       | 0                         | 0                         | 2                         | 101                       | 103                       | 0                         | 2                         | 0                         
+#ws          | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 308                       | 0                         
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-todomvc-all.json
+
+=== chat-stream (octane-tsrx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-chat-stream
+Building react-chat-stream
+Building ripple-chat-stream
+Building solid-chat-stream
+Building vue-vapor-chat-stream
+Building preact-chat-stream
+Building svelte-chat-stream
+Building inferno-chat-stream
+Running octane-tsrx (http://localhost:5250/) × 8…
+Running react (http://localhost:5251/) × 8…
+Running ripple (http://localhost:5253/) × 8…
+Running solid (http://localhost:5252/) × 8…
+Running vue-vapor (http://localhost:5254/) × 8…
+Running preact (http://localhost:5262/) × 8…
+Running svelte (http://localhost:5273/) × 8…
+Running inferno (http://localhost:5323/) × 8…
+
+Op            | octane-tsrx               | react                     | ripple                    | solid                     | vue-vapor                 | preact                    | svelte                    | inferno                   
+--------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------
+streamFine   | 4.30 (min 3.40)           | 11.30 (min 9.20)          | 2.20 (min 2.00)           | 7.10 (min 6.50)           | 1.90 (min 1.70)           | 8.30 (min 8.10)           | 4.50 (min 4.20)           | 3.50 (min 3.30)           
+streamCoarse | 1.70 (min 1.40)           | 3.00 (min 2.70)           | 1.00 (min 0.90)           | 2.20 (min 1.90)           | 0.80 (min 0.60)           | 2.10 (min 1.80)           | 2.00 (min 1.80)           | 1.20 (min 1.00)           
+appendHistory| 2.30 (min 2.10)           | 12.00 (min 11.60)         | 2.80 (min 2.50)           | 3.60 (min 3.40)           | 1.80 (min 1.50)           | 10.90 (min 9.60)          | 3.70 (min 3.20)           | 4.20 (min 3.70)           
+switchConv   | 11.20 (min 8.50)          | 7.30 (min 6.80)           | 7.30 (min 6.10)           | 13.40 (min 10.30)         | 10.40 (min 8.90)          | 7.10 (min 6.20)           | 17.90 (min 15.80)         | 4.10 (min 3.50)           
+type160      | 3.90 (min 3.50)           | 5.60 (min 4.80)           | 1.70 (min 1.50)           | 1.70 (min 1.50)           | 1.80 (min 1.50)           | 6.80 (min 6.50)           | 2.70 (min 2.40)           | 2.90 (min 2.70)           
+#nodes       | 104                       | 80                        | 93                        | 80                        | 113                       | 80                        | 139                       | 80                        
+#elems       | 55                        | 55                        | 55                        | 55                        | 55                        | 55                        | 55                        | 55                        
+#text        | 25                        | 25                        | 38                        | 25                        | 58                        | 25                        | 63                        | 25                        
+#cmnts       | 24                        | 0                         | 0                         | 0                         | 0                         | 0                         | 21                        | 0                         
+#empty       | 0                         | 0                         | 13                        | 0                         | 33                        | 0                         | 34                        | 0                         
+#ws          | 0                         | 0                         | 0                         | 0                         | 0                         | 0                         | 4                         | 0                         
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-chat-stream-all.json
+
+=== dbmon (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-dbmon-bench
+Building octane-jsx-dbmon-bench
+Building react-dbmon-bench
+Building ripple-dbmon-bench
+Building solid-dbmon-bench
+Building vue-vapor-dbmon-bench
+Building preact-dbmon-bench
+Building svelte-dbmon-bench
+Building inferno-dbmon-bench
+Running octane-tsrx (http://localhost:5196/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running octane-jsx (http://localhost:5197/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running react (http://localhost:5198/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running ripple (http://localhost:5199/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running solid (http://localhost:5200/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running vue-vapor (http://localhost:5220/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running preact (http://localhost:5263/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running svelte (http://localhost:5274/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+Running inferno (http://localhost:5326/) × 30 (+10 warmup)…
+  → semantic gate
+  → mount
+  → tick
+  → tick_partial
+  → remount
+  → sort
+  → unmount
+
+Op               | octane-tsrx                     | octane-jsx                      | react                           | ripple                          | solid                           | vue-vapor                       | preact                          | svelte                          | inferno                         
+-----------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------
+mount           | 18.90 (min 18.10, sd 1.22)      | 22.90 (min 21.80, sd 1.62)      | 28.20 (min 26.40, sd 2.85)      | 28.00 (min 24.10, sd 2.55)      | 71.50 (min 60.10, sd 9.47)      | 23.50 (min 19.20, sd 2.10)      | 31.60 (min 26.70, sd 2.83)      | 23.40 (min 20.10, sd 1.97)      | 16.50 (min 14.10, sd 2.59)      
+tick            | 9.00 (min 7.40, sd 0.89)        | 9.80 (min 8.50, sd 0.55)        | 11.80 (min 10.20, sd 0.68)      | 9.20 (min 7.70, sd 1.63)        | 29.40 (min 25.50, sd 2.40)      | 7.80 (min 6.30, sd 1.35)        | 15.00 (min 13.70, sd 1.57)      | 9.30 (min 7.50, sd 1.44)        | 7.10 (min 6.20, sd 1.44)        
+tick_partial    | 2.30 (min 2.00, sd 0.15)        | 2.80 (min 2.60, sd 0.19)        | 6.20 (min 5.70, sd 0.29)        | 2.70 (min 2.40, sd 0.50)        | 4.50 (min 3.50, sd 2.08)        | 2.20 (min 1.80, sd 0.31)        | 9.00 (min 8.30, sd 0.65)        | 2.70 (min 2.40, sd 0.53)        | 2.70 (min 2.60, sd 0.26)        
+remount         | 17.60 (min 16.00, sd 1.08)      | 20.30 (min 17.50, sd 1.50)      | 31.90 (min 25.90, sd 2.62)      | 19.50 (min 16.80, sd 1.75)      | 45.60 (min 41.90, sd 3.60)      | 18.70 (min 15.20, sd 2.50)      | 31.50 (min 29.30, sd 1.61)      | 19.70 (min 13.20, sd 3.43)      | 17.20 (min 15.30, sd 2.81)      
+sort            | 7.90 (min 2.10, sd 2.48)        | 8.80 (min 2.70, sd 2.99)        | 18.90 (min 16.20, sd 6.21)      | 9.10 (min 2.50, sd 2.89)        | 10.80 (min 3.90, sd 2.62)       | 10.20 (min 2.80, sd 3.37)       | 20.60 (min 17.50, sd 2.88)      | 10.00 (min 4.00, sd 2.47)       | 10.10 (min 3.30, sd 4.28)       
+unmount         | 5.80 (min 0.70, sd 1.06)        | 7.10 (min 5.80, sd 2.79)        | 10.00 (min 4.00, sd 3.10)       | 6.90 (min 0.50, sd 2.26)        | 11.30 (min 4.80, sd 3.65)       | 6.90 (min 0.70, sd 2.46)        | 7.30 (min 1.60, sd 1.94)        | 6.60 (min 1.00, sd 1.63)        | 6.70 (min 0.80, sd 2.59)        
+
+octane-tsrx / vue-vapor ratio (score; <1 means octane-tsrx faster):
+  mount            0.83x  ++ faster
+  tick             1.14x  -- slower
+  tick_partial     1.03x  == ~equal
+  remount          0.96x  == ~equal
+  sort             0.72x  ++ faster
+  unmount          1.01x  == ~equal
+
+octane-jsx / vue-vapor ratio (score; <1 means octane-jsx faster):
+  mount            1.00x  == ~equal
+  tick             1.23x  -- slower
+  tick_partial     1.28x  -- slower
+  remount          1.13x  -- slower
+  sort             0.81x  ++ faster
+  unmount          1.21x  -- slower
+
+react / vue-vapor ratio (score; <1 means react faster):
+  mount            1.26x  -- slower
+  tick             1.44x  -- slower
+  tick_partial     2.83x  -- slower
+  remount          1.75x  -- slower
+  sort             2.09x  -- slower
+  unmount          1.61x  -- slower
+
+ripple / vue-vapor ratio (score; <1 means ripple faster):
+  mount            1.21x  -- slower
+  tick             1.09x  -- slower
+  tick_partial     1.28x  -- slower
+  remount          1.10x  -- slower
+  sort             0.90x  ++ faster
+  unmount          1.16x  -- slower
+
+solid / vue-vapor ratio (score; <1 means solid faster):
+  mount            3.04x  -- slower
+  tick             3.63x  -- slower
+  tick_partial     2.32x  -- slower
+  remount          2.44x  -- slower
+  sort             1.11x  -- slower
+  unmount          1.87x  -- slower
+
+preact / vue-vapor ratio (score; <1 means preact faster):
+  mount            1.41x  -- slower
+  tick             1.99x  -- slower
+  tick_partial     4.17x  -- slower
+  remount          1.80x  -- slower
+  sort             2.21x  -- slower
+  unmount          1.20x  -- slower
+
+svelte / vue-vapor ratio (score; <1 means svelte faster):
+  mount            1.00x  == ~equal
+  tick             1.19x  -- slower
+  tick_partial     1.30x  -- slower
+  remount          1.10x  -- slower
+  sort             1.04x  == ~equal
+  unmount          1.11x  -- slower
+
+inferno / vue-vapor ratio (score; <1 means inferno faster):
+  mount            0.75x  ++ faster
+  tick             0.94x  ++ faster
+  tick_partial     1.28x  -- slower
+  remount          0.93x  ++ faster
+  sort             0.77x  ++ faster
+  unmount          1.14x  -- slower
+
+diff-skip ratio (tick_partial / tick, lower = better skipping):
+  octane-tsrx      0.248x  (ideal: ~0.1)
+  octane-jsx       0.288x  (ideal: ~0.1)
+  react            0.538x  (ideal: ~0.1)
+  ripple           0.321x  (ideal: ~0.1)
+  solid            0.176x  (ideal: ~0.1)
+  vue-vapor        0.275x  (ideal: ~0.1)
+  preact           0.576x  (ideal: ~0.1)
+  svelte           0.301x  (ideal: ~0.1)
+  inferno          0.375x  (ideal: ~0.1)
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-dbmon-all.json
+
+=== uibench (octane-tsrx, react, ripple, solid, vue-vapor, preact, inferno) ===
+Building octane-tsrx-uibench-bench
+Building react-uibench-bench
+Building ripple-uibench-bench
+Building solid-uibench-bench
+Building vue-vapor-uibench-bench
+Building preact-uibench-bench
+Building inferno-uibench-bench
+
+UIbench desktop matrix (10 samples, mean milliseconds per forward commit; 96 cases)
+┌─────────┬────────────────────────────────────────┬─────────────┬──────────┬──────────┬──────────┬───────────┬──────────┬─────────┬───────────────────┬────────────────────┬───────────────────┬───────────────────────┬────────────────────┬─────────────────────┐
+│ (index) │ case                                   │ octane-tsrx │ react    │ ripple   │ solid    │ vue-vapor │ preact   │ inferno │ octane-tsrx/react │ octane-tsrx/ripple │ octane-tsrx/solid │ octane-tsrx/vue-vapor │ octane-tsrx/preact │ octane-tsrx/inferno │
+├─────────┼────────────────────────────────────────┼─────────────┼──────────┼──────────┼──────────┼───────────┼──────────┼─────────┼───────────────────┼────────────────────┼───────────────────┼───────────────────────┼────────────────────┼─────────────────────┤
+│ 0       │ 'table/[100,4]/render'                 │ '1.532'     │ '0.879'  │ '1.162'  │ '3.515'  │ '1.068'   │ '0.953'  │ '0.558' │ '1.74'            │ '1.32'             │ '0.44'            │ '1.44'                │ '1.61'             │ '2.74'              │
+│ 1       │ 'table/[100,4]/removeAll'              │ '0.238'     │ '0.388'  │ '0.181'  │ '0.864'  │ '0.195'   │ '0.144'  │ '0.077' │ '0.61'            │ '1.31'             │ '0.28'            │ '1.22'                │ '1.66'             │ '3.09'              │
+│ 2       │ 'table/[100,4]/sort/0'                 │ '0.188'     │ '0.464'  │ '0.180'  │ '0.871'  │ '0.172'   │ '0.500'  │ '0.227' │ '0.41'            │ '1.04'             │ '0.22'            │ '1.10'                │ '0.38'             │ '0.83'              │
+│ 3       │ 'table/[100,4]/sort/1'                 │ '0.175'     │ '0.455'  │ '0.166'  │ '0.887'  │ '0.153'   │ '0.481'  │ '0.242' │ '0.38'            │ '1.05'             │ '0.20'            │ '1.14'                │ '0.36'             │ '0.72'              │
+│ 4       │ 'table/[100,4]/filter/32'              │ '0.065'     │ '0.429'  │ '0.053'  │ '0.928'  │ '0.035'   │ '0.278'  │ '0.155' │ '0.15'            │ '1.23'             │ '0.07'            │ '1.85'                │ '0.23'             │ '0.42'              │
+│ 5       │ 'table/[100,4]/filter/16'              │ '0.068'     │ '0.352'  │ '0.055'  │ '0.862'  │ '0.033'   │ '0.272'  │ '0.157' │ '0.19'            │ '1.25'             │ '0.08'            │ '2.08'                │ '0.25'             │ '0.43'              │
+│ 6       │ 'table/[100,4]/filter/8'               │ '0.075'     │ '0.306'  │ '0.061'  │ '0.784'  │ '0.047'   │ '0.270'  │ '0.162' │ '0.25'            │ '1.23'             │ '0.10'            │ '1.59'                │ '0.28'             │ '0.46'              │
+│ 7       │ 'table/[100,4]/filter/4'               │ '0.101'     │ '0.319'  │ '0.076'  │ '0.834'  │ '0.073'   │ '0.279'  │ '0.141' │ '0.32'            │ '1.34'             │ '0.12'            │ '1.38'                │ '0.36'             │ '0.72'              │
+│ 8       │ 'table/[100,4]/activate/32'            │ '0.049'     │ '0.342'  │ '0.046'  │ '0.597'  │ '0.019'   │ '0.329'  │ '0.119' │ '0.14'            │ '1.06'             │ '0.08'            │ '2.63'                │ '0.15'             │ '0.41'              │
+│ 9       │ 'table/[100,4]/activate/16'            │ '0.048'     │ '0.306'  │ '0.048'  │ '0.610'  │ '0.024'   │ '0.327'  │ '0.121' │ '0.16'            │ '0.99'             │ '0.08'            │ '2.03'                │ '0.15'             │ '0.40'              │
+│ 10      │ 'table/[100,4]/activate/8'             │ '0.059'     │ '0.315'  │ '0.050'  │ '0.623'  │ '0.029'   │ '0.363'  │ '0.123' │ '0.19'            │ '1.19'             │ '0.09'            │ '2.07'                │ '0.16'             │ '0.48'              │
+│ 11      │ 'table/[100,4]/activate/4'             │ '0.074'     │ '0.307'  │ '0.054'  │ '0.766'  │ '0.042'   │ '0.346'  │ '0.131' │ '0.24'            │ '1.37'             │ '0.10'            │ '1.75'                │ '0.21'             │ '0.56'              │
+│ 12      │ 'table/[50,4]/render'                  │ '0.835'     │ '0.454'  │ '0.535'  │ '1.871'  │ '0.591'   │ '0.524'  │ '0.278' │ '1.84'            │ '1.56'             │ '0.45'            │ '1.41'                │ '1.60'             │ '3.01'              │
+│ 13      │ 'table/[50,4]/removeAll'               │ '0.147'     │ '0.228'  │ '0.073'  │ '0.519'  │ '0.075'   │ '0.083'  │ '0.043' │ '0.64'            │ '2.00'             │ '0.28'            │ '1.96'                │ '1.76'             │ '3.43'              │
+│ 14      │ 'table/[50,4]/sort/0'                  │ '0.102'     │ '0.221'  │ '0.085'  │ '0.611'  │ '0.068'   │ '0.234'  │ '0.124' │ '0.46'            │ '1.20'             │ '0.17'            │ '1.51'                │ '0.44'             │ '0.83'              │
+│ 15      │ 'table/[50,4]/sort/1'                  │ '0.087'     │ '0.266'  │ '0.078'  │ '0.646'  │ '0.067'   │ '0.221'  │ '0.116' │ '0.33'            │ '1.12'             │ '0.13'            │ '1.30'                │ '0.39'             │ '0.75'              │
+│ 16      │ 'table/[50,4]/filter/32'               │ '0.033'     │ '0.191'  │ '0.025'  │ '0.507'  │ '0.008'   │ '0.152'  │ '0.070' │ '0.17'            │ '1.31'             │ '0.06'            │ '3.96'                │ '0.22'             │ '0.47'              │
+│ 17      │ 'table/[50,4]/filter/16'               │ '0.039'     │ '0.195'  │ '0.031'  │ '0.518'  │ '0.020'   │ '0.155'  │ '0.076' │ '0.20'            │ '1.26'             │ '0.08'            │ '1.90'                │ '0.25'             │ '0.51'              │
+│ 18      │ 'table/[50,4]/filter/8'                │ '0.047'     │ '0.184'  │ '0.035'  │ '0.585'  │ '0.023'   │ '0.147'  │ '0.075' │ '0.25'            │ '1.32'             │ '0.08'            │ '2.07'                │ '0.32'             │ '0.63'              │
+│ 19      │ 'table/[50,4]/filter/4'                │ '0.053'     │ '0.182'  │ '0.047'  │ '0.373'  │ '0.026'   │ '0.138'  │ '0.072' │ '0.29'            │ '1.13'             │ '0.14'            │ '2.09'                │ '0.39'             │ '0.74'              │
+│ 20      │ 'table/[50,4]/activate/32'             │ '0.028'     │ '0.177'  │ '0.028'  │ '0.597'  │ '0.009'   │ '0.176'  │ '0.066' │ '0.16'            │ '0.98'             │ '0.05'            │ '3.27'                │ '0.16'             │ '0.43'              │
+│ 21      │ 'table/[50,4]/activate/16'             │ '0.022'     │ '0.165'  │ '0.031'  │ '0.406'  │ '0.010'   │ '0.175'  │ '0.067' │ '0.14'            │ '0.72'             │ '0.06'            │ '2.33'                │ '0.13'             │ '0.34'              │
+│ 22      │ 'table/[50,4]/activate/8'              │ '0.026'     │ '0.168'  │ '0.034'  │ '0.514'  │ '0.014'   │ '0.193'  │ '0.069' │ '0.16'            │ '0.77'             │ '0.05'            │ '1.94'                │ '0.14'             │ '0.38'              │
+│ 23      │ 'table/[50,4]/activate/4'              │ '0.031'     │ '0.171'  │ '0.034'  │ '0.496'  │ '0.020'   │ '0.195'  │ '0.070' │ '0.18'            │ '0.91'             │ '0.06'            │ '1.56'                │ '0.16'             │ '0.44'              │
+│ 24      │ 'table/[100,2]/render'                 │ '1.175'     │ '0.644'  │ '0.783'  │ '2.444'  │ '0.747'   │ '0.806'  │ '0.380' │ '1.82'            │ '1.50'             │ '0.48'            │ '1.57'                │ '1.46'             │ '3.09'              │
+│ 25      │ 'table/[100,2]/removeAll'              │ '0.188'     │ '0.268'  │ '0.106'  │ '0.633'  │ '0.109'   │ '0.142'  │ '0.056' │ '0.70'            │ '1.78'             │ '0.30'            │ '1.72'                │ '1.32'             │ '3.34'              │
+│ 26      │ 'table/[100,2]/sort/0'                 │ '0.158'     │ '0.352'  │ '0.146'  │ '0.753'  │ '0.126'   │ '0.401'  │ '0.172' │ '0.45'            │ '1.08'             │ '0.21'            │ '1.26'                │ '0.39'             │ '0.92'              │
+│ 27      │ 'table/[100,2]/sort/1'                 │ '0.155'     │ '0.340'  │ '0.129'  │ '0.714'  │ '0.128'   │ '0.373'  │ '0.180' │ '0.45'            │ '1.20'             │ '0.22'            │ '1.21'                │ '0.41'             │ '0.86'              │
+│ 28      │ 'table/[100,2]/filter/32'              │ '0.064'     │ '0.253'  │ '0.041'  │ '0.627'  │ '0.032'   │ '0.205'  │ '0.108' │ '0.25'            │ '1.58'             │ '0.10'            │ '1.98'                │ '0.31'             │ '0.59'              │
+│ 29      │ 'table/[100,2]/filter/16'              │ '0.070'     │ '0.227'  │ '0.042'  │ '0.616'  │ '0.030'   │ '0.201'  │ '0.115' │ '0.31'            │ '1.66'             │ '0.11'            │ '2.33'                │ '0.35'             │ '0.61'              │
+│ 30      │ 'table/[100,2]/filter/8'               │ '0.073'     │ '0.250'  │ '0.048'  │ '0.554'  │ '0.036'   │ '0.202'  │ '0.113' │ '0.29'            │ '1.52'             │ '0.13'            │ '2.01'                │ '0.36'             │ '0.64'              │
+│ 31      │ 'table/[100,2]/filter/4'               │ '0.105'     │ '0.269'  │ '0.056'  │ '0.613'  │ '0.046'   │ '0.202'  │ '0.117' │ '0.39'            │ '1.88'             │ '0.17'            │ '2.30'                │ '0.52'             │ '0.90'              │
+│ 32      │ 'table/[100,2]/activate/32'            │ '0.041'     │ '0.259'  │ '0.031'  │ '0.487'  │ '0.014'   │ '0.214'  │ '0.081' │ '0.16'            │ '1.33'             │ '0.08'            │ '2.86'                │ '0.19'             │ '0.51'              │
+│ 33      │ 'table/[100,2]/activate/16'            │ '0.044'     │ '0.235'  │ '0.031'  │ '0.529'  │ '0.017'   │ '0.216'  │ '0.084' │ '0.19'            │ '1.41'             │ '0.08'            │ '2.53'                │ '0.20'             │ '0.53'              │
+│ 34      │ 'table/[100,2]/activate/8'             │ '0.054'     │ '0.238'  │ '0.032'  │ '0.566'  │ '0.023'   │ '0.226'  │ '0.085' │ '0.23'            │ '1.68'             │ '0.10'            │ '2.40'                │ '0.24'             │ '0.64'              │
+│ 35      │ 'table/[100,2]/activate/4'             │ '0.062'     │ '0.240'  │ '0.041'  │ '0.518'  │ '0.035'   │ '0.227'  │ '0.091' │ '0.26'            │ '1.50'             │ '0.12'            │ '1.75'                │ '0.27'             │ '0.68'              │
+│ 36      │ 'table/[50,2]/render'                  │ '0.600'     │ '0.327'  │ '0.376'  │ '1.184'  │ '0.428'   │ '0.398'  │ '0.217' │ '1.83'            │ '1.60'             │ '0.51'            │ '1.40'                │ '1.51'             │ '2.77'              │
+│ 37      │ 'table/[50,2]/removeAll'               │ '0.092'     │ '0.154'  │ '0.051'  │ '0.287'  │ '0.048'   │ '0.074'  │ '0.030' │ '0.60'            │ '1.80'             │ '0.32'            │ '1.91'                │ '1.25'             │ '3.04'              │
+│ 38      │ 'table/[50,2]/sort/0'                  │ '0.075'     │ '0.168'  │ '0.065'  │ '0.338'  │ '0.070'   │ '0.195'  │ '0.094' │ '0.45'            │ '1.15'             │ '0.22'            │ '1.08'                │ '0.39'             │ '0.80'              │
+│ 39      │ 'table/[50,2]/sort/1'                  │ '0.069'     │ '0.187'  │ '0.062'  │ '0.332'  │ '0.065'   │ '0.179'  │ '0.088' │ '0.37'            │ '1.11'             │ '0.21'            │ '1.07'                │ '0.39'             │ '0.79'              │
+│ 40      │ 'table/[50,2]/filter/32'               │ '0.036'     │ '0.133'  │ '0.018'  │ '0.334'  │ '0.009'   │ '0.120'  │ '0.047' │ '0.27'            │ '2.01'             │ '0.11'            │ '3.89'                │ '0.30'             │ '0.77'              │
+│ 41      │ 'table/[50,2]/filter/16'               │ '0.042'     │ '0.137'  │ '0.022'  │ '0.347'  │ '0.024'   │ '0.107'  │ '0.056' │ '0.31'            │ '1.88'             │ '0.12'            │ '1.79'                │ '0.39'             │ '0.75'              │
+│ 42      │ 'table/[50,2]/filter/8'                │ '0.040'     │ '0.140'  │ '0.026'  │ '0.329'  │ '0.026'   │ '0.106'  │ '0.057' │ '0.28'            │ '1.53'             │ '0.12'            │ '1.53'                │ '0.38'             │ '0.70'              │
+│ 43      │ 'table/[50,2]/filter/4'                │ '0.048'     │ '0.132'  │ '0.034'  │ '0.411'  │ '0.027'   │ '0.094'  │ '0.056' │ '0.36'            │ '1.40'             │ '0.12'            │ '1.78'                │ '0.51'             │ '0.84'              │
+│ 44      │ 'table/[50,2]/activate/32'             │ '0.020'     │ '0.121'  │ '0.017'  │ '0.265'  │ '0.008'   │ '0.108'  │ '0.047' │ '0.17'            │ '1.22'             │ '0.08'            │ '2.40'                │ '0.19'             │ '0.43'              │
+│ 45      │ 'table/[50,2]/activate/16'             │ '0.023'     │ '0.129'  │ '0.018'  │ '0.236'  │ '0.011'   │ '0.116'  │ '0.047' │ '0.18'            │ '1.28'             │ '0.10'            │ '2.08'                │ '0.20'             │ '0.49'              │
+│ 46      │ 'table/[50,2]/activate/8'              │ '0.028'     │ '0.127'  │ '0.019'  │ '0.234'  │ '0.013'   │ '0.112'  │ '0.048' │ '0.22'            │ '1.49'             │ '0.12'            │ '2.13'                │ '0.25'             │ '0.59'              │
+│ 47      │ 'table/[50,2]/activate/4'              │ '0.034'     │ '0.148'  │ '0.022'  │ '0.239'  │ '0.018'   │ '0.119'  │ '0.051' │ '0.23'            │ '1.52'             │ '0.14'            │ '1.90'                │ '0.28'             │ '0.67'              │
+│ 48      │ 'anim/100/32'                          │ '0.019'     │ '0.079'  │ '0.027'  │ '0.123'  │ '0.011'   │ '0.065'  │ '0.031' │ '0.24'            │ '0.70'             │ '0.16'            │ '1.74'                │ '0.29'             │ '0.61'              │
+│ 49      │ 'anim/100/16'                          │ '0.030'     │ '0.078'  │ '0.028'  │ '0.131'  │ '0.017'   │ '0.068'  │ '0.031' │ '0.39'            │ '1.08'             │ '0.23'            │ '1.75'                │ '0.44'             │ '0.97'              │
+│ 50      │ 'anim/100/8'                           │ '0.042'     │ '0.082'  │ '0.033'  │ '0.136'  │ '0.019'   │ '0.082'  │ '0.034' │ '0.51'            │ '1.26'             │ '0.31'            │ '2.19'                │ '0.51'             │ '1.24'              │
+│ 51      │ 'anim/100/4'                           │ '0.072'     │ '0.088'  │ '0.041'  │ '0.159'  │ '0.024'   │ '0.072'  │ '0.039' │ '0.82'            │ '1.75'             │ '0.46'            │ '2.96'                │ '1.00'             │ '1.85'              │
+│ 52      │ 'tree/[500]/render'                    │ '2.734'     │ '2.559'  │ '2.765'  │ '5.461'  │ '3.533'   │ '2.141'  │ '1.049' │ '1.07'            │ '0.99'             │ '0.50'            │ '0.77'                │ '1.28'             │ '2.61'              │
+│ 53      │ 'tree/[500]/removeAll'                 │ '0.837'     │ '0.906'  │ '0.474'  │ '1.883'  │ '0.708'   │ '0.565'  │ '0.225' │ '0.92'            │ '1.77'             │ '0.44'            │ '1.18'                │ '1.48'             │ '3.71'              │
+│ 54      │ 'tree/[50,10]/render'                  │ '3.377'     │ '2.109'  │ '2.297'  │ '6.207'  │ '4.401'   │ '2.299'  │ '1.132' │ '1.60'            │ '1.47'             │ '0.54'            │ '0.77'                │ '1.47'             │ '2.98'              │
+│ 55      │ 'tree/[50,10]/removeAll'               │ '0.638'     │ '0.905'  │ '0.460'  │ '1.676'  │ '0.610'   │ '0.463'  │ '0.272' │ '0.70'            │ '1.39'             │ '0.38'            │ '1.05'                │ '1.38'             │ '2.35'              │
+│ 56      │ 'tree/[10,50]/render'                  │ '3.196'     │ '1.810'  │ '2.092'  │ '5.557'  │ '4.007'   │ '2.168'  │ '1.113' │ '1.77'            │ '1.53'             │ '0.58'            │ '0.80'                │ '1.47'             │ '2.87'              │
+│ 57      │ 'tree/[10,50]/removeAll'               │ '0.390'     │ '0.756'  │ '0.372'  │ '1.560'  │ '0.524'   │ '0.390'  │ '0.331' │ '0.52'            │ '1.05'             │ '0.25'            │ '0.74'                │ '1.00'             │ '1.18'              │
+│ 58      │ 'tree/[5,100]/render'                  │ '2.902'     │ '1.719'  │ '2.163'  │ '5.269'  │ '4.015'   │ '2.043'  │ '1.115' │ '1.69'            │ '1.34'             │ '0.55'            │ '0.72'                │ '1.42'             │ '2.60'              │
+│ 59      │ 'tree/[5,100]/removeAll'               │ '0.368'     │ '0.765'  │ '0.387'  │ '1.704'  │ '0.490'   │ '0.339'  │ '0.280' │ '0.48'            │ '0.95'             │ '0.22'            │ '0.75'                │ '1.09'             │ '1.32'              │
+│ 60      │ 'tree/[2,2,2,2,2,2,2,2,2,2]/render'    │ '16.297'    │ '10.653' │ '13.333' │ '30.631' │ '19.393'  │ '10.811' │ '6.285' │ '1.53'            │ '1.22'             │ '0.53'            │ '0.84'                │ '1.51'             │ '2.59'              │
+│ 61      │ 'tree/[2,2,2,2,2,2,2,2,2,2]/removeAll' │ '4.514'     │ '7.019'  │ '4.355'  │ '10.274' │ '4.970'   │ '4.034'  │ '3.225' │ '0.64'            │ '1.04'             │ '0.44'            │ '0.91'                │ '1.12'             │ '1.40'              │
+│ 62      │ 'tree/[500]/[reverse]'                 │ '0.621'     │ '1.571'  │ '0.585'  │ '2.364'  │ '0.742'   │ '3.045'  │ '0.682' │ '0.40'            │ '1.06'             │ '0.26'            │ '0.84'                │ '0.20'             │ '0.91'              │
+│ 63      │ 'tree/[500]/[insertFirst(1)]'          │ '0.098'     │ '0.321'  │ '0.098'  │ '1.573'  │ '0.056'   │ '0.550'  │ '0.276' │ '0.31'            │ '1.00'             │ '0.06'            │ '1.75'                │ '0.18'             │ '0.35'              │
+│ 64      │ 'tree/[500]/[insertLast(1)]'           │ '0.073'     │ '0.296'  │ '0.092'  │ '1.736'  │ '0.043'   │ '0.545'  │ '0.293' │ '0.25'            │ '0.79'             │ '0.04'            │ '1.70'                │ '0.13'             │ '0.25'              │
+│ 65      │ 'tree/[500]/[removeFirst(1)]'          │ '0.083'     │ '0.335'  │ '0.082'  │ '1.738'  │ '0.050'   │ '0.543'  │ '0.230' │ '0.25'            │ '1.02'             │ '0.05'            │ '1.67'                │ '0.15'             │ '0.36'              │
+│ 66      │ 'tree/[500]/[removeLast(1)]'           │ '0.058'     │ '0.293'  │ '0.079'  │ '1.690'  │ '0.049'   │ '0.535'  │ '0.240' │ '0.20'            │ '0.74'             │ '0.03'            │ '1.19'                │ '0.11'             │ '0.24'              │
+│ 67      │ 'tree/[500]/[moveFromEndToStart(1)]'   │ '0.120'     │ '1.694'  │ '0.121'  │ '1.793'  │ '0.641'   │ '0.565'  │ '0.315' │ '0.07'            │ '0.99'             │ '0.07'            │ '0.19'                │ '0.21'             │ '0.38'              │
+│ 68      │ 'tree/[500]/[moveFromStartToEnd(1)]'   │ '0.124'     │ '0.341'  │ '0.123'  │ '1.841'  │ '0.168'   │ '0.611'  │ '0.339' │ '0.36'            │ '1.01'             │ '0.07'            │ '0.74'                │ '0.20'             │ '0.37'              │
+│ 69      │ 'tree/[50,10]/[reverse]'               │ '0.202'     │ '0.210'  │ '0.240'  │ '1.405'  │ '0.217'   │ '0.811'  │ '0.438' │ '0.96'            │ '0.84'             │ '0.14'            │ '0.93'                │ '0.25'             │ '0.46'              │
+│ 70      │ 'tree/[50,10]/[insertFirst(1)]'        │ '0.026'     │ '0.058'  │ '0.060'  │ '1.336'  │ '0.019'   │ '0.623'  │ '0.291' │ '0.45'            │ '0.43'             │ '0.02'            │ '1.38'                │ '0.04'             │ '0.09'              │
+│ 71      │ 'tree/[50,10]/[insertLast(1)]'         │ '0.023'     │ '0.052'  │ '0.059'  │ '1.277'  │ '0.019'   │ '0.620'  │ '0.314' │ '0.43'            │ '0.38'             │ '0.02'            │ '1.22'                │ '0.04'             │ '0.07'              │
+│ 72      │ 'tree/[50,10]/[removeFirst(1)]'        │ '0.022'     │ '0.066'  │ '0.053'  │ '1.245'  │ '0.017'   │ '0.626'  │ '0.287' │ '0.33'            │ '0.41'             │ '0.02'            │ '1.29'                │ '0.04'             │ '0.08'              │
+│ 73      │ 'tree/[50,10]/[removeLast(1)]'         │ '0.020'     │ '0.061'  │ '0.056'  │ '1.413'  │ '0.016'   │ '0.617'  │ '0.300' │ '0.33'            │ '0.36'             │ '0.01'            │ '1.25'                │ '0.03'             │ '0.07'              │
+│ 74      │ 'tree/[50,10]/[moveFromEndToStart(1)]' │ '0.023'     │ '0.202'  │ '0.069'  │ '1.351'  │ '0.210'   │ '0.713'  │ '0.328' │ '0.11'            │ '0.33'             │ '0.02'            │ '0.11'                │ '0.03'             │ '0.07'              │
+│ 75      │ 'tree/[50,10]/[moveFromStartToEnd(1)]' │ '0.022'     │ '0.056'  │ '0.066'  │ '1.427'  │ '0.033'   │ '0.693'  │ '0.304' │ '0.39'            │ '0.33'             │ '0.02'            │ '0.65'                │ '0.03'             │ '0.07'              │
+│ 76      │ 'tree/[10,50]/[reverse]'               │ '0.133'     │ '0.125'  │ '0.170'  │ '1.436'  │ '0.143'   │ '0.649'  │ '0.375' │ '1.06'            │ '0.78'             │ '0.09'            │ '0.93'                │ '0.20'             │ '0.35'              │
+│ 77      │ 'tree/[10,50]/[insertFirst(1)]'        │ '0.020'     │ '0.029'  │ '0.060'  │ '1.355'  │ '0.018'   │ '0.557'  │ '0.311' │ '0.68'            │ '0.32'             │ '0.01'            │ '1.08'                │ '0.04'             │ '0.06'              │
+│ 78      │ 'tree/[10,50]/[insertLast(1)]'         │ '0.017'     │ '0.026'  │ '0.059'  │ '1.426'  │ '0.016'   │ '0.562'  │ '0.314' │ '0.68'            │ '0.30'             │ '0.01'            │ '1.11'                │ '0.03'             │ '0.06'              │
+│ 79      │ 'tree/[10,50]/[removeFirst(1)]'        │ '0.026'     │ '0.080'  │ '0.068'  │ '1.476'  │ '0.035'   │ '0.562'  │ '0.270' │ '0.32'            │ '0.38'             │ '0.02'            │ '0.74'                │ '0.05'             │ '0.10'              │
+│ 80      │ 'tree/[10,50]/[removeLast(1)]'         │ '0.040'     │ '0.080'  │ '0.063'  │ '1.678'  │ '0.035'   │ '0.553'  │ '0.263' │ '0.49'            │ '0.63'             │ '0.02'            │ '1.12'                │ '0.07'             │ '0.15'              │
+│ 81      │ 'tree/[10,50]/[moveFromEndToStart(1)]' │ '0.030'     │ '0.142'  │ '0.059'  │ '1.479'  │ '0.134'   │ '0.570'  │ '0.307' │ '0.21'            │ '0.51'             │ '0.02'            │ '0.23'                │ '0.05'             │ '0.10'              │
+│ 82      │ 'tree/[10,50]/[moveFromStartToEnd(1)]' │ '0.031'     │ '0.038'  │ '0.059'  │ '1.352'  │ '0.024'   │ '0.566'  │ '0.396' │ '0.83'            │ '0.52'             │ '0.02'            │ '1.27'                │ '0.05'             │ '0.08'              │
+│ 83      │ 'tree/[5,100]/[reverse]'               │ '0.135'     │ '0.107'  │ '0.158'  │ '1.349'  │ '0.112'   │ '0.618'  │ '0.424' │ '1.26'            │ '0.85'             │ '0.10'            │ '1.20'                │ '0.22'             │ '0.32'              │
+│ 84      │ 'tree/[5,100]/[insertFirst(1)]'        │ '0.020'     │ '0.026'  │ '0.060'  │ '1.332'  │ '0.017'   │ '0.547'  │ '0.275' │ '0.76'            │ '0.33'             │ '0.01'            │ '1.17'                │ '0.04'             │ '0.07'              │
+│ 85      │ 'tree/[5,100]/[insertLast(1)]'         │ '0.019'     │ '0.026'  │ '0.058'  │ '1.469'  │ '0.015'   │ '0.543'  │ '0.308' │ '0.74'            │ '0.33'             │ '0.01'            │ '1.25'                │ '0.04'             │ '0.06'              │
+│ 86      │ 'tree/[5,100]/[removeFirst(1)]'        │ '0.043'     │ '0.113'  │ '0.070'  │ '1.104'  │ '0.072'   │ '0.454'  │ '0.233' │ '0.38'            │ '0.61'             │ '0.04'            │ '0.60'                │ '0.09'             │ '0.18'              │
+│ 87      │ 'tree/[5,100]/[removeLast(1)]'         │ '0.043'     │ '0.113'  │ '0.069'  │ '1.240'  │ '0.064'   │ '0.505'  │ '0.264' │ '0.38'            │ '0.63'             │ '0.03'            │ '0.68'                │ '0.09'             │ '0.16'              │
+│ 88      │ 'tree/[5,100]/[moveFromEndToStart(1)]' │ '0.035'     │ '0.109'  │ '0.071'  │ '1.280'  │ '0.119'   │ '0.581'  │ '0.302' │ '0.32'            │ '0.49'             │ '0.03'            │ '0.29'                │ '0.06'             │ '0.11'              │
+│ 89      │ 'tree/[5,100]/[moveFromStartToEnd(1)]' │ '0.034'     │ '0.041'  │ '0.066'  │ '1.486'  │ '0.034'   │ '0.564'  │ '0.285' │ '0.82'            │ '0.51'             │ '0.02'            │ '0.99'                │ '0.06'             │ '0.12'              │
+│ 90      │ 'tree/[500]/[kivi_worst_case]'         │ '0.584'     │ '1.575'  │ '0.623'  │ '2.538'  │ '0.770'   │ '2.685'  │ '0.796' │ '0.37'            │ '0.94'             │ '0.23'            │ '0.76'                │ '0.22'             │ '0.73'              │
+│ 91      │ 'tree/[500]/[snabbdom_worst_case]'     │ '0.118'     │ '0.373'  │ '0.144'  │ '1.792'  │ '0.178'   │ '0.576'  │ '0.349' │ '0.31'            │ '0.81'             │ '0.07'            │ '0.66'                │ '0.20'             │ '0.34'              │
+│ 92      │ 'tree/[500]/[react_worst_case]'        │ '0.100'     │ '1.782'  │ '0.129'  │ '1.882'  │ '0.096'   │ '0.551'  │ '0.326' │ '0.06'            │ '0.77'             │ '0.05'            │ '1.05'                │ '0.18'             │ '0.31'              │
+│ 93      │ 'tree/[500]/[virtual_dom_worst_case]'  │ '0.119'     │ '0.392'  │ '0.136'  │ '1.964'  │ '0.193'   │ '1.638'  │ '0.338' │ '0.30'            │ '0.87'             │ '0.06'            │ '0.62'                │ '0.07'             │ '0.35'              │
+│ 94      │ 'tree/[10,10,10,10]/no_change'         │ '11.977'    │ '10.144' │ '4.335'  │ '46.087' │ '21.017'  │ '15.110' │ '7.056' │ '1.18'            │ '2.76'             │ '0.26'            │ '0.57'                │ '0.79'             │ '1.70'              │
+│ 95      │ 'tree/[2,2,2,2,2,2,2,2,2,2]/no_change' │ '3.211'     │ '3.419'  │ '0.309'  │ '6.180'  │ '5.014'   │ '2.899'  │ '1.565' │ '0.94'            │ '10.38'            │ '0.52'            │ '0.64'                │ '1.11'             │ '2.05'              │
+└─────────┴────────────────────────────────────────┴─────────────┴──────────┴──────────┴──────────┴───────────┴──────────┴─────────┴───────────────────┴────────────────────┴───────────────────┴───────────────────────┴────────────────────┴─────────────────────┘
+
+=== effectful-list (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-effectful-list-bench
+Building octane-jsx-effectful-list-bench
+Building react-effectful-list-bench
+Building ripple-effectful-list-bench
+Building solid-effectful-list-bench
+Building vue-vapor-effectful-list-bench
+Building preact-effectful-list-bench
+Building svelte-effectful-list-bench
+Building inferno-effectful-list-bench
+Running octane-tsrx (http://localhost:5201/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running octane-jsx (http://localhost:5202/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running react (http://localhost:5203/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running ripple (http://localhost:5205/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running solid (http://localhost:5204/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running vue-vapor (http://localhost:5221/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running preact (http://localhost:5266/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running svelte (http://localhost:5277/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+Running inferno (http://localhost:5330/) × 30 (+10 warmup)…
+  → mount_1k (gate)
+  → mount_1k
+  → update_nodeps (gate)
+  → update_nodeps
+  → update_deps (gate)
+  → update_deps
+  → clear (gate)
+  → clear
+  → remount (gate)
+  → remount
+  → remove_100_scattered (gate)
+  → remove_100_scattered
+
+Op                   | octane-tsrx                   | octane-jsx                    | react                         | ripple                        | solid                         | vue-vapor                     | preact                        | svelte                        | inferno                       
+---------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-------------------------------
+mount_1k            | 44.70 (min 40.20, sd 3.62)    | 40.70 (min 39.60, sd 1.09)    | 40.30 (min 36.90, sd 2.04)    | 41.20 (min 37.50, sd 2.08)    | 39.30 (min 34.40, sd 3.93)    | 45.80 (min 40.40, sd 2.56)    | 53.10 (min 48.20, sd 5.92)    | 47.80 (min 45.90, sd 4.02)    | 38.90 (min 36.60, sd 3.81)    
+update_nodeps       | 0.92 (min 0.83, sd 0.11)      | 1.62 (min 1.45, sd 0.20)      | 0.04 (min 0.02, sd 0.01)      | 0.27 (min 0.25, sd 0.03)      | 0.02 (min 0.00, sd 0.01)      | 0.01 (min 0.00, sd 0.01)      | 14.85 (min 14.04, sd 0.96)    | 0.07 (min 0.05, sd 0.01)      | 0.65 (min 0.63, sd 0.06)      
+update_deps         | 13.54 (min 13.12, sd 0.56)    | 13.75 (min 13.12, sd 0.51)    | 13.70 (min 13.25, sd 0.70)    | 12.55 (min 11.86, sd 0.57)    | 13.25 (min 12.59, sd 0.47)    | 13.73 (min 12.59, sd 2.16)    | 28.04 (min 24.87, sd 3.08)    | 14.06 (min 13.47, sd 0.87)    | 12.22 (min 11.54, sd 0.62)    
+clear               | 5.00 (min 4.40, sd 0.53)      | 4.80 (min 4.40, sd 0.58)      | 5.60 (min 4.80, sd 0.34)      | 3.80 (min 3.60, sd 0.37)      | 5.80 (min 5.30, sd 0.62)      | 6.50 (min 5.60, sd 1.31)      | 4.70 (min 4.30, sd 1.12)      | 4.70 (min 4.20, sd 0.70)      | 3.40 (min 3.00, sd 0.63)      
+remount             | 42.60 (min 41.30, sd 0.43)    | 42.70 (min 38.90, sd 2.53)    | 45.60 (min 40.80, sd 2.89)    | 42.50 (min 38.60, sd 2.24)    | 45.10 (min 37.60, sd 3.71)    | 46.60 (min 43.10, sd 3.86)    | 69.20 (min 61.00, sd 10.86)   | 48.00 (min 44.70, sd 2.32)    | 37.20 (min 35.80, sd 1.01)    
+remove_100_scattered| 2.70 (min 2.50, sd 0.37)      | 3.60 (min 3.10, sd 0.34)      | 2.70 (min 2.10, sd 0.33)      | 1.50 (min 1.30, sd 0.22)      | 2.80 (min 2.30, sd 0.24)      | 2.80 (min 2.30, sd 0.48)      | 8.20 (min 7.60, sd 1.81)      | 1.40 (min 1.30, sd 0.36)      | 2.20 (min 1.90, sd 0.44)      
+
+octane-jsx / octane-tsrx ratio (score; <1 means octane-jsx faster):
+  mount_1k             0.87x  ++ faster
+  update_nodeps        1.77x  -- slower
+  update_deps          0.97x  == ~equal
+  clear                0.93x  ++ faster
+  remount              1.02x  == ~equal
+  remove_100_scattered 1.35x  -- slower
+
+react / octane-tsrx ratio (score; <1 means react faster):
+  mount_1k             0.85x  ++ faster
+  update_nodeps        0.04x  ++ faster
+  update_deps          1.02x  == ~equal
+  clear                1.08x  -- slower
+  remount              1.02x  == ~equal
+  remove_100_scattered 0.98x  == ~equal
+
+ripple / octane-tsrx ratio (score; <1 means ripple faster):
+  mount_1k             0.90x  ++ faster
+  update_nodeps        0.29x  ++ faster
+  update_deps          0.89x  ++ faster
+  clear                0.79x  ++ faster
+  remount              1.01x  == ~equal
+  remove_100_scattered 0.55x  ++ faster
+
+solid / octane-tsrx ratio (score; <1 means solid faster):
+  mount_1k             0.80x  ++ faster
+  update_nodeps        0.02x  ++ faster
+  update_deps          0.98x  == ~equal
+  clear                1.18x  -- slower
+  remount              1.07x  -- slower
+  remove_100_scattered 1.04x  == ~equal
+
+vue-vapor / octane-tsrx ratio (score; <1 means vue-vapor faster):
+  mount_1k             0.96x  == ~equal
+  update_nodeps        0.01x  ++ faster
+  update_deps          0.98x  == ~equal
+  clear                1.28x  -- slower
+  remount              1.10x  -- slower
+  remove_100_scattered 1.05x  == ~equal
+
+preact / octane-tsrx ratio (score; <1 means preact faster):
+  mount_1k             1.09x  -- slower
+  update_nodeps        15.91x  -- slower
+  update_deps          2.03x  -- slower
+  clear                1.02x  == ~equal
+  remount              1.62x  -- slower
+  remove_100_scattered 3.25x  -- slower
+
+svelte / octane-tsrx ratio (score; <1 means svelte faster):
+  mount_1k             1.07x  -- slower
+  update_nodeps        0.07x  ++ faster
+  update_deps          1.04x  == ~equal
+  clear                0.98x  == ~equal
+  remount              1.10x  -- slower
+  remove_100_scattered 0.52x  ++ faster
+
+inferno / octane-tsrx ratio (score; <1 means inferno faster):
+  mount_1k             0.81x  ++ faster
+  update_nodeps        0.70x  ++ faster
+  update_deps          0.90x  ++ faster
+  clear                0.67x  ++ faster
+  remount              0.88x  ++ faster
+  remove_100_scattered 0.87x  ++ faster
+
+
+=== memo-wall (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, react-uncompiled) ===
+Building octane-tsrx-memowall-bench
+Building octane-jsx-memowall-bench
+Building react-compiler-memowall-bench
+Building ripple-memowall-bench
+Building solid-memowall-bench
+Building vue-vapor-memowall-bench
+Building preact-memowall-bench
+Building svelte-memowall-bench
+Building react-memowall-bench
+Running octane-tsrx (http://localhost:5206/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 3200 reps/sample
+  → parent_rerender_equal_B
+    calibrated 3208 reps/sample
+  → one_change_A
+    calibrated 368 reps/sample
+  → one_change_B
+    calibrated 10 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running octane-jsx (http://localhost:5207/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 534 reps/sample
+  → parent_rerender_equal_B
+    calibrated 1608 reps/sample
+  → one_change_A
+    calibrated 60 reps/sample
+  → one_change_B
+    calibrated 10 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running react (http://localhost:5226/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 1600 reps/sample
+  → parent_rerender_equal_B
+    calibrated 1280 reps/sample
+  → one_change_A
+    calibrated 20 reps/sample
+  → one_change_B
+    calibrated 10 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running ripple (http://localhost:5225/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 39 reps/sample
+  → parent_rerender_equal_B
+    calibrated 40 reps/sample
+  → one_change_A
+    calibrated 20 reps/sample
+  → one_change_B
+    calibrated 20 reps/sample
+  → ctx_through_wall_A
+    calibrated 10 reps/sample
+  → ctx_through_wall_B
+    calibrated 10 reps/sample
+Running solid (http://localhost:5182/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 5848 reps/sample
+  → parent_rerender_equal_B
+    calibrated 6416 reps/sample
+  → one_change_A
+    calibrated 67 reps/sample
+  → one_change_B
+    calibrated 62 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running vue-vapor (http://localhost:5223/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 6096 reps/sample
+  → parent_rerender_equal_B
+    calibrated 5196 reps/sample
+  → one_change_A
+    calibrated 68 reps/sample
+  → one_change_B
+    calibrated 92 reps/sample
+  → ctx_through_wall_A
+    calibrated 10 reps/sample
+  → ctx_through_wall_B
+    calibrated 10 reps/sample
+Running preact (http://localhost:5267/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 10 reps/sample
+  → parent_rerender_equal_B
+    calibrated 10 reps/sample
+  → one_change_A
+    calibrated 10 reps/sample
+  → one_change_B
+    calibrated 10 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running svelte (http://localhost:5278/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 230 reps/sample
+  → parent_rerender_equal_B
+    calibrated 320 reps/sample
+  → one_change_A
+    calibrated 40 reps/sample
+  → one_change_B
+    calibrated 48 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+Running react-uncompiled (http://localhost:5208/) × 20 (+5 warmup)…
+  → mount
+  → parent_rerender_equal_A
+    calibrated 10 reps/sample
+  → parent_rerender_equal_B
+    calibrated 10 reps/sample
+  → one_change_A
+    calibrated 10 reps/sample
+  → one_change_B
+    calibrated 10 reps/sample
+  → ctx_through_wall_A
+    calibrated 5 reps/sample
+  → ctx_through_wall_B
+    calibrated 5 reps/sample
+
+Op                       | octane-tsrx                     | octane-jsx                      | react                           | ripple                          | solid                           | vue-vapor                       | preact                          | svelte                          | react-uncompiled                
+-------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------
+mount                   | 66.400 (min 63.400, sd 2.098)   | 77.900 (min 75.800, sd 3.060)   | 48.700 (min 47.500, sd 3.004)   | 46.100 (min 44.000, sd 3.229)   | 46.500 (min 42.700, sd 7.142)   | 57.900 (min 56.400, sd 5.237)   | 87.900 (min 68.600, sd 35.719)  | 66.700 (min 63.600, sd 2.629)   | 60.000 (min 57.000, sd 5.348)   
+parent_rerender_equal_A | 0.003 (min 0.003, sd 0.000)     | 0.010 (min 0.006, sd 0.001)     | 0.006 (min 0.005, sd 0.001)     | 0.169 (min 0.144, sd 0.012)     | 0.001 (min 0.001, sd 0.000)     | 0.001 (min 0.001, sd 0.000)     | 0.870 (min 0.820, sd 0.052)     | 0.037 (min 0.035, sd 0.002)     | 0.670 (min 0.640, sd 0.084)     
+parent_rerender_equal_B | 0.003 (min 0.003, sd 0.000)     | 0.006 (min 0.005, sd 0.000)     | 0.006 (min 0.006, sd 0.001)     | 0.225 (min 0.200, sd 0.015)     | 0.001 (min 0.001, sd 0.000)     | 0.001 (min 0.001, sd 0.000)     | 0.990 (min 0.940, sd 0.070)     | 0.035 (min 0.033, sd 0.001)     | 0.840 (min 0.810, sd 0.038)     
+one_change_A            | 0.022 (min 0.021, sd 0.001)     | 0.158 (min 0.143, sd 0.009)     | 0.615 (min 0.525, sd 0.045)     | 0.340 (min 0.255, sd 0.121)     | 0.106 (min 0.093, sd 0.010)     | 0.059 (min 0.053, sd 0.005)     | 0.910 (min 0.880, sd 0.095)     | 0.270 (min 0.263, sd 0.007)     | 0.780 (min 0.670, sd 0.090)     
+one_change_B            | 1.070 (min 0.960, sd 0.084)     | 1.150 (min 1.050, sd 0.094)     | 0.820 (min 0.750, sd 0.048)     | 0.300 (min 0.255, sd 0.096)     | 0.110 (min 0.103, sd 0.010)     | 0.065 (min 0.062, sd 0.003)     | 1.050 (min 1.010, sd 0.200)     | 0.240 (min 0.215, sd 0.016)     | 0.860 (min 0.800, sd 0.096)     
+ctx_through_wall_A      | 2.180 (min 1.980, sd 0.203)     | 3.620 (min 3.220, sd 0.299)     | 3.320 (min 2.720, sd 0.331)     | 1.370 (min 1.000, sd 0.365)     | 1.260 (min 1.080, sd 0.168)     | 1.350 (min 0.980, sd 0.352)     | 6.360 (min 5.680, sd 0.784)     | 2.380 (min 2.220, sd 0.291)     | 4.220 (min 3.640, sd 2.156)     
+ctx_through_wall_B      | 2.100 (min 1.880, sd 0.152)     | 3.040 (min 2.960, sd 0.167)     | 3.340 (min 2.640, sd 0.480)     | 1.240 (min 1.000, sd 0.247)     | 1.400 (min 1.200, sd 0.187)     | 1.260 (min 0.980, sd 0.183)     | 6.860 (min 5.900, sd 4.769)     | 2.460 (min 2.160, sd 0.223)     | 4.260 (min 3.960, sd 0.501)     
+
+octane-jsx / octane-tsrx ratio (score; <1 means octane-jsx faster):
+  mount                    1.21x  -- slower
+  parent_rerender_equal_A  3.69x  -- slower
+  parent_rerender_equal_B  2.14x  -- slower
+  one_change_A             6.80x  -- slower
+  one_change_B             1.07x  -- slower
+  ctx_through_wall_A       1.50x  -- slower
+  ctx_through_wall_B       1.49x  -- slower
+
+react / octane-tsrx ratio (score; <1 means react faster):
+  mount                    0.81x  ++ faster
+  parent_rerender_equal_A  2.18x  -- slower
+  parent_rerender_equal_B  2.43x  -- slower
+  one_change_A             26.61x  -- slower
+  one_change_B             0.74x  ++ faster
+  ctx_through_wall_A       1.38x  -- slower
+  ctx_through_wall_B       1.53x  -- slower
+
+ripple / octane-tsrx ratio (score; <1 means ripple faster):
+  mount                    0.72x  ++ faster
+  parent_rerender_equal_A  62.92x  -- slower
+  parent_rerender_equal_B  83.75x  -- slower
+  one_change_A             13.46x  -- slower
+  one_change_B             0.26x  ++ faster
+  ctx_through_wall_A       0.53x  ++ faster
+  ctx_through_wall_B       0.56x  ++ faster
+
+solid / octane-tsrx ratio (score; <1 means solid faster):
+  mount                    0.72x  ++ faster
+  parent_rerender_equal_A  0.45x  ++ faster
+  parent_rerender_equal_B  0.45x  ++ faster
+  one_change_A             4.47x  -- slower
+  one_change_B             0.11x  ++ faster
+  ctx_through_wall_A       0.57x  ++ faster
+  ctx_through_wall_B       0.68x  ++ faster
+
+vue-vapor / octane-tsrx ratio (score; <1 means vue-vapor faster):
+  mount                    0.90x  ++ faster
+  parent_rerender_equal_A  0.44x  ++ faster
+  parent_rerender_equal_B  0.51x  ++ faster
+  one_change_A             2.52x  -- slower
+  one_change_B             0.06x  ++ faster
+  ctx_through_wall_A       0.52x  ++ faster
+  ctx_through_wall_B       0.57x  ++ faster
+
+preact / octane-tsrx ratio (score; <1 means preact faster):
+  mount                    1.15x  -- slower
+  parent_rerender_equal_A  328.24x  -- slower
+  parent_rerender_equal_B  383.04x  -- slower
+  one_change_A             39.85x  -- slower
+  one_change_B             1.00x  == ~equal
+  ctx_through_wall_A       2.73x  -- slower
+  ctx_through_wall_B       3.20x  -- slower
+
+svelte / octane-tsrx ratio (score; <1 means svelte faster):
+  mount                    1.04x  == ~equal
+  parent_rerender_equal_A  13.81x  -- slower
+  parent_rerender_equal_B  13.21x  -- slower
+  one_change_A             12.14x  -- slower
+  one_change_B             0.22x  ++ faster
+  ctx_through_wall_A       1.05x  -- slower
+  ctx_through_wall_B       1.12x  -- slower
+
+react-uncompiled / octane-tsrx ratio (score; <1 means react-uncompiled faster):
+  mount                    0.97x  == ~equal
+  parent_rerender_equal_A  257.74x  -- slower
+  parent_rerender_equal_B  302.04x  -- slower
+  one_change_A             34.08x  -- slower
+  one_change_B             0.81x  ++ faster
+  ctx_through_wall_A       1.78x  -- slower
+  ctx_through_wall_B       1.98x  -- slower
+
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-memo-wall-all.json
+
+=== portal-swarm (octane-tsrx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+Building octane-tsrx-portal-swarm-bench
+Building react-portal-swarm-bench
+Building ripple-portal-swarm-bench
+Building solid-portal-swarm-bench
+Building vue-vapor-portal-swarm-bench
+Building preact-portal-swarm-bench
+Building svelte-portal-swarm-bench
+Building inferno-portal-swarm-bench
+Running octane-tsrx (http://localhost:5210/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running react (http://localhost:5211/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running ripple (http://localhost:5224/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running solid (http://localhost:5212/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running vue-vapor (http://localhost:5181/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running preact (http://localhost:5268/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running svelte (http://localhost:5279/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+Running inferno (http://localhost:5332/) × 20 (+5 warmup)…
+  → verify (correctness gates)
+  → mount_closed
+  → open_all
+  → rerender_open_A
+  → rerender_open_B
+  → rerender_open_B_stable
+  → open_close_cycle (shared body target)
+  → open_close_distinct (200 container targets)
+  → dispatch_through_portal
+  → DOM census (closed/open, main/body)
+
+Op                      | octane-tsrx                     | react                           | ripple                          | solid                           | vue-vapor                       | preact                          | svelte                          | inferno                         
+------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------+---------------------------------
+mount_closed           | 19.20 (min 17.00, sd 1.34)      | 17.70 (min 15.90, sd 1.64)      | 9.10 (min 8.80, sd 0.45)        | 19.60 (min 17.80, sd 3.52)      | 16.20 (min 15.50, sd 0.63)      | 11.30 (min 11.10, sd 0.29)      | 15.70 (min 15.10, sd 0.28)      | 5.40 (min 5.20, sd 0.47)        
+open_all               | 8.60 (min 7.30, sd 0.91)        | 7.30 (min 6.00, sd 0.82)        | 12.00 (min 11.20, sd 0.43)      | 5.30 (min 4.50, sd 0.51)        | 10.50 (min 9.50, sd 0.53)       | 12.70 (min 12.20, sd 0.78)      | 10.90 (min 9.50, sd 1.41)       | 3.60 (min 3.00, sd 0.29)        
+rerender_open_A        | 0.020 (min 0.010, sd 0.006)     | 0.040 (min 0.030, sd 0.007)     | 0.070 (min 0.060, sd 0.006)     | 0.020 (min 0.010, sd 0.004)     | 0.010 (min 0.000, sd 0.006)     | 1.73 (min 1.56, sd 0.15)        | 0.030 (min 0.020, sd 0.006)     | 0.25 (min 0.21, sd 0.030)       
+rerender_open_B        | 0.020 (min 0.010, sd 0.006)     | 0.040 (min 0.030, sd 0.008)     | 0.070 (min 0.050, sd 0.014)     | 0.020 (min 0.010, sd 0.006)     | 0.010 (min 0.000, sd 0.006)     | 1.95 (min 1.62, sd 0.16)        | 0.030 (min 0.020, sd 0.006)     | 0.30 (min 0.26, sd 0.022)       
+rerender_open_B_stable | 0.010 (min 0.010, sd 0.005)     | 0.040 (min 0.020, sd 0.011)     | 0.070 (min 0.060, sd 0.009)     | 0.020 (min 0.010, sd 0.008)     | 0.010 (min 0.000, sd 0.006)     | 0.60 (min 0.57, sd 0.035)       | 0.030 (min 0.020, sd 0.006)     | 0.22 (min 0.18, sd 0.029)       
+open_close_cycle       | 10.06 (min 9.64, sd 0.27)       | 8.44 (min 7.66, sd 0.41)        | 10.86 (min 10.50, sd 0.54)      | 6.68 (min 6.00, sd 0.76)        | 10.28 (min 9.78, sd 0.51)       | 13.92 (min 13.38, sd 0.65)      | 11.64 (min 10.18, sd 0.68)      | 4.78 (min 4.34, sd 0.34)        
+open_close_distinct    | 12.22 (min 10.80, sd 1.14)      | 8.10 (min 7.68, sd 0.21)        | 13.78 (min 12.38, sd 1.01)      | 7.38 (min 6.06, sd 0.76)        | 10.88 (min 10.20, sd 0.86)      | 14.02 (min 13.54, sd 1.33)      | 10.48 (min 10.26, sd 0.28)      | 4.94 (min 4.14, sd 0.48)        
+dispatch_through_portal| 0.013 (min 0.011, sd 0.001)     | 0.015 (min 0.014, sd 0.001)     | 0.005 (min 0.004, sd 0.000)     | 0.003 (min 0.002, sd 0.001)     | 0.005 (min 0.004, sd 0.000)     | 0.003 (min 0.003, sd 0.000)     | 0.004 (min 0.004, sd 0.001)     | 0.005 (min 0.003, sd 0.001)     
+
+react / octane-tsrx ratio (score; <1 means react faster):
+  mount_closed            0.92x  ++ faster
+  open_all                0.83x  ++ faster
+  rerender_open_A         3.78x  -- slower
+  rerender_open_B         3.10x  -- slower
+  rerender_open_B_stable  3.67x  -- slower
+  open_close_cycle        0.83x  ++ faster
+  open_close_distinct     0.63x  ++ faster
+  dispatch_through_portal 1.23x  -- slower
+
+ripple / octane-tsrx ratio (score; <1 means ripple faster):
+  mount_closed            0.47x  ++ faster
+  open_all                1.42x  -- slower
+  rerender_open_A         6.11x  -- slower
+  rerender_open_B         5.40x  -- slower
+  rerender_open_B_stable  6.11x  -- slower
+  open_close_cycle        1.13x  -- slower
+  open_close_distinct     1.08x  -- slower
+  dispatch_through_portal 0.43x  ++ faster
+
+solid / octane-tsrx ratio (score; <1 means solid faster):
+  mount_closed            0.98x  == ~equal
+  open_all                0.61x  ++ faster
+  rerender_open_A         1.22x  -- slower
+  rerender_open_B         1.10x  -- slower
+  rerender_open_B_stable  1.67x  -- slower
+  open_close_cycle        0.67x  ++ faster
+  open_close_distinct     0.58x  ++ faster
+  dispatch_through_portal 0.23x  ++ faster
+
+vue-vapor / octane-tsrx ratio (score; <1 means vue-vapor faster):
+  mount_closed            0.82x  ++ faster
+  open_all                1.24x  -- slower
+  rerender_open_A         0.78x  ++ faster
+  rerender_open_B         0.60x  ++ faster
+  rerender_open_B_stable  0.56x  ++ faster
+  open_close_cycle        1.01x  == ~equal
+  open_close_distinct     0.83x  ++ faster
+  dispatch_through_portal 0.43x  ++ faster
+
+preact / octane-tsrx ratio (score; <1 means preact faster):
+  mount_closed            0.59x  ++ faster
+  open_all                1.59x  -- slower
+  rerender_open_A         156.33x  -- slower
+  rerender_open_B         149.30x  -- slower
+  rerender_open_B_stable  53.33x  -- slower
+  open_close_cycle        1.38x  -- slower
+  open_close_distinct     1.08x  -- slower
+  dispatch_through_portal 0.25x  ++ faster
+
+svelte / octane-tsrx ratio (score; <1 means svelte faster):
+  mount_closed            0.81x  ++ faster
+  open_all                1.22x  -- slower
+  rerender_open_A         3.00x  -- slower
+  rerender_open_B         2.30x  -- slower
+  rerender_open_B_stable  3.00x  -- slower
+  open_close_cycle        1.12x  -- slower
+  open_close_distinct     0.82x  ++ faster
+  dispatch_through_portal 0.37x  ++ faster
+
+inferno / octane-tsrx ratio (score; <1 means inferno faster):
+  mount_closed            0.29x  ++ faster
+  open_all                0.41x  ++ faster
+  rerender_open_A         21.67x  -- slower
+  rerender_open_B         23.30x  -- slower
+  rerender_open_B_stable  18.89x  -- slower
+  open_close_cycle        0.47x  ++ faster
+  open_close_distinct     0.37x  ++ faster
+  dispatch_through_portal 0.43x  ++ faster
+
+distinct-target ratio (open_close_distinct / open_close_cycle, ~1.0 = free):
+  octane-tsrx             1.27x
+  react                   0.96x
+  ripple                  1.21x
+  solid                   1.10x
+  vue-vapor               1.04x
+  preact                  1.00x
+  svelte                  0.93x
+  inferno                 0.99x
+
+stable-bail ratio (rerender_open_B_stable / rerender_open_B, lower = bail path works):
+  octane-tsrx             0.90x
+  react                   1.06x
+  ripple                  1.02x
+  solid                   1.36x
+  vue-vapor               0.83x
+  preact                  0.32x
+  svelte                  1.17x
+  inferno                 0.73x
+
+=== async-waterfall (octane-tsrx, react, ripple, solid, preact, svelte, inferno) ===
+Building octane-tsrx-async-bench
+Building react-async-bench
+Building ripple-async-bench
+Building solid-async-bench
+Building preact-async-bench
+Building svelte-async-bench
+Building inferno-async-bench
+Running octane-tsrx (http://localhost:5216/) × 10…
+Running react (http://localhost:5217/) × 10…
+Running ripple (http://localhost:5219/) × 10…
+Running solid (http://localhost:5218/) × 10…
+Running preact (http://localhost:5269/) × 10…
+Running svelte (http://localhost:5280/) × 10…
+Running inferno (http://localhost:5333/) × 10…
+
+10 levels × 16ms simulated latency — waterfall floor 160ms, parallel floor 16ms
+
+Op     | octane-tsrx               | react                     | ripple                    | solid                     | preact                    | svelte                    | inferno                   | (score ms, ×DELAY)
+-------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------+---------------------------
+init  | 28.2 (1.8x)               | 307.9 (19.2x)             | 20.6 (1.3x)               | 22.3 (1.4x)               | 175.3 (11.0x)             | 20.9 (1.3x)               | 19.3 (1.2x)               
+update| 22.2 (1.4x)               | 171.3 (10.7x)             | 16.8 (1.1x)               | 17.9 (1.1x)               | 169.4 (10.6x)             | 18.0 (1.1x)               | 17.8 (1.1x)               
+BENCH_JSON written to /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-async-waterfall-all.json
+
+=== streaming-ssr (octane-tsrx, react, ripple, solid, preact, inferno) ===
+building streaming SSR bundles (production)…
+  → octane-tsrx
+  → react
+  → ripple
+  → solid
+  → preact
+  → inferno
+running octane-tsrx/staggered (5 warmup + 30 timed renders)…
+running octane-tsrx/all-fast (5 warmup + 30 timed renders)…
+running octane-tsrx/cpu-10 (5 warmup + 30 timed renders)…
+running octane-tsrx/cpu-100 (5 warmup + 30 timed renders)…
+running octane-tsrx/cpu-800 (5 warmup + 30 timed renders)…
+running octane-tsrx/cpu-waves-50 (5 warmup + 30 timed renders)…
+running react/staggered (5 warmup + 30 timed renders)…
+running react/all-fast (5 warmup + 30 timed renders)…
+running ripple/staggered (5 warmup + 30 timed renders)…
+running ripple/all-fast (5 warmup + 30 timed renders)…
+running ripple/cpu-10 (5 warmup + 30 timed renders)…
+running ripple/cpu-100 (5 warmup + 30 timed renders)…
+running ripple/cpu-800 (5 warmup + 30 timed renders)…
+running ripple/cpu-waves-50 (5 warmup + 30 timed renders)…
+running solid/staggered (5 warmup + 30 timed renders)…
+running solid/all-fast (5 warmup + 30 timed renders)…
+running preact/staggered (5 warmup + 30 timed renders)…
+running preact/all-fast (5 warmup + 30 timed renders)…
+running inferno/staggered (5 warmup + 30 timed renders)…
+running inferno/all-fast (5 warmup + 30 timed renders)…
+
+streaming-ssr — shell TTFB + stream-end totals (30 renders/scenario, production builds)
+
+[staggered]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    0.36 |    0.28 |   51.19 |   50.10 |     11 |    20.4 |   19.54
+react        |    0.29 |    0.26 |   50.76 |   49.57 |     12 |    11.5 |   19.70
+ripple       |    0.26 |    0.22 |   50.78 |   49.75 |     11 |    20.7 |   19.69
+solid        |    0.72 |    0.60 |   50.58 |   49.60 |     11 |    18.0 |   19.77
+preact       |    0.38 |    0.31 |   50.39 |   49.86 |     14 |    11.1 |   19.85
+inferno      |    0.22 |    0.18 |   54.52 |   51.69 |    106 |     8.6 |   18.34
+
+[all-fast]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    0.27 |    0.23 |    1.84 |    0.78 |      2 |    20.4 |  543.60
+react        |    0.17 |    0.15 |    1.37 |    0.59 |      7 |    11.5 |  731.18
+ripple       |    0.17 |    0.13 |    1.65 |    0.63 |     11 |    20.7 |  604.85
+solid        |    0.41 |    0.36 |    1.21 |    0.81 |      2 |    18.0 |  824.28
+preact       |    0.34 |    0.28 |    0.99 |    0.91 |     14 |    11.1 | 1014.26
+inferno      |    0.14 |    0.10 |    4.98 |    3.99 |    106 |     8.6 |  200.94
+
+[cpu-10]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    0.21 |    0.18 |    0.68 |    0.55 |      2 |    20.4 | 1471.55
+ripple       |    0.16 |    0.14 |    0.66 |    0.57 |     11 |    20.7 | 1509.92
+
+[cpu-100]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    1.47 |    1.00 |    5.64 |    3.85 |      2 |   176.9 |  177.31
+ripple       |    0.65 |    0.51 |    4.62 |    3.77 |    101 |   178.2 |  216.38
+
+[cpu-800]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    8.53 |    7.70 |   35.69 |   31.50 |      2 |  1399.9 |   28.02
+ripple       |    3.70 |    3.49 |   35.21 |   33.57 |    801 |  1409.3 |   28.40
+
+[cpu-waves-50]
+target       | shell score |  (min)   | total score |  (min)   | chunks | bytes KB | renders/s
+-------------+-------------+----------+-------------+----------+--------+----------+----------
+octane-tsrx  |    0.52 |    0.49 |    7.73 |    7.17 |     11 |    89.9 |  129.31
+ripple       |    0.24 |    0.23 |    1.86 |    1.80 |     51 |    90.7 |  536.20
+
+ratios vs octane-tsrx (score; >1 means slower than octane):
+  react    staggered  shell 0.81x  total 0.99x
+  react    all-fast   shell 0.61x  total 0.74x
+  ripple   staggered  shell 0.71x  total 0.99x
+  ripple   all-fast   shell 0.61x  total 0.90x
+  solid    staggered  shell 1.98x  total 0.99x
+  solid    all-fast   shell 1.51x  total 0.66x
+  preact   staggered  shell 1.04x  total 0.98x
+  preact   all-fast   shell 1.22x  total 0.54x
+  inferno  staggered  shell 0.60x  total 1.06x
+  inferno  all-fast   shell 0.51x  total 2.71x
+
+BENCH_JSON written → /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-streaming-ssr-all.json
+
+=== ssr-throughput (octane-tsrx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+building SSR bundles (production)…
+  → news-50/octane-tsrx
+  → news-50/react
+  → news-50/ripple
+  → news-50/solid
+  → news-50/vue-vapor
+  → news-50/preact
+  → news-50/svelte
+7:44:16 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/news/svelte - using default configuration.
+  → news-50/inferno
+  → news-500/octane-tsrx
+  → news-500/react
+  → news-500/ripple
+  → news-500/solid
+  → news-500/vue-vapor
+  → news-500/preact
+  → news-500/svelte
+7:44:17 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/news/svelte - using default configuration.
+  → news-500/inferno
+running news-50/octane-tsrx (10s timed + ≤5000 memory renders)…
+running news-50/react (10s timed + ≤5000 memory renders)…
+running news-50/ripple (10s timed + ≤5000 memory renders)…
+running news-50/solid (10s timed + ≤5000 memory renders)…
+running news-50/vue-vapor (10s timed + ≤5000 memory renders)…
+running news-50/preact (10s timed + ≤5000 memory renders)…
+running news-50/svelte (10s timed + ≤5000 memory renders)…
+running news-50/inferno (10s timed + ≤5000 memory renders)…
+running news-500/octane-tsrx (10s timed + ≤5000 memory renders)…
+running news-500/react (10s timed + ≤5000 memory renders)…
+running news-500/ripple (10s timed + ≤5000 memory renders)…
+running news-500/solid (10s timed + ≤5000 memory renders)…
+running news-500/vue-vapor (10s timed + ≤5000 memory renders)…
+running news-500/preact (10s timed + ≤5000 memory renders)…
+running news-500/svelte (10s timed + ≤5000 memory renders)…
+running news-500/inferno (10s timed + ≤5000 memory renders)…
+
+ssr-throughput — Node SSR ops/sec + latency (10s/config, production builds)
+
+config                     |   ops/sec |  score ms |    p95 ms |    p99 ms |    min ms | samples
+---------------------------+-----------+-----------+-----------+-----------+-----------+--------
+news-50/octane-tsrx        | 12275.70 |    0.081 |    0.105 |    0.151 |    0.074 | 119854
+news-50/react              |  4868.74 |    0.205 |    0.248 |    0.366 |    0.187 |  48910
+news-50/ripple             |  6829.77 |    0.146 |    0.183 |    0.265 |    0.134 |  66660
+news-50/solid              |  9180.24 |    0.109 |    0.142 |    0.237 |    0.091 |  91299
+news-50/vue-vapor          | 11201.91 |    0.089 |    0.103 |    0.150 |    0.074 | 108531
+news-50/preact             |  4210.46 |    0.238 |    0.294 |    0.395 |    0.196 |  40217
+news-50/svelte             |  8274.13 |    0.121 |    0.109 |    0.153 |    0.070 |  79263
+news-50/inferno            |  6288.29 |    0.159 |    0.189 |    0.289 |    0.140 |  64193
+news-500/octane-tsrx       |   645.99 |    1.548 |    2.972 |    8.507 |    1.143 |   5792
+news-500/react             |   324.16 |    3.085 |    4.035 |    8.809 |    2.480 |   3200
+news-500/ripple            |   385.82 |    2.592 |    4.675 |   10.054 |    2.105 |   3389
+news-500/solid             |   625.10 |    1.600 |    2.104 |    7.855 |    1.253 |   6065
+news-500/vue-vapor         |   785.54 |    1.273 |    1.479 |    7.264 |    1.026 |   7850
+news-500/preact            |   353.49 |    2.829 |    4.589 |    6.955 |    2.350 |   3189
+news-500/svelte            |   734.72 |    1.361 |    1.609 |    2.287 |    1.029 |   7142
+news-500/inferno           |   469.02 |    2.132 |    2.920 |    6.338 |    1.475 |   4745
+
+config                     |  body KB | markers | mem renders |  rss Δ KB | heap Δ KB
+---------------------------+----------+---------+-------------+-----------+----------
+news-50/octane-tsrx        |      41 |       2 |        5000 |      -736 |   -15750
+news-50/react              |      41 |       0 |        5000 |     -3392 |   -52671
+news-50/ripple             |      46 |     302 |        5000 |      -392 |    18882
+news-50/solid              |      42 |       0 |        5000 |     -2532 |    35956
+news-50/vue-vapor          |      41 |       1 |        5000 |     10412 |    10840
+news-50/preact             |      41 |       0 |        5000 |     -2204 |   324937
+news-50/svelte             |      42 |       2 |        5000 |     -4596 | -1183765
+news-50/inferno            |      41 |       0 |        5000 |     -4816 |   -35120
+news-500/octane-tsrx       |     409 |       2 |        5000 |     34840 |    41727
+news-500/react             |     409 |       0 |        5000 |    167928 |   211426
+news-500/ripple            |     456 |    3002 |        5000 |     55640 |    47713
+news-500/solid             |     414 |       0 |        5000 |     20220 |    48494
+news-500/vue-vapor         |     409 |       1 |        5000 |     33796 |    52073
+news-500/preact            |     409 |       0 |        5000 |     31076 |   159275
+news-500/svelte            |     411 |       2 |        5000 |  -1241496 | -1249070
+news-500/inferno           |     409 |       0 |        5000 |    101680 |    98528
+
+news-50 ratios vs news-50/octane-tsrx (score; >1 means slower than octane):
+  react        2.52x octane's render time
+  ripple       1.80x octane's render time
+  solid        1.34x octane's render time
+  vue-vapor    1.10x octane's render time
+  preact       2.92x octane's render time
+  svelte       1.48x octane's render time
+  inferno      1.95x octane's render time
+
+news-500 ratios vs news-500/octane-tsrx (score; >1 means slower than octane):
+  react        1.99x octane's render time
+  ripple       1.67x octane's render time
+  solid        1.03x octane's render time
+  vue-vapor    0.82x octane's render time
+  preact       1.83x octane's render time
+  svelte       0.88x octane's render time
+  inferno      1.38x octane's render time
+
+BENCH_JSON written → /Users/leonid/Documents/code/ripple/benchmarks/results/baseline-1/_part-ssr-throughput-all.json
+
+=== bundle-size (octane-tsrx, octane-jsx, react, ripple, solid, vue-vapor, preact, svelte, inferno) ===
+building octane-tsrx (production, normalized minify)…
+  octane-tsrx: total gz 29316  app gz 2411  fw gz 26905
+building octane-jsx (production, normalized minify)…
+  octane-jsx: total gz 56082  app gz 2959  fw gz 53123
+building react (production, normalized minify)…
+  react: total gz 63308  app gz 3214  fw gz 60094
+building ripple (production, normalized minify)…
+  ripple: total gz 13410  app gz 2312  fw gz 11098
+building solid (production, normalized minify)…
+  solid: total gz 15192  app gz 1992  fw gz 13200
+building vue-vapor (production, normalized minify)…
+  vue-vapor: total gz 24059  app gz 2088  fw gz 21971
+building preact (production, normalized minify)…
+  preact: total gz 9990  app gz 2005  fw gz 7985
+building svelte (production, normalized minify)…
+7:49:05 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/js-framework/svelte - using default configuration.
+  svelte: total gz 18325  app gz 2300  fw gz 16025
+7:49:05 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/js-framework/svelte - using default configuration.
+building inferno (production, normalized minify)…
+  inferno: total gz 10507  app gz 2049  fw gz 8458
+building todomvc/octane-tsrx (production, normalized minify)…
+  todomvc/octane-tsrx: total gz 31521  app gz 2252  fw gz 29269
+building todomvc/react (production, normalized minify)…
+  todomvc/react: total gz 61662  app gz 1555  fw gz 60107
+building todomvc/ripple (production, normalized minify)…
+  todomvc/ripple: total gz 13706  app gz 1644  fw gz 12062
+building todomvc/solid (production, normalized minify)…
+  todomvc/solid: total gz 14646  app gz 1292  fw gz 13354
+building todomvc/vue-vapor (production, normalized minify)…
+  todomvc/vue-vapor: total gz 24408  app gz 1355  fw gz 23053
+building todomvc/preact (production, normalized minify)…
+  todomvc/preact: total gz 6841  app gz 991  fw gz 5850
+building todomvc/svelte (production, normalized minify)…
+7:49:17 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/todomvc/svelte - using default configuration.
+  todomvc/svelte: total gz 18530  app gz 1511  fw gz 17019
+7:49:17 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/todomvc/svelte - using default configuration.
+building todomvc/inferno (production, normalized minify)…
+  todomvc/inferno: total gz 9567  app gz 1104  fw gz 8463
+building chat-stream/octane-tsrx (production, normalized minify)…
+  chat-stream/octane-tsrx: total gz 31338  app gz 2772  fw gz 28566
+building chat-stream/react (production, normalized minify)…
+  chat-stream/react: total gz 62475  app gz 2381  fw gz 60094
+building chat-stream/ripple (production, normalized minify)…
+  chat-stream/ripple: total gz 13761  app gz 2338  fw gz 11423
+building chat-stream/solid (production, normalized minify)…
+  chat-stream/solid: total gz 15537  app gz 2102  fw gz 13435
+building chat-stream/vue-vapor (production, normalized minify)…
+  chat-stream/vue-vapor: total gz 25988  app gz 2156  fw gz 23832
+building chat-stream/preact (production, normalized minify)…
+  chat-stream/preact: total gz 7607  app gz 1846  fw gz 5761
+building chat-stream/svelte (production, normalized minify)…
+7:49:31 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/chat-stream/svelte - using default configuration.
+  chat-stream/svelte: total gz 19164  app gz 2279  fw gz 16885
+7:49:31 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/chat-stream/svelte - using default configuration.
+building chat-stream/inferno (production, normalized minify)…
+  chat-stream/inferno: total gz 10388  app gz 1926  fw gz 8462
+
+=== reconcile-anchors (ripple) ===
+Building ripple-reconcile-anchors-bench
+for-reconcile bench — N=1000 rows, 25 iter (+8 warmup), http://localhost:5190/
+  direct → mount
+  direct → reverse
+  direct → shuffle
+  wrapped → mount
+  wrapped → reverse
+  wrapped → shuffle
+  single → mount
+  single → reverse
+  single → shuffle
+  switch → mount
+  switch → reverse
+  switch → shuffle
+
+Op       | direct                        | wrapped                       | single                        | switch                        
+---------+-------------------------------+-------------------------------+-------------------------------+-------------------------------
+mount   | 11.60 (min 10.20, sd 0.89)    | 17.20 (min 15.30, sd 2.06)    | 16.20 (min 14.60, sd 0.84)    | 16.30 (min 14.30, sd 1.19)    
+reverse | 5.10 (min 4.40, sd 0.47)      | 5.60 (min 4.80, sd 0.38)      | 4.80 (min 4.20, sd 0.52)      | 4.80 (min 4.20, sd 0.58)      
+shuffle | 6.40 (min 4.90, sd 0.90)      | 7.40 (min 6.50, sd 0.65)      | 6.00 (min 4.90, sd 0.65)      | 6.10 (min 5.30, sd 0.45)      
+
+descent overhead vs wrapped (median ratio; >1 means slower):
+  direct.mount       0.67x  == ~equal
+  direct.reverse     0.91x  == ~equal
+  direct.shuffle     0.86x  == ~equal
+  single.mount       0.94x  == ~equal
+  single.reverse     0.86x  == ~equal
+  single.shuffle     0.81x  == ~equal
+  switch.mount       0.95x  == ~equal
+  switch.reverse     0.86x  == ~equal
+  switch.shuffle     0.82x  == ~equal
+┌─────────┬────────────────────────┬────────┬───────┐
+│ (index) │ suite                  │ status │ error │
+├─────────┼────────────────────────┼────────┼───────┤
+│ 0       │ 'js-framework'         │ 'PASS' │ ''    │
+│ 1       │ 'js-framework-reorder' │ 'PASS' │ ''    │
+│ 2       │ 'recursive-context'    │ 'PASS' │ ''    │
+│ 3       │ 'signal-favoring'      │ 'PASS' │ ''    │
+│ 4       │ 'news'                 │ 'PASS' │ ''    │
+│ 5       │ 'todomvc'              │ 'PASS' │ ''    │
+│ 6       │ 'chat-stream'          │ 'PASS' │ ''    │
+│ 7       │ 'dbmon'                │ 'PASS' │ ''    │
+│ 8       │ 'uibench'              │ 'PASS' │ ''    │
+│ 9       │ 'effectful-list'       │ 'PASS' │ ''    │
+│ 10      │ 'memo-wall'            │ 'PASS' │ ''    │
+│ 11      │ 'portal-swarm'         │ 'PASS' │ ''    │
+│ 12      │ 'async-waterfall'      │ 'PASS' │ ''    │
+│ 13      │ 'streaming-ssr'        │ 'PASS' │ ''    │
+│ 14      │ 'ssr-throughput'       │ 'PASS' │ ''    │
+│ 15      │ 'bundle-size'          │ 'PASS' │ ''    │
+│ 16      │ 'reconcile-anchors'    │ 'PASS' │ ''    │
+└─────────┴────────────────────────┴────────┴───────┘

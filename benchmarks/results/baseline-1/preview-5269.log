@@ -1,0 +1,6 @@
+$ vite preview --port 5269 --strictPort
+  ➜  Local:   http://localhost:5269/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/async-waterfall/preact:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] preact-async-bench@0.0.1 preview: `vite preview --port 5269 --strictPort`
+Exit status 143

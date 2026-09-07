@@ -1,0 +1,6 @@
+$ vite preview --port 5317 --strictPort
+  ➜  Local:   http://localhost:5317/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/uibench/solid:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] solid-uibench-bench@0.0.1 preview: `vite preview --port 5317 --strictPort`
+Exit status 143

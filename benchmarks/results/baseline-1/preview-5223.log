@@ -1,0 +1,6 @@
+$ vite preview --port 5223 --strictPort
+  ➜  Local:   http://localhost:5223/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/memo-wall/vue-vapor:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] vue-vapor-memowall-bench@0.0.1 preview: `vite preview --port 5223 --strictPort`
+Exit status 143

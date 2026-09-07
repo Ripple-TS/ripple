@@ -1,0 +1,6 @@
+$ vite preview --port 5243 --strictPort
+  ➜  Local:   http://localhost:5243/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/todomvc/ripple:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] ripple-todomvc@0.0.1 preview: `vite preview --port 5243 --strictPort`
+Exit status 143

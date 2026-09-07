@@ -1,0 +1,6 @@
+$ vite preview --port 5192 --strictPort
+  ➜  Local:   http://localhost:5192/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/signal-favoring/react:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] react-signal-bench@0.0.0 preview: `vite preview --port 5192 --strictPort`
+Exit status 143

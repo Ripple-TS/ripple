@@ -1,0 +1,10 @@
+$ vite build
+9:15:26 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/async-waterfall/svelte - using default configuration.
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 110 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 0.24 kB │ gzip:  0.20 kB
+dist/assets/index-DuOwp5Qw.js  31.71 kB │ gzip: 12.45 kB
+
+✓ built in 127ms

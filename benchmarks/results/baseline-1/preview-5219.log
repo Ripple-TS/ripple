@@ -1,0 +1,6 @@
+$ vite preview --port 5219 --strictPort
+  ➜  Local:   http://localhost:5219/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/async-waterfall/ripple:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] ripple-async-bench@0.0.1 preview: `vite preview --port 5219 --strictPort`
+Exit status 143

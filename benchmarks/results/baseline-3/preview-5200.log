@@ -1,0 +1,6 @@
+$ vite preview --port 5200 --strictPort
+  ➜  Local:   http://localhost:5200/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/dbmon/solid:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] solid-dbmon-bench@0.0.1 preview: `vite preview --port 5200 --strictPort`
+Exit status 143

@@ -1,0 +1,290 @@
+{
+  "metadata": {
+    "startedAt": "2026-09-06T23:00:48.430Z",
+    "packageVersions": {
+      "ripple": "0.3.126",
+      "@ripple-ts/vite-plugin": "0.3.126",
+      "@tsrx/ripple": "0.1.63",
+      "octane": "0.2.4",
+      "solid-js": "2.0.0-rc.3",
+      "@solidjs/web": "2.0.0-rc.3",
+      "vite-plugin-solid": "3.0.0-next.5",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "c2bd4118ad988fe7ee2cc335d3ea36737833e0a2",
+    "dirty": true,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d",
+    "workloadSha256": "57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394",
+    "rippleSourceSha256": "26d90ae8a12ad1a5db35b2cdbd1b603b488d682b8438f5fc9ad656e10f97cb15",
+    "quick": false,
+    "buildMode": "upstream-production",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "recordingWorkloadSha256": "d0dd33568e9a2e4181df9a81730407da0fb64ec4b241ba83b45cb60beede4b6c",
+    "runnerSha256": "6c352788c0b519f52581e4eb15d34f7671e419c04f36de720289ea2123cd04b6",
+    "metadataVersion": 2,
+    "metadataCorrections": [
+      "Workload hash excludes recording/reporting tools; their original fingerprint is retained.",
+      "TodoMVC row_class_writes_complete25 is a count, not milliseconds. No measured values changed."
+    ]
+  },
+  "summary": [
+    {
+      "suite": "js-framework",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "js-framework-reorder",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "recursive-context",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "signal-favoring",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "news",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "todomvc",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "chat-stream",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "dbmon",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "uibench",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "effectful-list",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "memo-wall",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "react-uncompiled"
+      ]
+    },
+    {
+      "suite": "portal-swarm",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "async-waterfall",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "streaming-ssr",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "preact",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "ssr-throughput",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "bundle-size",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "reconcile-anchors",
+      "status": "PASS",
+      "targets": [
+        "ripple"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+$ vite preview --port 5240 --strictPort
+  ➜  Local:   http://localhost:5240/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/todomvc/octane-tsrx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-tsrx-todomvc@0.0.1 preview: `vite preview --port 5240 --strictPort`
+Exit status 143

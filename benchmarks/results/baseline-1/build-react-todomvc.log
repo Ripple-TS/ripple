@@ -1,0 +1,11 @@
+$ vite build
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 16 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.23 kB │ gzip:  0.20 kB
+dist/assets/index-DsgG4xoq.js  193.87 kB │ gzip: 61.60 kB
+
+[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugin `vite:terser`. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 3.13s

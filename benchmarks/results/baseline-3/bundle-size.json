@@ -1,0 +1,2295 @@
+{
+  "suite": "bundle-size",
+  "iterations": 1,
+  "targets": [
+    {
+      "name": "solid",
+      "ops": {
+        "js_raw": {
+          "score": 40520,
+          "median": 40520,
+          "min": 40520,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 15192,
+          "median": 15192,
+          "min": 15192,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 13741,
+          "median": 13741,
+          "min": 13741,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 6375,
+          "median": 6375,
+          "min": 6375,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 1992,
+          "median": 1992,
+          "min": 1992,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1761,
+          "median": 1761,
+          "min": 1761,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 34145,
+          "median": 34145,
+          "min": 34145,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 13200,
+          "median": 13200,
+          "min": 13200,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 11980,
+          "median": 11980,
+          "min": 11980,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 37491,
+          "median": 37491,
+          "min": 37491,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 14646,
+          "median": 14646,
+          "min": 14646,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 13230,
+          "median": 13230,
+          "min": 13230,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 2969,
+          "median": 2969,
+          "min": 2969,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1292,
+          "median": 1292,
+          "min": 1292,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1119,
+          "median": 1119,
+          "min": 1119,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 34522,
+          "median": 34522,
+          "min": 34522,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 13354,
+          "median": 13354,
+          "min": 13354,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 12111,
+          "median": 12111,
+          "min": 12111,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 39131,
+          "median": 39131,
+          "min": 39131,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 15537,
+          "median": 15537,
+          "min": 15537,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 14048,
+          "median": 14048,
+          "min": 14048,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 4375,
+          "median": 4375,
+          "min": 4375,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2102,
+          "median": 2102,
+          "min": 2102,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 1867,
+          "median": 1867,
+          "min": 1867,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 34756,
+          "median": 34756,
+          "min": 34756,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 13435,
+          "median": 13435,
+          "min": 13435,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 12181,
+          "median": 12181,
+          "min": 12181,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-BHqBMHG_.js",
+            "bucket": "fw",
+            "bytes": 34145,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-86W9K6nE.js",
+            "bucket": "app",
+            "bytes": 6375,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-CBXrM7Wy.js",
+            "bucket": "fw",
+            "bytes": 34522,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-Dk-nQ2QS.js",
+            "bucket": "app",
+            "bytes": 2969,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-B3nlxBpK.js",
+            "bucket": "fw",
+            "bytes": 34756,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-CR0BHkbp.js",
+            "bucket": "app",
+            "bytes": 4375,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "vue-vapor",
+      "ops": {
+        "js_raw": {
+          "score": 64225,
+          "median": 64225,
+          "min": 64225,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 24059,
+          "median": 24059,
+          "min": 24059,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 21825,
+          "median": 21825,
+          "min": 21825,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 6573,
+          "median": 6573,
+          "min": 6573,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2088,
+          "median": 2088,
+          "min": 2088,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1876,
+          "median": 1876,
+          "min": 1876,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 57652,
+          "median": 57652,
+          "min": 57652,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 21971,
+          "median": 21971,
+          "min": 21971,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 19949,
+          "median": 19949,
+          "min": 19949,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 63831,
+          "median": 63831,
+          "min": 63831,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 24408,
+          "median": 24408,
+          "min": 24408,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 22089,
+          "median": 22089,
+          "min": 22089,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 3088,
+          "median": 3088,
+          "min": 3088,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1355,
+          "median": 1355,
+          "min": 1355,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1197,
+          "median": 1197,
+          "min": 1197,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 60743,
+          "median": 60743,
+          "min": 60743,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 23053,
+          "median": 23053,
+          "min": 23053,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 20892,
+          "median": 20892,
+          "min": 20892,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 67320,
+          "median": 67320,
+          "min": 67320,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 25988,
+          "median": 25988,
+          "min": 25988,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 23565,
+          "median": 23565,
+          "min": 23565,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 4573,
+          "median": 4573,
+          "min": 4573,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2156,
+          "median": 2156,
+          "min": 2156,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 1946,
+          "median": 1946,
+          "min": 1946,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 62747,
+          "median": 62747,
+          "min": 62747,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 23832,
+          "median": 23832,
+          "min": 23832,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 21619,
+          "median": 21619,
+          "min": 21619,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-CovaQ3ks.js",
+            "bucket": "fw",
+            "bytes": 57652,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-BsMD8Vsa.js",
+            "bucket": "app",
+            "bytes": 6573,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-CZXQ5NyK.js",
+            "bucket": "fw",
+            "bytes": 60743,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-Cdhex-1s.js",
+            "bucket": "app",
+            "bytes": 3088,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-CaWGQj-x.js",
+            "bucket": "fw",
+            "bytes": 62747,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-rmNU1nPk.js",
+            "bucket": "app",
+            "bytes": 4573,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "preact",
+      "ops": {
+        "js_raw": {
+          "score": 25247,
+          "median": 25247,
+          "min": 25247,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 9990,
+          "median": 9990,
+          "min": 9990,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 9056,
+          "median": 9056,
+          "min": 9056,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 5307,
+          "median": 5307,
+          "min": 5307,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2005,
+          "median": 2005,
+          "min": 2005,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1783,
+          "median": 1783,
+          "min": 1783,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 19940,
+          "median": 19940,
+          "min": 19940,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 7985,
+          "median": 7985,
+          "min": 7985,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 7273,
+          "median": 7273,
+          "min": 7273,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 16244,
+          "median": 16244,
+          "min": 16244,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 6841,
+          "median": 6841,
+          "min": 6841,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 6180,
+          "median": 6180,
+          "min": 6180,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 2156,
+          "median": 2156,
+          "min": 2156,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 991,
+          "median": 991,
+          "min": 991,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 868,
+          "median": 868,
+          "min": 868,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 14088,
+          "median": 14088,
+          "min": 14088,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 5850,
+          "median": 5850,
+          "min": 5850,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 5312,
+          "median": 5312,
+          "min": 5312,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 17744,
+          "median": 17744,
+          "min": 17744,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 7607,
+          "median": 7607,
+          "min": 7607,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 6886,
+          "median": 6886,
+          "min": 6886,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 3898,
+          "median": 3898,
+          "min": 3898,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 1846,
+          "median": 1846,
+          "min": 1846,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 1645,
+          "median": 1645,
+          "min": 1645,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 13846,
+          "median": 13846,
+          "min": 13846,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 5761,
+          "median": 5761,
+          "min": 5761,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 5241,
+          "median": 5241,
+          "min": 5241,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-8y8cHKd9.js",
+            "bucket": "fw",
+            "bytes": 19940,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-Bh9B4QdP.js",
+            "bucket": "app",
+            "bytes": 5307,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-6Th9yTRM.js",
+            "bucket": "fw",
+            "bytes": 14088,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-C1Fxpl_H.js",
+            "bucket": "app",
+            "bytes": 2156,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-B3ECTeye.js",
+            "bucket": "fw",
+            "bytes": 13846,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-CxC_IVIn.js",
+            "bucket": "app",
+            "bytes": 3898,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "svelte",
+      "ops": {
+        "js_raw": {
+          "score": 46458,
+          "median": 46458,
+          "min": 46458,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 18325,
+          "median": 18325,
+          "min": 18325,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 16611,
+          "median": 16611,
+          "min": 16611,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 5149,
+          "median": 5149,
+          "min": 5149,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2300,
+          "median": 2300,
+          "min": 2300,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1987,
+          "median": 1987,
+          "min": 1987,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 41309,
+          "median": 41309,
+          "min": 41309,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 16025,
+          "median": 16025,
+          "min": 16025,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 14624,
+          "median": 14624,
+          "min": 14624,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 47580,
+          "median": 47580,
+          "min": 47580,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 18530,
+          "median": 18530,
+          "min": 18530,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 16790,
+          "median": 16790,
+          "min": 16790,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 3330,
+          "median": 3330,
+          "min": 3330,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1511,
+          "median": 1511,
+          "min": 1511,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1289,
+          "median": 1289,
+          "min": 1289,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 44250,
+          "median": 44250,
+          "min": 44250,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 17019,
+          "median": 17019,
+          "min": 17019,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 15501,
+          "median": 15501,
+          "min": 15501,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 48610,
+          "median": 48610,
+          "min": 48610,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 19164,
+          "median": 19164,
+          "min": 19164,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 17386,
+          "median": 17386,
+          "min": 17386,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 4717,
+          "median": 4717,
+          "min": 4717,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2279,
+          "median": 2279,
+          "min": 2279,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 2039,
+          "median": 2039,
+          "min": 2039,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 43893,
+          "median": 43893,
+          "min": 43893,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 16885,
+          "median": 16885,
+          "min": 16885,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 15347,
+          "median": 15347,
+          "min": 15347,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-BtOCJlfe.js",
+            "bucket": "fw",
+            "bytes": 41309,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-BoFvV9oI.js",
+            "bucket": "app",
+            "bytes": 5149,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-qEMhQt1V.js",
+            "bucket": "fw",
+            "bytes": 44250,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-DN5JBB7l.js",
+            "bucket": "app",
+            "bytes": 3330,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-BYOVyHSr.js",
+            "bucket": "fw",
+            "bytes": 43893,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-Dr7Pz4DB.js",
+            "bucket": "app",
+            "bytes": 4717,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "inferno",
+      "ops": {
+        "js_raw": {
+          "score": 28120,
+          "median": 28120,
+          "min": 28120,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 10507,
+          "median": 10507,
+          "min": 10507,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 9537,
+          "median": 9537,
+          "min": 9537,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 5282,
+          "median": 5282,
+          "min": 5282,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2049,
+          "median": 2049,
+          "min": 2049,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1843,
+          "median": 1843,
+          "min": 1843,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 22838,
+          "median": 22838,
+          "min": 22838,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 8458,
+          "median": 8458,
+          "min": 8458,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 7694,
+          "median": 7694,
+          "min": 7694,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 25593,
+          "median": 25593,
+          "min": 25593,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 9567,
+          "median": 9567,
+          "min": 9567,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 8689,
+          "median": 8689,
+          "min": 8689,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 2747,
+          "median": 2747,
+          "min": 2747,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1104,
+          "median": 1104,
+          "min": 1104,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 969,
+          "median": 969,
+          "min": 969,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 22846,
+          "median": 22846,
+          "min": 22846,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 8463,
+          "median": 8463,
+          "min": 8463,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 7720,
+          "median": 7720,
+          "min": 7720,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 27012,
+          "median": 27012,
+          "min": 27012,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 10388,
+          "median": 10388,
+          "min": 10388,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 9443,
+          "median": 9443,
+          "min": 9443,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 4166,
+          "median": 4166,
+          "min": 4166,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 1926,
+          "median": 1926,
+          "min": 1926,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 1726,
+          "median": 1726,
+          "min": 1726,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 22846,
+          "median": 22846,
+          "min": 22846,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 8462,
+          "median": 8462,
+          "min": 8462,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 7717,
+          "median": 7717,
+          "min": 7717,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-BlzAvLz_.js",
+            "bucket": "fw",
+            "bytes": 22838,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-CCZ3_DhL.js",
+            "bucket": "app",
+            "bytes": 5282,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-BcFDCWSu.js",
+            "bucket": "fw",
+            "bytes": 22846,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-DM9Tdig8.js",
+            "bucket": "app",
+            "bytes": 2747,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-Da0OwUal.js",
+            "bucket": "fw",
+            "bytes": 22846,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-CB4SrGhR.js",
+            "bucket": "app",
+            "bytes": 4166,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "octane-tsrx",
+      "ops": {
+        "js_raw": {
+          "score": 86860,
+          "median": 86860,
+          "min": 86860,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 29316,
+          "median": 29316,
+          "min": 29316,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 26158,
+          "median": 26158,
+          "min": 26158,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 7114,
+          "median": 7114,
+          "min": 7114,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2411,
+          "median": 2411,
+          "min": 2411,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 2115,
+          "median": 2115,
+          "min": 2115,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 79746,
+          "median": 79746,
+          "min": 79746,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 26905,
+          "median": 26905,
+          "min": 26905,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 24043,
+          "median": 24043,
+          "min": 24043,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 92673,
+          "median": 92673,
+          "min": 92673,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 31521,
+          "median": 31521,
+          "min": 31521,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 28062,
+          "median": 28062,
+          "min": 28062,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 4666,
+          "median": 4666,
+          "min": 4666,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 2252,
+          "median": 2252,
+          "min": 2252,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1951,
+          "median": 1951,
+          "min": 1951,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 88007,
+          "median": 88007,
+          "min": 88007,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 29269,
+          "median": 29269,
+          "min": 29269,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 26111,
+          "median": 26111,
+          "min": 26111,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 91821,
+          "median": 91821,
+          "min": 91821,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 31338,
+          "median": 31338,
+          "min": 31338,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 27978,
+          "median": 27978,
+          "min": 27978,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 5972,
+          "median": 5972,
+          "min": 5972,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2772,
+          "median": 2772,
+          "min": 2772,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 2445,
+          "median": 2445,
+          "min": 2445,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 85849,
+          "median": 85849,
+          "min": 85849,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 28566,
+          "median": 28566,
+          "min": 28566,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 25533,
+          "median": 25533,
+          "min": 25533,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-DxP_OvYq.js",
+            "bucket": "fw",
+            "bytes": 79746,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-DBsG_S9i.js",
+            "bucket": "app",
+            "bytes": 7114,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-C6zISMOI.js",
+            "bucket": "fw",
+            "bytes": 88007,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-Di1j7c95.js",
+            "bucket": "app",
+            "bytes": 4666,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-DQV8zUf0.js",
+            "bucket": "fw",
+            "bytes": 85849,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-CFmfTTaE.js",
+            "bucket": "app",
+            "bytes": 5972,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "octane-jsx",
+      "ops": {
+        "js_raw": {
+          "score": 174380,
+          "median": 174380,
+          "min": 174380,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 56082,
+          "median": 56082,
+          "min": 56082,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 49079,
+          "median": 49079,
+          "min": 49079,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 8454,
+          "median": 8454,
+          "min": 8454,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2959,
+          "median": 2959,
+          "min": 2959,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 2531,
+          "median": 2531,
+          "min": 2531,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 165926,
+          "median": 165926,
+          "min": 165926,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 53123,
+          "median": 53123,
+          "min": 53123,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 46548,
+          "median": 46548,
+          "min": 46548,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-B4yf0Jzu.js",
+            "bucket": "fw",
+            "bytes": 165926,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-BzwdnqMy.js",
+            "bucket": "app",
+            "bytes": 8454,
+            "set": "js"
+          }
+        ],
+        "verification": {
+          "rows": "pass"
+        }
+      }
+    },
+    {
+      "name": "react",
+      "ops": {
+        "js_raw": {
+          "score": 200184,
+          "median": 200184,
+          "min": 200184,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 63308,
+          "median": 63308,
+          "min": 63308,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 54477,
+          "median": 54477,
+          "min": 54477,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 8372,
+          "median": 8372,
+          "min": 8372,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 3214,
+          "median": 3214,
+          "min": 3214,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 2723,
+          "median": 2723,
+          "min": 2723,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 191812,
+          "median": 191812,
+          "min": 191812,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 60094,
+          "median": 60094,
+          "min": 60094,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 51754,
+          "median": 51754,
+          "min": 51754,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 196040,
+          "median": 196040,
+          "min": 196040,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 61662,
+          "median": 61662,
+          "min": 61662,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 53170,
+          "median": 53170,
+          "min": 53170,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 4173,
+          "median": 4173,
+          "min": 4173,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1555,
+          "median": 1555,
+          "min": 1555,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1355,
+          "median": 1355,
+          "min": 1355,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 191867,
+          "median": 191867,
+          "min": 191867,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 60107,
+          "median": 60107,
+          "min": 60107,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 51815,
+          "median": 51815,
+          "min": 51815,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 196970,
+          "median": 196970,
+          "min": 196970,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 62475,
+          "median": 62475,
+          "min": 62475,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 53896,
+          "median": 53896,
+          "min": 53896,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 5158,
+          "median": 5158,
+          "min": 5158,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2381,
+          "median": 2381,
+          "min": 2381,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 2142,
+          "median": 2142,
+          "min": 2142,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 191812,
+          "median": 191812,
+          "min": 191812,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 60094,
+          "median": 60094,
+          "min": 60094,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 51754,
+          "median": 51754,
+          "min": 51754,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-DE5bC0zI.js",
+            "bucket": "fw",
+            "bytes": 191812,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-D9nOR0es.js",
+            "bucket": "app",
+            "bytes": 8372,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-Cszc5kEA.js",
+            "bucket": "fw",
+            "bytes": 191867,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-mVHbHaOZ.js",
+            "bucket": "app",
+            "bytes": 4173,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-DE5bC0zI.js",
+            "bucket": "fw",
+            "bytes": 191812,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-dEXlQQY2.js",
+            "bucket": "app",
+            "bytes": 5158,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    },
+    {
+      "name": "ripple",
+      "ops": {
+        "js_raw": {
+          "score": 35047,
+          "median": 35047,
+          "min": 35047,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_gzip": {
+          "score": 13410,
+          "median": 13410,
+          "min": 13410,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "js_brotli": {
+          "score": 12006,
+          "median": 12006,
+          "min": 12006,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_raw": {
+          "score": 7209,
+          "median": 7209,
+          "min": 7209,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_gzip": {
+          "score": 2312,
+          "median": 2312,
+          "min": 2312,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "app_brotli": {
+          "score": 1991,
+          "median": 1991,
+          "min": 1991,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_raw": {
+          "score": 27838,
+          "median": 27838,
+          "min": 27838,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_gzip": {
+          "score": 11098,
+          "median": 11098,
+          "min": 11098,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "fw_brotli": {
+          "score": 10015,
+          "median": 10015,
+          "min": 10015,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_raw": {
+          "score": 34037,
+          "median": 34037,
+          "min": 34037,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_gzip": {
+          "score": 13706,
+          "median": 13706,
+          "min": 13706,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_js_brotli": {
+          "score": 12269,
+          "median": 12269,
+          "min": 12269,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_raw": {
+          "score": 3715,
+          "median": 3715,
+          "min": 3715,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_gzip": {
+          "score": 1644,
+          "median": 1644,
+          "min": 1644,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_app_brotli": {
+          "score": 1423,
+          "median": 1423,
+          "min": 1423,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_raw": {
+          "score": 30322,
+          "median": 30322,
+          "min": 30322,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_gzip": {
+          "score": 12062,
+          "median": 12062,
+          "min": 12062,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "todo_fw_brotli": {
+          "score": 10846,
+          "median": 10846,
+          "min": 10846,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_raw": {
+          "score": 33580,
+          "median": 33580,
+          "min": 33580,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_gzip": {
+          "score": 13761,
+          "median": 13761,
+          "min": 13761,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_js_brotli": {
+          "score": 12364,
+          "median": 12364,
+          "min": 12364,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_raw": {
+          "score": 4896,
+          "median": 4896,
+          "min": 4896,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_gzip": {
+          "score": 2338,
+          "median": 2338,
+          "min": 2338,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_app_brotli": {
+          "score": 2097,
+          "median": 2097,
+          "min": 2097,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_raw": {
+          "score": 28684,
+          "median": 28684,
+          "min": 28684,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_gzip": {
+          "score": 11423,
+          "median": 11423,
+          "min": 11423,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        },
+        "chat_fw_brotli": {
+          "score": 10267,
+          "median": 10267,
+          "min": 10267,
+          "samples": 1,
+          "unit": "bytes",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "files": [
+          {
+            "file": "assets/framework-BvAEe_Ob.js",
+            "bucket": "fw",
+            "bytes": 27838,
+            "set": "js"
+          },
+          {
+            "file": "assets/index-CqD1k37k.js",
+            "bucket": "app",
+            "bytes": 7209,
+            "set": "js"
+          },
+          {
+            "file": "assets/framework-DALeOCjE.js",
+            "bucket": "fw",
+            "bytes": 30322,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/index-DsngpnJE.js",
+            "bucket": "app",
+            "bytes": 3715,
+            "set": "todo_"
+          },
+          {
+            "file": "assets/framework-Bw_7NPjY.js",
+            "bucket": "fw",
+            "bytes": 28684,
+            "set": "chat_"
+          },
+          {
+            "file": "assets/index-DTLbuqpm.js",
+            "bucket": "app",
+            "bytes": 4896,
+            "set": "chat_"
+          }
+        ],
+        "verification": {
+          "rows": "pass",
+          "todo_": "pass",
+          "chat_": "pass"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "startedAt": "2026-09-07T00:38:23.752Z",
+    "packageVersions": {
+      "ripple": "0.3.126",
+      "@ripple-ts/vite-plugin": "0.3.126",
+      "@tsrx/ripple": "0.1.63",
+      "octane": "0.2.4",
+      "solid-js": "2.0.0-rc.3",
+      "@solidjs/web": "2.0.0-rc.3",
+      "vite-plugin-solid": "3.0.0-next.5",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "c2bd4118ad988fe7ee2cc335d3ea36737833e0a2",
+    "dirty": true,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d",
+    "workloadSha256": "57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394",
+    "rippleSourceSha256": "26d90ae8a12ad1a5db35b2cdbd1b603b488d682b8438f5fc9ad656e10f97cb15",
+    "quick": false,
+    "buildMode": "normalized-esbuild",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "targets": [
+      "solid",
+      "vue-vapor",
+      "preact",
+      "svelte",
+      "inferno",
+      "octane-tsrx",
+      "octane-jsx",
+      "react",
+      "ripple"
+    ],
+    "unsupported": [
+      "react-uncompiled"
+    ],
+    "unit": "bytes",
+    "recordingWorkloadSha256": "d0dd33568e9a2e4181df9a81730407da0fb64ec4b241ba83b45cb60beede4b6c",
+    "runnerSha256": "6c352788c0b519f52581e4eb15d34f7671e419c04f36de720289ea2123cd04b6",
+    "metadataVersion": 2,
+    "metadataCorrections": [
+      "Workload hash excludes recording/reporting tools; their original fingerprint is retained.",
+      "TodoMVC row_class_writes_complete25 is a count, not milliseconds. No measured values changed."
+    ]
+  }
+}

@@ -1,0 +1,1690 @@
+{
+  "suite": "chat-stream",
+  "iterations": 8,
+  "targets": [
+    {
+      "name": "solid",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            8,
+            7.5,
+            7.399999976158142,
+            7.299999952316284,
+            8,
+            6.899999976158142,
+            7.799999952316284,
+            6.899999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 7.37999997138977,
+          "median": 7.5,
+          "min": 6.899999976158142,
+          "mean": 7.474999979138374,
+          "p95": 8,
+          "sd": 0.439967538430384,
+          "rme": 4.921478480458688,
+          "scoreRme": 8.527950364684783,
+          "warmupRatio": 1.035230354378464,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.5,
+            2.399999976158142,
+            2,
+            2.200000047683716,
+            2,
+            2.100000023841858,
+            2.100000023841858,
+            2.3000000715255737
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.140000033378601,
+          "median": 2.200000047683716,
+          "min": 2,
+          "mean": 2.2000000178813934,
+          "p95": 2.5,
+          "sd": 0.18516401811507352,
+          "rme": 7.0375268329989416,
+          "scoreRme": 6.614430525111717,
+          "warmupRatio": 1.0373831636177444,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3.100000023841858,
+            3.399999976158142,
+            3.299999952316284,
+            4.200000047683716,
+            3.3000000715255737,
+            3.8000000715255737,
+            2.899999976158142,
+            3.3000000715255737
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.5000000476837156,
+          "median": 3.3000000715255737,
+          "min": 2.899999976158142,
+          "mean": 3.412500023841858,
+          "p95": 4.200000047683716,
+          "sd": 0.4086126561233593,
+          "rme": 10.012102856869946,
+          "scoreRme": 17.911688044179826,
+          "warmupRatio": 0.9885714191903875,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            10.299999952316284,
+            11.299999952316284,
+            11,
+            13,
+            10.800000071525574,
+            10.5,
+            9.699999928474426,
+            117.80000007152557
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 2,
+          "scoreSamples": 5,
+          "score": 11,
+          "median": 11,
+          "min": 9.699999928474426,
+          "mean": 24.299999997019768,
+          "p95": 117.80000007152557,
+          "sd": 37.79206268915577,
+          "rme": 130.0410520591204,
+          "scoreRme": 13.799469041859998,
+          "warmupRatio": 1.0254545450210573,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            17.299999952316284,
+            2,
+            1.5,
+            1.5,
+            1.399999976158142,
+            1.5,
+            1.399999976158142,
+            1.5
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.4599999904632568,
+          "median": 1.5,
+          "min": 1.399999976158142,
+          "mean": 3.512499988079071,
+          "p95": 17.299999952316284,
+          "sd": 5.574287255996889,
+          "rme": 132.69640748847763,
+          "scoreRme": 4.657387117518584,
+          "warmupRatio": 3.246575353874411,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 80,
+          "min": 80,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 25,
+          "min": 25,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 80,
+          "elements": 55,
+          "text": 25,
+          "comments": 0,
+          "emptyText": 0,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    },
+    {
+      "name": "vue-vapor",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.299999952316284,
+            2.200000047683716,
+            1.8000000715255737,
+            1.7999999523162842,
+            1.7999999523162842,
+            2,
+            1.7999999523162842,
+            1.7999999523162842
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.8399999618530274,
+          "median": 1.8000000715255737,
+          "min": 1.7999999523162842,
+          "mean": 1.9374999850988388,
+          "p95": 2.299999952316284,
+          "sd": 0.20658793466561415,
+          "rme": 8.91557581822427,
+          "scoreRme": 6.034784172613396,
+          "warmupRatio": 1.0760869762397223,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            0.7999999523162842,
+            0.7999999523162842,
+            0.8000000715255737,
+            1,
+            0.7000000476837158,
+            0.7999999523162842,
+            0.7000000476837158,
+            0.7999999523162842
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 0.8,
+          "median": 0.7999999523162842,
+          "min": 0.7000000476837158,
+          "mean": 0.7999999970197678,
+          "p95": 1,
+          "sd": 0.09258199526175422,
+          "rme": 9.67659806814773,
+          "scoreRme": 19.00596972451245,
+          "warmupRatio": 1.0250000059604643,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            1.600000023841858,
+            1.5,
+            1.7000000476837158,
+            1.5,
+            1.5,
+            1.399999976158142,
+            1.5,
+            1.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.4599999904632568,
+          "median": 1.5,
+          "min": 1.399999976158142,
+          "mean": 1.5125000029802322,
+          "p95": 1.7000000476837158,
+          "sd": 0.09910314452453675,
+          "rme": 5.47870860338483,
+          "scoreRme": 4.657387117518584,
+          "warmupRatio": 1.0684931674623697,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            11.299999952316284,
+            7.5,
+            9,
+            9.600000023841858,
+            7.700000047683716,
+            8.599999904632568,
+            7.399999976158142,
+            8.600000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 8.379999995231628,
+          "median": 8.600000023841858,
+          "min": 7.399999976158142,
+          "mean": 8.712499991059303,
+          "p95": 11.299999952316284,
+          "sd": 1.298831880557883,
+          "rme": 12.465115328775994,
+          "scoreRme": 12.846930129875464,
+          "warmupRatio": 1.076372316217293,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            1.600000023841858,
+            1.5,
+            1.5,
+            1.8000000715255737,
+            1.2999999523162842,
+            1.399999976158142,
+            1.600000023841858,
+            1.7000000476837158
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.5600000143051147,
+          "median": 1.600000023841858,
+          "min": 1.2999999523162842,
+          "mean": 1.550000011920929,
+          "p95": 1.8000000715255737,
+          "sd": 0.16035678337948195,
+          "rme": 8.650511466881017,
+          "scoreRme": 16.502289003316093,
+          "warmupRatio": 0.9871794842404022,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 113,
+          "min": 113,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 58,
+          "min": 58,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 33,
+          "min": 33,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#app",
+          "total": 113,
+          "elements": 55,
+          "text": 58,
+          "comments": 0,
+          "emptyText": 33,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    },
+    {
+      "name": "preact",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            8.800000071525574,
+            9,
+            8.100000023841858,
+            9.399999976158142,
+            8.200000047683716,
+            8.899999976158142,
+            8.600000023841858,
+            8.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 8.7,
+          "median": 8.800000071525574,
+          "min": 8.100000023841858,
+          "mean": 8.675000011920929,
+          "p95": 9.399999976158142,
+          "sd": 0.43670845282815873,
+          "rme": 4.209284359386873,
+          "scoreRme": 6.6930878814307855,
+          "warmupRatio": 1.0000000027404434,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2,
+            2.100000023841858,
+            1.6999999284744263,
+            1.899999976158142,
+            2.1999999284744263,
+            1.8000000715255737,
+            1.9000000953674316,
+            2.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.9800000190734863,
+          "median": 2,
+          "min": 1.6999999284744263,
+          "mean": 1.9625000059604645,
+          "p95": 2.1999999284744263,
+          "sd": 0.1685017950319047,
+          "rme": 7.179282065206098,
+          "scoreRme": 10.302699210611184,
+          "warmupRatio": 0.9999999759173155,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            10.099999904632568,
+            10.600000023841858,
+            9.399999976158142,
+            11.399999976158142,
+            9.300000071525574,
+            9.600000023841858,
+            10.400000095367432,
+            9.899999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 10.12000002861023,
+          "median": 10.099999904632568,
+          "min": 9.300000071525574,
+          "mean": 10.087500005960464,
+          "p95": 11.399999976158142,
+          "sd": 0.7019106500828571,
+          "rme": 5.818143594031482,
+          "scoreRme": 10.09365064329646,
+          "warmupRatio": 1.0039525653893224,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            7.300000071525574,
+            6.199999928474426,
+            6.799999952316284,
+            6.899999976158142,
+            5.800000071525574,
+            6.700000047683716,
+            6.699999928474426,
+            6.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 6.440000009536743,
+          "median": 6.700000047683716,
+          "min": 5.800000071525574,
+          "mean": 6.5625,
+          "p95": 7.300000071525574,
+          "sd": 0.4897156581595575,
+          "rme": 6.2396585628573735,
+          "scoreRme": 9.000710703230007,
+          "warmupRatio": 1.024844718979242,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            6.700000047683716,
+            6.800000071525574,
+            6.799999952316284,
+            6.700000047683716,
+            5.599999904632568,
+            6.600000023841858,
+            5.5,
+            6
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 6.079999995231629,
+          "median": 6.700000047683716,
+          "min": 5.5,
+          "mean": 6.3375000059604645,
+          "p95": 6.800000071525574,
+          "sd": 0.5501623454398405,
+          "rme": 7.258703244700765,
+          "scoreRme": 11.31358123193429,
+          "warmupRatio": 1.0723684226779313,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 80,
+          "min": 80,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 25,
+          "min": 25,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 80,
+          "elements": 55,
+          "text": 25,
+          "comments": 0,
+          "emptyText": 0,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    },
+    {
+      "name": "svelte",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            4.400000095367432,
+            4.5,
+            4.399999976158142,
+            4.299999952316284,
+            4.699999928474426,
+            4.700000047683716,
+            4.600000023841858,
+            4.899999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 4.639999985694885,
+          "median": 4.600000023841858,
+          "min": 4.299999952316284,
+          "mean": 4.5625,
+          "p95": 4.899999976158142,
+          "sd": 0.19955306523991992,
+          "rme": 3.6571407685828117,
+          "scoreRme": 5.8618826009733755,
+          "warmupRatio": 0.9612068974597914,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.100000023841858,
+            2.200000047683716,
+            2.1999999284744263,
+            2.100000023841858,
+            2,
+            2.100000023841858,
+            2.100000023841858,
+            2
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.060000014305115,
+          "median": 2.100000023841858,
+          "min": 2,
+          "mean": 2.1000000089406967,
+          "p95": 2.200000047683716,
+          "sd": 0.07559289009616621,
+          "rme": 3.0098704607497284,
+          "scoreRme": 3.3008665533696857,
+          "warmupRatio": 1.0291262087604869,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3.600000023841858,
+            4,
+            4.100000023841858,
+            4.5,
+            4,
+            3.899999976158142,
+            3.5,
+            3.3000000715255737
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.8400000095367433,
+          "median": 4,
+          "min": 3.3000000715255737,
+          "mean": 3.862500011920929,
+          "p95": 4.5,
+          "sd": 0.38149141846807794,
+          "rme": 8.258523917528898,
+          "scoreRme": 15.094942429942243,
+          "warmupRatio": 1.052083333203983,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            20.700000047683716,
+            16.700000047683716,
+            16.399999976158142,
+            17.800000071525574,
+            16.399999976158142,
+            18.199999928474426,
+            16.600000023841858,
+            16.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 17.02000000476837,
+          "median": 16.700000047683716,
+          "min": 16.100000023841858,
+          "mean": 17.36250001192093,
+          "p95": 20.700000047683716,
+          "sd": 1.535240799777912,
+          "rme": 7.39350542719331,
+          "scoreRme": 6.732784210260146,
+          "warmupRatio": 1.0340775569277905,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.600000023841858,
+            2.600000023841858,
+            2.5,
+            2.5,
+            2.600000023841858,
+            2.600000023841858,
+            2.100000023841858,
+            2.5
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.460000014305115,
+          "median": 2.600000023841858,
+          "min": 2.100000023841858,
+          "mean": 2.500000014901161,
+          "p95": 2.600000023841858,
+          "sd": 0.16903085094570378,
+          "rme": 5.653431288454621,
+          "scoreRme": 10.464863621267712,
+          "warmupRatio": 1.0406504062676794,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 139,
+          "min": 139,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 63,
+          "min": 63,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 21,
+          "min": 21,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 34,
+          "min": 34,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 4,
+          "min": 4,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 139,
+          "elements": 55,
+          "text": 63,
+          "comments": 21,
+          "emptyText": 34,
+          "whitespaceText": 4,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {
+            "": 21
+          },
+          "commentParents": {
+            "div.bubble": 21
+          }
+        }
+      }
+    },
+    {
+      "name": "inferno",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            4,
+            3.600000023841858,
+            3.5,
+            3.600000023841858,
+            3.5,
+            4,
+            3.5,
+            3.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.6,
+          "median": 3.600000023841858,
+          "min": 3.399999976158142,
+          "mean": 3.6375000029802322,
+          "p95": 4,
+          "sd": 0.232609423635601,
+          "rme": 5.347003328138538,
+          "scoreRme": 8.08748173784796,
+          "warmupRatio": 1.0111111137602065,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            1.1999999284744263,
+            1.5,
+            1.3000000715255737,
+            1.399999976158142,
+            1.5,
+            1.5,
+            1.600000023841858,
+            1.2999999523162842
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.4599999904632568,
+          "median": 1.5,
+          "min": 1.1999999284744263,
+          "mean": 1.4124999940395355,
+          "p95": 1.600000023841858,
+          "sd": 0.13562028639377524,
+          "rme": 8.028277102021345,
+          "scoreRme": 9.695124408890015,
+          "warmupRatio": 0.9452054823601441,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            5.399999976158142,
+            5.100000023841858,
+            5.599999904632568,
+            4.700000047683716,
+            5.600000023841858,
+            4.100000023841858,
+            4.5,
+            4.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 4.600000023841858,
+          "median": 5.100000023841858,
+          "min": 4.100000023841858,
+          "mean": 4.887500002980232,
+          "p95": 5.600000023841858,
+          "sd": 0.6266406797687982,
+          "rme": 10.720572188709616,
+          "scoreRme": 16.636747503267866,
+          "warmupRatio": 1.1478260799707223,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3.5,
+            4.100000023841858,
+            3.6999999284744263,
+            3.5,
+            4,
+            3.600000023841858,
+            3.4000000953674316,
+            4.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.7200000286102295,
+          "median": 3.6999999284744263,
+          "min": 3.4000000953674316,
+          "mean": 3.737500011920929,
+          "p95": 4.100000023841858,
+          "sd": 0.2875388095558579,
+          "rme": 6.432820294476424,
+          "scoreRme": 10.393871810933138,
+          "warmupRatio": 1.0107526778347824,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3.1999999284744263,
+            2.799999952316284,
+            3.100000023841858,
+            3.100000023841858,
+            3,
+            2.700000047683716,
+            3.200000047683716,
+            3.1999999284744263
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.040000009536743,
+          "median": 3.100000023841858,
+          "min": 2.700000047683716,
+          "mean": 3.0374999940395355,
+          "p95": 3.200000047683716,
+          "sd": 0.19226097049483992,
+          "rme": 5.292501576258277,
+          "scoreRme": 8.468276999783308,
+          "warmupRatio": 0.9999999921572836,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 80,
+          "min": 80,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 25,
+          "min": 25,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 80,
+          "elements": 55,
+          "text": 25,
+          "comments": 0,
+          "emptyText": 0,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    },
+    {
+      "name": "octane-tsrx",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            4.899999976158142,
+            3.799999952316284,
+            3.799999952316284,
+            3.5,
+            3.600000023841858,
+            3.4000000953674316,
+            3.799999952316284,
+            3.5
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.560000014305115,
+          "median": 3.799999952316284,
+          "min": 3.4000000953674316,
+          "mean": 3.7874999940395355,
+          "p95": 4.899999976158142,
+          "sd": 0.4764076676432768,
+          "rme": 10.517493528440609,
+          "scoreRme": 5.288691766275338,
+          "warmupRatio": 1.1011235857232624,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            1.3000000715255737,
+            1.399999976158142,
+            1.5,
+            1.1999999284744263,
+            1.899999976158142,
+            1.600000023841858,
+            1.600000023841858,
+            1.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.5399999856948852,
+          "median": 1.5,
+          "min": 1.1999999284744263,
+          "mean": 1.4874999970197678,
+          "p95": 1.899999976158142,
+          "sd": 0.21671245389392346,
+          "rme": 12.181844398129893,
+          "scoreRme": 21.021719371133234,
+          "warmupRatio": 0.948051950665746,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.200000047683716,
+            2.399999976158142,
+            2.4000000953674316,
+            2.299999952316284,
+            2.0999999046325684,
+            2.5,
+            2.1999999284744263,
+            2.299999952316284
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.2799999475479127,
+          "median": 2.299999952316284,
+          "min": 2.0999999046325684,
+          "mean": 2.2999999821186066,
+          "p95": 2.5,
+          "sd": 0.13093076535792667,
+          "rme": 4.759924076125999,
+          "scoreRme": 8.076274407845045,
+          "warmupRatio": 1.0000000209139108,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            13.200000047683716,
+            9.5,
+            10.800000071525574,
+            8.799999952316284,
+            8.600000023841858,
+            9.100000023841858,
+            9.800000071525574,
+            8.299999952316284
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 8.920000004768372,
+          "median": 9.5,
+          "min": 8.299999952316284,
+          "mean": 9.762500017881393,
+          "p95": 13.200000047683716,
+          "sd": 1.595473535879766,
+          "rme": 13.665159616165608,
+          "scoreRme": 7.958725259817554,
+          "warmupRatio": 1.1412556069093671,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3.600000023841858,
+            4.100000023841858,
+            3.5,
+            3.5,
+            4.199999928474426,
+            3.399999976158142,
+            3.8000000715255737,
+            3.8000000715255737
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 3.740000009536743,
+          "median": 3.8000000715255737,
+          "min": 3.399999976158142,
+          "mean": 3.737500011920929,
+          "p95": 4.199999928474426,
+          "sd": 0.29246488886759525,
+          "rme": 6.543026575909152,
+          "scoreRme": 10.391443393997395,
+          "warmupRatio": 1.0106951833136064,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 104,
+          "min": 104,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 25,
+          "min": 25,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 24,
+          "min": 24,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 104,
+          "elements": 55,
+          "text": 25,
+          "comments": 24,
+          "emptyText": 0,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {
+            "/for": 12,
+            "for": 12
+          },
+          "commentParents": {
+            "div.bubble": 20,
+            "main.messages": 2,
+            "nav.tabs": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "react",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            11.5,
+            10.700000047683716,
+            10.399999976158142,
+            9.799999952316284,
+            9.5,
+            9.600000023841858,
+            9.299999952316284,
+            9.599999904632568
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 9.5599999666214,
+          "median": 9.799999952316284,
+          "min": 9.299999952316284,
+          "mean": 10.049999982118607,
+          "p95": 11.5,
+          "sd": 0.7540367748743135,
+          "rme": 6.273539225983887,
+          "scoreRme": 2.359030372817875,
+          "warmupRatio": 1.0857740618695866,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            3,
+            2.700000047683716,
+            2.700000047683716,
+            3,
+            2.899999976158142,
+            2.600000023841858,
+            2.6999999284744263,
+            3.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.859999990463257,
+          "median": 2.899999976158142,
+          "min": 2.600000023841858,
+          "mean": 2.8375000059604645,
+          "p95": 3.100000023841858,
+          "sd": 0.18468118925611116,
+          "rme": 5.442180514182246,
+          "scoreRme": 9.001247037793904,
+          "warmupRatio": 1.0000000083363139,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            11.800000071525574,
+            14.5,
+            12.700000047683716,
+            14.299999952316284,
+            14.899999976158142,
+            13.899999976158142,
+            13.799999952316284,
+            14.400000095367432
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 14.259999990463257,
+          "median": 14.299999952316284,
+          "min": 11.800000071525574,
+          "mean": 13.787500008940697,
+          "p95": 14.899999976158142,
+          "sd": 1.037080353707219,
+          "rme": 6.289455272455196,
+          "scoreRme": 3.824666781931649,
+          "warmupRatio": 0.9565217404389093,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            8.899999976158142,
+            9.300000071525574,
+            9,
+            8.400000095367432,
+            9.200000047683716,
+            8.299999952316284,
+            8,
+            7.700000047683716
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 8.32000002861023,
+          "median": 8.899999976158142,
+          "min": 7.700000047683716,
+          "mean": 8.600000023841858,
+          "p95": 9.300000071525574,
+          "sd": 0.5855400495859396,
+          "rme": 5.693040905346853,
+          "scoreRme": 8.401189291406434,
+          "warmupRatio": 1.0769230778048025,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            4.800000071525574,
+            5.100000023841858,
+            5.599999904632568,
+            4.800000071525574,
+            5.299999952316284,
+            4.799999952316284,
+            4.799999952316284,
+            6
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 5.139999985694885,
+          "median": 5.100000023841858,
+          "min": 4.799999952316284,
+          "mean": 5.149999991059303,
+          "p95": 6,
+          "sd": 0.45355734620906,
+          "rme": 7.3639550492571955,
+          "scoreRme": 12.73484724565154,
+          "warmupRatio": 0.9961089531163082,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 80,
+          "min": 80,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 25,
+          "min": 25,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 80,
+          "elements": 55,
+          "text": 25,
+          "comments": 0,
+          "emptyText": 0,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    },
+    {
+      "name": "ripple",
+      "ops": {
+        "streamFine": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.600000023841858,
+            2.5,
+            2.1999999284744263,
+            2,
+            2.100000023841858,
+            2.200000047683716,
+            1.899999976158142,
+            1.899999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.0200000047683715,
+          "median": 2.1999999284744263,
+          "min": 1.899999976158142,
+          "mean": 2.1749999970197678,
+          "p95": 2.600000023841858,
+          "sd": 0.26049404756655903,
+          "rme": 10.014394478573694,
+          "scoreRme": 8.013230832225672,
+          "warmupRatio": 1.1287128662621317,
+          "samples": 8
+        },
+        "streamCoarse": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            0.7000000476837158,
+            0.7999999523162842,
+            0.7999999523162842,
+            1,
+            0.8999999761581421,
+            0.8999999761581421,
+            0.7999999523162842,
+            0.8999999761581421
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 0.8999999761581421,
+          "median": 0.8999999761581421,
+          "min": 0.7000000476837158,
+          "mean": 0.8499999791383743,
+          "p95": 1,
+          "sd": 0.09258200445894281,
+          "rme": 9.107387511412911,
+          "scoreRme": 9.75387234459028,
+          "warmupRatio": 0.9333333421636513,
+          "samples": 8
+        },
+        "appendHistory": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            2.399999976158142,
+            2.3000000715255737,
+            2.1999999284744263,
+            2.5,
+            2.299999952316284,
+            2.5,
+            2.5,
+            2.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 2.439999985694885,
+          "median": 2.399999976158142,
+          "min": 2.1999999284744263,
+          "mean": 2.387499988079071,
+          "p95": 2.5,
+          "sd": 0.11259917625788808,
+          "rme": 3.9434649657224923,
+          "scoreRme": 4.550820783811441,
+          "warmupRatio": 0.9590163932023463,
+          "samples": 8
+        },
+        "switchConv": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            7.700000047683716,
+            7.699999928474426,
+            8,
+            7.399999976158142,
+            7.399999976158142,
+            7.299999952316284,
+            7,
+            7
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 7.219999980926514,
+          "median": 7.399999976158142,
+          "min": 7,
+          "mean": 7.437499985098839,
+          "p95": 8,
+          "sd": 0.3502550099921758,
+          "rme": 3.9377081978672144,
+          "scoreRme": 3.523886211641287,
+          "warmupRatio": 1.0581717459664695,
+          "samples": 8
+        },
+        "type160": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            1.7000000476837158,
+            1.8000000715255737,
+            1.8000000715255737,
+            1.600000023841858,
+            1.600000023841858,
+            1.600000023841858,
+            1.3000000715255737,
+            1.600000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 3,
+          "scoreSamples": 5,
+          "score": 1.540000033378601,
+          "median": 1.600000023841858,
+          "min": 1.3000000715255737,
+          "mean": 1.6250000447034836,
+          "p95": 1.8000000715255737,
+          "sd": 0.1581138857010841,
+          "rme": 8.135847248255386,
+          "scoreRme": 10.815582462072133,
+          "warmupRatio": 1.103896110933252,
+          "samples": 8
+        },
+        "nodes_conv": {
+          "median": 93,
+          "min": 93,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "elements_conv": {
+          "median": 55,
+          "min": 55,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "text_conv": {
+          "median": 38,
+          "min": 38,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "comments_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "empty_text_conv": {
+          "median": 13,
+          "min": 13,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        },
+        "whitespace_text_conv": {
+          "median": 0,
+          "min": 0,
+          "samples": 1,
+          "unit": "count",
+          "direction": "lower"
+        }
+      },
+      "meta": {
+        "dom": {
+          "root": "#main",
+          "total": 93,
+          "elements": 55,
+          "text": 38,
+          "comments": 0,
+          "emptyText": 13,
+          "whitespaceText": 0,
+          "hydrationMarkersPhysical": 0,
+          "hydrationMarkersLogical": 0,
+          "hydrationMarkersCounted": 0,
+          "hydrationMarkerMaxMultiplicity": 0,
+          "leadingHydrationStartsPhysical": 0,
+          "leadingHydrationStartsLogical": 0,
+          "commentsByData": {},
+          "commentParents": {}
+        }
+      }
+    }
+  ],
+  "meta": {
+    "startedAt": "2026-09-07T00:38:23.752Z",
+    "packageVersions": {
+      "ripple": "0.3.126",
+      "@ripple-ts/vite-plugin": "0.3.126",
+      "@tsrx/ripple": "0.1.63",
+      "octane": "0.2.4",
+      "solid-js": "2.0.0-rc.3",
+      "@solidjs/web": "2.0.0-rc.3",
+      "vite-plugin-solid": "3.0.0-next.5",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "c2bd4118ad988fe7ee2cc335d3ea36737833e0a2",
+    "dirty": true,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d",
+    "workloadSha256": "57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394",
+    "rippleSourceSha256": "26d90ae8a12ad1a5db35b2cdbd1b603b488d682b8438f5fc9ad656e10f97cb15",
+    "quick": false,
+    "buildMode": "upstream-production",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "targets": [
+      "solid",
+      "vue-vapor",
+      "preact",
+      "svelte",
+      "inferno",
+      "octane-tsrx",
+      "react",
+      "ripple"
+    ],
+    "unsupported": [
+      "react-uncompiled",
+      "octane-jsx"
+    ],
+    "unit": "ms",
+    "recordingWorkloadSha256": "d0dd33568e9a2e4181df9a81730407da0fb64ec4b241ba83b45cb60beede4b6c",
+    "runnerSha256": "6c352788c0b519f52581e4eb15d34f7671e419c04f36de720289ea2123cd04b6",
+    "metadataVersion": 2,
+    "metadataCorrections": [
+      "Workload hash excludes recording/reporting tools; their original fingerprint is retained.",
+      "TodoMVC row_class_writes_complete25 is a count, not milliseconds. No measured values changed."
+    ]
+  }
+}

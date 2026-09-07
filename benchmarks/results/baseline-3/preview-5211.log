@@ -1,0 +1,6 @@
+$ vite preview --port 5211 --strictPort
+  ➜  Local:   http://localhost:5211/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/portal-swarm/react:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] react-portal-swarm-bench@0.0.1 preview: `vite preview --port 5211 --strictPort`
+Exit status 143

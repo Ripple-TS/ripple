@@ -1,0 +1,2637 @@
+{
+  "guards": 311,
+  "skipped": [
+    {
+      "suite": "js-framework",
+      "op": "update",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "select",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "swap",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "remove",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "runlots",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "select_lots",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "update",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "swap",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "remove",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "runlots",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "update",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "select",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "swap",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "remove",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework",
+      "op": "select_lots",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "append100",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "removeevery10",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace6",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "reverse",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "shuffle",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "insertmid100",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "removeevery10",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace6",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "reverse",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "shuffle",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "rotatef",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "rotateb",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "prepend100",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "append100",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "insertmid100",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "removefirst",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "removeevery10",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace3",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace6",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "js-framework-reorder",
+      "op": "displace8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "update_root",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "update_partial",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "partial_unmount",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "update_root",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "update_partial",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "partial_unmount",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "partial_remount",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "update_partial",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "partial_unmount",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "recursive-context",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_shallow",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_middle",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_deep",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_batched",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_reverse",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_shallow",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_middle",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_deep",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_batched",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_reverse",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_shallow",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_middle",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_deep",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_batched",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "bump_sweep_reverse",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "signal-favoring",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "news",
+      "op": "ssr_render",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "news",
+      "op": "ssr_render",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "news",
+      "op": "ssr_render",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOn",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOff",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "complete25",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "edit10",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "clearCompleted",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOn",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOff",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "complete25",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "edit10",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "clearCompleted",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOn",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "toggleAllOff",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "complete25",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "edit10",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "clearCompleted",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "todomvc",
+      "op": "destroy25",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "streamCoarse",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "appendHistory",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "switchConv",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "type160",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "streamCoarse",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "appendHistory",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "switchConv",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "type160",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "streamCoarse",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "appendHistory",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "switchConv",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "chat-stream",
+      "op": "type160",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "sort",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "tick_partial",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "sort",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "sort",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "dbmon",
+      "op": "unmount",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/0",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/1",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/sort/1",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/0",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/1",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/32",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/16",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/8",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/4",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/removeAll",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[reverse]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[reverse]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[snabbdom_worst_case]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[react_worst_case]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[virtual_dom_worst_case]",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,10,10,10]/no_change",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/0",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/1",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/sort/0",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/sort/1",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/render",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/0",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/1",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/32",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/16",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/8",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/4",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/removeAll",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,10,10,10]/no_change",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/filter/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,4]/activate/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/0",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/sort/1",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/filter/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,4]/activate/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/render",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/sort/0",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/sort/1",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/filter/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[100,2]/activate/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/0",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/sort/1",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/filter/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "table/[50,2]/activate/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/32",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/16",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/8",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "anim/100/4",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/render",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[2,2,2,2,2,2,2,2,2,2]/removeAll",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[50,10]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,50]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[reverse]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[insertLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeFirst(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[removeLast(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromEndToStart(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[5,100]/[moveFromStartToEnd(1)]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[500]/[react_worst_case]",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[10,10,10,10]/no_change",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "uibench",
+      "op": "tree/[2,2,2,2,2,2,2,2,2,2]/no_change",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "effectful-list",
+      "op": "update_nodeps",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "effectful-list",
+      "op": "update_nodeps",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_A",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_B",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "one_change_A",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_A",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_B",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "one_change_A",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "one_change_B",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "ctx_through_wall_B",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_A",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "parent_rerender_equal_B",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "one_change_A",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "one_change_B",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "memo-wall",
+      "op": "ctx_through_wall_B",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_A",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B_stable",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "dispatch_through_portal",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_A",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B_stable",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "dispatch_through_portal",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_A",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "rerender_open_B_stable",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "portal-swarm",
+      "op": "dispatch_through_portal",
+      "target": "ripple",
+      "reference": "vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "streaming-ssr",
+      "op": "total_allfast",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "streaming-ssr",
+      "op": "shell_cpu_100",
+      "target": "ripple",
+      "reference": "octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "streaming-ssr",
+      "op": "total_allfast",
+      "target": "ripple",
+      "reference": "solid",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "ssr-throughput",
+      "op": "render",
+      "target": "news-50/ripple",
+      "reference": "news-50/octane-tsrx",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    },
+    {
+      "suite": "ssr-throughput",
+      "op": "render",
+      "target": "news-50/ripple",
+      "reference": "news-50/vue-vapor",
+      "reason": "Timing below 0.1 ms or too variable for an initial CI guard"
+    }
+  ]
+}

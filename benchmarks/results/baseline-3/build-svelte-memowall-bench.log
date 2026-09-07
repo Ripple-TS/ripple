@@ -1,0 +1,10 @@
+$ vite build
+9:10:28 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/memo-wall/svelte - using default configuration.
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 116 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 0.24 kB │ gzip:  0.19 kB
+dist/assets/index-DOlcxo6t.js  38.01 kB │ gzip: 14.96 kB
+
+✓ built in 825ms

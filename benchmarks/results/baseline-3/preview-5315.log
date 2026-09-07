@@ -1,0 +1,6 @@
+$ vite preview --port 5315 --strictPort
+  ➜  Local:   http://localhost:5315/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/uibench/octane-tsrx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-tsrx-uibench-bench@0.0.1 preview: `vite preview --port 5315 --strictPort`
+Exit status 143

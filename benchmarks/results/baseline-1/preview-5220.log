@@ -1,0 +1,6 @@
+$ vite preview --port 5220 --strictPort
+  ➜  Local:   http://localhost:5220/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/dbmon/vue-vapor:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] vue-vapor-dbmon-bench@0.0.1 preview: `vite preview --port 5220 --strictPort`
+Exit status 143

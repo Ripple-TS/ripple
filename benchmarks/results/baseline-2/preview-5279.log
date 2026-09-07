@@ -1,0 +1,7 @@
+$ vite preview --port 5279 --strictPort
+8:29:09 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/portal-swarm/svelte - using default configuration.
+  ➜  Local:   http://localhost:5279/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/portal-swarm/svelte:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] svelte-portal-swarm-bench@0.0.1 preview: `vite preview --port 5279 --strictPort`
+Exit status 143

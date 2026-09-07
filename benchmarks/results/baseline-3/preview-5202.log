@@ -1,0 +1,6 @@
+$ vite preview --port 5202 --strictPort
+  ➜  Local:   http://localhost:5202/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/effectful-list/octane-jsx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-jsx-effectful-list-bench@0.0.1 preview: `vite preview --port 5202 --strictPort`
+Exit status 143

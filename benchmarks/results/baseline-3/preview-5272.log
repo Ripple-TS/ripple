@@ -1,0 +1,7 @@
+$ vite preview --port 5272 --strictPort
+8:54:21 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/todomvc/svelte - using default configuration.
+  ➜  Local:   http://localhost:5272/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/todomvc/svelte:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] svelte-todomvc@0.0.1 preview: `vite preview --port 5272 --strictPort`
+Exit status 143

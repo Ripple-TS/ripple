@@ -1,0 +1,6 @@
+$ vite preview --port 5318 --strictPort
+  ➜  Local:   http://localhost:5318/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/uibench/preact:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] preact-uibench-bench@0.0.1 preview: `vite preview --port 5318 --strictPort`
+Exit status 143

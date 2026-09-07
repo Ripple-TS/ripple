@@ -1,0 +1,7 @@
+$ vite preview --port 5273 --strictPort
+8:08:30 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/chat-stream/svelte - using default configuration.
+  ➜  Local:   http://localhost:5273/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/chat-stream/svelte:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] svelte-chat-stream@0.0.1 preview: `vite preview --port 5273 --strictPort`
+Exit status 143

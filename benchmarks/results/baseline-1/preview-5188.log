@@ -1,0 +1,6 @@
+$ vite preview --port 5188 --strictPort
+  ➜  Local:   http://localhost:5188/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/recursive-context/octane-jsx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-jsx-recursive-bench@0.0.1 preview: `vite preview --port 5188 --strictPort`
+Exit status 143

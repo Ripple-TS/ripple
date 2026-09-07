@@ -1,0 +1,6 @@
+$ vite preview --port 5264 --strictPort
+  ➜  Local:   http://localhost:5264/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/recursive-context/preact:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] preact-recursive-bench@0.0.0 preview: `vite preview --port 5264 --strictPort`
+Exit status 143

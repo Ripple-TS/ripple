@@ -1,0 +1,540 @@
+{
+  "suite": "async-waterfall",
+  "iterations": 10,
+  "targets": [
+    {
+      "name": "inferno",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            20.100000023841858,
+            19.899999976158142,
+            19.399999976158142,
+            20,
+            20.5,
+            19.899999976158142,
+            19,
+            24.300000071525574,
+            19.299999952316284,
+            20
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 20.239999997615815,
+          "median": 20,
+          "min": 19,
+          "mean": 20.239999997615815,
+          "p95": 24.300000071525574,
+          "sd": 1.4923508947011008,
+          "rme": 5.274156867962138,
+          "scoreRme": 5.274156867962138,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            18.100000023841858,
+            17.399999976158142,
+            17.200000047683716,
+            18,
+            18.100000023841858,
+            17.59999990463257,
+            18.299999952316284,
+            18.199999928474426,
+            18.200000047683716,
+            17.399999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 17.84999998807907,
+          "median": 18.100000023841858,
+          "min": 17.200000047683716,
+          "mean": 17.84999998807907,
+          "p95": 18.299999952316284,
+          "sd": 0.4062019192535577,
+          "rme": 1.6277824113373092,
+          "scoreRme": 1.6277824113373092,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "svelte",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            21,
+            21.5,
+            20.5,
+            20.899999976158142,
+            20.799999952316284,
+            21.399999976158142,
+            20.899999976158142,
+            23.699999928474426,
+            21.199999928474426,
+            20.799999952316284
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 21.269999969005585,
+          "median": 21,
+          "min": 20.5,
+          "mean": 21.269999969005585,
+          "p95": 23.699999928474426,
+          "sd": 0.9043720830334131,
+          "rme": 3.0413910178747656,
+          "scoreRme": 3.0413910178747656,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            17.600000023841858,
+            18,
+            18.799999952316284,
+            17.800000071525574,
+            17.5,
+            17.200000047683716,
+            18.199999928474426,
+            18.699999928474426,
+            17.899999976158142,
+            18.899999976158142
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 18.059999990463258,
+          "median": 18,
+          "min": 17.200000047683716,
+          "mean": 18.059999990463258,
+          "p95": 18.899999976158142,
+          "sd": 0.5815687256874481,
+          "rme": 2.3034346672909054,
+          "scoreRme": 2.3034346672909054,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "preact",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            172.59999990463257,
+            173.89999997615814,
+            173.39999997615814,
+            176.20000004768372,
+            172.79999995231628,
+            175.20000004768372,
+            176.5,
+            174.89999997615814,
+            181.20000004768372,
+            172.60000002384186
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 174.92999999523164,
+          "median": 174.89999997615814,
+          "min": 172.59999990463257,
+          "mean": 174.92999999523164,
+          "p95": 181.20000004768372,
+          "sd": 2.6301880246426466,
+          "rme": 1.0755116041464254,
+          "scoreRme": 1.0755116041464254,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            167.20000004768372,
+            174.10000002384186,
+            167.09999990463257,
+            167.39999997615814,
+            168.89999997615814,
+            167.10000002384186,
+            167.90000009536743,
+            167.70000004768372,
+            170,
+            172.19999992847443
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 168.9600000023842,
+          "median": 167.90000009536743,
+          "min": 167.09999990463257,
+          "mean": 168.9600000023842,
+          "p95": 174.10000002384186,
+          "sd": 2.430454910202404,
+          "rme": 1.0289547306319689,
+          "scoreRme": 1.0289547306319689,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "solid",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            24.5,
+            23.800000071525574,
+            24.100000023841858,
+            23.800000071525574,
+            23.09999990463257,
+            23.5,
+            23.899999976158142,
+            23.800000071525574,
+            23.200000047683716,
+            24
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 23.770000016689302,
+          "median": 23.800000071525574,
+          "min": 23.09999990463257,
+          "mean": 23.770000016689302,
+          "p95": 24.5,
+          "sd": 0.4164666314289903,
+          "rme": 1.253267070318041,
+          "scoreRme": 1.253267070318041,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            17.600000023841858,
+            17.700000047683716,
+            18.299999952316284,
+            18.399999976158142,
+            18.600000023841858,
+            18,
+            18.600000023841858,
+            18.600000023841858,
+            18,
+            18.700000047683716
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 18.25000001192093,
+          "median": 18.399999976158142,
+          "min": 17.600000023841858,
+          "mean": 18.25000001192093,
+          "p95": 18.700000047683716,
+          "sd": 0.40069384234181454,
+          "rme": 1.5705161256561604,
+          "scoreRme": 1.5705161256561604,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "ripple",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            21.200000047683716,
+            21.700000047683716,
+            20.899999976158142,
+            21.700000047683716,
+            21,
+            21.199999928474426,
+            20.699999928474426,
+            20.799999952316284,
+            20.799999952316284,
+            21.100000023841858
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 21.10999999046326,
+          "median": 21.100000023841858,
+          "min": 20.699999928474426,
+          "mean": 21.10999999046326,
+          "p95": 21.700000047683716,
+          "sd": 0.3541814091923921,
+          "rme": 1.2001350762652292,
+          "scoreRme": 1.2001350762652292,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            16.600000023841858,
+            17.100000023841858,
+            16.5,
+            16.899999976158142,
+            16.59999990463257,
+            17.200000047683716,
+            16.700000047683716,
+            16.5,
+            17.299999952316284,
+            16.5
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 16.789999997615816,
+          "median": 16.700000047683716,
+          "min": 16.5,
+          "mean": 16.789999997615816,
+          "p95": 17.299999952316284,
+          "sd": 0.31073390162943576,
+          "rme": 1.3238248912594155,
+          "scoreRme": 1.3238248912594155,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "react",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            308.89999997615814,
+            307.7999999523163,
+            309.59999990463257,
+            308.89999997615814,
+            309.1999999284744,
+            308.2999999523163,
+            309.1999999284744,
+            308.60000002384186,
+            309,
+            307.59999990463257
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 308.7099999547005,
+          "median": 308.89999997615814,
+          "min": 307.59999990463257,
+          "mean": 308.7099999547005,
+          "p95": 309.59999990463257,
+          "sd": 0.6384877971766613,
+          "rme": 0.14794302834268458,
+          "scoreRme": 0.14794302834268458,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            172.29999995231628,
+            171.29999995231628,
+            171.19999992847443,
+            172.5,
+            171.10000002384186,
+            169.29999995231628,
+            172.10000002384186,
+            171.5,
+            171.60000002384186,
+            171.20000004768372
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 171.40999999046326,
+          "median": 171.5,
+          "min": 169.29999995231628,
+          "mean": 171.40999999046326,
+          "p95": 172.5,
+          "sd": 0.8912538087206757,
+          "rme": 0.37192711769383807,
+          "scoreRme": 0.37192711769383807,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    },
+    {
+      "name": "octane-tsrx",
+      "ops": {
+        "init": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            28.299999952316284,
+            27.5,
+            27.200000047683716,
+            27.699999928474426,
+            27.699999928474426,
+            27,
+            27,
+            27.699999928474426,
+            27.799999952316284,
+            29.700000047683716
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 27.75999997854233,
+          "median": 27.699999928474426,
+          "min": 27,
+          "mean": 27.75999997854233,
+          "p95": 29.700000047683716,
+          "sd": 0.7890923127269691,
+          "rme": 2.0332976170937003,
+          "scoreRme": 2.0332976170937003,
+          "warmupRatio": 1,
+          "samples": 10
+        },
+        "update": {
+          "unit": "ms",
+          "direction": "lower",
+          "rawSamples": [
+            21.799999952316284,
+            21.800000071525574,
+            22.199999928474426,
+            21.199999928474426,
+            21.700000047683716,
+            21.200000047683716,
+            22.299999952316284,
+            21.5,
+            22.100000023841858,
+            22.800000071525574
+          ],
+          "scoreKind": "mean",
+          "scoreStart": 0,
+          "scoreSamples": 10,
+          "score": 21.860000002384187,
+          "median": 21.800000071525574,
+          "min": 21.199999928474426,
+          "mean": 21.860000002384187,
+          "p95": 22.800000071525574,
+          "sd": 0.5037636205674002,
+          "rme": 1.6484251978087883,
+          "scoreRme": 1.6484251978087883,
+          "warmupRatio": 1,
+          "samples": 10
+        }
+      },
+      "meta": {
+        "levels": 10,
+        "delayMs": 16
+      }
+    }
+  ],
+  "meta": {
+    "startedAt": "2026-09-06T23:50:16.342Z",
+    "packageVersions": {
+      "ripple": "0.3.126",
+      "@ripple-ts/vite-plugin": "0.3.126",
+      "@tsrx/ripple": "0.1.63",
+      "octane": "0.2.4",
+      "solid-js": "2.0.0-rc.3",
+      "@solidjs/web": "2.0.0-rc.3",
+      "vite-plugin-solid": "3.0.0-next.5",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "c2bd4118ad988fe7ee2cc335d3ea36737833e0a2",
+    "dirty": true,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d",
+    "workloadSha256": "57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394",
+    "rippleSourceSha256": "26d90ae8a12ad1a5db35b2cdbd1b603b488d682b8438f5fc9ad656e10f97cb15",
+    "quick": false,
+    "buildMode": "upstream-production",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "targets": [
+      "inferno",
+      "svelte",
+      "preact",
+      "solid",
+      "ripple",
+      "react",
+      "octane-tsrx"
+    ],
+    "unsupported": [
+      "react-uncompiled",
+      "vue-vapor",
+      "octane-jsx"
+    ],
+    "unit": "ms",
+    "recordingWorkloadSha256": "d0dd33568e9a2e4181df9a81730407da0fb64ec4b241ba83b45cb60beede4b6c",
+    "runnerSha256": "6c352788c0b519f52581e4eb15d34f7671e419c04f36de720289ea2123cd04b6",
+    "metadataVersion": 2,
+    "metadataCorrections": [
+      "Workload hash excludes recording/reporting tools; their original fingerprint is retained.",
+      "TodoMVC row_class_writes_complete25 is a count, not milliseconds. No measured values changed."
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+$ vite preview --port 5210 --strictPort
+  ➜  Local:   http://localhost:5210/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/portal-swarm/octane-tsrx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-tsrx-portal-swarm-bench@0.0.1 preview: `vite preview --port 5210 --strictPort`
+Exit status 143

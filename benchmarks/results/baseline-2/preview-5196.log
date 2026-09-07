@@ -1,0 +1,6 @@
+$ vite preview --port 5196 --strictPort
+  ➜  Local:   http://localhost:5196/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/dbmon/octane-tsrx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-tsrx-dbmon-bench@0.0.1 preview: `vite preview --port 5196 --strictPort`
+Exit status 143

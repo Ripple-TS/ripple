@@ -1,0 +1,6 @@
+$ vite preview --port 5263 --strictPort
+  ➜  Local:   http://localhost:5263/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/dbmon/preact:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] preact-dbmon-bench@0.0.0 preview: `vite preview --port 5263 --strictPort`
+Exit status 143

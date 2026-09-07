@@ -1,0 +1,6 @@
+$ vite preview --port 5241 --strictPort
+  ➜  Local:   http://localhost:5241/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/todomvc/react:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] react-todomvc@0.0.1 preview: `vite preview --port 5241 --strictPort`
+Exit status 143

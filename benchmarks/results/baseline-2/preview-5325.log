@@ -1,0 +1,6 @@
+$ vite preview --port 5325 --strictPort
+  ➜  Local:   http://localhost:5325/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/uibench/inferno:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] inferno-uibench-bench@0.0.1 preview: `vite preview --port 5325 --strictPort`
+Exit status 143

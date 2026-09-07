@@ -1,0 +1,6 @@
+$ vite preview --port 5250 --strictPort
+  ➜  Local:   http://localhost:5250/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/chat-stream/octane-tsrx:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] octane-tsrx-chat-stream@0.0.1 preview: `vite preview --port 5250 --strictPort`
+Exit status 143
