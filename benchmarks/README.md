@@ -122,10 +122,11 @@ correctness checks run outside timing windows.
 
 The result metadata identifies Node/pnpm, CPU/OS, revision/dirty state, lockfile
 checksum, browser executable, and selected targets. The committed lockfile pins
-resolved dependency versions. Preserve metadata when sharing results. Production
-speed builds retain each upstream fixture's build settings; `bundle-size` uses
-normalized esbuild minification and per-file gzip/Brotli compression. These are
-different build contracts, not interchangeable measurements.
+resolved dependency versions. Preserve metadata when sharing results. Every timed
+fixture builds with Vite's default esbuild minifier, so the frameworks are
+compared under one build contract; `bundle-size` uses normalized esbuild
+minification and per-file gzip/Brotli compression. These are different build
+contracts, not interchangeable measurements.
 
 Local timing regression checks require both score growth over 15% and minimum
 growth over 10%, with an additional 0.1ms threshold for sub-millisecond baselines.

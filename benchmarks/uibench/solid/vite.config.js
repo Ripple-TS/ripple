@@ -15,7 +15,7 @@ export default defineConfig({
 	resolve: {
 		conditions: ['solid', 'browser', 'module', 'import', 'default'],
 	},
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5317, strictPort: true, headers: isolationHeaders },
 	preview: { headers: isolationHeaders },
 });

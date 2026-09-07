@@ -8,5 +8,5 @@ import { reactCompiler } from '../../react-compiler.mjs';
 // under benchmarks/streaming-ssr/dist/.
 export default defineConfig({
 	plugins: [tsrxReact(), reactCompiler()],
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 });

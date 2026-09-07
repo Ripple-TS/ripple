@@ -4,6 +4,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [svelte()],
 	mode: 'production',
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5276, strictPort: true },
 });

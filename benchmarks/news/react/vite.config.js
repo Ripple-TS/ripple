@@ -8,6 +8,6 @@ import { reactCompiler } from '../../react-compiler.mjs';
 // serve the SSR pass (ssrLoadModule) and the client pass.
 export default defineConfig({
 	plugins: [tsrxReact(), reactCompiler()],
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5193, strictPort: true },
 });

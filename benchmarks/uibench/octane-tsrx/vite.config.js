@@ -13,11 +13,7 @@ export default defineConfig({
 	},
 	build: {
 		target: 'esnext',
-		minify: 'terser',
-		terserOptions: {
-			compress: { passes: 5, reduce_vars: false, inline: 0, toplevel: true },
-			mangle: { toplevel: true },
-		},
+		minify: 'esbuild',
 	},
 	server: { port: 5315, strictPort: true, headers: isolationHeaders },
 	preview: { headers: isolationHeaders },

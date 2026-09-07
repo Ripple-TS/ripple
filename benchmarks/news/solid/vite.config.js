@@ -9,6 +9,6 @@ import solidPlugin from 'vite-plugin-solid';
 // `@solidjs/web` `hydrate()` adopts the server DOM instead of rebuilding.
 export default defineConfig({
 	plugins: [tsrxSolid(), solidPlugin({ ssr: true })],
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5192, strictPort: true },
 });

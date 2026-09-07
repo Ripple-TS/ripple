@@ -6,8 +6,7 @@ export default defineConfig({
 	optimizeDeps: { exclude: ['ripple'] },
 	build: {
 		target: 'esnext',
-		minify: 'terser',
-		terserOptions: { compress: { passes: 2, toplevel: true }, mangle: { toplevel: true } },
+		minify: 'esbuild',
 	},
 	server: { port: 5225, strictPort: true },
 });

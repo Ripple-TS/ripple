@@ -27,6 +27,6 @@ export default defineConfig({
 		alias: { vue: new URL('./src/vue-shim.js', import.meta.url).pathname },
 	},
 	define: { 'process.env.NODE_ENV': JSON.stringify('production') },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5180, strictPort: true },
 });

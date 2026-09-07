@@ -9,5 +9,5 @@ import solidPlugin from 'vite-plugin-solid';
 // deployment ships (crib of benchmarks/news/solid minus the port).
 export default defineConfig({
 	plugins: [tsrxSolid(), solidPlugin({ ssr: true })],
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 });

@@ -4,5 +4,5 @@ import { infernoCompiler } from '../../inferno-vite.mjs';
 export default defineConfig({
 	plugins: [infernoCompiler()],
 	ssr: { noExternal: [/^inferno(?:$|-)/] },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 });

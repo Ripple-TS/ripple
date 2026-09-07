@@ -23,5 +23,5 @@ export default defineConfig({
 	// `ripple` ships raw source, so Vite must transform it for the SSR bundle.
 	ssr: { noExternal: [/^ripple($|\/)/] },
 	optimizeDeps: { exclude: ['ripple', '@tsrx/ripple'] },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 });

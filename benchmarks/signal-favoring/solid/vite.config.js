@@ -10,6 +10,6 @@ export default defineConfig({
 	mode: 'production',
 	define: { 'process.env.NODE_ENV': JSON.stringify('production') },
 	resolve: { conditions: ['solid', 'browser', 'module', 'import', 'default'] },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5191, strictPort: true },
 });

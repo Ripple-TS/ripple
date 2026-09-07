@@ -4,10 +4,7 @@ import { ripple } from '@ripple-ts/vite-plugin';
 export default defineConfig({
 	plugins: [ripple({ excludeRippleExternalModules: true })],
 	optimizeDeps: { exclude: ['ripple'] },
-	build: {
-		target: 'esnext',
-		minify: 'terser',
-		terserOptions: { compress: { passes: 2, toplevel: true }, mangle: { toplevel: true } },
-	},
+	// Unminified, matching the solid and vue-vapor fixtures.
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5178, strictPort: true },
 });

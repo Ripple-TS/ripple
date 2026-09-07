@@ -12,8 +12,7 @@ export default defineConfig({
 	resolve: { dedupe: ['react', 'react-dom'] },
 	build: {
 		target: 'esnext',
-		minify: 'terser',
-		terserOptions: { compress: { passes: 2, toplevel: true }, mangle: { toplevel: true } },
+		minify: 'esbuild',
 	},
 	server: { port: 5226, strictPort: true },
 });

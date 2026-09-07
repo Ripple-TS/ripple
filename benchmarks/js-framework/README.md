@@ -22,8 +22,9 @@ pnpm bench --compare js-framework
 ```
 
 Use `--targets=ripple,octane-tsrx,solid,vue-vapor` to select the priority
-comparisons where fixture coverage exists. `pnpm bench --list` shows the current
-matrix. Quick runs check correctness; normal runs establish timing baselines.
+comparisons where fixture coverage exists. All fixtures build with Vite's default
+esbuild minifier. `pnpm bench --list` shows the current matrix. Quick runs check
+correctness; normal runs establish timing baselines.
 
 Run the additional reorder matrix with `pnpm bench js-framework-reorder`. The
 Ripple-only anchor diagnostic is `pnpm bench reconcile-anchors`.

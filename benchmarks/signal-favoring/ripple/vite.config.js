@@ -4,6 +4,6 @@ import { ripple } from '@ripple-ts/vite-plugin';
 export default defineConfig({
 	plugins: [ripple({ excludeRippleExternalModules: true })],
 	optimizeDeps: { exclude: ['ripple'] },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5193, strictPort: true },
 });

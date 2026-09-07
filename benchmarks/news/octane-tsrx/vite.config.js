@@ -6,6 +6,6 @@ export default defineConfig({
 	// `octane` ships raw TS, so Vite must transform it for the SSR bundle.
 	ssr: { noExternal: [/^octane($|\/)/] },
 	optimizeDeps: { exclude: ['octane', 'octane/compiler'] },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5191, strictPort: true },
 });

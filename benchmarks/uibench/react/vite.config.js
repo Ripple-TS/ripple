@@ -11,11 +11,7 @@ export default defineConfig({
 	plugins: [react(), reactCompiler()],
 	build: {
 		target: 'esnext',
-		minify: 'terser',
-		terserOptions: {
-			compress: { passes: 2, toplevel: true },
-			mangle: { toplevel: true },
-		},
+		minify: 'esbuild',
 	},
 	server: { port: 5316, strictPort: true, headers: isolationHeaders },
 	preview: { headers: isolationHeaders },

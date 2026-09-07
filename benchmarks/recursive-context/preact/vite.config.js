@@ -5,6 +5,6 @@ export default defineConfig({
 	plugins: [preact()],
 	mode: 'production',
 	define: { 'process.env.NODE_ENV': JSON.stringify('production') },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5264, strictPort: true },
 });

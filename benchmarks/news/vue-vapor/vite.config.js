@@ -18,6 +18,6 @@ export default defineConfig(({ isSsrBuild }) => ({
 	resolve: isSsrBuild
 		? {}
 		: { alias: { vue: new URL('./src/vue-shim.js', import.meta.url).pathname } },
-	build: { target: 'esnext', minify: false },
+	build: { target: 'esnext', minify: 'esbuild' },
 	server: { port: 5222, strictPort: true },
 }));
