@@ -23,6 +23,9 @@ packages/ripple/tests/hydration/compiled/
 # Generated bench datasets (written by benchmarks/news/gen.mjs)
 benchmarks/news/*/src/data.js
 
+# Saved benchmark measurements and logs
+benchmarks/results/
+
 # Dependencies
 **/node_modules/
 
