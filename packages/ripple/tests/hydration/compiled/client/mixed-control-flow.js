@@ -53,13 +53,14 @@ export function MixedControlFlowStatic() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `A-${_$_.get(pattern).id}`;
+													var __pattern = _$_.get(pattern);
+													var __a = `A-${__pattern.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression, __prev.a = __a);
 													}
 
-													var __b = `row row-${_$_.get(pattern).id} kind-a`;
+													var __b = `row row-${__pattern.id} kind-a`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(div, __prev.b = __b, void 0, true);
@@ -98,13 +99,14 @@ export function MixedControlFlowStatic() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `B-${_$_.get(pattern).id}`;
+													var __pattern_1 = _$_.get(pattern);
+													var __a = `B-${__pattern_1.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_1, __prev.a = __a);
 													}
 
-													var __b = `row row-${_$_.get(pattern).id} kind-b`;
+													var __b = `row row-${__pattern_1.id} kind-b`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(div_2, __prev.b = __b, void 0, true);
@@ -223,13 +225,14 @@ export function MixedControlFlowReactive() {
 
 												_$_.render(
 													(__prev) => {
-														var __a = `A:${_$_.get(pattern_1).label}`;
+														var __pattern_1_1 = _$_.get(pattern_1);
+														var __a = `A:${__pattern_1_1.label}`;
 
 														if (__prev.a !== __a) {
 															_$_.set_text(expression_2, __prev.a = __a);
 														}
 
-														var __b = `item item-${_$_.get(pattern_1).id}`;
+														var __b = `item item-${__pattern_1_1.id}`;
 
 														if (__prev.b !== __b) {
 															_$_.set_class(p, __prev.b = __b, void 0, true);
@@ -264,13 +267,14 @@ export function MixedControlFlowReactive() {
 
 												_$_.render(
 													(__prev) => {
-														var __a = `B:${_$_.get(pattern_1).label}`;
+														var __pattern_1_2 = _$_.get(pattern_1);
+														var __a = `B:${__pattern_1_2.label}`;
 
 														if (__prev.a !== __a) {
 															_$_.set_text(expression_3, __prev.a = __a);
 														}
 
-														var __b = `item item-${_$_.get(pattern_1).id}`;
+														var __b = `item item-${__pattern_1_2.id}`;
 
 														if (__prev.b !== __b) {
 															_$_.set_class(p_2, __prev.b = __b, void 0, true);

@@ -5,7 +5,7 @@ import { UNINITIALIZED } from './constants.js';
 import { get_tracked, selector_tracked, set } from './runtime.js';
 
 /**
- * @typedef {{ v: any; m: Map<any, Tracked>; b: Block }} Selector
+ * @typedef {{ v: any; m: Map<any, Tracked>; b: Block; a: import('./runtime.js').SelectorAccessors }} Selector
  */
 
 /**
@@ -18,11 +18,13 @@ import { get_tracked, selector_tracked, set } from './runtime.js';
  * @returns {Selector}
  */
 export function selector(get_source) {
+	var m = new Map();
 	/** @type {Selector} */
 	var s = {
 		v: UNINITIALIZED,
-		m: new Map(),
+		m,
 		b: /** @type {Block} */ (/** @type {unknown} */ (null)),
+		a: { get: undefined, set: undefined, m },
 	};
 
 	s.b = render(() => {
@@ -65,7 +67,7 @@ export function selector_match(s, key) {
 	var m = s.m;
 	var match = m.get(key);
 	if (match === undefined) {
-		match = selector_tracked(key === s.v, s.b, m, key);
+		match = selector_tracked(key === s.v, s.b, s.a, key);
 		m.set(key, match);
 	}
 	return get_tracked(match);

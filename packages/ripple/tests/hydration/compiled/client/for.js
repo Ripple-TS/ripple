@@ -1062,7 +1062,8 @@ export function KeyedForLoopWithIndex() {
 
 						_$_.render(
 							(__prev) => {
-								var __a = `[${i.value}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`;
+								var __pattern_6 = _$_.get(pattern_6);
+								var __a = `[${i.value}] ${__pattern_6.id}: ${__pattern_6.value}`;
 
 								if (__prev.a !== __a) {
 									_$_.set_text(expression_21, __prev.a = __a);
@@ -1074,7 +1075,7 @@ export function KeyedForLoopWithIndex() {
 									_$_.set_attribute(li_13, 'data-index', __prev.b = __b);
 								}
 
-								var __c = `item-${_$_.get(pattern_6).id}`;
+								var __c = `item-${__pattern_6.id}`;
 
 								if (__prev.c !== __c) {
 									_$_.set_class(li_13, __prev.c = __c, void 0, true);

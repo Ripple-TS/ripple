@@ -33,7 +33,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain('const selector = _$_.selector(() => lazy_1.value);');
-		expect(code).toContain("_$_.selector_match(selector, _$_.get(pattern).id) ? 'danger' : ''");
+		expect(code).toContain("_$_.selector_match(selector, __pattern.id) ? 'danger' : ''");
 		expect(code.indexOf('_$_.selector(')).toBeLessThan(code.indexOf('_$_.for_keyed('));
 	});
 
@@ -48,9 +48,7 @@ describe('@for selector lowering', () => {
 			}
 		`);
 
-		expect(code).toContain(
-			"!_$_.selector_match(selector, _$_.get(pattern).id) ? 'plain' : 'danger'",
-		);
+		expect(code).toContain("!_$_.selector_match(selector, __pattern.id) ? 'plain' : 'danger'");
 	});
 
 	it('lowers text expressions and unkeyed loops', () => {
@@ -80,7 +78,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).not.toContain('_$_.selector');
-		expect(code).toContain("FIXED === _$_.get(pattern).id ? 'danger' : ''");
+		expect(code).toContain("FIXED === __pattern.id ? 'danger' : ''");
 	});
 
 	it('keeps comparisons inside callbacks, handlers, and calls', () => {
@@ -148,7 +146,8 @@ describe('@for item type inference', () => {
 
 		expect(code).not.toContain('_$_.expression(');
 		expect(code).toContain('_$_.set_text(');
-		expect(code).toContain('_$_.get(pattern).label.value');
+		expect(code).toContain('var __pattern = _$_.get(pattern);');
+		expect(code).toContain('__pattern.label.value');
 	});
 
 	it('follows type aliases, `Array<T>`, and annotated declarations', () => {

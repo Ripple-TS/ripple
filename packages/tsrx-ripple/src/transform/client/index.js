@@ -913,6 +913,8 @@ function apply_updates(init, update, state) {
 			}
 		}
 
+		hoist_repeated_tracked_reads(render_statements, state);
+
 		init.push(
 			b.stmt(
 				b.call(
@@ -923,6 +925,84 @@ function apply_updates(init, update, state) {
 			),
 		);
 	}
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {string | null} the identifier read by a `_$_.get(identifier)` call
+ */
+function get_tracked_read_name(node) {
+	if (node.type !== 'CallExpression' || node.arguments.length !== 1) {
+		return null;
+	}
+	const callee = node.callee;
+	// The builder emits `_$_.get` either as a dotted identifier or a member.
+	const is_get =
+		(callee.type === 'Identifier' && callee.name === '_$_.get') ||
+		(callee.type === 'MemberExpression' &&
+			callee.object.type === 'Identifier' &&
+			callee.object.name === '_$_' &&
+			callee.property.type === 'Identifier' &&
+			callee.property.name === 'get');
+	const argument = node.arguments[0];
+	return is_get && argument.type === 'Identifier' ? argument.name : null;
+}
+
+/**
+ * A grouped render reads the same tracked identifier (typically a `@for`
+ * item) once per update it appears in. The reads are pure and the render
+ * runs synchronously, so read each identifier once up front and reuse it.
+ * @param {AST.Statement[]} statements
+ * @param {TransformClientState} state
+ */
+function hoist_repeated_tracked_reads(statements, state) {
+	/** @type {Map<string, number>} */
+	const counts = new Map();
+
+	for (const statement of statements) {
+		walk(statement, null, {
+			_(node, { next }) {
+				const name = get_tracked_read_name(node);
+				if (name !== null) {
+					counts.set(name, (counts.get(name) ?? 0) + 1);
+					return;
+				}
+				next();
+			},
+		});
+	}
+
+	/** @type {Map<string, AST.Identifier>} */
+	const hoisted = new Map();
+	for (const [name, count] of counts) {
+		if (count > 1) {
+			hoisted.set(name, b.id(state.scope.generate('__' + name)));
+		}
+	}
+	if (hoisted.size === 0) {
+		return;
+	}
+
+	for (let i = 0; i < statements.length; i++) {
+		statements[i] = /** @type {AST.Statement} */ (
+			walk(statements[i], null, {
+				_(node, { next }) {
+					const name = get_tracked_read_name(node);
+					if (name !== null) {
+						const id = hoisted.get(name);
+						return id === undefined ? node : id;
+					}
+					return next();
+				},
+			})
+		);
+	}
+
+	const declarations = [];
+	for (const [name, id] of hoisted) {
+		declarations.push(b.var(id, b.call('_$_.get', b.id(name))));
+	}
+	statements.unshift(...declarations);
 }
 
 /**

@@ -433,7 +433,7 @@ class TrackedValue {
 		this.d = null;
 		/** @type {number} */
 		this.f = TRACKED;
-		/** @type {string | undefined} */
+		/** @type {any} hydration hash, or the key of a selector match flag */
 		this.h = hash;
 		/** @type {Dependency | null} */
 		this.sb = null;
@@ -931,8 +931,7 @@ export function unlink_subscriber(dependency) {
 		tracked.sb = next;
 		if (next === null && (tracked.f & SELECTOR) !== 0) {
 			// Last subscriber gone: release the selector's per-key entry.
-			var accessors = /** @type {SelectorAccessors} */ (tracked.a);
-			accessors.m.delete(accessors.k);
+			/** @type {SelectorAccessors} */ (tracked.a).m.delete(tracked.h);
 		}
 	}
 	if (next !== null) {
@@ -942,26 +941,21 @@ export function unlink_subscriber(dependency) {
 }
 
 /**
- * @typedef {{ get: undefined; set: undefined; m: Map<any, Tracked>; k: any }} SelectorAccessors
+ * @typedef {{ get: undefined; set: undefined; m: Map<any, Tracked> }} SelectorAccessors
  */
 
 /**
- * A tracked match flag for one selector key. The key and owning map ride on
- * the accessor slot so the entry can be released from `unlink_subscriber`.
+ * A tracked match flag for one selector key. The selector's shared accessor
+ * object carries the map and the key rides in the hash slot, so the entry can
+ * be released from `unlink_subscriber` without an object per key.
  * @param {boolean} value
  * @param {Block} block
- * @param {Map<any, Tracked>} map
+ * @param {SelectorAccessors} accessors
  * @param {any} key
  * @returns {Tracked}
  */
-export function selector_tracked(value, block, map, key) {
-	var accessors = /** @type {SelectorAccessors} */ ({
-		get: undefined,
-		set: undefined,
-		m: map,
-		k: key,
-	});
-	var t = /** @type {Tracked} */ (new TrackedValue(value, block, accessors, undefined));
+export function selector_tracked(value, block, accessors, key) {
+	var t = /** @type {Tracked} */ (new TrackedValue(value, block, accessors, key));
 	t.f |= SELECTOR;
 	return t;
 }

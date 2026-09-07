@@ -124,13 +124,14 @@ export function ForSwitch() {
 
 							_$_.render(
 								(__prev) => {
-									var __a = `A-${_$_.get(pattern_1).id}`;
+									var __pattern_1 = _$_.get(pattern_1);
+									var __a = `A-${__pattern_1.id}`;
 
 									if (__prev.a !== __a) {
 										_$_.set_text(expression_1, __prev.a = __a);
 									}
 
-									var __b = `item item-${_$_.get(pattern_1).id} kind-a`;
+									var __b = `item item-${__pattern_1.id} kind-a`;
 
 									if (__prev.b !== __b) {
 										_$_.set_class(li_1, __prev.b = __b, void 0, true);
@@ -153,13 +154,14 @@ export function ForSwitch() {
 
 							_$_.render(
 								(__prev) => {
-									var __a = `B-${_$_.get(pattern_1).id}`;
+									var __pattern_1_1 = _$_.get(pattern_1);
+									var __a = `B-${__pattern_1_1.id}`;
 
 									if (__prev.a !== __a) {
 										_$_.set_text(expression_2, __prev.a = __a);
 									}
 
-									var __b = `item item-${_$_.get(pattern_1).id} kind-b`;
+									var __b = `item item-${__pattern_1_1.id} kind-b`;
 
 									if (__prev.b !== __b) {
 										_$_.set_class(li_2, __prev.b = __b, void 0, true);
@@ -337,13 +339,14 @@ export function ForIfSwitchSingle() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `A-${_$_.get(pattern_2).id}`;
+											var __pattern_2 = _$_.get(pattern_2);
+											var __a = `A-${__pattern_2.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_3, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_2).id} kind-a`;
+											var __b = `item item-${__pattern_2.id} kind-a`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_3, __prev.b = __b, void 0, true);
@@ -366,13 +369,14 @@ export function ForIfSwitchSingle() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `D-${_$_.get(pattern_2).id}`;
+											var __pattern_2_1 = _$_.get(pattern_2);
+											var __a = `D-${__pattern_2_1.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_4, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_2).id} kind-default`;
+											var __b = `item item-${__pattern_2_1.id} kind-default`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_4, __prev.b = __b, void 0, true);
@@ -452,13 +456,14 @@ export function ForIfSwitchMulti() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `A-${_$_.get(pattern_3).id}`;
+											var __pattern_3 = _$_.get(pattern_3);
+											var __a = `A-${__pattern_3.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_5, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_3).id} kind-a`;
+											var __b = `item item-${__pattern_3.id} kind-a`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_5, __prev.b = __b, void 0, true);
@@ -481,13 +486,14 @@ export function ForIfSwitchMulti() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `B-${_$_.get(pattern_3).id}`;
+											var __pattern_3_1 = _$_.get(pattern_3);
+											var __a = `B-${__pattern_3_1.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_6, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_3).id} kind-b`;
+											var __b = `item item-${__pattern_3_1.id} kind-b`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_6, __prev.b = __b, void 0, true);
@@ -568,13 +574,14 @@ export function ForIfSwitchWithDisabled() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `A-${_$_.get(pattern_4).id}`;
+											var __pattern_4 = _$_.get(pattern_4);
+											var __a = `A-${__pattern_4.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_7, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_4).id} kind-a`;
+											var __b = `item item-${__pattern_4.id} kind-a`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_7, __prev.b = __b, void 0, true);
@@ -597,13 +604,14 @@ export function ForIfSwitchWithDisabled() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `B-${_$_.get(pattern_4).id}`;
+											var __pattern_4_1 = _$_.get(pattern_4);
+											var __a = `B-${__pattern_4_1.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_8, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_4).id} kind-b`;
+											var __b = `item item-${__pattern_4_1.id} kind-b`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_8, __prev.b = __b, void 0, true);
@@ -735,13 +743,14 @@ export function ForSwitchTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `A-${_$_.get(pattern_5).id}`;
+											var __pattern_5 = _$_.get(pattern_5);
+											var __a = `A-${__pattern_5.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_9, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_5).id} kind-a`;
+											var __b = `item item-${__pattern_5.id} kind-a`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_9, __prev.b = __b, void 0, true);
@@ -764,13 +773,14 @@ export function ForSwitchTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `pending ${_$_.get(pattern_5).id}`;
+											var __pattern_5_1 = _$_.get(pattern_5);
+											var __a = `pending ${__pattern_5_1.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_10, __prev.a = __a);
 											}
 
-											var __b = `pending pending-${_$_.get(pattern_5).id}`;
+											var __b = `pending pending-${__pattern_5_1.id}`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_10, __prev.b = __b, void 0, true);
@@ -799,13 +809,14 @@ export function ForSwitchTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `B-${_$_.get(pattern_5).id}`;
+											var __pattern_5_2 = _$_.get(pattern_5);
+											var __a = `B-${__pattern_5_2.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_11, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_5).id} kind-b`;
+											var __b = `item item-${__pattern_5_2.id} kind-b`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_11, __prev.b = __b, void 0, true);
@@ -828,13 +839,14 @@ export function ForSwitchTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `pending ${_$_.get(pattern_5).id}`;
+											var __pattern_5_3 = _$_.get(pattern_5);
+											var __a = `pending ${__pattern_5_3.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_12, __prev.a = __a);
 											}
 
-											var __b = `pending pending-${_$_.get(pattern_5).id}`;
+											var __b = `pending pending-${__pattern_5_3.id}`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_12, __prev.b = __b, void 0, true);
@@ -904,13 +916,14 @@ export function ForIfTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `item-${_$_.get(pattern_6).id}`;
+											var __pattern_6 = _$_.get(pattern_6);
+											var __a = `item-${__pattern_6.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_13, __prev.a = __a);
 											}
 
-											var __b = `item item-${_$_.get(pattern_6).id}`;
+											var __b = `item item-${__pattern_6.id}`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_13, __prev.b = __b, void 0, true);
@@ -933,13 +946,14 @@ export function ForIfTry() {
 
 									_$_.render(
 										(__prev) => {
-											var __a = `pending ${_$_.get(pattern_6).id}`;
+											var __pattern_6_1 = _$_.get(pattern_6);
+											var __a = `pending ${__pattern_6_1.id}`;
 
 											if (__prev.a !== __a) {
 												_$_.set_text(expression_14, __prev.a = __a);
 											}
 
-											var __b = `pending pending-${_$_.get(pattern_6).id}`;
+											var __b = `pending pending-${__pattern_6_1.id}`;
 
 											if (__prev.b !== __b) {
 												_$_.set_class(li_14, __prev.b = __b, void 0, true);
@@ -1001,13 +1015,14 @@ export function ForIfSwitchTrySingle() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `A-${_$_.get(pattern_7).id}`;
+													var __pattern_7 = _$_.get(pattern_7);
+													var __a = `A-${__pattern_7.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_15, __prev.a = __a);
 													}
 
-													var __b = `item item-${_$_.get(pattern_7).id} kind-a`;
+													var __b = `item item-${__pattern_7.id} kind-a`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_15, __prev.b = __b, void 0, true);
@@ -1030,13 +1045,14 @@ export function ForIfSwitchTrySingle() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `pending ${_$_.get(pattern_7).id}`;
+													var __pattern_7_1 = _$_.get(pattern_7);
+													var __a = `pending ${__pattern_7_1.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_16, __prev.a = __a);
 													}
 
-													var __b = `pending pending-${_$_.get(pattern_7).id}`;
+													var __b = `pending pending-${__pattern_7_1.id}`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_16, __prev.b = __b, void 0, true);
@@ -1065,13 +1081,14 @@ export function ForIfSwitchTrySingle() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `D-${_$_.get(pattern_7).id}`;
+													var __pattern_7_2 = _$_.get(pattern_7);
+													var __a = `D-${__pattern_7_2.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_17, __prev.a = __a);
 													}
 
-													var __b = `item item-${_$_.get(pattern_7).id} kind-default`;
+													var __b = `item item-${__pattern_7_2.id} kind-default`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_17, __prev.b = __b, void 0, true);
@@ -1094,13 +1111,14 @@ export function ForIfSwitchTrySingle() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `pending ${_$_.get(pattern_7).id}`;
+													var __pattern_7_3 = _$_.get(pattern_7);
+													var __a = `pending ${__pattern_7_3.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_18, __prev.a = __a);
 													}
 
-													var __b = `pending pending-${_$_.get(pattern_7).id}`;
+													var __b = `pending pending-${__pattern_7_3.id}`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_18, __prev.b = __b, void 0, true);
@@ -1186,13 +1204,14 @@ export function ForIfSwitchTryMulti() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `A-${_$_.get(pattern_8).id}`;
+													var __pattern_8 = _$_.get(pattern_8);
+													var __a = `A-${__pattern_8.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_19, __prev.a = __a);
 													}
 
-													var __b = `item item-${_$_.get(pattern_8).id} kind-a`;
+													var __b = `item item-${__pattern_8.id} kind-a`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_19, __prev.b = __b, void 0, true);
@@ -1215,13 +1234,14 @@ export function ForIfSwitchTryMulti() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `pending ${_$_.get(pattern_8).id}`;
+													var __pattern_8_1 = _$_.get(pattern_8);
+													var __a = `pending ${__pattern_8_1.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_20, __prev.a = __a);
 													}
 
-													var __b = `pending pending-${_$_.get(pattern_8).id}`;
+													var __b = `pending pending-${__pattern_8_1.id}`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_20, __prev.b = __b, void 0, true);
@@ -1250,13 +1270,14 @@ export function ForIfSwitchTryMulti() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `B-${_$_.get(pattern_8).id}`;
+													var __pattern_8_2 = _$_.get(pattern_8);
+													var __a = `B-${__pattern_8_2.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_21, __prev.a = __a);
 													}
 
-													var __b = `item item-${_$_.get(pattern_8).id} kind-b`;
+													var __b = `item item-${__pattern_8_2.id} kind-b`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_21, __prev.b = __b, void 0, true);
@@ -1279,13 +1300,14 @@ export function ForIfSwitchTryMulti() {
 
 											_$_.render(
 												(__prev) => {
-													var __a = `pending ${_$_.get(pattern_8).id}`;
+													var __pattern_8_3 = _$_.get(pattern_8);
+													var __a = `pending ${__pattern_8_3.id}`;
 
 													if (__prev.a !== __a) {
 														_$_.set_text(expression_22, __prev.a = __a);
 													}
 
-													var __b = `pending pending-${_$_.get(pattern_8).id}`;
+													var __b = `pending pending-${__pattern_8_3.id}`;
 
 													if (__prev.b !== __b) {
 														_$_.set_class(li_22, __prev.b = __b, void 0, true);

@@ -1623,6 +1623,8 @@ export function attr(name, value, is_boolean = false) {
 				? get_styles(value)
 				: String(normalized).trim()
 			: value_to_escape;
+	// An empty class attribute is omitted, matching the client.
+	if (name === 'class' && value_to_escape === '') return '';
 	const assignment = is_boolean ? '' : `="${escape(value_to_escape, true)}"`;
 	return ` ${name}${assignment}`;
 }

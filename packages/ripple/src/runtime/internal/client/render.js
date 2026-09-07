@@ -183,8 +183,12 @@ export function set_class(dom, value, hash, is_html = true) {
 				? value + (hash ? ' ' + hash : '')
 				: clsx([value, hash]);
 
-	// Skip the DOM write when the class we last applied is unchanged.
-	if (dom.__className === class_value) {
+	// Skip the DOM write when the class we last applied is unchanged, or when
+	// an element that never had a class would only receive an empty one (the
+	// server omits an empty class attribute as well).
+	var previous = dom.__className;
+	if (previous === class_value || (previous === undefined && class_value === '')) {
+		dom.__className = class_value;
 		return;
 	}
 	dom.__className = class_value;
