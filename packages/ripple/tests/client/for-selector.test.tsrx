@@ -171,3 +171,51 @@ describe('@for selector comparisons', () => {
 		expect(texts()).toEqual(['row 1', 'current', 'row 3']);
 	});
 });
+
+describe('keyed reconciliation with most items moving', () => {
+	it('keeps node identity and order when a large list is shuffled', () => {
+		let apply: (order: number[]) => void = () => {};
+
+		function App() @{
+			let &[items] = track(Array.from({ length: 300 }, (_, i) => i));
+			apply = (order) => {
+				items = order;
+			};
+			<ul>
+				@for (const item of items; key item) {
+					<li data-id={item}>{item}</li>
+				}
+			</ul>
+		}
+
+		render(App);
+		const before = new Map(Array.from(
+			container.querySelectorAll('li'),
+			(el) => [el.getAttribute('data-id'), el],
+		));
+
+		// A permutation that moves nearly every item, plus a few new ones.
+		let seed = 7;
+		const next = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+		const order = Array.from({ length: 300 }, (_, i) => i);
+		for (let i = order.length - 1; i > 0; i--) {
+			const j = Math.floor(next() * (i + 1));
+			[order[i], order[j]] = [order[j], order[i]];
+		}
+		order.splice(10, 0, 1000);
+		order.splice(200, 0, 1001);
+
+		apply(order);
+		flushSync();
+
+		const after = Array.from(container.querySelectorAll('li'));
+		expect(after.map((el) => Number(el.getAttribute('data-id')))).toEqual(order);
+		for (const el of after) {
+			const id = el.getAttribute('data-id');
+			if (before.has(id)) {
+				expect(el).toBe(before.get(id));
+			}
+		}
+		expect(after.map((el) => el.textContent)).toEqual(order.map(String));
+	});
+});

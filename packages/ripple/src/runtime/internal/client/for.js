@@ -611,6 +611,25 @@ function reconcile_by_key(
 		var seq = lis_algorithm(sources);
 		j = seq.length - 1;
 
+		// When most surviving items have to move anyway, re-lay the whole range
+		// in order before a fixed target: inserting before the same node is
+		// noticeably cheaper per item than moving into arbitrary positions.
+		if ((patched - seq.length) * 3 > b_left * 2) {
+			var relay_target = block_start(b_blocks, b_end + 1, b_length, anchor);
+			for (i = 0; i < b_left; i++) {
+				pos = i + b_start;
+				if (sources[i] === 0) {
+					b_blocks[pos] = create_item(relay_target, b[pos], pos, render_fn, is_indexed, true);
+				} else {
+					move(b_blocks[pos], relay_target);
+				}
+			}
+			state.array = b;
+			state.blocks = b_blocks;
+			state.keys = b_keys;
+			return;
+		}
+
 		for (i = b_left - 1; i >= 0; i--) {
 			if (sources[i] === 0) {
 				pos = i + b_start;
@@ -910,6 +929,24 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 		var next_pos = 0;
 		var seq = lis_algorithm(sources);
 		j = seq.length - 1;
+
+		// When most surviving items have to move anyway, re-lay the whole range
+		// in order before a fixed target: inserting before the same node is
+		// noticeably cheaper per item than moving into arbitrary positions.
+		if ((patched - seq.length) * 3 > b_left * 2) {
+			var relay_target = block_start(b_blocks, b_end + 1, b_length, anchor);
+			for (i = 0; i < b_left; i++) {
+				pos = i + b_start;
+				if (sources[i] === 0) {
+					b_blocks[pos] = create_item(relay_target, b[pos], pos, render_fn, is_indexed, false);
+				} else {
+					move(b_blocks[pos], relay_target);
+				}
+			}
+			state.array = b;
+			state.blocks = b_blocks;
+			return;
+		}
 
 		for (i = b_left - 1; i >= 0; i--) {
 			if (sources[i] === 0) {
