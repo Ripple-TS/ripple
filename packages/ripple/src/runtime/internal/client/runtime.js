@@ -20,6 +20,7 @@ import {
 	CONTAINS_TEARDOWN,
 	DESTROYED,
 	EFFECT_BLOCK,
+	FOR_BLOCK,
 	PAUSED,
 	PRE_EFFECT_BLOCK,
 	ROOT_BLOCK,
@@ -317,7 +318,10 @@ export function run_block(block, first_run = false) {
 		active_component = block.co;
 
 		if (!first_run) {
-			destroy_non_branch_children(block);
+			// A list's children are all item branches, so there is nothing to sweep.
+			if ((block.f & FOR_BLOCK) === 0) {
+				destroy_non_branch_children(block);
+			}
 			run_teardown(block);
 		}
 
