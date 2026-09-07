@@ -109,7 +109,7 @@ export function ReactiveIf() {
 				_$_.set(lazy, !lazy.value);
 			};
 
-			var node = _$_.sibling(button);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			{
 				var consequent_3 = (__anchor) => {
@@ -144,7 +144,7 @@ export function ReactiveIfElse() {
 				_$_.set(lazy_1, !lazy_1.value);
 			};
 
-			var node_2 = _$_.sibling(button_1);
+			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			{
 				var consequent_4 = (__anchor) => {
@@ -186,21 +186,21 @@ export function NestedIf() {
 				_$_.set(lazy_2, !lazy_2.value);
 			};
 
-			var button_3 = _$_.sibling(button_2);
+			var button_3 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
 			button_3.__click = () => {
 				_$_.set(lazy_3, !lazy_3.value);
 			};
 
-			var node_4 = _$_.sibling(button_3);
+			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 			{
 				var consequent_6 = (__anchor) => {
 					var div_7 = root_13();
 
 					{
-						var expression = _$_.child(div_7);
-						var node_5 = _$_.sibling(expression);
+						var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
+						var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
 
 						{
 							var consequent_5 = (__anchor) => {
@@ -238,25 +238,25 @@ export function IfElseIfChain() {
 		var div_8 = root_15();
 
 		{
-			var button_4 = _$_.child(div_8);
+			var button_4 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 			button_4.__click = () => {
 				_$_.set(lazy_4, 'success');
 			};
 
-			var button_5 = _$_.sibling(button_4);
+			var button_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
 
 			button_5.__click = () => {
 				_$_.set(lazy_4, 'error');
 			};
 
-			var button_6 = _$_.sibling(button_5);
+			var button_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
 
 			button_6.__click = () => {
 				_$_.set(lazy_4, 'loading');
 			};
 
-			var node_7 = _$_.sibling(button_6);
+			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
 			{
 				var consequent_7 = (__anchor) => {

@@ -65,15 +65,15 @@ function BasicContent() {
 		var div = root();
 
 		{
-			var span = _$_.child(div);
+			var span = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			{
-				var expression = _$_.child(span, true);
+				var expression = _$_.hydrating ? _$_.hydrate_child(true) : span.firstChild;
 
 				_$_.pop(span);
 			}
 
-			var button = _$_.sibling(span);
+			var button = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 			button.__click = () => _$_.update(lazy_1);
 		}
@@ -94,7 +94,7 @@ export function StreamPending() {
 		_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_1 = root_2();
 			var span_1 = _$_.first_child_frag(fragment_1);
-			var node = _$_.sibling(span_1);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
 
 			_$_.try(
 				node,
@@ -126,7 +126,7 @@ function CatchOnlyContent() {
 		var p_1 = root_5();
 
 		{
-			var expression_1 = _$_.child(p_1);
+			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 			_$_.expression(expression_1, () => lazy_2.value);
 			_$_.pop(p_1);
@@ -144,7 +144,7 @@ export function StreamCatchOnly() {
 		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_4 = root_7();
 			var span_2 = _$_.first_child_frag(fragment_4);
-			var node_3 = _$_.sibling(span_2);
+			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 			_$_.try(
 				node_3,
@@ -155,7 +155,7 @@ export function StreamCatchOnly() {
 					var em = root_8();
 
 					{
-						var expression_2 = _$_.child(em);
+						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : em.firstChild;
 
 						_$_.expression(expression_2, () => e.message);
 						_$_.pop(em);
@@ -178,7 +178,7 @@ function RejectContent() {
 		var p_2 = root_9();
 
 		{
-			var expression_3 = _$_.child(p_2);
+			var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 			_$_.expression(expression_3, () => lazy_3.value);
 			_$_.pop(p_2);
@@ -199,7 +199,7 @@ export function StreamRejects() {
 				var em_1 = root_10();
 
 				{
-					var expression_4 = _$_.child(em_1);
+					var expression_4 = _$_.hydrating ? _$_.hydrate_child() : em_1.firstChild;
 
 					_$_.expression(expression_4, () => e.message);
 					_$_.pop(em_1);
@@ -223,7 +223,7 @@ function NoCatchContent() {
 		var p_4 = root_12();
 
 		{
-			var expression_5 = _$_.child(p_4);
+			var expression_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 			_$_.expression(expression_5, () => lazy_4.value);
 			_$_.pop(p_4);
@@ -258,7 +258,7 @@ export function RootCatch({ error, reset }) {
 		_$_.event('Click', section, reset);
 
 		{
-			var expression_6 = _$_.child(section);
+			var expression_6 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 			_$_.expression(expression_6, () => error.message);
 			_$_.pop(section);
@@ -288,7 +288,7 @@ function HeadContent() {
 					var p_7 = root_17();
 
 					{
-						var expression_7 = _$_.child(p_7);
+						var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
 
 						_$_.expression(expression_7, () => lazy_5.value);
 						_$_.pop(p_7);
@@ -341,7 +341,7 @@ export function StreamRootDirect() {
 		var p_9 = root_19();
 
 		{
-			var expression_8 = _$_.child(p_9);
+			var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
 			_$_.expression(expression_8, () => lazy_6.value);
 			_$_.pop(p_9);
@@ -357,7 +357,7 @@ function OuterContent() {
 		var p_10 = root_20();
 
 		{
-			var expression_9 = _$_.child(p_10);
+			var expression_9 = _$_.hydrating ? _$_.hydrate_child() : p_10.firstChild;
 
 			_$_.expression(expression_9, () => lazy_7.value);
 			_$_.pop(p_10);
@@ -373,7 +373,7 @@ function InnerContent() {
 		var p_11 = root_21();
 
 		{
-			var expression_10 = _$_.child(p_11);
+			var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_11.firstChild;
 
 			_$_.expression(expression_10, () => lazy_8.value);
 			_$_.pop(p_11);
@@ -393,7 +393,7 @@ export function StreamNested() {
 
 				_$_.render_component(OuterContent, node_6, {});
 
-				var node_7 = _$_.sibling(node_6);
+				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_6.nextSibling;
 
 				_$_.try(
 					node_7,

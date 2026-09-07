@@ -35,7 +35,7 @@ export function IfFragmentForElement() {
 		var div = root();
 
 		{
-			var node = _$_.child(div);
+			var node = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			{
 				var consequent = (__anchor) => {
@@ -49,7 +49,7 @@ export function IfFragmentForElement() {
 							var p = root_2();
 
 							{
-								var expression = _$_.child(p);
+								var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
 								_$_.expression(expression, () => _$_.get(pattern).muzeId);
 								_$_.pop(p);
@@ -83,7 +83,7 @@ export function IfFragmentForIfIf() {
 		var div_1 = root_3();
 
 		{
-			var node_2 = _$_.child(div_1);
+			var node_2 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 			{
 				var consequent_3 = (__anchor) => {
@@ -97,7 +97,7 @@ export function IfFragmentForIfIf() {
 							var p_1 = root_5();
 
 							{
-								var expression_1 = _$_.child(p_1);
+								var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 								_$_.expression(expression_1, () => _$_.get(pattern_1).muzeId);
 								_$_.pop(p_1);
@@ -109,7 +109,7 @@ export function IfFragmentForIfIf() {
 						(pattern_1) => _$_.get(pattern_1).muzeId
 					);
 
-					var node_4 = _$_.sibling(node_3);
+					var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
 
 					{
 						var consequent_1 = (__anchor) => {
@@ -123,7 +123,7 @@ export function IfFragmentForIfIf() {
 						});
 					}
 
-					var node_5 = _$_.sibling(node_4);
+					var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_4.nextSibling;
 
 					{
 						var consequent_2 = (__anchor) => {
@@ -158,7 +158,7 @@ export function IfFragmentElements() {
 		var div_2 = root_8();
 
 		{
-			var node_6 = _$_.child(div_2);
+			var node_6 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 			{
 				var consequent_4 = (__anchor) => {
@@ -196,7 +196,7 @@ export function ComponentBodyFragmentControlFlow() {
 					var p_2 = root_12();
 
 					{
-						var expression_2 = _$_.child(p_2);
+						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 						_$_.expression(expression_2, () => _$_.get(pattern_2).muzeId);
 						_$_.pop(p_2);
@@ -235,7 +235,7 @@ export function ComponentBodyCodeBlockControlFlow() {
 						var p_3 = root_14();
 
 						{
-							var expression_3 = _$_.child(p_3);
+							var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
 							_$_.expression(expression_3, () => _$_.get(pattern_3).muzeId);
 							_$_.pop(p_3);
@@ -262,7 +262,7 @@ export function IfCodeBlockControlFlow() {
 		var div_3 = root_16();
 
 		{
-			var node_10 = _$_.child(div_3);
+			var node_10 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
 			{
 				var consequent_5 = (__anchor) => {
@@ -279,7 +279,7 @@ export function IfCodeBlockControlFlow() {
 								var p_4 = root_17();
 
 								{
-									var expression_5 = _$_.child(p_4);
+									var expression_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 									_$_.expression(expression_5, () => _$_.get(pattern_4).muzeId);
 									_$_.pop(p_4);
@@ -314,7 +314,7 @@ export function IfElseFragment() {
 		var div_4 = root_19();
 
 		{
-			var node_11 = _$_.child(div_4);
+			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 			{
 				var consequent_6 = (__anchor) => {
@@ -334,7 +334,7 @@ export function IfElseFragment() {
 							var p_5 = root_22();
 
 							{
-								var expression_7 = _$_.child(p_5);
+								var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_5.firstChild;
 
 								_$_.expression(expression_7, () => _$_.get(pattern_5).muzeId);
 								_$_.pop(p_5);
@@ -368,14 +368,14 @@ export function IfDivFragment() {
 		var div_5 = root_23();
 
 		{
-			var node_13 = _$_.child(div_5);
+			var node_13 = _$_.hydrating ? _$_.hydrate_child() : div_5.firstChild;
 
 			{
 				var consequent_7 = (__anchor) => {
 					var section = root_24();
 
 					{
-						var node_14 = _$_.child(section);
+						var node_14 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 						_$_.for_keyed(
 							node_14,
@@ -384,7 +384,7 @@ export function IfDivFragment() {
 								var p_6 = root_25();
 
 								{
-									var expression_8 = _$_.child(p_6);
+									var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_6.firstChild;
 
 									_$_.expression(expression_8, () => _$_.get(pattern_6).muzeId);
 									_$_.pop(p_6);

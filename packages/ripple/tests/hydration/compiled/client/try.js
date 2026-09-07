@@ -29,16 +29,16 @@ export function RootCatch({ error, reset }) {
 		var section = root_1();
 
 		{
-			var p_1 = _$_.child(section);
+			var p_1 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 			{
-				var expression = _$_.child(p_1);
+				var expression = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 				_$_.expression(expression, () => error.message);
 				_$_.pop(p_1);
 			}
 
-			var button = _$_.sibling(p_1);
+			var button = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
 
 			_$_.event('Click', button, reset);
 		}
@@ -63,7 +63,7 @@ export function RootAsyncDirect() {
 		var p_2 = root_3();
 
 		{
-			var expression_1 = _$_.child(p_2);
+			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 			_$_.expression(expression_1, () => lazy.value);
 			_$_.pop(p_2);
@@ -79,7 +79,7 @@ export function RootAsyncRejects() {
 		var p_3 = root_4();
 
 		{
-			var expression_2 = _$_.child(p_3);
+			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
 			_$_.expression(expression_2, () => lazy_1.value);
 			_$_.pop(p_3);
@@ -120,7 +120,7 @@ function AsyncList() {
 					var li = root_7();
 
 					{
-						var expression_3 = _$_.child(li);
+						var expression_3 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 						_$_.expression(expression_3, () => item);
 						_$_.pop(li);
@@ -146,7 +146,7 @@ export function AsyncTryWithLeadingSibling() {
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_2 = root_9();
 			var div = _$_.first_child_frag(fragment_2);
-			var node = _$_.sibling(div);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;
 
 			_$_.try(
 				node,
@@ -174,7 +174,7 @@ function AsyncContent() {
 		var div_2 = root_11();
 
 		{
-			var expression_4 = _$_.child(div_2);
+			var expression_4 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 			_$_.expression(expression_4, () => lazy_3.value);
 			_$_.pop(div_2);

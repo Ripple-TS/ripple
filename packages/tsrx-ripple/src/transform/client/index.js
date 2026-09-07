@@ -2077,6 +2077,24 @@ function visit_selector_comparison(node, context) {
 	return node.operator === '===' ? match : b.unary('!', match);
 }
 
+/**
+ * A DOM traversal read, inline so each template position has its own
+ * property-read site (one inline cache per site instead of one shared,
+ * megamorphic site inside a helper). While hydrating the read is replaced by
+ * the hydration cursor, exactly as the `child` / `sibling` helpers do.
+ * @param {'child' | 'sibling'} operation
+ * @param {AST.Expression} node
+ * @param {boolean | undefined} is_text
+ * @returns {AST.Expression}
+ */
+function inline_traversal(operation, node, is_text) {
+	return b.conditional(
+		b.member(b.id('_$_'), b.id('hydrating')),
+		b.call(operation === 'child' ? '_$_.hydrate_child' : '_$_.hydrate_sibling', is_text && b.true),
+		b.member(node, b.id(operation === 'child' ? 'firstChild' : 'nextSibling')),
+	);
+}
+
 /** @type {Visitors<AST.Node, TransformClientState>} */
 const visitors = {
 	_(node, { next, state, path }) {
@@ -5929,7 +5947,7 @@ function transform_children(children, context) {
 					return cached;
 				} else if (current_prev !== null) {
 					const id = get_id(node);
-					state.init?.push(b.var(id, b.call('_$_.sibling', current_prev(), is_text && b.true)));
+					state.init?.push(b.var(id, inline_traversal('sibling', current_prev(), is_text)));
 					cached = id;
 					return id;
 				} else if (initial !== null) {
@@ -5946,7 +5964,16 @@ function transform_children(children, context) {
 					}
 
 					const id = get_id(node);
-					state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.(), is_text && b.true)));
+					state.init?.push(
+						b.var(
+							id,
+							inline_traversal(
+								'child',
+								/** @type {AST.Expression} */ (state.flush_node?.()),
+								is_text,
+							),
+						),
+					);
 					cached = id;
 					return id;
 				} else {

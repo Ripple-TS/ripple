@@ -31,18 +31,18 @@ export function IfWithChildren({ children }) {
 		var div = root();
 
 		{
-			var div_1 = _$_.child(div);
+			var div_1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			div_1.__click = () => _$_.set(lazy, !lazy.value);
 
-			var node = _$_.sibling(div_1);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : div_1.nextSibling;
 
 			{
 				var consequent = (__anchor) => {
 					var div_2 = root_1();
 
 					{
-						var expression = _$_.child(div_2);
+						var expression = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 						_$_.expression(expression, () => children);
 						_$_.pop(div_2);
@@ -68,7 +68,7 @@ export function ChildItem({ text: label }) {
 		var div_3 = root_2();
 
 		{
-			var expression_1 = _$_.child(div_3, true);
+			var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_3.firstChild;
 
 			expression_1.nodeValue = label;
 			_$_.pop(div_3);
@@ -87,7 +87,7 @@ export function TestIfWithChildren() {
 
 				_$_.render_component(ChildItem, node_1, { text: "Item 1" });
 
-				var node_2 = _$_.sibling(node_1);
+				var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_1.nextSibling;
 
 				_$_.render_component(ChildItem, node_2, { text: "Item 2" });
 				_$_.append(__anchor, fragment);
@@ -102,11 +102,11 @@ export function IfWithStaticChildren() {
 		var div_4 = root_4();
 
 		{
-			var div_5 = _$_.child(div_4);
+			var div_5 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 			div_5.__click = () => _$_.set(lazy_1, !lazy_1.value);
 
-			var node_3 = _$_.sibling(div_5);
+			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
 			{
 				var consequent_1 = (__anchor) => {
@@ -133,19 +133,19 @@ export function IfWithSiblingsAndChildren({ children }) {
 		var section = root_6();
 
 		{
-			var div_7 = _$_.child(section);
+			var div_7 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 			div_7.__click = () => _$_.set(lazy_2, !lazy_2.value);
 			_$_.pop(div_7);
 
-			var node_4 = _$_.sibling(div_7);
+			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 
 			{
 				var consequent_2 = (__anchor) => {
 					var div_8 = root_7();
 
 					{
-						var expression_2 = _$_.child(div_8);
+						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 						_$_.expression(expression_2, () => children);
 						_$_.pop(div_8);
@@ -175,7 +175,7 @@ export function TestIfWithSiblingsAndChildren() {
 
 				_$_.render_component(ChildItem, node_5, { text: "Item A" });
 
-				var node_6 = _$_.sibling(node_5);
+				var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_5.nextSibling;
 
 				_$_.render_component(ChildItem, node_6, { text: "Item B" });
 				_$_.append(__anchor, fragment_1);
@@ -195,11 +195,11 @@ export function ElementWithChildrenThenIf() {
 			var div_10 = _$_.first_child_frag(fragment_3);
 
 			{
-				var div_9 = _$_.child(div_10);
+				var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 
 				_$_.pop(div_9);
 
-				var node_7 = _$_.sibling(div_9);
+				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 				{
 					var consequent_3 = (__anchor) => {
@@ -216,7 +216,7 @@ export function ElementWithChildrenThenIf() {
 				_$_.pop(div_10);
 			}
 
-			var button = _$_.sibling(div_10);
+			var button = _$_.hydrating ? _$_.hydrate_sibling() : div_10.nextSibling;
 
 			button.__click = () => _$_.set(lazy_3, !lazy_3.value);
 			_$_.next();
@@ -238,11 +238,11 @@ export function DeepNestingThenIf() {
 			var section_1 = _$_.first_child_frag(fragment_5);
 
 			{
-				var article = _$_.child(section_1);
+				var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
 
 				_$_.pop(article);
 
-				var node_9 = _$_.sibling(article);
+				var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
 				{
 					var consequent_4 = (__anchor) => {
@@ -259,7 +259,7 @@ export function DeepNestingThenIf() {
 				_$_.pop(section_1);
 			}
 
-			var button_1 = _$_.sibling(section_1);
+			var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : section_1.nextSibling;
 
 			button_1.__click = () => _$_.set(lazy_4, !lazy_4.value);
 			_$_.next();
@@ -276,24 +276,24 @@ export function DomElementChildrenThenSibling() {
 		var div_12 = root_15();
 
 		{
-			var div_13 = _$_.child(div_12);
+			var div_13 = _$_.hydrating ? _$_.hydrate_child() : div_12.firstChild;
 
 			{
-				var button_2 = _$_.child(div_13);
+				var button_2 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
 
 				button_2.__click = () => _$_.set(lazy_5, 'code');
 
-				var button_3 = _$_.sibling(button_2);
+				var button_3 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
 				button_3.__click = () => _$_.set(lazy_5, 'preview');
 			}
 
 			_$_.pop(div_13);
 
-			var div_14 = _$_.sibling(div_13);
+			var div_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
 
 			{
-				var node_11 = _$_.child(div_14);
+				var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 				{
 					var consequent_5 = (__anchor) => {
@@ -349,13 +349,13 @@ export function DomChildrenThenStaticSiblings() {
 			var div_16 = _$_.first_child_frag(fragment_7);
 
 			{
-				var ul = _$_.child(div_16);
+				var ul = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
 				{
-					var li = _$_.child(ul);
+					var li = _$_.hydrating ? _$_.hydrate_child() : ul.firstChild;
 
 					{
-						var expression_3 = _$_.child(li, true);
+						var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : li.firstChild;
 
 						_$_.pop(li);
 					}
@@ -366,7 +366,7 @@ export function DomChildrenThenStaticSiblings() {
 
 			_$_.pop(div_16);
 
-			var button_4 = _$_.sibling(div_16);
+			var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 			button_4.__click = () => _$_.update(lazy_6);
 			_$_.next();
@@ -387,14 +387,14 @@ export function StaticListThenStaticSiblings() {
 		var div_17 = root_20();
 
 		{
-			var ul_1 = _$_.child(div_17);
+			var ul_1 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
 
 			{
-				var li_1 = _$_.child(ul_1);
+				var li_1 = _$_.hydrating ? _$_.hydrate_child() : ul_1.firstChild;
 
 				_$_.pop(li_1);
 
-				var li_2 = _$_.sibling(li_1);
+				var li_2 = _$_.hydrating ? _$_.hydrate_sibling() : li_1.nextSibling;
 
 				_$_.pop(li_2);
 			}

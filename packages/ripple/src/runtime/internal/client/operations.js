@@ -70,6 +70,14 @@ export function first_child(node, is_text) {
 	if (!hydrating) {
 		return node.firstChild;
 	}
+	return hydrate_first_child(is_text);
+}
+
+/**
+ * @param {boolean} [is_text]
+ * @returns {Node | null}
+ */
+export function hydrate_first_child(is_text) {
 	var child = get_first_child(/** @type {Node} */ (hydrate_node));
 
 	// Handles the case where we have `<p>{text}</p>`, where `text` is empty
@@ -149,7 +157,14 @@ export function next_sibling(node, is_text) {
 	if (!hydrating) {
 		return node.nextSibling;
 	}
+	return hydrate_next_sibling(is_text);
+}
 
+/**
+ * @param {boolean} [is_text]
+ * @returns {Node | null}
+ */
+export function hydrate_next_sibling(is_text) {
 	var next_sibling = /** @type {ChildNode | null} */ (
 		get_next_sibling(/** @type {ChildNode} */ (hydrate_node))
 	);

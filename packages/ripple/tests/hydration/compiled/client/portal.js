@@ -17,8 +17,8 @@ export function SimplePortal() {
 		var div = root();
 
 		{
-			var h1 = _$_.child(div);
-			var node = _$_.sibling(h1);
+			var h1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
 
 			_$_.render_component(Portal, node, {
 				get target() {
@@ -45,11 +45,11 @@ export function ConditionalPortal() {
 		var div_2 = root_2();
 
 		{
-			var button = _$_.child(div_2);
+			var button = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 			button.__click = () => _$_.set(lazy, !lazy.value);
 
-			var node_1 = _$_.sibling(button);
+			var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			{
 				var consequent = (__anchor) => {
@@ -83,8 +83,8 @@ export function PortalWithMainContent() {
 		var div_4 = root_4();
 
 		{
-			var div_5 = _$_.child(div_4);
-			var node_2 = _$_.sibling(div_5);
+			var div_5 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
+			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
 			_$_.render_component(Portal, node_2, {
 				get target() {
@@ -110,11 +110,11 @@ export function NestedContentWithPortal() {
 		var div_7 = root_6();
 
 		{
-			var div_8 = _$_.child(div_7);
+			var div_8 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 			_$_.pop(div_8);
 
-			var node_3 = _$_.sibling(div_8);
+			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_8.nextSibling;
 
 			_$_.render_component(Portal, node_3, {
 				get target() {

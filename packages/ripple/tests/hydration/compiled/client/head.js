@@ -56,10 +56,10 @@ export function ReactiveTitle() {
 			var div_1 = root_3();
 
 			{
-				var span = _$_.child(div_1);
+				var span = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 				{
-					var expression = _$_.child(span);
+					var expression = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 					_$_.expression(expression, () => lazy.value);
 					_$_.pop(span);
@@ -112,7 +112,7 @@ export function ReactiveMetaTags() {
 			var div_3 = root_8();
 
 			{
-				var expression_1 = _$_.child(div_3);
+				var expression_1 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
 				_$_.expression(expression_1, () => lazy_1.value);
 				_$_.pop(div_3);
@@ -143,7 +143,7 @@ export function TitleWithTemplate() {
 			var div_4 = root_11();
 
 			{
-				var expression_2 = _$_.child(div_4);
+				var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 				_$_.expression(expression_2, () => lazy_2.value);
 				_$_.pop(div_4);
@@ -192,7 +192,7 @@ export function ConditionalTitle() {
 			var div_6 = root_15();
 
 			{
-				var expression_3 = _$_.child(div_6);
+				var expression_3 = _$_.hydrating ? _$_.hydrate_child() : div_6.firstChild;
 
 				_$_.expression(expression_3, () => lazy_4.value);
 				_$_.pop(div_6);
@@ -222,10 +222,10 @@ export function ComputedTitle() {
 			var div_7 = root_17();
 
 			{
-				var span_1 = _$_.child(div_7);
+				var span_1 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 				{
-					var expression_4 = _$_.child(span_1, true);
+					var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_1.firstChild;
 
 					_$_.pop(span_1);
 				}

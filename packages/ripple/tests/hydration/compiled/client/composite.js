@@ -15,7 +15,7 @@ export function Layout(__props) {
 		var div = root();
 
 		{
-			var expression = _$_.child(div);
+			var expression = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			_$_.expression(expression, () => __props.children);
 			_$_.pop(div);
@@ -30,8 +30,8 @@ export function TextWrappedLayout(__props) {
 		var div_1 = root_1();
 
 		{
-			var expression_2 = _$_.child(div_1);
-			var expression_1 = _$_.sibling(expression_2);
+			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
+			var expression_1 = _$_.hydrating ? _$_.hydrate_sibling() : expression_2.nextSibling;
 
 			_$_.expression(expression_1, () => __props.children);
 			_$_.pop(div_1);

@@ -181,7 +181,7 @@ export function SiblingComponents() {
 
 			_$_.render_component(FirstSibling, node_2, {});
 
-			var node_3 = _$_.sibling(node_2);
+			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_2.nextSibling;
 
 			_$_.render_component(SecondSibling, node_3, {});
 			_$_.append(__anchor, fragment_5);
@@ -196,7 +196,7 @@ export function Greeting(props) {
 		var div_5 = root_12();
 
 		{
-			var expression = _$_.child(div_5, true);
+			var expression = _$_.hydrating ? _$_.hydrate_child(true) : div_5.firstChild;
 
 			_$_.pop(div_5);
 		}
@@ -227,16 +227,16 @@ export function ExpressionContent() {
 			var div_6 = _$_.first_child_frag(fragment_7);
 
 			{
-				var expression_1 = _$_.child(div_6, true);
+				var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_6.firstChild;
 
 				expression_1.nodeValue = value;
 				_$_.pop(div_6);
 			}
 
-			var span_1 = _$_.sibling(div_6);
+			var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : div_6.nextSibling;
 
 			{
-				var expression_2 = _$_.child(span_1);
+				var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
 
 				_$_.expression(expression_2, () => _$_.with_scope(__block, () => label.toUpperCase()));
 				_$_.pop(span_1);
@@ -255,7 +255,7 @@ function NestedHelperItem({ item }) {
 		var div_7 = root_15();
 
 		{
-			var expression_3 = _$_.child(div_7, true);
+			var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : div_7.firstChild;
 
 			expression_3.nodeValue = item;
 			_$_.pop(div_7);
@@ -275,13 +275,13 @@ function NestedTsxTsrxFragment({ label }) {
 			var span_2 = _$_.first_child_frag(fragment_9);
 
 			{
-				var expression_4 = _$_.child(span_2, true);
+				var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
 
 				expression_4.nodeValue = label;
 				_$_.pop(span_2);
 			}
 
-			var node_6 = _$_.sibling(span_2);
+			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 			_$_.for(
 				node_6,
@@ -304,7 +304,7 @@ export function NestedTsxTsrxExpressionValues() {
 		var div_8 = root_18();
 
 		{
-			var node_8 = _$_.child(div_8);
+			var node_8 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 			_$_.for(
 				node_8,
@@ -313,7 +313,7 @@ export function NestedTsxTsrxExpressionValues() {
 					var div_9 = root_19();
 
 					{
-						var expression_5 = _$_.child(div_9);
+						var expression_5 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
 
 						_$_.expression(expression_5, () => item);
 						_$_.pop(div_9);
@@ -324,7 +324,7 @@ export function NestedTsxTsrxExpressionValues() {
 				0
 			);
 
-			var node_9 = _$_.sibling(node_8);
+			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_8.nextSibling;
 
 			_$_.render_component(NestedTsxTsrxFragment, node_9, { label: "from helper" });
 			_$_.pop(div_8);
@@ -365,7 +365,7 @@ export function MixedTsrxCollectionText() {
 		var div_10 = root_23();
 
 		{
-			var expression_7 = _$_.child(div_10);
+			var expression_7 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 
 			_$_.expression(expression_7, () => content);
 			_$_.pop(div_10);
@@ -406,7 +406,7 @@ export function MixedTsrxCollectionSplitServerText() {
 		var div_11 = root_27();
 
 		{
-			var expression_9 = _$_.child(div_11);
+			var expression_9 = _$_.hydrating ? _$_.hydrate_child() : div_11.firstChild;
 
 			_$_.expression(expression_9, () => content);
 			_$_.pop(div_11);
@@ -447,7 +447,7 @@ export function MixedTsrxCollectionSplitClientText() {
 		var div_12 = root_31();
 
 		{
-			var expression_11 = _$_.child(div_12);
+			var expression_11 = _$_.hydrating ? _$_.hydrate_child() : div_12.firstChild;
 
 			_$_.expression(expression_11, () => content);
 			_$_.pop(div_12);
@@ -481,7 +481,7 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 		var div_13 = root_34();
 
 		{
-			var expression_13 = _$_.child(div_13);
+			var expression_13 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
 
 			_$_.expression(expression_13, () => content);
 			_$_.pop(div_13);
@@ -515,7 +515,7 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 		var div_14 = root_37();
 
 		{
-			var expression_15 = _$_.child(div_14);
+			var expression_15 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 			_$_.expression(expression_15, () => content);
 			_$_.pop(div_14);
@@ -535,7 +535,7 @@ export function DynamicArrayFromCall() {
 		var div_15 = root_38();
 
 		{
-			var expression_16 = _$_.child(div_15);
+			var expression_16 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
 
 			_$_.expression(expression_16, () => items);
 			_$_.pop(div_15);
@@ -551,7 +551,7 @@ export function DynamicArrayFromTrack() {
 		var div_16 = root_39();
 
 		{
-			var expression_17 = _$_.child(div_16);
+			var expression_17 = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
 			_$_.expression(expression_17, () => lazy.value);
 			_$_.pop(div_16);
@@ -572,7 +572,7 @@ export function DynamicArrayFromConditional() {
 		var div_17 = root_40();
 
 		{
-			var expression_18 = _$_.child(div_17);
+			var expression_18 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
 
 			_$_.expression(expression_18, () => items);
 			_$_.pop(div_17);
@@ -589,7 +589,7 @@ export function DynamicArrayFromLogical() {
 		var div_18 = root_41();
 
 		{
-			var expression_19 = _$_.child(div_18);
+			var expression_19 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
 
 			_$_.expression(expression_19, () => items);
 			_$_.pop(div_18);
@@ -657,7 +657,7 @@ export function TsxDeclaredBeforeTopLevelTsx() {
 			var div_20 = root_49();
 
 			{
-				var expression_22 = _$_.child(div_20);
+				var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
 				_$_.expression(expression_22, () => nested);
 				_$_.pop(div_20);
@@ -686,7 +686,7 @@ function TextProp(__props) {
 		var div_21 = root_52();
 
 		{
-			var expression_24 = _$_.child(div_21);
+			var expression_24 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
 
 			_$_.expression(expression_24, () => __props.children);
 			_$_.pop(div_21);
@@ -712,7 +712,7 @@ export function TextPropWithToggle() {
 				}
 			});
 
-			var button = _$_.sibling(node_13);
+			var button = _$_.hydrating ? _$_.hydrate_sibling() : node_13.nextSibling;
 
 			button.__click = () => _$_.set(lazy_1, true);
 			_$_.append(__anchor, fragment_22);
@@ -750,19 +750,19 @@ export function StaticChildWithSiblings() {
 
 			_$_.render_component(StaticHeader, node_16, {});
 
-			var span_6 = _$_.sibling(node_16);
+			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_16.nextSibling;
 
 			{
-				var expression_25 = _$_.child(span_6, true);
+				var expression_25 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
 
 				expression_25.nodeValue = foo;
 				_$_.pop(span_6);
 			}
 
-			var span_7 = _$_.sibling(span_6);
+			var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
 
 			{
-				var expression_26 = _$_.child(span_7, true);
+				var expression_26 = _$_.hydrating ? _$_.hydrate_child(true) : span_7.firstChild;
 
 				expression_26.nodeValue = foo;
 				_$_.pop(span_7);
@@ -797,9 +797,9 @@ function Actions({ playgroundVisible = false }) {
 		var div_22 = root_61();
 
 		{
-			var a_2 = _$_.child(div_22);
-			var a_1 = _$_.sibling(a_2);
-			var expression_27 = _$_.sibling(a_1);
+			var a_2 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
+			var a_1 = _$_.hydrating ? _$_.hydrate_sibling() : a_2.nextSibling;
+			var expression_27 = _$_.hydrating ? _$_.hydrate_sibling() : a_1.nextSibling;
 
 			_$_.expression(expression_27, () => playgroundVisible
 				? _$_.tsrx_element((__anchor, __block) => {
@@ -821,10 +821,10 @@ function Layout({ children }) {
 		var main = root_63();
 
 		{
-			var div_23 = _$_.child(main);
+			var div_23 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
 
 			{
-				var expression_28 = _$_.child(div_23);
+				var expression_28 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
 
 				_$_.expression(expression_28, () => children);
 				_$_.pop(div_23);
@@ -852,15 +852,15 @@ export function WebsiteIndex() {
 
 				_$_.render_component(Header, node_19, {});
 
-				var node_20 = _$_.sibling(node_19);
+				var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_19.nextSibling;
 
 				_$_.render_component(Actions, node_20, { playgroundVisible: true });
 
-				var node_21 = _$_.sibling(node_20);
+				var node_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_20.nextSibling;
 
 				_$_.render_component(Content, node_21, {});
 
-				var node_22 = _$_.sibling(node_21);
+				var node_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_21.nextSibling;
 
 				_$_.render_component(Actions, node_22, { playgroundVisible: false });
 				_$_.append(__anchor, fragment_29);
@@ -882,9 +882,9 @@ export function ComponentAsLastSibling() {
 		var div_25 = root_67();
 
 		{
-			var h1 = _$_.child(div_25);
-			var p = _$_.sibling(h1);
-			var node_23 = _$_.sibling(p);
+			var h1 = _$_.hydrating ? _$_.hydrate_child() : div_25.firstChild;
+			var p = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
+			var node_23 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
 
 			_$_.render_component(LastChild, node_23, {});
 			_$_.pop(div_25);
@@ -899,8 +899,8 @@ function InnerContent() {
 		var div_26 = root_68();
 
 		{
-			var span_8 = _$_.child(div_26);
-			var node_24 = _$_.sibling(span_8);
+			var span_8 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
+			var node_24 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
 
 			_$_.render_component(LastChild, node_24, {});
 			_$_.pop(div_26);
@@ -915,8 +915,8 @@ export function NestedComponentAsLastSibling() {
 		var section_1 = root_69();
 
 		{
-			var h2 = _$_.child(section_1);
-			var node_25 = _$_.sibling(h2);
+			var h2 = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
+			var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
 
 			_$_.render_component(InnerContent, node_25, {});
 			_$_.pop(section_1);
@@ -935,7 +935,7 @@ export function TextTailExpression() {
 		var div_27 = root_70();
 
 		{
-			var text = _$_.child(div_27, true);
+			var text = _$_.hydrating ? _$_.hydrate_child(true) : div_27.firstChild;
 
 			_$_.pop(div_27);
 		}
@@ -953,7 +953,7 @@ export function FragmentTailExpression() {
 		var div_28 = root_71();
 
 		{
-			var expression_29 = _$_.child(div_28, true);
+			var expression_29 = _$_.hydrating ? _$_.hydrate_child(true) : div_28.firstChild;
 
 			_$_.pop(div_28);
 		}

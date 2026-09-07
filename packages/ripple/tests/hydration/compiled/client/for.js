@@ -94,7 +94,7 @@ export function StaticForLoop() {
 					var li = root_1();
 
 					{
-						var expression = _$_.child(li);
+						var expression = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 						_$_.expression(expression, () => item);
 						_$_.pop(li);
@@ -125,7 +125,7 @@ export function ForLoopWithIndex() {
 					var li_1 = root_3();
 
 					{
-						var expression_1 = _$_.child(li_1, true);
+						var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : li_1.firstChild;
 
 						_$_.pop(li_1);
 					}
@@ -164,7 +164,7 @@ export function KeyedForLoop() {
 					var li_2 = root_5();
 
 					{
-						var expression_2 = _$_.child(li_2);
+						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : li_2.firstChild;
 
 						_$_.expression(expression_2, () => _$_.get(pattern).name);
 						_$_.pop(li_2);
@@ -197,7 +197,7 @@ export function ReactiveForLoopAdd() {
 				_$_.set(lazy, [...lazy.value, 'C']);
 			};
 
-			var ul_3 = _$_.sibling(button);
+			var ul_3 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			{
 				_$_.for(
@@ -207,7 +207,7 @@ export function ReactiveForLoopAdd() {
 						var li_3 = root_8();
 
 						{
-							var expression_3 = _$_.child(li_3);
+							var expression_3 = _$_.hydrating ? _$_.hydrate_child() : li_3.firstChild;
 
 							_$_.expression(expression_3, () => item);
 							_$_.pop(li_3);
@@ -243,7 +243,7 @@ export function ReactiveForLoopRemove() {
 				_$_.set(lazy_1, _$_.with_scope(__block, () => lazy_1.value.slice(0, -1)));
 			};
 
-			var ul_4 = _$_.sibling(button_1);
+			var ul_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			{
 				_$_.for(
@@ -253,7 +253,7 @@ export function ReactiveForLoopRemove() {
 						var li_4 = root_11();
 
 						{
-							var expression_4 = _$_.child(li_4);
+							var expression_4 = _$_.hydrating ? _$_.hydrate_child() : li_4.firstChild;
 
 							_$_.expression(expression_4, () => item);
 							_$_.pop(li_4);
@@ -288,16 +288,16 @@ export function ForLoopInteractive() {
 					var div_1 = root_13();
 
 					{
-						var span = _$_.child(div_1);
+						var span = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 						{
-							var expression_5 = _$_.child(span);
+							var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 							_$_.expression(expression_5, () => count);
 							_$_.pop(span);
 						}
 
-						var button_2 = _$_.sibling(span);
+						var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 						button_2.__click = () => {
 							const newCounts = [...lazy_2.value];
@@ -343,7 +343,7 @@ export function NestedForLoop() {
 								var span_1 = root_16();
 
 								{
-									var expression_6 = _$_.child(span_1);
+									var expression_6 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
 
 									_$_.expression(expression_6, () => cell);
 									_$_.pop(span_1);
@@ -390,7 +390,7 @@ export function EmptyForLoop() {
 					var span_2 = root_18();
 
 					{
-						var expression_7 = _$_.child(span_2, true);
+						var expression_7 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
 
 						expression_7.nodeValue = item;
 						_$_.pop(span_2);
@@ -425,19 +425,19 @@ export function ForLoopComplexObjects() {
 					var div_6 = root_20();
 
 					{
-						var span_3 = _$_.child(div_6);
+						var span_3 = _$_.hydrating ? _$_.hydrate_child() : div_6.firstChild;
 
 						{
-							var expression_8 = _$_.child(span_3);
+							var expression_8 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
 
 							_$_.expression(expression_8, () => _$_.get(pattern_1).name);
 							_$_.pop(span_3);
 						}
 
-						var span_4 = _$_.sibling(span_3);
+						var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : span_3.nextSibling;
 
 						{
-							var expression_9 = _$_.child(span_4);
+							var expression_9 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
 							_$_.expression(expression_9, () => _$_.get(pattern_1).role);
 							_$_.pop(span_4);
@@ -484,7 +484,7 @@ export function KeyedForLoopReorder() {
 				_$_.set(lazy_3, [lazy_3.value[2], lazy_3.value[0], lazy_3.value[1]]);
 			};
 
-			var ul_5 = _$_.sibling(button_3);
+			var ul_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 			{
 				_$_.for_keyed(
@@ -494,7 +494,7 @@ export function KeyedForLoopReorder() {
 						var li_5 = root_23();
 
 						{
-							var expression_10 = _$_.child(li_5);
+							var expression_10 = _$_.hydrating ? _$_.hydrate_child() : li_5.firstChild;
 
 							_$_.expression(expression_10, () => _$_.get(pattern_2).name);
 							_$_.pop(li_5);
@@ -535,7 +535,7 @@ export function KeyedForLoopUpdate() {
 				_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
 			};
 
-			var ul_6 = _$_.sibling(button_4);
+			var ul_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
 
 			{
 				_$_.for_keyed(
@@ -545,7 +545,7 @@ export function KeyedForLoopUpdate() {
 						var li_6 = root_26();
 
 						{
-							var expression_11 = _$_.child(li_6);
+							var expression_11 = _$_.hydrating ? _$_.hydrate_child() : li_6.firstChild;
 
 							_$_.expression(expression_11, () => _$_.get(pattern_3).name);
 							_$_.pop(li_6);
@@ -586,7 +586,7 @@ export function ForLoopMixedOperations() {
 				_$_.set(lazy_5, ['D', 'C', 'A', 'E']);
 			};
 
-			var ul_7 = _$_.sibling(button_5);
+			var ul_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
 
 			{
 				_$_.for(
@@ -598,7 +598,7 @@ export function ForLoopMixedOperations() {
 						_$_.set_class(li_7, `item-${item}`, void 0, true);
 
 						{
-							var expression_12 = _$_.child(li_7);
+							var expression_12 = _$_.hydrating ? _$_.hydrate_child() : li_7.firstChild;
 
 							_$_.expression(expression_12, () => item);
 							_$_.pop(li_7);
@@ -635,13 +635,13 @@ export function ForLoopInsideIf() {
 				_$_.set(lazy_6, !lazy_6.value);
 			};
 
-			var button_7 = _$_.sibling(button_6);
+			var button_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
 			button_7.__click = () => {
 				_$_.set(lazy_7, [...lazy_7.value, 'W']);
 			};
 
-			var node_5 = _$_.sibling(button_7);
+			var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
 
 			{
 				var consequent = (__anchor) => {
@@ -655,7 +655,7 @@ export function ForLoopInsideIf() {
 								var li_8 = root_33();
 
 								{
-									var expression_13 = _$_.child(li_8);
+									var expression_13 = _$_.hydrating ? _$_.hydrate_child() : li_8.firstChild;
 
 									_$_.expression(expression_13, () => item);
 									_$_.pop(li_8);
@@ -698,7 +698,7 @@ export function ForLoopEmptyToPopulated() {
 				_$_.set(lazy_8, ['One', 'Two', 'Three']);
 			};
 
-			var ul_9 = _$_.sibling(button_8);
+			var ul_9 = _$_.hydrating ? _$_.hydrate_sibling() : button_8.nextSibling;
 
 			{
 				_$_.for(
@@ -708,7 +708,7 @@ export function ForLoopEmptyToPopulated() {
 						var li_9 = root_36();
 
 						{
-							var expression_14 = _$_.child(li_9, true);
+							var expression_14 = _$_.hydrating ? _$_.hydrate_child(true) : li_9.firstChild;
 
 							expression_14.nodeValue = item;
 							_$_.pop(li_9);
@@ -744,7 +744,7 @@ export function ForLoopPopulatedToEmpty() {
 				_$_.set(lazy_9, []);
 			};
 
-			var ul_10 = _$_.sibling(button_9);
+			var ul_10 = _$_.hydrating ? _$_.hydrate_sibling() : button_9.nextSibling;
 
 			{
 				_$_.for(
@@ -754,7 +754,7 @@ export function ForLoopPopulatedToEmpty() {
 						var li_10 = root_39();
 
 						{
-							var expression_15 = _$_.child(li_10);
+							var expression_15 = _$_.hydrating ? _$_.hydrate_child() : li_10.firstChild;
 
 							_$_.expression(expression_15, () => item);
 							_$_.pop(li_10);
@@ -782,13 +782,13 @@ export function NestedForLoopReactive() {
 		var div_7 = root_40();
 
 		{
-			var button_10 = _$_.child(div_7);
+			var button_10 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 			button_10.__click = () => {
 				_$_.set(lazy_10, [...lazy_10.value, [5, 6]]);
 			};
 
-			var button_11 = _$_.sibling(button_10);
+			var button_11 = _$_.hydrating ? _$_.hydrate_sibling() : button_10.nextSibling;
 
 			button_11.__click = () => {
 				const newGrid = _$_.with_scope(__block, () => lazy_10.value.map((row) => [...row]));
@@ -797,7 +797,7 @@ export function NestedForLoopReactive() {
 				_$_.set(lazy_10, newGrid);
 			};
 
-			var div_8 = _$_.sibling(button_11);
+			var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : button_11.nextSibling;
 
 			{
 				_$_.for(
@@ -814,7 +814,7 @@ export function NestedForLoopReactive() {
 									var span_5 = root_42();
 
 									{
-										var expression_16 = _$_.child(span_5);
+										var expression_16 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
 										_$_.expression(expression_16, () => cell);
 										_$_.pop(span_5);
@@ -878,16 +878,16 @@ export function ForLoopDeeplyNested() {
 					var div_11 = root_44();
 
 					{
-						var h2 = _$_.child(div_11);
+						var h2 = _$_.hydrating ? _$_.hydrate_child() : div_11.firstChild;
 
 						{
-							var expression_17 = _$_.child(h2);
+							var expression_17 = _$_.hydrating ? _$_.hydrate_child() : h2.firstChild;
 
 							_$_.expression(expression_17, () => _$_.get(pattern_4).name);
 							_$_.pop(h2);
 						}
 
-						var node_9 = _$_.sibling(h2);
+						var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
 
 						_$_.for_keyed(
 							node_9,
@@ -896,16 +896,16 @@ export function ForLoopDeeplyNested() {
 								var div_12 = root_45();
 
 								{
-									var h3 = _$_.child(div_12);
+									var h3 = _$_.hydrating ? _$_.hydrate_child() : div_12.firstChild;
 
 									{
-										var expression_18 = _$_.child(h3);
+										var expression_18 = _$_.hydrating ? _$_.hydrate_child() : h3.firstChild;
 
 										_$_.expression(expression_18, () => _$_.get(pattern_5).name);
 										_$_.pop(h3);
 									}
 
-									var ul_11 = _$_.sibling(h3);
+									var ul_11 = _$_.hydrating ? _$_.hydrate_sibling() : h3.nextSibling;
 
 									{
 										_$_.for(
@@ -915,7 +915,7 @@ export function ForLoopDeeplyNested() {
 												var li_11 = root_46();
 
 												{
-													var expression_19 = _$_.child(li_11);
+													var expression_19 = _$_.hydrating ? _$_.hydrate_child() : li_11.firstChild;
 
 													_$_.expression(expression_19, () => member);
 													_$_.pop(li_11);
@@ -974,7 +974,7 @@ export function ForLoopIndexUpdate() {
 				_$_.set(lazy_11, ['Zeroth', ...lazy_11.value]);
 			};
 
-			var ul_12 = _$_.sibling(button_12);
+			var ul_12 = _$_.hydrating ? _$_.hydrate_sibling() : button_12.nextSibling;
 
 			{
 				_$_.for(
@@ -984,7 +984,7 @@ export function ForLoopIndexUpdate() {
 						var li_12 = root_49();
 
 						{
-							var expression_20 = _$_.child(li_12, true);
+							var expression_20 = _$_.hydrating ? _$_.hydrate_child(true) : li_12.firstChild;
 
 							_$_.pop(li_12);
 						}
@@ -1045,7 +1045,7 @@ export function KeyedForLoopWithIndex() {
 				_$_.set(lazy_12, [lazy_12.value[1], lazy_12.value[2], lazy_12.value[0]]);
 			};
 
-			var ul_13 = _$_.sibling(button_13);
+			var ul_13 = _$_.hydrating ? _$_.hydrate_sibling() : button_13.nextSibling;
 
 			{
 				_$_.for_keyed(
@@ -1055,7 +1055,7 @@ export function KeyedForLoopWithIndex() {
 						var li_13 = root_52();
 
 						{
-							var expression_21 = _$_.child(li_13, true);
+							var expression_21 = _$_.hydrating ? _$_.hydrate_child(true) : li_13.firstChild;
 
 							_$_.pop(li_13);
 						}
@@ -1112,8 +1112,8 @@ export function ForLoopWithSiblings() {
 			var div_13 = _$_.first_child_frag(fragment_21);
 
 			{
-				var header = _$_.child(div_13);
-				var node_12 = _$_.sibling(header);
+				var header = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
+				var node_12 = _$_.hydrating ? _$_.hydrate_sibling() : header.nextSibling;
 
 				_$_.for(
 					node_12,
@@ -1124,7 +1124,7 @@ export function ForLoopWithSiblings() {
 						_$_.set_class(div_14, `item-${item}`, void 0, true);
 
 						{
-							var expression_22 = _$_.child(div_14);
+							var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 							_$_.expression(expression_22, () => item);
 							_$_.pop(div_14);
@@ -1138,7 +1138,7 @@ export function ForLoopWithSiblings() {
 				_$_.pop(div_13);
 			}
 
-			var button_14 = _$_.sibling(div_13);
+			var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
 
 			button_14.__click = () => {
 				_$_.set(lazy_13, [...lazy_13.value, 'C']);
@@ -1194,16 +1194,16 @@ function TodoItem(props) {
 		var div_16 = root_57();
 
 		{
-			var input = _$_.child(div_16);
+			var input = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
 			input.__change = (e) => {
 				_$_.set(lazy_14, e.target.checked);
 			};
 
-			var span_6 = _$_.sibling(input);
+			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : input.nextSibling;
 
 			{
-				var expression_23 = _$_.child(span_6, true);
+				var expression_23 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
 
 				_$_.pop(span_6);
 			}
@@ -1260,7 +1260,7 @@ export function ForLoopSingleItem() {
 					var li_14 = root_59();
 
 					{
-						var expression_24 = _$_.child(li_14);
+						var expression_24 = _$_.hydrating ? _$_.hydrate_child() : li_14.firstChild;
 
 						_$_.expression(expression_24, () => item);
 						_$_.pop(li_14);
@@ -1292,7 +1292,7 @@ export function ForLoopAddAtBeginning() {
 				_$_.set(lazy_15, ['A', ...lazy_15.value]);
 			};
 
-			var ul_15 = _$_.sibling(button_15);
+			var ul_15 = _$_.hydrating ? _$_.hydrate_sibling() : button_15.nextSibling;
 
 			{
 				_$_.for(
@@ -1304,7 +1304,7 @@ export function ForLoopAddAtBeginning() {
 						_$_.set_class(li_15, `item-${item}`, void 0, true);
 
 						{
-							var expression_25 = _$_.child(li_15);
+							var expression_25 = _$_.hydrating ? _$_.hydrate_child() : li_15.firstChild;
 
 							_$_.expression(expression_25, () => item);
 							_$_.pop(li_15);
@@ -1343,7 +1343,7 @@ export function ForLoopAddInMiddle() {
 				_$_.set(lazy_16, copy);
 			};
 
-			var ul_16 = _$_.sibling(button_16);
+			var ul_16 = _$_.hydrating ? _$_.hydrate_sibling() : button_16.nextSibling;
 
 			{
 				_$_.for(
@@ -1355,7 +1355,7 @@ export function ForLoopAddInMiddle() {
 						_$_.set_class(li_16, `item-${item}`, void 0, true);
 
 						{
-							var expression_26 = _$_.child(li_16);
+							var expression_26 = _$_.hydrating ? _$_.hydrate_child() : li_16.firstChild;
 
 							_$_.expression(expression_26, () => item);
 							_$_.pop(li_16);
@@ -1391,7 +1391,7 @@ export function ForLoopRemoveFromMiddle() {
 				_$_.set(lazy_17, _$_.with_scope(__block, () => lazy_17.value.filter((item) => item !== 'B')));
 			};
 
-			var ul_17 = _$_.sibling(button_17);
+			var ul_17 = _$_.hydrating ? _$_.hydrate_sibling() : button_17.nextSibling;
 
 			{
 				_$_.for(
@@ -1403,7 +1403,7 @@ export function ForLoopRemoveFromMiddle() {
 						_$_.set_class(li_17, `item-${item}`, void 0, true);
 
 						{
-							var expression_27 = _$_.child(li_17);
+							var expression_27 = _$_.hydrating ? _$_.hydrate_child() : li_17.firstChild;
 
 							_$_.expression(expression_27, () => item);
 							_$_.pop(li_17);
@@ -1438,7 +1438,7 @@ export function ForLoopLargeList() {
 					var li_18 = root_70();
 
 					{
-						var expression_28 = _$_.child(li_18);
+						var expression_28 = _$_.hydrating ? _$_.hydrate_child() : li_18.firstChild;
 
 						_$_.expression(expression_28, () => item);
 						_$_.pop(li_18);
@@ -1477,7 +1477,7 @@ export function ForLoopSwap() {
 				_$_.set(lazy_18, copy);
 			};
 
-			var ul_19 = _$_.sibling(button_18);
+			var ul_19 = _$_.hydrating ? _$_.hydrate_sibling() : button_18.nextSibling;
 
 			{
 				_$_.for(
@@ -1489,7 +1489,7 @@ export function ForLoopSwap() {
 						_$_.set_class(li_19, `item-${item}`, void 0, true);
 
 						{
-							var expression_29 = _$_.child(li_19);
+							var expression_29 = _$_.hydrating ? _$_.hydrate_child() : li_19.firstChild;
 
 							_$_.expression(expression_29, () => item);
 							_$_.pop(li_19);
@@ -1525,7 +1525,7 @@ export function ForLoopReverse() {
 				_$_.set(lazy_19, _$_.with_scope(__block, () => [...lazy_19.value].reverse()));
 			};
 
-			var ul_20 = _$_.sibling(button_19);
+			var ul_20 = _$_.hydrating ? _$_.hydrate_sibling() : button_19.nextSibling;
 
 			{
 				_$_.for(
@@ -1537,7 +1537,7 @@ export function ForLoopReverse() {
 						_$_.set_class(li_20, `item-${item}`, void 0, true);
 
 						{
-							var expression_30 = _$_.child(li_20);
+							var expression_30 = _$_.hydrating ? _$_.hydrate_child() : li_20.firstChild;
 
 							_$_.expression(expression_30, () => item);
 							_$_.pop(li_20);

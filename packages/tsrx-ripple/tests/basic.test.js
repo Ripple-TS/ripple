@@ -1633,8 +1633,8 @@ describe('@tsrx/ripple <> expression values', () => {
 		);
 
 		expect(code).toContain('template(`<div> </div>`');
-		expect(code).toContain('_$_.child(');
-		expect(code).not.toContain('_$_.child(div, true)');
+		expect(code).toContain('_$_.hydrating ? _$_.hydrate_child() : div.firstChild');
+		expect(code).not.toContain('_$_.hydrate_child(true) : div.firstChild');
 		expect(code).toContain('_$_.expression(');
 	});
 });

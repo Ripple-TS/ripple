@@ -12,11 +12,11 @@ export function Layout({ children }) {
 		var div = root();
 
 		{
-			var nav = _$_.child(div);
-			var main = _$_.sibling(nav);
+			var nav = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
+			var main = _$_.hydrating ? _$_.hydrate_sibling() : nav.nextSibling;
 
 			{
-				var expression = _$_.child(main);
+				var expression = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
 
 				_$_.expression(expression, () => children);
 				_$_.pop(main);
@@ -33,7 +33,7 @@ export function Content() {
 		var div_1 = root_1();
 
 		{
-			var node = _$_.child(div_1);
+			var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 			{
 				var consequent = (__anchor) => {

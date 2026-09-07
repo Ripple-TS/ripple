@@ -2,6 +2,8 @@ export {
 	first_child as child,
 	first_child_frag,
 	next_sibling as sibling,
+	hydrate_first_child as hydrate_child,
+	hydrate_next_sibling as hydrate_sibling,
 	append_into,
 	document,
 	create_text,
@@ -136,6 +138,6 @@ export { TRY_BLOCK, HMR } from './constants.js';
 
 export { hmr } from './hmr.js';
 
-export { pop, next } from './hydration.js';
+export { pop, next, hydrating } from './hydration.js';
 
 export { is_tsrx_element, tsrx_element, normalize_children } from '../../element.js';

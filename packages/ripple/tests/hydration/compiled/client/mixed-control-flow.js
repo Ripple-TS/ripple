@@ -46,7 +46,7 @@ export function MixedControlFlowStatic() {
 											var div = root_1();
 
 											{
-												var expression = _$_.child(div, true);
+												var expression = _$_.hydrating ? _$_.hydrate_child(true) : div.firstChild;
 
 												_$_.pop(div);
 											}
@@ -92,7 +92,7 @@ export function MixedControlFlowStatic() {
 											var div_2 = root_3();
 
 											{
-												var expression_1 = _$_.child(div_2, true);
+												var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_2.firstChild;
 
 												_$_.pop(div_2);
 											}
@@ -187,19 +187,19 @@ export function MixedControlFlowReactive() {
 				_$_.set(lazy, !lazy.value);
 			};
 
-			var button_1 = _$_.sibling(button);
+			var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			button_1.__click = () => {
 				_$_.set(lazy_1, lazy_1.value === 'a' ? 'b' : 'a');
 			};
 
-			var button_2 = _$_.sibling(button_1);
+			var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			button_2.__click = () => {
 				_$_.set(lazy_2, [...lazy_2.value, { id: 3, label: 'Three' }]);
 			};
 
-			var node = _$_.sibling(button_2);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
 			{
 				var consequent_1 = (__anchor) => {
@@ -218,7 +218,7 @@ export function MixedControlFlowReactive() {
 												var p = root_8();
 
 												{
-													var expression_2 = _$_.child(p, true);
+													var expression_2 = _$_.hydrating ? _$_.hydrate_child(true) : p.firstChild;
 
 													_$_.pop(p);
 												}
@@ -260,7 +260,7 @@ export function MixedControlFlowReactive() {
 												var p_2 = root_10();
 
 												{
-													var expression_3 = _$_.child(p_2, true);
+													var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : p_2.firstChild;
 
 													_$_.pop(p_2);
 												}
@@ -346,7 +346,7 @@ export function MixedControlFlowAsyncPending() {
 		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_13();
 			var div_5 = _$_.first_child_frag(fragment_3);
-			var node_2 = _$_.sibling(div_5);
+			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
 			_$_.for(
 				node_2,
@@ -368,7 +368,7 @@ export function MixedControlFlowAsyncPending() {
 											_$_.set_class(div_6, `pending-row pending-row-${row}`, void 0, true);
 
 											{
-												var expression_4 = _$_.child(div_6, true);
+												var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : div_6.firstChild;
 
 												expression_4.nodeValue = `pending ${row}`;
 												_$_.pop(div_6);
@@ -431,7 +431,7 @@ function AsyncRow({ label }) {
 		var div_8 = root_16();
 
 		{
-			var expression_5 = _$_.child(div_8);
+			var expression_5 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 			_$_.expression(expression_5, () => lazy_3.value);
 			_$_.pop(div_8);

@@ -36,7 +36,7 @@ function ServerCallResult({ count }) {
 		var p = root();
 
 		{
-			var expression = _$_.child(p);
+			var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
 			_$_.expression(expression, () => lazy.value);
 			_$_.pop(p);
@@ -60,7 +60,7 @@ export function AsyncWithServerCall() {
 				_$_.update(lazy_1);
 			};
 
-			var node = _$_.sibling(button);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			_$_.try(
 				node,
@@ -95,7 +95,7 @@ export function AsyncSimpleValue() {
 				var p_2 = root_4();
 
 				{
-					var expression_1 = _$_.child(p_2);
+					var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 					_$_.expression(expression_1, () => lazy_2.value);
 					_$_.pop(p_2);
@@ -123,7 +123,7 @@ export function AsyncNumericValue() {
 				var span = root_6();
 
 				{
-					var expression_2 = _$_.child(span);
+					var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 					_$_.expression(expression_2, () => lazy_3.value);
 					_$_.pop(span);
@@ -151,19 +151,19 @@ export function AsyncObjectValue() {
 				var div = root_8();
 
 				{
-					var span_2 = _$_.child(div);
+					var span_2 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 					{
-						var expression_3 = _$_.child(span_2);
+						var expression_3 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
 
 						_$_.expression(expression_3, () => lazy_4.value.name);
 						_$_.pop(span_2);
 					}
 
-					var span_3 = _$_.sibling(span_2);
+					var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 					{
-						var expression_4 = _$_.child(span_3);
+						var expression_4 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
 
 						_$_.expression(expression_4, () => lazy_4.value.age);
 						_$_.pop(span_3);
@@ -193,19 +193,19 @@ export function AsyncMultipleValues() {
 				var div_2 = root_10();
 
 				{
-					var span_4 = _$_.child(div_2);
+					var span_4 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 					{
-						var expression_5 = _$_.child(span_4);
+						var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
 						_$_.expression(expression_5, () => lazy_5.value);
 						_$_.pop(span_4);
 					}
 
-					var span_5 = _$_.sibling(span_4);
+					var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
 
 					{
-						var expression_6 = _$_.child(span_5);
+						var expression_6 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
 						_$_.expression(expression_6, () => lazy_6.value);
 						_$_.pop(span_5);
@@ -234,7 +234,7 @@ export function AsyncWithCatch() {
 				var p_4 = root_12();
 
 				{
-					var expression_7 = _$_.child(p_4);
+					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 					_$_.expression(expression_7, () => lazy_7.value);
 					_$_.pop(p_4);
@@ -246,7 +246,7 @@ export function AsyncWithCatch() {
 				var p_5 = root_13();
 
 				{
-					var expression_8 = _$_.child(p_5);
+					var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_5.firstChild;
 
 					_$_.expression(expression_8, () => e.message);
 					_$_.pop(p_5);
@@ -273,7 +273,7 @@ export function ChildWithError() {
 				var p_7 = root_15();
 
 				{
-					var expression_9 = _$_.child(p_7);
+					var expression_9 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
 
 					_$_.expression(expression_9, () => lazy_8.value);
 					_$_.pop(p_7);
@@ -303,7 +303,7 @@ export function ParentWithCatch() {
 				var p_9 = root_17();
 
 				{
-					var expression_10 = _$_.child(p_9);
+					var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
 					_$_.expression(expression_10, () => e.message);
 					_$_.pop(p_9);
@@ -323,7 +323,7 @@ function ReactiveDependencyResult({ count }) {
 		var p_10 = root_18();
 
 		{
-			var expression_11 = _$_.child(p_10);
+			var expression_11 = _$_.hydrating ? _$_.hydrate_child() : p_10.firstChild;
 
 			_$_.expression(expression_11, () => lazy_9.value);
 			_$_.pop(p_10);
@@ -347,7 +347,7 @@ export function AsyncWithReactiveDependency() {
 				_$_.update(lazy_10);
 			};
 
-			var node_2 = _$_.sibling(button_1);
+			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			_$_.try(
 				node_2,

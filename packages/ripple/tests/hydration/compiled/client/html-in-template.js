@@ -32,11 +32,11 @@ export function TemplateAroundIfBlock() {
 		var div = root_2();
 
 		{
-			var template_2 = _$_.child(div);
+			var template_2 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			template_2.innerHTML = "before" ?? template_2.innerHTML;
 
-			var node = _$_.sibling(template_2);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : template_2.nextSibling;
 
 			{
 				var consequent = (__anchor) => {
@@ -50,7 +50,7 @@ export function TemplateAroundIfBlock() {
 				});
 			}
 
-			var template_3 = _$_.sibling(node);
+			var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
 			template_3.innerHTML = "after" ?? template_3.innerHTML;
 			_$_.pop(div);

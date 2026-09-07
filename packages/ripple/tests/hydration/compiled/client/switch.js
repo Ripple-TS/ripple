@@ -91,7 +91,7 @@ export function SwitchReactive() {
 				if (lazy.value === 'a') _$_.set(lazy, 'b'); else if (lazy.value === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
 			};
 
-			var node = _$_.sibling(button);
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			{
 				var switch_case_0_1 = (__anchor) => {
@@ -193,7 +193,7 @@ export function SwitchNumericLevels() {
 				if (lazy_1.value === 1) _$_.set(lazy_1, 2); else if (lazy_1.value === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
 			};
 
-			var node_2 = _$_.sibling(button_1);
+			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			{
 				var switch_case_0_3 = (__anchor) => {
@@ -254,7 +254,7 @@ export function SwitchBlockScoped() {
 				if (lazy_2.value === 1) _$_.set(lazy_2, 2); else if (lazy_2.value === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
 			};
 
-			var node_4 = _$_.sibling(button_2);
+			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
 			{
 				var switch_case_0_4 = (__anchor) => {
@@ -315,7 +315,7 @@ export function SwitchNoBreak() {
 				if (lazy_3.value === 1) _$_.set(lazy_3, 2); else if (lazy_3.value === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
 			};
 
-			var node_6 = _$_.sibling(button_3);
+			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 			{
 				var switch_case_0_5 = (__anchor) => {
