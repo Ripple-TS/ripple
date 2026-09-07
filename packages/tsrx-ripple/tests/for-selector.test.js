@@ -133,6 +133,55 @@ describe('@for selector lowering', () => {
 	});
 });
 
+describe('grouped render read hoisting', () => {
+	it('does not hoist an item read only on conditional paths', () => {
+		const code = compile_client(`${ROWS}
+			export default function App() @{
+				let &[items] = track<Row[]>([]);
+				let &[ready] = track(false);
+				@for (const row of items; key row.id) {
+					<tr title={ready ? row.label.value : 'pending'} class={ready && row.label.value}>{'x'}</tr>
+				}
+			}
+		`);
+
+		expect(code).not.toContain('var __pattern');
+		// Two guarded reads in the render plus the key function.
+		expect(code.match(/_\$_\.get\(pattern\)/g)).toHaveLength(3);
+	});
+
+	it('leaves reads inside nested functions alone', () => {
+		const code = compile_client(`${ROWS}
+			export default function App() @{
+				let &[items] = track<Row[]>([]);
+				@for (const row of items; key row.id) {
+					<tr title={row.label.value} class={[row.id].some((id) => row.id === id) ? 'x' : ''}>{'x'}</tr>
+				}
+			}
+		`);
+
+		// The call is wrapped in a scope arrow, so its reads are nested and
+		// only the title read is unconditional: nothing to hoist.
+		expect(code).not.toContain('var __pattern');
+		expect(code).toContain('[_$_.get(pattern).id].some((id) => _$_.get(pattern).id === id)');
+	});
+
+	it('reuses an unconditional read on conditional paths too', () => {
+		const code = compile_client(`${ROWS}
+			export default function App() @{
+				let &[items] = track<Row[]>([]);
+				let &[ready] = track(false);
+				@for (const row of items; key row.id) {
+					<tr title={row.label.value} class={ready ? row.label.value : ''}>{'x'}</tr>
+				}
+			}
+		`);
+
+		expect(code).toContain('var __pattern = _$_.get(pattern);');
+		expect(code).not.toContain('_$_.get(pattern).label');
+	});
+});
+
 describe('@for item type inference', () => {
 	it('lowers typed member reads on the loop item to text updates', () => {
 		const code = compile_client(`${ROWS}

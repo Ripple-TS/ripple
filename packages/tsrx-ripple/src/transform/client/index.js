@@ -950,32 +950,62 @@ function get_tracked_read_name(node) {
 
 /**
  * A grouped render reads the same tracked identifier (typically a `@for`
- * item) once per update it appears in. The reads are pure and the render
- * runs synchronously, so read each identifier once up front and reuse it.
+ * item) once per update it appears in. Where the render body reads it
+ * unconditionally anyway, read it once up front and reuse the value. Reads
+ * inside nested functions keep their own subscription and are left alone; an
+ * identifier read only on a conditional path (a ternary branch, the right
+ * side of `&&` / `||`) is not hoisted, since the read may be guarded — for
+ * example against a pending `trackAsync` value.
  * @param {AST.Statement[]} statements
  * @param {TransformClientState} state
  */
 function hoist_repeated_tracked_reads(statements, state) {
-	/** @type {Map<string, number>} */
+	/** @type {Map<string, { unconditional: number; total: number }>} */
 	const counts = new Map();
 
-	for (const statement of statements) {
-		walk(statement, null, {
-			_(node, { next }) {
-				const name = get_tracked_read_name(node);
-				if (name !== null) {
-					counts.set(name, (counts.get(name) ?? 0) + 1);
-					return;
+	/** @type {Visitors<AST.Node, { conditional: boolean }>} */
+	const counting_visitors = {
+		_(node, { state, next }) {
+			const name = get_tracked_read_name(node);
+			if (name !== null) {
+				let count = counts.get(name);
+				if (count === undefined) {
+					count = { unconditional: 0, total: 0 };
+					counts.set(name, count);
 				}
-				next();
-			},
-		});
+				count.total += 1;
+				if (!state.conditional) count.unconditional += 1;
+				return;
+			}
+			next();
+		},
+		ConditionalExpression(node, { state, visit }) {
+			visit(node.test, state);
+			visit(node.consequent, { conditional: true });
+			visit(node.alternate, { conditional: true });
+		},
+		LogicalExpression(node, { state, visit }) {
+			visit(node.left, state);
+			visit(node.right, { conditional: true });
+		},
+		IfStatement(node, { state, visit }) {
+			visit(node.test, state);
+			visit(node.consequent, { conditional: true });
+			if (node.alternate) visit(node.alternate, { conditional: true });
+		},
+		ArrowFunctionExpression() {},
+		FunctionExpression() {},
+		FunctionDeclaration() {},
+	};
+
+	for (const statement of statements) {
+		walk(statement, { conditional: false }, counting_visitors);
 	}
 
 	/** @type {Map<string, AST.Identifier>} */
 	const hoisted = new Map();
 	for (const [name, count] of counts) {
-		if (count > 1) {
+		if (count.total > 1 && count.unconditional > 0) {
 			hoisted.set(name, b.id(state.scope.generate('__' + name)));
 		}
 	}
@@ -983,19 +1013,29 @@ function hoist_repeated_tracked_reads(statements, state) {
 		return;
 	}
 
+	/** @type {Visitors<AST.Node, null>} */
+	const replacing_visitors = {
+		_(node, { next }) {
+			const name = get_tracked_read_name(node);
+			if (name !== null) {
+				const id = hoisted.get(name);
+				return id === undefined ? node : id;
+			}
+			return next();
+		},
+		ArrowFunctionExpression(node) {
+			return node;
+		},
+		FunctionExpression(node) {
+			return node;
+		},
+		FunctionDeclaration(node) {
+			return node;
+		},
+	};
+
 	for (let i = 0; i < statements.length; i++) {
-		statements[i] = /** @type {AST.Statement} */ (
-			walk(statements[i], null, {
-				_(node, { next }) {
-					const name = get_tracked_read_name(node);
-					if (name !== null) {
-						const id = hoisted.get(name);
-						return id === undefined ? node : id;
-					}
-					return next();
-				},
-			})
-		);
+		statements[i] = /** @type {AST.Statement} */ (walk(statements[i], null, replacing_visitors));
 	}
 
 	const declarations = [];
