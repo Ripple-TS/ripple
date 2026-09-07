@@ -1,0 +1,20 @@
+{
+  "name": "svelte-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for Svelte 5 - the Svelte column for the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5273 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5273 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

@@ -60,5 +60,11 @@ temp/
 # differential test rig precompile cache
 **/.react-cache/
 
-# streaming SSR benchmark compiled output
-benchmarks/streaming-ssr/.compiled/
+
+# Keep saved benchmark logs even when a global Git ignore excludes *.log.
+!benchmarks/results/**/*.log
+
+# Local benchmark references and profiles
+benchmarks/baselines/local/
+benchmarks/**/*.cpuprofile
+benchmarks/**/*.heapsnapshot

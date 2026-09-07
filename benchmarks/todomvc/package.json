@@ -1,0 +1,14 @@
+{
+  "name": "octane-todomvc-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "TodoMVC benchmark umbrella - drives each framework's TodoMVC app through Speedometer-style scripted interactions via Playwright.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 16"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

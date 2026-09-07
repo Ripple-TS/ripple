@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/portal-swarm",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "200-item portal lifecycle benchmark across Octane, React, Preact, Solid, Svelte, Ripple, and Vue Vapor.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 40"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

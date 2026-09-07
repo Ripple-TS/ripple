@@ -1,0 +1,19 @@
+{
+  "name": "preact-signal-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "signal-favoring benchmark fixture for Preact hooks.",
+  "scripts": {
+    "dev": "vite --host --port 5265 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5265 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

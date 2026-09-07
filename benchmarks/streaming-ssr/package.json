@@ -1,21 +1,20 @@
 {
-  "name": "@benchmarks/streaming-ssr",
+  "name": "octane-streaming-ssr-benchmarks",
   "private": true,
   "type": "module",
-  "version": "0.0.36",
-  "description": "Streaming SSR benchmark — TTFB, total render time and throughput for pages with async @try boundaries. Targets: ripple (buffered + streaming), Solid 2.0 renderToStream, React 19 renderToReadableStream.",
+  "version": "0.0.0",
+  "description": "Node-only streaming SSR benchmark for Octane, React, Preact, Solid, Ripple, and Inferno; Svelte is N/A because its public renderer is buffered.",
   "scripts": {
-    "bench": "node run.mjs"
+    "bench": "node run.mjs",
+    "bench:smoke": "node run.mjs 3"
   },
   "dependencies": {
-    "@babel/core": "catalog:default",
-    "@solidjs/web": "catalog:default",
-    "@tsrx/ripple": "workspace:*",
-    "@tsrx/solid": "catalog:default",
-    "babel-preset-solid": "catalog:default",
-    "react": "catalog:default",
-    "react-dom": "catalog:default",
-    "ripple": "workspace:*",
-    "solid-js": "catalog:default"
+    "vite": "catalog:benchmarks",
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks",
+    "preact": "catalog:benchmarks",
+    "preact-render-to-string": "catalog:benchmarks",
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
   }
 }

@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm bench fixture for Vue Vapor (3.6 vapor mode) - 200 items each conditionally teleporting a tooltip via VaporTeleport. Exposes window.__mount/__openAll/__rerenderA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5181 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5181 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

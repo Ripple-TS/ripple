@@ -1,0 +1,20 @@
+{
+  "name": "ripple-todomvc",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "TodoMVC fixture for Ripple - the Ripple column for the app-shaped scripted ops + app-code bundle size.",
+  "scripts": {
+    "dev": "vite --host --port 5243 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5243 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

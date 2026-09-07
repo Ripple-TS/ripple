@@ -3,18 +3,18 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "signal-favoring bench fixture for Solid 2.0 — 100-component chain with signal counters every 10 levels.",
+  "description": "signal-favoring bench fixture for Solid 2.0 - 100-component chain with signal counters every 10 levels.",
   "scripts": {
     "dev": "vite --host --port 5191 --strictPort",
     "build": "vite build",
     "preview": "vite preview --port 5191 --strictPort"
   },
   "dependencies": {
-    "solid-js": "catalog:default",
-    "@solidjs/web": "catalog:default"
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
   },
   "devDependencies": {
-    "vite-plugin-solid": "^3.0.0-next.5",
-    "vite": "catalog:default"
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
   }
 }

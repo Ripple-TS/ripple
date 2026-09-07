@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm bench fixture for octane authored in .tsrx - 200 items each conditionally portalling a tooltip via the compiled child-position portal() fast path (section A) and value-position createPortal descriptors from a plain-.ts helper (sections B / B_stable). Exposes window.__mount/__openAll/__rerenderA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5210 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5210 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

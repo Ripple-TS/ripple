@@ -1,0 +1,16 @@
+{
+  "name": "octane-jsx-news-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "news-site SSR+hydration bench fixture for octane authored in React-style .tsx (JSX) - the JSX twin of octane-tsrx-news-bench.",
+  "scripts": {
+    "dev": "vite --host --port 5195 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

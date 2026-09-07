@@ -1,0 +1,18 @@
+{
+  "name": "octane-tsrx-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for octane (.tsrx) - 10 nested levels of use(fetch) under Suspense, init + transition-driven update; measures the nested-use waterfall.",
+  "scripts": {
+    "dev": "vite --host --port 5216 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5216 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

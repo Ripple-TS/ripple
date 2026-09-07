@@ -1,0 +1,20 @@
+{
+  "name": "ripple-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for Ripple - the Ripple column for the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5253 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5253 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

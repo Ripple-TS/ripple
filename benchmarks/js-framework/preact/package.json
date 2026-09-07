@@ -1,0 +1,20 @@
+{
+  "name": "preact-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "js-framework-benchmark fixture for Preact (keyed hooks implementation).",
+  "scripts": {
+    "dev": "vite --host --port 5260 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5260 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

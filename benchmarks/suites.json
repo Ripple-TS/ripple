@@ -1,0 +1,1517 @@
+[
+  {
+    "name": "js-framework",
+    "cwd": "js-framework",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 8,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5176/",
+        "ready": "#run",
+        "filter": "octane-tsrx-jsbench",
+        "port": 5176
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5177/",
+        "ready": "#run",
+        "filter": "octane-jsx-jsbench",
+        "port": 5177
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5175/",
+        "ready": "#run",
+        "filter": "react-jsbench",
+        "port": 5175
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5178/",
+        "ready": "#run",
+        "filter": "ripple-jsbench",
+        "port": 5178
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5179/",
+        "ready": "#run",
+        "filter": "solid-jsbench",
+        "port": 5179
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5180/",
+        "ready": "#run",
+        "filter": "vue-vapor-jsbench",
+        "port": 5180
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5260/",
+        "ready": "#run",
+        "filter": "preact-jsbench",
+        "port": 5260
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5271/",
+        "ready": "#run",
+        "filter": "svelte-jsbench",
+        "port": 5271
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5320/",
+        "ready": "#run",
+        "filter": "inferno-jsbench",
+        "port": 5320
+      }
+    ],
+    "operations": [
+      "run",
+      "replace",
+      "add",
+      "update",
+      "select",
+      "swap",
+      "remove",
+      "runlots",
+      "select_lots",
+      "clear"
+    ]
+  },
+  {
+    "name": "js-framework-clear-1k",
+    "cwd": "js-framework",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 15,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5176/",
+        "ready": "#run",
+        "filter": "octane-tsrx-jsbench",
+        "port": 5176
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5177/",
+        "ready": "#run",
+        "filter": "octane-jsx-jsbench",
+        "port": 5177
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5175/",
+        "ready": "#run",
+        "filter": "react-jsbench",
+        "port": 5175
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5178/",
+        "ready": "#run",
+        "filter": "ripple-jsbench",
+        "port": 5178
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5179/",
+        "ready": "#run",
+        "filter": "solid-jsbench",
+        "port": 5179
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5180/",
+        "ready": "#run",
+        "filter": "vue-vapor-jsbench",
+        "port": 5180
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5260/",
+        "ready": "#run",
+        "filter": "preact-jsbench",
+        "port": 5260
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5271/",
+        "ready": "#run",
+        "filter": "svelte-jsbench",
+        "port": 5271
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5320/",
+        "ready": "#run",
+        "filter": "inferno-jsbench",
+        "port": 5320
+      }
+    ],
+    "operations": ["clear_1k"],
+    "optional": true,
+    "env": {
+      "CLEAR_1K": "1"
+    }
+  },
+  {
+    "name": "js-framework-reorder",
+    "cwd": "js-framework",
+    "script": "run-reorder.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 8,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5176/",
+        "ready": "#run",
+        "filter": "octane-tsrx-jsbench",
+        "port": 5176
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5177/",
+        "ready": "#run",
+        "filter": "octane-jsx-jsbench",
+        "port": 5177
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5175/",
+        "ready": "#run",
+        "filter": "react-jsbench",
+        "port": 5175
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5178/",
+        "ready": "#run",
+        "filter": "ripple-jsbench",
+        "port": 5178
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5179/",
+        "ready": "#run",
+        "filter": "solid-jsbench",
+        "port": 5179
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5180/",
+        "ready": "#run",
+        "filter": "vue-vapor-jsbench",
+        "port": 5180
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5260/",
+        "ready": "#run",
+        "filter": "preact-jsbench",
+        "port": 5260
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5271/",
+        "ready": "#run",
+        "filter": "svelte-jsbench",
+        "port": 5271
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5320/",
+        "ready": "#run",
+        "filter": "inferno-jsbench",
+        "port": 5320
+      }
+    ],
+    "operations": [
+      "append100",
+      "displace3",
+      "displace4",
+      "displace5",
+      "displace6",
+      "displace8",
+      "insertmid100",
+      "prepend100",
+      "removeevery10",
+      "removefirst",
+      "reverse",
+      "rotateb",
+      "rotatef",
+      "shuffle"
+    ]
+  },
+  {
+    "name": "recursive-context",
+    "cwd": "recursive-context",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5185/",
+        "filter": "octane-tsrx-recursive-bench",
+        "port": 5185
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5188/",
+        "filter": "octane-jsx-recursive-bench",
+        "port": 5188
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5187/",
+        "filter": "solid-recursive-bench",
+        "port": 5187
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5186/",
+        "filter": "react-recursive-bench",
+        "port": 5186
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5184/",
+        "filter": "ripple-recursive-bench",
+        "port": 5184
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5189/",
+        "filter": "vue-vapor-recursive-bench",
+        "port": 5189
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5264/",
+        "filter": "preact-recursive-bench",
+        "port": 5264
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5275/",
+        "filter": "svelte-recursive-bench",
+        "port": 5275
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5327/",
+        "filter": "inferno-recursive-bench",
+        "port": 5327
+      }
+    ],
+    "operations": [
+      "mount",
+      "partial_remount",
+      "partial_unmount",
+      "unmount",
+      "update_partial",
+      "update_root"
+    ]
+  },
+  {
+    "name": "signal-favoring",
+    "cwd": "signal-favoring",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5190/",
+        "filter": "octane-tsrx-signal-bench",
+        "port": 5190
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5194/",
+        "filter": "octane-jsx-signal-bench",
+        "port": 5194
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5191/",
+        "filter": "solid-signal-bench",
+        "port": 5191
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5192/",
+        "filter": "react-signal-bench",
+        "port": 5192
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5193/",
+        "filter": "ripple-signal-bench",
+        "port": 5193
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5183/",
+        "filter": "vue-vapor-signal-bench",
+        "port": 5183
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5265/",
+        "filter": "preact-signal-bench",
+        "port": 5265
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5276/",
+        "filter": "svelte-signal-bench",
+        "port": 5276
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5329/",
+        "filter": "inferno-signal-bench",
+        "port": 5329
+      }
+    ],
+    "operations": [
+      "bump_deep",
+      "bump_middle",
+      "bump_shallow",
+      "bump_sweep",
+      "bump_sweep_batched",
+      "bump_sweep_reverse",
+      "mount",
+      "unmount"
+    ]
+  },
+  {
+    "name": "news",
+    "cwd": "news",
+    "script": "run.mjs",
+    "kind": "per-target",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx"
+      },
+      {
+        "name": "octane-jsx"
+      },
+      {
+        "name": "react"
+      },
+      {
+        "name": "preact"
+      },
+      {
+        "name": "ripple"
+      },
+      {
+        "name": "solid"
+      },
+      {
+        "name": "svelte"
+      },
+      {
+        "name": "vue-vapor"
+      },
+      {
+        "name": "inferno"
+      }
+    ],
+    "operations": ["hydrate", "ssr_render"]
+  },
+  {
+    "name": "todomvc",
+    "cwd": "todomvc",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 8,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5240/",
+        "filter": "octane-tsrx-todomvc",
+        "port": 5240
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5241/",
+        "filter": "react-todomvc",
+        "port": 5241
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5242/",
+        "filter": "solid-todomvc",
+        "port": 5242
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5243/",
+        "filter": "ripple-todomvc",
+        "port": 5243
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5244/",
+        "filter": "vue-vapor-todomvc",
+        "port": 5244
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5261/",
+        "filter": "preact-todomvc",
+        "port": 5261
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5272/",
+        "filter": "svelte-todomvc",
+        "port": 5272
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5321/",
+        "filter": "inferno-todomvc",
+        "port": 5321
+      }
+    ],
+    "operations": [
+      "add100",
+      "clearCompleted",
+      "comments_100",
+      "complete25",
+      "destroy25",
+      "edit10",
+      "elements_100",
+      "empty_text_100",
+      "filterCycle",
+      "nodes_100",
+      "row_class_writes_complete25",
+      "text_100",
+      "toggleAllOff",
+      "toggleAllOn",
+      "whitespace_text_100"
+    ]
+  },
+  {
+    "name": "chat-stream",
+    "cwd": "chat-stream",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 8,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5250/",
+        "filter": "octane-tsrx-chat-stream",
+        "port": 5250
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5251/",
+        "filter": "react-chat-stream",
+        "port": 5251
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5252/",
+        "filter": "solid-chat-stream",
+        "port": 5252
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5253/",
+        "filter": "ripple-chat-stream",
+        "port": 5253
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5254/",
+        "filter": "vue-vapor-chat-stream",
+        "port": 5254
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5262/",
+        "filter": "preact-chat-stream",
+        "port": 5262
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5273/",
+        "filter": "svelte-chat-stream",
+        "port": 5273
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5323/",
+        "filter": "inferno-chat-stream",
+        "port": 5323
+      }
+    ],
+    "operations": [
+      "appendHistory",
+      "comments_conv",
+      "elements_conv",
+      "empty_text_conv",
+      "nodes_conv",
+      "streamCoarse",
+      "streamFine",
+      "switchConv",
+      "text_conv",
+      "type160",
+      "whitespace_text_conv"
+    ]
+  },
+  {
+    "name": "dbmon",
+    "cwd": "dbmon",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 30,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5196/",
+        "filter": "octane-tsrx-dbmon-bench",
+        "port": 5196
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5197/",
+        "filter": "octane-jsx-dbmon-bench",
+        "port": 5197
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5199/",
+        "filter": "ripple-dbmon-bench",
+        "port": 5199
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5200/",
+        "filter": "solid-dbmon-bench",
+        "port": 5200
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5198/",
+        "filter": "react-dbmon-bench",
+        "port": 5198
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5220/",
+        "filter": "vue-vapor-dbmon-bench",
+        "port": 5220
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5263/",
+        "filter": "preact-dbmon-bench",
+        "port": 5263
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5274/",
+        "filter": "svelte-dbmon-bench",
+        "port": 5274
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5326/",
+        "filter": "inferno-dbmon-bench",
+        "port": 5326
+      }
+    ],
+    "operations": ["mount", "remount", "sort", "tick", "tick_partial", "unmount"]
+  },
+  {
+    "name": "uibench",
+    "cwd": "uibench",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 10,
+      "quick": 2
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5315/",
+        "filter": "octane-tsrx-uibench-bench",
+        "port": 5315
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5316/",
+        "filter": "react-uibench-bench",
+        "port": 5316
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5317/",
+        "filter": "solid-uibench-bench",
+        "port": 5317
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5318/",
+        "filter": "preact-uibench-bench",
+        "port": 5318
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5319/",
+        "filter": "vue-vapor-uibench-bench",
+        "port": 5319
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5322/",
+        "filter": "ripple-uibench-bench",
+        "port": 5322
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5325/",
+        "filter": "inferno-uibench-bench",
+        "port": 5325
+      }
+    ],
+    "operations": [
+      "anim/100/16",
+      "anim/100/32",
+      "anim/100/4",
+      "anim/100/8",
+      "cases",
+      "elements_largest",
+      "identity_shared",
+      "table/[100,2]/activate/16",
+      "table/[100,2]/activate/32",
+      "table/[100,2]/activate/4",
+      "table/[100,2]/activate/8",
+      "table/[100,2]/filter/16",
+      "table/[100,2]/filter/32",
+      "table/[100,2]/filter/4",
+      "table/[100,2]/filter/8",
+      "table/[100,2]/removeAll",
+      "table/[100,2]/render",
+      "table/[100,2]/sort/0",
+      "table/[100,2]/sort/1",
+      "table/[100,4]/activate/16",
+      "table/[100,4]/activate/32",
+      "table/[100,4]/activate/4",
+      "table/[100,4]/activate/8",
+      "table/[100,4]/filter/16",
+      "table/[100,4]/filter/32",
+      "table/[100,4]/filter/4",
+      "table/[100,4]/filter/8",
+      "table/[100,4]/removeAll",
+      "table/[100,4]/render",
+      "table/[100,4]/sort/0",
+      "table/[100,4]/sort/1",
+      "table/[50,2]/activate/16",
+      "table/[50,2]/activate/32",
+      "table/[50,2]/activate/4",
+      "table/[50,2]/activate/8",
+      "table/[50,2]/filter/16",
+      "table/[50,2]/filter/32",
+      "table/[50,2]/filter/4",
+      "table/[50,2]/filter/8",
+      "table/[50,2]/removeAll",
+      "table/[50,2]/render",
+      "table/[50,2]/sort/0",
+      "table/[50,2]/sort/1",
+      "table/[50,4]/activate/16",
+      "table/[50,4]/activate/32",
+      "table/[50,4]/activate/4",
+      "table/[50,4]/activate/8",
+      "table/[50,4]/filter/16",
+      "table/[50,4]/filter/32",
+      "table/[50,4]/filter/4",
+      "table/[50,4]/filter/8",
+      "table/[50,4]/removeAll",
+      "table/[50,4]/render",
+      "table/[50,4]/sort/0",
+      "table/[50,4]/sort/1",
+      "tree/[10,10,10,10]/no_change",
+      "tree/[10,50]/[insertFirst(1)]",
+      "tree/[10,50]/[insertLast(1)]",
+      "tree/[10,50]/[moveFromEndToStart(1)]",
+      "tree/[10,50]/[moveFromStartToEnd(1)]",
+      "tree/[10,50]/[removeFirst(1)]",
+      "tree/[10,50]/[removeLast(1)]",
+      "tree/[10,50]/[reverse]",
+      "tree/[10,50]/removeAll",
+      "tree/[10,50]/render",
+      "tree/[2,2,2,2,2,2,2,2,2,2]/no_change",
+      "tree/[2,2,2,2,2,2,2,2,2,2]/removeAll",
+      "tree/[2,2,2,2,2,2,2,2,2,2]/render",
+      "tree/[5,100]/[insertFirst(1)]",
+      "tree/[5,100]/[insertLast(1)]",
+      "tree/[5,100]/[moveFromEndToStart(1)]",
+      "tree/[5,100]/[moveFromStartToEnd(1)]",
+      "tree/[5,100]/[removeFirst(1)]",
+      "tree/[5,100]/[removeLast(1)]",
+      "tree/[5,100]/[reverse]",
+      "tree/[5,100]/removeAll",
+      "tree/[5,100]/render",
+      "tree/[50,10]/[insertFirst(1)]",
+      "tree/[50,10]/[insertLast(1)]",
+      "tree/[50,10]/[moveFromEndToStart(1)]",
+      "tree/[50,10]/[moveFromStartToEnd(1)]",
+      "tree/[50,10]/[removeFirst(1)]",
+      "tree/[50,10]/[removeLast(1)]",
+      "tree/[50,10]/[reverse]",
+      "tree/[50,10]/removeAll",
+      "tree/[50,10]/render",
+      "tree/[500]/[insertFirst(1)]",
+      "tree/[500]/[insertLast(1)]",
+      "tree/[500]/[kivi_worst_case]",
+      "tree/[500]/[moveFromEndToStart(1)]",
+      "tree/[500]/[moveFromStartToEnd(1)]",
+      "tree/[500]/[react_worst_case]",
+      "tree/[500]/[removeFirst(1)]",
+      "tree/[500]/[removeLast(1)]",
+      "tree/[500]/[reverse]",
+      "tree/[500]/[snabbdom_worst_case]",
+      "tree/[500]/[virtual_dom_worst_case]",
+      "tree/[500]/removeAll",
+      "tree/[500]/render"
+    ]
+  },
+  {
+    "name": "effectful-list",
+    "cwd": "effectful-list",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 30,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5201/",
+        "filter": "octane-tsrx-effectful-list-bench",
+        "port": 5201
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5202/",
+        "filter": "octane-jsx-effectful-list-bench",
+        "port": 5202
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5203/",
+        "filter": "react-effectful-list-bench",
+        "port": 5203
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5204/",
+        "filter": "solid-effectful-list-bench",
+        "port": 5204
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5205/",
+        "filter": "ripple-effectful-list-bench",
+        "port": 5205
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5221/",
+        "filter": "vue-vapor-effectful-list-bench",
+        "port": 5221
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5266/",
+        "filter": "preact-effectful-list-bench",
+        "port": 5266
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5277/",
+        "filter": "svelte-effectful-list-bench",
+        "port": 5277
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5330/",
+        "filter": "inferno-effectful-list-bench",
+        "port": 5330
+      }
+    ],
+    "operations": [
+      "clear",
+      "mount_1k",
+      "remount",
+      "remove_100_scattered",
+      "update_deps",
+      "update_nodeps"
+    ]
+  },
+  {
+    "name": "memo-wall",
+    "cwd": "memo-wall",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5206/",
+        "filter": "octane-tsrx-memowall-bench",
+        "port": 5206
+      },
+      {
+        "name": "octane-jsx",
+        "url": "http://localhost:5207/",
+        "filter": "octane-jsx-memowall-bench",
+        "port": 5207
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5226/",
+        "filter": "react-compiler-memowall-bench",
+        "port": 5226
+      },
+      {
+        "name": "react-uncompiled",
+        "url": "http://localhost:5208/",
+        "filter": "react-memowall-bench",
+        "port": 5208
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5182/",
+        "filter": "solid-memowall-bench",
+        "port": 5182
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5225/",
+        "filter": "ripple-memowall-bench",
+        "port": 5225
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5223/",
+        "filter": "vue-vapor-memowall-bench",
+        "port": 5223
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5267/",
+        "filter": "preact-memowall-bench",
+        "port": 5267
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5278/",
+        "filter": "svelte-memowall-bench",
+        "port": 5278
+      }
+    ],
+    "operations": [
+      "ctx_through_wall_A",
+      "ctx_through_wall_B",
+      "mount",
+      "one_change_A",
+      "one_change_B",
+      "parent_rerender_equal_A",
+      "parent_rerender_equal_B"
+    ]
+  },
+  {
+    "name": "portal-swarm",
+    "cwd": "portal-swarm",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5210/",
+        "filter": "octane-tsrx-portal-swarm-bench",
+        "port": 5210
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5211/",
+        "filter": "react-portal-swarm-bench",
+        "port": 5211
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5212/",
+        "filter": "solid-portal-swarm-bench",
+        "port": 5212
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5224/",
+        "filter": "ripple-portal-swarm-bench",
+        "port": 5224
+      },
+      {
+        "name": "vue-vapor",
+        "url": "http://localhost:5181/",
+        "filter": "vue-vapor-portal-swarm-bench",
+        "port": 5181
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5268/",
+        "filter": "preact-portal-swarm-bench",
+        "port": 5268
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5279/",
+        "filter": "svelte-portal-swarm-bench",
+        "port": 5279
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5332/",
+        "filter": "inferno-portal-swarm-bench",
+        "port": 5332
+      }
+    ],
+    "operations": [
+      "dispatch_through_portal",
+      "mount_closed",
+      "open_all",
+      "open_close_cycle",
+      "open_close_distinct",
+      "rerender_open_A",
+      "rerender_open_B",
+      "rerender_open_B_stable"
+    ]
+  },
+  {
+    "name": "async-waterfall",
+    "cwd": "async-waterfall",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 10,
+      "quick": 2
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5216/",
+        "filter": "octane-tsrx-async-bench",
+        "port": 5216
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5217/",
+        "filter": "react-async-bench",
+        "port": 5217
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5218/",
+        "filter": "solid-async-bench",
+        "port": 5218
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5219/",
+        "filter": "ripple-async-bench",
+        "port": 5219
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5269/",
+        "filter": "preact-async-bench",
+        "port": 5269
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5280/",
+        "filter": "svelte-async-bench",
+        "port": 5280
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5333/",
+        "filter": "inferno-async-bench",
+        "port": 5333
+      }
+    ],
+    "operations": ["init", "update"]
+  },
+  {
+    "name": "streaming-ssr",
+    "cwd": "streaming-ssr",
+    "script": "run.mjs",
+    "kind": "node",
+    "iter": {
+      "normal": 30,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "operations": [
+          "shell_staggered",
+          "total_staggered",
+          "shell_allfast",
+          "total_allfast",
+          "shell_cpu_10",
+          "total_cpu_10",
+          "shell_cpu_100",
+          "total_cpu_100",
+          "shell_cpu_800",
+          "total_cpu_800",
+          "shell_cpu_waves_50",
+          "total_cpu_waves_50"
+        ]
+      },
+      {
+        "name": "react"
+      },
+      {
+        "name": "preact"
+      },
+      {
+        "name": "solid"
+      },
+      {
+        "name": "ripple",
+        "operations": [
+          "shell_staggered",
+          "total_staggered",
+          "shell_allfast",
+          "total_allfast",
+          "shell_cpu_10",
+          "total_cpu_10",
+          "shell_cpu_100",
+          "total_cpu_100",
+          "shell_cpu_800",
+          "total_cpu_800",
+          "shell_cpu_waves_50",
+          "total_cpu_waves_50"
+        ]
+      },
+      {
+        "name": "inferno"
+      }
+    ],
+    "operations": ["shell_allfast", "shell_staggered", "total_allfast", "total_staggered"]
+  },
+  {
+    "name": "ssr-throughput",
+    "cwd": "ssr-throughput",
+    "script": "run.mjs",
+    "kind": "node",
+    "iter": {
+      "normal": 10,
+      "quick": 2
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx"
+      },
+      {
+        "name": "react"
+      },
+      {
+        "name": "preact"
+      },
+      {
+        "name": "solid"
+      },
+      {
+        "name": "svelte"
+      },
+      {
+        "name": "ripple"
+      },
+      {
+        "name": "vue-vapor"
+      },
+      {
+        "name": "inferno"
+      }
+    ],
+    "operations": ["render"]
+  },
+  {
+    "name": "bundle-size",
+    "cwd": "bundle-size",
+    "script": "run.mjs",
+    "kind": "node",
+    "iter": {
+      "normal": 1,
+      "quick": 1
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "octane-jsx",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli"
+        ]
+      },
+      {
+        "name": "react",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "preact",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "solid",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "svelte",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "ripple",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "vue-vapor",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      },
+      {
+        "name": "inferno",
+        "operations": [
+          "js_raw",
+          "js_gzip",
+          "js_brotli",
+          "app_raw",
+          "app_gzip",
+          "app_brotli",
+          "fw_raw",
+          "fw_gzip",
+          "fw_brotli",
+          "todo_js_raw",
+          "todo_js_gzip",
+          "todo_js_brotli",
+          "todo_app_raw",
+          "todo_app_gzip",
+          "todo_app_brotli",
+          "todo_fw_raw",
+          "todo_fw_gzip",
+          "todo_fw_brotli",
+          "chat_js_raw",
+          "chat_js_gzip",
+          "chat_js_brotli",
+          "chat_app_raw",
+          "chat_app_gzip",
+          "chat_app_brotli",
+          "chat_fw_raw",
+          "chat_fw_gzip",
+          "chat_fw_brotli"
+        ]
+      }
+    ],
+    "operations": [
+      "app_brotli",
+      "app_gzip",
+      "app_raw",
+      "fw_brotli",
+      "fw_gzip",
+      "fw_raw",
+      "js_brotli",
+      "js_gzip",
+      "js_raw"
+    ]
+  },
+  {
+    "name": "reconcile-anchors",
+    "cwd": "js-framework",
+    "script": "run-anchors.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 25,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "ripple",
+        "url": "http://localhost:5190/",
+        "filter": "ripple-reconcile-anchors-bench",
+        "port": 5190
+      }
+    ],
+    "operations": [
+      "direct.mount",
+      "direct.reverse",
+      "direct.shuffle",
+      "single.mount",
+      "single.reverse",
+      "single.shuffle",
+      "switch.mount",
+      "switch.reverse",
+      "switch.shuffle",
+      "wrapped.mount",
+      "wrapped.reverse",
+      "wrapped.shuffle"
+    ]
+  }
+]

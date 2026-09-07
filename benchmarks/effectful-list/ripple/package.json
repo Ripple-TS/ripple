@@ -1,0 +1,20 @@
+{
+  "name": "ripple-effectful-list-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "effectful-list bench fixture for ripple - 1000 rows with effect()/ref-cleanup lifecycle counters; exposes window.__mount/__op* + __fx for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5205 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5205 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "react-compiler-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall benchmark fixture for React 19 compiled with the production React Compiler; shares the vanilla React source so only the compiler differs.",
+  "scripts": {
+    "dev": "vite --host --port 5226 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5226 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@babel/core": "catalog:benchmarks",
+    "@rolldown/plugin-babel": "0.2.3",
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "babel-plugin-react-compiler": "1.0.0",
+    "terser": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

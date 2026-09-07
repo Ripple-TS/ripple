@@ -4,7 +4,7 @@
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@sveltejs/acorn-typescript@1.0.13'
-  - '@tsrx/core@0.1.67'
+  - '@tsrx/core@0.1.67 || 0.1.69'
   - '@tsrx/eslint-parser@0.3.133'
   - '@tsrx/eslint-plugin@0.3.133'
   - '@tsrx/language-server@0.3.133'
@@ -15,8 +15,10 @@ minimumReleaseAgeExclude:
   - '@tsrx/vite-plugin-react@0.0.100'
   - '@tsrx/vite-plugin-solid@0.0.97'
   - '@tsrx/react-runtime@0.1.5'
-  - '@tsrx/runtime@0.1.5'
+  - '@tsrx/runtime@0.1.5 || 0.1.6'
   - '@tsrx/solid-runtime@0.1.5'
+  - '@tsrx/ripple@0.1.63'
+  - octane@0.2.4 || 0.2.6
 minimumReleaseAgeIgnoreMissingTime: true
 minimumReleaseAgeStrict: false
 trustPolicy: no-downgrade
@@ -27,6 +29,8 @@ dangerouslyAllowAllBuilds: false
 pmOnFail: download
 
 allowBuilds:
+  # Inferno ships built artifacts; its postinstall only prints a funding message.
+  inferno: false
   bun: true
   esbuild: true
   sharp: true
@@ -44,17 +48,11 @@ packages:
   - website
   - website-new
   - benchmarks
-  - benchmarks/recursive-context
-  - benchmarks/recursive-context/*
-  - benchmarks/signal-favoring
-  - benchmarks/signal-favoring/*
-  - benchmarks/news
-  - benchmarks/news/*
-  - benchmarks/for-reconcile
-  - benchmarks/for-reconcile/*
-  - benchmarks/streaming-ssr
+  - benchmarks/*
+  - benchmarks/*/*
 
 overrides:
+  'vite-plugin-solid@3.0.0-next.5>babel-preset-solid': '2.0.0-rc.2'
   esrap: *esrap_common
   semver: ^7.7.4
   # Solid 2.0 SSR alignment: vite-plugin-solid@3.0.0-next.5 pulls
@@ -70,6 +68,36 @@ overrides:
   babel-plugin-jsx-dom-expressions: '0.50.0-next.14'
 
 catalogs:
+  benchmarks:
+    '@babel/core': '7.29.7'
+    '@preact/preset-vite': '2.10.6'
+    '@solidjs/web': '2.0.0-rc.3'
+    '@sveltejs/vite-plugin-svelte': '7.2.0'
+    '@tsrx/react': '0.2.67'
+    '@tsrx/solid': '0.1.67'
+    '@tsrx/vite-plugin-react': '0.0.100'
+    '@tsrx/vite-plugin-solid': '0.0.97'
+    '@vitejs/plugin-react': '6.0.3'
+    '@vitejs/plugin-vue': '6.0.8'
+    '@vue/runtime-dom': '3.6.0-rc.1'
+    '@vue/runtime-vapor': '3.6.0-rc.1'
+    esbuild: '0.28.1'
+    inferno: '9.1.0'
+    inferno-create-element: '9.1.0'
+    inferno-hydrate: '9.1.0'
+    inferno-server: '9.1.0'
+    playwright: '1.63.0'
+    preact: '10.29.8'
+    preact-render-to-string: '6.7.0'
+    react: '19.2.7'
+    react-dom: '19.2.7'
+    solid-js: '2.0.0-rc.3'
+    svelte: '5.56.7'
+    terser: '5.49.0'
+    typescript: '5.9.3'
+    vite: '8.1.5'
+    vite-plugin-solid: '3.0.0-next.5'
+    vue: '3.6.0-rc.1'
   default:
     '@babel/core': ^7.29.0
     '@changesets/changelog-github': ^0.7.0
@@ -140,3 +168,12 @@ catalogs:
     ripple: '*'
     tailwindcss: ^4.1.12
     typescript: *ts_common
+
+# Solid's published compiler bridge still declares a beta-only peer range.
+# The benchmark uses the RC required by @tsrx/solid; validate this exact pair
+# with the full browser, SSR, and hydration suite when upgrading either side.
+peerDependencyRules:
+  allowedVersions:
+    'vite-plugin-solid@3.0.0-next.5>solid-js': '2.0.0-rc.3'
+    'vite-plugin-solid@3.0.0-next.5>@solidjs/web': '2.0.0-rc.3'
+    'solid-refresh@0.8.0-next.7>solid-js': '2.0.0-rc.3'

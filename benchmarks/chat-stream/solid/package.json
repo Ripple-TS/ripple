@@ -1,0 +1,20 @@
+{
+  "name": "solid-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for Solid 2.0 - the Solid column for the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5252 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5252 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

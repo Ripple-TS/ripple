@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-signal-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "signal-favoring bench fixture for Vue Vapor (3.6 vapor mode: 100 <script setup vapor> SFCs in a chain, shallowRef counters at C1, C11, ..., C91) - bumps update only the {{ v }} text renderEffect; ops return nextTick() (Vue has no public sync flush).",
+  "scripts": {
+    "dev": "vite --host --port 5183 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5183 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

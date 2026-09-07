@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-effectful-list-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "effectful-list bench fixture for octane authored in .tsrx - 1000 cross-module rows each carrying useEffect/useLayoutEffect/shared-callback-ref; exposes window.__mount/__op* + __fx counters for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5201 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5201 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "dbmon update-stress bench fixture for Vue Vapor (3.6 vapor mode: shallowRef row array + keyed v-for) - exposes window.__mount/__tick/__tickPartial/__remount/__sort/__unmount/__reset for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5220 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5220 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

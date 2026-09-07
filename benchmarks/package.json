@@ -3,10 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bench": "node tracked-values.js"
+    "bench": "node bench.mjs",
+    "test": "node --test lib/*.test.mjs"
   },
-  "dependencies": {
-    "ripple": "workspace:*",
-    "tinybench": "^2.9.0"
+  "devDependencies": {
+    "playwright": "catalog:benchmarks",
+    "@rolldown/plugin-babel": "0.2.3",
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "babel-plugin-react-compiler": "1.0.0",
+    "@babel/core": "catalog:benchmarks",
+    "babel-plugin-inferno": "6.8.5",
+    "vite": "catalog:benchmarks"
   }
 }

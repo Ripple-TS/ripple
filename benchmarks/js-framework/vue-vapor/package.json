@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "js-framework-benchmark fixture for Vue Vapor (3.6 vapor mode: <script setup vapor> SFC, keyed v-for over a shallowRef row array) - the Vue Vapor column for the 1000-row create/update/swap/select/remove ops plus the keyed-reorder matrix (reverse/shuffle/rotate/displace).",
+  "scripts": {
+    "dev": "vite --host --port 5180 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5180 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

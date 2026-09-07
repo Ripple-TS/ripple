@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-effectful-list-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "effectful-list bench fixture for Vue Vapor (3.6 vapor mode: <script setup vapor> SFCs, keyed v-for over a shallowRef row array + onMounted/onUnmounted/watchPostEffect/function-ref lifecycle counters) - exposes window.__mount/__op* + __fx for the Playwright harness; ops return nextTick() (Vue has no public sync flush).",
+  "scripts": {
+    "dev": "vite --host --port 5221 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5221 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

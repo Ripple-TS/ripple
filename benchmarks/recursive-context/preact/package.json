@@ -1,0 +1,19 @@
+{
+  "name": "preact-recursive-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "recursive-context benchmark fixture for Preact.",
+  "scripts": {
+    "dev": "vite --host --port 5264 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5264 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

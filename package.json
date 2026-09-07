@@ -23,8 +23,10 @@
     "changeset:check": "node scripts/check-changesets.js",
     "changeset:version": "pnpm changeset:check && changeset version",
     "changeset:publish": "pnpm changeset:check && changeset publish",
-    "bench": "node benchmarks/tracked-values.js",
-    "typecheck": "tsgo --noEmit -p packages/ripple/tsconfig.typecheck.json && tsgo --noEmit -p packages/tsrx-ripple/tsconfig.json && tsgo --noEmit -p packages/cli/tsconfig.json && tsgo --noEmit -p packages/create-ripple/tsconfig.json && tsgo --noEmit -p packages/adapter/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-bun/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-node/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-vercel/tsconfig.typecheck.json && tsgo --noEmit -p packages/rollup-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/vite-plugin/tsconfig.typecheck.json"
+    "bench": "node benchmarks/bench.mjs",
+    "typecheck": "tsgo --noEmit -p packages/ripple/tsconfig.typecheck.json && tsgo --noEmit -p packages/tsrx-ripple/tsconfig.json && tsgo --noEmit -p packages/cli/tsconfig.json && tsgo --noEmit -p packages/create-ripple/tsconfig.json && tsgo --noEmit -p packages/adapter/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-bun/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-node/tsconfig.typecheck.json && tsgo --noEmit -p packages/adapter-vercel/tsconfig.typecheck.json && tsgo --noEmit -p packages/rollup-plugin/tsconfig.typecheck.json && tsgo --noEmit -p packages/vite-plugin/tsconfig.typecheck.json",
+    "bench:all": "node benchmarks/bench.mjs",
+    "bench:quick": "node benchmarks/bench.mjs --quick"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:default",

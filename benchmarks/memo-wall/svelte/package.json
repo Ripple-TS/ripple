@@ -1,0 +1,20 @@
+{
+  "name": "svelte-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall fixture for Svelte 5 - fine-grained creation and leaf-effect probes for two 1000-row walls.",
+  "scripts": {
+    "dev": "vite --host --port 5278 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5278 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

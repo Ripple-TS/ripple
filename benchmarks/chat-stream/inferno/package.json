@@ -1,0 +1,19 @@
+{
+  "name": "inferno-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for Inferno and the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5323 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5323 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

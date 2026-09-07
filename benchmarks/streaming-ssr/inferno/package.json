@@ -1,0 +1,16 @@
+{
+  "name": "inferno-streaming-ssr-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Streaming SSR fixture for Inferno using its native ordered queue stream.",
+  "dependencies": {
+    "inferno": "catalog:benchmarks",
+    "inferno-create-element": "catalog:benchmarks",
+    "inferno-server": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  },
+  "scripts": {}
+}

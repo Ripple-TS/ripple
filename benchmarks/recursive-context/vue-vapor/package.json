@@ -1,0 +1,21 @@
+{
+  "name": "vue-vapor-recursive-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "recursive-context bench fixture for Vue Vapor (3.6 vapor mode: <script setup vapor> SFCs, provide/inject shallowRef counters over a depth-10 binary tree) - exposes window.__mount/__updateRoot/__updatePartial/__partialUnmount/__partialRemount/__unmount; update ops return nextTick() (Vue has no public sync flush).",
+  "scripts": {
+    "dev": "vite --host --port 5189 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5189 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks",
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

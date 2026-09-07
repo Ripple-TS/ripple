@@ -1,0 +1,20 @@
+{
+  "name": "inferno-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Inferno portal-swarm fixture with inline, createElement, and reference-stable portal variants.",
+  "scripts": {
+    "dev": "vite --host --port 5332 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5332 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks",
+    "inferno-create-element": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

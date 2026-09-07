@@ -1,0 +1,20 @@
+{
+  "name": "solid-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for Solid 2.0 - 10 nested levels of async memos (promise auto-unwrap) with per-level loading boundaries; parallel by model, no re-render cascade.",
+  "scripts": {
+    "dev": "vite --host --port 5218 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5218 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

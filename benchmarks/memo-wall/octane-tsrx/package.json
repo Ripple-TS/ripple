@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall bench fixture for octane authored in .tsrx - two 1000-row memo(Row) walls (compiled @for componentSlot arm vs value-position createElement childSlot arm) with window.__renders probes; exposes window.__mount/__tickA/__tickB/__oneChangeA/__oneChangeB/__ctxA/__ctxB for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5206 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5206 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

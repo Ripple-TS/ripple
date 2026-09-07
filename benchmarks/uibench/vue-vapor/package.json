@@ -1,0 +1,22 @@
+{
+  "name": "vue-vapor-uibench-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Vue Vapor implementation of the UIbench desktop operation matrix.",
+  "scripts": {
+    "dev": "vite --host --port 5319 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5319 --strictPort"
+  },
+  "dependencies": {
+    "@vue/runtime-dom": "catalog:benchmarks",
+    "@vue/runtime-vapor": "catalog:benchmarks",
+    "vue": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "typescript": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

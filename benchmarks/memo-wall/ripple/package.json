@@ -1,0 +1,20 @@
+{
+  "name": "ripple-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall bench fixture for Ripple - two 1000-row walls over the shared ops driver with the fine-grained probe mapping (bodies count creations; the leaf probe lives in the reactive text expression). Exposes window.__mount/__tickA/__oneChangeA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5225 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5225 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

@@ -8,13 +8,13 @@
     "dev": "vite --host --port 5192 --strictPort"
   },
   "dependencies": {
-    "@solidjs/web": "catalog:default",
-    "solid-js": "catalog:default"
+    "@solidjs/web": "catalog:benchmarks",
+    "solid-js": "catalog:benchmarks"
   },
   "devDependencies": {
-    "@tsrx/solid": "catalog:default",
-    "@tsrx/vite-plugin-solid": "catalog:default",
-    "vite": "catalog:default",
-    "vite-plugin-solid": "3.0.0-next.5"
+    "@tsrx/solid": "catalog:benchmarks",
+    "@tsrx/vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "vite-plugin-solid": "catalog:benchmarks"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "octane-ssr-throughput-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Production buffered news SSR throughput across pinned framework fixtures.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:smoke": "node run.mjs 2"
+  },
+  "dependencies": {
+    "vite": "catalog:benchmarks",
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks",
+    "preact": "catalog:benchmarks",
+    "preact-render-to-string": "catalog:benchmarks",
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks",
+    "vue": "catalog:benchmarks",
+    "svelte": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "inferno-news-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Native Inferno news SSR, hydration, and runtime benchmark fixtures.",
+  "scripts": {
+    "dev": "vite --host --port 5336 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks",
+    "inferno-create-element": "catalog:benchmarks",
+    "inferno-hydrate": "catalog:benchmarks",
+    "inferno-server": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

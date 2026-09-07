@@ -1,0 +1,18 @@
+{
+  "name": "preact-news-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "News-site SSR and hydration benchmark fixture for Preact.",
+  "scripts": {
+    "dev": "vite --host --port 5270 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks",
+    "preact-render-to-string": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

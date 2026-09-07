@@ -1,0 +1,18 @@
+{
+  "name": "octane-jsx-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "dbmon update-stress bench for octane authored in React-style .tsx (JSX) - the JSX twin of octane-tsrx-dbmon-bench; same table + window.__mount/__tick/__tickPartial/__remount/__sort/__unmount/__reset contract.",
+  "scripts": {
+    "dev": "vite --host --port 5197 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5197 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

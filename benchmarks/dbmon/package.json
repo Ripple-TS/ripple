@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/dbmon",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "dbmon update-stress benchmark across Octane, React, Preact, Solid, Svelte, Ripple, and Vue Vapor fixtures.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 50"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

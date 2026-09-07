@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for octane authored in .tsrx - deterministic token-stream drain, long-history append, conversation switch, controlled composer.",
+  "scripts": {
+    "dev": "vite --host --port 5250 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5250 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

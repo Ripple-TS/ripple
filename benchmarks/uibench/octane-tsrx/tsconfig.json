@@ -1,0 +1,18 @@
+{
+  "include": ["src/**/*.tsrx"],
+  "compilerOptions": {
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2024"],
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "target": "ES2024",
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "jsxImportSource": "octane",
+    "plugins": [{ "name": "@tsrx/typescript-plugin" }]
+  }
+}

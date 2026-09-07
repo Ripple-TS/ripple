@@ -1,0 +1,14 @@
+{
+  "name": "octane-bundle-size-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Executable production bundle-size comparison for rows, TodoMVC, and chat-stream.",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "dependencies": {
+    "esbuild": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "ripple-streaming-ssr-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "streaming-ssr bench fixture for the original Ripple framework's stream-mode render (authored in .tsrx, compiled via @tsrx/ripple; sync shell + 10 trackAsync(promise) @try boundaries). SSR-only: no client build, no dev server.",
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/ripple": "workspace:*",
+    "vite": "catalog:benchmarks"
+  },
+  "scripts": {}
+}

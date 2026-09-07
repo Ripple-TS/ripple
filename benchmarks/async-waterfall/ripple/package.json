@@ -1,0 +1,19 @@
+{
+  "name": "ripple-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for ripple - 10 nested levels, each a tracked value filled by an effect-driven fetch; parallel by model, fine-grained updates with no re-render cascade.",
+  "scripts": {
+    "dev": "vite --host --port 5219 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5219 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks"
+  }
+}

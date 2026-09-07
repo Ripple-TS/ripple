@@ -1,0 +1,19 @@
+{
+  "name": "inferno-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Inferno implementation of the keyed js-framework benchmark matrix.",
+  "scripts": {
+    "dev": "vite --host --port 5320 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5320 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

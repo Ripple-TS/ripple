@@ -1,0 +1,18 @@
+{
+  "name": "inferno-signal-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Native Inferno signal-favoring fixture with a 100-component class/function chain.",
+  "scripts": {
+    "dev": "vite --host --port 5329 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5329 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

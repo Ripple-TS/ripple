@@ -1,0 +1,21 @@
+{
+  "name": "solid-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm bench fixture for Solid 2.0 - 200 items each conditionally portalling a tooltip via <Portal> from @solidjs/web. Exposes window.__mount/__openAll/__rerenderA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5212 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5212 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

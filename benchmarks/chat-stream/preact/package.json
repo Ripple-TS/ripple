@@ -1,0 +1,20 @@
+{
+  "name": "preact-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for Preact - the Preact column for the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5262 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5262 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

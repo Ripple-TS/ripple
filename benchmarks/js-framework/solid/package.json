@@ -1,0 +1,20 @@
+{
+  "name": "solid-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "js-framework-benchmark fixture for Solid 2.0 (keyed <For> over a createSignal row array) - the Solid column for the 1000-row create/update/swap/select/remove ops plus the keyed-reorder matrix (reverse/shuffle/rotate/displace).",
+  "scripts": {
+    "dev": "vite --host --port 5179 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5179 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

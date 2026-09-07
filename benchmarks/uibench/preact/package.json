@@ -1,0 +1,20 @@
+{
+  "name": "preact-uibench-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Preact implementation of the UIbench desktop operation matrix.",
+  "scripts": {
+    "dev": "vite --host --port 5318 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5318 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 // 100 uniquely-named components in a chain. Stateful counters at C1, C11, C21, C31, C41, C51, C61, C71, C81, C91.
-// React re-renders the owning component and cascades through its descendants.
+// React re-renders the owning component; React Compiler can skip unchanged descendants.
 
 let _set1 = null;
 let _set11 = null;

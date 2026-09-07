@@ -1,0 +1,20 @@
+{
+  "name": "solid-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "dbmon update-stress bench fixture for Solid 2.0 (createStore + reconcile) - exposes window.__mount/__tick/__tickPartial/__remount/__sort/__unmount/__reset for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5200 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5200 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

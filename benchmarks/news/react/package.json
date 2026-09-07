@@ -8,12 +8,12 @@
     "dev": "vite --host --port 5193 --strictPort"
   },
   "dependencies": {
-    "react": "catalog:default",
-    "react-dom": "catalog:default"
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
   },
   "devDependencies": {
-    "@tsrx/react": "catalog:default",
-    "@tsrx/vite-plugin-react": "catalog:default",
-    "vite": "catalog:default"
+    "@tsrx/react": "catalog:benchmarks",
+    "@tsrx/vite-plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
   }
 }

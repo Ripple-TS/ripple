@@ -1,0 +1,21 @@
+{
+  "name": "react-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm bench fixture for React 19 - 200 items each conditionally portalling a tooltip via ReactDOM.createPortal (inline JSX and a plain-createElement helper twin, plus a reference-stable variant). Exposes window.__mount/__openAll/__rerenderA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5211 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5211 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

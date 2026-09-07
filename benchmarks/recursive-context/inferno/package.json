@@ -1,0 +1,18 @@
+{
+  "name": "inferno-recursive-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Native Inferno recursive-context fixture using class components and legacy child context.",
+  "scripts": {
+    "dev": "vite --host --port 5327 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5327 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

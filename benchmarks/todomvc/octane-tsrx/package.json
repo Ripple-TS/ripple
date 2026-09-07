@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-todomvc",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "TodoMVC fixture for octane authored in .tsrx - the canonical app-shaped benchmark (add/toggle/edit/filter/destroy scripted ops + app-code bundle size).",
+  "scripts": {
+    "dev": "vite --host --port 5240 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5240 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

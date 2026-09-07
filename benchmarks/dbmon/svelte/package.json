@@ -1,0 +1,19 @@
+{
+  "name": "svelte-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "dbmon update-stress benchmark fixture for Svelte 5.",
+  "scripts": {
+    "dev": "vite --host --port 5274 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5274 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

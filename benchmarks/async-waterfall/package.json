@@ -1,0 +1,13 @@
+{
+  "name": "octane-async-waterfall-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "10-level nested-async benchmark across Octane, React, Preact, Solid, Svelte, and Ripple.",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

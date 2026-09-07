@@ -1,0 +1,14 @@
+{
+  "name": "octane-chat-stream-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Streaming-chat benchmark umbrella - drives each framework's chat app through deterministic token-stream drains via Playwright.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 16"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

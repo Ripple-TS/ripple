@@ -1,0 +1,19 @@
+{
+  "name": "octane-jsx-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "js-framework-benchmark fixture for octane authored in React-style .tsx (JSX) - the JSX backwards-compat twin of octane-tsrx-jsbench; same DOM contract, drives the same create/update/swap/select/remove ops.",
+  "scripts": {
+    "dev": "vite --host --port 5177 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5177 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

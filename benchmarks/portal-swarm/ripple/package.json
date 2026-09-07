@@ -1,0 +1,20 @@
+{
+  "name": "ripple-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm bench fixture for Ripple - 200 items each conditionally portalling a tooltip via ripple's <Portal>. Exposes window.__mount/__openAll/__rerenderA/... for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5224 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5224 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

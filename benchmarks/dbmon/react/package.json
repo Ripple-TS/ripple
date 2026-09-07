@@ -1,0 +1,20 @@
+{
+  "name": "react-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "dbmon update-stress bench fixture for React 19 - exposes window.__mount/__tick/__tickPartial/__remount/__sort/__unmount/__reset for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5198 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5198 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

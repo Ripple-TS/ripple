@@ -1,0 +1,20 @@
+{
+  "name": "react-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for React 19 - 10 nested levels of use(fetch) under Suspense, init + startTransition-driven update; the reference waterfall column.",
+  "scripts": {
+    "dev": "vite --host --port 5217 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5217 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

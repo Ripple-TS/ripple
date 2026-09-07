@@ -1,0 +1,18 @@
+{
+  "name": "inferno-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Inferno async-waterfall fixture using class lifecycles to start 10 independent nested requests in parallel.",
+  "scripts": {
+    "dev": "vite --host --port 5333 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5333 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

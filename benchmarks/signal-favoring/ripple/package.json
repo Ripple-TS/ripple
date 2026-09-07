@@ -2,8 +2,8 @@
   "name": "ripple-signal-bench",
   "private": true,
   "type": "module",
-  "version": "0.0.44",
-  "description": "signal-favoring bench fixture for ripple — 100-component chain with track-based counters every 10 levels.",
+  "version": "0.0.2",
+  "description": "signal-favoring bench fixture for ripple - 100-component chain with track-based counters every 10 levels.",
   "scripts": {
     "dev": "vite --host --port 5193 --strictPort",
     "build": "vite build",
@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "@ripple-ts/vite-plugin": "workspace:*",
-    "vite": "catalog:default"
+    "vite": "catalog:benchmarks"
   }
 }

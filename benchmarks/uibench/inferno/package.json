@@ -1,0 +1,19 @@
+{
+  "name": "inferno-uibench-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Inferno control for the UIbench desktop operation matrix.",
+  "scripts": {
+    "dev": "vite --host --port 5325 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5325 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "terser": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "octane-streaming-ssr-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "streaming-ssr bench fixture for octane renderToPipeableStream, authored in .tsrx (sync shell + 10 use(promise) @try boundaries). SSR-only: no client build, no dev server.",
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  },
+  "scripts": {}
+}

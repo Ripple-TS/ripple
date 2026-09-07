@@ -1,0 +1,20 @@
+{
+  "name": "solid-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall bench fixture for Solid 2.0 - the fine-grained column for the two 1000-row walls; same window.__renders probes (creation + leaf text-effect re-runs) and window.__mount/__tickA/__oneChangeA/__ctxA/... contract as the other fixtures.",
+  "scripts": {
+    "dev": "vite --host --port 5182 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5182 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

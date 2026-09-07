@@ -1,0 +1,19 @@
+{
+  "name": "svelte-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for Svelte 5 - nested stable await blocks that start independent work in parallel.",
+  "scripts": {
+    "dev": "vite --host --port 5280 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5280 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

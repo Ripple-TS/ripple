@@ -1,0 +1,21 @@
+{
+  "name": "solid-effectful-list-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "effectful-list bench fixture for Solid 2.0 (createStore + reconcile + <For>) - 1000 rows with effect/onCleanup/ref lifecycle counters; exposes window.__mount/__op* + __fx for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5204 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5204 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "octane-jsx-effectful-list-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "effectful-list bench fixture for octane authored in React-style .tsx (JSX) - the JSX twin of octane-tsrx-effectful-list-bench; same rows + window.__mount/__op* + __fx contract.",
+  "scripts": {
+    "dev": "vite --host --port 5202 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5202 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

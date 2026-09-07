@@ -1,0 +1,20 @@
+{
+  "name": "ripple-uibench-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Ripple implementation of the UIbench desktop operation matrix.",
+  "scripts": {
+    "dev": "vite --host --port 5322 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5322 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "terser": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

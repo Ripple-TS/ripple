@@ -1,0 +1,19 @@
+{
+  "name": "octane-jsx-memowall-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "memo-wall bench fixture for octane authored in React-style .tsx (JSX) - the JSX twin of octane-tsrx-memowall-bench; same walls, probes and window.__mount/__tickA/__tickB/__oneChangeA/__oneChangeB/__ctxA/__ctxB contract.",
+  "scripts": {
+    "dev": "vite --host --port 5207 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5207 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

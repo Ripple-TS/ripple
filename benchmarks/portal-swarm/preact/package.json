@@ -1,0 +1,20 @@
+{
+  "name": "preact-portal-swarm-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "portal-swarm benchmark fixture for Preact.",
+  "scripts": {
+    "dev": "vite --host --port 5268 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5268 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

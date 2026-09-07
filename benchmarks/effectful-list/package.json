@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/effectful-list",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "1k-row keyed lifecycle benchmark across Octane and reference frameworks, gated on exact effect/ref counters.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 50"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

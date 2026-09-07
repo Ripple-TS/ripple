@@ -1,0 +1,16 @@
+{
+  "name": "octane-js-framework-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "js-framework-benchmark umbrella that drives Octane and reference framework fixtures via Playwright.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 16",
+    "bench:reorder": "node run-reorder.mjs",
+    "bench:reorder:long": "node run-reorder.mjs 16"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "preact-async-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "async-waterfall fixture for Preact - nested cached Suspense resources driven through init and update.",
+  "scripts": {
+    "dev": "vite --host --port 5269 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5269 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

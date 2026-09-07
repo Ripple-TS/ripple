@@ -1,0 +1,21 @@
+{
+  "name": "react-todomvc",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "TodoMVC fixture for React 19 - the React column for the app-shaped scripted ops + app-code bundle size.",
+  "scripts": {
+    "dev": "vite --host --port 5241 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5241 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

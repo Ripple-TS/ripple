@@ -1,0 +1,21 @@
+{
+  "name": "react-chat-stream",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Streaming-chat fixture for React 19 - the React column for the deterministic token-stream ops.",
+  "scripts": {
+    "dev": "vite --host --port 5251 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5251 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

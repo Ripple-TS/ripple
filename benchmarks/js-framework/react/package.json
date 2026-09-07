@@ -1,0 +1,21 @@
+{
+  "name": "react-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "js-framework-benchmark fixture for React 19 (canonical keyed react-hooks impl) - the reference React column for the 1000-row create/update/swap/select/remove ops.",
+  "scripts": {
+    "dev": "vite --host --port 5175 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5175 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks",
+    "terser": "catalog:benchmarks"
+  }
+}

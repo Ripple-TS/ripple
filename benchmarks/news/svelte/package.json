@@ -1,0 +1,17 @@
+{
+  "name": "svelte-news-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "News-site SSR and hydration benchmark fixture for Svelte 5.",
+  "scripts": {
+    "dev": "vite --host --port 5281 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

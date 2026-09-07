@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/uibench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "UIbench desktop workload port for Octane with React Compiler, Preact, Solid, Vue Vapor, Ripple, and Inferno controls.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "typecheck": "pnpm --filter octane-tsrx-uibench-bench typecheck"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

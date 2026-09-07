@@ -1,0 +1,18 @@
+{
+  "name": "inferno-dbmon-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "dbmon update-stress fixture for Inferno with the shared Playwright contract.",
+  "scripts": {
+    "dev": "vite --host --port 5326 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5326 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

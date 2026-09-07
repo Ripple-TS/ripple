@@ -5,7 +5,7 @@ import { App } from './App.tsrx';
 // `renderToString` produces hydration-keyed HTML (vite-plugin-solid compiled
 // this module with `generate: 'ssr', hydratable: true`); `generateHydrationScript`
 // emits the `_$HY` runtime the client needs, which goes in <head>. Shape
-// (`{ head, body, css }`) matches the other entries so one harness drives all.
+// (`{ head, body, css }`) matches the octane entry so one harness drives both.
 export async function renderApp(): Promise<{ head: string; body: string; css: string }> {
 	const body = renderToString(() => App());
 	const head = generateHydrationScript();

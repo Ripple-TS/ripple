@@ -1,0 +1,52 @@
+:root {
+	font-family: system-ui, sans-serif;
+	color: #172033;
+	background: #f7f8fb;
+}
+
+body {
+	margin: 0;
+}
+
+#main {
+	contain: layout style;
+	padding: 8px;
+}
+
+.uibench-table {
+	border-collapse: collapse;
+}
+
+.uibench-table th,
+.uibench-table td {
+	border: 1px solid #ccd2de;
+	padding: 1px 4px;
+}
+
+.uibench-table tr.active {
+	background: #dcecff;
+}
+
+.uibench-anim {
+	display: grid;
+	grid-template-columns: repeat(10, 12px);
+	gap: 2px;
+}
+
+.uibench-anim .box {
+	width: 10px;
+	height: 10px;
+	background: #5676d8;
+}
+
+.uibench-tree,
+.uibench-tree ul {
+	margin: 0;
+	padding-left: 14px;
+	list-style: none;
+}
+
+.uibench-tree span {
+	display: inline-block;
+	min-width: 44px;
+}

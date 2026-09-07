@@ -60,4 +60,18 @@ window.__sweepBatched = () =>
 		bumpAt81();
 		bumpAt91();
 	});
+// Same batch queued DESCENDANT-first (deepest stateful node first).
+window.__sweepBatchedReverse = () =>
+	flushSync(() => {
+		bumpAt91();
+		bumpAt81();
+		bumpAt71();
+		bumpAt61();
+		bumpAt51();
+		bumpAt41();
+		bumpAt31();
+		bumpAt21();
+		bumpAt11();
+		bumpAt1();
+	});
 window.__ready = true;
