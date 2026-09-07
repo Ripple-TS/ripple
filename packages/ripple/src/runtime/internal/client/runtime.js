@@ -918,6 +918,12 @@ export function unlink_subscriber(dependency) {
 		prev.sn = next;
 	} else {
 		var tracked = dependency.t;
+		// Already unlinked (a destroyed block's dependency can be pruned by a
+		// write during its own teardown, then unlinked again by
+		// remove_dependencies); it must not be mistaken for the list head.
+		if (tracked.sb !== dependency) {
+			return;
+		}
 		tracked.sb = next;
 		if (next === null && (tracked.f & SELECTOR) !== 0) {
 			// Last subscriber gone: release the selector's per-key entry.
@@ -1002,11 +1008,14 @@ function mark_subscribers(tracked) {
 		var reaction = dependency.r;
 		var flags = reaction.f;
 		if ((flags & DERIVED) !== 0) {
-			var derived_owner = /** @type {Derived} */ (reaction).b;
-			if (derived_owner !== null && (derived_owner.f & DESTROYED) !== 0) {
+			var derived = /** @type {Derived} */ (reaction);
+			var derived_owner = derived.b;
+			// A derived whose owner is gone and that nothing reads any more is
+			// pruned; one still read elsewhere keeps forwarding notifications.
+			if (derived_owner !== null && (derived_owner.f & DESTROYED) !== 0 && derived.sb === null) {
 				unlink_subscriber(dependency);
 			} else {
-				mark_subscribers(/** @type {Derived} */ (reaction));
+				mark_subscribers(derived);
 			}
 		} else if ((flags & DESTROYED) !== 0) {
 			unlink_subscriber(dependency);

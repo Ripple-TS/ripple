@@ -367,6 +367,39 @@ describe('basic client > reactivity', () => {
 		expect(state.finalValue).toBe(5);
 	});
 
+	it('keeps other subscribers after a destroyed block writes shared state in its cleanup', () => {
+		function App() @{
+			let &[count] = track(0);
+			let &[show] = track(true);
+			<>
+				@if (show) {
+					effect(() => {
+						count;
+						return () => {
+							count = count + 1;
+						};
+					});
+					<span class="inner">{count}</span>
+				}
+				<span class="outer">{count}</span>
+				<button class="hide" onClick={() => (show = false)}>{'hide'}</button>
+				<button class="inc" onClick={() => (count = count + 1)}>{'inc'}</button>
+			</>
+		}
+
+		render(App);
+		flushSync();
+		expect(container.querySelector('.outer').textContent).toBe('0');
+
+		container.querySelector('.hide').click();
+		flushSync();
+		expect(container.querySelector('.outer').textContent).toBe('1');
+
+		container.querySelector('.inc').click();
+		flushSync();
+		expect(container.querySelector('.outer').textContent).toBe('2');
+	});
+
 	it('returns the same tracked object if plain track is called with a tracked object', () => {
 		function App() @{
 			const t = track({ a: 1, b: 2, c: 3 });
