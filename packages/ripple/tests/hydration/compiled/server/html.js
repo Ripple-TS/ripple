@@ -711,15 +711,7 @@ function ForList({ items }) {
 			__out += '<!--[-->';
 
 			for (const item of items) {
-				__out += '<span class="for-item">';
-
-				{
-					_$_.output_push(__out);
-					__out = '';
-					_$_.render_expression(item);
-				}
-
-				__out += '</span>';
+				__out += '<span class="for-item">' + _$_.escape(item) + '</span>';
 			}
 
 			__out += '<!--]-->';

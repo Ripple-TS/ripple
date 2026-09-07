@@ -66,6 +66,9 @@ import {
 	analyze_directive_wrapping_values,
 	is_tsrx_component_function,
 	has_lazy_pattern,
+	register_type_declarations,
+	get_expression_type_annotation,
+	get_iterable_element_type_annotation,
 } from '../utils.js';
 import {
 	get_attribute_name_node,
@@ -1080,6 +1083,64 @@ function is_param_tracked_type(type_annotation, context) {
 }
 
 /**
+ * The tuple type of a `track(...)` result as seen by lazy `&[value, tracked]`
+ * destructuring: `[T]` when the call names `T` explicitly or its initial value
+ * is a number or boolean literal, which cannot later hold rendered content.
+ * @param {AST.CallExpression} call
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_track_call_type_annotation(call) {
+	/** @type {AST.TypeNode | undefined} */
+	let value_type =
+		call.typeArguments?.params.length === 1 ? call.typeArguments.params[0] : undefined;
+
+	if (value_type === undefined) {
+		const initial = call.arguments[0];
+		if (initial?.type === 'Literal') {
+			if (typeof initial.value === 'number') {
+				value_type = /** @type {AST.TypeNode} */ ({ type: 'TSNumberKeyword' });
+			} else if (typeof initial.value === 'boolean') {
+				value_type = /** @type {AST.TypeNode} */ ({ type: 'TSBooleanKeyword' });
+			}
+		}
+	}
+
+	if (value_type === undefined) {
+		return undefined;
+	}
+
+	return /** @type {AST.TypeNode} */ ({ type: 'TSTupleType', elementTypes: [value_type] });
+}
+
+/**
+ * Give a `@for` loop variable the element type of the iterated expression, so
+ * member reads on it can be lowered to typed text updates.
+ * @param {AST.JSXForOfExpression} node
+ * @param {AnalysisContext} context
+ */
+function infer_for_item_type_annotation(node, context) {
+	const left = node.left;
+	if (left.type !== 'VariableDeclaration') return;
+	const pattern = left.declarations[0]?.id;
+	if (pattern?.type !== 'Identifier' || pattern.typeAnnotation !== undefined) return;
+
+	const scope = context.state.scopes.get(node);
+	const binding = scope?.get(pattern.name);
+	if (!binding || binding.node !== pattern) return;
+
+	const element_type = get_iterable_element_type_annotation(
+		get_expression_type_annotation(/** @type {AST.Expression} */ (node.right), context.state),
+		context.state,
+	);
+	if (element_type === undefined) return;
+
+	binding.metadata = {
+		...(binding.metadata ?? {}),
+		typeAnnotation: element_type,
+	};
+}
+
+/**
  * Sets up lazy transforms for declarations and function or component parameters.
  * @param {AST.Pattern} pattern
  * @param {AnalysisContext} context
@@ -1134,6 +1195,25 @@ function setup_lazy_pattern_transforms(
 					is_track_call || is_tracked_type,
 				);
 				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
+
+				if (pattern.type === 'ArrayPattern' && pattern_type_annotation !== undefined) {
+					for (let i = 0; i < pattern.elements.length; i += 1) {
+						const element = pattern.elements[i];
+						if (element?.type !== 'Identifier') continue;
+						const element_type = get_array_element_type_annotation(
+							pattern_type_annotation,
+							i,
+							false,
+						);
+						const binding = context.state.scope.get(element.name);
+						if (element_type !== undefined && binding?.node === element) {
+							binding.metadata = {
+								...(binding.metadata ?? {}),
+								typeAnnotation: element_type,
+							};
+						}
+					}
+				}
 				return;
 			}
 
@@ -1824,7 +1904,9 @@ const visitors = {
 				setup_lazy_pattern_transforms(
 					declarator.id,
 					context,
-					undefined,
+					call_name === 'track'
+						? get_track_call_type_annotation(/** @type {AST.CallExpression} */ (declarator.init))
+						: undefined,
 					node.kind !== 'const',
 					call_name === 'track' || call_name === 'trackAsync',
 				);
@@ -1978,6 +2060,8 @@ const visitors = {
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
+
+		infer_for_item_type_annotation(node, context);
 
 		if (node.index) {
 			const state = context.state;
@@ -2764,6 +2848,8 @@ export function analyze(ast, filename, options = {}) {
 		filename,
 		comments,
 	});
+
+	register_type_declarations(scope, ast);
 
 	const analysis = /** @type {AnalysisResult} */ ({
 		module: { ast, scope, scopes, filename },

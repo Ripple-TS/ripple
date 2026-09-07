@@ -225,9 +225,8 @@ export function ComputedTitle() {
 				var span_1 = _$_.child(div_7);
 
 				{
-					var expression_4 = _$_.child(span_1);
+					var expression_4 = _$_.child(span_1, true);
 
-					_$_.expression(expression_4, () => lazy_5.value);
 					_$_.pop(span_1);
 				}
 			}
@@ -236,6 +235,10 @@ export function ComputedTitle() {
 				_$_.render(() => {
 					_$_.document.title = prefix + lazy_5.value;
 				});
+			});
+
+			_$_.render(() => {
+				_$_.set_text(expression_4, lazy_5.value);
 			});
 
 			_$_.append(__anchor, div_7);

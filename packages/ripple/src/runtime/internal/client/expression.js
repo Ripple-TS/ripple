@@ -168,67 +168,98 @@ function render_tsrx_collection_text(value, anchor, assign = false) {
 }
 
 /**
+ * @typedef {{
+ *   start: Node | null;
+ *   end: Node | null;
+ *   a: ChildNode;
+ *   n: number;
+ *   g: () => any;
+ *   b: Block | null;
+ *   m: Comment | null;
+ *   t: Text | null;
+ *   v: string | import('../../element.js').TSRXElement | typeof UNINITIALIZED;
+ *   e: boolean;
+ *   i: boolean;
+ *   p: Block | null;
+ *   o: Node | null;
+ * }} ExpressionState
+ */
+
+/**
  * @param {Node} node
  * @param {() => any} get_value
  * @returns {void}
  */
 export function expression(node, get_value) {
-	var anchor = /** @type {ChildNode} */ (node);
-	/** @type {Block | null} */
-	var child_block = null;
-	/** @type {Comment | null} */
-	var end = null;
-	/** @type {Text | null} */
-	var text = null;
-	/** @type {string | import('../../element.js').TSRXElement | typeof UNINITIALIZED} */
-	var value = UNINITIALIZED;
-	var is_element = false;
-	var initialized = false;
-	/** @type {Block | null} */
-	var modified_parent_branch = null;
-	/** @type {Node | null} */
-	var original_parent_start = null;
+	// State lives on the render block instead of a per-expression closure, and
+	// the anchor's node type is read once since the anchor never changes.
+	render(run_expression, {
+		start: null,
+		end: null,
+		a: /** @type {ChildNode} */ (node),
+		n: node.nodeType,
+		g: get_value,
+		// child block rendering a TSRX element / collection
+		b: null,
+		// hydration end marker
+		m: null,
+		// text node inserted before a comment anchor
+		t: null,
+		// last rendered value
+		v: UNINITIALIZED,
+		// whether the last value was an element / collection
+		e: false,
+		// whether the block has rendered once
+		i: false,
+		// enclosing branch whose start was moved to include element content
+		p: null,
+		// that branch's original start node
+		o: null,
+	});
+}
 
-	render(() => {
-		var next_value = get_value();
+/**
+ * @param {ExpressionState} s
+ * @returns {void}
+ */
+function run_expression(s) {
+	var next_value = s.g();
+	var anchor = s.a;
+	var type = typeof next_value;
+	var is_hydration_marker =
+		hydrating && s.n === COMMENT_NODE && /** @type {Comment} */ (anchor).data === HYDRATION_START;
+
+	if (is_hydration_marker) {
+		s.m ??= ensure_expression_end(anchor);
+	}
+
+	var end = s.m;
+
+	if (next_value !== null && (type === 'object' || type === 'function')) {
 		var next_is_collection = is_array(next_value);
-		var next_is_element = next_is_collection || is_tsrx_element(next_value);
-		var is_hydration_marker =
-			hydrating &&
-			anchor.nodeType === COMMENT_NODE &&
-			/** @type {Comment} */ (anchor).data === HYDRATION_START;
 
-		if (is_hydration_marker) {
-			end ??= ensure_expression_end(anchor);
-		}
-
-		if (next_is_element) {
-			if (initialized && is_element && value === next_value) {
+		if (next_is_collection || is_tsrx_element(next_value)) {
+			if (s.i && s.e && s.v === next_value) {
 				if (end !== null) {
 					advance_hydration(end);
 				}
 				return;
 			}
 
-			if (anchor.nodeType === TEXT_NODE) {
+			if (s.n === TEXT_NODE) {
 				/** @type {Text} */ (anchor).nodeValue = '';
-			} else if (text !== null) {
-				text.remove();
-				text = null;
+			} else if (s.t !== null) {
+				s.t.remove();
+				s.t = null;
 			}
 
-			if (child_block !== null) {
-				destroy_block(child_block);
-				child_block = null;
-				// Restore parent branch's start since we may update it again below
-				if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
-					modified_parent_branch.s.start = original_parent_start;
-					modified_parent_branch = null;
-					original_parent_start = null;
-				}
+			if (s.b !== null) {
+				destroy_block(s.b);
+				s.b = null;
+				restore_parent_start(s);
 			}
 
-			if (end !== null && (initialized || !hydrating)) {
+			if (end !== null && (s.i || !hydrating)) {
 				clear_expression_range(anchor, end);
 			}
 
@@ -236,18 +267,18 @@ export function expression(node, get_value) {
 				set_hydrate_node(get_next_sibling(anchor) ?? end);
 			}
 
-			// Find the enclosing branch block BEFORE creating child_block
+			// Find the enclosing branch block BEFORE creating the child block
 			// so we can update its s.start to include content inserted before anchor
 			var parent_branch = find_enclosing_branch(active_block);
 
-			child_block = branch(() => {
+			var child_block = (s.b = branch(() => {
 				var block = /** @type {Block} */ (active_block);
 				if (next_is_collection) {
 					render_tsrx_collection(next_value, end ?? anchor, block);
 				} else {
 					render_tsrx_element(next_value, end ?? anchor, block);
 				}
-			});
+			}));
 
 			// Update parent branch's s.start to include content inserted before anchor.
 			// This ensures that when the parent branch is destroyed, the full DOM range
@@ -267,81 +298,91 @@ export function expression(node, get_value) {
 				// update it to include the child's content
 				if (parent_start === anchor || parent_start === end) {
 					// Save original so we can restore it when switching to non-TSRXElement
-					if (modified_parent_branch === null) {
-						modified_parent_branch = parent_branch;
-						original_parent_start = parent_start;
+					if (s.p === null) {
+						s.p = parent_branch;
+						s.o = parent_start;
 					}
 					parent_branch.s.start = child_start;
 				}
 			}
 
-			value = next_value;
-			is_element = true;
-			initialized = true;
+			s.v = next_value;
+			s.e = true;
+			s.i = true;
 			if (end !== null) {
 				advance_hydration(end);
 			}
 			return;
 		}
+	}
 
-		var next_text = (next_value ?? '') + '';
+	var next_text = next_value == null ? '' : next_value + '';
 
-		if (initialized && !is_element && value === next_text) {
-			if (end !== null) {
-				advance_hydration(end);
-			}
-			return;
-		}
-
-		if (child_block !== null) {
-			destroy_block(child_block);
-			child_block = null;
-			// Restore parent branch's start to original value since the child's DOM nodes
-			// have been removed and the old start reference would be stale
-			if (modified_parent_branch !== null && modified_parent_branch.s !== null) {
-				modified_parent_branch.s.start = original_parent_start;
-				modified_parent_branch = null;
-				original_parent_start = null;
-			}
-		}
-
-		if (is_hydration_marker) {
-			text = get_hydrated_text(anchor, /** @type {Comment} */ (end));
-
-			if (next_text === '') {
-				if (text !== null) {
-					text.remove();
-					text = null;
-				}
-			} else if (text === null) {
-				text = create_text(next_text);
-				/** @type {Comment} */ (end).before(text);
-			} else if (text.nodeValue !== next_text) {
-				text.nodeValue = next_text;
-			}
-		} else if (anchor.nodeType === COMMENT_NODE) {
-			if (next_text === '') {
-				if (text !== null) {
-					text.remove();
-					text = null;
-				}
-			} else if (text === null) {
-				text = create_text(next_text);
-				(end ?? anchor).before(text);
-			} else if (text.nodeValue !== next_text) {
-				text.nodeValue = next_text;
-			}
-		} else if (anchor.nodeType === TEXT_NODE) {
-			/** @type {Text} */ (anchor).nodeValue = next_text;
-		}
-
-		value = next_text;
-		is_element = false;
-		initialized = true;
+	if (s.i && !s.e && s.v === next_text) {
 		if (end !== null) {
 			advance_hydration(end);
 		}
-	});
+		return;
+	}
+
+	if (s.b !== null) {
+		destroy_block(s.b);
+		s.b = null;
+		// Restore parent branch's start to original value since the child's DOM nodes
+		// have been removed and the old start reference would be stale
+		restore_parent_start(s);
+	}
+
+	if (is_hydration_marker) {
+		var text = (s.t = get_hydrated_text(anchor, /** @type {Comment} */ (end)));
+
+		if (next_text === '') {
+			if (text !== null) {
+				text.remove();
+				s.t = null;
+			}
+		} else if (text === null) {
+			text = s.t = create_text(next_text);
+			/** @type {Comment} */ (end).before(text);
+		} else if (text.nodeValue !== next_text) {
+			text.nodeValue = next_text;
+		}
+	} else if (s.n === COMMENT_NODE) {
+		var text = s.t;
+		if (next_text === '') {
+			if (text !== null) {
+				text.remove();
+				s.t = null;
+			}
+		} else if (text === null) {
+			text = s.t = create_text(next_text);
+			(end ?? anchor).before(text);
+		} else if (text.nodeValue !== next_text) {
+			text.nodeValue = next_text;
+		}
+	} else if (s.n === TEXT_NODE) {
+		/** @type {Text} */ (anchor).nodeValue = next_text;
+	}
+
+	s.v = next_text;
+	s.e = false;
+	s.i = true;
+	if (end !== null) {
+		advance_hydration(end);
+	}
+}
+
+/**
+ * @param {ExpressionState} s
+ * @returns {void}
+ */
+function restore_parent_start(s) {
+	var parent = s.p;
+	if (parent !== null && parent.s !== null) {
+		parent.s.start = s.o;
+		s.p = null;
+		s.o = null;
+	}
 }
 
 /**

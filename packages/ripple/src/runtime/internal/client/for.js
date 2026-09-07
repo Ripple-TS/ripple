@@ -27,42 +27,46 @@ import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
  * @returns {Block}
  */
 function create_item(anchor, value, index, render_fn, is_indexed, is_keyed) {
-	var b = branch(() => {
-		var tracked_index;
-		/** @type {V | Tracked} */
-		var tracked_value = value;
+	var block = /** @type {Block} */ (active_block);
+	var tracked_index = is_indexed ? tracked(index, block) : undefined;
+	var tracked_value = is_keyed ? tracked(value, block) : value;
+	var state = {
+		start: null,
+		end: null,
+		i: tracked_index,
+		v: tracked_value,
+	};
 
-		if (is_indexed || is_keyed) {
-			var block = /** @type {Block} */ (active_block);
+	// Passed through module state rather than a per-item closure; run_item
+	// reads them before rendering, so nested loops cannot observe a stale pair.
+	item_anchor = anchor;
+	item_render_fn = render_fn;
+	var b = branch(run_item, 0, state);
 
-			if (block.s === null) {
-				if (is_indexed) {
-					tracked_index = tracked(index, block);
-				}
-				if (is_keyed) {
-					tracked_value = tracked(value, block);
-				}
-
-				block.s = {
-					start: null,
-					end: null,
-					i: tracked_index,
-					v: tracked_value,
-				};
-			} else {
-				if (is_indexed) {
-					tracked_index = block.s.i;
-				}
-				if (is_keyed) {
-					tracked_index = block.s.v;
-				}
-			}
-			render_fn(anchor, tracked_value, tracked_index);
-		} else {
-			render_fn(anchor, tracked_value);
-		}
-	});
+	// The item's tracked value and index are owned by the item block itself.
+	if (is_keyed) {
+		/** @type {Tracked} */ (tracked_value).b = b;
+	}
+	if (is_indexed) {
+		/** @type {Tracked} */ (tracked_index).b = b;
+	}
 	return b;
+}
+
+/** @type {Node | null} */
+var item_anchor = null;
+/** @type {((anchor: Node, value: any, index?: any) => Block) | null} */
+var item_render_fn = null;
+
+/**
+ * @param {{ i: Tracked | undefined, v: any }} state
+ */
+function run_item(state) {
+	var render_fn = /** @type {(anchor: Node, value: any, index?: any) => Block} */ (item_render_fn);
+	var anchor = /** @type {Node} */ (item_anchor);
+	item_render_fn = null;
+	item_anchor = null;
+	render_fn(anchor, state.v, state.i);
 }
 
 /**
@@ -316,7 +320,10 @@ function update_index(block, index) {
  * @returns {void}
  */
 function update_value(block, value) {
-	set(block.s.v, value);
+	var tracked_value = block.s.v;
+	if (tracked_value.__v !== value) {
+		set(tracked_value, value);
+	}
 }
 
 /**

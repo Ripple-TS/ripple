@@ -3401,17 +3401,287 @@ export function is_text_primitive_expression(
 		return false;
 	}
 
-	if (expression.type === 'MemberExpression' && expression.object.type === 'Identifier') {
-		const property_name = get_static_property_name(expression);
-		if (property_name === null) return false;
-
-		const binding = state.scope.get(expression.object.name);
-		const property_type = get_property_type_annotation(
-			get_binding_type_annotation(binding),
-			property_name,
+	if (expression.type === 'MemberExpression') {
+		return is_text_primitive_type_annotation(
+			get_expression_type_annotation(expression, state),
+			strings_only,
 		);
-		return is_text_primitive_type_annotation(property_type, strings_only);
 	}
 
 	return false;
+}
+
+/**
+ * Module-level `interface` / `type` declarations, keyed by the module's scope
+ * root so type references can be followed without threading extra state.
+ * @type {WeakMap<object, Map<string, AST.TSInterfaceDeclaration | AST.TSTypeAliasDeclaration>>}
+ */
+const type_declarations_by_root = new WeakMap();
+
+/**
+ * Record the module's type declarations so member access on annotated values
+ * can be resolved through `interface` and `type` aliases.
+ * @param {ScopeInterface} scope
+ * @param {AST.Program} ast
+ */
+export function register_type_declarations(scope, ast) {
+	/** @type {Map<string, AST.TSInterfaceDeclaration | AST.TSTypeAliasDeclaration>} */
+	const declarations = new Map();
+
+	for (const statement of ast.body) {
+		const declaration = /** @type {AST.Node | null | undefined} */ (
+			statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
+		);
+
+		if (
+			declaration &&
+			(declaration.type === 'TSInterfaceDeclaration' ||
+				declaration.type === 'TSTypeAliasDeclaration') &&
+			declaration.id.type === 'Identifier'
+		) {
+			declarations.set(declaration.id.name, declaration);
+		}
+	}
+
+	type_declarations_by_root.set(scope.root, declarations);
+}
+
+/**
+ * @param {{ scope: ScopeInterface }} state
+ * @param {string} name
+ * @returns {AST.TSInterfaceDeclaration | AST.TSTypeAliasDeclaration | undefined}
+ */
+function get_type_declaration(state, name) {
+	return type_declarations_by_root.get(state.scope.root)?.get(name);
+}
+
+/**
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_single_type_argument(type_annotation) {
+	const params =
+		type_annotation?.type === 'TSTypeReference' ? type_annotation.typeArguments?.params : undefined;
+	return params !== undefined && params.length === 1 ? params[0] : undefined;
+}
+
+/**
+ * Follow a type reference to the module's `interface` / `type` declaration it
+ * names. Generic declarations are left unresolved, as are references to types
+ * declared elsewhere.
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {{ scope: ScopeInterface }} state
+ * @param {number} [depth]
+ * @returns {AST.TypeNode | AST.TSInterfaceBody | undefined}
+ */
+export function resolve_type_annotation(type_annotation, state, depth = 0) {
+	const annotation = unwrap_type_annotation(type_annotation);
+
+	if (
+		annotation?.type !== 'TSTypeReference' ||
+		annotation.typeName.type !== 'Identifier' ||
+		annotation.typeArguments !== undefined ||
+		depth > 8
+	) {
+		return annotation;
+	}
+
+	const declaration = get_type_declaration(state, annotation.typeName.name);
+	if (declaration === undefined || declaration.typeParameters !== undefined) {
+		return annotation;
+	}
+
+	if (declaration.type === 'TSInterfaceDeclaration') {
+		return declaration.body;
+	}
+
+	return resolve_type_annotation(declaration.typeAnnotation, state, depth + 1);
+}
+
+/**
+ * @param {ScopeInterface} scope
+ * @param {string} name
+ * @returns {boolean}
+ */
+function is_ripple_type_import(scope, name) {
+	const binding = scope.get(name);
+	return (
+		binding?.declaration_kind === 'import' &&
+		binding.initial !== null &&
+		binding.initial.type === 'ImportDeclaration' &&
+		binding.initial.source.type === 'Literal' &&
+		binding.initial.source.value === 'ripple'
+	);
+}
+
+/**
+ * The type of `object.property` for an object of the given type. Resolves
+ * type aliases and interfaces declared in the module, and knows the shape of
+ * Ripple's `Tracked<T>` value wrapper.
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {string} property_name
+ * @param {{ scope: ScopeInterface }} state
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_member_type_annotation(type_annotation, property_name, state) {
+	const annotation = unwrap_type_annotation(type_annotation);
+
+	if (annotation?.type === 'TSTypeReference' && annotation.typeName.type === 'Identifier') {
+		const name = annotation.typeName.name;
+		if (
+			(name === 'Tracked' || name === 'Derived') &&
+			property_name === 'value' &&
+			is_ripple_type_import(state.scope, name)
+		) {
+			return get_single_type_argument(annotation);
+		}
+	}
+
+	const resolved = resolve_type_annotation(annotation, state);
+
+	if (resolved?.type === 'TSIntersectionType') {
+		for (const type of resolved.types) {
+			const property_type = get_member_type_annotation(type, property_name, state);
+			if (property_type) return property_type;
+		}
+		return undefined;
+	}
+
+	const members =
+		resolved?.type === 'TSTypeLiteral'
+			? resolved.members
+			: resolved?.type === 'TSInterfaceBody'
+				? resolved.body
+				: undefined;
+
+	if (members === undefined) {
+		return undefined;
+	}
+
+	for (const member of members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) continue;
+
+		const key = member.key;
+		const name =
+			key.type === 'Identifier'
+				? key.name
+				: key.type === 'Literal' && typeof key.value === 'string'
+					? key.value
+					: null;
+
+		if (name === property_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * The element type produced by iterating a value of the given type: `T[]`,
+ * `Array<T>`, `ReadonlyArray<T>`, `Set<T>`, and `Iterable<T>`.
+ * @param {AST.TypeNode | undefined} type_annotation
+ * @param {{ scope: ScopeInterface }} state
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_iterable_element_type_annotation(type_annotation, state) {
+	const annotation = resolve_type_annotation(type_annotation, state);
+
+	if (annotation?.type === 'TSArrayType') {
+		return annotation.elementType;
+	}
+
+	if (
+		annotation?.type === 'TSTypeOperator' &&
+		annotation.operator === 'readonly' &&
+		annotation.typeAnnotation?.type === 'TSArrayType'
+	) {
+		return annotation.typeAnnotation.elementType;
+	}
+
+	if (annotation?.type === 'TSTypeReference' && annotation.typeName.type === 'Identifier') {
+		const name = annotation.typeName.name;
+		if (
+			(name === 'Array' ||
+				name === 'ReadonlyArray' ||
+				name === 'Set' ||
+				name === 'ReadonlySet' ||
+				name === 'Iterable' ||
+				name === 'IterableIterator') &&
+			state.scope.get(name) === null
+		) {
+			return get_single_type_argument(annotation);
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * The declared type of an expression, where one can be found from
+ * annotations in the module: annotated bindings, member access through
+ * annotated object types, and `as` assertions.
+ * @param {AST.Expression | AST.Super} expression
+ * @param {{ scope: ScopeInterface }} state
+ * @param {Set<Binding>} [visited]
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_expression_type_annotation(expression, state, visited = new Set()) {
+	if (expression.type === 'ParenthesizedExpression' || expression.type === 'ChainExpression') {
+		return get_expression_type_annotation(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (expression.type === 'TSAsExpression' || expression.type === 'TSTypeAssertion') {
+		return expression.typeAnnotation;
+	}
+
+	if (
+		expression.type === 'TSNonNullExpression' ||
+		expression.type === 'TSInstantiationExpression'
+	) {
+		return get_expression_type_annotation(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (expression.type === 'Identifier') {
+		const binding = state.scope.get(expression.name);
+		if (!binding || visited.has(binding)) {
+			return undefined;
+		}
+		const annotation = get_binding_type_annotation(binding);
+		if (annotation !== undefined) {
+			return annotation;
+		}
+		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
+			const initial = binding.initial;
+			if (initial.type !== 'ImportDeclaration' && initial.type !== 'TSModuleDeclaration') {
+				visited.add(binding);
+				return get_expression_type_annotation(
+					/** @type {AST.Expression} */ (initial),
+					state,
+					visited,
+				);
+			}
+		}
+		return undefined;
+	}
+
+	if (expression.type === 'MemberExpression') {
+		const property_name = get_static_property_name(expression);
+		if (property_name === null) return undefined;
+
+		const object_type = get_expression_type_annotation(expression.object, state, visited);
+		if (object_type === undefined) return undefined;
+
+		return get_member_type_annotation(object_type, property_name, state);
+	}
+
+	return undefined;
 }

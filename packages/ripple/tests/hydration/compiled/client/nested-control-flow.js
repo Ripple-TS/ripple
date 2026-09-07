@@ -136,7 +136,7 @@ export function ForSwitch() {
 										_$_.set_class(li_1, __prev.b = __b, void 0, true);
 									}
 								},
-								{ a: ' ', b: Symbol() }
+								{ a: ' ', b: _$_.UNINITIALIZED }
 							);
 
 							_$_.append(__anchor, li_1);
@@ -165,7 +165,7 @@ export function ForSwitch() {
 										_$_.set_class(li_2, __prev.b = __b, void 0, true);
 									}
 								},
-								{ a: ' ', b: Symbol() }
+								{ a: ' ', b: _$_.UNINITIALIZED }
 							);
 
 							_$_.append(__anchor, li_2);
@@ -349,7 +349,7 @@ export function ForIfSwitchSingle() {
 												_$_.set_class(li_3, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_3);
@@ -378,7 +378,7 @@ export function ForIfSwitchSingle() {
 												_$_.set_class(li_4, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_4);
@@ -464,7 +464,7 @@ export function ForIfSwitchMulti() {
 												_$_.set_class(li_5, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_5);
@@ -493,7 +493,7 @@ export function ForIfSwitchMulti() {
 												_$_.set_class(li_6, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_6);
@@ -580,7 +580,7 @@ export function ForIfSwitchWithDisabled() {
 												_$_.set_class(li_7, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_7);
@@ -609,7 +609,7 @@ export function ForIfSwitchWithDisabled() {
 												_$_.set_class(li_8, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_8);
@@ -747,7 +747,7 @@ export function ForSwitchTry() {
 												_$_.set_class(li_9, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_9);
@@ -776,7 +776,7 @@ export function ForSwitchTry() {
 												_$_.set_class(li_10, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_10);
@@ -811,7 +811,7 @@ export function ForSwitchTry() {
 												_$_.set_class(li_11, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_11);
@@ -840,7 +840,7 @@ export function ForSwitchTry() {
 												_$_.set_class(li_12, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_12);
@@ -916,7 +916,7 @@ export function ForIfTry() {
 												_$_.set_class(li_13, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_13);
@@ -945,7 +945,7 @@ export function ForIfTry() {
 												_$_.set_class(li_14, __prev.b = __b, void 0, true);
 											}
 										},
-										{ a: ' ', b: Symbol() }
+										{ a: ' ', b: _$_.UNINITIALIZED }
 									);
 
 									_$_.append(__anchor, li_14);
@@ -1013,7 +1013,7 @@ export function ForIfSwitchTrySingle() {
 														_$_.set_class(li_15, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_15);
@@ -1042,7 +1042,7 @@ export function ForIfSwitchTrySingle() {
 														_$_.set_class(li_16, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_16);
@@ -1077,7 +1077,7 @@ export function ForIfSwitchTrySingle() {
 														_$_.set_class(li_17, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_17);
@@ -1106,7 +1106,7 @@ export function ForIfSwitchTrySingle() {
 														_$_.set_class(li_18, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_18);
@@ -1198,7 +1198,7 @@ export function ForIfSwitchTryMulti() {
 														_$_.set_class(li_19, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_19);
@@ -1227,7 +1227,7 @@ export function ForIfSwitchTryMulti() {
 														_$_.set_class(li_20, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_20);
@@ -1262,7 +1262,7 @@ export function ForIfSwitchTryMulti() {
 														_$_.set_class(li_21, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_21);
@@ -1291,7 +1291,7 @@ export function ForIfSwitchTryMulti() {
 														_$_.set_class(li_22, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, li_22);

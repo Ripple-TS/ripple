@@ -65,7 +65,7 @@ export function MixedControlFlowStatic() {
 														_$_.set_class(div, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, div);
@@ -110,7 +110,7 @@ export function MixedControlFlowStatic() {
 														_$_.set_class(div_2, __prev.b = __b, void 0, true);
 													}
 												},
-												{ a: ' ', b: Symbol() }
+												{ a: ' ', b: _$_.UNINITIALIZED }
 											);
 
 											_$_.append(__anchor, div_2);
@@ -235,7 +235,7 @@ export function MixedControlFlowReactive() {
 															_$_.set_class(p, __prev.b = __b, void 0, true);
 														}
 													},
-													{ a: ' ', b: Symbol() }
+													{ a: ' ', b: _$_.UNINITIALIZED }
 												);
 
 												_$_.append(__anchor, p);
@@ -276,7 +276,7 @@ export function MixedControlFlowReactive() {
 															_$_.set_class(p_2, __prev.b = __b, void 0, true);
 														}
 													},
-													{ a: ' ', b: Symbol() }
+													{ a: ' ', b: _$_.UNINITIALIZED }
 												);
 
 												_$_.append(__anchor, p_2);

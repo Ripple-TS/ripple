@@ -37,6 +37,8 @@ export function init_operations() {
 
 	// the following assignments improve perf of lookups on DOM nodes
 	element_prototype.__click = undefined;
+	element_prototype.__className = undefined;
+	Text.prototype.__t = undefined;
 	event_target_prototype.__root = undefined;
 }
 
@@ -66,7 +68,7 @@ export function get_last_child(node) {
  */
 export function first_child(node, is_text) {
 	if (!hydrating) {
-		return get_first_child(node);
+		return node.firstChild;
 	}
 	var child = get_first_child(/** @type {Node} */ (hydrate_node));
 
@@ -144,17 +146,14 @@ export function get_next_sibling(node) {
  * @returns {Node | null}
  */
 export function next_sibling(node, is_text) {
-	let next_sibling = hydrating ? hydrate_node : node;
-	var last_sibling;
-
-	next_sibling = /** @type {ChildNode | null} */ (
-		get_next_sibling(/** @type {ChildNode} */ (next_sibling))
-	);
-	last_sibling = next_sibling;
-
 	if (!hydrating) {
-		return next_sibling;
+		return node.nextSibling;
 	}
+
+	var next_sibling = /** @type {ChildNode | null} */ (
+		get_next_sibling(/** @type {ChildNode} */ (hydrate_node))
+	);
+	var last_sibling = next_sibling;
 
 	// if a sibling {expression} is empty during SSR, there might be no
 	// text node to hydrate — we must therefore create one

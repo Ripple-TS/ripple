@@ -26,12 +26,15 @@ export function ClickCounter() {
 			var span = _$_.sibling(button);
 
 			{
-				var expression = _$_.child(span);
+				var expression = _$_.child(span, true);
 
-				_$_.expression(expression, () => lazy.value);
 				_$_.pop(span);
 			}
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression, lazy.value);
+		});
 
 		_$_.append(__anchor, div);
 	});
@@ -52,9 +55,8 @@ export function IncrementDecrement() {
 			var span_1 = _$_.sibling(button_1);
 
 			{
-				var expression_1 = _$_.child(span_1);
+				var expression_1 = _$_.child(span_1, true);
 
-				_$_.expression(expression_1, () => lazy_1.value);
 				_$_.pop(span_1);
 			}
 
@@ -64,6 +66,10 @@ export function IncrementDecrement() {
 				_$_.update(lazy_1);
 			};
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression_1, lazy_1.value);
+		});
 
 		_$_.append(__anchor, div_1);
 	});
@@ -89,21 +95,36 @@ export function MultipleEvents() {
 			var span_2 = _$_.sibling(button_3);
 
 			{
-				var expression_2 = _$_.child(span_2);
+				var expression_2 = _$_.child(span_2, true);
 
-				_$_.expression(expression_2, () => lazy_2.value);
 				_$_.pop(span_2);
 			}
 
 			var span_3 = _$_.sibling(span_2);
 
 			{
-				var expression_3 = _$_.child(span_3);
+				var expression_3 = _$_.child(span_3, true);
 
-				_$_.expression(expression_3, () => lazy_3.value);
 				_$_.pop(span_3);
 			}
 		}
+
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_2.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_2, __prev.a = __a);
+				}
+
+				var __b = lazy_3.value;
+
+				if (__prev.b !== __b) {
+					_$_.set_text(expression_3, __prev.b = __b);
+				}
+			},
+			{ a: ' ', b: ' ' }
+		);
 
 		_$_.append(__anchor, div_2);
 	});
@@ -129,9 +150,8 @@ export function MultiStateUpdate() {
 			var span_4 = _$_.sibling(button_4);
 
 			{
-				var expression_4 = _$_.child(span_4);
+				var expression_4 = _$_.child(span_4, true);
 
-				_$_.expression(expression_4, () => lazy_4.value);
 				_$_.pop(span_4);
 			}
 
@@ -144,6 +164,10 @@ export function MultiStateUpdate() {
 				_$_.pop(span_5);
 			}
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression_4, lazy_4.value);
+		});
 
 		_$_.append(__anchor, div_3);
 	});
@@ -214,14 +238,17 @@ export function ParentWithChildButton() {
 			var span_6 = _$_.sibling(node);
 
 			{
-				var expression_8 = _$_.child(span_6);
+				var expression_8 = _$_.child(span_6, true);
 
-				_$_.expression(expression_8, () => lazy_7.value);
 				_$_.pop(span_6);
 			}
 
 			_$_.pop(div_5);
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression_8, lazy_7.value);
+		});
 
 		_$_.append(__anchor, div_5);
 	});

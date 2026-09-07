@@ -677,9 +677,9 @@ function ForList({ items }) {
 				var span = root_30();
 
 				{
-					var expression_11 = _$_.child(span);
+					var expression_11 = _$_.child(span, true);
 
-					_$_.expression(expression_11, () => item);
+					expression_11.nodeValue = item;
 					_$_.pop(span);
 				}
 
@@ -852,7 +852,7 @@ function NavItem(__props) {
 					_$_.set_class(div_27, __prev.b = __b, void 0, true);
 				}
 			},
-			{ a: void 0, b: Symbol() }
+			{ a: void 0, b: _$_.UNINITIALIZED }
 		);
 
 		_$_.append(__anchor, div_27);

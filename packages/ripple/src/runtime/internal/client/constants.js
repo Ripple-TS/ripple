@@ -11,7 +11,6 @@ export var ASYNC_BLOCK = 1 << 10;
 export var HEAD_BLOCK = 1 << 11;
 export var PRE_EFFECT_BLOCK = 1 << 12;
 export var DIRECT_CHILD_BLOCK = 1 << 13;
-export var CONTAINS_UPDATE = 1 << 14;
 export var CONTAINS_TEARDOWN = 1 << 15;
 export var BLOCK_HAS_RUN = 1 << 16;
 export var TRACKED = 1 << 17;
@@ -19,10 +18,11 @@ export var DERIVED = 1 << 18;
 export var DEFERRED = 1 << 19;
 export var PAUSED = 1 << 20;
 export var DESTROYED = 1 << 21;
-// Marks a block that was directly scheduled (the owner of a mutated tracked).
-// Its whole subtree is scanned for dirty subscribers during flush; blocks above
-// it are only traversed along the CONTAINS_UPDATE routing path.
-export var UPDATE_SOURCE = 1 << 22;
+// Marks a block that is queued for the next flush.
+export var SCHEDULED = 1 << 22;
+// A per-key match value created by a selector; its map entry is dropped once
+// the last subscriber unlinks.
+export var SELECTOR = 1 << 23;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

@@ -4,7 +4,6 @@ import {
 	BLOCK_HAS_RUN,
 	BRANCH_BLOCK,
 	DERIVED,
-	CONTAINS_TEARDOWN,
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
@@ -25,6 +24,7 @@ import {
 	active_reaction,
 	create_component_ctx,
 	is_block_dirty,
+	remove_dependencies,
 	run_block,
 	run_teardown,
 	schedule_update,
@@ -197,6 +197,9 @@ export function boundary_fn_running_block(fn, flags = 0, state = null) {
 	return branch(fn, DIRECT_CHILD_BLOCK | flags, state);
 }
 
+/** Creation counter: a parent always has a lower id than its descendants. */
+var block_id = 0;
+
 /**
  * @param {Block} block
  * @param {Block} parent_block
@@ -227,6 +230,7 @@ export function block(flags, fn, state = null, co) {
 		first: null,
 		f: flags,
 		fn,
+		i: ++block_id,
 		last: null,
 		next: null,
 		p: active_block,
@@ -247,7 +251,7 @@ export function block(flags, fn, state = null, co) {
 	if ((flags & EFFECT_BLOCK) !== 0) {
 		schedule_update(block);
 	} else {
-		run_block(block);
+		run_block(block, true);
 		block.f ^= BLOCK_HAS_RUN;
 	}
 
@@ -262,12 +266,10 @@ export function destroy_block_children(parent, remove_dom = false) {
 	var block = parent.first;
 	parent.first = parent.last = null;
 
-	if (remove_dom || (parent.f & CONTAINS_TEARDOWN) !== 0) {
-		while (block !== null) {
-			var next = block.next;
-			destroy_block(block, remove_dom);
-			block = next;
-		}
+	while (block !== null) {
+		var next = block.next;
+		destroy_block(block, remove_dom);
+		block = next;
 	}
 }
 
@@ -278,20 +280,12 @@ export function destroy_block_children(parent, remove_dom = false) {
 export function destroy_non_branch_children(parent, remove_dom = false) {
 	var block = parent.first;
 
-	if (
-		(parent.f & CONTAINS_TEARDOWN) === 0 &&
-		parent.first !== null &&
-		(parent.first.f & BRANCH_BLOCK) === 0
-	) {
-		parent.first = parent.last = null;
-	} else {
-		while (block !== null) {
-			var next = block.next;
-			if ((block.f & BRANCH_BLOCK) === 0) {
-				destroy_block(block, remove_dom);
-			}
-			block = next;
+	while (block !== null) {
+		var next = block.next;
+		if ((block.f & BRANCH_BLOCK) === 0) {
+			destroy_block(block, remove_dom);
 		}
+		block = next;
 	}
 }
 
@@ -487,10 +481,8 @@ export function get_last_node(block) {
  * @param {boolean} [remove_dom]
  */
 export function destroy_block(block, remove_dom = true) {
-	block.f ^= DESTROYED;
-
+	var f = (block.f |= DESTROYED);
 	var removed = false;
-	var f = block.f;
 
 	if (
 		(remove_dom && (f & (BRANCH_BLOCK | ROOT_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) ||
@@ -506,6 +498,10 @@ export function destroy_block(block, remove_dom = true) {
 	destroy_block_children(block, remove_dom && !removed);
 
 	run_teardown(block);
+
+	if (block.d !== null) {
+		remove_dependencies(block);
+	}
 
 	var parent = block.p;
 

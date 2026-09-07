@@ -15,11 +15,14 @@ export function TrackedState() {
 		var div = root();
 
 		{
-			var expression = _$_.child(div);
+			var expression = _$_.child(div, true);
 
-			_$_.expression(expression, () => lazy.value);
 			_$_.pop(div);
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression, lazy.value);
+		});
 
 		_$_.append(__anchor, div);
 	});
@@ -80,30 +83,50 @@ export function MultipleTracked() {
 			var div_4 = _$_.child(div_3);
 
 			{
-				var expression_3 = _$_.child(div_4);
+				var expression_3 = _$_.child(div_4, true);
 
-				_$_.expression(expression_3, () => lazy_4.value);
 				_$_.pop(div_4);
 			}
 
 			var div_5 = _$_.sibling(div_4);
 
 			{
-				var expression_4 = _$_.child(div_5);
+				var expression_4 = _$_.child(div_5, true);
 
-				_$_.expression(expression_4, () => lazy_5.value);
 				_$_.pop(div_5);
 			}
 
 			var div_6 = _$_.sibling(div_5);
 
 			{
-				var expression_5 = _$_.child(div_6);
+				var expression_5 = _$_.child(div_6, true);
 
-				_$_.expression(expression_5, () => lazy_6.value);
 				_$_.pop(div_6);
 			}
 		}
+
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_4.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_3, __prev.a = __a);
+				}
+
+				var __b = lazy_5.value;
+
+				if (__prev.b !== __b) {
+					_$_.set_text(expression_4, __prev.b = __b);
+				}
+
+				var __c = lazy_6.value;
+
+				if (__prev.c !== __c) {
+					_$_.set_text(expression_5, __prev.c = __c);
+				}
+			},
+			{ a: ' ', b: ' ', c: ' ' }
+		);
 
 		_$_.append(__anchor, div_3);
 	});

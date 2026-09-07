@@ -178,15 +178,7 @@ export function ComputedTitle() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><span>';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(lazy_5.value);
-			}
-
-			__out += '</span></div>';
+			__out += '<div><span>' + _$_.escape(lazy_5.value) + '</span></div>';
 			_$_.output_push(__out);
 			__out = '';
 			_$_.set_output_target('head');

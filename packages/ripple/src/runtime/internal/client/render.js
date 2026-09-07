@@ -12,6 +12,7 @@ import {
 import { event } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
+import { hydrating } from './hydration.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 
@@ -23,7 +24,13 @@ import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 export function set_text(text, value) {
 	// For objects, we apply string coercion
 	var str = value == null ? '' : typeof value === 'object' ? value + '' : value;
-	if (str !== (text.__t ??= text.nodeValue)) {
+	var previous = text.__t;
+	// Only server-rendered text can already hold the value; a fresh template
+	// text node never does, so skip reading it back.
+	if (previous === undefined && hydrating) {
+		previous = text.__t = text.nodeValue;
+	}
+	if (str !== previous) {
 		text.__t = str;
 		text.nodeValue = str + '';
 	}
@@ -168,16 +175,24 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 export function set_class(dom, value, hash, is_html = true) {
 	var class_value =
 		value == null
-			? (hash ?? '')
+			? hash === undefined
+				? null
+				: hash
 			: // Fast-path for string values
 				typeof value === 'string'
 				? value + (hash ? ' ' + hash : '')
 				: clsx([value, hash]);
 
+	// Skip the DOM write when the class we last applied is unchanged.
+	if (dom.__className === class_value) {
+		return;
+	}
+	dom.__className = class_value;
+
 	// Removing the attribute when the value is only an empty string causes
 	// performance issues vs simply making the className an empty string. So
 	// we should only remove the class if the value is nullish.
-	if (value == null && hash === undefined) {
+	if (class_value === null) {
 		dom.removeAttribute('class');
 	} else {
 		if (is_html) {

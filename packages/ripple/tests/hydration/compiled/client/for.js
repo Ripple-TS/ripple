@@ -390,9 +390,9 @@ export function EmptyForLoop() {
 					var span_2 = root_18();
 
 					{
-						var expression_7 = _$_.child(span_2);
+						var expression_7 = _$_.child(span_2, true);
 
-						_$_.expression(expression_7, () => item);
+						expression_7.nodeValue = item;
 						_$_.pop(span_2);
 					}
 
@@ -708,9 +708,9 @@ export function ForLoopEmptyToPopulated() {
 						var li_9 = root_36();
 
 						{
-							var expression_14 = _$_.child(li_9);
+							var expression_14 = _$_.child(li_9, true);
 
-							_$_.expression(expression_14, () => item);
+							expression_14.nodeValue = item;
 							_$_.pop(li_9);
 						}
 
@@ -1003,7 +1003,7 @@ export function ForLoopIndexUpdate() {
 									_$_.set_class(li_12, __prev.b = __b, void 0, true);
 								}
 							},
-							{ a: ' ', b: Symbol() }
+							{ a: ' ', b: _$_.UNINITIALIZED }
 						);
 
 						_$_.append(__anchor, li_12);
@@ -1080,7 +1080,7 @@ export function KeyedForLoopWithIndex() {
 									_$_.set_class(li_13, __prev.c = __c, void 0, true);
 								}
 							},
-							{ a: ' ', b: void 0, c: Symbol() }
+							{ a: ' ', b: void 0, c: _$_.UNINITIALIZED }
 						);
 
 						_$_.append(__anchor, li_13);
@@ -1234,7 +1234,12 @@ function TodoItem(props) {
 					_$_.set_class(div_16, __prev.d = __d, void 0, true);
 				}
 			},
-			{ a: void 0, b: ' ', c: Symbol(), d: Symbol() }
+			{
+				a: void 0,
+				b: ' ',
+				c: _$_.UNINITIALIZED,
+				d: _$_.UNINITIALIZED
+			}
 		);
 
 		_$_.append(__anchor, div_16);

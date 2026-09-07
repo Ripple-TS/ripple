@@ -240,15 +240,7 @@ export function EmptyForLoop() {
 			__out += '<div class="container"><!--[-->';
 
 			for (const item of items) {
-				__out += '<span>';
-
-				{
-					_$_.output_push(__out);
-					__out = '';
-					_$_.render_expression(item);
-				}
-
-				__out += '</span>';
+				__out += '<span>' + _$_.escape(item) + '</span>';
 			}
 
 			__out += '<!--]--></div>';
@@ -427,15 +419,7 @@ export function ForLoopEmptyToPopulated() {
 			__out += '<button class="populate">Populate</button><ul class="list"><!--[-->';
 
 			for (const item of lazy_8.value) {
-				__out += '<li>';
-
-				{
-					_$_.output_push(__out);
-					__out = '';
-					_$_.render_expression(item);
-				}
-
-				__out += '</li>';
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
 
 			__out += '<!--]--></ul>';

@@ -18,7 +18,6 @@ import {
 	DERIVED,
 	COMPUTED_PROPERTY,
 	CONTAINS_TEARDOWN,
-	CONTAINS_UPDATE,
 	DESTROYED,
 	EFFECT_BLOCK,
 	PAUSED,
@@ -34,7 +33,8 @@ import {
 	SUSPENSE_REJECTED,
 	TRY_BLOCK,
 	DIRECT_CHILD_BLOCK,
-	UPDATE_SOURCE,
+	SCHEDULED,
+	SELECTOR,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -92,14 +92,18 @@ let scheduler_mode = FLUSH_MICROTASK;
 let is_micro_task_queued = false;
 /** @type {number} */
 let clock = 0;
-/** @type {Block[]} */
-let queued_root_blocks = [];
-// Flush normally only scans the subtree of each directly-scheduled block, since a
-// tracked's subscribers live inside the subtree of the block that owns it. If a
-// tracked is ever read from outside its owner's subtree (e.g. smuggled across
-// sibling subtrees via a module-level variable), that invariant breaks, so we
-// permanently fall back to scanning the whole root tree to stay correct.
-let disable_scoped_flush = false;
+/**
+ * Blocks scheduled for the next flush. `sorted` tracks whether they were
+ * pushed in creation order, so the common case avoids a sort.
+ * @typedef {{ blocks: Block[]; sorted: boolean; last: number }} Queue
+ */
+/** @type {Queue} */
+let queue = create_queue();
+
+/** @returns {Queue} */
+function create_queue() {
+	return { blocks: [], sorted: true, last: 0 };
+}
 /** @type {(() => void)[]} */
 let queued_microtasks = [];
 /** @type {number} */
@@ -213,6 +217,7 @@ function update_derived(computed) {
 function update_tracked_value_clock(tracked, value) {
 	tracked.__v = value;
 	tracked.c = increment_clock();
+	mark_subscribers(tracked);
 }
 
 /**
@@ -252,11 +257,11 @@ function run_derived(computed) {
 
 		var value = computed.fn();
 
-		computed.d = active_dependency;
+		finish_dependencies(computed, active_dependency);
 
 		return value;
 	} catch (error) {
-		computed.d = active_dependency;
+		finish_dependencies(computed, active_dependency);
 		if (error === ASYNC_DERIVED_READ_THROWN) {
 			// Check if any dependency is rejected — if so, propagate rejection
 			var dep = active_dependency;
@@ -296,8 +301,10 @@ export function handle_error(error, block) {
 
 /**
  * @param {Block} block
+ * @param {boolean} [first_run] true when the block has no children, teardown,
+ * or dependencies yet, so that cleanup can be skipped
  */
-export function run_block(block) {
+export function run_block(block, first_run = false) {
 	var previous_block = active_block;
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
@@ -309,8 +316,10 @@ export function run_block(block) {
 		active_reaction = block;
 		active_component = block.co;
 
-		destroy_non_branch_children(block);
-		run_teardown(block);
+		if (!first_run) {
+			destroy_non_branch_children(block);
+			run_teardown(block);
+		}
 
 		tracking = (block.f & (ROOT_BLOCK | BRANCH_BLOCK)) === 0;
 		active_dependency = null;
@@ -327,11 +336,11 @@ export function run_block(block) {
 			}
 		}
 
-		block.d = active_dependency;
+		finish_dependencies(block, active_dependency);
 	} catch (error) {
 		var is_component_direct = false;
 		var is_try_fn_block = false;
-		block.d = active_dependency;
+		finish_dependencies(block, active_dependency);
 		// When a derived read throws ASYNC_DERIVED_READ_THROWN, it means the
 		// derived is still SUSPENSE_PENDING. The dependency was already registered,
 		// so we swallow the throw and let the parent continue processing. When
@@ -422,6 +431,8 @@ class TrackedValue {
 		this.f = TRACKED;
 		/** @type {string | undefined} */
 		this.h = hash;
+		/** @type {Dependency | null} */
+		this.sb = null;
 		/** @type {any} */
 		this.__v = v;
 	}
@@ -482,6 +493,8 @@ class DerivedValue {
 		this.fn = fn;
 		/** @type {string | undefined} */
 		this.h = hash;
+		/** @type {Dependency | null} */
+		this.sb = null;
 		/** @type {any} */
 		this.__v = UNINITIALIZED;
 	}
@@ -696,7 +709,6 @@ export function track_async(fn, b, hash) {
 		// Set to pending before calling fn() in case it's sync.
 		if (t.__v !== SUSPENSE_PENDING) {
 			update_tracked_value_clock(t, SUSPENSE_PENDING);
-			schedule_update(t.b);
 		}
 
 		// Temporarily allow mutations so set() doesn't throw inside the pre-effect
@@ -715,7 +727,6 @@ export function track_async(fn, b, hash) {
 				while (dep !== null) {
 					if (dep.t.__v === SUSPENSE_REJECTED) {
 						update_tracked_value_clock(t, SUSPENSE_REJECTED);
-						schedule_update(t.b);
 						complete_deferred_boundaries(t, false);
 						if (request_id > 0 && boundary !== null) {
 							complete_boundary_request(boundary, request_id, false);
@@ -748,7 +759,6 @@ export function track_async(fn, b, hash) {
 		if (async_result === null) {
 			// Sync result
 			update_tracked_value_clock(t, result);
-			schedule_update(t.b);
 			if (request_id > 0 && boundary !== null) {
 				complete_boundary_request(boundary, request_id);
 				request_id = 0;
@@ -769,7 +779,6 @@ export function track_async(fn, b, hash) {
 					return;
 				}
 				update_tracked_value_clock(t, resolved);
-				schedule_update(t.b);
 				complete_deferred_boundaries(t);
 				if (request_id > 0 && boundary !== null) {
 					complete_boundary_request(boundary, request_id);
@@ -792,7 +801,6 @@ export function track_async(fn, b, hash) {
 				}
 
 				update_tracked_value_clock(t, SUSPENSE_REJECTED);
-				schedule_update(t.b);
 				complete_deferred_boundaries(t, false);
 
 				// Route error to catch boundary
@@ -865,16 +873,148 @@ function create_dependency(tracked) {
 	if (existing !== null) {
 		reaction.d = existing.n;
 		existing.c = tracked.c;
-		existing.t = tracked;
 		existing.n = null;
+		if (existing.t !== tracked) {
+			unlink_subscriber(existing);
+			existing.t = tracked;
+			link_subscriber(existing, tracked);
+		}
 		return existing;
 	}
 
-	return {
+	/** @type {Dependency} */
+	var dependency = {
 		c: tracked.c,
 		t: tracked,
 		n: null,
+		r: reaction,
+		sp: null,
+		sn: null,
 	};
+	link_subscriber(dependency, tracked);
+	return dependency;
+}
+
+/**
+ * @param {Dependency} dependency
+ * @param {Tracked | Derived} tracked
+ */
+function link_subscriber(dependency, tracked) {
+	var head = tracked.sb;
+	dependency.sn = head;
+	if (head !== null) {
+		head.sp = dependency;
+	}
+	tracked.sb = dependency;
+}
+
+/**
+ * @param {Dependency} dependency
+ */
+export function unlink_subscriber(dependency) {
+	var prev = dependency.sp;
+	var next = dependency.sn;
+	if (prev !== null) {
+		prev.sn = next;
+	} else {
+		var tracked = dependency.t;
+		tracked.sb = next;
+		if (next === null && (tracked.f & SELECTOR) !== 0) {
+			// Last subscriber gone: release the selector's per-key entry.
+			var accessors = /** @type {SelectorAccessors} */ (tracked.a);
+			accessors.m.delete(accessors.k);
+		}
+	}
+	if (next !== null) {
+		next.sp = prev;
+	}
+	dependency.sp = dependency.sn = null;
+}
+
+/**
+ * @typedef {{ get: undefined; set: undefined; m: Map<any, Tracked>; k: any }} SelectorAccessors
+ */
+
+/**
+ * A tracked match flag for one selector key. The key and owning map ride on
+ * the accessor slot so the entry can be released from `unlink_subscriber`.
+ * @param {boolean} value
+ * @param {Block} block
+ * @param {Map<any, Tracked>} map
+ * @param {any} key
+ * @returns {Tracked}
+ */
+export function selector_tracked(value, block, map, key) {
+	var accessors = /** @type {SelectorAccessors} */ ({
+		get: undefined,
+		set: undefined,
+		m: map,
+		k: key,
+	});
+	var t = /** @type {Tracked} */ (new TrackedValue(value, block, accessors, undefined));
+	t.f |= SELECTOR;
+	return t;
+}
+
+/**
+ * Install the dependency chain produced by a run, unsubscribing from any
+ * previous dependencies that were not read again.
+ * @param {Block | Derived} reaction
+ * @param {Dependency | null} dependencies
+ */
+function finish_dependencies(reaction, dependencies) {
+	var stale = reaction.d;
+	while (stale !== null) {
+		unlink_subscriber(stale);
+		stale = stale.n;
+	}
+	reaction.d = dependencies;
+}
+
+/**
+ * Unsubscribe a block from every tracked value it read. Dependencies on
+ * values owned by an already-destroyed block are dropped without unlinking,
+ * since the owner's subscriber list dies with it.
+ * @param {Block} block
+ */
+export function remove_dependencies(block) {
+	var dependency = block.d;
+	while (dependency !== null) {
+		var owner = dependency.t.b;
+		if (owner === null || (owner.f & DESTROYED) === 0) {
+			unlink_subscriber(dependency);
+		}
+		dependency = dependency.n;
+	}
+	block.d = null;
+}
+
+/**
+ * Schedule every reaction subscribed to `tracked`. Deriveds are lazy, so their
+ * own subscribers are marked instead; subscribers that were destroyed without
+ * unlinking are pruned here.
+ * @param {Tracked | Derived} tracked
+ */
+function mark_subscribers(tracked) {
+	var dependency = tracked.sb;
+	while (dependency !== null) {
+		var next = dependency.sn;
+		var reaction = dependency.r;
+		var flags = reaction.f;
+		if ((flags & DERIVED) !== 0) {
+			var derived_owner = /** @type {Derived} */ (reaction).b;
+			if (derived_owner !== null && (derived_owner.f & DESTROYED) !== 0) {
+				unlink_subscriber(dependency);
+			} else {
+				mark_subscribers(/** @type {Derived} */ (reaction));
+			}
+		} else if ((flags & DESTROYED) !== 0) {
+			unlink_subscriber(dependency);
+		} else {
+			schedule_update(/** @type {Block} */ (reaction));
+		}
+		dependency = next;
+	}
 }
 
 /**
@@ -941,125 +1081,81 @@ function trigger_track_get(fn, v) {
 }
 
 /**
- * @param {Block} root_block
+ * @param {Block} a
+ * @param {Block} b
+ * @returns {number}
  */
-function flush_updates(root_block) {
-	/** @type {Block | null} */
-	var current = root_block;
-	var pre_effects = [];
-	var other_blocks = [];
-	var effects = [];
-	// The nearest enclosing directly-scheduled block ("update source"). While it is
-	// non-null we are inside a source's subtree and scan every descendant. Above
-	// sources we only follow the CONTAINS_UPDATE routing path, so sibling subtrees
-	// that contain no update are skipped. When scoping is disabled we treat the
-	// whole root tree as one source — the original full-tree scan.
-	/** @type {Block | null} */
-	var scope_root = disable_scoped_flush ? root_block : null;
-
-	while (current !== null) {
-		var flags = current.f;
-		var on_path = (flags & CONTAINS_UPDATE) !== 0;
-
-		if (on_path) {
-			current.f ^= CONTAINS_UPDATE;
-		}
-
-		if ((flags & UPDATE_SOURCE) !== 0) {
-			current.f ^= UPDATE_SOURCE;
-			if (scope_root === null) {
-				scope_root = current;
-			}
-		}
-
-		if ((flags & PAUSED) === 0 && (on_path || scope_root !== null)) {
-			if ((flags & PRE_EFFECT_BLOCK) !== 0) {
-				pre_effects.push(current);
-			} else if ((flags & EFFECT_BLOCK) !== 0) {
-				effects.push(current);
-			} else {
-				other_blocks.push(current);
-			}
-			/** @type {Block | null} */
-			var child = current.first;
-
-			if (child !== null) {
-				current = child;
-				continue;
-			}
-		}
-
-		/** @type {Block | null} */
-		var parent = current.p;
-		current = current.next;
-
-		while (current === null && parent !== null) {
-			if (parent === scope_root) {
-				scope_root = null;
-			}
-			current = parent.next;
-			parent = parent.p;
-		}
-	}
-
-	var arr_length = 0;
-
-	// Phase 1: pre-effects (e.g. update tracked values before render blocks read them)
-	arr_length = pre_effects.length;
-	for (var i = 0; i < arr_length; i++) {
-		var block = pre_effects[i];
-
-		try {
-			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
-				run_block(block);
-			}
-		} catch (error) {
-			handle_error(error, block);
-		}
-	}
-
-	// Phase 2: all other blocks except effects
-	arr_length = other_blocks.length;
-	for (var i = 0; i < arr_length; i++) {
-		var block = other_blocks[i];
-
-		try {
-			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
-				run_block(block);
-			}
-		} catch (error) {
-			handle_error(error, block);
-		}
-	}
-
-	// Phase 3: effects
-	arr_length = effects.length;
-	for (var i = 0; i < arr_length; i++) {
-		var block = effects[i];
-
-		try {
-			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
-				run_block(block);
-			}
-		} catch (error) {
-			handle_error(error, block);
-		}
-	}
+function by_block_id(a, b) {
+	return a.i - b.i;
 }
 
 /**
- * @param {Block[]} root_blocks
+ * Run every scheduled block, in creation order (so a parent runs before its
+ * descendants), in three phases: pre-effects, render blocks, then effects.
+ * @param {Queue} pending
  */
-function flush_queued_root_blocks(root_blocks) {
-	for (let i = 0; i < root_blocks.length; i++) {
-		flush_updates(root_blocks[i]);
+function flush_queue(pending) {
+	var blocks = pending.blocks;
+
+	if (!pending.sorted) {
+		blocks.sort(by_block_id);
 	}
+
+	/** @type {Block[]} */
+	var pre_effects = [];
+	/** @type {Block[]} */
+	var other_blocks = [];
+	/** @type {Block[]} */
+	var effects = [];
+
+	for (var i = 0; i < blocks.length; i++) {
+		var block = blocks[i];
+		var flags = block.f;
+		block.f = flags & ~SCHEDULED;
+
+		// A paused block is re-checked when it resumes; a destroyed one is gone.
+		if ((flags & (PAUSED | DESTROYED)) !== 0) {
+			continue;
+		}
+		if ((flags & PRE_EFFECT_BLOCK) !== 0) {
+			pre_effects.push(block);
+		} else if ((flags & EFFECT_BLOCK) !== 0) {
+			effects.push(block);
+		} else {
+			other_blocks.push(block);
+		}
+	}
+
+	blocks.length = 0;
+	pending.sorted = true;
+	pending.last = 0;
+
+	run_phase(pre_effects);
+	run_phase(other_blocks);
+	run_phase(effects);
 
 	if (queued_post_block_flush.length > 0) {
 		var callbacks = queued_post_block_flush;
 		queued_post_block_flush = [];
 		for (var j = 0; j < callbacks.length; j++) {
 			callbacks[j]();
+		}
+	}
+}
+
+/**
+ * @param {Block[]} blocks
+ */
+function run_phase(blocks) {
+	for (var i = 0; i < blocks.length; i++) {
+		var block = blocks[i];
+
+		try {
+			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
+				run_block(block);
+			}
+		} catch (error) {
+			handle_error(error, block);
 		}
 	}
 }
@@ -1091,9 +1187,9 @@ function flush_microtasks() {
 			'Maximum update depth exceeded. This typically indicates that an effect reads and writes the same piece of state.',
 		);
 	}
-	var previous_queued_root_blocks = queued_root_blocks;
-	queued_root_blocks = [];
-	flush_queued_root_blocks(previous_queued_root_blocks);
+	var pending = queue;
+	queue = create_queue();
+	flush_queue(pending);
 
 	if (!is_micro_task_queued) {
 		flush_count = 0;
@@ -1128,64 +1224,27 @@ export function queue_post_block_flush_callback(fn) {
  * @param {Block} block
  */
 export function schedule_update(block) {
+	if ((block.f & SCHEDULED) !== 0) {
+		return;
+	}
+	block.f |= SCHEDULED;
+
 	if (scheduler_mode === FLUSH_MICROTASK) {
 		queue_microtask();
 	}
-	// The scheduled block roots the subtree that flush_updates scans for dirty
-	// subscribers. Mark it even if it (or an ancestor) is already on a routing
-	// path, so the early return below still records it as a scan root.
-	block.f |= UPDATE_SOURCE;
-	let current = block;
 
-	while (current !== null) {
-		var flags = current.f;
-		if ((flags & CONTAINS_UPDATE) !== 0) return;
-		current.f ^= CONTAINS_UPDATE;
-		if ((flags & ROOT_BLOCK) !== 0) {
-			break;
-		}
-		current = /** @type {Block} */ (current.p);
+	var id = block.i;
+	if (id < queue.last) {
+		queue.sorted = false;
 	}
-
-	queued_root_blocks.push(current);
+	queue.last = id;
+	queue.blocks.push(block);
 }
 
 /**
  * @param {Tracked | Derived} tracked
  */
 function register_dependency(tracked) {
-	if (!disable_scoped_flush && active_block !== null && active_block !== tracked.b) {
-		// Scoped flush only scans the owner's subtree for dirty subscribers, valid
-		// only while every subscriber lives inside it. The subscriber↔owner
-		// ancestry is structural and stable for a block's lifetime (its `.p` chain
-		// never changes — DOM moves don't reparent blocks), so we only need to
-		// verify *new* dependency edges: if this reaction already depended on
-		// `tracked` on its previous run (it's in the prior chain), the ancestry
-		// walk was already done — skip it. This keeps the (possibly deep) walk off
-		// the hot path for the common case of stable subscriptions.
-		var already_seen = false;
-		var prev_dep = active_reaction === null ? null : active_reaction.d;
-		while (prev_dep !== null) {
-			if (prev_dep.t === tracked) {
-				already_seen = true;
-				break;
-			}
-			prev_dep = prev_dep.n;
-		}
-
-		if (!already_seen) {
-			var owner = tracked.b;
-			/** @type {Block | null} */
-			var node = active_block;
-			while (node !== null && node !== owner) {
-				node = node.p;
-			}
-			if (node === null) {
-				disable_scoped_flush = true;
-			}
-		}
-	}
-
 	var dependency = active_dependency;
 
 	if (dependency === null) {
@@ -1406,7 +1465,7 @@ export function set(tracked, value) {
 
 		tracked.__v = value;
 		tracked.c = increment_clock();
-		schedule_update(tracked_block);
+		mark_subscribers(tracked);
 	}
 }
 
@@ -1435,21 +1494,19 @@ export function untrack(fn) {
  */
 export function flush_sync(fn) {
 	var previous_scheduler_mode = scheduler_mode;
-	var previous_queued_root_blocks = queued_root_blocks;
+	var previous_queue = queue;
 
 	try {
-		/** @type {Block[]} */
-		var root_blocks = [];
-
 		scheduler_mode = FLUSH_SYNC;
-		queued_root_blocks = root_blocks;
+		queue = create_queue();
 		is_micro_task_queued = false;
 
-		flush_queued_root_blocks(previous_queued_root_blocks);
+		// Drains previous_queue, which then stays empty for the restore below.
+		flush_queue(previous_queue);
 
 		var result = fn?.();
 
-		if (queued_root_blocks.length > 0 || root_blocks.length > 0) {
+		if (queue.blocks.length > 0) {
 			flush_sync();
 		}
 
@@ -1458,7 +1515,7 @@ export function flush_sync(fn) {
 		return /** @type {T} */ (result);
 	} finally {
 		scheduler_mode = previous_scheduler_mode;
-		queued_root_blocks = previous_queued_root_blocks;
+		queue = previous_queue;
 	}
 }
 

@@ -16,9 +16,16 @@ export type Component = {
 };
 
 export type Dependency = {
+	// clock of the tracked value when it was read
 	c: number;
 	t: Tracked | Derived;
+	// next dependency of the same reaction
 	n: null | Dependency;
+	// the reaction that read the tracked value
+	r: Block | Derived;
+	// previous / next subscriber of the same tracked value
+	sp: null | Dependency;
+	sn: null | Dependency;
 };
 
 export type DeferredTrackedEntry = {
@@ -36,6 +43,8 @@ export type Block = {
 	first: null | Block;
 	f: number;
 	fn: any;
+	// creation id; flushes run scheduled blocks in this order
+	i: number;
 	last: null | Block;
 	next: null | Block;
 	p: null | Block;
@@ -100,6 +109,8 @@ declare global {
 			value?: string;
 		};
 		__click?: () => void;
+		// last class value applied by set_class; null once removed
+		__className?: string | null;
 		__ripple_block?: Block;
 	}
 
