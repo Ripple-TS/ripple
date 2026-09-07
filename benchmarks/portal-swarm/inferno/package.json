@@ -14,7 +14,6 @@
     "inferno-create-element": "catalog:benchmarks"
   },
   "devDependencies": {
-    "vite": "catalog:benchmarks",
-    "terser": "catalog:benchmarks"
+    "vite": "catalog:benchmarks"
   }
 }

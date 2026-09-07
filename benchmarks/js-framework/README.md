@@ -5,12 +5,14 @@ every tenth label, selecting, swapping, removing, and clearing. The clear
 operation starts from 10,000 rows. Seeded label generation and committed DOM
 updates are part of the workload.
 
-Each timed click verifies its expected DOM change immediately after the timer
-stops, before another scheduler turn. The harness also verifies inserted-row
-order, surviving node identity, and delegated selection across all targets.
-`js-framework-reorder` uses the same fixture apps for reverse, shuffle, rotation,
-insertion, removal, and displacement checks. Octane-specific private allocator and
-production-call budgets remain in the upstream repository.
+Each timed click starts from rows whose style and layout have been computed (the
+harness forces layout right before the timer starts, since a never-laid-out table
+reorders up to twice as fast) and verifies its expected DOM change immediately
+after the timer stops, before another scheduler turn. The harness also verifies
+inserted-row order, surviving node identity, and delegated selection across all
+targets. `js-framework-reorder` uses the same fixture apps for reverse, shuffle,
+rotation, insertion, removal, and displacement checks. Octane-specific private
+allocator and production-call budgets remain in the upstream repository.
 
 From the repository root:
 

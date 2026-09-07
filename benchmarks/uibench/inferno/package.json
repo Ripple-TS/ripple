@@ -13,7 +13,6 @@
     "inferno": "catalog:benchmarks"
   },
   "devDependencies": {
-    "terser": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }

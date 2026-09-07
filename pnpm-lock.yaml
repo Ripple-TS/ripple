@@ -78,9 +78,6 @@ catalogs:
     svelte:
       specifier: 5.56.7
       version: 5.56.7
-    terser:
-      specifier: 5.49.0
-      version: 5.49.0
     typescript:
       specifier: 5.9.3
       version: 5.9.3
@@ -457,9 +454,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -470,9 +464,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -486,9 +477,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -505,9 +493,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -521,9 +506,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -553,9 +535,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -717,9 +696,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -730,9 +706,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -743,9 +716,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -759,9 +729,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -778,9 +745,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -794,9 +758,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -810,9 +771,6 @@ importers:
         specifier: catalog:benchmarks
         version: 2.0.0-rc.3
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -829,9 +787,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -867,9 +822,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -880,9 +832,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -893,9 +842,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -909,9 +855,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -928,9 +871,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -944,9 +884,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -989,9 +926,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1027,9 +961,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1040,9 +971,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1056,9 +984,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1075,9 +1000,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1103,9 +1025,6 @@ importers:
       babel-plugin-react-compiler:
         specifier: 1.0.0
         version: 1.0.0
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1119,9 +1038,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1151,9 +1067,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1342,9 +1255,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1355,9 +1265,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1371,9 +1278,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1390,9 +1294,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1406,9 +1307,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1422,9 +1320,6 @@ importers:
         specifier: catalog:benchmarks
         version: 2.0.0-rc.3
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1441,9 +1336,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1881,9 +1773,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1894,9 +1783,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1910,9 +1796,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1929,9 +1812,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1945,9 +1825,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -1977,9 +1854,6 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: catalog:benchmarks
         version: 7.2.0(svelte@5.56.7(@typescript-eslint/types@8.56.1))(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2015,9 +1889,6 @@ importers:
         specifier: catalog:benchmarks
         version: 9.1.0
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2028,9 +1899,6 @@ importers:
         specifier: 0.2.6
         version: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
     devDependencies:
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2044,9 +1912,6 @@ importers:
       '@preact/preset-vite':
         specifier: catalog:benchmarks
         version: 2.10.6(@babel/core@7.29.7(supports-color@7.2.0))(preact@10.29.8)(rollup@4.59.0)(supports-color@7.2.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2063,9 +1928,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: catalog:benchmarks
         version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/runtime@7.28.6)(rolldown@1.1.5)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2079,9 +1941,6 @@ importers:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../../../packages/vite-plugin
-      terser:
-        specifier: catalog:benchmarks
-        version: 5.49.0
       vite:
         specifier: catalog:benchmarks
         version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)
@@ -2336,10 +2195,10 @@ importers:
         version: 0.3.133(@tsrx/eslint-parser@0.3.133(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
       '@tsrx/language-server':
         specifier: catalog:default
-        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
@@ -2401,7 +2260,7 @@ importers:
         version: link:../packages/vite-plugin
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       ripple:
         specifier: workspace:*
         version: link:../packages/ripple
@@ -4365,8 +4224,8 @@ packages:
     peerDependencies:
       react: '>=18'
 
-  '@tsrx/ripple@0.1.63':
-    resolution: {integrity: sha512-69l/ReoChRFjqpmaBGqEyG+tiXS+wk2GeZh3sDSuT1V4hjHY2IBsQKCVOTwHt5Dbv7X2B4eZNGt1/fPLMyx6Bg==}
+  '@tsrx/ripple@0.1.64':
+    resolution: {integrity: sha512-vszrrPpKtfzj4SNYp2hiMIsMZWYm/FspDOUj7nF3XywdMqjjoLhYbjhjk7NDZSzp0TXg8lCS/Z58KoZeGG1ZeQ==}
 
   '@tsrx/runtime@0.1.5':
     resolution: {integrity: sha512-sZHTOr2OOGg+EcebZoTeznomydrA4FdvJDfp95lPTj+mq5KpfRT4W6gnO6RoEESrSfL/Ti+V0xzZbA5BYTDBKw==}
@@ -8342,6 +8201,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
+    optional: true
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
@@ -9183,10 +9043,10 @@ snapshots:
       '@typescript-eslint/parser': 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       eslint: 10.3.0(jiti@2.6.1)(supports-color@7.2.0)
 
-  '@tsrx/language-server@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
+  '@tsrx/language-server@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
     dependencies:
       '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
-      '@tsrx/typescript-plugin': 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+      '@tsrx/typescript-plugin': 0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@volar/language-server': 2.4.28
       typescript: 5.9.3
       volar-service-css: 0.0.70(@volar/language-service@2.4.28)
@@ -9225,9 +9085,9 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1)':
+  '@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1)':
     dependencies:
-      '@tsrx/core': 0.1.67(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.69(@typescript-eslint/types@8.56.1)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       is-reference: 3.0.3
       source-map: 0.7.6
@@ -9257,14 +9117,14 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/typescript-plugin@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.63(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
+  '@tsrx/typescript-plugin@0.3.133(@tsrx/react@0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.64(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       '@volar/typescript': 2.4.28
       typescript: 5.9.3
     optionalDependencies:
       '@tsrx/react': 0.2.67(@typescript-eslint/types@8.56.1)(react@19.2.7)
-      '@tsrx/ripple': 0.1.63(@typescript-eslint/types@8.56.1)
+      '@tsrx/ripple': 0.1.64(@typescript-eslint/types@8.56.1)
       '@tsrx/solid': 0.1.67(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)
       octane: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
 
@@ -9924,7 +9784,8 @@ snapshots:
       node-releases: 2.0.37
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
-  buffer-from@1.1.2: {}
+  buffer-from@1.1.2:
+    optional: true
 
   bun-types@1.3.10:
     dependencies:
@@ -9997,7 +9858,8 @@ snapshots:
 
   commander@14.0.3: {}
 
-  commander@2.20.3: {}
+  commander@2.20.3:
+    optional: true
 
   consola@3.4.2: {}
 
@@ -11864,8 +11726,10 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
+    optional: true
 
-  source-map@0.6.1: {}
+  source-map@0.6.1:
+    optional: true
 
   source-map@0.7.6: {}
 
@@ -11980,6 +11844,7 @@ snapshots:
       acorn: 8.17.0
       commander: 2.20.3
       source-map-support: 0.5.21
+    optional: true
 
   tinybench@2.9.0: {}
 

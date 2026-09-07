@@ -18,7 +18,6 @@
     "@rolldown/plugin-babel": "0.2.3",
     "@vitejs/plugin-react": "catalog:benchmarks",
     "babel-plugin-react-compiler": "1.0.0",
-    "terser": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }

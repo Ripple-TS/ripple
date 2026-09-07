@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "catalog:benchmarks",
-    "vite": "catalog:benchmarks",
-    "terser": "catalog:benchmarks"
+    "vite": "catalog:benchmarks"
   }
 }

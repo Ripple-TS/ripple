@@ -13,7 +13,6 @@
     "octane": "0.2.6"
   },
   "devDependencies": {
-    "vite": "catalog:benchmarks",
-    "terser": "catalog:benchmarks"
+    "vite": "catalog:benchmarks"
   }
 }

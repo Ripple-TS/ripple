@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@ripple-ts/vite-plugin": "workspace:*",
-    "vite": "catalog:benchmarks",
-    "terser": "catalog:benchmarks"
+    "vite": "catalog:benchmarks"
   }
 }

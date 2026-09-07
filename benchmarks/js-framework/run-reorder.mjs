@@ -224,6 +224,9 @@ async function timeSample(page, sel, reps) {
 			if (!el) throw new Error('selector not found: ' + sel);
 			const flush = window.__benchFlush;
 			(window.gc || (() => {}))();
+			// Start from laid-out rows (see click.mjs): without this, some samples
+			// reorder rows that were never laid out and read up to 2x faster.
+			void document.body?.offsetHeight;
 			const t0 = performance.now();
 			if (flush) {
 				for (let k = 0; k < reps; k++) {

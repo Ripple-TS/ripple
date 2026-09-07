@@ -93,7 +93,6 @@ catalogs:
     react-dom: '19.2.7'
     solid-js: '2.0.0-rc.3'
     svelte: '5.56.7'
-    terser: '5.49.0'
     typescript: '5.9.3'
     vite: '8.1.5'
     vite-plugin-solid: '3.0.0-next.5'

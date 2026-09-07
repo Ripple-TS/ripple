@@ -18,6 +18,10 @@ export async function timeClick(page, op, selector) {
 				op === 'update' ? firstRow?.querySelector('td:nth-child(2) a')?.textContent : null;
 			const flush = window.__benchFlush;
 			(window.gc || (() => {}))();
+			// Start from laid-out rows: a sample whose rows never got style and
+			// layout moves nodes far more cheaply, and whether a frame rendered
+			// during the settle sleep is otherwise up to the browser.
+			void document.body?.offsetHeight;
 			const t0 = performance.now();
 			el.click();
 			if (flush) await flush();
