@@ -1,0 +1,10 @@
+$ vite build
+7:09:32 PM [vite-plugin-svelte] no Svelte config found at /Users/leonid/Documents/code/ripple/benchmarks/js-framework/svelte - using default configuration.
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 110 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 0.54 kB │ gzip:  0.32 kB
+dist/assets/index-Ce0pJHVL.js  46.26 kB │ gzip: 18.26 kB
+
+✓ built in 153ms

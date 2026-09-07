@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "startedAt": "2026-09-07T23:25:27.874Z",
+    "packageVersions": {
+      "ripple": "0.3.127",
+      "@ripple-ts/vite-plugin": "0.3.127",
+      "@tsrx/ripple": "0.1.64",
+      "octane": "0.2.6",
+      "solid-js": "2.0.0-rc.3",
+      "@solidjs/web": "2.0.0-rc.3",
+      "vite-plugin-solid": "3.0.0-next.5",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "9ce8414ec9863683d3a78bd07e4c89feb3266f71",
+    "dirty": true,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "1973baec192f4d84d10041140f011076f75757761dd5fbcbb48371a4a0b1d1b1",
+    "workloadSha256": "18c03dbcd45f45c5a4cda65551bb332dc8cfbb6bdc7598c166c65ecf690f701f",
+    "runnerSha256": "5ec47ed499889193f25a9f92a75f0d2c08591c9a936c9e57a3b1d451591f27e9",
+    "metadataVersion": 2,
+    "rippleSourceSha256": "6cec08f05d174b50d268ffd2d1aa415e057fe91ed8486e54752dec4016c6e551",
+    "quick": false,
+    "cpuThrottle": 1,
+    "buildMode": "upstream-production",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  },
+  "summary": [
+    {
+      "suite": "js-framework",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    },
+    {
+      "suite": "js-framework-reorder",
+      "status": "PASS",
+      "targets": [
+        "octane-tsrx",
+        "octane-jsx",
+        "react",
+        "ripple",
+        "solid",
+        "vue-vapor",
+        "preact",
+        "svelte",
+        "inferno"
+      ]
+    }
+  ]
+}

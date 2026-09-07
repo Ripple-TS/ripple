@@ -1,0 +1,6 @@
+$ vite preview --port 5180 --strictPort
+  ➜  Local:   http://localhost:5180/
+  ➜  Network: use --host to expose
+/Users/leonid/Documents/code/ripple/benchmarks/js-framework/vue-vapor:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] vue-vapor-jsbench@0.0.1 preview: `vite preview --port 5180 --strictPort`
+Exit status 143
