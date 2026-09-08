@@ -95,7 +95,7 @@ const lines = [
 	`Workload SHA-256: \`${meta.workloadSha256}\`.`,
 	`Lockfile SHA-256: \`${meta.lockfileSha256}\`.`,
 	'',
-	'These are baseline observations before Ripple optimization. Scores below are medians of the per-run headline scores; the range shows run-to-run variation. The p95 column is the median of the per-run p95 values. RME remains a per-run diagnostic; neither is proof of a timing win. Each ratio column is Ripple's score divided by that framework's score, so values below 1 mean Ripple is faster. For timings below 0.01 ms or a zero reference, the comparison shows an absolute difference instead. N/A means that operation has no matching competitor fixture.',
+	'These are baseline observations before Ripple optimization. Scores below are medians of the per-run headline scores; the range shows run-to-run variation. The p95 column is the median of the per-run p95 values. RME remains a per-run diagnostic; neither is proof of a timing win. Each framework column is that framework's score relative to Ripple's (Ripple = 1): above 1 the framework is slower than Ripple, below 1 it is faster. For timings below 0.01 ms or a zero Ripple score, the column shows the framework's score minus Ripple's instead (positive means slower than Ripple). N/A means that operation has no matching competitor fixture.',
 	'',
 	'## Verified environment',
 	'',
@@ -119,16 +119,16 @@ for (const row of gaps)
 const comparison = (row, name) => {
 	const other = row.competitors.find((target) => target.name === name);
 	if (!other) return 'N/A';
-	return other.score === 0 || (row.unit === 'ms' && Math.min(row.score, other.score) < 0.01)
-		? `Δ ${fmt(row.score - other.score)}`
-		: `${(row.score / other.score).toFixed(2)}×`;
+	return row.score === 0 || (row.unit === 'ms' && Math.min(row.score, other.score) < 0.01)
+		? `Δ ${fmt(other.score - row.score)}`
+		: `${(other.score / row.score).toFixed(2)}×`;
 };
 for (const suite of [...new Set(rows.map((row) => row.suite))]) {
 	lines.push(
 		'',
 		`## ${suite}`,
 		'',
-		'| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |',
+		'| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |',
 		'| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
 	);
 	for (const row of rows.filter((row) => row.suite === suite))
