@@ -35,6 +35,8 @@ export type DeferredTrackedEntry = {
 
 export type AppendIntoAnchor = {
 	parent: Node;
+	/** Marks the sentinel; a missing-property read on a DOM node is cheaper than `in`. */
+	into: true;
 };
 
 export type Block = {
@@ -51,7 +53,8 @@ export type Block = {
 	prev: null | Block;
 	s: any;
 	// teardown function
-	t: (() => {}) | null;
+	/** teardown; runtime-internal teardowns receive the block state */
+	t: ((state?: any) => void) | null;
 };
 
 export type TryBoundaryState = {

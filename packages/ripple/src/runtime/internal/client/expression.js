@@ -1,4 +1,4 @@
-/** @import { Block } from '#client' */
+/** @import { AppendIntoAnchor, Block } from '#client' */
 
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render } from './blocks.js';
@@ -60,9 +60,25 @@ function render_tsrx_collection(value, anchor, block) {
 	var start = document.createComment('');
 	var end = document.createComment('');
 
-	anchor.before(start, end);
+	insert_before(anchor, start);
+	insert_before(anchor, end);
 	assign_nodes(start, end);
 	render_tsrx_collection_items(value, end, block);
+}
+
+/**
+ * Inserts `node` before `anchor`, or appends it into the parent when `anchor`
+ * is an append-into sentinel (see `append_into`).
+ * @param {ChildNode | AppendIntoAnchor} anchor
+ * @param {Node} node
+ * @returns {void}
+ */
+function insert_before(anchor, node) {
+	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
+		/** @type {AppendIntoAnchor} */ (anchor).parent.appendChild(node);
+	} else {
+		/** @type {ChildNode} */ (anchor).before(node);
+	}
 }
 
 /**
@@ -112,7 +128,7 @@ function render_tsrx_element(value, anchor, block) {
 function render_tsrx_collection_text(value, anchor, assign = false) {
 	if (!hydrating) {
 		var text = create_text(value);
-		anchor.before(text);
+		insert_before(anchor, text);
 		if (assign) {
 			assign_nodes(text, text);
 		}

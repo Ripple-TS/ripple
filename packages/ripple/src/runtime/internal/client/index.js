@@ -40,6 +40,7 @@ export {
 	SUSPENSE_REJECTED,
 } from './constants.js';
 export { event, render_event, delegate } from './events.js';
+export { portal } from './portal.js';
 
 export {
 	active_block,

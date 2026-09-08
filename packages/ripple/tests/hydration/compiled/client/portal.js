@@ -20,16 +20,10 @@ export function SimplePortal() {
 			var h1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 			var node = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
 
-			_$_.render_component(Portal, node, {
-				get target() {
-					return typeof document !== 'undefined' ? document.body : null;
-				},
+			_$_.portal(node, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
+				var div_1 = root_1();
 
-				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_1 = root_1();
-
-					_$_.append(__anchor, div_1);
-				})
+				_$_.append(__anchor, div_1);
 			});
 
 			_$_.pop(div);
@@ -53,16 +47,10 @@ export function ConditionalPortal() {
 
 			{
 				var consequent = (__anchor) => {
-					_$_.render_component(Portal, __anchor, {
-						get target() {
-							return typeof document !== 'undefined' ? document.body : null;
-						},
+					_$_.portal(__anchor, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
+						var div_3 = root_3();
 
-						children: _$_.tsrx_element((__anchor, __block) => {
-							var div_3 = root_3();
-
-							_$_.append(__anchor, div_3);
-						})
+						_$_.append(__anchor, div_3);
 					});
 				};
 
@@ -86,16 +74,10 @@ export function PortalWithMainContent() {
 			var div_5 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
-			_$_.render_component(Portal, node_2, {
-				get target() {
-					return typeof document !== 'undefined' ? document.body : null;
-				},
+			_$_.portal(node_2, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
+				var div_6 = root_5();
 
-				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_6 = root_5();
-
-					_$_.append(__anchor, div_6);
-				})
+				_$_.append(__anchor, div_6);
 			});
 
 			_$_.pop(div_4);
@@ -116,16 +98,10 @@ export function NestedContentWithPortal() {
 
 			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_8.nextSibling;
 
-			_$_.render_component(Portal, node_3, {
-				get target() {
-					return typeof document !== 'undefined' ? document.body : null;
-				},
+			_$_.portal(node_3, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
+				var div_9 = root_7();
 
-				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_9 = root_7();
-
-					_$_.append(__anchor, div_9);
-				})
+				_$_.append(__anchor, div_9);
 			});
 
 			_$_.pop(div_7);

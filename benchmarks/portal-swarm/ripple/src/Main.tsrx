@@ -53,7 +53,7 @@ function Section(props: {
 	<section class={props.secClass}>
 		<h3 class="tick">{props.prefix + tick}</h3>
 		<ul class="list">
-			@for (const item of ITEMS; key item.id) {
+			@for (const item of ITEMS as Item[]; key item.id) {
 				<li class="item">
 					<span class="label">{item.label}</span>
 					@if (open) {

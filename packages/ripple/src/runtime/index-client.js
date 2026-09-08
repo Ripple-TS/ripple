@@ -1,7 +1,7 @@
 /** @import { RootBoundaryOptions } from '#client' */
 
 import { destroy_block, root } from './internal/client/blocks.js';
-import { handle_root_events } from './internal/client/events.js';
+import { handle_root_events, release_root_events } from './internal/client/events.js';
 import {
 	get_first_child,
 	get_next_sibling,
@@ -94,7 +94,7 @@ export function mount(component, options) {
 
 	target.append(anchor);
 
-	const cleanup_events = handle_root_events(target);
+	const events_ref = handle_root_events(target);
 
 	const _root = root(() => {
 		render_root_boundary(
@@ -107,7 +107,7 @@ export function mount(component, options) {
 	});
 
 	return () => {
-		cleanup_events();
+		release_root_events(events_ref);
 		destroy_block(_root);
 	};
 }
@@ -127,7 +127,7 @@ export function hydrate(component, options) {
 	const previous_hydrate_node = hydrate_node;
 	let anchor = get_first_child(target);
 
-	const cleanup_events = handle_root_events(target);
+	const events_ref = handle_root_events(target);
 	let _root;
 
 	try {
@@ -165,7 +165,7 @@ export function hydrate(component, options) {
 	}
 
 	return () => {
-		cleanup_events();
+		release_root_events(events_ref);
 		destroy_block(_root);
 	};
 }

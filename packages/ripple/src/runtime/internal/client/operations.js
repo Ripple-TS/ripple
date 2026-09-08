@@ -115,7 +115,7 @@ export function append_into(parent) {
 		set_hydrate_node(child);
 	}
 
-	return { parent };
+	return { parent, into: true };
 }
 
 /**

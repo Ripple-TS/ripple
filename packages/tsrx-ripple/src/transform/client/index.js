@@ -84,6 +84,7 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
+	is_ripple_portal,
 	replace_lazy_pattern,
 	has_lazy_pattern,
 	ripple_import_requires_block,
@@ -3395,6 +3396,68 @@ const visitors = {
 			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 
 			const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
+
+			// `<Portal target={...}>…</Portal>` imported from 'ripple' lowers to the
+			// `portal()` runtime fast path: a target thunk and a fixed children
+			// render function, with no props object, component context, or
+			// element wrapper per portal. Anything else (spreads, refs, a
+			// `children` prop) keeps the generic component call.
+			if (
+				!is_spreading &&
+				element_attributes.length === 1 &&
+				element_attributes[0].type === 'JSXAttribute' &&
+				get_attribute_name(element_attributes[0]) === 'target' &&
+				get_attribute_value(element_attributes[0]) !== null &&
+				is_ripple_portal(element_id, context)
+			) {
+				const target_value = /** @type {AST.Expression} */ (
+					get_attribute_value(element_attributes[0])
+				);
+				let target = /** @type {AST.Expression} */ (
+					visit(target_value, { ...state, flush_node: null, metadata: { tracking: false } })
+				);
+				if (target.type === 'Identifier') {
+					const binding = state.scope.get(target.name);
+					if (
+						binding?.transform?.read &&
+						(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
+					) {
+						target = binding.transform.read(target);
+					}
+				}
+
+				const portal_children = lower_code_block_children(
+					/** @type {AST.Node[]} */ (node.children),
+					state.scopes,
+				);
+				for (const child of portal_children) {
+					if (is_native_tsrx_function_node(child)) {
+						state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+					}
+				}
+				const portal_children_filtered = portal_children.filter(
+					(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
+				);
+				const portal_scope = state.scopes.get(node) || state.scope;
+				const render_children = /** @type {AST.Expression} */ (
+					visit(create_native_tsrx_render_function([], portal_children_filtered, node), {
+						...state,
+						regular_js: false,
+						scope: /** @type {ScopeInterface} */ (portal_scope),
+						namespace: child_namespace,
+						is_tsrx_element: true,
+					})
+				);
+
+				const portal_call = b.call('_$_.portal', id, b.thunk(target), render_children);
+				state.init?.push(
+					state.namespace !== DEFAULT_NAMESPACE
+						? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(portal_call)))
+						: b.stmt(portal_call),
+				);
+				return;
+			}
+
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
 			/** @type {AST.Property | null} */

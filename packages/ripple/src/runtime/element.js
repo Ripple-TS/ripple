@@ -8,14 +8,24 @@ const TSRX_ELEMENT = Symbol.for('ripple.element');
  */
 
 /**
+ * Elements share one constructor so every instance has the same shape and the
+ * marker lives on the prototype instead of being defined per allocation.
+ * @param {Function} render
+ * @this {TSRXElement}
+ */
+function TSRXElementImpl(render) {
+	this.render = render;
+}
+/** @type {any} */ (TSRXElementImpl.prototype)[TSRX_ELEMENT] = true;
+
+/**
  * @param {Function} render
  * @returns {TSRXElement}
  */
 export function tsrx_element(render) {
-	return {
-		render,
-		[TSRX_ELEMENT]: true,
-	};
+	return /** @type {TSRXElement} */ (
+		/** @type {unknown} */ (new /** @type {any} */ (TSRXElementImpl)(render))
+	);
 }
 
 /**

@@ -168,7 +168,10 @@ export function run_teardown(block) {
 			active_reaction = null;
 			tracking = false;
 			teardown = true;
-			fn.call(null);
+			// Runtime-internal teardowns keyed on block state get it as their
+			// argument, so they need no per-block closure; user effects have
+			// null state.
+			fn.call(null, block.s);
 		} finally {
 			active_block = previous_block;
 			active_reaction = previous_reaction;
@@ -1103,43 +1106,66 @@ function by_block_id(a, b) {
  */
 function flush_queue(pending) {
 	var blocks = pending.blocks;
+	var length = blocks.length;
 
-	if (!pending.sorted) {
-		blocks.sort(by_block_id);
-	}
-
-	/** @type {Block[]} */
-	var pre_effects = [];
-	/** @type {Block[]} */
-	var other_blocks = [];
-	/** @type {Block[]} */
-	var effects = [];
-
-	for (var i = 0; i < blocks.length; i++) {
-		var block = blocks[i];
-		var flags = block.f;
-		block.f = flags & ~SCHEDULED;
-
-		// A paused block is re-checked when it resumes; a destroyed one is gone.
-		if ((flags & (PAUSED | DESTROYED)) !== 0) {
-			continue;
+	if (length > 0) {
+		if (!pending.sorted) {
+			blocks.sort(by_block_id);
 		}
-		if ((flags & PRE_EFFECT_BLOCK) !== 0) {
-			pre_effects.push(block);
-		} else if ((flags & EFFECT_BLOCK) !== 0) {
-			effects.push(block);
+
+		var has_effects = false;
+
+		for (var i = 0; i < length; i++) {
+			var block = blocks[i];
+			var flags = block.f;
+			block.f = flags & ~SCHEDULED;
+			if ((flags & (PRE_EFFECT_BLOCK | EFFECT_BLOCK)) !== 0) {
+				has_effects = true;
+			}
+		}
+
+		// New schedules land in the queue that replaced `pending`, so the array
+		// can be run in place. Effects need the three-phase ordering; a queue of
+		// only render blocks (the common flush) runs straight through.
+		if (has_effects) {
+			/** @type {Block[]} */
+			var pre_effects = [];
+			/** @type {Block[]} */
+			var other_blocks = [];
+			/** @type {Block[]} */
+			var effects = [];
+
+			for (i = 0; i < length; i++) {
+				block = blocks[i];
+				flags = block.f;
+
+				// A paused block is re-checked when it resumes; a destroyed one is gone.
+				if ((flags & (PAUSED | DESTROYED)) !== 0) {
+					continue;
+				}
+				if ((flags & PRE_EFFECT_BLOCK) !== 0) {
+					pre_effects.push(block);
+				} else if ((flags & EFFECT_BLOCK) !== 0) {
+					effects.push(block);
+				} else {
+					other_blocks.push(block);
+				}
+			}
+
+			blocks.length = 0;
+			pending.sorted = true;
+			pending.last = 0;
+
+			run_phase(pre_effects);
+			run_phase(other_blocks);
+			run_phase(effects);
 		} else {
-			other_blocks.push(block);
+			run_phase(blocks);
+			blocks.length = 0;
+			pending.sorted = true;
+			pending.last = 0;
 		}
 	}
-
-	blocks.length = 0;
-	pending.sorted = true;
-	pending.last = 0;
-
-	run_phase(pre_effects);
-	run_phase(other_blocks);
-	run_phase(effects);
 
 	if (queued_post_block_flush.length > 0) {
 		var callbacks = queued_post_block_flush;
@@ -1513,8 +1539,11 @@ export function flush_sync(fn) {
 
 		var result = fn?.();
 
-		if (queue.blocks.length > 0) {
-			flush_sync();
+		// Each pass runs the blocks scheduled by the previous one.
+		while (queue.blocks.length > 0) {
+			var pending = queue;
+			queue = create_queue();
+			flush_queue(pending);
 		}
 
 		flush_count = 0;

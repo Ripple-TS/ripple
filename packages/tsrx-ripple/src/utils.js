@@ -1610,6 +1610,34 @@ export function is_delegated_event(event_name, handler, context) {
 }
 
 /**
+ * True when `id` is the `Portal` component imported from 'ripple' (under any
+ * local name), so the client transform can lower it to the `portal()` runtime
+ * fast path instead of a generic component call.
+ * @param {AST.Expression} id
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_ripple_portal(id, context) {
+	if (id.type !== 'Identifier') return false;
+	const binding = context.state.scope.get(id.name);
+	if (
+		binding?.declaration_kind !== 'import' ||
+		binding.initial === null ||
+		binding.initial.type !== 'ImportDeclaration' ||
+		binding.initial.source.type !== 'Literal' ||
+		binding.initial.source.value !== 'ripple'
+	) {
+		return false;
+	}
+	for (const specifier of binding.initial.specifiers) {
+		if (specifier.type === 'ImportSpecifier' && specifier.local.name === id.name) {
+			return specifier.imported.type === 'Identifier' && specifier.imported.name === 'Portal';
+		}
+	}
+	return false;
+}
+
+/**
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {CommonContext} context

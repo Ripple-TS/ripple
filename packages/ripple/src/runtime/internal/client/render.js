@@ -9,7 +9,7 @@ import {
 	get_own_property_symbols,
 	get_prototype_of,
 } from '@tsrx/core/runtime/language-helpers';
-import { event } from './events.js';
+import { event_listener } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { hydrating } from './hydration.js';
@@ -158,7 +158,7 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 		}
 		if (value != null) {
 			const event_name = get_attribute_event_name(key, value);
-			remove_listeners[key] = event(event_name, element, value);
+			remove_listeners[key] = event_listener(event_name, element, value);
 		}
 	} else {
 		set_attribute(element, key, value);

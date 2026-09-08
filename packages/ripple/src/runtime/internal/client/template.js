@@ -191,15 +191,15 @@ export function append(anchor, dom, skip_advance) {
 		hydrate_advance();
 		return;
 	}
-	if ('parent' in anchor) {
+	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
 		// Append-into-parent sentinel: an all-component-children element passes a
 		// `{ parent }` object (no `nodeType`) so each component's root appends as
 		// the host's last child instead of inserting before a placeholder comment.
 		// The block still self-marks its range via assign_nodes, so teardown works.
-		anchor.parent.appendChild(dom);
+		/** @type {AppendIntoAnchor} */ (anchor).parent.appendChild(dom);
 		return;
 	}
-	anchor.before(/** @type {Node} */ (dom));
+	/** @type {ChildNode} */ (anchor).before(/** @type {Node} */ (dom));
 }
 
 /**
