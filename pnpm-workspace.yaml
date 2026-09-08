@@ -17,8 +17,14 @@ minimumReleaseAgeExclude:
   - '@tsrx/react-runtime@0.1.5'
   - '@tsrx/runtime@0.1.5 || 0.1.6'
   - '@tsrx/solid-runtime@0.1.5'
-  - '@tsrx/ripple@0.1.63'
+  - '@tsrx/ripple@0.1.63 || 0.1.65'
   - octane@0.2.4 || 0.2.6
+  # Solid 2.0.0-rc.7 (released 2026-09-08); vite-plugin-solid stays on next.26,
+  # the last release with provenance (next.27 has none and trips trustPolicy).
+  - solid-js@2.0.0-rc.7
+  - '@solidjs/web@2.0.0-rc.7'
+  - '@solidjs/signals@2.0.0-rc.7'
+  - babel-preset-solid@2.0.0-rc.2
 minimumReleaseAgeIgnoreMissingTime: true
 minimumReleaseAgeStrict: false
 trustPolicy: no-downgrade
@@ -52,26 +58,14 @@ packages:
   - benchmarks/*/*
 
 overrides:
-  'vite-plugin-solid@3.0.0-next.5>babel-preset-solid': '2.0.0-rc.2'
   esrap: *esrap_common
   semver: ^7.7.4
-  # Solid 2.0 SSR alignment: vite-plugin-solid@3.0.0-next.5 pulls
-  # babel-preset-solid@2.0.0-beta.7 transitively (→ babel-plugin-jsx-dom-expressions
-  # 0.41, which still EMITS the `ssrRunInScope` SSR helper), but @solidjs/web@2.0.0-beta.15
-  # REMOVED that export (dom-expressions 0.50 stopped emitting it). Force the
-  # transform to the 0.50-era preset the catalog already intends so SSR output
-  # matches the installed runtime. Without this, SSR throws "does not provide an
-  # export named 'ssrRunInScope'". The preset version tracks the solid-js /
-  # @solidjs/web beta below; babel-plugin-jsx-dom-expressions tracks the
-  # preset's own dependency range.
-  babel-preset-solid: '2.0.0-beta.15'
-  babel-plugin-jsx-dom-expressions: '0.50.0-next.14'
 
 catalogs:
   benchmarks:
     '@babel/core': '7.29.7'
     '@preact/preset-vite': '2.10.6'
-    '@solidjs/web': '2.0.0-rc.3'
+    '@solidjs/web': '2.0.0-rc.7'
     '@sveltejs/vite-plugin-svelte': '7.2.0'
     '@tsrx/react': '0.2.67'
     '@tsrx/solid': '0.1.67'
@@ -91,11 +85,11 @@ catalogs:
     preact-render-to-string: '6.7.0'
     react: '19.2.7'
     react-dom: '19.2.7'
-    solid-js: '2.0.0-rc.3'
+    solid-js: '2.0.0-rc.7'
     svelte: '5.56.7'
     typescript: '5.9.3'
     vite: '8.1.5'
-    vite-plugin-solid: '3.0.0-next.5'
+    vite-plugin-solid: '3.0.0-next.26'
     vue: '3.6.0-rc.1'
   default:
     '@babel/core': ^7.29.0
@@ -168,11 +162,15 @@ catalogs:
     tailwindcss: ^4.1.12
     typescript: *ts_common
 
-# Solid's published compiler bridge still declares a beta-only peer range.
-# The benchmark uses the RC required by @tsrx/solid; validate this exact pair
-# with the full browser, SSR, and hydration suite when upgrading either side.
+# vite-plugin-solid's peer range `<2.0.0-experimental.0` excludes `rc.*` by
+# prerelease ordering, and @tsrx/solid / @tsrx/solid-runtime pin an exact older
+# RC; the benchmarks run the current RC. Validate the pair with the browser,
+# SSR, and hydration suites when upgrading either side.
 peerDependencyRules:
   allowedVersions:
-    'vite-plugin-solid@3.0.0-next.5>solid-js': '2.0.0-rc.3'
-    'vite-plugin-solid@3.0.0-next.5>@solidjs/web': '2.0.0-rc.3'
-    'solid-refresh@0.8.0-next.7>solid-js': '2.0.0-rc.3'
+    'vite-plugin-solid@3.0.0-next.26>solid-js': '2.0.0-rc.7'
+    'vite-plugin-solid@3.0.0-next.26>@solidjs/web': '2.0.0-rc.7'
+    '@tsrx/solid>solid-js': '2.0.0-rc.7'
+    '@tsrx/solid>@solidjs/web': '2.0.0-rc.7'
+    '@tsrx/solid-runtime>solid-js': '2.0.0-rc.7'
+    '@tsrx/solid-runtime>@solidjs/web': '2.0.0-rc.7'
