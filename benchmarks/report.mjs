@@ -95,7 +95,7 @@ const lines = [
 	`Workload SHA-256: \`${meta.workloadSha256}\`.`,
 	`Lockfile SHA-256: \`${meta.lockfileSha256}\`.`,
 	'',
-	'These are baseline observations before Ripple optimization. Scores below are medians of the per-run headline scores; the range shows run-to-run variation. The p95 column is the median of the per-run p95 values. RME remains a per-run diagnostic; neither is proof of a timing win. Ratios below 1 favor Ripple. For timings below 0.01 ms or a zero reference, the comparison shows an absolute difference instead. N/A means that operation has no matching competitor fixture.',
+	'These are baseline observations before Ripple optimization. Scores below are medians of the per-run headline scores; the range shows run-to-run variation. The p95 column is the median of the per-run p95 values. RME remains a per-run diagnostic; neither is proof of a timing win. Each ratio column is Ripple's score divided by that framework's score, so values below 1 mean Ripple is faster. For timings below 0.01 ms or a zero reference, the comparison shows an absolute difference instead. N/A means that operation has no matching competitor fixture.',
 	'',
 	'## Verified environment',
 	'',
@@ -128,7 +128,7 @@ for (const suite of [...new Set(rows.map((row) => row.suite))]) {
 		'',
 		`## ${suite}`,
 		'',
-		'| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |',
+		'| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |',
 		'| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
 	);
 	for (const row of rows.filter((row) => row.suite === suite))

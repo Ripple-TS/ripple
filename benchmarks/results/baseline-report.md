@@ -1,13 +1,32 @@
 # Ripple benchmark baseline
 
-Recorded from 3 independent normal runs on Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz, darwin/x64, Node v24.18.0.
+Recorded from 3 independent normal runs on Intel(R) Core(TM) i9-9980HK CPU @
+2.40GHz, darwin/x64, Node v24.18.0.
 
-Workload SHA-256: `57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394`.
-Lockfile SHA-256: `d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d`.
+Workload SHA-256:
+`57f55895502acec9d5c48a9b6defe353a316bd6023feec24a5e1d3d62329d394`.
+Lockfile SHA-256:
+`d5ccf4ee34c36a86ca23851dbf4fb8c938a4919fdac9c61ad7a0faf4d5ed4a7d`.
 
-These are baseline observations before Ripple optimization. Scores below are medians of the per-run headline scores; the range shows run-to-run variation. The p95 column is the median of the per-run p95 values. RME remains a per-run diagnostic; neither is proof of a timing win. Ratios below 1 favor Ripple. For timings below 0.01 ms or a zero reference, the comparison shows an absolute difference instead. N/A means that operation has no matching competitor fixture.
+These are baseline observations before Ripple optimization. Scores below are
+medians of the per-run headline scores; the range shows run-to-run variation. The
+p95 column is the median of the per-run p95 values. RME remains a per-run
+diagnostic; neither is proof of a timing win. Each ratio column is Ripple's score
+divided by that framework's score, so values below 1 mean Ripple is faster. For
+timings below 0.01 ms or a zero reference, the comparison shows an absolute
+difference instead. N/A means that operation has no matching competitor fixture.
 
-The `js-framework` and `js-framework-reorder` sections were re-recorded after the first Ripple optimization pass (push-based reactivity, queued flush, keyed-list reconciliation, selector lowering, inline template traversal) from 3 independent normal runs on the same machine, with every fixture built by Vite's esbuild minifier and the harness forcing layout before each timed sample. Their workload SHA-256 is `18c03dbcd45f45c5a4cda65551bb332dc8cfbb6bdc7598c166c65ecf690f701f`, lockfile SHA-256 `1973baec192f4d84d10041140f011076f75757761dd5fbcbb48371a4a0b1d1b1`, Ripple source SHA-256 `6cec08f05d174b50d268ffd2d1aa415e057fe91ed8486e54752dec4016c6e551`, at revision `9ce8414ec9863683d3a78bd07e4c89feb3266f71`. The other sections keep the original recordings.
+The `js-framework` and `js-framework-reorder` sections were re-recorded after the
+first Ripple optimization pass (push-based reactivity, queued flush, keyed-list
+reconciliation, selector lowering, inline template traversal) from 3 independent
+normal runs on the same machine, with every fixture built by Vite's esbuild
+minifier and the harness forcing layout before each timed sample. Their workload
+SHA-256 is `18c03dbcd45f45c5a4cda65551bb332dc8cfbb6bdc7598c166c65ecf690f701f`,
+lockfile SHA-256
+`1973baec192f4d84d10041140f011076f75757761dd5fbcbb48371a4a0b1d1b1`, Ripple source
+SHA-256 `6cec08f05d174b50d268ffd2d1aa415e057fe91ed8486e54752dec4016c6e551`, at
+revision `9ce8414ec9863683d3a78bd07e4c89feb3266f71`. The other sections keep the
+original recordings.
 
 ## Verified environment
 
@@ -57,7 +76,8 @@ Re-measured js-framework and js-framework-reorder environment:
 
 ## Largest timing gaps to investigate later
 
-These candidates are ranked by absolute time difference from the best matching competitor, without starting performance work.
+These candidates are ranked by absolute time difference from the best matching
+competitor, without starting performance work.
 
 - recursive-context / mount: Ripple 18.612 ms, inferno 6.075 ms; gap 12.537 ms.
 - dbmon / mount: Ripple 23.717 ms, inferno 14.133 ms; gap 9.583 ms.
@@ -72,7 +92,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## js-framework
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | run | ms | 6.340 [6.320, 6.340] | 6.700 | 8.4% | 24 | 0.83× | 0.76× | 0.96× | 0.90× | solid: 6.580 |
 | replace | ms | 11.960 [11.700, 12.160] | 12.900 | 6.8% | 24 | 0.81× | 0.74× | 0.82× | 0.89× | vue-vapor: 13.400 |
@@ -99,7 +119,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## js-framework-reorder
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | reverse | ms | 2.930 [2.915, 2.955] | 2.950 | 2.3% | 24 | 0.92× | 0.63× | 1.00× | 0.74× | solid: 2.940 |
 | shuffle | ms | 3.075 [3.045, 3.100] | 3.125 | 2.2% | 24 | 0.93× | 0.63× | 0.95× | 0.73× | solid: 3.245 |
@@ -118,7 +138,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## recursive-context
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount | ms | 18.612 [16.738, 22.975] | 21.100 | 4.6% | 60 | 0.76× | 0.64× | 1.00× | 0.46× | inferno: 6.075 |
 | update_root | ms | 1.850 [1.813, 2.138] | 2.800 | 19.3% | 60 | 0.37× | 0.36× | 0.83× | 1.35× | inferno: 1.137 |
@@ -129,7 +149,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## signal-favoring
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount | ms | 6.775 [6.350, 7.488] | 7.800 | 9.4% | 60 | 0.67× | 0.61× | 1.06× | 1.01× | inferno: 3.838 |
 | bump_shallow | ms | 0.001 [0.001, 0.002] | 0.006 | 99.5% | 60 | Δ -0.003 | Δ -0.036 | Δ -0.003 | Δ 0.000 | vue-vapor: 0.001 |
@@ -142,14 +162,14 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## news
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | ssr_render | ms | 0.253 [0.239, 0.372] | 0.445 | 20.9% | 60 | 2.83× | 2.25× | 3.11× | 2.87× | svelte: 0.074 |
 | hydrate | ms | 3.988 [3.588, 4.562] | 4.800 | 9.0% | 60 | 0.66× | 0.54× | 0.60× | 0.80× | inferno: 2.250 |
 
 ## todomvc
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | add100 | ms | 4.060 [4.040, 4.460] | 4.600 | 15.8% | 24 | 0.60× | N/A | 0.77× | 0.84× | vue-vapor: 4.860 |
 | toggleAllOn | ms | 0.420 [0.340, 0.440] | 0.700 | 48.6% | 24 | 0.40× | N/A | 0.18× | 0.91× | vue-vapor: 0.460 |
@@ -169,7 +189,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## chat-stream
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | streamFine | ms | 2.080 [2.020, 2.280] | 2.600 | 14.1% | 24 | 0.58× | N/A | 0.28× | 1.13× | vue-vapor: 1.840 |
 | streamCoarse | ms | 0.900 [0.860, 0.960] | 1.200 | 16.5% | 24 | 0.58× | N/A | 0.41× | 1.10× | vue-vapor: 0.820 |
@@ -185,7 +205,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## dbmon
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount | ms | 23.717 [22.517, 27.867] | 27.800 | 5.1% | 90 | 1.27× | 1.03× | 0.43× | 1.28× | inferno: 14.133 |
 | tick | ms | 7.983 [7.492, 8.775] | 9.200 | 6.3% | 90 | 0.88× | 0.86× | 0.30× | 1.12× | inferno: 6.892 |
@@ -196,7 +216,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## uibench
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | table/[100,4]/render | ms | 0.857 [0.844, 1.162] | 0.905 | 8.7% | 30 | 0.73× | N/A | 0.29× | 0.80× | inferno: 0.558 |
 | table/[100,4]/removeAll | ms | 0.112 [0.095, 0.181] | 0.179 | 33.0% | 30 | 0.62× | N/A | 0.15× | 0.69× | inferno: 0.077 |
@@ -300,7 +320,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## effectful-list
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount_1k | ms | 36.083 [35.500, 41.842] | 40.200 | 4.8% | 90 | 0.92× | 0.98× | 0.97× | 0.93× | inferno: 34.625 |
 | update_nodeps | ms | 0.263 [0.257, 0.278] | 0.320 | 7.7% | 90 | 0.32× | 0.17× | 17.50× | Δ 0.253 | vue-vapor: 0.009 |
@@ -311,7 +331,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## memo-wall
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount | ms | 46.450 [46.050, 51.900] | 54.200 | 5.0% | 60 | 0.81× | 0.61× | 1.01× | 0.79× | solid: 45.987 |
 | parent_rerender_equal_A | ms | 0.172 [0.170, 0.191] | 0.190 | 6.5% | 60 | Δ 0.169 | Δ 0.165 | Δ 0.170 | Δ 0.171 | vue-vapor: 0.001 |
@@ -323,7 +343,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## portal-swarm
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | mount_closed | ms | 8.962 [8.387, 9.100] | 10 | 7.6% | 60 | 0.56× | N/A | 0.49× | 0.62× | inferno: 5.425 |
 | open_all | ms | 10.550 [10.225, 11.825] | 12.300 | 5.7% | 60 | 1.49× | N/A | 2.17× | 1.10× | inferno: 3.188 |
@@ -336,14 +356,14 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## async-waterfall
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | init | ms | 20.750 [20.560, 21.110] | 21.700 | 3.3% | 30 | 0.75× | N/A | 0.88× | N/A | inferno: 19.790 |
 | update | ms | 16.820 [16.790, 17.010] | 17.400 | 1.9% | 30 | 0.76× | N/A | 0.92× | N/A | inferno: 17.850 |
 
 ## streaming-ssr
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | shell_staggered | ms | 0.258 [0.240, 0.301] | 0.524 | 17.1% | 90 | 0.78× | N/A | 0.36× | N/A | inferno: 0.190 |
 | total_staggered | ms | 50.776 [50.554, 51.143] | 52.363 | 0.9% | 90 | 0.99× | N/A | 1.00× | N/A | preact: 50.386 |
@@ -360,14 +380,14 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## ssr-throughput
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | news-50/render | ms | 0.146 [0.144, 0.149] | 0.171 | 1.2% | 202951 | 1.80× | N/A | 1.36× | 1.65× | octane-tsrx: 0.081 |
 | news-500/render | ms | 2.511 [2.333, 2.592] | 2.920 | 2.6% | 11726 | 1.68× | N/A | 1.77× | 1.99× | vue-vapor: 1.264 |
 
 ## bundle-size
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | js_raw | bytes | 35047 [35047, 35047] | 35047 | 0.0% | 3 | 0.40× | 0.20× | 0.86× | 0.55× | preact: 25247 |
 | js_gzip | bytes | 13410 [13410, 13410] | 13410 | 0.0% | 3 | 0.46× | 0.24× | 0.88× | 0.56× | preact: 9990 |
@@ -399,7 +419,7 @@ These candidates are ranked by absolute time difference from the best matching c
 
 ## reconcile-anchors
 
-| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Octane TSRX | Octane JSX | Solid | Vue Vapor | Best matching competitor |
+| Operation | Unit | Ripple score [run range] | p95 | Max RME | Samples | Ripple ÷ Octane TSRX | Ripple ÷ Octane JSX | Ripple ÷ Solid | Ripple ÷ Vue Vapor | Best matching competitor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | direct.mount | ms | 10.640 [9.920, 12.020] | 11.700 | 7.0% | 75 | N/A | N/A | N/A | N/A | N/A |
 | direct.reverse | ms | 4.530 [4.330, 5.090] | 5.100 | 5.9% | 75 | N/A | N/A | N/A | N/A | N/A |
