@@ -24,7 +24,7 @@ const F = (fn) => () => flushSync(fn);
 
 window.__mount = () =>
 	flushSync(() => {
-		dispose = mount(App, { target });
+		dispose = mount(App, { rootBoundary: false, target });
 	});
 window.__tickA = F(parentRerenderA);
 window.__tickB = F(parentRerenderB);

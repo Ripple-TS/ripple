@@ -16,7 +16,7 @@ const target = document.getElementById('main');
 let unmount = null;
 
 window.__mount = () => {
-	unmount = mount(App, { target, props: {} });
+	unmount = mount(App, { rootBoundary: false, target, props: {} });
 };
 window.__unmount = () => {
 	if (unmount) {

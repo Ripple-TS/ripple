@@ -25,7 +25,7 @@ const target = document.getElementById('main');
 let unmount = null;
 
 window.__mount = () => {
-	unmount = mount(App, { target, props: { n: N } });
+	unmount = mount(App, { rootBoundary: false, target, props: { n: N } });
 };
 
 window.__reverse = () => {

@@ -52,6 +52,11 @@ mount(App, {
 });
 ```
 
+`mount()` renders the app under a default `try`/`pending`/`catch` boundary.
+Pass `rootBoundary: { pending?, catch? }` to give it components, or
+`rootBoundary: false` to render without one: `trackAsync()` must then sit inside
+a user `@try` block, and errors that escape a `@try` propagate out of the flush.
+
 Use `hydrate()` for server-rendered HTML that should become interactive.
 
 ```ts

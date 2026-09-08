@@ -75,8 +75,12 @@ function normalize_props(props) {
 }
 
 /**
+ * `rootBoundary` configures the default `try`/`pending`/`catch` boundary the
+ * app is rendered under; `false` renders without one. Without a root
+ * boundary, `trackAsync()` must sit inside a user `@try` block, and errors
+ * that escape one propagate out of the flush.
  * @param {Function} component
- * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
+ * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions | false }} options
  * @returns {() => void}
  */
 export function mount(component, options) {
@@ -96,13 +100,19 @@ export function mount(component, options) {
 
 	const events_ref = handle_root_events(target);
 
+	const root_boundary = options.rootBoundary;
+
 	const _root = root(() => {
+		if (root_boundary === false) {
+			render_component(component, anchor, props);
+			return;
+		}
 		render_root_boundary(
 			anchor,
 			(component_anchor) => {
 				render_component(component, component_anchor, props);
 			},
-			options.rootBoundary,
+			root_boundary,
 		);
 	});
 
@@ -113,6 +123,8 @@ export function mount(component, options) {
 }
 
 /**
+ * Server output always carries the root boundary markers, so `hydrate()`
+ * always renders under one (`rootBoundary: false` is not accepted here).
  * @param {Function} component
  * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
  * @returns {() => void}

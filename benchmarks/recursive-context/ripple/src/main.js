@@ -5,7 +5,7 @@ const target = document.getElementById('main');
 let unmount = null;
 
 window.__mount = () => {
-	unmount = mount(App, { target, props: { depth: 10 } });
+	unmount = mount(App, { rootBoundary: false, target, props: { depth: 10 } });
 };
 window.__updateRoot = () => {
 	flushSync(bumpRoot);

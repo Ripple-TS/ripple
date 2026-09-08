@@ -13,7 +13,7 @@ let unmount = null;
 const run = (fn) => flushSync(fn);
 
 window.__mount = () => {
-	unmount = mount(App, { target });
+	unmount = mount(App, { rootBoundary: false, target });
 	flushSync(() => {});
 };
 

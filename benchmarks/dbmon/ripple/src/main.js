@@ -7,7 +7,7 @@ if (!target) throw new Error('missing #main root');
 let unmount = null;
 
 window.__mount = () => {
-	unmount = mount(App, { target });
+	unmount = mount(App, { rootBoundary: false, target });
 };
 window.__tick = () => flushSync(tickFull);
 window.__tickPartial = () => flushSync(tickPartial);

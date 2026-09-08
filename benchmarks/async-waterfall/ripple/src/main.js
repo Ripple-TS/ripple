@@ -24,7 +24,7 @@ let version = 0;
 
 window.__init = () => {
 	const t0 = performance.now();
-	mount(Main, { target });
+	mount(Main, { rootBoundary: false, target });
 	return waitForDeep(`L${LEVELS - 1}:v0`, t0);
 };
 

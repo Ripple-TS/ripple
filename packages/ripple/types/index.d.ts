@@ -61,7 +61,17 @@ export function Dynamic<T>(
 
 export function mount(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; rootBoundary?: RootBoundaryOptions },
+	options: {
+		target: HTMLElement;
+		props?: Record<string, any>;
+		/**
+		 * The default `try`/`pending`/`catch` boundary the app renders under.
+		 * `false` renders without one: `trackAsync()` must then sit inside a
+		 * user `@try` block, and errors that escape one propagate out of the
+		 * flush.
+		 */
+		rootBoundary?: RootBoundaryOptions | false;
+	},
 ): () => void;
 
 export function hydrate(

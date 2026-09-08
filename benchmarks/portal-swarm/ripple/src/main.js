@@ -12,9 +12,11 @@ let dispose = null;
 const F = (fn) => () => flushSync(fn);
 
 window.__hits = 0;
+// No root try/pending boundary: the fixture uses no trackAsync, and the other
+// fixtures mount without a default suspense boundary too.
 window.__mount = () =>
 	flushSync(() => {
-		dispose = mount(App, { target });
+		dispose = mount(App, { target, rootBoundary: false });
 	});
 window.__unmount = () => {
 	if (dispose) {
