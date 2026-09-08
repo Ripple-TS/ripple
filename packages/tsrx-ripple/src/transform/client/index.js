@@ -69,6 +69,7 @@ import {
 	is_dom_property,
 	is_declared_function_within_component,
 	is_inside_call_expression,
+	is_global_coercion_call,
 	unwrap_single_return_iife,
 	is_value_static,
 	is_void_element,
@@ -2305,7 +2306,8 @@ const visitors = {
 			(parent?.type === 'MemberExpression' && parent.property === node) ||
 			is_inside_call_expression(context) ||
 			!context.path.some((node) => is_native_tsrx_function_node(node)) ||
-			is_declared_function_within_component(callee, context)
+			is_declared_function_within_component(callee, context) ||
+			is_global_coercion_call(callee, context)
 		) {
 			if (context.state.to_ts) {
 				return context.next();

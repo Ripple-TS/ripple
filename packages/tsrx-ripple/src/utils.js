@@ -1666,6 +1666,23 @@ export function is_ripple_track_call(callee, context) {
 }
 
 /**
+ * True for a call to the global `String`, `Number`, or `Boolean` coercion
+ * function (not shadowed by a local binding). Coercions run no user code that
+ * could need the component scope, so they are emitted without a `with_scope`
+ * wrapper; the compiler emits `String(x ?? '')` itself for adjacent text
+ * expressions, so this also keeps generated coercions cheap.
+ * @param {AST.Expression | AST.Super} callee
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_global_coercion_call(callee, context) {
+	if (callee.type !== 'Identifier') return false;
+	const name = callee.name;
+	if (name !== 'String' && name !== 'Number' && name !== 'Boolean') return false;
+	return context.state.scope.get(name) === null;
+}
+
+/**
  * Returns true if context is inside a call expression
  * @param {CommonContext} context
  * @returns {boolean}
@@ -1699,6 +1716,11 @@ export function is_inside_call_expression(context) {
 			const callee = context_node.callee;
 			if (is_ripple_track_call(callee, context)) {
 				return false;
+			}
+			// A coercion call gets no wrapper of its own, so a call nested in
+			// its arguments still needs one: keep looking outward.
+			if (is_global_coercion_call(callee, context)) {
+				continue;
 			}
 			return true;
 		}

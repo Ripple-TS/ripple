@@ -941,7 +941,7 @@ export function TextTailExpression() {
 		}
 
 		_$_.render(() => {
-			_$_.set_text(text, "label: " + _$_.with_scope(__block, () => String(fetchLabel())));
+			_$_.set_text(text, "label: " + String(_$_.with_scope(__block, fetchLabel)));
 		});
 
 		_$_.append(__anchor, div_27);
@@ -959,7 +959,7 @@ export function FragmentTailExpression() {
 		}
 
 		_$_.render(() => {
-			_$_.set_text(expression_29, 'frag-' + _$_.with_scope(__block, () => String(fetchLabel())));
+			_$_.set_text(expression_29, 'frag-' + String(_$_.with_scope(__block, fetchLabel)));
 		});
 
 		_$_.append(__anchor, div_28);
@@ -1020,7 +1020,7 @@ function PrimitiveCallLead() {
 			var expression_31 = _$_.first_child_frag(fragment_33, true);
 
 			_$_.render(() => {
-				_$_.set_text(expression_31, _$_.with_scope(__block, () => String(fetchLabel())));
+				_$_.set_text(expression_31, String(_$_.with_scope(__block, fetchLabel)));
 			});
 
 			_$_.append(__anchor, fragment_33);
