@@ -1,45 +1,37 @@
-import { createSignal, For, Show, onCleanup } from 'solid-js';
+import { createSignal, For, Show } from 'solid-js';
+import { Portal } from '@solidjs/web';
 import { ITEMS, sharedTarget, targetFor, hit } from './data.js';
 import { bindA, bindB, bindBS } from './ops.js';
 
 // Solid 2.0 portal-swarm twin. Solid has no value-position portal descriptor —
 // a portal is its ONLY mechanism — so all three sections (A / B / B_stable) use
-// the same `<Show>` + hand-rolled portal shape and the A/B/B_stable distinction
+// the same `<Show>` + `<Portal>` shape and the A/B/B_stable distinction
 // collapses structurally. The sections still exist (same DOM, same window
 // contract) so the harness drives all targets identically: for Solid the
 // rerender ops measure fine-grained bypass (one text-node update; portals are
 // never re-rendered), which IS Solid's honest number for "parent state changed
 // while 200 portals are open".
 //
-// SUSPECTED SOLID BUG (@solidjs/web@2.0.0-beta.14): the built-in <Portal> crashes
-// under a render() root. render$1 always registers the root (#main) as a
-// delegated root (web.js:179); Portal's mount is wrapped in a Proxy via
-// createElementProxy (web.js:889) and passed to `ownerRoot.contains(m)`
-// (web.js:854-856), and native Node.contains throws on a Proxy
-// ("parameter 1 is not of type 'Node'"). This fires for ANY <Portal> under a
-// render() root regardless of fixture shape (reproduced with a single portal).
-// We therefore hand-roll the portal — the standard userland Solid pattern
-// (create the node, appendChild into the mount, onCleanup removes it) — which
-// inserts children directly into the mount element (no wrapper div), matching
-// the other fixtures' tooltip DOM. Because the tooltip lives OUTSIDE the
-// delegated root, the button gets a DIRECT native listener (addEventListener,
-// not Solid's delegated onClick, which would never reach content outside #main)
-// so dispatch_through_portal still fires. See README caveats.
+// Section A uses Solid's built-in <Portal> from @solidjs/web with a delegated
+// onClick inside it. (An earlier revision hand-rolled the portal and attached a
+// native listener to work around a `<Portal>` crash under a render() root in
+// @solidjs/web@2.0.0-beta.14; the pinned RC no longer has it, and the built-in
+// Portal mounts its children directly into the target with no wrapper element,
+// so the tooltip DOM matches the other fixtures.) Solid delegates the click
+// through the portal's mount, so dispatch_through_portal measures a delegated
+// hop like the other delegating frameworks.
 
 function Tip(props) {
-	const el = (
-		<div class={props.cls}>
-			<span class="tip-label">{props.item.label}</span>
-			<button class="tip-btn">hit</button>
-		</div>
+	return (
+		<Portal mount={props.target}>
+			<div class={props.cls}>
+				<span class="tip-label">{props.item.label}</span>
+				<button class="tip-btn" onClick={hit}>
+					hit
+				</button>
+			</div>
+		</Portal>
 	);
-	el.querySelector('.tip-btn').addEventListener('click', hit);
-	const target = props.target;
-	target.appendChild(el);
-	onCleanup(() => {
-		if (el.parentNode) el.parentNode.removeChild(el);
-	});
-	return null;
 }
 
 function Section(props) {

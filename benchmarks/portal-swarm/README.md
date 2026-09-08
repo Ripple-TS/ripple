@@ -32,7 +32,7 @@ whether the stable-descriptor bail works), `open_close_distinct` vs
 benchmarks/portal-swarm/
 ├── octane-tsrx/   # Vite app, dev :5210 — octane authored in .tsrx (+ a plain-.ts portal helper)
 ├── react/         # Vite app, dev :5211 (React 19, production mode)
-├── solid/         # Vite app, dev :5212 (Solid 2.0, hand-rolled portal — see caveats)
+├── solid/         # Vite app, dev :5212 (Solid 2.0, built-in <Portal>)
 ├── ripple/        # Vite app, dev :5224 (built-in Portal)
 ├── vue-vapor/     # Vite app, dev :5181 (Vue 3.6 Vapor, VaporTeleport)
 ├── preact/       # Vite app, dev :5268 (preact/compat createPortal)
@@ -74,10 +74,11 @@ For **React** the A/B distinction collapses (both sections produce
 kept so the apps stay structurally identical. For **Solid** all three collapse (a
 portal is its only mechanism), and its fine-grained model means `rerender_open_*`
 updates one text node without touching portals — that near-zero IS Solid's honest
-number for the op, not a fixture bug. The Solid fixture hand-rolls its portal
-because `@solidjs/web@2.0.0-beta.14`'s built-in `<Portal>` crashes under a
-`render()` root — see caveats. For **Vue Vapor** all three sections likewise
-collapse (`VaporTeleport` is its only mechanism) and `rerender_open_*` is the same
+number for the op, not a fixture bug. The Solid fixture uses the built-in
+`<Portal>` with a delegated `onClick` inside it (an earlier revision hand-rolled
+the portal around a `<Portal>` crash in `@solidjs/web@2.0.0-beta.14`; the pinned
+RC no longer has it). For **Vue Vapor** all three sections likewise collapse
+(`VaporTeleport` is its only mechanism) and `rerender_open_*` is the same
 fine-grained one-text-node bypass; Vue commits on a microtask with no public sync
 flush, so its adapters return `nextTick()` thenables the harness awaits inside
 each timed window (awaiting BETWEEN the open/close halves of a cycle rep —
@@ -145,24 +146,15 @@ single adapter. The FIRST target in `TARGETS` is the ratio baseline.
 
 ## Caveats / bias notes
 
-- **Solid `<Portal>` bug (suspected, `@solidjs/web@2.0.0-beta.14`).** The built-in
-  `<Portal>` throws
-  `Failed to execute 'contains' on 'Node': parameter 1 is not of type 'Node'` for
-  ANY portal under a `render()` root (reproduced with a single portal). `render$1`
-  always registers the root (`#main`) as a delegated root (`web.js:179`); `Portal`
-  then calls `ownerRoot.contains(m)` (`web.js:854-856`) where `m` is a
-  `Proxy`-wrapped mount node (`createElementProxy`, `web.js:889`), and native
-  `Node.contains` rejects a Proxy. This is structural, not a fixture shape issue.
-  The Solid fixture therefore hand-rolls the portal — the standard userland Solid
-  pattern (create the tooltip node, `appendChild` into the mount, `onCleanup`
-  removes it) — which inserts children directly into the mount (no wrapper div),
-  so tooltip DOM matches the other fixtures. Because the tooltip lives OUTSIDE
-  `#main`, Solid's delegated `onClick` would never reach it (and `on:click` did
-  not attach a listener in this build), so the button gets a direct
-  `addEventListener('click', hit)`. Net effect: Solid's `dispatch_through_portal`
-  measures a plain native listener rather than a delegated-container hop — its
-  column should be read as a best-case floor for that op, not an apples-to-apples
-  delegation number.
+- **Solid `<Portal>`.** `@solidjs/web@2.0.0-beta.14`'s built-in `<Portal>` threw
+  `Failed to execute 'contains' on 'Node'` for any portal under a `render()` root
+  (a Proxy-wrapped mount node reaching native `Node.contains`), so the fixture
+  originally hand-rolled the portal and attached a native `click` listener to the
+  button, which made Solid's `dispatch_through_portal` a plain-listener floor. The
+  pinned RC renders `<Portal>` under `render()` correctly, mounts children
+  directly into the target (no wrapper element) and delegates `onClick` through
+  the portal, so the fixture now uses it and Solid's dispatch number is a
+  delegated hop like the other delegating frameworks.
 - `rerender_open_*` is a hooks-vs-fine-grained comparison as much as a portal one:
   solid updates one text node and never touches open portals. The octane-vs-react
   ratio is the portal-relevant signal there.
