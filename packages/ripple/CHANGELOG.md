@@ -1,5 +1,31 @@
 # ripple
 
+## 0.3.128
+
+### Patch Changes
+
+- [#1450](https://github.com/Ripple-TS/ripple/pull/1450)
+  [`26be014`](https://github.com/Ripple-TS/ripple/commit/26be014dfd06da9eae7e2d9e0fbd332ddf1bc9ca)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster updates and list
+  rendering in the client runtime. Tracked values now keep a subscriber list, so a
+  write schedules exactly the blocks that read it and the flush no longer scans
+  the owner's subtree; scheduled blocks run in creation order from a queue. Text
+  expressions, keyed list items, and class updates allocate less per row, and
+  `set_class` skips DOM writes when the class is unchanged. Adds the `selector` /
+  `selector_match` internals the compiler uses to share one subscription across
+  `outer === item` comparisons in `@for` templates. Keyed list reconciliation
+  matches moved end items before falling back to the map and LIS, so reversals,
+  rotations, and swaps complete with plain moves. An empty dynamic `class` no
+  longer writes a `class=""` attribute; the server omits it as well. Exposes
+  `hydrating`, `hydrate_child`, and `hydrate_sibling` from the internal client
+  entry for the compiler's inline traversal. When most surviving items of a keyed
+  list would have to move, the list is re-laid in order before a fixed node, which
+  is cheaper than moving each item into place.
+
+- Updated dependencies
+  [[`26be014`](https://github.com/Ripple-TS/ripple/commit/26be014dfd06da9eae7e2d9e0fbd332ddf1bc9ca)]:
+  - @tsrx/ripple@0.1.65
+
 ## 0.3.127
 
 ### Patch Changes

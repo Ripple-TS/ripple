@@ -1,5 +1,14 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.128
+
+### Patch Changes
+
+- Updated dependencies
+  [[`26be014`](https://github.com/Ripple-TS/ripple/commit/26be014dfd06da9eae7e2d9e0fbd332ddf1bc9ca)]:
+  - @tsrx/ripple@0.1.65
+  - @ripple-ts/adapter@0.3.128
+
 ## 0.3.127
 
 ### Patch Changes
