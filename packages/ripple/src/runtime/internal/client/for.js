@@ -338,8 +338,61 @@ function update_value(block, value) {
  * @param {(item: V) => K} get_key
  * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
+ *
+ * The first run only creates items, so it lives in this small function and
+ * the diff below is compiled only once a list actually changes.
  */
 function reconcile_by_key(
+	anchor,
+	block,
+	b,
+	render_fn,
+	is_controlled,
+	is_indexed,
+	get_key,
+	render_empty,
+) {
+	var b_length = b.length;
+
+	if (block.s === null && b_length > 0) {
+		var b_blocks = Array(b_length);
+		var b_keys = b.map(get_key);
+
+		for (var j = 0; j < b_length; j++) {
+			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, true);
+		}
+
+		block.s = { array: b, blocks: b_blocks, keys: b_keys, empty: null };
+		return;
+	}
+
+	reconcile_by_key_diff(
+		anchor,
+		block,
+		b,
+		render_fn,
+		is_controlled,
+		is_indexed,
+		get_key,
+		render_empty,
+	);
+}
+
+/**
+ * Keyed diff for every run after the first (or a first run with an empty
+ * list). See {@link reconcile_by_key}.
+ * @template V, K
+ * @param {Element | Text} anchor
+ * @param {Block} block
+ * @param {V[]} b
+ * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
+ * @param {boolean} is_controlled
+ * @param {boolean} is_indexed
+ * @param {(item: V) => K} get_key
+ * @param {(anchor: Node) => void} [render_empty]
+ * @returns {void}
+ */
+function reconcile_by_key_diff(
 	anchor,
 	block,
 	b,

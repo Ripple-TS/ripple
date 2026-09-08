@@ -56,6 +56,44 @@ export function create_fragment_from_html(
 }
 
 /**
+ * The hydration path of a {@link template} instance: adopts the server node(s)
+ * at the cursor instead of cloning. Kept out of the clone path so a client-only
+ * mount never compiles it.
+ * @param {boolean} is_fragment
+ * @param {number} count
+ * @returns {Node}
+ */
+function hydrate_template(is_fragment, count) {
+	if (is_fragment) {
+		var start = /** @type {Node} */ (hydrate_node);
+		var end = start;
+
+		// Walk using compiler-provided hop count so hydration never
+		// parses template HTML into fragments.
+		for (var i = 1; i < count; i++) {
+			var next = get_next_sibling(end);
+
+			while (next !== null && next.nodeType === Node.COMMENT_NODE) {
+				next = get_next_sibling(next);
+			}
+
+			if (next === null) {
+				break;
+			}
+
+			end = next;
+		}
+
+		assign_nodes(start, end);
+		return start;
+	} else {
+		var node_to_use = /** @type {Node} */ (hydrate_node);
+		assign_nodes(node_to_use, node_to_use);
+		return node_to_use;
+	}
+}
+
+/**
  * Creates a template node or fragment from content and flags.
  * @param {string} content - The template content.
  * @param {number} flags - Flags for template type.
@@ -76,33 +114,7 @@ export function template(content, flags, count = 1) {
 
 	return () => {
 		if (hydrating) {
-			if (is_fragment) {
-				var start = /** @type {Node} */ (hydrate_node);
-				var end = start;
-
-				// Walk using compiler-provided hop count so hydration never
-				// parses template HTML into fragments.
-				for (var i = 1; i < count; i++) {
-					var next = get_next_sibling(end);
-
-					while (next !== null && next.nodeType === Node.COMMENT_NODE) {
-						next = get_next_sibling(next);
-					}
-
-					if (next === null) {
-						break;
-					}
-
-					end = next;
-				}
-
-				assign_nodes(start, end);
-				return start;
-			} else {
-				var node_to_use = /** @type {Node} */ (hydrate_node);
-				assign_nodes(node_to_use, node_to_use);
-				return node_to_use;
-			}
+			return hydrate_template(is_fragment, count);
 		}
 		// If using runtime namespace, check active_namespace
 		var svg = !is_comment && (use_svg_namespace || active_namespace === 'svg');
@@ -136,6 +148,64 @@ export function template(content, flags, count = 1) {
 }
 
 /**
+ * The hydration path of {@link append}: repositions the hydration cursor
+ * instead of inserting. Kept out of the insert path so a client-only mount
+ * never compiles it.
+ * @param {ChildNode | AppendIntoAnchor} anchor
+ * @param {Node} dom
+ * @param {boolean} [skip_advance]
+ */
+function hydrate_append(anchor, dom, skip_advance) {
+	// When skip_advance is true, the caller (e.g., a fragment component) has already
+	// used next() to position hydrate_node correctly. We must NOT reset it.
+	if (skip_advance) {
+		return;
+	}
+
+	// During hydration, if anchor === dom, we're hydrating a child component
+	// where the "anchor" IS the content. If the cursor is still somewhere
+	// inside dom (at any depth), reset it to dom's level so sibling traversal
+	// works. But if the cursor has advanced past dom (e.g., because internal
+	// control flow blocks like switch/if/for advanced it through their
+	// hydration markers), preserve the advanced position.
+	if (anchor === dom) {
+		if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
+			pop(dom);
+		}
+		return;
+	}
+
+	// If the hydration cursor has descended into dom's children (e.g. after
+	// child()/sibling() traversal inside a single-node template), we need
+	// pop() to reset back to dom's sibling level before advancing.
+	// But if the cursor is already at dom's sibling level (e.g. because
+	// nested control flow blocks advanced it past dom via sibling traversal),
+	// pop() would incorrectly reset backwards — so we skip it.
+	if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
+		pop(dom);
+	} else if (hydrate_node !== dom) {
+		// Cursor has advanced past dom via sibling traversal (due to nested
+		// block processing). Update the branch block's end to reflect the
+		// actual extent, which may be past the statically-assigned end from
+		// the template's assign_nodes call.
+		var block = /** @type {Block} */ (active_block);
+		var s = block.s;
+		if (s !== null) {
+			s.end = /** @type {Node} */ (hydrate_node);
+		}
+
+		if (is_after_hydration_block(dom, hydrate_node)) {
+			return;
+		}
+	}
+
+	// Only advance if there's a next sibling. At the end of a component's
+	// content, there might not be more siblings, and that's fine.
+	hydrate_advance();
+	return;
+}
+
+/**
  * Appends a DOM node before the anchor node.
  * @param {ChildNode | AppendIntoAnchor} anchor - The anchor node.
  * @param {Node} dom - The DOM node to append.
@@ -143,52 +213,7 @@ export function template(content, flags, count = 1) {
  */
 export function append(anchor, dom, skip_advance) {
 	if (hydrating) {
-		// When skip_advance is true, the caller (e.g., a fragment component) has already
-		// used next() to position hydrate_node correctly. We must NOT reset it.
-		if (skip_advance) {
-			return;
-		}
-
-		// During hydration, if anchor === dom, we're hydrating a child component
-		// where the "anchor" IS the content. If the cursor is still somewhere
-		// inside dom (at any depth), reset it to dom's level so sibling traversal
-		// works. But if the cursor has advanced past dom (e.g., because internal
-		// control flow blocks like switch/if/for advanced it through their
-		// hydration markers), preserve the advanced position.
-		if (anchor === dom) {
-			if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
-				pop(dom);
-			}
-			return;
-		}
-
-		// If the hydration cursor has descended into dom's children (e.g. after
-		// child()/sibling() traversal inside a single-node template), we need
-		// pop() to reset back to dom's sibling level before advancing.
-		// But if the cursor is already at dom's sibling level (e.g. because
-		// nested control flow blocks advanced it past dom via sibling traversal),
-		// pop() would incorrectly reset backwards — so we skip it.
-		if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
-			pop(dom);
-		} else if (hydrate_node !== dom) {
-			// Cursor has advanced past dom via sibling traversal (due to nested
-			// block processing). Update the branch block's end to reflect the
-			// actual extent, which may be past the statically-assigned end from
-			// the template's assign_nodes call.
-			var block = /** @type {Block} */ (active_block);
-			var s = block.s;
-			if (s !== null) {
-				s.end = /** @type {Node} */ (hydrate_node);
-			}
-
-			if (is_after_hydration_block(dom, hydrate_node)) {
-				return;
-			}
-		}
-
-		// Only advance if there's a next sibling. At the end of a component's
-		// content, there might not be more siblings, and that's fine.
-		hydrate_advance();
+		hydrate_append(anchor, dom, skip_advance);
 		return;
 	}
 	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
