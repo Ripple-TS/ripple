@@ -1,5 +1,41 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.129
+
+### Patch Changes
+
+- [#1469](https://github.com/Ripple-TS/ripple/pull/1469)
+  [`b3a38ce`](https://github.com/Ripple-TS/ripple/commit/b3a38ce0aae66a9dcac0b663c30161eed0d7547a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add custom serialization for
+  trackAsync hydration and RPC arguments/results using `transport` handlers in
+  ripple.config.ts. Register matching encoders and decoders automatically in
+  development and production, and expose `setTransport` for custom integrations.
+  Apps without a transport retain the plain JSON hydration fast path. Provide a
+  browser entry for config helpers so importing defineConfig does not load the
+  Vite plugin's Node.js dependencies during hydration. A configured hydration
+  payload embeds devalue's flattened form directly, so the client revives it
+  without a second string encoding.
+
+- [#1461](https://github.com/Ripple-TS/ripple/pull/1461)
+  [`69d50d9`](https://github.com/Ripple-TS/ripple/commit/69d50d9849d8484a88d39b2908bb682d27ec7bc9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Expand primitive text
+  inference to BigInt and Date calls, sequences, and satisfies expressions while
+  respecting shadowed or replaced built-ins. Add optional TypeScript project
+  proofs for imported primitive types and function return values, with matching
+  client/server text classification and one-shot Vite production build
+  integration.
+
+- Updated dependencies
+  [[`bbc1445`](https://github.com/Ripple-TS/ripple/commit/bbc14455485e054c145ebc78f08a771d41ea16f1),
+  [`2ef5da5`](https://github.com/Ripple-TS/ripple/commit/2ef5da52b26fc13e11537dd28df0e2b376ca0f52),
+  [`020d269`](https://github.com/Ripple-TS/ripple/commit/020d2699f8e1333367ac9f7abe9247bab55e272d),
+  [`453bf4b`](https://github.com/Ripple-TS/ripple/commit/453bf4ba8b1b31963df26696545e446ab4b1658e),
+  [`411809f`](https://github.com/Ripple-TS/ripple/commit/411809fb38f25b259a1078a901839318e4207871),
+  [`82bc9ee`](https://github.com/Ripple-TS/ripple/commit/82bc9ee585c6b273bf69890bc2f230aba922bf19),
+  [`69d50d9`](https://github.com/Ripple-TS/ripple/commit/69d50d9849d8484a88d39b2908bb682d27ec7bc9)]:
+  - @tsrx/ripple@0.1.66
+  - @ripple-ts/adapter@0.3.129
+
 ## 0.3.128
 
 ### Patch Changes
