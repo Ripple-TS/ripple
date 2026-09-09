@@ -212,20 +212,36 @@ function collection_to_array(collection) {
  * The state of a list block. The reconciled list (`array`, `blocks`, `keys`,
  * `empty`) and the inputs the list is re-run with both live here, so a list
  * allocates no closures.
- * @typedef {{
- *   array: any[];
- *   blocks: Block[];
- *   keys: any[] | null;
- *   empty: Block | null;
- *   a: ListAnchor;
- *   g: () => any;
- *   r: (anchor: Node, value: any, index?: any) => Block;
- *   c: boolean;
- *   x: boolean;
- *   k: ((item: any) => any) | undefined;
- *   e: ((anchor: Node) => void) | undefined;
- * }} ListState
  */
+class ListState {
+	/** @type {any[]} */
+	array = [];
+	/** @type {Block[]} */
+	blocks = [];
+	/** @type {any[] | null} null until the first reconcile */
+	keys = null;
+	/** @type {Block | null} */
+	empty = null;
+
+	/**
+	 * @param {ListAnchor} anchor
+	 * @param {() => any} get_collection
+	 * @param {(anchor: Node, value: any, index?: any) => Block} render_fn
+	 * @param {boolean} is_controlled
+	 * @param {boolean} is_indexed
+	 * @param {((item: any) => any) | undefined} get_key
+	 * @param {((anchor: Node) => void) | undefined} render_empty
+	 */
+	constructor(anchor, get_collection, render_fn, is_controlled, is_indexed, get_key, render_empty) {
+		this.a = anchor;
+		this.g = get_collection;
+		this.r = render_fn;
+		this.c = is_controlled;
+		this.x = is_indexed;
+		this.k = get_key;
+		this.e = render_empty;
+	}
+}
 
 /**
  * @param {ListState} state
@@ -298,21 +314,19 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 		hydrate_next();
 	}
 
-	/** @type {ListState} */
-	var state = {
-		array: [],
-		blocks: [],
-		keys: null,
-		empty: null,
-		a: anchor,
-		g: get_collection,
-		r: render_fn,
-		c: is_controlled,
-		x: is_indexed,
-		k: undefined,
-		e: render_empty,
-	};
-	render(run_for, state, FOR_BLOCK);
+	render(
+		run_for,
+		new ListState(
+			anchor,
+			get_collection,
+			render_fn,
+			is_controlled,
+			is_indexed,
+			undefined,
+			render_empty,
+		),
+		FOR_BLOCK,
+	);
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
@@ -360,22 +374,19 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 		hydrate_next();
 	}
 
-	/** @type {ListState} */
-	var state = {
-		array: [],
-		blocks: [],
-		// null until the first reconcile
-		keys: null,
-		empty: null,
-		a: anchor,
-		g: get_collection,
-		r: render_fn,
-		c: is_controlled,
-		x: is_indexed,
-		k: get_key,
-		e: render_empty,
-	};
-	render(run_for_keyed, state, FOR_BLOCK);
+	render(
+		run_for_keyed,
+		new ListState(
+			anchor,
+			get_collection,
+			render_fn,
+			is_controlled,
+			is_indexed,
+			get_key,
+			render_empty,
+		),
+		FOR_BLOCK,
+	);
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
