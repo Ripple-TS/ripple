@@ -44,7 +44,7 @@ export function TypedText() {
 						_$_.set_text(expression, __prev.a = __a);
 					}
 
-					var __b = lazy.value.count;
+					var __b = (0, lazy.value.count);
 
 					if (__prev.b !== __b) {
 						_$_.set_text(expression_1, __prev.b = __b);

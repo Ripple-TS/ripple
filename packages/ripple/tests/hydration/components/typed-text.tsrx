@@ -10,7 +10,9 @@ export function TypedText() @{
 			{row.count}
 			<span>tail</span>
 		</div>
-		<p class="typed-number">{row.count}</p>
+		<p class="typed-number">
+			{(0, row.count)}
+		</p>
 		<button
 			onClick={() => {
 				row = { label: '&next', count: 3n };

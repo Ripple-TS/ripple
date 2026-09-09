@@ -8,8 +8,23 @@ import { strongHash as strong_hash } from '@tsrx/core';
 const facts_by_root = new WeakMap();
 
 /**
+ * Volar preserves parentheses for source mappings; ordinary compilation omits
+ * them. Only unwrap outer parentheses so both parses identify the same child,
+ * without accepting a proof for an arbitrary nested expression.
+ * @param {AST.Expression} expression
+ * @returns {[number, number] | undefined}
+ */
+export function get_text_type_range(expression) {
+	while (expression.type === 'ParenthesizedExpression') {
+		expression = /** @type {AST.Expression} */ (expression.expression);
+	}
+	if (expression.start === undefined || expression.end === undefined) return undefined;
+	return [expression.start, expression.end];
+}
+
+/**
  * Validate externally supplied facts before either transform can consume them.
- * @param {Map<string, unknown> | undefined} children
+ * @param {Map<string, { expression: AST.Expression }> | undefined} children
  * @param {string} source
  * @param {string} filename
  * @param {ScopeInterface} scope
@@ -29,6 +44,11 @@ export function register_text_type_facts(children, source, filename, scope, fact
 		!facts.projectVersion
 	)
 		invalid();
+	const child_ranges = new Set();
+	for (const { expression } of children?.values() ?? []) {
+		const range = get_text_type_range(expression);
+		if (range) child_ranges.add(`${range[0]}:${range[1]}`);
+	}
 	/** @param {readonly (readonly [number, number])[]} ranges */
 	const validate = (ranges) => {
 		if (!Array.isArray(ranges)) return invalid();
@@ -41,7 +61,7 @@ export function register_text_type_facts(children, source, filename, scope, fact
 				range[0] < 0 ||
 				range[1] <= range[0] ||
 				range[1] > source.length ||
-				!children?.has(`${range[0]}:${range[1]}`)
+				!child_ranges.has(`${range[0]}:${range[1]}`)
 			)
 				invalid();
 			keys.add(`${range[0]}:${range[1]}`);

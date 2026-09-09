@@ -75,6 +75,52 @@ describe('TypeScript text project', () => {
 		project.assertUnchanged();
 	});
 
+	it.each([
+		['(props.label)', 'props.label', 'strings'],
+		['((props.label))', 'props.label', 'strings'],
+		['((props.value))', 'props.value', 'primitives'],
+		['((props.big))', 'props.big', 'primitives'],
+		['(props.effect(), props.value)', 'props.effect(), props.value', 'primitives'],
+		['((props.effect(), props.value))', 'props.effect(), props.value', 'primitives'],
+		['( /* before */ props.label /* after */ )', 'props.label', 'strings'],
+	])('compiles checker proofs for parenthesized child %s', (child, expected, kind) => {
+		const source = `import type { Props } from './types';
+			export function App(props: Props) @{ <p>{${child}}</p> }`;
+		const { project, filename } = fixture(
+			source,
+			`export interface Props {
+			label: string; value: number; big: bigint; effect(): void;
+		}`,
+		);
+		const facts = JSON.parse(JSON.stringify(project.getTextTypeFacts(filename)));
+		expect(expressions(source, facts)).toEqual({
+			strings: kind === 'strings' ? [expected] : [],
+			primitives: kind === 'primitives' ? [expected] : [],
+		});
+		for (const mode of ['client', 'server']) {
+			for (const options of [{}, { collect: true }, { collect: true, preserveParens: true }]) {
+				const { code } = compile(source, filename, { ...options, mode, textTypeFacts: facts });
+				expect(code).not.toContain('_$_.render_expression(');
+				expect(code).not.toContain('_$_.expression_children(');
+				if (child.includes('props.effect()')) {
+					expect(code).toContain('props.effect()');
+					// A proof for only the last operand is not a proof for the child.
+					const start = source.lastIndexOf('props.value');
+					expect(() =>
+						compile(source, filename, {
+							...options,
+							mode,
+							textTypeFacts: {
+								...facts,
+								primitiveTextChildRanges: [[start, start + 'props.value'.length]],
+							},
+						}),
+					).toThrow('Invalid textTypeFacts');
+				}
+			}
+		}
+	});
+
 	it('rejects uncertain domains and missing indexed values', () => {
 		const names = [
 			'any',

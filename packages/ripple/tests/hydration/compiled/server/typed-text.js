@@ -10,7 +10,7 @@ export function TypedText() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="typed-run">' + _$_.escape('value: ' + (lazy.value.label + String(lazy.value.count ?? ''))) + '<span>tail</span></div><p class="typed-number">' + _$_.escape(lazy.value.count) + '</p><button>update</button>';
+			__out += '<div class="typed-run">' + _$_.escape('value: ' + (lazy.value.label + String(lazy.value.count ?? ''))) + '<span>tail</span></div><p class="typed-number">' + _$_.escape((0, lazy.value.count)) + '</p><button>update</button>';
 			_$_.output_push(__out);
 		});
 	});

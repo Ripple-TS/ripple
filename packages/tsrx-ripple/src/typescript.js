@@ -5,6 +5,7 @@ import path from 'node:path';
 import ts from 'typescript';
 import { strongHash as strong_hash } from '@tsrx/core';
 import { compile_to_volar_mappings } from './index.js';
+import { get_text_type_range } from './text-type-facts.js';
 
 let generation = 0;
 
@@ -214,8 +215,8 @@ function create_text_type_project({ tsconfig }) {
 				if (nodes.size !== 1) continue;
 				const type = checker.getTypeAtLocation([...nodes][0]);
 				const expression = mapped.textChildExpressions.get(key)?.expression;
-				if (!expression || expression.start === undefined || expression.end === undefined) continue;
-				const range = /** @type {[number, number]} */ ([expression.start, expression.end]);
+				const range = expression && get_text_type_range(expression);
+				if (!range) continue;
 				if (is_primitive(type, true)) strings.push(range);
 				else if (is_primitive(type, false)) primitives.push(range);
 			}
