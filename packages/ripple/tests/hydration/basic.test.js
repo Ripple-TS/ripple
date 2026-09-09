@@ -209,6 +209,21 @@ describe('hydration > basic', () => {
 		expect(textIndex).toBeLessThan(endMarker);
 	});
 
+	it('restores typed text children hydrated from empty server text', async () => {
+		await hydrateComponent(
+			ServerComponents.TypedTextPropWithToggle,
+			ClientComponents.TypedTextPropWithToggle,
+		);
+
+		expect(container.querySelector('.text-prop')?.textContent).toBe('');
+
+		/** @type {any} */ (container.querySelector('.show-text'))?.click();
+		flushSync();
+
+		// A string-typed child is a text node, with no hydration markers.
+		expect(container.querySelector('.text-prop')?.innerHTML).toBe('hello');
+	});
+
 	it('hydrates static child component followed by sibling content', async () => {
 		await hydrateComponent(
 			ServerComponents.StaticChildWithSiblings,

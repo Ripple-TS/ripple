@@ -54,32 +54,35 @@ var root_49 = _$_.template(`<div class="native"> </div>`, 0);
 var root_51 = _$_.template(`<!>`, 1, 1);
 var root_50 = _$_.template(`<!>`, 1, 1);
 var root_52 = _$_.template(`<div class="text-prop"><!></div>`, 0);
-var root_54 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
-var root_53 = _$_.template(`<!>`, 1, 1);
-var root_56 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
-var root_55 = _$_.template(`<!>`, 1, 1);
-var root_58 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
-var root_57 = _$_.template(`<!>`, 1, 1);
-var root_60 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
-var root_59 = _$_.template(`<!>`, 1, 1);
-var root_62 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
-var root_61 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
-var root_63 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
-var root_64 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
-var root_65 = _$_.template(`<!><!><!><!>`, 1, 4);
-var root_66 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
-var root_67 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
-var root_68 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
-var root_69 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
-var root_70 = _$_.template(`<div> </div>`, 0);
-var root_71 = _$_.template(`<div> </div>`, 0);
-var root_72 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
-var root_74 = _$_.template(`<!><p>after-opaque</p>`, 1, 2);
-var root_73 = _$_.template(`<!>`, 1, 1);
-var root_75 = _$_.template(`<div></div>`, 0);
-var root_77 = _$_.template(` <p>after-call</p>`, 1, 2);
+var root_53 = _$_.template(`<div class="text-prop"><!></div>`, 0);
+var root_55 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_54 = _$_.template(`<!>`, 1, 1);
+var root_57 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_56 = _$_.template(`<!>`, 1, 1);
+var root_59 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
+var root_58 = _$_.template(`<!>`, 1, 1);
+var root_61 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
+var root_60 = _$_.template(`<!>`, 1, 1);
+var root_63 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
+var root_62 = _$_.template(`<!>`, 1, 1);
+var root_65 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
+var root_64 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
+var root_66 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+var root_67 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
+var root_68 = _$_.template(`<!><!><!><!>`, 1, 4);
+var root_69 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
+var root_70 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
+var root_71 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
+var root_72 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
+var root_73 = _$_.template(`<div> </div>`, 0);
+var root_74 = _$_.template(`<div> </div>`, 0);
+var root_75 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
+var root_77 = _$_.template(`<!><p>after-opaque</p>`, 1, 2);
 var root_76 = _$_.template(`<!>`, 1, 1);
 var root_78 = _$_.template(`<div></div>`, 0);
+var root_80 = _$_.template(` <p>after-call</p>`, 1, 2);
+var root_79 = _$_.template(`<!>`, 1, 1);
+var root_81 = _$_.template(`<div></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -702,14 +705,29 @@ function TextProp(__props) {
 	});
 }
 
+function TypedTextProp(__props) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_22 = root_53();
+
+		{
+			var expression_25 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
+
+			_$_.expression(expression_25, () => __props.children);
+			_$_.pop(div_22);
+		}
+
+		_$_.append(__anchor, div_22);
+	});
+}
+
 export function TextPropWithToggle() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_1 = _$_.track(false, __block, '1ba81c3b');
-		var fragment_21 = root_53();
+		var fragment_21 = root_54();
 		var node_14 = _$_.first_child_frag(fragment_21);
 
 		_$_.expression(node_14, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_22 = root_54();
+			var fragment_22 = root_55();
 			var node_13 = _$_.first_child_frag(fragment_22);
 
 			_$_.render_component(TextProp, node_13, {
@@ -728,15 +746,25 @@ export function TextPropWithToggle() {
 	});
 }
 
-function StaticHeader() {
+export function TypedTextPropWithToggle() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_23 = root_55();
-		var node_15 = _$_.first_child_frag(fragment_23);
+		let lazy_2 = _$_.track(false, __block, '649e2af0');
+		var fragment_23 = root_56();
+		var node_16 = _$_.first_child_frag(fragment_23);
 
-		_$_.expression(node_15, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_24 = root_56();
+		_$_.expression(node_16, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_24 = root_57();
+			var node_15 = _$_.first_child_frag(fragment_24);
 
-			_$_.next(2);
+			_$_.render_component(TypedTextProp, node_15, {
+				get children() {
+					return _$_.normalize_children(lazy_2.value ? 'hello' : '');
+				}
+			});
+
+			var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_15.nextSibling;
+
+			button_1.__click = () => _$_.set(lazy_2, true);
 			_$_.append(__anchor, fragment_24);
 		}));
 
@@ -744,36 +772,15 @@ function StaticHeader() {
 	});
 }
 
-export function StaticChildWithSiblings() {
+function StaticHeader() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const foo = 'bar';
-		var fragment_25 = root_57();
+		var fragment_25 = root_58();
 		var node_17 = _$_.first_child_frag(fragment_25);
 
 		_$_.expression(node_17, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_26 = root_58();
-			var node_16 = _$_.first_child_frag(fragment_26);
+			var fragment_26 = root_59();
 
-			_$_.render_component(StaticHeader, node_16, {});
-
-			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_16.nextSibling;
-
-			{
-				var expression_25 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
-
-				expression_25.nodeValue = foo;
-				_$_.pop(span_6);
-			}
-
-			var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
-
-			{
-				var expression_26 = _$_.hydrating ? _$_.hydrate_child(true) : span_7.firstChild;
-
-				expression_26.nodeValue = foo;
-				_$_.pop(span_7);
-			}
-
+			_$_.next(2);
 			_$_.append(__anchor, fragment_26);
 		}));
 
@@ -781,15 +788,36 @@ export function StaticChildWithSiblings() {
 	});
 }
 
-function Header() {
+export function StaticChildWithSiblings() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_27 = root_59();
-		var node_18 = _$_.first_child_frag(fragment_27);
+		const foo = 'bar';
+		var fragment_27 = root_60();
+		var node_19 = _$_.first_child_frag(fragment_27);
 
-		_$_.expression(node_18, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_28 = root_60();
+		_$_.expression(node_19, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_28 = root_61();
+			var node_18 = _$_.first_child_frag(fragment_28);
 
-			_$_.next(2);
+			_$_.render_component(StaticHeader, node_18, {});
+
+			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_18.nextSibling;
+
+			{
+				var expression_26 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
+
+				expression_26.nodeValue = foo;
+				_$_.pop(span_6);
+			}
+
+			var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
+
+			{
+				var expression_27 = _$_.hydrating ? _$_.hydrate_child(true) : span_7.firstChild;
+
+				expression_27.nodeValue = foo;
+				_$_.pop(span_7);
+			}
+
 			_$_.append(__anchor, fragment_28);
 		}));
 
@@ -797,42 +825,58 @@ function Header() {
 	});
 }
 
+function Header() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var fragment_29 = root_62();
+		var node_20 = _$_.first_child_frag(fragment_29);
+
+		_$_.expression(node_20, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_30 = root_63();
+
+			_$_.next(2);
+			_$_.append(__anchor, fragment_30);
+		}));
+
+		_$_.append(__anchor, fragment_29);
+	});
+}
+
 function Actions({ playgroundVisible = false }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_22 = root_61();
+		var div_23 = root_64();
 
 		{
-			var a_2 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
+			var a_2 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
 			var a_1 = _$_.hydrating ? _$_.hydrate_sibling() : a_2.nextSibling;
-			var expression_27 = _$_.hydrating ? _$_.hydrate_sibling() : a_1.nextSibling;
+			var expression_28 = _$_.hydrating ? _$_.hydrate_sibling() : a_1.nextSibling;
 
-			_$_.expression(expression_27, () => playgroundVisible
+			_$_.expression(expression_28, () => playgroundVisible
 				? _$_.tsrx_element((__anchor, __block) => {
-					var a = root_62();
+					var a = root_65();
 
 					_$_.append(__anchor, a);
 				})
 				: null);
 
-			_$_.pop(div_22);
+			_$_.pop(div_23);
 		}
 
-		_$_.append(__anchor, div_22);
+		_$_.append(__anchor, div_23);
 	});
 }
 
 function Layout({ children }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var main = root_63();
+		var main = root_66();
 
 		{
-			var div_23 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
+			var div_24 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
 
 			{
-				var expression_28 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
+				var expression_29 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
 
-				_$_.expression(expression_28, () => children);
-				_$_.pop(div_23);
+				_$_.expression(expression_29, () => children);
+				_$_.pop(div_24);
 			}
 		}
 
@@ -842,9 +886,9 @@ function Layout({ children }) {
 
 function Content() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_24 = root_64();
+		var div_25 = root_67();
 
-		_$_.append(__anchor, div_24);
+		_$_.append(__anchor, div_25);
 	});
 }
 
@@ -852,23 +896,23 @@ export function WebsiteIndex() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		_$_.render_component(Layout, __anchor, {
 			children: _$_.tsrx_element((__anchor, __block) => {
-				var fragment_29 = root_65();
-				var node_19 = _$_.first_child_frag(fragment_29);
+				var fragment_31 = root_68();
+				var node_21 = _$_.first_child_frag(fragment_31);
 
-				_$_.render_component(Header, node_19, {});
-
-				var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_19.nextSibling;
-
-				_$_.render_component(Actions, node_20, { playgroundVisible: true });
-
-				var node_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_20.nextSibling;
-
-				_$_.render_component(Content, node_21, {});
+				_$_.render_component(Header, node_21, {});
 
 				var node_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_21.nextSibling;
 
-				_$_.render_component(Actions, node_22, { playgroundVisible: false });
-				_$_.append(__anchor, fragment_29);
+				_$_.render_component(Actions, node_22, { playgroundVisible: true });
+
+				var node_23 = _$_.hydrating ? _$_.hydrate_sibling() : node_22.nextSibling;
+
+				_$_.render_component(Content, node_23, {});
+
+				var node_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_23.nextSibling;
+
+				_$_.render_component(Actions, node_24, { playgroundVisible: false });
+				_$_.append(__anchor, fragment_31);
 			})
 		});
 	});
@@ -876,7 +920,7 @@ export function WebsiteIndex() {
 
 function LastChild() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var footer = root_66();
+		var footer = root_69();
 
 		_$_.append(__anchor, footer);
 	});
@@ -884,30 +928,14 @@ function LastChild() {
 
 export function ComponentAsLastSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_25 = root_67();
+		var div_26 = root_70();
 
 		{
-			var h1 = _$_.hydrating ? _$_.hydrate_child() : div_25.firstChild;
+			var h1 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
 			var p = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
-			var node_23 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
+			var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
 
-			_$_.render_component(LastChild, node_23, {});
-			_$_.pop(div_25);
-		}
-
-		_$_.append(__anchor, div_25);
-	});
-}
-
-function InnerContent() {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div_26 = root_68();
-
-		{
-			var span_8 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
-			var node_24 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
-
-			_$_.render_component(LastChild, node_24, {});
+			_$_.render_component(LastChild, node_25, {});
 			_$_.pop(div_26);
 		}
 
@@ -915,15 +943,31 @@ function InnerContent() {
 	});
 }
 
+function InnerContent() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_27 = root_71();
+
+		{
+			var span_8 = _$_.hydrating ? _$_.hydrate_child() : div_27.firstChild;
+			var node_26 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
+
+			_$_.render_component(LastChild, node_26, {});
+			_$_.pop(div_27);
+		}
+
+		_$_.append(__anchor, div_27);
+	});
+}
+
 export function NestedComponentAsLastSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var section_1 = root_69();
+		var section_1 = root_72();
 
 		{
 			var h2 = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
-			var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
+			var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
 
-			_$_.render_component(InnerContent, node_25, {});
+			_$_.render_component(InnerContent, node_27, {});
 			_$_.pop(section_1);
 		}
 
@@ -937,12 +981,12 @@ function fetchLabel() {
 
 export function TextTailExpression() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_27 = root_70();
+		var div_28 = root_73();
 
 		{
-			var text = _$_.hydrating ? _$_.hydrate_child(true) : div_27.firstChild;
+			var text = _$_.hydrating ? _$_.hydrate_child(true) : div_28.firstChild;
 
-			_$_.pop(div_27);
+			_$_.pop(div_28);
 		}
 
 		_$_.render(
@@ -956,18 +1000,18 @@ export function TextTailExpression() {
 			{ a: ' ' }
 		);
 
-		_$_.append(__anchor, div_27);
+		_$_.append(__anchor, div_28);
 	});
 }
 
 export function FragmentTailExpression() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_28 = root_71();
+		var div_29 = root_74();
 
 		{
-			var expression_29 = _$_.hydrating ? _$_.hydrate_child(true) : div_28.firstChild;
+			var expression_30 = _$_.hydrating ? _$_.hydrate_child(true) : div_29.firstChild;
 
-			_$_.pop(div_28);
+			_$_.pop(div_29);
 		}
 
 		_$_.render(
@@ -975,54 +1019,21 @@ export function FragmentTailExpression() {
 				var __a = 'frag-' + String(_$_.with_scope(__block, fetchLabel));
 
 				if (__prev.a !== __a) {
-					_$_.set_text(expression_29, __prev.a = __a);
+					_$_.set_text(expression_30, __prev.a = __a);
 				}
 			},
 			{ a: ' ' }
 		);
 
-		_$_.append(__anchor, div_28);
+		_$_.append(__anchor, div_29);
 	});
 }
 
 export function FragmentChildOnly() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_29 = root_72();
-
-		{
-			_$_.pop(div_29);
-		}
-
-		_$_.append(__anchor, div_29);
-	});
-}
-
-function OpaqueLead(props) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_30 = root_73();
-		var node_26 = _$_.first_child_frag(fragment_30);
-
-		_$_.expression(node_26, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_31 = root_74();
-			var expression_30 = _$_.first_child_frag(fragment_31);
-
-			_$_.expression(expression_30, () => props.header);
-			_$_.next();
-			_$_.append(__anchor, fragment_31);
-		}));
-
-		_$_.append(__anchor, fragment_30);
-	});
-}
-
-export function FragmentLeadsWithOpaqueValue() {
-	return _$_.tsrx_element((__anchor, __block) => {
 		var div_30 = root_75();
 
 		{
-			var append_anchor_1 = _$_.append_into(div_30);
-
-			_$_.render_component(OpaqueLead, append_anchor_1, { header: 'H' });
 			_$_.pop(div_30);
 		}
 
@@ -1030,14 +1041,47 @@ export function FragmentLeadsWithOpaqueValue() {
 	});
 }
 
-function PrimitiveCallLead() {
+function OpaqueLead(props) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var fragment_32 = root_76();
-		var node_27 = _$_.first_child_frag(fragment_32);
+		var node_28 = _$_.first_child_frag(fragment_32);
 
-		_$_.expression(node_27, () => _$_.tsrx_element((__anchor, __block) => {
+		_$_.expression(node_28, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_33 = root_77();
-			var expression_31 = _$_.first_child_frag(fragment_33, true);
+			var expression_31 = _$_.first_child_frag(fragment_33);
+
+			_$_.expression(expression_31, () => props.header);
+			_$_.next();
+			_$_.append(__anchor, fragment_33);
+		}));
+
+		_$_.append(__anchor, fragment_32);
+	});
+}
+
+export function FragmentLeadsWithOpaqueValue() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_31 = root_78();
+
+		{
+			var append_anchor_1 = _$_.append_into(div_31);
+
+			_$_.render_component(OpaqueLead, append_anchor_1, { header: 'H' });
+			_$_.pop(div_31);
+		}
+
+		_$_.append(__anchor, div_31);
+	});
+}
+
+function PrimitiveCallLead() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var fragment_34 = root_79();
+		var node_29 = _$_.first_child_frag(fragment_34);
+
+		_$_.expression(node_29, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_35 = root_80();
+			var expression_32 = _$_.first_child_frag(fragment_35, true);
 
 			_$_.next();
 
@@ -1046,31 +1090,31 @@ function PrimitiveCallLead() {
 					var __a = String(_$_.with_scope(__block, fetchLabel));
 
 					if (__prev.a !== __a) {
-						_$_.set_text(expression_31, __prev.a = __a);
+						_$_.set_text(expression_32, __prev.a = __a);
 					}
 				},
 				{ a: ' ' }
 			);
 
-			_$_.append(__anchor, fragment_33);
+			_$_.append(__anchor, fragment_35);
 		}));
 
-		_$_.append(__anchor, fragment_32);
+		_$_.append(__anchor, fragment_34);
 	});
 }
 
 export function FragmentLeadsWithPrimitiveCall() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_31 = root_78();
+		var div_32 = root_81();
 
 		{
-			var append_anchor_2 = _$_.append_into(div_31);
+			var append_anchor_2 = _$_.append_into(div_32);
 
 			_$_.render_component(PrimitiveCallLead, append_anchor_2, {});
-			_$_.pop(div_31);
+			_$_.pop(div_32);
 		}
 
-		_$_.append(__anchor, div_31);
+		_$_.append(__anchor, div_32);
 	});
 }
 

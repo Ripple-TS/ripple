@@ -6,11 +6,9 @@ export { Tracked, Derived };
 export type Component = {
 	b: null | Block;
 	c: null | Map<Context<any>, any>;
-	e: null | Array<{
-		b: Block;
-		fn: Function;
-		r: null | Block | Derived;
-	}>;
+	// Effects deferred until the component has rendered, as flat triples:
+	// fn, the block to create it under, the reaction active at the call.
+	e: null | Array<Function | Block | Derived | null>;
 	p: null | Component;
 	m: boolean;
 };

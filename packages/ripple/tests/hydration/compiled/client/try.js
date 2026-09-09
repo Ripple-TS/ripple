@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<p class="root-pending">root loading...</p>`, 0);
 var root_1 = _$_.template(`<section class="root-catch"><p class="root-error"> </p><button class="root-reset">retry</button></section>`, 0);
-var root_2 = _$_.template(`<p>should not render</p>`, 1, 1);
+var root_2 = _$_.template(`<p>should not render</p>`, 0);
 var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 var root_5 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -51,41 +51,41 @@ export function RootThrows() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		throw _$_.with_scope(__block, () => new Error('root exploded'));
 
-		var fragment = root_2();
+		var p_2 = root_2();
 
-		_$_.append(__anchor, fragment);
+		_$_.append(__anchor, p_2);
 	});
 }
 
 export function RootAsyncDirect() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, 'd6bf9e33');
-		var p_2 = root_3();
+		var p_3 = root_3();
 
 		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
+			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
 			_$_.expression(expression_1, () => lazy.value);
-			_$_.pop(p_2);
+			_$_.pop(p_3);
 		}
 
-		_$_.append(__anchor, p_2);
+		_$_.append(__anchor, p_3);
 	});
 }
 
 export function RootAsyncRejects() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, 'd2fe7b64');
-		var p_3 = root_4();
+		var p_4 = root_4();
 
 		{
-			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
+			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 			_$_.expression(expression_2, () => lazy_1.value);
-			_$_.pop(p_3);
+			_$_.pop(p_4);
 		}
 
-		_$_.append(__anchor, p_3);
+		_$_.append(__anchor, p_4);
 	});
 }
 
@@ -98,9 +98,9 @@ export function AsyncListInTryPending() {
 			},
 			null,
 			(__anchor) => {
-				var p_4 = root_5();
+				var p_5 = root_5();
 
-				_$_.append(__anchor, p_4);
+				_$_.append(__anchor, p_5);
 			},
 			true
 		);
@@ -140,12 +140,12 @@ function AsyncList() {
 
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_1 = root_8();
-		var node_1 = _$_.first_child_frag(fragment_1);
+		var fragment = root_8();
+		var node_1 = _$_.first_child_frag(fragment);
 
 		_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_2 = root_9();
-			var div = _$_.first_child_frag(fragment_2);
+			var fragment_1 = root_9();
+			var div = _$_.first_child_frag(fragment_1);
 			var node = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;
 
 			_$_.try(
@@ -161,10 +161,10 @@ export function AsyncTryWithLeadingSibling() {
 				}
 			);
 
-			_$_.append(__anchor, fragment_2);
+			_$_.append(__anchor, fragment_1);
 		}));
 
-		_$_.append(__anchor, fragment_1);
+		_$_.append(__anchor, fragment);
 	});
 }
 

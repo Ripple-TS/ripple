@@ -14,7 +14,6 @@ import {
 	DETACHED_BLOCK,
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
-	UNINITIALIZED,
 	IF_BLOCK,
 } from './constants.js';
 import { hydrating } from './hydration.js';
@@ -47,12 +46,9 @@ export function user_effect(fn) {
 
 	var component = active_component;
 	if (component !== null && !component.m) {
+		// Flat triples, created once the component has rendered (`pop_component`).
 		var e = (component.e ??= []);
-		e.push({
-			b: active_block,
-			fn,
-			r: active_reaction,
-		});
+		e.push(fn, active_block, active_reaction);
 
 		return;
 	}
@@ -135,61 +131,76 @@ export function own_anchor(node, anchor) {
  * doesn't subscribe to whatever the thunk happens to read. The supported
  * shape is to pass the ref slot itself (`ref={tracker}`); a foot-gun like
  * `ref={tracker.value}` would otherwise read the cell reactively and cause
- * spurious re-runs.
+ * spurious re-runs. Read untracked, the value is fixed for the life of the
+ * enclosing block, so each ref is a single effect block keyed on its state
+ * rather than a render block re-evaluating the thunk.
  *
  * @param {Element} element
  * @param {() => any} get_fn
  * @param {(value: any) => void} [set_fn]
- * @returns {Block}
+ * @returns {void}
  */
 export function ref(element, get_fn, set_fn) {
-	// make sure the first run always enters the dispatch branch,
-	/** @type {any} */
-	var ref_value = UNINITIALIZED;
-	/** @type {Block | null} */
-	var e;
+	apply_ref(element, untrack(get_fn), set_fn);
+}
 
-	return block(RENDER_BLOCK, () => {
-		// avoid any reactive reads
-		var next = untrack(get_fn);
-		if (ref_value !== (ref_value = next)) {
-			if (e) {
-				destroy_block(e);
-				e = null;
-			}
-
-			if (is_array(ref_value)) {
-				e = branch(() => {
-					for (var i = 0; i < ref_value.length; i++) {
-						let current = ref_value[i];
-						ref(element, () => current);
-					}
-				});
-			} else if (typeof ref_value === 'function') {
-				e = branch(() => {
-					effect(() => ref_value(element));
-				});
-			} else if (is_ripple_object(ref_value)) {
-				e = branch(() => {
-					effect(() => {
-						ref_value.value = element;
-						return () => {
-							ref_value.value = null;
-						};
-					});
-				});
-			} else if (set_fn !== undefined) {
-				e = branch(() => {
-					effect(() => {
-						set_fn(element);
-						return () => {
-							set_fn(null);
-						};
-					});
-				});
-			}
+/**
+ * @param {Element} element
+ * @param {any} ref_value
+ * @param {((value: any) => void) | undefined} set_fn
+ * @returns {void}
+ */
+function apply_ref(element, ref_value, set_fn) {
+	if (is_array(ref_value)) {
+		for (var i = 0; i < ref_value.length; i++) {
+			apply_ref(element, ref_value[i], undefined);
 		}
-	});
+	} else if (typeof ref_value === 'function') {
+		block(EFFECT_BLOCK, run_function_ref, { e: element, f: ref_value });
+	} else if (is_ripple_object(ref_value)) {
+		block(EFFECT_BLOCK, run_tracked_ref, { e: element, t: ref_value });
+	} else if (set_fn !== undefined) {
+		block(EFFECT_BLOCK, run_set_ref, { e: element, f: set_fn });
+	}
+}
+
+/**
+ * The callback's return value is the effect's teardown.
+ * @param {{ e: Element, f: (element: Element) => any }} s
+ */
+function run_function_ref(s) {
+	return s.f(s.e);
+}
+
+/**
+ * @param {{ e: Element, t: { value: any } }} s
+ */
+function run_tracked_ref(s) {
+	s.t.value = s.e;
+	return clear_tracked_ref;
+}
+
+/**
+ * Teardowns keyed on block state receive it (see `run_teardown`).
+ * @param {{ e: Element, t: { value: any } }} s
+ */
+function clear_tracked_ref(s) {
+	s.t.value = null;
+}
+
+/**
+ * @param {{ e: Element, f: (value: any) => void }} s
+ */
+function run_set_ref(s) {
+	s.f(s.e);
+	return clear_set_ref;
+}
+
+/**
+ * @param {{ e: Element, f: (value: any) => void }} s
+ */
+function clear_set_ref(s) {
+	s.f(null);
 }
 
 /**

@@ -367,7 +367,7 @@ export function DocLayout(__props) {
 								_$_.output_push('>');
 
 								{
-									_$_.render_expression(item.text);
+									_$_.output_push(_$_.escape(item.text));
 								}
 
 								_$_.output_push('</a>');
@@ -957,15 +957,7 @@ function NavItem(__props) {
 				_$_.output_push('</div>');
 			}
 
-			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(__props.text);
-			}
-
-			__out += '</span></a></div>';
+			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>' + _$_.escape(__props.text) + '</span></a></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1732,7 +1724,7 @@ function DocsLayoutExact(__props) {
 							_$_.output_push('>');
 
 							{
-								_$_.render_expression(item.text);
+								_$_.output_push(_$_.escape(item.text));
 							}
 
 							_$_.output_push('</a>');
