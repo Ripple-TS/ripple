@@ -129,9 +129,7 @@ export function ForLoopWithIndex() {
 					var li_1 = root_3();
 
 					{
-						var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : li_1.firstChild;
-
-						_$_.pop(li_1);
+						var expression_1 = _$_.hydrating ? _$_.hydrate_text() : li_1.firstChild;
 					}
 
 					_$_.render(
@@ -420,10 +418,9 @@ export function EmptyForLoop() {
 					var span_2 = root_18();
 
 					{
-						var expression_7 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
+						var expression_7 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 
 						expression_7.nodeValue = item;
-						_$_.pop(span_2);
 					}
 
 					_$_.append(__anchor, span_2);
@@ -756,10 +753,9 @@ export function ForLoopEmptyToPopulated() {
 						var li_9 = root_36();
 
 						{
-							var expression_14 = _$_.hydrating ? _$_.hydrate_child(true) : li_9.firstChild;
+							var expression_14 = _$_.hydrating ? _$_.hydrate_text() : li_9.firstChild;
 
 							expression_14.nodeValue = item;
-							_$_.pop(li_9);
 						}
 
 						_$_.append(__anchor, li_9);
@@ -1058,9 +1054,7 @@ export function ForLoopIndexUpdate() {
 						var li_12 = root_49();
 
 						{
-							var expression_20 = _$_.hydrating ? _$_.hydrate_child(true) : li_12.firstChild;
-
-							_$_.pop(li_12);
+							var expression_20 = _$_.hydrating ? _$_.hydrate_text() : li_12.firstChild;
 						}
 
 						_$_.render(
@@ -1128,9 +1122,7 @@ export function KeyedForLoopWithIndex() {
 						var li_13 = root_52();
 
 						{
-							var expression_21 = _$_.hydrating ? _$_.hydrate_child(true) : li_13.firstChild;
-
-							_$_.pop(li_13);
+							var expression_21 = _$_.hydrating ? _$_.hydrate_text() : li_13.firstChild;
 						}
 
 						_$_.render(
@@ -1274,9 +1266,7 @@ function TodoItem(props) {
 			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : input.nextSibling;
 
 			{
-				var expression_23 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
-
-				_$_.pop(span_6);
+				var expression_23 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
 			}
 		}
 
@@ -1689,9 +1679,7 @@ function RootKeyedList(props) {
 				var span_8 = root_79();
 
 				{
-					var expression_32 = _$_.hydrating ? _$_.hydrate_child(true) : span_8.firstChild;
-
-					_$_.pop(span_8);
+					var expression_32 = _$_.hydrating ? _$_.hydrate_text() : span_8.firstChild;
 				}
 
 				_$_.render(

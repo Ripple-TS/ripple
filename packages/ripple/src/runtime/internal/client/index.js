@@ -4,6 +4,7 @@ export {
 	next_sibling as sibling,
 	hydrate_first_child as hydrate_child,
 	hydrate_next_sibling as hydrate_sibling,
+	hydrate_text_child as hydrate_text,
 	append_into,
 	document,
 	create_text,

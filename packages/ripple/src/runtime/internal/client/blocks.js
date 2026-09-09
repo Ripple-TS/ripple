@@ -24,7 +24,6 @@ import {
 	active_block,
 	active_component,
 	active_reaction,
-	create_component_ctx,
 	is_block_dirty,
 	remove_dependencies,
 	run_block,
@@ -208,7 +207,13 @@ function clear_set_ref(s) {
  * @returns {Block}
  */
 export function root(fn) {
-	return block(ROOT_BLOCK, fn, { start: null, end: null }, create_component_ctx());
+	// create_component_ctx, inline: the root is the first component context.
+	return block(
+		ROOT_BLOCK,
+		fn,
+		{ start: null, end: null },
+		{ b: active_block, c: null, e: null, m: false, p: active_component },
+	);
 }
 
 /**
@@ -276,8 +281,17 @@ export function block(flags, fn, state = null, co) {
 		(/** @type {Derived} */ (active_reaction).blocks ??= []).push(block);
 	}
 
-	if (active_block !== null) {
-		push_block(block, active_block);
+	var parent_block = active_block;
+	if (parent_block !== null) {
+		// push_block, inline: block creation is the hot path.
+		var parent_last = parent_block.last;
+		if (parent_last === null) {
+			parent_block.last = parent_block.first = block;
+		} else {
+			parent_last.next = block;
+			block.prev = parent_last;
+			parent_block.last = block;
+		}
 	}
 
 	if ((flags & EFFECT_BLOCK) !== 0) {

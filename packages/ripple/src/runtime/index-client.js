@@ -2,21 +2,18 @@
 
 import { destroy_block, root } from './internal/client/blocks.js';
 import { handle_root_events, release_root_events } from './internal/client/events.js';
-import {
-	get_first_child,
-	get_next_sibling,
-	init_operations,
-} from './internal/client/operations.js';
+import { init_operations } from './internal/client/operations.js';
 import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
-import { remove_ssr_css } from './internal/client/css.js';
+import { remove_styles } from './internal/client/css.js';
 import { normalize_children } from './element.js';
 import {
-	clear_track_hash_reference,
+	hydrate_next,
 	hydrate_node,
 	hydrating,
 	set_hydrate_node,
 	set_hydrating,
+	track_hash_reference,
 } from './internal/client/hydration.js';
 import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
@@ -63,15 +60,14 @@ function render_root_boundary(anchor, render_content, boundary) {
  * get, so `mount`/`hydrate` accept a component function as the `children`
  * prop.
  *
- * @param {Record<string, any> | undefined} props
+ * @param {Record<string, any>} props
  * @returns {Record<string, any>}
  */
 function normalize_props(props) {
-	if (props?.children != null) {
+	if (props.children != null) {
 		return { ...props, children: normalize_children(props.children) };
 	}
-
-	return props || {};
+	return props;
 }
 
 /**
@@ -85,9 +81,9 @@ function normalize_props(props) {
  */
 export function mount(component, options) {
 	init_operations();
-	remove_ssr_css();
+	requestAnimationFrame(remove_styles);
 
-	const props = normalize_props(options.props);
+	const props = options.props === undefined ? {} : normalize_props(options.props);
 	const target = options.target;
 
 	// Clear target content in case of SSR
@@ -130,21 +126,23 @@ export function mount(component, options) {
 }
 
 /**
- * Server output always carries the root boundary markers, so `hydrate()`
- * always renders under one (`rootBoundary: false` is not accepted here).
+ * `rootBoundary` works as in {@link mount}: the app hydrates under a default
+ * `try` boundary, or with `false` directly under the root block. Server output
+ * always carries the root boundary markers; without a boundary, `hydrate()`
+ * steps over them itself.
  * @param {Function} component
- * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
+ * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions | false }} options
  * @returns {() => void}
  */
 export function hydrate(component, options) {
 	init_operations();
-	remove_ssr_css();
+	requestAnimationFrame(remove_styles);
 
-	const props = normalize_props(options.props);
+	const props = options.props === undefined ? {} : normalize_props(options.props);
 	const target = options.target;
 	const was_hydrating = hydrating;
 	const previous_hydrate_node = hydrate_node;
-	let anchor = get_first_child(target);
+	let anchor = target.firstChild;
 
 	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
 	let events_ref = handle_root_events(target);
@@ -159,19 +157,28 @@ export function hydrate(component, options) {
 				// marker instead of a plain `<!--[-->`
 				!(/** @type {Comment} */ (anchor).data.startsWith(HYDRATION_START)))
 		) {
-			anchor = get_next_sibling(anchor);
+			anchor = anchor.nextSibling;
 		}
 
 		set_hydrating(true);
 		set_hydrate_node(/** @type {Comment} */ (anchor));
 
+		const root_boundary = options.rootBoundary;
+
 		_root = root(() => {
+			if (root_boundary === false) {
+				// The root boundary's own hydration walk: consume the `<!--[-->`
+				// marker and render against it, as `try_block` does for the root.
+				hydrate_next();
+				render_component(component, /** @type {Comment} */ (anchor), props);
+				return;
+			}
 			render_root_boundary(
 				/** @type {Comment} */ (anchor),
 				(component_anchor) => {
 					render_component(component, component_anchor, props);
 				},
-				options.rootBoundary,
+				root_boundary,
 			);
 		});
 	} catch (e) {
@@ -180,7 +187,7 @@ export function hydrate(component, options) {
 		set_hydrating(was_hydrating);
 		set_hydrate_node(previous_hydrate_node, true);
 		if (!was_hydrating) {
-			clear_track_hash_reference();
+			track_hash_reference.clear();
 		}
 	}
 

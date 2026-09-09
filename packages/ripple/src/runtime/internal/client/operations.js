@@ -1,13 +1,25 @@
 /** @import { AppendIntoAnchor } from '#client' */
 
-import { TEXT_NODE } from '../../../constants.js';
-import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
+import {
+	hydrate_first_child,
+	hydrate_next_sibling,
+	hydrate_node,
+	hydrate_text_child,
+	hydrating,
+	set_hydrate_node,
+} from './hydration.js';
 import { get_descriptor } from '@tsrx/core/runtime/language-helpers';
 
+export { hydrate_first_child, hydrate_next_sibling, hydrate_text_child };
+
+/**
+ * The `firstChild` / `nextSibling` getters, called directly so a traversal
+ * site never becomes a megamorphic property read across node types.
+ * @type {(() => Node | null)}
+ */
+export var first_child_getter;
 /** @type {(() => Node | null)} */
-var first_child_getter;
-/** @type {(() => Node | null)} */
-var next_sibling_getter;
+export var next_sibling_getter;
 /** @type {(() => Node | null)} */
 var last_child_getter;
 
@@ -69,28 +81,6 @@ export function first_child(node, is_text) {
 		return node.firstChild;
 	}
 	return hydrate_first_child(is_text);
-}
-
-/**
- * @param {boolean} [is_text]
- * @returns {Node | null}
- */
-export function hydrate_first_child(is_text) {
-	var child = get_first_child(/** @type {Node} */ (hydrate_node));
-
-	// Handles the case where we have `<p>{text}</p>`, where `text` is empty
-	if (child === null) {
-		child = /** @type {Node} */ (hydrate_node).appendChild(create_text());
-	} else if (is_text && child.nodeType !== TEXT_NODE) {
-		var text = create_text();
-		/** @type {Element | Text | Comment} */ (child)?.before(text);
-		set_hydrate_node(text);
-		return text;
-	}
-
-	set_hydrate_node(child);
-
-	return child;
 }
 
 /**
@@ -178,37 +168,6 @@ export function next_sibling(node, is_text) {
 		return node.nextSibling;
 	}
 	return hydrate_next_sibling(is_text);
-}
-
-/**
- * @param {boolean} [is_text]
- * @returns {Node | null}
- */
-export function hydrate_next_sibling(is_text) {
-	var next_sibling = /** @type {ChildNode | null} */ (
-		get_next_sibling(/** @type {ChildNode} */ (hydrate_node))
-	);
-	var last_sibling = next_sibling;
-
-	// if a sibling {expression} is empty during SSR, there might be no
-	// text node to hydrate — we must therefore create one
-	if (is_text && next_sibling?.nodeType !== TEXT_NODE) {
-		var text = create_text();
-		// If the next sibling is `null` and we're handling text then it's because
-		// the SSR content was empty for the text, so we need to generate a new text
-		// node and insert it after the last sibling
-		if (next_sibling === null) {
-			/** @type {ChildNode} */ (last_sibling).after(text);
-		} else {
-			/** @type {ChildNode} */ (next_sibling).before(text);
-		}
-		set_hydrate_node(text);
-		return text;
-	}
-
-	set_hydrate_node(next_sibling);
-
-	return next_sibling;
 }
 
 export function create_text(value = '') {

@@ -28,6 +28,7 @@ export function html(node, get_html, svg = false, mathml = false) {
 			if (hydrating) {
 				// The anchor is the hash comment - we need to skip past it and its content
 				set_hydrate_node(anchor);
+				/** @type {Node | null} */
 				var next = hydrate_next();
 
 				// Walk until we find the empty comment end marker

@@ -207,9 +207,7 @@ export function Greeting(props) {
 		var div_5 = root_12();
 
 		{
-			var expression = _$_.hydrating ? _$_.hydrate_child(true) : div_5.firstChild;
-
-			_$_.pop(div_5);
+			var expression = _$_.hydrating ? _$_.hydrate_text() : div_5.firstChild;
 		}
 
 		_$_.render(
@@ -245,10 +243,9 @@ export function ExpressionContent() {
 			var div_6 = _$_.first_child_frag(fragment_7);
 
 			{
-				var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_6.firstChild;
+				var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
 
 				expression_1.nodeValue = value;
-				_$_.pop(div_6);
 			}
 
 			var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : div_6.nextSibling;
@@ -272,10 +269,9 @@ function NestedHelperItem({ item }) {
 		var div_7 = root_15();
 
 		{
-			var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : div_7.firstChild;
+			var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_7.firstChild;
 
 			expression_3.nodeValue = item;
-			_$_.pop(div_7);
 		}
 
 		_$_.append(__anchor, div_7);
@@ -292,10 +288,9 @@ function NestedTsxTsrxFragment({ label }) {
 			var span_2 = _$_.first_child_frag(fragment_9);
 
 			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
+				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 
 				expression_4.nodeValue = label;
-				_$_.pop(span_2);
 			}
 
 			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
@@ -811,19 +806,17 @@ export function StaticChildWithSiblings() {
 			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_18.nextSibling;
 
 			{
-				var expression_26 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
+				var expression_26 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
 
 				expression_26.nodeValue = foo;
-				_$_.pop(span_6);
 			}
 
 			var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
 
 			{
-				var expression_27 = _$_.hydrating ? _$_.hydrate_child(true) : span_7.firstChild;
+				var expression_27 = _$_.hydrating ? _$_.hydrate_text() : span_7.firstChild;
 
 				expression_27.nodeValue = foo;
-				_$_.pop(span_7);
 			}
 
 			_$_.append(__anchor, fragment_28);
@@ -992,9 +985,7 @@ export function TextTailExpression() {
 		var div_28 = root_73();
 
 		{
-			var text = _$_.hydrating ? _$_.hydrate_child(true) : div_28.firstChild;
-
-			_$_.pop(div_28);
+			var text = _$_.hydrating ? _$_.hydrate_text() : div_28.firstChild;
 		}
 
 		_$_.render(
@@ -1017,9 +1008,7 @@ export function FragmentTailExpression() {
 		var div_29 = root_74();
 
 		{
-			var expression_30 = _$_.hydrating ? _$_.hydrate_child(true) : div_29.firstChild;
-
-			_$_.pop(div_29);
+			var expression_30 = _$_.hydrating ? _$_.hydrate_text() : div_29.firstChild;
 		}
 
 		_$_.render(
@@ -1137,9 +1126,7 @@ export function PrimitiveTextCalls() {
 			var div_33 = _$_.first_child_frag(fragment_37);
 
 			{
-				var text_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_33.firstChild;
-
-				_$_.pop(div_33);
+				var text_1 = _$_.hydrating ? _$_.hydrate_text() : div_33.firstChild;
 			}
 
 			var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;

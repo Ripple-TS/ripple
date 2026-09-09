@@ -225,9 +225,7 @@ export function ComputedTitle() {
 				var span_1 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 				{
-					var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_1.firstChild;
-
-					_$_.pop(span_1);
+					var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_1.firstChild;
 				}
 			}
 

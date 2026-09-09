@@ -381,6 +381,35 @@ function handle_run_error(error, block) {
 }
 
 /**
+ * Clears what a block's previous run left behind before it runs again. A
+ * list's children are all item branches, so there is nothing to sweep; an if
+ * block's children are its branch, which it replaces itself only when the
+ * condition changes.
+ * @param {Block} block
+ */
+function prepare_rerun(block) {
+	if ((block.f & (FOR_BLOCK | IF_BLOCK)) === 0) {
+		destroy_non_branch_children(block);
+	}
+	run_teardown(block);
+}
+
+/**
+ * @param {Block} block
+ * @param {(state?: any) => void} teardown
+ */
+function register_teardown(block, teardown) {
+	block.t = teardown;
+	/** @type {Block | null} */
+	var current = block;
+
+	while (current !== null && (current.f & CONTAINS_TEARDOWN) === 0) {
+		current.f ^= CONTAINS_TEARDOWN;
+		current = current.p;
+	}
+}
+
+/**
  * @param {Block} block
  * @param {boolean} [first_run] true when the block has no children, teardown,
  * or dependencies yet, so that cleanup can be skipped
@@ -398,13 +427,7 @@ export function run_block(block, first_run = false) {
 		active_component = block.co;
 
 		if (!first_run) {
-			// A list's children are all item branches, so there is nothing to
-			// sweep; an if block's children are its branch, which it replaces
-			// itself only when the condition changes.
-			if ((block.f & (FOR_BLOCK | IF_BLOCK)) === 0) {
-				destroy_non_branch_children(block);
-			}
-			run_teardown(block);
+			prepare_rerun(block);
 		}
 
 		tracking = (block.f & (ROOT_BLOCK | BRANCH_BLOCK)) === 0;
@@ -412,17 +435,12 @@ export function run_block(block, first_run = false) {
 		var res = block.fn(block.s);
 
 		if (typeof res === 'function') {
-			block.t = res;
-			/** @type {Block | null} */
-			let current = block;
-
-			while (current !== null && (current.f & CONTAINS_TEARDOWN) === 0) {
-				current.f ^= CONTAINS_TEARDOWN;
-				current = current.p;
-			}
+			register_teardown(block, res);
 		}
 
-		finish_dependencies(block, active_dependency);
+		if (active_dependency !== null || block.d !== null) {
+			finish_dependencies(block, active_dependency);
+		}
 	} catch (error) {
 		handle_run_error(error, block);
 	} finally {
@@ -1941,8 +1959,14 @@ export function create_component_ctx() {
  * @returns {void}
  */
 export function push_component() {
-	var component = create_component_ctx();
-	active_component = component;
+	// create_component_ctx, inline: one component per call is the common case.
+	active_component = {
+		b: active_block,
+		c: null,
+		e: null,
+		m: false,
+		p: active_component,
+	};
 }
 
 /**
@@ -1951,23 +1975,30 @@ export function push_component() {
 export function pop_component() {
 	var component = /** @type {Component} */ (active_component);
 	component.m = true;
-	var effects = component.e;
-	if (effects !== null) {
-		// Creating an effect block only links and schedules it, so nothing here
-		// can throw between saving and restoring the active block.
-		var previous_block = active_block;
-		var previous_reaction = active_reaction;
-		var length = effects.length;
-		// Flat triples: fn, block, reaction (see `user_effect`).
-		for (var i = 0; i < length; i += 3) {
-			active_block = /** @type {Block} */ (effects[i + 1]);
-			active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
-			effect(/** @type {Function} */ (effects[i]));
-		}
-		active_block = previous_block;
-		active_reaction = previous_reaction;
+	if (component.e !== null) {
+		create_deferred_effects(component.e);
 	}
 	active_component = component.p;
+}
+
+/**
+ * Creates the effects a component registered while rendering, each under the
+ * block and reaction that were active at its `effect()` call.
+ * @param {any[]} effects flat triples: fn, block, reaction (see `user_effect`)
+ */
+function create_deferred_effects(effects) {
+	// Creating an effect block only links and schedules it, so nothing here
+	// can throw between saving and restoring the active block.
+	var previous_block = active_block;
+	var previous_reaction = active_reaction;
+	var length = effects.length;
+	for (var i = 0; i < length; i += 3) {
+		active_block = /** @type {Block} */ (effects[i + 1]);
+		active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
+		effect(/** @type {Function} */ (effects[i]));
+	}
+	active_block = previous_block;
+	active_reaction = previous_reaction;
 }
 
 /**

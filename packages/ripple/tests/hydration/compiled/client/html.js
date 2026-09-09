@@ -411,9 +411,7 @@ export function DocLayout(__props) {
 											var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 											{
-												var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : a_2.firstChild;
-
-												_$_.pop(a_2);
+												var expression_3 = _$_.hydrating ? _$_.hydrate_text() : a_2.firstChild;
 											}
 										}
 
@@ -701,10 +699,9 @@ function ForList({ items }) {
 				var span = root_30();
 
 				{
-					var expression_11 = _$_.hydrating ? _$_.hydrate_child(true) : span.firstChild;
+					var expression_11 = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
 
 					expression_11.nodeValue = item;
-					_$_.pop(span);
 				}
 
 				_$_.append(__anchor, span);
@@ -742,10 +739,9 @@ function TryBox({ value }) {
 				var div_26 = root_32();
 
 				{
-					var expression_12 = _$_.hydrating ? _$_.hydrate_child(true) : div_26.firstChild;
+					var expression_12 = _$_.hydrating ? _$_.hydrate_text() : div_26.firstChild;
 
 					expression_12.nodeValue = value;
-					_$_.pop(div_26);
 				}
 
 				_$_.append(__anchor, div_26);
@@ -855,9 +851,7 @@ function NavItem(__props) {
 				var span_3 = _$_.hydrating ? _$_.hydrate_child() : a_3.firstChild;
 
 				{
-					var expression_15 = _$_.hydrating ? _$_.hydrate_child(true) : span_3.firstChild;
-
-					_$_.pop(span_3);
+					var expression_15 = _$_.hydrating ? _$_.hydrate_text() : span_3.firstChild;
 				}
 			}
 
@@ -903,10 +897,9 @@ function SidebarSection({ title, children }) {
 				var h2_2 = _$_.hydrating ? _$_.hydrate_child() : div_29.firstChild;
 
 				{
-					var expression_16 = _$_.hydrating ? _$_.hydrate_child(true) : h2_2.firstChild;
+					var expression_16 = _$_.hydrating ? _$_.hydrate_text() : h2_2.firstChild;
 
 					expression_16.nodeValue = title;
-					_$_.pop(h2_2);
 				}
 
 				var button = _$_.hydrating ? _$_.hydrate_sibling() : h2_2.nextSibling;
@@ -1626,9 +1619,7 @@ function DocsLayoutExact(__props) {
 													var a_8 = root_75();
 
 													{
-														var expression_25 = _$_.hydrating ? _$_.hydrate_child(true) : a_8.firstChild;
-
-														_$_.pop(a_8);
+														var expression_25 = _$_.hydrating ? _$_.hydrate_text() : a_8.firstChild;
 													}
 
 													_$_.render(

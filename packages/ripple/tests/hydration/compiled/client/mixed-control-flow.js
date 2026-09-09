@@ -46,9 +46,7 @@ export function MixedControlFlowStatic() {
 											var div = root_1();
 
 											{
-												var expression = _$_.hydrating ? _$_.hydrate_child(true) : div.firstChild;
-
-												_$_.pop(div);
+												var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 											}
 
 											_$_.render(
@@ -99,9 +97,7 @@ export function MixedControlFlowStatic() {
 											var div_2 = root_3();
 
 											{
-												var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_2.firstChild;
-
-												_$_.pop(div_2);
+												var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
 											}
 
 											_$_.render(
@@ -232,9 +228,7 @@ export function MixedControlFlowReactive() {
 												var p = root_8();
 
 												{
-													var expression_2 = _$_.hydrating ? _$_.hydrate_child(true) : p.firstChild;
-
-													_$_.pop(p);
+													var expression_2 = _$_.hydrating ? _$_.hydrate_text() : p.firstChild;
 												}
 
 												_$_.render(
@@ -274,9 +268,7 @@ export function MixedControlFlowReactive() {
 												var p_2 = root_10();
 
 												{
-													var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : p_2.firstChild;
-
-													_$_.pop(p_2);
+													var expression_3 = _$_.hydrating ? _$_.hydrate_text() : p_2.firstChild;
 												}
 
 												_$_.render(
@@ -382,10 +374,9 @@ export function MixedControlFlowAsyncPending() {
 											_$_.set_class(div_6, `pending-row pending-row-${row}`, void 0, true);
 
 											{
-												var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : div_6.firstChild;
+												var expression_4 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
 
 												expression_4.nodeValue = `pending ${row}`;
-												_$_.pop(div_6);
 											}
 
 											_$_.append(__anchor, div_6);

@@ -9,5 +9,9 @@ if (!container) throw new Error('Missing #app root in index.html');
 // Ripple's `hydrate(component, { target, props })` adopts the server DOM by
 // walking from the HYDRATION_START marker the server emitted around the body.
 // It commits synchronously, so the harness's synchronous timer captures the work.
-(window as any).__hydrate = () => hydrate(App, { target: container, props: {} });
+// Like the other targets, the app has no root suspense/error boundary
+// (`rootBoundary: false`); the default boundary hydrates the same DOM through
+// a `try` block.
+(window as any).__hydrate = () =>
+	hydrate(App, { target: container, props: {}, rootBoundary: false });
 (window as any).__ready = true;

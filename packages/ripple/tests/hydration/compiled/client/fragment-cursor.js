@@ -139,9 +139,7 @@ export function TrailingNavigatedElements() {
 			var div = _$_.first_child_frag(fragment_1);
 
 			{
-				var expression = _$_.hydrating ? _$_.hydrate_child(true) : div.firstChild;
-
-				_$_.pop(div);
+				var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 			}
 
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;
@@ -386,9 +384,7 @@ export function TrailingDynamicChild() {
 			var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 			{
-				var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : div_8.firstChild;
-
-				_$_.pop(div_8);
+				var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_8.firstChild;
 			}
 
 			_$_.render(
@@ -420,9 +416,7 @@ export function DynamicChildThenStatic() {
 			var div_10 = _$_.first_child_frag(fragment_23);
 
 			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : div_10.firstChild;
-
-				_$_.pop(div_10);
+				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : div_10.firstChild;
 			}
 
 			_$_.next(2);
@@ -577,9 +571,7 @@ export function WrapTrailingNavigatedElements() {
 			var span = _$_.hydrating ? _$_.hydrate_sibling() : node_23.nextSibling;
 
 			{
-				var expression_5 = _$_.hydrating ? _$_.hydrate_child(true) : span.firstChild;
-
-				_$_.pop(span);
+				var expression_5 = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
 			}
 
 			var button_8 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
@@ -616,9 +608,7 @@ export function WrapTrailingStaticNavigatedElements() {
 			var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_24.nextSibling;
 
 			{
-				var expression_6 = _$_.hydrating ? _$_.hydrate_child(true) : span_1.firstChild;
-
-				_$_.pop(span_1);
+				var expression_6 = _$_.hydrating ? _$_.hydrate_text() : span_1.firstChild;
 			}
 
 			var button_9 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
@@ -655,9 +645,7 @@ export function WrapNavigatedThenStatic() {
 			var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_25.nextSibling;
 
 			{
-				var expression_7 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
-
-				_$_.pop(span_2);
+				var expression_7 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 			}
 
 			var button_10 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
@@ -694,9 +682,7 @@ export function WrapLeadingNavigatedThenStatic() {
 			var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_26.nextSibling;
 
 			{
-				var expression_8 = _$_.hydrating ? _$_.hydrate_child(true) : span_3.firstChild;
-
-				_$_.pop(span_3);
+				var expression_8 = _$_.hydrating ? _$_.hydrate_text() : span_3.firstChild;
 			}
 
 			var button_11 = _$_.hydrating ? _$_.hydrate_sibling() : span_3.nextSibling;
@@ -733,9 +719,7 @@ export function WrapTrailingNestedNavigated() {
 			var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_27.nextSibling;
 
 			{
-				var expression_9 = _$_.hydrating ? _$_.hydrate_child(true) : span_4.firstChild;
-
-				_$_.pop(span_4);
+				var expression_9 = _$_.hydrating ? _$_.hydrate_text() : span_4.firstChild;
 			}
 
 			var button_12 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
@@ -772,9 +756,7 @@ export function WrapNestedNavigatedThenStatic() {
 			var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_28.nextSibling;
 
 			{
-				var expression_10 = _$_.hydrating ? _$_.hydrate_child(true) : span_5.firstChild;
-
-				_$_.pop(span_5);
+				var expression_10 = _$_.hydrating ? _$_.hydrate_text() : span_5.firstChild;
 			}
 
 			var button_13 = _$_.hydrating ? _$_.hydrate_sibling() : span_5.nextSibling;
@@ -811,9 +793,7 @@ export function WrapTrackedTextThenStatic() {
 			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_29.nextSibling;
 
 			{
-				var expression_11 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
-
-				_$_.pop(span_6);
+				var expression_11 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
 			}
 
 			var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
@@ -850,9 +830,7 @@ export function WrapStaticThenTrackedText() {
 			var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_30.nextSibling;
 
 			{
-				var expression_12 = _$_.hydrating ? _$_.hydrate_child(true) : span_7.firstChild;
-
-				_$_.pop(span_7);
+				var expression_12 = _$_.hydrating ? _$_.hydrate_text() : span_7.firstChild;
 			}
 
 			var button_15 = _$_.hydrating ? _$_.hydrate_sibling() : span_7.nextSibling;
@@ -889,9 +867,7 @@ export function WrapStaticNestedThenStatic() {
 			var span_8 = _$_.hydrating ? _$_.hydrate_sibling() : node_31.nextSibling;
 
 			{
-				var expression_13 = _$_.hydrating ? _$_.hydrate_child(true) : span_8.firstChild;
-
-				_$_.pop(span_8);
+				var expression_13 = _$_.hydrating ? _$_.hydrate_text() : span_8.firstChild;
 			}
 
 			var button_16 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
@@ -928,9 +904,7 @@ export function WrapAllStatic() {
 			var span_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_32.nextSibling;
 
 			{
-				var expression_14 = _$_.hydrating ? _$_.hydrate_child(true) : span_9.firstChild;
-
-				_$_.pop(span_9);
+				var expression_14 = _$_.hydrating ? _$_.hydrate_text() : span_9.firstChild;
 			}
 
 			var button_17 = _$_.hydrating ? _$_.hydrate_sibling() : span_9.nextSibling;
@@ -967,9 +941,7 @@ export function WrapTrailingDynamicChild() {
 			var span_10 = _$_.hydrating ? _$_.hydrate_sibling() : node_33.nextSibling;
 
 			{
-				var expression_15 = _$_.hydrating ? _$_.hydrate_child(true) : span_10.firstChild;
-
-				_$_.pop(span_10);
+				var expression_15 = _$_.hydrating ? _$_.hydrate_text() : span_10.firstChild;
 			}
 
 			var button_18 = _$_.hydrating ? _$_.hydrate_sibling() : span_10.nextSibling;
@@ -1006,9 +978,7 @@ export function WrapDynamicChildThenStatic() {
 			var span_11 = _$_.hydrating ? _$_.hydrate_sibling() : node_34.nextSibling;
 
 			{
-				var expression_16 = _$_.hydrating ? _$_.hydrate_child(true) : span_11.firstChild;
-
-				_$_.pop(span_11);
+				var expression_16 = _$_.hydrating ? _$_.hydrate_text() : span_11.firstChild;
 			}
 
 			var button_19 = _$_.hydrating ? _$_.hydrate_sibling() : span_11.nextSibling;
@@ -1045,9 +1015,7 @@ export function WrapIfThenStatic() {
 			var span_12 = _$_.hydrating ? _$_.hydrate_sibling() : node_35.nextSibling;
 
 			{
-				var expression_17 = _$_.hydrating ? _$_.hydrate_child(true) : span_12.firstChild;
-
-				_$_.pop(span_12);
+				var expression_17 = _$_.hydrating ? _$_.hydrate_text() : span_12.firstChild;
 			}
 
 			var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : span_12.nextSibling;
@@ -1084,9 +1052,7 @@ export function WrapStaticThenIf() {
 			var span_13 = _$_.hydrating ? _$_.hydrate_sibling() : node_36.nextSibling;
 
 			{
-				var expression_18 = _$_.hydrating ? _$_.hydrate_child(true) : span_13.firstChild;
-
-				_$_.pop(span_13);
+				var expression_18 = _$_.hydrating ? _$_.hydrate_text() : span_13.firstChild;
 			}
 
 			var button_21 = _$_.hydrating ? _$_.hydrate_sibling() : span_13.nextSibling;
@@ -1123,9 +1089,7 @@ export function WrapCompThenStatic() {
 			var span_14 = _$_.hydrating ? _$_.hydrate_sibling() : node_37.nextSibling;
 
 			{
-				var expression_19 = _$_.hydrating ? _$_.hydrate_child(true) : span_14.firstChild;
-
-				_$_.pop(span_14);
+				var expression_19 = _$_.hydrating ? _$_.hydrate_text() : span_14.firstChild;
 			}
 
 			var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : span_14.nextSibling;
@@ -1162,9 +1126,7 @@ export function WrapStaticThenComp() {
 			var span_15 = _$_.hydrating ? _$_.hydrate_sibling() : node_38.nextSibling;
 
 			{
-				var expression_20 = _$_.hydrating ? _$_.hydrate_child(true) : span_15.firstChild;
-
-				_$_.pop(span_15);
+				var expression_20 = _$_.hydrating ? _$_.hydrate_text() : span_15.firstChild;
 			}
 
 			var button_23 = _$_.hydrating ? _$_.hydrate_sibling() : span_15.nextSibling;
@@ -1201,9 +1163,7 @@ export function WrapSiblingComps() {
 			var span_16 = _$_.hydrating ? _$_.hydrate_sibling() : node_39.nextSibling;
 
 			{
-				var expression_21 = _$_.hydrating ? _$_.hydrate_child(true) : span_16.firstChild;
-
-				_$_.pop(span_16);
+				var expression_21 = _$_.hydrating ? _$_.hydrate_text() : span_16.firstChild;
 			}
 
 			var button_24 = _$_.hydrating ? _$_.hydrate_sibling() : span_16.nextSibling;
@@ -1282,9 +1242,7 @@ export function TrailingNestedFragment() {
 			var div_33 = _$_.first_child_frag(fragment_40);
 
 			{
-				var expression_23 = _$_.hydrating ? _$_.hydrate_child(true) : div_33.firstChild;
-
-				_$_.pop(div_33);
+				var expression_23 = _$_.hydrating ? _$_.hydrate_text() : div_33.firstChild;
 			}
 
 			var node_43 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
@@ -1517,9 +1475,7 @@ export function WrapUntrackedTextThenStatic() {
 			var span_18 = _$_.hydrating ? _$_.hydrate_sibling() : node_54.nextSibling;
 
 			{
-				var expression_28 = _$_.hydrating ? _$_.hydrate_child(true) : span_18.firstChild;
-
-				_$_.pop(span_18);
+				var expression_28 = _$_.hydrating ? _$_.hydrate_text() : span_18.firstChild;
 			}
 
 			var button_26 = _$_.hydrating ? _$_.hydrate_sibling() : span_18.nextSibling;
@@ -1556,9 +1512,7 @@ export function WrapNestedFragmentThenStatic() {
 			var span_19 = _$_.hydrating ? _$_.hydrate_sibling() : node_55.nextSibling;
 
 			{
-				var expression_29 = _$_.hydrating ? _$_.hydrate_child(true) : span_19.firstChild;
-
-				_$_.pop(span_19);
+				var expression_29 = _$_.hydrating ? _$_.hydrate_text() : span_19.firstChild;
 			}
 
 			var button_27 = _$_.hydrating ? _$_.hydrate_sibling() : span_19.nextSibling;
@@ -1595,9 +1549,7 @@ export function WrapTrailingNestedFragment() {
 			var span_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_56.nextSibling;
 
 			{
-				var expression_30 = _$_.hydrating ? _$_.hydrate_child(true) : span_20.firstChild;
-
-				_$_.pop(span_20);
+				var expression_30 = _$_.hydrating ? _$_.hydrate_text() : span_20.firstChild;
 			}
 
 			var button_28 = _$_.hydrating ? _$_.hydrate_sibling() : span_20.nextSibling;
@@ -1634,9 +1586,7 @@ export function WrapForThenStatic() {
 			var span_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_57.nextSibling;
 
 			{
-				var expression_31 = _$_.hydrating ? _$_.hydrate_child(true) : span_21.firstChild;
-
-				_$_.pop(span_21);
+				var expression_31 = _$_.hydrating ? _$_.hydrate_text() : span_21.firstChild;
 			}
 
 			var button_29 = _$_.hydrating ? _$_.hydrate_sibling() : span_21.nextSibling;
@@ -1673,9 +1623,7 @@ export function WrapSwitchThenStatic() {
 			var span_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_58.nextSibling;
 
 			{
-				var expression_32 = _$_.hydrating ? _$_.hydrate_child(true) : span_22.firstChild;
-
-				_$_.pop(span_22);
+				var expression_32 = _$_.hydrating ? _$_.hydrate_text() : span_22.firstChild;
 			}
 
 			var button_30 = _$_.hydrating ? _$_.hydrate_sibling() : span_22.nextSibling;
@@ -1712,9 +1660,7 @@ export function WrapTryThenStatic() {
 			var span_23 = _$_.hydrating ? _$_.hydrate_sibling() : node_59.nextSibling;
 
 			{
-				var expression_33 = _$_.hydrating ? _$_.hydrate_child(true) : span_23.firstChild;
-
-				_$_.pop(span_23);
+				var expression_33 = _$_.hydrating ? _$_.hydrate_text() : span_23.firstChild;
 			}
 
 			var button_31 = _$_.hydrating ? _$_.hydrate_sibling() : span_23.nextSibling;
@@ -1751,9 +1697,7 @@ export function WrapStyleThenStatic() {
 			var span_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_60.nextSibling;
 
 			{
-				var expression_34 = _$_.hydrating ? _$_.hydrate_child(true) : span_24.firstChild;
-
-				_$_.pop(span_24);
+				var expression_34 = _$_.hydrating ? _$_.hydrate_text() : span_24.firstChild;
 			}
 
 			var button_32 = _$_.hydrating ? _$_.hydrate_sibling() : span_24.nextSibling;
@@ -1790,9 +1734,7 @@ export function WrapCollectionThenStatic() {
 			var span_25 = _$_.hydrating ? _$_.hydrate_sibling() : node_61.nextSibling;
 
 			{
-				var expression_35 = _$_.hydrating ? _$_.hydrate_child(true) : span_25.firstChild;
-
-				_$_.pop(span_25);
+				var expression_35 = _$_.hydrating ? _$_.hydrate_text() : span_25.firstChild;
 			}
 
 			var button_33 = _$_.hydrating ? _$_.hydrate_sibling() : span_25.nextSibling;
@@ -1829,9 +1771,7 @@ export function WrapInlineElementThenStatic() {
 			var span_26 = _$_.hydrating ? _$_.hydrate_sibling() : node_62.nextSibling;
 
 			{
-				var expression_36 = _$_.hydrating ? _$_.hydrate_child(true) : span_26.firstChild;
-
-				_$_.pop(span_26);
+				var expression_36 = _$_.hydrating ? _$_.hydrate_text() : span_26.firstChild;
 			}
 
 			var button_34 = _$_.hydrating ? _$_.hydrate_sibling() : span_26.nextSibling;
@@ -1953,9 +1893,7 @@ export function WrapIfOnly() {
 			var span_27 = _$_.hydrating ? _$_.hydrate_sibling() : node_67.nextSibling;
 
 			{
-				var expression_37 = _$_.hydrating ? _$_.hydrate_child(true) : span_27.firstChild;
-
-				_$_.pop(span_27);
+				var expression_37 = _$_.hydrating ? _$_.hydrate_text() : span_27.firstChild;
 			}
 
 			var button_35 = _$_.hydrating ? _$_.hydrate_sibling() : span_27.nextSibling;
@@ -1992,9 +1930,7 @@ export function WrapIfThenOne() {
 			var span_28 = _$_.hydrating ? _$_.hydrate_sibling() : node_68.nextSibling;
 
 			{
-				var expression_38 = _$_.hydrating ? _$_.hydrate_child(true) : span_28.firstChild;
-
-				_$_.pop(span_28);
+				var expression_38 = _$_.hydrating ? _$_.hydrate_text() : span_28.firstChild;
 			}
 
 			var button_36 = _$_.hydrating ? _$_.hydrate_sibling() : span_28.nextSibling;
@@ -2031,9 +1967,7 @@ export function WrapSingleRootWithIf() {
 			var span_29 = _$_.hydrating ? _$_.hydrate_sibling() : node_69.nextSibling;
 
 			{
-				var expression_39 = _$_.hydrating ? _$_.hydrate_child(true) : span_29.firstChild;
-
-				_$_.pop(span_29);
+				var expression_39 = _$_.hydrating ? _$_.hydrate_text() : span_29.firstChild;
 			}
 
 			var button_37 = _$_.hydrating ? _$_.hydrate_sibling() : span_29.nextSibling;
@@ -2071,9 +2005,7 @@ export function ExprThenSiblingInDiv() {
 			var span_30 = _$_.hydrating ? _$_.hydrate_sibling() : expression_40.nextSibling;
 
 			{
-				var expression_41 = _$_.hydrating ? _$_.hydrate_child(true) : span_30.firstChild;
-
-				_$_.pop(span_30);
+				var expression_41 = _$_.hydrating ? _$_.hydrate_text() : span_30.firstChild;
 			}
 
 			var button_38 = _$_.hydrating ? _$_.hydrate_sibling() : span_30.nextSibling;
@@ -2152,9 +2084,7 @@ export function IfTwoInDiv() {
 			var span_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_72.nextSibling;
 
 			{
-				var expression_42 = _$_.hydrating ? _$_.hydrate_child(true) : span_31.firstChild;
-
-				_$_.pop(span_31);
+				var expression_42 = _$_.hydrating ? _$_.hydrate_text() : span_31.firstChild;
 			}
 
 			var button_39 = _$_.hydrating ? _$_.hydrate_sibling() : span_31.nextSibling;
@@ -2191,9 +2121,7 @@ export function WrapIfTwoThenStatic() {
 			var span_32 = _$_.hydrating ? _$_.hydrate_sibling() : node_73.nextSibling;
 
 			{
-				var expression_43 = _$_.hydrating ? _$_.hydrate_child(true) : span_32.firstChild;
-
-				_$_.pop(span_32);
+				var expression_43 = _$_.hydrating ? _$_.hydrate_text() : span_32.firstChild;
 			}
 
 			var button_40 = _$_.hydrating ? _$_.hydrate_sibling() : span_32.nextSibling;
@@ -2311,9 +2239,7 @@ export function WrapStaticCallThenStatic() {
 			var span_33 = _$_.hydrating ? _$_.hydrate_sibling() : node_77.nextSibling;
 
 			{
-				var expression_46 = _$_.hydrating ? _$_.hydrate_child(true) : span_33.firstChild;
-
-				_$_.pop(span_33);
+				var expression_46 = _$_.hydrating ? _$_.hydrate_text() : span_33.firstChild;
 			}
 
 			var button_41 = _$_.hydrating ? _$_.hydrate_sibling() : span_33.nextSibling;
@@ -2350,9 +2276,7 @@ export function WrapStaticThenStyleThenStatic() {
 			var span_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_78.nextSibling;
 
 			{
-				var expression_47 = _$_.hydrating ? _$_.hydrate_child(true) : span_34.firstChild;
-
-				_$_.pop(span_34);
+				var expression_47 = _$_.hydrating ? _$_.hydrate_text() : span_34.firstChild;
 			}
 
 			var button_42 = _$_.hydrating ? _$_.hydrate_sibling() : span_34.nextSibling;

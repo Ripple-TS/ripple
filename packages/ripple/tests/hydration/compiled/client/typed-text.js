@@ -25,9 +25,7 @@ export function TypedText() {
 			var p = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;
 
 			{
-				var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : p.firstChild;
-
-				_$_.pop(p);
+				var expression_1 = _$_.hydrating ? _$_.hydrate_text() : p.firstChild;
 			}
 
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;

@@ -1,14 +1,12 @@
 import { DEV } from 'esm-env';
 
-export function remove_ssr_css() {
-	if (!document || typeof requestAnimationFrame !== 'function') {
-		return;
-	}
-
-	remove_styles();
-}
-
-function remove_styles() {
+/**
+ * Removes the server's inline styles once the client stylesheets are in.
+ * Schedule it with `requestAnimationFrame`: the removal already waits for a
+ * frame after the stylesheets load, and starting from a frame keeps mounting
+ * and hydrating free of stylesheet queries.
+ */
+export function remove_styles() {
 	if (DEV) {
 		const styles = document.querySelector('style[data-vite-dev-id]');
 		if (styles) {

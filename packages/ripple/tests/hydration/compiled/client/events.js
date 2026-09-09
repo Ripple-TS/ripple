@@ -26,9 +26,7 @@ export function ClickCounter() {
 			var span = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 			{
-				var expression = _$_.hydrating ? _$_.hydrate_child(true) : span.firstChild;
-
-				_$_.pop(span);
+				var expression = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
 			}
 		}
 
@@ -62,9 +60,7 @@ export function IncrementDecrement() {
 			var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 			{
-				var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : span_1.firstChild;
-
-				_$_.pop(span_1);
+				var expression_1 = _$_.hydrating ? _$_.hydrate_text() : span_1.firstChild;
 			}
 
 			var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
@@ -109,17 +105,13 @@ export function MultipleEvents() {
 			var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 			{
-				var expression_2 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
-
-				_$_.pop(span_2);
+				var expression_2 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 			}
 
 			var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 			{
-				var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : span_3.firstChild;
-
-				_$_.pop(span_3);
+				var expression_3 = _$_.hydrating ? _$_.hydrate_text() : span_3.firstChild;
 			}
 		}
 
@@ -164,9 +156,7 @@ export function MultiStateUpdate() {
 			var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
 
 			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_4.firstChild;
-
-				_$_.pop(span_4);
+				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_4.firstChild;
 			}
 
 			var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
@@ -207,9 +197,7 @@ export function ToggleButton() {
 			};
 
 			{
-				var expression_6 = _$_.hydrating ? _$_.hydrate_child(true) : button_5.firstChild;
-
-				_$_.pop(button_5);
+				var expression_6 = _$_.hydrating ? _$_.hydrate_text() : button_5.firstChild;
 			}
 		}
 
@@ -235,9 +223,7 @@ export function ChildButton(props) {
 		_$_.render_event('Click', button_6, () => props.onClick);
 
 		{
-			var expression_7 = _$_.hydrating ? _$_.hydrate_child(true) : button_6.firstChild;
-
-			_$_.pop(button_6);
+			var expression_7 = _$_.hydrating ? _$_.hydrate_text() : button_6.firstChild;
 		}
 
 		_$_.render(
@@ -273,9 +259,7 @@ export function ParentWithChildButton() {
 			var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
 			{
-				var expression_8 = _$_.hydrating ? _$_.hydrate_child(true) : span_6.firstChild;
-
-				_$_.pop(span_6);
+				var expression_8 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
 			}
 
 			_$_.pop(div_5);

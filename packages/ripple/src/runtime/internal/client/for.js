@@ -2,6 +2,7 @@
 
 import { IS_CONTROLLED, IS_INDEXED, ROOT_CONTROLLED } from '../../../constants.js';
 import {
+	block as create_block,
 	branch,
 	destroy_block,
 	destroy_block_children,
@@ -10,9 +11,9 @@ import {
 	own_anchor,
 	render,
 } from './blocks.js';
-import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
-import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
-import { get_first_child, get_last_child, next_sibling, resolve_anchor } from './operations.js';
+import { BRANCH_BLOCK, FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
+import { hydrate_first_child, hydrate_next, hydrate_node, hydrating } from './hydration.js';
+import { get_last_child, next_sibling, resolve_anchor } from './operations.js';
 import { append } from './template.js';
 import { active_block, set, set_tracking, tracked } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
@@ -42,7 +43,7 @@ function create_item(anchor, value, index, render_fn, is_indexed, is_keyed) {
 	// reads them before rendering, so nested loops cannot observe a stale pair.
 	item_anchor = anchor;
 	item_render_fn = render_fn;
-	var b = branch(run_item, 0, state);
+	var b = create_block(BRANCH_BLOCK, run_item, state);
 
 	// The item's tracked value and index are owned by the item block itself.
 	if (is_keyed) {
@@ -262,18 +263,6 @@ function list_state(
 }
 
 /**
- * Re-anchors a hydrated list: the hydrated anchor is the block's start marker;
- * later inserts and end moves must go before the cursor, which now sits after
- * the hydrated items.
- * @param {ListState} state
- */
-function rehydrate_anchor(state) {
-	if (hydrating) {
-		state.a = /** @type {Element | Text} */ (hydrate_node);
-	}
-}
-
-/**
  * @param {ListState} state
  */
 function run_for(state) {
@@ -285,7 +274,12 @@ function run_for(state) {
 	reconcile_by_ref(state.a, block, array, state.r, state.c, state.x, state.e);
 	set_tracking(true);
 
-	rehydrate_anchor(state);
+	// Re-anchor a hydrated list: the hydrated anchor is the block's start
+	// marker; later inserts and end moves must go before the cursor, which now
+	// sits after the hydrated items.
+	if (hydrating) {
+		state.a = /** @type {Element | Text} */ (hydrate_node);
+	}
 }
 
 /**
@@ -299,7 +293,9 @@ function run_for_keyed(state) {
 	reconcile_by_key(state.a, block, array, state.r, state.c, state.x, state.k, state.e);
 	set_tracking(true);
 
-	rehydrate_anchor(state);
+	if (hydrating) {
+		state.a = /** @type {Element | Text} */ (hydrate_node);
+	}
 }
 
 /**
@@ -323,8 +319,8 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 
 	if (is_controlled) {
 		if (hydrating) {
-			var parent_node = /** @type {Element} */ (node);
-			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
+			// The cursor sits on the list's element; the items are its children.
+			hydrate_first_child();
 		} else {
 			anchor = controlled_anchor(/** @type {Element} */ (node));
 		}
@@ -383,7 +379,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 		var parent_node = /** @type {Element} */ (node);
 
 		if (hydrating) {
-			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
+			hydrate_first_child();
 			anchor = /** @type {Element | Text} */ (get_last_child(parent_node));
 		} else {
 			anchor = controlled_anchor(parent_node);
@@ -908,25 +904,7 @@ function reconcile_by_key_diff(
  */
 function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed, render_empty) {
 	var state = /** @type {ListState} */ (block.s);
-
-	// Variables used in conditional branches - declare with initial values
-	/** @type {number} */
-	var a_left = 0;
-	/** @type {number} */
-	var b_left = 0;
-	/** @type {Int32Array} */
-	var sources = new Int32Array(0);
-	/** @type {boolean} */
-	var moved = false;
-	/** @type {number} */
-	var pos = 0;
-	/** @type {number} */
-	var patched = 0;
-	/** @type {number} */
-	var i = 0;
-
-	var a = state.array;
-	var a_length = a.length;
+	var a_length = state.array.length;
 	var b_length = b.length;
 	var j = 0;
 
@@ -972,6 +950,45 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 		return;
 	}
 
+	reconcile_by_ref_diff(anchor, block, b, b_blocks, render_fn, is_controlled, is_indexed);
+}
+
+/**
+ * Diffs a non-empty list against its previous run. Separate from the empty and
+ * create paths so a first render (a mount, a hydration) never compiles it.
+ * @template V
+ * @param {ListAnchor} anchor
+ * @param {Block} block
+ * @param {V[]} b
+ * @param {Block[]} b_blocks
+ * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
+ * @param {boolean} is_controlled
+ * @param {boolean} is_indexed
+ * @returns {void}
+ */
+function reconcile_by_ref_diff(anchor, block, b, b_blocks, render_fn, is_controlled, is_indexed) {
+	var state = /** @type {ListState} */ (block.s);
+
+	// Variables used in conditional branches - declare with initial values
+	/** @type {number} */
+	var a_left = 0;
+	/** @type {number} */
+	var b_left = 0;
+	/** @type {Int32Array} */
+	var sources = new Int32Array(0);
+	/** @type {boolean} */
+	var moved = false;
+	/** @type {number} */
+	var pos = 0;
+	/** @type {number} */
+	var patched = 0;
+	/** @type {number} */
+	var i = 0;
+
+	var a = state.array;
+	var a_length = a.length;
+	var b_length = b.length;
+	var j = 0;
 	var a_blocks = state.blocks;
 	var a_start = 0;
 	var b_start = 0;

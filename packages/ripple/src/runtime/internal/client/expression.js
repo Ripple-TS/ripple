@@ -33,13 +33,18 @@ function find_enclosing_branch(block) {
  * @returns {void}
  */
 export function render_value(value, anchor, block) {
-	if (is_tsrx_element(value)) {
-		render_tsrx_element(value, anchor, block);
-	} else if (is_array(value)) {
+	// render_tsrx_element, inline: an element's render may return another
+	// element (a wrapper), an array, or text.
+	var rendered = false;
+	while (is_tsrx_element(value)) {
+		value = value.render(anchor, block);
+		rendered = true;
+	}
+	if (is_array(value)) {
 		render_tsrx_collection(value, anchor, block);
 	} else if (value != null) {
 		var text = value + '';
-		if (text !== '') {
+		if (rendered || text !== '') {
 			render_tsrx_collection_text(text, anchor, true);
 		}
 	}

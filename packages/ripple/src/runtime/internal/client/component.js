@@ -16,17 +16,6 @@ export function render_component(fn, anchor, props, block = active_block) {
 		throw_invalid_component_type(fn);
 	}
 
-	run_component(fn, anchor, props, block);
-}
-
-/**
- * @param {Function} fn
- * @param {Node | AppendIntoAnchor} anchor
- * @param {Record<string, any>} props
- * @param {Block | null} [block=active_block]
- * @returns {void}
- */
-function run_component(fn, anchor, props, block = active_block) {
 	push_component();
 	render_value(fn(props), /** @type {ChildNode} */ (anchor), block);
 	pop_component();

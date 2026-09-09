@@ -1360,6 +1360,28 @@ function SetStateForOutsideComponent(state, more_state = {}) {
 }
 
 /**
+ * Whether anything reads a `@for` directive's `index` binding. An index nothing
+ * reads needs no tracked value per item.
+ * @param {AST.ForOfStatement | AST.JSXForOfExpression} node
+ * @param {TransformClientContext} context
+ * @returns {boolean}
+ */
+function is_index_read(node, context) {
+	const index = /** @type {AST.Identifier} */ (node.index);
+	const scope = /** @type {ScopeInterface | undefined} */ (context.state.scopes.get(node));
+	const binding = scope?.get(index.name);
+
+	if (!binding) {
+		return true;
+	}
+
+	// The declaration itself is collected as a reference; only other sites count.
+	return binding.references.some(
+		(reference) => reference.node.start !== index.start || reference.node.end !== index.end,
+	);
+}
+
+/**
  * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformClientContext} context
  * @returns {AST.CallExpression}
@@ -1729,7 +1751,7 @@ const visit_for_of_statement = (node, context) => {
 		flags |= ROOT_CONTROLLED;
 	}
 
-	if (index != null) {
+	if (index != null && is_index_read(node, context)) {
 		flags |= IS_INDEXED;
 	}
 
@@ -3345,6 +3367,7 @@ const visitors = {
 						: []
 				);
 				// Special handling for <template> elements
+				const leaf_text = { value: false };
 				if (element_name === 'template' && render_children.length > 0) {
 					transform_template_element(node, state, visit, child_namespace);
 				} else {
@@ -3358,6 +3381,7 @@ const visitors = {
 								update,
 								namespace: child_namespace,
 								skip_children_traversal: true,
+								leaf_text,
 							},
 							root: false,
 						}),
@@ -3366,10 +3390,12 @@ const visitors = {
 				state.template?.push(`</${element_name}>`);
 
 				// We need to check if any child nodes are dynamic to determine
-				// if we need to pop the hydration stack to the parent node
-				// Template elements never need pop() since we don't traverse into them
+				// if we need to pop the hydration stack to the parent node.
+				// Template elements never need pop() since we don't traverse into
+				// them, and a lone text child is hydrated without moving the cursor.
 				const needs_pop =
 					element_name !== 'template' &&
+					!leaf_text.value &&
 					render_children.some(
 						(child) =>
 							is_template_directive(child) ||
@@ -6111,16 +6137,26 @@ function transform_children(children, context) {
 					}
 
 					const id = get_id(node);
-					state.init?.push(
-						b.var(
-							id,
-							inline_traversal(
-								'child',
-								/** @type {AST.Expression} */ (state.flush_node?.()),
-								is_text,
+					const parent = /** @type {AST.Expression} */ (state.flush_node?.());
+					const leaf_text = state.leaf_text;
+					if (is_text === true && normalized.length === 1 && leaf_text !== undefined) {
+						// The element's only child is a text node: adopt it without
+						// moving the hydration cursor off the element, so the element
+						// needs no pop() and its append() no descent check.
+						leaf_text.value = true;
+						state.init?.push(
+							b.var(
+								id,
+								b.conditional(
+									b.member(b.id('_$_'), b.id('hydrating')),
+									b.call('_$_.hydrate_text'),
+									b.member(parent, b.id('firstChild')),
+								),
 							),
-						),
-					);
+						);
+					} else {
+						state.init?.push(b.var(id, inline_traversal('child', parent, is_text)));
+					}
 					cached = id;
 					return id;
 				} else {

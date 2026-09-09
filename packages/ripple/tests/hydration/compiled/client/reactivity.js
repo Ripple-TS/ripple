@@ -15,9 +15,7 @@ export function TrackedState() {
 		var div = root();
 
 		{
-			var expression = _$_.hydrating ? _$_.hydrate_child(true) : div.firstChild;
-
-			_$_.pop(div);
+			var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 		}
 
 		_$_.render(
@@ -90,25 +88,19 @@ export function MultipleTracked() {
 			var div_4 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
 			{
-				var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : div_4.firstChild;
-
-				_$_.pop(div_4);
+				var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_4.firstChild;
 			}
 
 			var div_5 = _$_.hydrating ? _$_.hydrate_sibling() : div_4.nextSibling;
 
 			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : div_5.firstChild;
-
-				_$_.pop(div_5);
+				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : div_5.firstChild;
 			}
 
 			var div_6 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
 			{
-				var expression_5 = _$_.hydrating ? _$_.hydrate_child(true) : div_6.firstChild;
-
-				_$_.pop(div_6);
+				var expression_5 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
 			}
 		}
 

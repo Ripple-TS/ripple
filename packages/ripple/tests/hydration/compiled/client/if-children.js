@@ -73,10 +73,9 @@ export function ChildItem({ text: label }) {
 		var div_3 = root_2();
 
 		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_3.firstChild;
+			var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_3.firstChild;
 
 			expression_1.nodeValue = label;
-			_$_.pop(div_3);
 		}
 
 		_$_.append(__anchor, div_3);
@@ -352,9 +351,7 @@ export function DomChildrenThenStaticSiblings() {
 					var li = _$_.hydrating ? _$_.hydrate_child() : ul.firstChild;
 
 					{
-						var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : li.firstChild;
-
-						_$_.pop(li);
+						var expression_3 = _$_.hydrating ? _$_.hydrate_text() : li.firstChild;
 					}
 				}
 
@@ -428,9 +425,7 @@ function RootForChild(props) {
 				var span_2 = root_23();
 
 				{
-					var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
-
-					_$_.pop(span_2);
+					var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 				}
 
 				_$_.render(

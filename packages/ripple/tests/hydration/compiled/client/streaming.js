@@ -68,9 +68,7 @@ function BasicContent() {
 			var span = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 			{
-				var expression = _$_.hydrating ? _$_.hydrate_child(true) : span.firstChild;
-
-				_$_.pop(span);
+				var expression = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
 			}
 
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;

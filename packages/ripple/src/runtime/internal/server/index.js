@@ -55,7 +55,7 @@ import { DEV } from 'esm-env';
 import { is_ripple_object } from '../client/utils.js';
 import { iterable_array_from, array_slice, is_array } from '@tsrx/core/runtime/language-helpers';
 import {
-	escape,
+	escape as escape_html,
 	escape_script,
 	is_boolean_attribute,
 	normalize_css_property_name,
@@ -94,7 +94,6 @@ import {
 } from './blocks.js';
 import { COMPONENT_BLOCK, ROOT_BLOCK, TRY_BLOCK } from './constants.js';
 
-export { escape };
 export { register_component_css as register_css } from './css-registry.js';
 export { simple_hash, strong_hash } from '@tsrx/core/runtime/hash';
 export { context } from './context.js';
@@ -283,7 +282,8 @@ let inside_async_track = false;
 /** @type {ElementContext | undefined} */
 let current_element;
 /** @type {Set<string>} */
-let seen_warnings = new Set();
+/** @type {Set<string> | null} */
+let seen_warnings = null;
 
 /**
  * @returns {void}
@@ -294,7 +294,7 @@ export function reset_state() {
 	active_dependency = null;
 	inside_async_track = false;
 	tracking = false;
-	seen_warnings = new Set();
+	seen_warnings = null;
 	current_element = undefined;
 }
 
@@ -481,8 +481,8 @@ export class Output {
 	#head = [];
 	/** @type {NestedArray<string>} */
 	#body = [];
-	/** @type {Set<string>} */
-	#css = new Set();
+	/** @type {Set<string> | null} root only */
+	#css = null;
 	/** @type {null | Output} */
 	#parent = null;
 	/** @type {StreamSink | null} */
@@ -501,8 +501,8 @@ export class Output {
 	#promise_reject = null;
 	#is_root = false;
 	#sync_run = false;
-	/** @type {Set<RegisteredAsyncOperation>} */
-	#async_operations = new Set();
+	/** @type {Set<RegisteredAsyncOperation> | null} created by the first registration */
+	#async_operations = null;
 	/** @type {null | 'head'} */
 	target = null;
 	/** @type {null | FlushUnit} */
@@ -513,12 +513,12 @@ export class Output {
 	#head_redirect = null;
 	// streaming state, only used on the root instance
 	#next_unit_id = 1;
-	/** @type {FlushUnit[]} */
-	#units = [];
-	/** @type {WeakMap<NestedArray<string>, FlushUnit>} */
-	#unit_slots = new WeakMap();
-	/** @type {Set<string>} */
-	#sent_css = new Set();
+	/** @type {FlushUnit[] | null} */
+	#units = null;
+	/** @type {WeakMap<NestedArray<string>, FlushUnit> | null} */
+	#unit_slots = null;
+	/** @type {Set<string> | null} */
+	#sent_css = null;
 	#shell_flushed = false;
 
 	get root() {
@@ -534,7 +534,7 @@ export class Output {
 	}
 
 	get css() {
-		return this.#css;
+		return /** @type {Set<string>} */ (this.#root.#css);
 	}
 
 	get promise() {
@@ -552,6 +552,10 @@ export class Output {
 		if (!parent) {
 			this.#root = this;
 			this.#is_root = true;
+			this.#css = new Set();
+			this.#units = [];
+			this.#unit_slots = new WeakMap();
+			this.#sent_css = new Set();
 			this.#promise = new Promise((resolve, reject) => {
 				this.#promise_resolve = resolve;
 				this.#promise_reject = reject;
@@ -654,7 +658,9 @@ export class Output {
 		}
 		this.#head.length = 0;
 		this.#body.length = 0;
-		this.#css.clear();
+		if (this.#is_root) {
+			/** @type {Set<string>} */ (this.#css).clear();
+		}
 	}
 
 	/**
@@ -670,8 +676,9 @@ export class Output {
 				return;
 			}
 			if (root.#shell_flushed) {
-				if (!root.#sent_css.has(hash)) {
-					root.#sent_css.add(hash);
+				var sent_css = /** @type {Set<string>} */ (root.#sent_css);
+				if (!sent_css.has(hash)) {
+					sent_css.add(hash);
 					var css_text = get_css_text(new Set([hash]));
 					if (css_text) {
 						root.#streamOutput.push('<style data-ripple-ssr>' + css_text + '</style>');
@@ -680,7 +687,7 @@ export class Output {
 				return;
 			}
 		}
-		root.#css.add(hash);
+		/** @type {Set<string>} */ (root.#css).add(hash);
 	}
 
 	/**
@@ -730,7 +737,7 @@ export class Output {
 	 * @return {void}
 	 */
 	registerAsync(operation) {
-		this.#async_operations.add(operation);
+		(this.#async_operations ??= new Set()).add(operation);
 		this.#root._incrementPending();
 	}
 
@@ -739,19 +746,22 @@ export class Output {
 	 * @returns {void}
 	 */
 	resolveAsync(operation) {
-		this.#async_operations.delete(operation);
+		var operations = /** @type {Set<RegisteredAsyncOperation>} */ (this.#async_operations);
+		operations.delete(operation);
 		this.#root._decrementPending();
 		var unit = this.unit;
-		if (unit !== null && !unit.flushed && !unit.settled && this.#async_operations.size === 0) {
+		if (unit !== null && !unit.flushed && !unit.settled && operations.size === 0) {
 			unit.settled = true;
 			this.#root._maybeFlushUnit(unit);
 		}
 	}
 
 	cancelAsyncOperations() {
-		for (const operation of this.#async_operations) {
+		var operations = this.#async_operations;
+		if (operations === null) return;
+		for (const operation of operations) {
 			operation.cancel();
-			this.#async_operations.delete(operation);
+			operations.delete(operation);
 			this.clear();
 			this.#root._decrementPending();
 		}
@@ -761,7 +771,8 @@ export class Output {
 	 * @returns {boolean}
 	 */
 	hasPendingAsyncOperations() {
-		return this.#async_operations.size > 0;
+		var operations = this.#async_operations;
+		return operations !== null && operations.size > 0;
 	}
 
 	/**
@@ -804,8 +815,8 @@ export class Output {
 			error: null,
 		};
 		this.unit = unit;
-		root.#unit_slots.set(this.#body, unit);
-		root.#units.push(unit);
+		/** @type {WeakMap<NestedArray<string>, FlushUnit>} */ (root.#unit_slots).set(this.#body, unit);
+		/** @type {FlushUnit[]} */ (root.#units).push(unit);
 		return unit;
 	}
 
@@ -840,7 +851,9 @@ export class Output {
 				out += item;
 				continue;
 			}
-			var unit = this.#unit_slots.get(item);
+			var unit = /** @type {WeakMap<NestedArray<string>, FlushUnit>} */ (this.#unit_slots).get(
+				item,
+			);
 			if (unit !== undefined && !unit.flushed) {
 				if (unit.settled && !unit.errored) {
 					out += this.#collect_unit(unit, chunk);
@@ -877,9 +890,10 @@ export class Output {
 	#chunk_css(hashes) {
 		/** @type {Set<string>} */
 		var fresh = new Set();
+		var sent_css = /** @type {Set<string>} */ (this.#sent_css);
 		for (var hash of hashes) {
-			if (!this.#sent_css.has(hash)) {
-				this.#sent_css.add(hash);
+			if (!sent_css.has(hash)) {
+				sent_css.add(hash);
 				fresh.add(hash);
 			}
 		}
@@ -949,7 +963,7 @@ export class Output {
 	 * @returns {void}
 	 */
 	#sweep_units() {
-		var units = this.#units;
+		var units = /** @type {FlushUnit[]} */ (this.#units);
 		var progressed = true;
 		while (progressed) {
 			progressed = false;
@@ -984,7 +998,7 @@ export class Output {
 			// the root boundary's slot is the shell body itself
 			this.unit.slot_sent = true;
 		}
-		for (var hash of this.#css) {
+		for (var hash of /** @type {Set<string>} */ (this.#css)) {
 			chunk.css.add(hash);
 		}
 		var template = this.#stream_template;
@@ -1003,8 +1017,9 @@ export class Output {
 			out += BLOCK_OPEN + body + BLOCK_CLOSE;
 		}
 		var has_open_units = false;
-		for (var i = 0; i < this.#units.length; i++) {
-			if (!this.#units[i].flushed) {
+		var units = /** @type {FlushUnit[]} */ (this.#units);
+		for (var i = 0; i < units.length; i++) {
+			if (!units[i].flushed) {
 				has_open_units = true;
 				break;
 			}
@@ -1114,16 +1129,27 @@ export class Output {
 }
 
 /**
+ * Concatenates a buffer tree (see `Output`) into one string. A hand-rolled
+ * walk is far cheaper than `flat(Infinity).join('')` on a cold isolate, where
+ * a render's cost is dominated by unoptimized code.
+ * @param {NestedArray<string>} tree
+ * @returns {string}
+ */
+function flatten_buffer(tree) {
+	var out = '';
+	for (var i = 0; i < tree.length; i++) {
+		var item = tree[i];
+		out += typeof item === 'string' ? item : flatten_buffer(item);
+	}
+	return out;
+}
+
+/**
  * @param {RenderComponent} component
- * @param {BaseRenderOptions} [passed_in_options]
+ * @param {BaseRenderOptions} [options]
  * @returns {Promise<RenderResult | RenderStreamResult>}
  */
-export async function render(component, passed_in_options = {}) {
-	/** @type {BaseRenderOptions} */
-	var options = {
-		...(passed_in_options.stream ? { closeStream: true } : {}),
-		...passed_in_options,
-	};
+export async function render(component, options = {}) {
 	/** @type {Error | null } */
 	var top_level_error = null;
 	var head = '';
@@ -1182,7 +1208,7 @@ export async function render(component, passed_in_options = {}) {
 	await output.promise;
 	reset_state();
 
-	if (output.isStreamMode() && options.closeStream) {
+	if (output.isStreamMode() && ('closeStream' in options ? options.closeStream : true)) {
 		output._closeStream();
 	}
 
@@ -1199,10 +1225,26 @@ export async function render(component, passed_in_options = {}) {
 	 * @returns {void}
 	 */
 	function sync_buffers_to_string(output) {
-		head = /** @type {string[]} */ (output.head).flat(Infinity).join('');
-		body = BLOCK_OPEN + /** @type {string[]} */ (output.body).flat(Infinity).join('') + BLOCK_CLOSE;
+		head = flatten_buffer(output.head);
+		body = BLOCK_OPEN + flatten_buffer(output.body) + BLOCK_CLOSE;
 		css = output.css;
 	}
+}
+
+var CONTENT_SPECIAL = /[&<]/;
+var ATTR_SPECIAL = /[&"<]/;
+
+/**
+ * Escapes text or attribute content. Strings without a character to escape
+ * (the common case) return as they are after a single regex test; anything
+ * else goes through the general escaper.
+ * @param {unknown} value
+ * @param {boolean} [is_attr]
+ * @returns {string}
+ */
+export function escape(value, is_attr) {
+	var str = typeof value === 'string' ? value : value == null ? '' : String(value);
+	return (is_attr ? ATTR_SPECIAL : CONTENT_SPECIAL).test(str) ? escape_html(str, is_attr) : str;
 }
 
 /**
@@ -1213,7 +1255,7 @@ export function push_component() {
 		c: null,
 		p: active_component,
 	};
-	active_block = component_block(() => {});
+	active_block = component_block(noop);
 }
 
 /**
@@ -1268,7 +1310,11 @@ function print_nesting_error(message) {
 		`node_invalid_placement_ssr: ${message}\n\n` +
 		'This can cause content to shift around as the browser repairs the HTML, and will likely result in a hydration mismatch.';
 
-	if (seen_warnings.has(message)) return;
+	if (seen_warnings === null) {
+		seen_warnings = new Set();
+	} else if (seen_warnings.has(message)) {
+		return;
+	}
 	seen_warnings.add(message);
 
 	// eslint-disable-next-line no-console

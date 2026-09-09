@@ -76,7 +76,11 @@ export function mount(
 
 export function hydrate(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any>; rootBoundary?: RootBoundaryOptions },
+	options: {
+		target: HTMLElement;
+		props?: Record<string, any>;
+		rootBoundary?: RootBoundaryOptions | false;
+	},
 ): () => void;
 
 export interface RootBoundaryOptions {
