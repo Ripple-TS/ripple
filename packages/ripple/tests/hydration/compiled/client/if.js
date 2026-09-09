@@ -27,21 +27,30 @@ export function IfTruthy() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const show = true;
 
-		{
-			var consequent = (__anchor) => {
-				var div = root();
+		_$_.if_flat(
+			__anchor,
+			(__s) => {
+				var __c = show ? 0 : -1;
 
-				_$_.append(__anchor, div);
-			};
+				if (__s.c !== __c) {
+					_$_.flat_swap(__s, __c);
 
-			_$_.if(
-				__anchor,
-				(__render) => {
-					if (show) __render(consequent);
-				},
-				true
-			);
-		}
+					if (__c === 0) {
+						var div = root();
+
+						_$_.append(__s.a, div);
+					}
+				}
+			},
+			{
+				start: null,
+				end: null,
+				a: null,
+				c: _$_.UNINITIALIZED,
+				o: null
+			},
+			true
+		);
 	});
 }
 
@@ -49,21 +58,30 @@ export function IfFalsy() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const show = false;
 
-		{
-			var consequent_1 = (__anchor) => {
-				var div_1 = root_1();
+		_$_.if_flat(
+			__anchor,
+			(__s) => {
+				var __c = show ? 0 : -1;
 
-				_$_.append(__anchor, div_1);
-			};
+				if (__s.c !== __c) {
+					_$_.flat_swap(__s, __c);
 
-			_$_.if(
-				__anchor,
-				(__render) => {
-					if (show) __render(consequent_1);
-				},
-				true
-			);
-		}
+					if (__c === 0) {
+						var div_1 = root_1();
+
+						_$_.append(__s.a, div_1);
+					}
+				}
+			},
+			{
+				start: null,
+				end: null,
+				a: null,
+				c: _$_.UNINITIALIZED,
+				o: null
+			},
+			true
+		);
 	});
 }
 
@@ -71,27 +89,34 @@ export function IfElse() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const isLoggedIn = true;
 
-		{
-			var consequent_2 = (__anchor) => {
-				var div_2 = root_2();
+		_$_.if_flat(
+			__anchor,
+			(__s) => {
+				var __c = isLoggedIn ? 0 : 1;
 
-				_$_.append(__anchor, div_2);
-			};
+				if (__s.c !== __c) {
+					_$_.flat_swap(__s, __c);
 
-			var alternate = (__anchor) => {
-				var div_3 = root_3();
+					if (__c === 0) {
+						var div_2 = root_2();
 
-				_$_.append(__anchor, div_3);
-			};
+						_$_.append(__s.a, div_2);
+					} else if (__c === 1) {
+						var div_3 = root_3();
 
-			_$_.if(
-				__anchor,
-				(__render) => {
-					if (isLoggedIn) __render(consequent_2); else __render(alternate, false);
-				},
-				true
-			);
-		}
+						_$_.append(__s.a, div_3);
+					}
+				}
+			},
+			{
+				start: null,
+				end: null,
+				a: null,
+				c: _$_.UNINITIALIZED,
+				o: null
+			},
+			true
+		);
 	});
 }
 
@@ -111,17 +136,29 @@ export function ReactiveIf() {
 
 			var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
-			{
-				var consequent_3 = (__anchor) => {
-					var div_4 = root_6();
+			_$_.if_flat(
+				node,
+				(__s) => {
+					var __c = lazy.value ? 0 : -1;
 
-					_$_.append(__anchor, div_4);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node, (__render) => {
-					if (lazy.value) __render(consequent_3);
-				});
-			}
+						if (__c === 0) {
+							var div_4 = root_6();
+
+							_$_.append(__s.a, div_4);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.append(__anchor, fragment_1);
 		}));
@@ -146,23 +183,33 @@ export function ReactiveIfElse() {
 
 			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
-			{
-				var consequent_4 = (__anchor) => {
-					var div_5 = root_9();
+			_$_.if_flat(
+				node_2,
+				(__s) => {
+					var __c = lazy_1.value ? 0 : 1;
 
-					_$_.append(__anchor, div_5);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				var alternate_1 = (__anchor) => {
-					var div_6 = root_10();
+						if (__c === 0) {
+							var div_5 = root_9();
 
-					_$_.append(__anchor, div_6);
-				};
+							_$_.append(__s.a, div_5);
+						} else if (__c === 1) {
+							var div_6 = root_10();
 
-				_$_.if(node_2, (__render) => {
-					if (lazy_1.value) __render(consequent_4); else __render(alternate_1, false);
-				});
-			}
+							_$_.append(__s.a, div_6);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.append(__anchor, fragment_3);
 		}));
@@ -195,24 +242,36 @@ export function NestedIf() {
 			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 			{
-				var consequent_6 = (__anchor) => {
+				var consequent = (__anchor) => {
 					var div_7 = root_13();
 
 					{
 						var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 						var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
 
-						{
-							var consequent_5 = (__anchor) => {
-								var span = root_14();
+						_$_.if_flat(
+							node_5,
+							(__s) => {
+								var __c = lazy_3.value ? 0 : -1;
 
-								_$_.append(__anchor, span);
-							};
+								if (__s.c !== __c) {
+									_$_.flat_swap(__s, __c);
 
-							_$_.if(node_5, (__render) => {
-								if (lazy_3.value) __render(consequent_5);
-							});
-						}
+									if (__c === 0) {
+										var span = root_14();
+
+										_$_.append(__s.a, span);
+									}
+								}
+							},
+							{
+								start: null,
+								end: null,
+								a: null,
+								c: _$_.UNINITIALIZED,
+								o: null
+							}
+						);
 
 						_$_.pop(div_7);
 					}
@@ -221,7 +280,7 @@ export function NestedIf() {
 				};
 
 				_$_.if(node_4, (__render) => {
-					if (lazy_2.value) __render(consequent_6);
+					if (lazy_2.value) __render(consequent);
 				});
 			}
 
@@ -259,38 +318,45 @@ export function IfElseIfChain() {
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
 			{
-				var consequent_7 = (__anchor) => {
+				var consequent_1 = (__anchor) => {
 					var div_9 = root_16();
 
 					_$_.append(__anchor, div_9);
 				};
 
-				var alternate_3 = (__anchor) => {
-					{
-						var consequent_8 = (__anchor) => {
-							var div_10 = root_17();
+				var alternate = (__anchor) => {
+					_$_.if_flat(
+						__anchor,
+						(__s) => {
+							var __c = lazy_4.value === 'success' ? 0 : 1;
 
-							_$_.append(__anchor, div_10);
-						};
+							if (__s.c !== __c) {
+								_$_.flat_swap(__s, __c);
 
-						var alternate_2 = (__anchor) => {
-							var div_11 = root_18();
+								if (__c === 0) {
+									var div_10 = root_17();
 
-							_$_.append(__anchor, div_11);
-						};
+									_$_.append(__s.a, div_10);
+								} else if (__c === 1) {
+									var div_11 = root_18();
 
-						_$_.if(
-							__anchor,
-							(__render) => {
-								if (lazy_4.value === 'success') __render(consequent_8); else __render(alternate_2, false);
-							},
-							true
-						);
-					}
+									_$_.append(__s.a, div_11);
+								}
+							}
+						},
+						{
+							start: null,
+							end: null,
+							a: null,
+							c: _$_.UNINITIALIZED,
+							o: null
+						},
+						true
+					);
 				};
 
 				_$_.if(node_7, (__render) => {
-					if (lazy_4.value === 'loading') __render(consequent_7); else __render(alternate_3, false);
+					if (lazy_4.value === 'loading') __render(consequent_1); else __render(alternate, false);
 				});
 			}
 

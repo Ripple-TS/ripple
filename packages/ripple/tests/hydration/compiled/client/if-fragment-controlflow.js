@@ -87,7 +87,7 @@ export function IfFragmentForIfIf() {
 			var node_2 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 			{
-				var consequent_3 = (__anchor) => {
+				var consequent_1 = (__anchor) => {
 					var fragment_1 = root_4();
 					var node_3 = _$_.first_child_frag(fragment_1);
 
@@ -112,37 +112,61 @@ export function IfFragmentForIfIf() {
 
 					var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
 
-					{
-						var consequent_1 = (__anchor) => {
-							var span = root_6();
+					_$_.if_flat(
+						node_4,
+						(__s) => {
+							var __c = muzes.length > 0 ? 0 : -1;
 
-							_$_.append(__anchor, span);
-						};
+							if (__s.c !== __c) {
+								_$_.flat_swap(__s, __c);
 
-						_$_.if(node_4, (__render) => {
-							if (muzes.length > 0) __render(consequent_1);
-						});
-					}
+								if (__c === 0) {
+									var span = root_6();
+
+									_$_.append(__s.a, span);
+								}
+							}
+						},
+						{
+							start: null,
+							end: null,
+							a: null,
+							c: _$_.UNINITIALIZED,
+							o: null
+						}
+					);
 
 					var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_4.nextSibling;
 
-					{
-						var consequent_2 = (__anchor) => {
-							var span_1 = root_7();
+					_$_.if_flat(
+						node_5,
+						(__s) => {
+							var __c = muzes.length === 0 ? 0 : -1;
 
-							_$_.append(__anchor, span_1);
-						};
+							if (__s.c !== __c) {
+								_$_.flat_swap(__s, __c);
 
-						_$_.if(node_5, (__render) => {
-							if (muzes.length === 0) __render(consequent_2);
-						});
-					}
+								if (__c === 0) {
+									var span_1 = root_7();
+
+									_$_.append(__s.a, span_1);
+								}
+							}
+						},
+						{
+							start: null,
+							end: null,
+							a: null,
+							c: _$_.UNINITIALIZED,
+							o: null
+						}
+					);
 
 					_$_.append(__anchor, fragment_1);
 				};
 
 				_$_.if(node_2, (__render) => {
-					if (hasLoaded) __render(consequent_3);
+					if (hasLoaded) __render(consequent_1);
 				});
 			}
 
@@ -162,7 +186,7 @@ export function IfFragmentElements() {
 			var node_6 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 			{
-				var consequent_4 = (__anchor) => {
+				var consequent_2 = (__anchor) => {
 					var fragment_2 = root_9();
 
 					_$_.next();
@@ -170,7 +194,7 @@ export function IfFragmentElements() {
 				};
 
 				_$_.if(node_6, (__render) => {
-					if (hasLoaded) __render(consequent_4);
+					if (hasLoaded) __render(consequent_2);
 				});
 			}
 
@@ -269,7 +293,7 @@ export function IfCodeBlockControlFlow() {
 			var node_10 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
 			{
-				var consequent_5 = (__anchor) => {
+				var consequent_3 = (__anchor) => {
 					var fragment_7 = root_18();
 					var expression_6 = _$_.first_child_frag(fragment_7);
 
@@ -301,7 +325,7 @@ export function IfCodeBlockControlFlow() {
 				};
 
 				_$_.if(node_10, (__render) => {
-					if (hasLoaded) __render(consequent_5);
+					if (hasLoaded) __render(consequent_3);
 				});
 			}
 
@@ -322,7 +346,7 @@ export function IfElseFragment() {
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 			{
-				var consequent_6 = (__anchor) => {
+				var consequent_4 = (__anchor) => {
 					var span_2 = root_20();
 
 					_$_.append(__anchor, span_2);
@@ -356,7 +380,7 @@ export function IfElseFragment() {
 				};
 
 				_$_.if(node_11, (__render) => {
-					if (hasLoaded) __render(consequent_6); else __render(alternate, false);
+					if (hasLoaded) __render(consequent_4); else __render(alternate, false);
 				});
 			}
 
@@ -377,7 +401,7 @@ export function IfDivFragment() {
 			var node_13 = _$_.hydrating ? _$_.hydrate_child() : div_5.firstChild;
 
 			{
-				var consequent_7 = (__anchor) => {
+				var consequent_5 = (__anchor) => {
 					var section = root_24();
 
 					{
@@ -409,7 +433,7 @@ export function IfDivFragment() {
 				};
 
 				_$_.if(node_13, (__render) => {
-					if (hasLoaded) __render(consequent_7);
+					if (hasLoaded) __render(consequent_5);
 				});
 			}
 

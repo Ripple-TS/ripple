@@ -857,102 +857,12 @@ function apply_updates(init, update, state) {
 			),
 		);
 	} else {
-		/** @type {AST.Property[]} */
-		const initial = [];
-		/** @type {AST.Statement[]} */
-		const render_statements = [];
-		let index = 0;
-
-		/**
-			@type {
-				Map<
-					AST.Identifier | AST.Expression,
-					RequiredPresent<
-						NonNullable<TransformClientState['update']>[number],
-						'initial' | 'identity' | 'expression'
-					>[]
-				>
-			}
-		 */
-		const grouped_updates = new Map();
-
-		for (const u of update) {
-			if (u.initial) {
-				const id = /** @type {AST.Identifier | AST.Expression} */ (
-					u.identity.type === 'Identifier'
-						? /** @type {Binding} */ (state.scope.get(u.identity.name)).node
-						: u.identity
-				);
-				let updates = grouped_updates.get(id);
-
-				if (updates === undefined) {
-					updates = [];
-					grouped_updates.set(id, updates);
-				}
-				updates.push(u);
-			}
-		}
-
-		for (const [, updates] of grouped_updates) {
-			if (updates.length === 1) {
-				const u = updates[0];
-				const key = index_to_key(index);
-				initial.push(b.prop('init', b.id(key), u.initial));
-				render_statements.push(
-					b.var('__' + key, u.expression),
-					b.if(
-						b.binary('!==', b.member(b.id('__prev'), b.id(key)), b.id('__' + key)),
-						b.block(
-							u.needsPrevTracking
-								? [
-										u.operation(b.id('__' + key), b.member(b.id('__prev'), b.id(key))),
-										b.stmt(
-											b.assignment('=', b.member(b.id('__prev'), b.id(key)), b.id('__' + key)),
-										),
-									]
-								: [
-										u.operation(
-											b.assignment('=', b.member(b.id('__prev'), b.id(key)), b.id('__' + key)),
-										),
-									],
-						),
-					),
-				);
-				index++;
-			} else {
-				const key = index_to_key(index);
-				/** @type {Array<AST.Statement>} */
-				const if_body = [];
-				initial.push(b.prop('init', b.id(key), updates[0].initial));
-				render_statements.push(
-					b.var('__' + key, updates[0].expression),
-					b.if(
-						b.binary('!==', b.member(b.id('__prev'), b.id(key)), b.id('__' + key)),
-						b.block(if_body),
-					),
-				);
-				for (const u of updates) {
-					if_body.push(
-						u.needsPrevTracking
-							? u.operation(b.id('__' + key), b.member(b.id('__prev'), b.id(key)))
-							: u.operation(b.id('__' + key)),
-					);
-					index++;
-				}
-				// Update prev after all operations
-				if_body.push(
-					b.stmt(b.assignment('=', b.member(b.id('__prev'), b.id(key)), b.id('__' + key))),
-				);
-			}
-		}
-
-		for (const u of update) {
-			if (!u.initial && !u.needsPrevTracking) {
-				render_statements.push(u.operation());
-			}
-		}
-
-		hoist_repeated_tracked_reads(render_statements, state);
+		const { initial, statements: render_statements } = build_update_statements(
+			update,
+			state,
+			'__prev',
+			'',
+		);
 
 		init.push(
 			b.stmt(
@@ -964,6 +874,482 @@ function apply_updates(init, update, state) {
 			),
 		);
 	}
+}
+
+/**
+ * The compared form of a list of updates: each tracked value is kept on the
+ * `prev_id` object under a key (prefixed, so several branches can share one
+ * object) and its setter runs only when the value changed.
+ * @param {NonNullable<TransformClientState['update']>} update
+ * @param {TransformClientState} state
+ * @param {string} prev_id
+ * @param {string} key_prefix
+ * @returns {{ initial: AST.Property[]; statements: AST.Statement[] }}
+ */
+function build_update_statements(update, state, prev_id, key_prefix) {
+	/** @type {AST.Property[]} */
+	const initial = [];
+	/** @type {AST.Statement[]} */
+	const render_statements = [];
+	let index = 0;
+	const prev = () => b.id(prev_id);
+
+	/**
+		@type {
+			Map<
+				AST.Identifier | AST.Expression,
+				RequiredPresent<
+					NonNullable<TransformClientState['update']>[number],
+					'initial' | 'identity' | 'expression'
+				>[]
+			>
+		}
+	 */
+	const grouped_updates = new Map();
+
+	for (const u of update) {
+		if (u.initial) {
+			const id = /** @type {AST.Identifier | AST.Expression} */ (
+				u.identity.type === 'Identifier'
+					? /** @type {Binding} */ (state.scope.get(u.identity.name)).node
+					: u.identity
+			);
+			let updates = grouped_updates.get(id);
+
+			if (updates === undefined) {
+				updates = [];
+				grouped_updates.set(id, updates);
+			}
+			updates.push(u);
+		}
+	}
+
+	for (const [, updates] of grouped_updates) {
+		if (updates.length === 1) {
+			const u = updates[0];
+			const key = key_prefix + index_to_key(index);
+			initial.push(b.prop('init', b.id(key), u.initial));
+			render_statements.push(
+				b.var('__' + key, u.expression),
+				b.if(
+					b.binary('!==', b.member(prev(), b.id(key)), b.id('__' + key)),
+					b.block(
+						u.needsPrevTracking
+							? [
+									u.operation(b.id('__' + key), b.member(prev(), b.id(key))),
+									b.stmt(b.assignment('=', b.member(prev(), b.id(key)), b.id('__' + key))),
+								]
+							: [u.operation(b.assignment('=', b.member(prev(), b.id(key)), b.id('__' + key)))],
+					),
+				),
+			);
+			index++;
+		} else {
+			const key = key_prefix + index_to_key(index);
+			/** @type {Array<AST.Statement>} */
+			const if_body = [];
+			initial.push(b.prop('init', b.id(key), updates[0].initial));
+			render_statements.push(
+				b.var('__' + key, updates[0].expression),
+				b.if(b.binary('!==', b.member(prev(), b.id(key)), b.id('__' + key)), b.block(if_body)),
+			);
+			for (const u of updates) {
+				if_body.push(
+					u.needsPrevTracking
+						? u.operation(b.id('__' + key), b.member(prev(), b.id(key)))
+						: u.operation(b.id('__' + key)),
+				);
+				index++;
+			}
+			// Update prev after all operations
+			if_body.push(b.stmt(b.assignment('=', b.member(prev(), b.id(key)), b.id('__' + key))));
+		}
+	}
+
+	for (const u of update) {
+		if (!u.initial && !u.needsPrevTracking) {
+			render_statements.push(u.operation());
+		}
+	}
+
+	hoist_repeated_tracked_reads(render_statements, state);
+
+	return { initial, statements: render_statements };
+}
+
+/**
+ * Runtime calls a flat `@if` branch may make while setting up. Anything else
+ * (a block, a component, an expression, a ref, a spread) keeps the branch on
+ * the block-per-branch lowering.
+ */
+const FLAT_SETUP_CALLS = new Set([
+	'pop',
+	'set_class',
+	'set_attribute',
+	'set_text',
+	'set_value',
+	'set_checked',
+	'set_selected',
+	'set_style',
+	'text',
+	'hydrate_child',
+	'hydrate_sibling',
+	'child',
+	'sibling',
+	'first_child_frag',
+]);
+
+/**
+ * @param {AST.Node} node
+ * @returns {string | null} the runtime function a `_$_.x(...)` call names
+ */
+function runtime_call_name(node) {
+	if (node.type !== 'CallExpression') {
+		return null;
+	}
+	const callee = node.callee;
+	// The builders spell `_$_.x` as one dotted identifier.
+	if (callee.type === 'Identifier' && callee.name.startsWith('_$_.')) {
+		return callee.name.slice(4);
+	}
+	if (
+		callee.type === 'MemberExpression' &&
+		!callee.computed &&
+		callee.object.type === 'Identifier' &&
+		callee.object.name === '_$_' &&
+		callee.property.type === 'Identifier'
+	) {
+		return callee.property.name;
+	}
+	return null;
+}
+
+/**
+ * Whether an initializer of a flat branch's setup only clones a template or
+ * navigates to a node.
+ * @param {AST.Expression} node
+ * @returns {boolean}
+ */
+function is_flat_setup_init(node) {
+	switch (node.type) {
+		case 'Identifier':
+			return true;
+		case 'MemberExpression':
+			return !node.computed && is_flat_setup_init(/** @type {AST.Expression} */ (node.object));
+		case 'CallExpression': {
+			const name = runtime_call_name(node);
+			if (name !== null) {
+				return FLAT_SETUP_CALLS.has(name);
+			}
+			return node.callee.type === 'Identifier' && /^root(_\d+)?$/.test(node.callee.name);
+		}
+		case 'ConditionalExpression':
+			return is_flat_setup_init(node.consequent) && is_flat_setup_init(node.alternate);
+		default:
+			return false;
+	}
+}
+
+/**
+ * Whether a transformed branch body's setup creates no blocks: template
+ * clones, node navigation, event handlers, and one-shot setters only.
+ * @param {AST.Statement[]} statements
+ * @returns {boolean}
+ */
+function is_flat_setup(statements) {
+	return statements.every((statement) => {
+		if (statement.type === 'BlockStatement') {
+			return is_flat_setup(statement.body);
+		}
+		if (statement.type === 'VariableDeclaration') {
+			return statement.declarations.every(
+				(d) => d.id.type === 'Identifier' && d.init != null && is_flat_setup_init(d.init),
+			);
+		}
+		if (statement.type === 'ExpressionStatement') {
+			const expression = statement.expression;
+			if (expression.type === 'AssignmentExpression') {
+				const left = expression.left;
+				return (
+					left.type === 'MemberExpression' &&
+					!left.computed &&
+					left.property.type === 'Identifier' &&
+					left.property.name.startsWith('__') &&
+					left.object.type === 'Identifier'
+				);
+			}
+			const name = runtime_call_name(expression);
+			return name !== null && FLAT_SETUP_CALLS.has(name);
+		}
+		return false;
+	});
+}
+
+/**
+ * @param {AST.Statement[]} statements
+ * @param {Set<string>} names
+ */
+function collect_declared_names(statements, names) {
+	for (const statement of statements) {
+		if (statement.type === 'BlockStatement') {
+			collect_declared_names(statement.body, names);
+		} else if (statement.type === 'VariableDeclaration') {
+			for (const d of statement.declarations) {
+				if (d.id.type === 'Identifier') names.add(d.id.name);
+			}
+		}
+	}
+}
+
+/**
+ * Rewrites references to setup-time locals (`fields` keys) into reads of the
+ * block state (`__s.<field>`), leaving property names alone.
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {Map<string, string>} fields
+ * @returns {T}
+ */
+function rewrite_to_state_fields(node, fields) {
+	return /** @type {T} */ (
+		walk(/** @type {AST.Node} */ (node), null, {
+			Identifier(node) {
+				const field = fields.get(node.name);
+				if (field !== undefined) {
+					return b.member(b.id('__s'), b.id(field));
+				}
+			},
+			MemberExpression(node, context) {
+				if (node.computed) return;
+				return /** @type {AST.MemberExpression} */ ({
+					...node,
+					object: /** @type {AST.Expression} */ (context.visit(node.object)),
+				});
+			},
+			Property(node, context) {
+				if (node.computed || node.shorthand) return;
+				return /** @type {AST.Property} */ ({
+					...node,
+					value: /** @type {AST.Expression} */ (context.visit(node.value)),
+				});
+			},
+		})
+	);
+}
+
+/**
+ * Transforms a control-flow branch body into its own template/init/update/
+ * final lists, without assembling them (see {@link finish_branch}), so a
+ * flat `@if` can inspect the pieces first.
+ * @param {AST.Node[]} body
+ * @param {TransformClientContext} context
+ * @param {ScopeInterface} scope
+ * @returns {TransformClientState}
+ */
+function transform_branch(body, context, scope) {
+	const { visit, state } = context;
+	/** @type {TransformClientState} */
+	const body_state = {
+		...state,
+		scope,
+		flush_node: null,
+		template: [],
+		init: [],
+		update: [],
+		final: [],
+		metadata: state.metadata,
+		namespace: state.namespace || 'html',
+		inside_head: state.inside_head || false,
+	};
+
+	transform_children(
+		body,
+		/** @type {VisitorClientContext} */ ({ visit, state: body_state, root: true }),
+	);
+
+	return body_state;
+}
+
+/**
+ * The statements of a transformed branch, as `transform_body` assembles them.
+ * @param {TransformClientState} body_state
+ * @param {TransformClientState} state
+ * @returns {AST.Statement[]}
+ */
+function finish_branch(body_state, state) {
+	const init = /** @type {AST.Statement[]} */ (body_state.init);
+	const update = /** @type {NonNullable<TransformClientState['update']>} */ (body_state.update);
+
+	if (update.length > 0 && !state.to_ts) {
+		apply_updates(init, update, state);
+	}
+
+	return [...init, .../** @type {AST.Statement[]} */ (body_state.final)];
+}
+
+/**
+ * One branch of a flat `@if`: its setup statements (template clone, node
+ * navigation, one-shot setters, event handlers), the root it appends, and its
+ * compared updates. Null when the branch needs a block of its own.
+ * @param {TransformClientState} body_state
+ * @returns {{ init: AST.Statement[]; update: NonNullable<TransformClientState['update']>; root: AST.Identifier } | null}
+ */
+function flat_branch(body_state) {
+	const init = /** @type {AST.Statement[]} */ (body_state.init);
+	const update = /** @type {NonNullable<TransformClientState['update']>} */ (body_state.update);
+	const final = /** @type {AST.Statement[]} */ (body_state.final);
+
+	if (final.length !== 1 || !is_flat_setup(init)) {
+		return null;
+	}
+	const append = final[0];
+	if (
+		append.type !== 'ExpressionStatement' ||
+		runtime_call_name(append.expression) !== 'append' ||
+		/** @type {AST.CallExpression} */ (append.expression).arguments.length !== 2 ||
+		/** @type {AST.CallExpression} */ (append.expression).arguments[0].type !== 'Identifier' ||
+		/** @type {AST.Identifier} */ (
+			/** @type {AST.CallExpression} */ (append.expression).arguments[0]
+		).name !== '__anchor' ||
+		/** @type {AST.CallExpression} */ (append.expression).arguments[1].type !== 'Identifier'
+	) {
+		return null;
+	}
+	if (!update.every((u) => u.initial && !u.needsPrevTracking)) {
+		return null;
+	}
+
+	return {
+		init,
+		update,
+		root: /** @type {AST.Identifier} */ (
+			/** @type {AST.CallExpression} */ (append.expression).arguments[1]
+		),
+	};
+}
+
+/**
+ * Lowers an `@if` (with an optional plain `@else`) whose branches are simple
+ * element templates into one block: the branch index and every branch's
+ * updates run in the same function, so a branch costs no block of its own.
+ * Returns null when a branch needs the block-per-branch lowering.
+ * @param {AST.IfStatement | AST.JSXIfExpression} node
+ * @param {TransformClientContext} context
+ * @param {AST.Identifier} id
+ * @param {boolean} root_controlled
+ * @param {TransformClientState} consequent_state
+ * @param {TransformClientState | null} alternate_state
+ * @returns {AST.Statement | null}
+ */
+function try_flat_if(node, context, id, root_controlled, consequent_state, alternate_state) {
+	if (context.state.to_ts) {
+		return null;
+	}
+	const branches = [flat_branch(consequent_state)];
+	if (alternate_state !== null) {
+		branches.push(flat_branch(alternate_state));
+	}
+	if (branches.some((branch) => branch === null)) {
+		return null;
+	}
+
+	/** @type {AST.Property[]} */
+	const props = [
+		b.prop('init', b.id('start'), b.literal(null)),
+		b.prop('init', b.id('end'), b.literal(null)),
+		b.prop('init', b.id('a'), b.literal(null)),
+		b.prop('init', b.id('c'), b.member(b.id('_$_'), b.id('UNINITIALIZED'))),
+		b.prop('init', b.id('o'), b.literal(null)),
+	];
+	/** @type {AST.Statement[][]} */
+	const setups = [];
+	/** @type {AST.Statement[][]} */
+	const updates = [];
+
+	branches.forEach((branch, index) => {
+		const { init, update, root } = /** @type {NonNullable<typeof branch>} */ (branch);
+		const prefix = 'b' + index;
+		const { initial, statements } = build_update_statements(update, context.state, '__s', prefix);
+
+		// Setup-time locals the updates read live on the state between runs.
+		const declared = new Set();
+		collect_declared_names(init, declared);
+		/** @type {Map<string, string>} */
+		const fields = new Map();
+		for (const statement of statements) {
+			walk(/** @type {AST.Node} */ (statement), null, {
+				Identifier(node) {
+					if (declared.has(node.name) && !fields.has(node.name)) {
+						fields.set(node.name, prefix + '_' + node.name);
+					}
+				},
+			});
+		}
+
+		/** @type {AST.Statement[]} */
+		const setup = [...init];
+		for (const [name, field] of fields) {
+			props.push(b.prop('init', b.id(field), b.literal(null)));
+			setup.push(b.stmt(b.assignment('=', b.member(b.id('__s'), b.id(field)), b.id(name))));
+		}
+		for (const prop of initial) {
+			props.push(prop);
+			setup.push(
+				b.stmt(
+					b.assignment(
+						'=',
+						b.member(b.id('__s'), /** @type {AST.Identifier} */ (prop.key)),
+						/** @type {AST.Expression} */ (prop.value),
+					),
+				),
+			);
+		}
+		setup.push(b.stmt(b.call('_$_.append', b.member(b.id('__s'), b.id('a')), root)));
+
+		setups.push(setup);
+		updates.push(statements.map((statement) => rewrite_to_state_fields(statement, fields)));
+	});
+
+	const test = /** @type {AST.Expression} */ (
+		context.visit(node.test, { ...context.state, metadata: { ...context.state.metadata } })
+	);
+	const branch_index = b.conditional(test, b.literal(0), b.literal(branches.length === 2 ? 1 : -1));
+
+	/** @type {AST.Statement | undefined} */
+	let setup_chain;
+	/** @type {AST.Statement | undefined} */
+	let update_chain;
+	for (let index = branches.length - 1; index >= 0; index--) {
+		const is_branch = b.binary('===', b.id('__c'), b.literal(index));
+		setup_chain = b.if(is_branch, b.block(setups[index]), setup_chain);
+		if (updates[index].length > 0 || update_chain !== undefined) {
+			update_chain = b.if(is_branch, b.block(updates[index]), update_chain);
+		}
+	}
+
+	/** @type {AST.Statement[]} */
+	const body = [
+		b.var('__c', branch_index),
+		b.if(
+			b.binary('!==', b.member(b.id('__s'), b.id('c')), b.id('__c')),
+			b.block([
+				b.stmt(b.call('_$_.flat_swap', b.id('__s'), b.id('__c'))),
+				/** @type {AST.Statement} */ (setup_chain),
+			]),
+		),
+	];
+	if (update_chain !== undefined) {
+		body.push(update_chain);
+	}
+
+	return b.stmt(
+		b.call(
+			'_$_.if_flat',
+			id,
+			b.arrow([b.id('__s')], b.block(body)),
+			b.object(props),
+			root_controlled ? b.true : undefined,
+		),
+	);
 }
 
 /**
@@ -1579,34 +1965,50 @@ const visit_if_statement = (node, context) => {
 		context.state.scope;
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent = b.block(
-		transform_body(consequent_body, {
-			...context,
-			state: { ...context.state, flush_node: null, scope: consequent_scope },
-		}),
+	const consequent_state = transform_branch(consequent_body, context, consequent_scope);
+
+	/** @type {TransformClientState | null} */
+	let alternate_state = null;
+
+	if (node.alternate !== null) {
+		const alternate = /** @type {AST.Statement} */ (node.alternate);
+		const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
+		/** @type {AST.Node[]} */
+		const alternate_body =
+			alternate.type === 'IfStatement'
+				? [alternate]
+				: alternate.type === 'BlockStatement'
+					? alternate.body
+					: [alternate];
+		alternate_state = transform_branch(
+			alternate_body,
+			context,
+			/** @type {ScopeInterface} */ (alternate_scope),
+		);
+	}
+
+	const flat = try_flat_if(
+		node,
+		context,
+		/** @type {AST.Identifier} */ (id),
+		root_controlled,
+		consequent_state,
+		alternate_state,
 	);
+	if (flat !== null) {
+		context.state.init?.push(flat);
+		return;
+	}
+
+	const consequent = b.block(finish_branch(consequent_state, context.state));
 	const consequent_id = context.state.scope.generate('consequent');
 
 	statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], consequent)));
 
 	let alternate_id;
 
-	if (node.alternate !== null) {
-		const alternate = /** @type {AST.Statement} */ (node.alternate);
-		const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
-		/** @type {AST.Node[]} */
-		let alternate_body =
-			alternate.type === 'IfStatement'
-				? [alternate]
-				: alternate.type === 'BlockStatement'
-					? alternate.body
-					: [alternate];
-		const alternate_block = b.block(
-			transform_body(alternate_body, {
-				...context,
-				state: { ...context.state, flush_node: null, scope: alternate_scope },
-			}),
-		);
+	if (alternate_state !== null) {
+		const alternate_block = b.block(finish_branch(alternate_state, context.state));
 		alternate_id = context.state.scope.generate('alternate');
 		statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
 	}

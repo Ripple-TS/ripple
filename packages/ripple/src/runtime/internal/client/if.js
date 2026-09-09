@@ -31,6 +31,20 @@ import { append } from './template.js';
  * }} IfState
  */
 
+/**
+ * The state of a flat if: the compiler inlined every branch's setup and
+ * updates into the block's function, which re-runs on any change and swaps
+ * the branch only when the branch index changes (see `flat_swap`). The
+ * compiler adds the fields its branches keep between runs.
+ * @typedef {{
+ *   start: Node | null;
+ *   end: Node | null;
+ *   a: Node | AppendIntoAnchor;
+ *   c: number | typeof UNINITIALIZED;
+ *   o: Block | null;
+ * }} FlatIfState
+ */
+
 /** The if block currently evaluating its condition (see `run_if`). */
 /** @type {IfState | null} */
 var active_if = null;
@@ -81,7 +95,7 @@ function first_child_node(block, skip) {
  * Destroys the current branch: its DOM range, then its blocks (all children
  * of the if block except the anchor's owner). `remove_dom` stays on for the
  * children when the branch renders through them and has no range itself.
- * @param {IfState} state
+ * @param {IfState | FlatIfState} state
  * @param {Block} block
  */
 function destroy_branch(state, block) {
@@ -111,7 +125,7 @@ function destroy_branch(state, block) {
  * of the branch being replaced (still rendered), or when the if renders
  * nothing and would otherwise have no position at all. Until then a list of
  * `@if` items keeps no anchor nodes in the DOM.
- * @param {IfState} state
+ * @param {IfState | FlatIfState} state
  * @param {Block} block
  */
 function materialize_anchor(state, block) {
@@ -251,5 +265,58 @@ export function if_block(node, fn, root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
+	}
+}
+
+/**
+ * A flat if (see {@link FlatIfState}). `fn` is the compiled block function:
+ * it evaluates the branch index, calls `flat_swap` when it changed, runs the
+ * chosen branch's setup, then its updates.
+ * @param {Node | AppendIntoAnchor} node
+ * @param {(state: FlatIfState) => void} fn
+ * @param {FlatIfState} state
+ * @param {boolean} [root_controlled] See {@link if_block}.
+ * @returns {void}
+ */
+export function if_flat(node, fn, state, root_controlled) {
+	/** @type {Node | undefined} */
+	var boundary;
+	var anchor = node;
+
+	if (hydrating) {
+		if (root_controlled) {
+			anchor = resolve_anchor(node);
+			boundary = /** @type {Node} */ (hydrate_node);
+		}
+		hydrate_next();
+	}
+
+	state.a = anchor;
+	render(fn, state, IF_BLOCK);
+
+	if (hydrating && root_controlled) {
+		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
+	}
+}
+
+/**
+ * The branch index of a flat if changed: drop the current branch, before the
+ * compiled setup of the new one runs. `-1` means no branch renders.
+ * @param {FlatIfState} state
+ * @param {number} index
+ */
+export function flat_swap(state, index) {
+	var block = /** @type {Block} */ (active_block);
+
+	if (state.c !== UNINITIALIZED) {
+		if (/** @type {AppendIntoAnchor} */ (state.a).into === true) {
+			materialize_anchor(state, block);
+		}
+		destroy_branch(state, block);
+	}
+	state.c = index;
+
+	if (index === -1 && /** @type {AppendIntoAnchor} */ (state.a).into === true) {
+		materialize_anchor(state, block);
 	}
 }

@@ -455,17 +455,29 @@ export function IfThenStatic() {
 			var fragment_25 = root_26();
 			var node_12 = _$_.first_child_frag(fragment_25);
 
-			{
-				var consequent = (__anchor) => {
-					var b = root_27();
+			_$_.if_flat(
+				node_12,
+				(__s) => {
+					var __c = lazy_10.value >= 0 ? 0 : -1;
 
-					_$_.append(__anchor, b);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node_12, (__render) => {
-					if (lazy_10.value >= 0) __render(consequent);
-				});
-			}
+						if (__c === 0) {
+							var b = root_27();
+
+							_$_.append(__s.a, b);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.next(2);
 			_$_.append(__anchor, fragment_25);
@@ -487,17 +499,29 @@ export function StaticThenIf() {
 			var div_11 = _$_.hydrating ? _$_.hydrate_sibling() : div_12.nextSibling;
 			var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_11.nextSibling;
 
-			{
-				var consequent_1 = (__anchor) => {
-					var b_1 = root_30();
+			_$_.if_flat(
+				node_14,
+				(__s) => {
+					var __c = lazy_11.value >= 0 ? 0 : -1;
 
-					_$_.append(__anchor, b_1);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node_14, (__render) => {
-					if (lazy_11.value >= 0) __render(consequent_1);
-				});
-			}
+						if (__c === 0) {
+							var b_1 = root_30();
+
+							_$_.append(__s.a, b_1);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.append(__anchor, fragment_27);
 		}));
@@ -1862,21 +1886,30 @@ export function IfOnly() {
 		var node_63 = _$_.first_child_frag(fragment_54);
 
 		_$_.expression(node_63, () => _$_.tsrx_element((__anchor, __block) => {
-			{
-				var consequent_2 = (__anchor) => {
-					var b_9 = root_91();
+			_$_.if_flat(
+				__anchor,
+				(__s) => {
+					var __c = lazy_40.value >= 0 ? 0 : -1;
 
-					_$_.append(__anchor, b_9);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(
-					__anchor,
-					(__render) => {
-						if (lazy_40.value >= 0) __render(consequent_2);
-					},
-					true
-				);
-			}
+						if (__c === 0) {
+							var b_9 = root_91();
+
+							_$_.append(__s.a, b_9);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				},
+				true
+			);
 		}));
 
 		_$_.append(__anchor, fragment_54);
@@ -1893,17 +1926,29 @@ export function IfThenOne() {
 			var fragment_56 = root_93();
 			var node_64 = _$_.first_child_frag(fragment_56);
 
-			{
-				var consequent_3 = (__anchor) => {
-					var b_10 = root_94();
+			_$_.if_flat(
+				node_64,
+				(__s) => {
+					var __c = lazy_41.value >= 0 ? 0 : -1;
 
-					_$_.append(__anchor, b_10);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node_64, (__render) => {
-					if (lazy_41.value >= 0) __render(consequent_3);
-				});
-			}
+						if (__c === 0) {
+							var b_10 = root_94();
+
+							_$_.append(__s.a, b_10);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.next();
 			_$_.append(__anchor, fragment_56);
@@ -1921,17 +1966,29 @@ export function SingleRootWithIf() {
 		{
 			var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
 
-			{
-				var consequent_4 = (__anchor) => {
-					var b_11 = root_96();
+			_$_.if_flat(
+				node_66,
+				(__s) => {
+					var __c = lazy_42.value >= 0 ? 0 : -1;
 
-					_$_.append(__anchor, b_11);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node_66, (__render) => {
-					if (lazy_42.value >= 0) __render(consequent_4);
-				});
-			}
+						if (__c === 0) {
+							var b_11 = root_96();
+
+							_$_.append(__s.a, b_11);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			_$_.pop(div_43);
 		}
@@ -2108,7 +2165,7 @@ export function IfTwoThenStatic() {
 			var node_70 = _$_.first_child_frag(fragment_58);
 
 			{
-				var consequent_5 = (__anchor) => {
+				var consequent = (__anchor) => {
 					var fragment_59 = root_103();
 
 					_$_.next();
@@ -2116,7 +2173,7 @@ export function IfTwoThenStatic() {
 				};
 
 				_$_.if(node_70, (__render) => {
-					if (lazy_47.value >= 0) __render(consequent_5);
+					if (lazy_47.value >= 0) __render(consequent);
 				});
 			}
 
@@ -2137,7 +2194,7 @@ export function IfTwoInDiv() {
 			var node_72 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
 
 			{
-				var consequent_6 = (__anchor) => {
+				var consequent_1 = (__anchor) => {
 					var fragment_60 = root_105();
 
 					_$_.next();
@@ -2145,7 +2202,7 @@ export function IfTwoInDiv() {
 				};
 
 				_$_.if(node_72, (__render) => {
-					if (lazy_48.value >= 0) __render(consequent_6);
+					if (lazy_48.value >= 0) __render(consequent_1);
 				});
 			}
 

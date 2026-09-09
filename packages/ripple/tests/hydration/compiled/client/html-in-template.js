@@ -38,17 +38,29 @@ export function TemplateAroundIfBlock() {
 
 			var node = _$_.hydrating ? _$_.hydrate_sibling() : template_2.nextSibling;
 
-			{
-				var consequent = (__anchor) => {
-					var span = root_3();
+			_$_.if_flat(
+				node,
+				(__s) => {
+					var __c = show ? 0 : -1;
 
-					_$_.append(__anchor, span);
-				};
+					if (__s.c !== __c) {
+						_$_.flat_swap(__s, __c);
 
-				_$_.if(node, (__render) => {
-					if (show) __render(consequent);
-				});
-			}
+						if (__c === 0) {
+							var span = root_3();
+
+							_$_.append(__s.a, span);
+						}
+					}
+				},
+				{
+					start: null,
+					end: null,
+					a: null,
+					c: _$_.UNINITIALIZED,
+					o: null
+				}
+			);
 
 			var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 

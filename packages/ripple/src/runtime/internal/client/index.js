@@ -96,7 +96,7 @@ export { for_block as for, for_block_keyed as for_keyed } from './for.js';
 
 export { selector, selector_match } from './selector.js';
 
-export { if_block as if } from './if.js';
+export { if_block as if, if_flat, flat_swap } from './if.js';
 
 export { try_block as try, get_pending_boundary } from './try.js';
 
