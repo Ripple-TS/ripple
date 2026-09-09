@@ -958,7 +958,7 @@ export class Output {
 				STREAM_ERROR_SCRIPT_PREFIX +
 				unit.id +
 				'" type="application/json">' +
-				escape_script(JSON.stringify({ message: unit.error })) +
+				escape_inline_script(JSON.stringify({ message: unit.error })) +
 				'</script>' +
 				'<script>__RIPPLE_S__(' +
 				unit.id +
@@ -1260,6 +1260,18 @@ export async function render(component, options = {}) {
 
 var CONTENT_SPECIAL = /[&<]/;
 var ATTR_SPECIAL = /[&"<]/;
+var SCRIPT_SPECIAL = /[<>]/;
+
+/**
+ * Escapes the characters that could end an inline `<script>` early. JSON
+ * payloads rarely contain `<` or `>`, so one test replaces two global
+ * replace scans in the common case.
+ * @param {string} str
+ * @returns {string}
+ */
+function escape_inline_script(str) {
+	return SCRIPT_SPECIAL.test(str) ? escape_script(str) : str;
+}
 
 /**
  * Escapes text or attribute content. Strings without a character to escape
@@ -1986,7 +1998,7 @@ function serialize_track_async_result(output, hash, value, deps) {
 		'<script id="' +
 			get_track_async_script_id(hash) +
 			'" type="application/json">' +
-			escape_script(envelope) +
+			escape_inline_script(envelope) +
 			'</script>',
 	);
 }
@@ -2232,7 +2244,7 @@ function settle_unit_after_catch(catch_block) {
  * @returns {void}
  */
 function push_script_for_hydration(push_fn, hash, envelope) {
-	var serialized_envelope = escape_script(JSON.stringify(envelope));
+	var serialized_envelope = escape_inline_script(JSON.stringify(envelope));
 
 	push_fn(
 		'<script id="' +
