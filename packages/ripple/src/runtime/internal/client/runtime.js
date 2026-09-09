@@ -1871,38 +1871,6 @@ export function with_scope(block, fn) {
 }
 
 /**
- * `with_scope` for a plain call with up to three arguments, so the compiler
- * needs no thunk for it: the arguments are evaluated by the caller, which is
- * only right when none of them reads the scope (no nested calls).
- * @param {Block} block
- * @param {Function} fn
- * @param {any} [a]
- * @param {any} [b]
- * @param {any} [c]
- * @returns {any}
- */
-export function scoped_call(block, fn, a, b, c) {
-	var previous_scope = active_scope;
-	try {
-		active_scope = block;
-		// Pass exactly the arguments the call site had, so rest parameters
-		// and `arguments.length` see what the author wrote.
-		switch (arguments.length) {
-			case 2:
-				return fn();
-			case 3:
-				return fn(a);
-			case 4:
-				return fn(a, b);
-			default:
-				return fn(a, b, c);
-		}
-	} finally {
-		active_scope = previous_scope;
-	}
-}
-
-/**
  * @returns {Block | null}
  */
 export function scope() {

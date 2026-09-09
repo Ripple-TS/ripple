@@ -537,7 +537,7 @@ function createPrimitiveItems() {
 
 export function DynamicArrayFromCall() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const items = _$_.scoped_call(__block, createPrimitiveItems);
+		const items = _$_.with_scope(__block, createPrimitiveItems);
 		var div_15 = root_38();
 
 		{
@@ -947,7 +947,7 @@ export function TextTailExpression() {
 
 		_$_.render(
 			(__prev) => {
-				var __a = "label: " + String(_$_.scoped_call(__block, fetchLabel));
+				var __a = "label: " + String(_$_.with_scope(__block, fetchLabel));
 
 				if (__prev.a !== __a) {
 					_$_.set_text(text, __prev.a = __a);
@@ -972,7 +972,7 @@ export function FragmentTailExpression() {
 
 		_$_.render(
 			(__prev) => {
-				var __a = 'frag-' + String(_$_.scoped_call(__block, fetchLabel));
+				var __a = 'frag-' + String(_$_.with_scope(__block, fetchLabel));
 
 				if (__prev.a !== __a) {
 					_$_.set_text(expression_29, __prev.a = __a);
@@ -1043,7 +1043,7 @@ function PrimitiveCallLead() {
 
 			_$_.render(
 				(__prev) => {
-					var __a = String(_$_.scoped_call(__block, fetchLabel));
+					var __a = String(_$_.with_scope(__block, fetchLabel));
 
 					if (__prev.a !== __a) {
 						_$_.set_text(expression_31, __prev.a = __a);
