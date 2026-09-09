@@ -1885,18 +1885,7 @@ export function scoped_call(block, fn, a, b, c) {
 	var previous_scope = active_scope;
 	try {
 		active_scope = block;
-		// Pass exactly the arguments the call site had, so rest parameters
-		// and `arguments.length` see what the author wrote.
-		switch (arguments.length) {
-			case 2:
-				return fn();
-			case 3:
-				return fn(a);
-			case 4:
-				return fn(a, b);
-			default:
-				return fn(a, b, c);
-		}
+		return fn(a, b, c);
 	} finally {
 		active_scope = previous_scope;
 	}

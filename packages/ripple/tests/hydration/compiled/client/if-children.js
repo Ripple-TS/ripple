@@ -113,29 +113,17 @@ export function IfWithStaticChildren() {
 
 			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
-			_$_.if_flat(
-				node_3,
-				(__s) => {
-					var __c = lazy_1.value ? 0 : -1;
+			{
+				var consequent_1 = (__anchor) => {
+					var div_6 = root_5();
 
-					if (__s.c !== __c) {
-						_$_.flat_swap(__s, __c);
+					_$_.append(__anchor, div_6);
+				};
 
-						if (__c === 0) {
-							var div_6 = root_5();
-
-							_$_.append(__s.a, div_6);
-						}
-					}
-				},
-				{
-					start: null,
-					end: null,
-					a: null,
-					c: _$_.UNINITIALIZED,
-					o: null
-				}
-			);
+				_$_.if(node_3, (__render) => {
+					if (lazy_1.value) __render(consequent_1);
+				});
+			}
 
 			_$_.pop(div_4);
 		}
@@ -158,7 +146,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 
 			{
-				var consequent_1 = (__anchor) => {
+				var consequent_2 = (__anchor) => {
 					var div_8 = root_7();
 
 					{
@@ -172,7 +160,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 				};
 
 				_$_.if(node_4, (__render) => {
-					if (lazy_2.value) __render(consequent_1);
+					if (lazy_2.value) __render(consequent_2);
 				});
 			}
 
@@ -215,29 +203,17 @@ export function ElementWithChildrenThenIf() {
 				var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
-				_$_.if_flat(
-					node_7,
-					(__s) => {
-						var __c = lazy_3.value ? 0 : -1;
+				{
+					var consequent_3 = (__anchor) => {
+						var div_11 = root_11();
 
-						if (__s.c !== __c) {
-							_$_.flat_swap(__s, __c);
+						_$_.append(__anchor, div_11);
+					};
 
-							if (__c === 0) {
-								var div_11 = root_11();
-
-								_$_.append(__s.a, div_11);
-							}
-						}
-					},
-					{
-						start: null,
-						end: null,
-						a: null,
-						c: _$_.UNINITIALIZED,
-						o: null
-					}
-				);
+					_$_.if(node_7, (__render) => {
+						if (lazy_3.value) __render(consequent_3);
+					});
+				}
 
 				_$_.pop(div_10);
 			}
@@ -266,29 +242,17 @@ export function DeepNestingThenIf() {
 				var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
 				var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
-				_$_.if_flat(
-					node_9,
-					(__s) => {
-						var __c = lazy_4.value ? 0 : -1;
+				{
+					var consequent_4 = (__anchor) => {
+						var footer = root_14();
 
-						if (__s.c !== __c) {
-							_$_.flat_swap(__s, __c);
+						_$_.append(__anchor, footer);
+					};
 
-							if (__c === 0) {
-								var footer = root_14();
-
-								_$_.append(__s.a, footer);
-							}
-						}
-					},
-					{
-						start: null,
-						end: null,
-						a: null,
-						c: _$_.UNINITIALIZED,
-						o: null
-					}
-				);
+					_$_.if(node_9, (__render) => {
+						if (lazy_4.value) __render(consequent_4);
+					});
+				}
 
 				_$_.pop(section_1);
 			}
@@ -328,33 +292,23 @@ export function DomElementChildrenThenSibling() {
 			{
 				var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
-				_$_.if_flat(
-					node_11,
-					(__s) => {
-						var __c = lazy_5.value === 'code' ? 0 : 1;
+				{
+					var consequent_5 = (__anchor) => {
+						var pre = root_16();
 
-						if (__s.c !== __c) {
-							_$_.flat_swap(__s, __c);
+						_$_.append(__anchor, pre);
+					};
 
-							if (__c === 0) {
-								var pre = root_16();
+					var alternate = (__anchor) => {
+						var div_15 = root_17();
 
-								_$_.append(__s.a, pre);
-							} else if (__c === 1) {
-								var div_15 = root_17();
+						_$_.append(__anchor, div_15);
+					};
 
-								_$_.append(__s.a, div_15);
-							}
-						}
-					},
-					{
-						start: null,
-						end: null,
-						a: null,
-						c: _$_.UNINITIALIZED,
-						o: null
-					}
-				);
+					_$_.if(node_11, (__render) => {
+						if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
+					});
+				}
 
 				_$_.pop(div_14);
 			}
@@ -441,34 +395,27 @@ export function StaticListThenStaticSiblings() {
 
 function RootIfChild(props) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		_$_.if_flat(
-			__anchor,
-			(__s) => {
-				var __c = props.on ? 0 : 1;
+		{
+			var consequent_6 = (__anchor) => {
+				var span = root_21();
 
-				if (__s.c !== __c) {
-					_$_.flat_swap(__s, __c);
+				_$_.append(__anchor, span);
+			};
 
-					if (__c === 0) {
-						var span = root_21();
+			var alternate_1 = (__anchor) => {
+				var span_1 = root_22();
 
-						_$_.append(__s.a, span);
-					} else if (__c === 1) {
-						var span_1 = root_22();
+				_$_.append(__anchor, span_1);
+			};
 
-						_$_.append(__s.a, span_1);
-					}
-				}
-			},
-			{
-				start: null,
-				end: null,
-				a: null,
-				c: _$_.UNINITIALIZED,
-				o: null
-			},
-			true
-		);
+			_$_.if(
+				__anchor,
+				(__render) => {
+					if (props.on) __render(consequent_6); else __render(alternate_1, false);
+				},
+				true
+			);
+		}
 	});
 }
 

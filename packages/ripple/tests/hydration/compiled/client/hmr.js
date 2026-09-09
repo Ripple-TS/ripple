@@ -35,29 +35,17 @@ export function Content() {
 		{
 			var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
-			_$_.if_flat(
-				node,
-				(__s) => {
-					var __c = lazy.value ? 0 : -1;
+			{
+				var consequent = (__anchor) => {
+					var p = root_2();
 
-					if (__s.c !== __c) {
-						_$_.flat_swap(__s, __c);
+					_$_.append(__anchor, p);
+				};
 
-						if (__c === 0) {
-							var p = root_2();
-
-							_$_.append(__s.a, p);
-						}
-					}
-				},
-				{
-					start: null,
-					end: null,
-					a: null,
-					c: _$_.UNINITIALIZED,
-					o: null
-				}
-			);
+				_$_.if(node, (__render) => {
+					if (lazy.value) __render(consequent);
+				});
+			}
 
 			_$_.pop(div_1);
 		}

@@ -2061,7 +2061,7 @@ describe('@tsrx/ripple fragment children flatten', () => {
 		const { code } = compile(source, 'App.tsrx');
 		// The directive anchors directly in the parent template — exactly one
 		// comment anchor, no fragment wrapper expression around it.
-		expect(code).toMatch(/_\$_\.if(_flat)?\(/);
+		expect(code).toContain('_$_.if(');
 		expect((code.match(/<!>/g) || []).length).toBe(1);
 		expect(code).not.toContain('_$_.expression(');
 
