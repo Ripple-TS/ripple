@@ -70,6 +70,40 @@ describe('primitive text inference', () => {
 		'BigInt?.(props.value)',
 	])('keeps %s on the renderable path', (expression) => expect_renderable(expression));
 
+	it.each([
+		['theme()', 'const theme = props.get as () => string;'],
+		['theme()', 'const theme = props.get as (() => number);'],
+		['label()', 'const label = (): string => props.value;'],
+		['label()', 'function label(): number { return props.value; }'],
+		['props.render()', '', 'props: { render: () => string }'],
+		['props.render()', '', 'props: { render(): number }'],
+		['props.theme.get()', '', 'props: { theme: { get: () => string } }'],
+	])('uses text output for %s with a declared return type', (expression, setup, params) => {
+		expect_text(expression, setup, params);
+	});
+
+	it('follows a module-level interface method signature', () => {
+		const source = `interface Props { render(): string; format: (n: number) => number }
+			export function App(props: Props) @{ <div>{props.render()}{props.format(1)}</div> }`;
+		const client = compile(source, 'App.tsrx', { mode: 'client' }).code;
+		expect(client).not.toMatch(/_\$_\.expression(?:_children)?\(/);
+		expect(client).toContain('_$_.set_text(');
+	});
+
+	it.each([
+		['theme()', 'const theme = props.get as <T>() => T;'],
+		['theme?.()', 'const theme = props.get as () => string;'],
+		['theme()', 'const theme = async (): Promise<string> => props.value;'],
+		['theme()', 'const theme = (): string => props.value; theme = props.other;'],
+		['props.render()', '', 'props: { render: () => object }'],
+		['props.render()', '', 'props: { render<T>(): T }'],
+	])(
+		'keeps %s on the renderable path without a primitive return type',
+		(expression, setup, params) => {
+			expect_renderable(expression, setup, params);
+		},
+	);
+
 	it('keeps numeric evidence separate from string concatenation', () => {
 		const { server } = expect_text('Number(props.a) + Number(props.b)');
 		expect(server).toContain("String(Number(props.a) + Number(props.b) ?? '')");

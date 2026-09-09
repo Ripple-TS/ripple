@@ -3441,6 +3441,14 @@ export function is_text_primitive_expression(
 		return true;
 	}
 
+	// A call whose callee is declared to return a primitive.
+	if (expression.type === 'CallExpression') {
+		return is_text_primitive_type_annotation(
+			get_call_return_type_annotation(expression, state),
+			strings_only,
+		);
+	}
+
 	// Every binary, unary, and update expression yields a primitive in JS:
 	// `+` returns a string or number (object operands coerce first),
 	// arithmetic/bitwise operators return numbers or bigints, comparisons and
@@ -3659,6 +3667,33 @@ export function get_member_type_annotation(type_annotation, property_name, state
 		return undefined;
 	}
 
+	const member = get_member_signature(resolved, property_name, state);
+	return member?.type === 'TSPropertySignature' ? member.typeAnnotation?.typeAnnotation : undefined;
+}
+
+/**
+ * The declared member named `property_name` of an object type: a property or
+ * method signature of a type literal, or of a module-level `interface` /
+ * `type` the annotation names.
+ * @param {AST.TypeNode | AST.TSInterfaceBody | undefined} type_annotation
+ * @param {string} property_name
+ * @param {{ scope: ScopeInterface }} state
+ * @returns {AST.TSPropertySignature | AST.TSMethodSignature | undefined}
+ */
+function get_member_signature(type_annotation, property_name, state) {
+	const resolved =
+		type_annotation?.type === 'TSInterfaceBody'
+			? type_annotation
+			: resolve_type_annotation(type_annotation, state);
+
+	if (resolved?.type === 'TSIntersectionType') {
+		for (const type of resolved.types) {
+			const member = get_member_signature(type, property_name, state);
+			if (member) return member;
+		}
+		return undefined;
+	}
+
 	const members =
 		resolved?.type === 'TSTypeLiteral'
 			? resolved.members
@@ -3671,7 +3706,12 @@ export function get_member_type_annotation(type_annotation, property_name, state
 	}
 
 	for (const member of members) {
-		if (member.type !== 'TSPropertySignature' || member.computed) continue;
+		if (
+			(member.type !== 'TSPropertySignature' && member.type !== 'TSMethodSignature') ||
+			member.computed
+		) {
+			continue;
+		}
 
 		const key = member.key;
 		const name =
@@ -3682,8 +3722,72 @@ export function get_member_type_annotation(type_annotation, property_name, state
 					: null;
 
 		if (name === property_name) {
-			return member.typeAnnotation?.typeAnnotation;
+			return member;
 		}
+	}
+
+	return undefined;
+}
+
+/**
+ * The declared return type of a call, where the callee's type is known from
+ * the module: a binding typed as a function type (an annotation, an `as`
+ * assertion, or a function-typed property of an annotated object), a method
+ * signature of the callee object's type, or a function declaration or
+ * initializer with a declared return type. Optional calls, and generic, async,
+ * or generator functions, are not proven.
+ * @param {AST.SimpleCallExpression} expression
+ * @param {{ scope: ScopeInterface }} state
+ * @param {Set<Binding>} [visited]
+ * @returns {AST.TypeNode | undefined}
+ */
+export function get_call_return_type_annotation(expression, state, visited = new Set()) {
+	if (expression.optional) return undefined;
+	const callee = expression.callee;
+
+	if (callee.type === 'Super') return undefined;
+
+	if (callee.type === 'Identifier') {
+		const binding = state.scope.get(callee.name);
+		const initial = binding?.initial;
+		if (
+			binding &&
+			initial &&
+			!visited.has(binding) &&
+			!binding.reassigned &&
+			!binding.mutated &&
+			!binding.updated &&
+			(initial.type === 'FunctionDeclaration' ||
+				initial.type === 'FunctionExpression' ||
+				initial.type === 'ArrowFunctionExpression')
+		) {
+			if (initial.async || initial.generator || initial.typeParameters !== undefined) {
+				return undefined;
+			}
+			return unwrap_type_annotation(initial.returnType) ?? undefined;
+		}
+	} else if (callee.type === 'MemberExpression') {
+		const property_name = get_static_property_name(callee);
+		if (property_name !== null) {
+			const object_type = get_expression_type_annotation(callee.object, state, visited);
+			const member =
+				object_type === undefined
+					? undefined
+					: get_member_signature(object_type, property_name, state);
+			if (member?.type === 'TSMethodSignature') {
+				return member.typeParameters === undefined
+					? (unwrap_type_annotation(member.typeAnnotation) ?? undefined)
+					: undefined;
+			}
+		}
+	}
+
+	const resolved = resolve_type_annotation(
+		get_expression_type_annotation(callee, state, visited),
+		state,
+	);
+	if (resolved?.type === 'TSFunctionType' && resolved.typeParameters === undefined) {
+		return unwrap_type_annotation(resolved.typeAnnotation) ?? undefined;
 	}
 
 	return undefined;
@@ -3793,6 +3897,10 @@ export function get_expression_type_annotation(expression, state, visited = new 
 		if (object_type === undefined) return undefined;
 
 		return get_member_type_annotation(object_type, property_name, state);
+	}
+
+	if (expression.type === 'CallExpression') {
+		return get_call_return_type_annotation(expression, state, visited);
 	}
 
 	return undefined;

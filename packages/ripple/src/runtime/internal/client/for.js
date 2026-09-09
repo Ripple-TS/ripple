@@ -296,16 +296,7 @@ function run_for_keyed(state) {
 	var array = collection_to_array(state.g());
 
 	set_tracking(false);
-	reconcile_by_key(
-		state.a,
-		block,
-		array,
-		state.r,
-		state.c,
-		state.x,
-		/** @type {(item: any) => any} */ (state.k),
-		state.e,
-	);
+	reconcile_by_key(state.a, block, array, state.r, state.c, state.x, state.k, state.e);
 	set_tracking(true);
 
 	rehydrate_anchor(state);
@@ -376,7 +367,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
  * @param {() => V[] | Iterable<V>} get_collection
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
- * @param {(item: V) => K} [get_key]
+ * @param {(item: V) => K} [get_key] omitted for identity keys (`key item`)
  * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
@@ -408,15 +399,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 
 	render(
 		run_for_keyed,
-		list_state(
-			anchor,
-			get_collection,
-			render_fn,
-			is_controlled,
-			is_indexed,
-			/** @type {(item: V) => K} */ (get_key),
-			render_empty,
-		),
+		list_state(anchor, get_collection, render_fn, is_controlled, is_indexed, get_key, render_empty),
 		FOR_BLOCK,
 	);
 
@@ -480,7 +463,7 @@ function update_value(block, value) {
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
- * @param {(item: V) => K} get_key
+ * @param {((item: V) => K) | undefined} get_key identity keys when omitted
  * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  *
@@ -502,12 +485,15 @@ function reconcile_by_key(
 
 	if (state.keys === null && b_length > 0) {
 		var b_blocks = Array(b_length);
-		var b_keys = Array(b_length);
+		// Identity keys (`key item`) are the items themselves.
+		var b_keys = get_key === undefined ? b : Array(b_length);
 
 		// One loop, no `map` callback machinery: most lists are short.
 		for (var j = 0; j < b_length; j++) {
 			var value = b[j];
-			b_keys[j] = get_key(value);
+			if (get_key !== undefined) {
+				b_keys[j] = get_key(value);
+			}
 			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, true);
 		}
 
@@ -539,7 +525,7 @@ function reconcile_by_key(
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
- * @param {(item: V) => K} get_key
+ * @param {((item: V) => K) | undefined} get_key
  * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
@@ -607,8 +593,15 @@ function reconcile_by_key_diff(
 		}
 		return;
 	}
-	var b_blocks = Array(b_length);
-	var b_keys = b.map(get_key);
+	// Identity keys are the items themselves, so a matched key is also the
+	// item's current tracked value: only computed keys need `update_value`.
+	var b_keys = get_key === undefined ? b : b.map(get_key);
+	var a_blocks = state.blocks;
+	// A same-length run rewrites the block array in place: matched ends are
+	// already at their index, and the middle reads the old blocks from a copy
+	// taken before its first write.
+	var in_place = a_length === b_length;
+	var b_blocks = in_place ? a_blocks : Array(b_length);
 
 	// Fast-path for create
 	if (a_length === 0) {
@@ -621,7 +614,6 @@ function reconcile_by_key_diff(
 		return;
 	}
 
-	var a_blocks = state.blocks;
 	// Set by every run that leaves items behind.
 	var a_keys = /** @type {any[]} */ (state.keys);
 	var a_start = 0;
@@ -630,6 +622,25 @@ function reconcile_by_key_diff(
 	var b_end = b_length - 1;
 	var b_val;
 	var b_block;
+
+	if (get_key === undefined && !is_indexed) {
+		// Identity keys without an index: a matched item needs no update, so
+		// the unchanged prefix and suffix are skipped with plain compares.
+		while (a_start <= a_end && b_start <= b_end && a_keys[a_start] === b_keys[b_start]) {
+			if (!in_place) {
+				b_blocks[b_start] = a_blocks[a_start];
+			}
+			a_start++;
+			b_start++;
+		}
+		while (a_start <= a_end && b_start <= b_end && a_keys[a_end] === b_keys[b_end]) {
+			if (!in_place) {
+				b_blocks[b_end] = a_blocks[a_end];
+			}
+			a_end--;
+			b_end--;
+		}
+	}
 
 	// Match from both ends first, including the two end-crossing cases: an old
 	// item that moved to the far end of the new list, and a run whose ends were
@@ -642,7 +653,9 @@ function reconcile_by_key_diff(
 			if (is_indexed) {
 				update_index(b_block, b_start);
 			}
-			update_value(b_block, b_val);
+			if (get_key !== undefined) {
+				update_value(b_block, b_val);
+			}
 			a_start++;
 			b_start++;
 			continue;
@@ -653,13 +666,20 @@ function reconcile_by_key_diff(
 			if (is_indexed) {
 				update_index(b_block, b_end);
 			}
-			update_value(b_block, b_val);
+			if (get_key !== undefined) {
+				update_value(b_block, b_val);
+			}
 			a_end--;
 			b_end--;
 			continue;
 		}
 		if (a_start === a_end || a_blocks[a_start].s.start === null) {
 			break;
+		}
+		if (in_place) {
+			// An end-crossing move overwrites an old block before it is read.
+			a_blocks = a_blocks.slice();
+			in_place = false;
 		}
 		if (a_keys[a_end] === b_keys[b_start]) {
 			// Last old item is the next new one: move it in front of the old run.
@@ -668,7 +688,9 @@ function reconcile_by_key_diff(
 			if (is_indexed) {
 				update_index(b_block, b_start);
 			}
-			update_value(b_block, b_val);
+			if (get_key !== undefined) {
+				update_value(b_block, b_val);
+			}
 			move(b_block, /** @type {ChildNode} */ (a_blocks[a_start].s.start));
 			a_end--;
 			b_start++;
@@ -681,7 +703,9 @@ function reconcile_by_key_diff(
 			if (is_indexed) {
 				update_index(b_block, b_end);
 			}
-			update_value(b_block, b_val);
+			if (get_key !== undefined) {
+				update_value(b_block, b_val);
+			}
 			move(b_block, block_start(b_blocks, b_end + 1, b_length, anchor));
 			a_start++;
 			b_end--;
@@ -712,6 +736,10 @@ function reconcile_by_key_diff(
 			destroy_block(a_blocks[a_start++]);
 		}
 	} else {
+		if (in_place) {
+			a_blocks = a_blocks.slice();
+			in_place = false;
+		}
 		a_left = a_end - a_start + 1;
 		b_left = b_end - b_start + 1;
 		sources = new Int32Array(b_left + 1);
@@ -745,7 +773,9 @@ function reconcile_by_key_diff(
 							if (is_indexed) {
 								update_index(b_block, j);
 							}
-							update_value(b_block, b_val);
+							if (get_key !== undefined) {
+								update_value(b_block, b_val);
+							}
 							++patched;
 							break;
 						}
@@ -786,7 +816,9 @@ function reconcile_by_key_diff(
 						if (is_indexed) {
 							update_index(b_block, j);
 						}
-						update_value(b_block, b_val);
+						if (get_key !== undefined) {
+							update_value(b_block, b_val);
+						}
 						++patched;
 					} else if (!fast_path_removal) {
 						destroy_block(a_blocks[i]);

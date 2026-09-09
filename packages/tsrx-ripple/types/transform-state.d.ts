@@ -16,6 +16,14 @@ export interface SelectorForState {
 }
 
 declare module '@tsrx/core/types' {
+	interface BaseNodeMetaData {
+		/**
+		 * The parent element a static component child appends into when it
+		 * follows its template siblings (set by transform_children).
+		 */
+		append_after?: AST.Expression;
+	}
+
 	interface TransformClientState {
 		/** Set while transforming a `@for` body. */
 		selector_for?: SelectorForState;

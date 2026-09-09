@@ -14,7 +14,6 @@ exports[`composite > render > correct handles passing through component props an
     <div>
       I am B
     </div>
-    <!---->
   </div>
   
 </div>

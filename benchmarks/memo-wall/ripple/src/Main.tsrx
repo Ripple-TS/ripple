@@ -67,7 +67,12 @@ function Row(props: {
 	</div>
 }
 
-function Wall(props: {
+function Wall({
+	wall,
+	title,
+	initialItems,
+	bind,
+}: {
 	wall: string;
 	title: string;
 	initialItems: Item[];
@@ -77,10 +82,10 @@ function Wall(props: {
 		setTheme: (v: string) => void;
 	}) => void;
 }) @{
-	let &[items] = track<Item[]>(props.initialItems);
+	let &[items] = track<Item[]>(initialItems);
 	let &[tick] = track(0);
 	let &[theme] = track('t0');
-	props.bind({
+	bind({
 		setItems: (v: Item[]) => {
 			items = v;
 		},
@@ -93,16 +98,16 @@ function Wall(props: {
 	});
 	// A stable accessor over the tracked theme: leaf text expressions calling
 	// it subscribe individually (the context VALUE never changes identity).
-	((props.wall === 'A' ? ThemeA : ThemeB)).set(() => theme);
+	((wall === 'A' ? ThemeA : ThemeB)).set(() => theme);
 
-	<section class="wall" id={'wall-' + props.wall.toLowerCase()}>
+	<section class="wall" id={'wall-' + wall.toLowerCase()}>
 		<h2>
-			{props.title}
+			{title}
 			<span class="tick">{tick}</span>
 		</h2>
 		<div class="rows">
 			@for (const it of items; key it) {
-				<Row id={it.id} label={it.label} value={it.value} wall={props.wall} onSelect={selectRow} />
+				<Row id={it.id} label={it.label} value={it.value} wall={wall} onSelect={selectRow} />
 			}
 		</div>
 	</section>

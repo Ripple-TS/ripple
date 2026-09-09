@@ -1658,8 +1658,7 @@ export function KeyedForLoopAppendAndRotate() {
 
 						_$_.append(__anchor, span_7);
 					},
-					0,
-					(pattern_8) => _$_.get(pattern_8)
+					0
 				);
 
 				_$_.pop(div_18);
@@ -1708,8 +1707,7 @@ function RootKeyedList(props) {
 
 				_$_.append(__anchor, span_8);
 			},
-			16,
-			(pattern_9) => _$_.get(pattern_9)
+			16
 		);
 	});
 }

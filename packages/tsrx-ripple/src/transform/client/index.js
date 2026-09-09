@@ -1832,12 +1832,20 @@ const visit_for_of_statement = (node, context) => {
 		b.literal(flags),
 	];
 	if (key != null) {
-		for_args.push(
-			b.arrow(
-				index ? [pattern, index] : [pattern],
-				/** @type {AST.Expression} */ (context.visit(key)),
-			),
-		);
+		if (is_identity_key(node, key, body_scope)) {
+			// `key item` keys by the item itself: the runtime keys by identity
+			// with no key callback, so nothing runs per item on a diff.
+			if (empty_renderer) {
+				for_args.push(b.void0);
+			}
+		} else {
+			for_args.push(
+				b.arrow(
+					index ? [pattern, index] : [pattern],
+					/** @type {AST.Expression} */ (context.visit(key)),
+				),
+			);
+		}
 	}
 	if (empty_renderer) {
 		for_args.push(empty_renderer);
@@ -1852,6 +1860,27 @@ const visit_for_of_statement = (node, context) => {
 		),
 	);
 };
+
+/**
+ * Whether a keyed loop's key is the loop item itself (`key item` over a plain
+ * `const item of …` pattern, with `item` resolving to the loop binding).
+ * @param {AST.ForOfStatement | AST.JSXForOfExpression} node
+ * @param {AST.Expression} key
+ * @param {ScopeInterface} body_scope
+ * @returns {boolean}
+ */
+function is_identity_key(node, key, body_scope) {
+	if (key.type !== 'Identifier' || node.left.type !== 'VariableDeclaration') {
+		return false;
+	}
+	const id = node.left.declarations[0]?.id;
+	return (
+		id !== undefined &&
+		id.type === 'Identifier' &&
+		id.name === key.name &&
+		body_scope.get(key.name)?.node === id
+	);
+}
 
 /** @import { SelectorForState } from '../../../types/transform-state' */
 
@@ -3388,7 +3417,7 @@ const visitors = {
 					? append_into
 					: state.flush_node?.();
 
-			if (!root_controlled && !append_into) {
+			if (!root_controlled && !append_into && node.metadata?.append_after === undefined) {
 				state.template?.push('<!>');
 			}
 
@@ -5901,6 +5930,25 @@ function transform_children(children, context) {
 		for (const child of normalized) {
 			child.metadata = { ...child.metadata, append_into: append_anchor_id };
 		}
+	} else if (!root && !root_controlled && state.flush_node != null) {
+		// A trailing run of static components behind template siblings appends
+		// into the parent as well: no `<!>` placeholder per component, and an
+		// appendChild instead of an insert. Hydration keeps the sibling cursor,
+		// so the earlier siblings are still navigated (see flush_node).
+		let trailing_start = normalized.length;
+		while (trailing_start > 0 && is_static_component_child(normalized[trailing_start - 1])) {
+			trailing_start -= 1;
+		}
+		if (
+			trailing_start > 0 &&
+			trailing_start < normalized.length &&
+			is_template_or_control_flow(normalized[trailing_start - 1])
+		) {
+			const parent_id = /** @type {AST.Expression} */ (state.flush_node());
+			for (let i = trailing_start; i < normalized.length; i++) {
+				normalized[i].metadata = { ...normalized[i].metadata, append_after: parent_id };
+			}
+		}
 	}
 
 	/** @param {AST.Node} node */
@@ -6028,7 +6076,25 @@ function transform_children(children, context) {
 					return cached;
 				} else if (current_prev !== null) {
 					const id = get_id(node);
-					state.init?.push(b.var(id, inline_traversal('sibling', current_prev(), is_text)));
+					const append_after = node.metadata?.append_after;
+					if (append_after !== undefined) {
+						// The earlier siblings are navigated for the hydration cursor;
+						// the client appends into the parent instead of inserting
+						// before a placeholder.
+						current_prev();
+						state.init?.push(
+							b.var(
+								id,
+								b.conditional(
+									b.member(b.id('_$_'), b.id('hydrating')),
+									b.call('_$_.hydrate_sibling'),
+									b.call('_$_.append_into', append_after),
+								),
+							),
+						);
+					} else {
+						state.init?.push(b.var(id, inline_traversal('sibling', current_prev(), is_text)));
+					}
 					cached = id;
 					return id;
 				} else if (initial !== null) {

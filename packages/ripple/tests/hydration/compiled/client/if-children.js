@@ -446,8 +446,7 @@ function RootForChild(props) {
 
 				_$_.append(__anchor, span_2);
 			},
-			16,
-			(pattern) => _$_.get(pattern)
+			16
 		);
 	});
 }

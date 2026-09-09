@@ -708,6 +708,63 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 	// `@for` accepts any iterable, but `Set`/`Map`/generators have no `.length` or
 	// `.map`. Lower through `Array.from(...)` so the binding and the `@empty` branch
 	// type-check (the index `; index i` becomes the map callback's 2nd param).
+	it('appends trailing static components into the parent without a placeholder', () => {
+		const { code } = compile(
+			`function Item() @{ <b>item</b> }
+			function App() @{ <div><span>{'a'}</span><Item /><Item /></div> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.template(`<div><span>a</span></div>`');
+		expect(code).toMatch(
+			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : _\$_\.append_into\(div\);/,
+		);
+		expect(code).toMatch(
+			/var node_1 = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : _\$_\.append_into\(div\);/,
+		);
+	});
+
+	it('keeps the placeholder for a component followed by a template sibling', () => {
+		const { code } = compile(
+			`function Item() @{ <b>item</b> }
+			function App() @{ <div><Item /><span>{'a'}</span></div> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.template(`<div><!><span>a</span></div>`');
+		expect(code).not.toContain('_$_.append_into(');
+	});
+
+	it('@for keyed by the item itself passes no key callback', () => {
+		const { code } = compile(
+			`function App({ items }: { items: { id: number }[] }) @{ <ul>@for (const item of items; key item) { <li>{item.id}</li> }</ul> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.for_keyed(');
+		expect(code).not.toContain('(pattern) => _$_.get(pattern)');
+		expect(code).toMatch(/_\$_\.for_keyed\([\s\S]*?\n\s*\d+\n\s*\);/);
+	});
+
+	it('@for keyed by the item itself keeps the @empty branch in its slot', () => {
+		const { code } = compile(
+			`function App({ items }: { items: { id: number }[] }) @{ <ul>@for (const item of items; key item) { <li>{item.id}</li> } @empty { <li>none</li> }</ul> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toMatch(/void 0,\s*\(__anchor\) => \{/);
+	});
+
+	it('@for keyed by a shadowing item name keeps the key callback', () => {
+		const { code } = compile(
+			`function App({ items }: { items: { id: number }[] }) @{ <ul>@for (const { id } of items; key id) { <li>{id}</li> }</ul> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.for_keyed(');
+		expect(code).toMatch(/\(pattern\) => /);
+	});
+
 	it('@for over a non-array iterable is iterable-safe via Array.from (+ index, + @empty)', () => {
 		const empty = ts(
 			`function App({ xs }: { xs: Set<number> }) @{ const v = @for (const x of xs; index i) { <li>{i}{x}</li> } @empty { <p>none</p> }; <div>{v}</div> }`,

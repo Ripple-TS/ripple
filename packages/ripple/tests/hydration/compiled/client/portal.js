@@ -2,13 +2,13 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
-var root = _$_.template(`<div class="container"><h1>Main Content</h1><!></div>`, 0);
+var root = _$_.template(`<div class="container"><h1>Main Content</h1></div>`, 0);
 var root_3 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
 var root_5 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
 var root_4 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
 var root_7 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
-var root_6 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div><!></div>`, 0);
+var root_6 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`, 0);
 
 import { Portal, track } from 'ripple';
 
@@ -18,7 +18,7 @@ export function SimplePortal() {
 
 		{
 			var h1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
-			var node = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
+			var node = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div);
 
 			_$_.portal(node, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
 				var div_1 = root_1();
@@ -93,7 +93,7 @@ export function NestedContentWithPortal() {
 
 		{
 			var div_8 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_8.nextSibling;
+			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_7);
 
 			_$_.portal(node_3, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
 				var div_9 = root_7();

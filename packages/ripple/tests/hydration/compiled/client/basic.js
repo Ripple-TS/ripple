@@ -20,7 +20,7 @@ var root_15 = _$_.template(`<div class="helper-item"> </div>`, 0);
 var root_17 = _$_.template(`<span class="label"> </span><!>`, 1, 2);
 var root_16 = _$_.template(`<!>`, 1, 1);
 var root_19 = _$_.template(`<div class="app-item"> </div>`, 0);
-var root_18 = _$_.template(`<div class="nested-expression-values"><!><!></div>`, 0);
+var root_18 = _$_.template(`<div class="nested-expression-values"><!></div>`, 0);
 var root_20 = _$_.template(`<strong class="middle">beta</strong>`, 0);
 var root_21 = _$_.template(`<em class="tail">epsilon</em>`, 0);
 var root_22 = _$_.template(` `, 1, 1);
@@ -71,9 +71,9 @@ var root_66 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
 var root_67 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
 var root_68 = _$_.template(`<!><!><!><!>`, 1, 4);
 var root_69 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
-var root_70 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p><!></div>`, 0);
-var root_71 = _$_.template(`<div class="inner"><span>Inner text</span><!></div>`, 0);
-var root_72 = _$_.template(`<section class="outer"><h2>Section title</h2><!></section>`, 0);
+var root_70 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p></div>`, 0);
+var root_71 = _$_.template(`<div class="inner"><span>Inner text</span></div>`, 0);
+var root_72 = _$_.template(`<section class="outer"><h2>Section title</h2></section>`, 0);
 var root_73 = _$_.template(`<div> </div>`, 0);
 var root_74 = _$_.template(`<div> </div>`, 0);
 var root_75 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
@@ -341,7 +341,7 @@ export function NestedTsxTsrxExpressionValues() {
 				0
 			);
 
-			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_8.nextSibling;
+			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8);
 
 			_$_.render_component(NestedTsxTsrxFragment, node_9, { label: "from helper" });
 			_$_.pop(div_8);
@@ -941,7 +941,7 @@ export function ComponentAsLastSibling() {
 		{
 			var h1 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
 			var p = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
-			var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
+			var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_26);
 
 			_$_.render_component(LastChild, node_25, {});
 			_$_.pop(div_26);
@@ -957,7 +957,7 @@ function InnerContent() {
 
 		{
 			var span_8 = _$_.hydrating ? _$_.hydrate_child() : div_27.firstChild;
-			var node_26 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
+			var node_26 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_27);
 
 			_$_.render_component(LastChild, node_26, {});
 			_$_.pop(div_27);
@@ -973,7 +973,7 @@ export function NestedComponentAsLastSibling() {
 
 		{
 			var h2 = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
-			var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
+			var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
 
 			_$_.render_component(InnerContent, node_27, {});
 			_$_.pop(section_1);

@@ -19,7 +19,7 @@ var root_15 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
 var root_16 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
 var root_18 = _$_.template(`<li><a> </a></li>`, 0);
 var root_17 = _$_.template(`<div class="toc"><ul></ul></div>`, 0);
-var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!><!></div><aside><!></aside></div>`, 0);
+var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!></div><aside><!></aside></div>`, 0);
 var root_19 = _$_.template(`<div class="vp-doc"></div>`, 0);
 var root_20 = _$_.template(`<div class="vp-doc"></div>`, 0);
 var root_21 = _$_.template(`<div class="vp-doc"></div>`, 0);
@@ -48,25 +48,25 @@ var root_44 = _$_.template(`<!><!>`, 1, 2);
 var root_42 = _$_.template(`<aside class="sidebar"><nav><div class="group"></div><div class="group"></div></nav></aside>`, 0);
 var root_45 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 var root_47 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
-var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
+var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!></main></div></div>`, 0);
 var root_48 = _$_.template(`<article class="doc-content"><div><!></div></article>`, 0);
 var root_49 = _$_.template(`<footer class="doc-footer">Footer</footer>`, 0);
 var root_51 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
 var root_52 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_53 = _$_.template(`<nav class="prev-next"><a href="/prev">Previous</a></nav>`, 0);
-var root_50 = _$_.template(`<div class="content-container"><!><!><!><!></div>`, 0);
+var root_50 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 var root_55 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
-var root_54 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
+var root_54 = _$_.template(`<div class="content-container"><!><!></div>`, 0);
 var root_58 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
-var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div>`, 0);
+var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!></div>`, 0);
 var root_59 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_60 = _$_.template(`<header class="header">Header</header>`, 0);
 var root_61 = _$_.template(`<aside class="sidebar">Sidebar</aside>`, 0);
 var root_62 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 var root_64 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
 var root_65 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
-var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div></div></main></div></div>`, 0);
+var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div></div></main></div></div>`, 0);
 var root_66 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_67 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_69 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
@@ -76,7 +76,7 @@ var root_73 = _$_.template(`<a class="pager next"><span class="title"> </span></
 var root_70 = _$_.template(`<nav class="prev-next"><!><!></nav>`, 0);
 var root_75 = _$_.template(`<a> </a>`, 0);
 var root_74 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
-var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
+var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 var root_76 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_77 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_78 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
@@ -299,19 +299,19 @@ export function DocLayout(__props) {
 		var div_13 = root_14();
 
 		{
-			var div_15 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
+			var div_14 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
 
 			{
-				var article = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
+				var article = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 				{
-					var div_14 = _$_.hydrating ? _$_.hydrate_child() : article.firstChild;
+					var div_15 = _$_.hydrating ? _$_.hydrate_child() : article.firstChild;
 
 					{
-						var expression_1 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
+						var expression_1 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
 
 						_$_.expression(expression_1, () => __props.children);
-						_$_.pop(div_14);
+						_$_.pop(div_15);
 					}
 				}
 
@@ -382,13 +382,13 @@ export function DocLayout(__props) {
 					});
 				}
 
-				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_6.nextSibling;
+				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
 				_$_.render_component(DocFooter, node_7, {});
-				_$_.pop(div_15);
+				_$_.pop(div_14);
 			}
 
-			var aside = _$_.hydrating ? _$_.hydrate_sibling() : div_15.nextSibling;
+			var aside = _$_.hydrating ? _$_.hydrate_sibling() : div_14.nextSibling;
 
 			{
 				var node_8 = _$_.hydrating ? _$_.hydrate_child() : aside.firstChild;
@@ -1064,7 +1064,7 @@ export function LayoutWithSidebarAndMain() {
 						});
 					}
 
-					var node_28 = _$_.hydrating ? _$_.hydrate_sibling() : node_27.nextSibling;
+					var node_28 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(main);
 
 					_$_.render_component(PageHeader, node_28, {});
 					_$_.pop(main);
@@ -1151,7 +1151,7 @@ export function ArticleWithChildrenThenSibling() {
 				});
 			}
 
-			var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : node_31.nextSibling;
+			var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_38);
 
 			_$_.render_component(SimpleFooter, node_32, {});
 			_$_.pop(div_38);
@@ -1192,7 +1192,7 @@ export function ArticleWithHtmlChildThenSibling() {
 				});
 			}
 
-			var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : node_34.nextSibling;
+			var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_40);
 
 			_$_.render_component(SimpleFooter, node_35, {});
 			_$_.pop(div_40);
@@ -1236,7 +1236,7 @@ function InlineArticleLayout({ children }) {
 				});
 			}
 
-			var node_37 = _$_.hydrating ? _$_.hydrate_sibling() : node_36.nextSibling;
+			var node_37 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_43);
 
 			_$_.render_component(SimpleFooter, node_37, {});
 			_$_.pop(div_43);
@@ -1304,25 +1304,25 @@ function DocsLayoutInner(__props) {
 				var main_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_39.nextSibling;
 
 				{
-					var div_52 = _$_.hydrating ? _$_.hydrate_child() : main_1.firstChild;
+					var div_51 = _$_.hydrating ? _$_.hydrate_child() : main_1.firstChild;
 
 					{
-						var div_51 = _$_.hydrating ? _$_.hydrate_child() : div_52.firstChild;
+						var div_50 = _$_.hydrating ? _$_.hydrate_child() : div_51.firstChild;
 
 						{
-							var div_50 = _$_.hydrating ? _$_.hydrate_child() : div_51.firstChild;
+							var div_49 = _$_.hydrating ? _$_.hydrate_child() : div_50.firstChild;
 
 							{
-								var article_3 = _$_.hydrating ? _$_.hydrate_child() : div_50.firstChild;
+								var article_3 = _$_.hydrating ? _$_.hydrate_child() : div_49.firstChild;
 
 								{
-									var div_49 = _$_.hydrating ? _$_.hydrate_child() : article_3.firstChild;
+									var div_52 = _$_.hydrating ? _$_.hydrate_child() : article_3.firstChild;
 
 									{
-										var expression_20 = _$_.hydrating ? _$_.hydrate_child() : div_49.firstChild;
+										var expression_20 = _$_.hydrating ? _$_.hydrate_child() : div_52.firstChild;
 
 										_$_.expression(expression_20, () => __props.children);
-										_$_.pop(div_49);
+										_$_.pop(div_52);
 									}
 								}
 
@@ -1378,10 +1378,10 @@ function DocsLayoutInner(__props) {
 									});
 								}
 
-								var node_42 = _$_.hydrating ? _$_.hydrate_sibling() : node_41.nextSibling;
+								var node_42 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
 								_$_.render_component(FooterStub, node_42, {});
-								_$_.pop(div_50);
+								_$_.pop(div_49);
 							}
 						}
 					}
@@ -1448,25 +1448,25 @@ function DocsLayoutExact(__props) {
 				var main_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_44.nextSibling;
 
 				{
-					var div_61 = _$_.hydrating ? _$_.hydrate_child() : main_2.firstChild;
+					var div_60 = _$_.hydrating ? _$_.hydrate_child() : main_2.firstChild;
 
 					{
-						var div_60 = _$_.hydrating ? _$_.hydrate_child() : div_61.firstChild;
+						var div_59 = _$_.hydrating ? _$_.hydrate_child() : div_60.firstChild;
 
 						{
-							var div_59 = _$_.hydrating ? _$_.hydrate_child() : div_60.firstChild;
+							var div_58 = _$_.hydrating ? _$_.hydrate_child() : div_59.firstChild;
 
 							{
-								var article_4 = _$_.hydrating ? _$_.hydrate_child() : div_59.firstChild;
+								var article_4 = _$_.hydrating ? _$_.hydrate_child() : div_58.firstChild;
 
 								{
-									var div_58 = _$_.hydrating ? _$_.hydrate_child() : article_4.firstChild;
+									var div_61 = _$_.hydrating ? _$_.hydrate_child() : article_4.firstChild;
 
 									{
-										var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_58.firstChild;
+										var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_61.firstChild;
 
 										_$_.expression(expression_22, () => __props.children);
-										_$_.pop(div_58);
+										_$_.pop(div_61);
 									}
 								}
 
@@ -1597,16 +1597,16 @@ function DocsLayoutExact(__props) {
 									});
 								}
 
-								var node_49 = _$_.hydrating ? _$_.hydrate_sibling() : node_46.nextSibling;
+								var node_49 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
 								_$_.render_component(FooterStub, node_49, {});
-								_$_.pop(div_59);
+								_$_.pop(div_58);
 							}
 						}
 
-						_$_.pop(div_60);
+						_$_.pop(div_59);
 
-						var aside_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_60.nextSibling;
+						var aside_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_59.nextSibling;
 
 						{
 							var node_50 = _$_.hydrating ? _$_.hydrate_child() : aside_3.firstChild;
