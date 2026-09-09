@@ -160,7 +160,7 @@ catalogs:
     prettier: '>=2.0.0'
     ripple: '*'
     tailwindcss: ^4.1.12
-    typescript: '>=5.9.3'
+    typescript: *ts_common
 
 # vite-plugin-solid's peer range `<2.0.0-experimental.0` excludes `rc.*` by
 # prerelease ordering, and @tsrx/solid / @tsrx/solid-runtime pin an exact older
