@@ -237,3 +237,95 @@ export function StaticListThenStaticSiblings() {
 		});
 	});
 }
+
+function RootIfChild(props) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			if (props.on) {
+				__out += '<span class="root-if">on</span>';
+			} else {
+				__out += '<span class="root-if">off</span>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function RootForChild(props) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			for (const item of props.items) {
+				__out += '<span class="root-for">' + _$_.escape(item) + '</span>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function TrailingChild() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<span class="trailing">end</span>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function ComponentChildrenWithControlFlowRoots() {
+	return _$_.tsrx_element(() => {
+		let lazy_7 = _$_.track(true, 'f3e4c6ee');
+		let lazy_8 = _$_.track([1, 2, 3], '2bbbeeb0');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="wrapper"><div class="host">';
+
+			{
+				{
+					const comp = RootIfChild;
+					const args = [{ on: lazy_7.value }];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+
+				{
+					const comp = RootForChild;
+					const args = [{ items: lazy_8.value }];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+
+				{
+					const comp = TrailingChild;
+					const args = [{}];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+			}
+
+			__out += '</div><button class="toggle">Toggle</button><button class="rotate">Rotate</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}

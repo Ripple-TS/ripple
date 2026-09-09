@@ -1,8 +1,9 @@
-/** @import { Block } from '#client' */
+/** @import { AppendIntoAnchor, Block } from '#client' */
 
 import { branch, destroy_block, render } from './blocks.js';
 import { IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
+import { resolve_anchor } from './operations.js';
 import { append } from './template.js';
 
 /**
@@ -72,10 +73,11 @@ function run_if(state) {
 }
 
 /**
- * @param {Node} node
+ * @param {Node | AppendIntoAnchor} node
  * @param {(set_branch: (fn: (anchor: Node) => void, flag?: boolean) => void) => void} fn
  * @param {boolean} [root_controlled] When true the block renders directly before
- *   the component's `__anchor` (no synthesized `<!>` wrapper). During hydration
+ *   the component's `__anchor` (no synthesized `<!>` wrapper), which may be an
+ *   append-into sentinel (see `resolve_anchor`). During hydration
  *   the SSR boundary start marker sits at the cursor; we hand it to `append()`
  *   afterwards so it performs the same context-aware boundary advance the
  *   eliminated wrapper's `append()` used to do.
@@ -84,6 +86,7 @@ function run_if(state) {
 export function if_block(node, fn, root_controlled) {
 	/** @type {Node | undefined} */
 	var boundary;
+	var anchor = root_controlled ? resolve_anchor(node) : /** @type {Node} */ (node);
 
 	if (hydrating) {
 		if (root_controlled) {
@@ -96,7 +99,7 @@ export function if_block(node, fn, root_controlled) {
 	render(
 		run_if,
 		{
-			a: node,
+			a: anchor,
 			fn,
 			// last condition
 			c: UNINITIALIZED,
@@ -109,6 +112,8 @@ export function if_block(node, fn, root_controlled) {
 	);
 
 	if (hydrating && root_controlled) {
+		// The original `node`: for a sentinel, `hydrate_append` performs the
+		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
 	}
 }

@@ -119,6 +119,28 @@ export function append_into(parent) {
 }
 
 /**
+ * Resolves the anchor for a block that keeps inserting relative to it for its
+ * whole life (root-controlled control flow). An append-into sentinel is only
+ * valid for a one-shot append: a later branch swap or list move must land at
+ * the block's own position, not after whatever siblings were appended since,
+ * so the sentinel is materialized into a text anchor at the current end of
+ * the parent. During hydration the cursor sits on the block's SSR boundary
+ * marker, which is exactly the anchor a non-sentinel root-controlled block
+ * receives, so it serves as the anchor there.
+ * @param {Node | AppendIntoAnchor} node
+ * @returns {Node}
+ */
+export function resolve_anchor(node) {
+	if (/** @type {AppendIntoAnchor} */ (node).into !== true) {
+		return /** @type {Node} */ (node);
+	}
+	if (hydrating) {
+		return /** @type {Node} */ (hydrate_node);
+	}
+	return /** @type {AppendIntoAnchor} */ (node).parent.appendChild(create_text());
+}
+
+/**
  * @template {Node} N
  * @param {N} node
  * @param {boolean} [is_text]

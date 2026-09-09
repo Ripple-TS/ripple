@@ -906,3 +906,71 @@ export function ForLoopReverse() {
 		});
 	});
 }
+
+export function KeyedForLoopAppendAndRotate() {
+	return _$_.tsrx_element(() => {
+		let lazy_20 = _$_.track([1, 2, 3], 'a8b41504');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="wrapper"><div class="host"><!--[-->';
+
+			for (const item of lazy_20.value) {
+				__out += '<span class="item">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</span>';
+			}
+
+			__out += '<!--]--><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function RootKeyedList(props) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			for (const item of props.items) {
+				__out += '<span class="item">' + _$_.escape(item) + '</span>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function RootKeyedForLoopAppendAndRotate() {
+	return _$_.tsrx_element(() => {
+		let lazy_21 = _$_.track([1, 2, 3], '50a91d60');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="wrapper"><div class="host">';
+
+			{
+				const comp = RootKeyedList;
+				const args = [{ items: lazy_21.value }];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}

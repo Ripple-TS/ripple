@@ -269,4 +269,28 @@ describe('hydration > if blocks with children', () => {
 		expect(container.querySelector('.section-heading')?.textContent).toBe('Section Heading');
 		expect(container.querySelector('.section-content a')?.textContent).toBe('a link');
 	});
+
+	it('re-renders control-flow roots of all-component children at their own position', async () => {
+		await hydrateComponent(
+			ServerComponents.ComponentChildrenWithControlFlowRoots,
+			ClientComponents.ComponentChildrenWithControlFlowRoots,
+		);
+
+		const host = container.querySelector('.host');
+		expect(host?.textContent).toBe('on123end');
+
+		// The root `@if` child swaps its branch in place, before the siblings.
+		container.querySelector('.toggle')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('off123end');
+
+		// The root `@for` child moves an item to its own end, not the host's.
+		container.querySelector('.rotate')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('off231end');
+
+		container.querySelector('.toggle')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('on231end');
+	});
 });

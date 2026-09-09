@@ -1,4 +1,4 @@
-/** @import { Block, Tracked } from '#client' */
+/** @import { AppendIntoAnchor, Block, Tracked } from '#client' */
 
 import { IS_CONTROLLED, IS_INDEXED, ROOT_CONTROLLED } from '../../../constants.js';
 import {
@@ -11,7 +11,13 @@ import {
 } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
-import { create_text, get_first_child, get_last_child, next_sibling } from './operations.js';
+import {
+	create_text,
+	get_first_child,
+	get_last_child,
+	next_sibling,
+	resolve_anchor,
+} from './operations.js';
 import { append } from './template.js';
 import { active_block, set, tracked, untrack } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
@@ -168,7 +174,7 @@ function collection_to_array(collection) {
 
 /**
  * @template V
- * @param {Element} node
+ * @param {Element | AppendIntoAnchor} node
  * @param {() => V[] | Iterable<V>} get_collection
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
@@ -179,7 +185,9 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
-	var anchor = /** @type {Element | Text} */ (node);
+	// A root-controlled list receives the component's `__anchor`, which may be
+	// an append-into sentinel; moves and end insertions need a real node.
+	var anchor = /** @type {Element | Text} */ (root_controlled ? resolve_anchor(node) : node);
 	/** @type {Node | undefined} */
 	var boundary;
 
@@ -188,7 +196,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 			var parent_node = /** @type {Element} */ (node);
 			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
 		} else {
-			anchor = node.appendChild(create_text());
+			anchor = /** @type {Element} */ (node).appendChild(create_text());
 		}
 	}
 
@@ -218,6 +226,8 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 	);
 
 	if (hydrating && root_controlled) {
+		// The original `node`: for a sentinel, `hydrate_append` performs the
+		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
 	}
 }
@@ -225,7 +235,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 /**
  * @template V
  * @template K
- * @param {Element} node
+ * @param {Element | AppendIntoAnchor} node
  * @param {() => V[] | Iterable<V>} get_collection
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
@@ -237,7 +247,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
-	var anchor = /** @type {Element | Text} */ (node);
+	var anchor = /** @type {Element | Text} */ (root_controlled ? resolve_anchor(node) : node);
 	/** @type {Node | undefined} */
 	var boundary;
 
@@ -248,7 +258,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
 			anchor = /** @type {Element | Text} */ (get_last_child(parent_node));
 		} else {
-			anchor = node.appendChild(create_text());
+			anchor = /** @type {Element} */ (node).appendChild(create_text());
 		}
 	}
 
@@ -277,12 +287,21 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 					render_empty,
 				);
 			});
+
+			// The hydrated anchor is the block's start marker; later inserts and
+			// end moves must go before the cursor, which now sits after the
+			// hydrated items (the same re-anchoring `for_block` does).
+			if (hydrating) {
+				anchor = /** @type {Element | Text} */ (hydrate_node);
+			}
 		},
 		null,
 		FOR_BLOCK,
 	);
 
 	if (hydrating && root_controlled) {
+		// The original `node`: for a sentinel, `hydrate_append` performs the
+		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
 	}
 }

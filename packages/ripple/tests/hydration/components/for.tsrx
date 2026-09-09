@@ -524,3 +524,43 @@ export function ForLoopReverse() @{
 		</ul>
 	</>
 }
+
+// Inserting at or moving to the end of a hydrated keyed list must land after
+// the hydrated items, before the following sibling.
+export function KeyedForLoopAppendAndRotate() @{
+	let &[items] = track([1, 2, 3]);
+	<div class="wrapper">
+		<div class="host">
+			@for (const item of items; key item) {
+				<span class="item">{item}</span>
+			}
+			<p class="tail">{'p'}</p>
+		</div>
+		<button class="push" onClick={() => (items = [...items, items.length + 1])}>{'Push'}</button>
+		<button
+			class="rotate"
+			onClick={() => (items = [...items.slice(1), items[0]])}
+		>{'Rotate'}</button>
+	</div>
+}
+
+function RootKeyedList(props: { items: number[] }) @{
+	@for (const item of props.items; key item) {
+		<span class="item">{item}</span>
+	}
+}
+
+export function RootKeyedForLoopAppendAndRotate() @{
+	let &[items] = track([1, 2, 3]);
+	<div class="wrapper">
+		<div class="host">
+			<RootKeyedList {items} />
+			<p class="tail">{'p'}</p>
+		</div>
+		<button class="push" onClick={() => (items = [...items, items.length + 1])}>{'Push'}</button>
+		<button
+			class="rotate"
+			onClick={() => (items = [...items.slice(1), items[0]])}
+		>{'Rotate'}</button>
+	</div>
+}

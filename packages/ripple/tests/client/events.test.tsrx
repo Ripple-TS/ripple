@@ -1,5 +1,5 @@
 import type { OnEventListenerRemover } from 'ripple';
-import { effect, flushSync, on, Portal, track } from 'ripple';
+import { effect, flushSync, mount, on, Portal, track } from 'ripple';
 
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
@@ -689,5 +689,31 @@ describe('on() event handler', () => {
 		document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		flushSync();
 		expect(bodyCountDiv.textContent).toBe('2');
+	});
+});
+
+describe('root event delegation lifecycle', () => {
+	it('ignores a repeated unmount() so a later mount on the same target keeps delegation', () => {
+		// The target's delegated listeners are ref-counted per mount/portal. A
+		// disposer called twice (remount, HMR, a stale reference) must not
+		// release the count a fresh mount now owns.
+		const target = document.createElement('div');
+
+		function Counter() @{
+			let &[count] = track(0);
+			<button onClick={() => count++}>{count}</button>
+		}
+
+		const unmount_first = mount(Counter, { target });
+		unmount_first();
+
+		const unmount_second = mount(Counter, { target });
+		unmount_first();
+
+		target.querySelector('button').click();
+		flushSync();
+		expect(target.querySelector('button').textContent).toBe('1');
+
+		unmount_second();
 	});
 });

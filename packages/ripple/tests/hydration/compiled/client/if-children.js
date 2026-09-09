@@ -22,6 +22,11 @@ var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button clas
 var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
 var root_18 = _$_.template(`<!>`, 1, 1);
 var root_20 = _$_.template(`<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>`, 0);
+var root_21 = _$_.template(`<span class="root-if">on</span>`, 0);
+var root_22 = _$_.template(`<span class="root-if">off</span>`, 0);
+var root_23 = _$_.template(`<span class="root-for"> </span>`, 0);
+var root_24 = _$_.template(`<span class="trailing">end</span>`, 0);
+var root_25 = _$_.template(`<div class="wrapper"><div class="host"></div><button class="toggle">Toggle</button><button class="rotate">Rotate</button></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -403,6 +408,107 @@ export function StaticListThenStaticSiblings() {
 		}
 
 		_$_.append(__anchor, div_17);
+	});
+}
+
+function RootIfChild(props) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		{
+			var consequent_6 = (__anchor) => {
+				var span = root_21();
+
+				_$_.append(__anchor, span);
+			};
+
+			var alternate_1 = (__anchor) => {
+				var span_1 = root_22();
+
+				_$_.append(__anchor, span_1);
+			};
+
+			_$_.if(
+				__anchor,
+				(__render) => {
+					if (props.on) __render(consequent_6); else __render(alternate_1, false);
+				},
+				true
+			);
+		}
+	});
+}
+
+function RootForChild(props) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		_$_.for_keyed(
+			__anchor,
+			() => props.items,
+			(__anchor, pattern) => {
+				var span_2 = root_23();
+
+				{
+					var expression_4 = _$_.hydrating ? _$_.hydrate_child(true) : span_2.firstChild;
+
+					_$_.pop(span_2);
+				}
+
+				_$_.render(() => {
+					_$_.set_text(expression_4, _$_.get(pattern));
+				});
+
+				_$_.append(__anchor, span_2);
+			},
+			16,
+			(pattern) => _$_.get(pattern)
+		);
+	});
+}
+
+function TrailingChild() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var span_3 = root_24();
+
+		_$_.append(__anchor, span_3);
+	});
+}
+
+export function ComponentChildrenWithControlFlowRoots() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_7 = _$_.track(true, __block, 'f3e4c6ee');
+		let lazy_8 = _$_.track([1, 2, 3], __block, '2bbbeeb0');
+		var div_18 = root_25();
+
+		{
+			var div_19 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
+
+			{
+				var append_anchor = _$_.append_into(div_19);
+
+				_$_.render_component(RootIfChild, append_anchor, {
+					get on() {
+						return lazy_7.value;
+					}
+				});
+
+				_$_.render_component(RootForChild, append_anchor, {
+					get items() {
+						return lazy_8.value;
+					}
+				});
+
+				_$_.render_component(TrailingChild, append_anchor, {});
+				_$_.pop(div_19);
+			}
+
+			var button_5 = _$_.hydrating ? _$_.hydrate_sibling() : div_19.nextSibling;
+
+			button_5.__click = () => _$_.set(lazy_7, !lazy_7.value);
+
+			var button_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
+
+			button_6.__click = () => _$_.set(lazy_8, [lazy_8.value[1], lazy_8.value[2], lazy_8.value[0]]);
+		}
+
+		_$_.append(__anchor, div_18);
 	});
 }
 

@@ -78,6 +78,10 @@ var root_71 = _$_.template(`<!>`, 1, 1);
 var root_76 = _$_.template(`<li> </li>`, 0);
 var root_75 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
 var root_74 = _$_.template(`<!>`, 1, 1);
+var root_78 = _$_.template(`<span class="item"> </span>`, 0);
+var root_77 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
+var root_79 = _$_.template(`<span class="item"> </span>`, 0);
+var root_80 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 import { track } from 'ripple';
 
@@ -1556,6 +1560,117 @@ export function ForLoopReverse() {
 		}));
 
 		_$_.append(__anchor, fragment_30);
+	});
+}
+
+export function KeyedForLoopAppendAndRotate() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_20 = _$_.track([1, 2, 3], __block, 'a8b41504');
+		var div_17 = root_77();
+
+		{
+			var div_18 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
+
+			{
+				var node_19 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
+
+				_$_.for_keyed(
+					node_19,
+					() => lazy_20.value,
+					(__anchor, pattern_8) => {
+						var span_7 = root_78();
+
+						{
+							var expression_31 = _$_.hydrating ? _$_.hydrate_child() : span_7.firstChild;
+
+							_$_.expression(expression_31, () => _$_.get(pattern_8));
+							_$_.pop(span_7);
+						}
+
+						_$_.append(__anchor, span_7);
+					},
+					0,
+					(pattern_8) => _$_.get(pattern_8)
+				);
+
+				_$_.pop(div_18);
+			}
+
+			var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : div_18.nextSibling;
+
+			button_20.__click = () => _$_.set(lazy_20, [...lazy_20.value, lazy_20.value.length + 1]);
+
+			var button_21 = _$_.hydrating ? _$_.hydrate_sibling() : button_20.nextSibling;
+
+			button_21.__click = () => _$_.set(lazy_20, [
+				..._$_.with_scope(__block, () => lazy_20.value.slice(1)),
+				lazy_20.value[0]
+			]);
+		}
+
+		_$_.append(__anchor, div_17);
+	});
+}
+
+function RootKeyedList(props) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		_$_.for_keyed(
+			__anchor,
+			() => props.items,
+			(__anchor, pattern_9) => {
+				var span_8 = root_79();
+
+				{
+					var expression_32 = _$_.hydrating ? _$_.hydrate_child(true) : span_8.firstChild;
+
+					_$_.pop(span_8);
+				}
+
+				_$_.render(() => {
+					_$_.set_text(expression_32, _$_.get(pattern_9));
+				});
+
+				_$_.append(__anchor, span_8);
+			},
+			16,
+			(pattern_9) => _$_.get(pattern_9)
+		);
+	});
+}
+
+export function RootKeyedForLoopAppendAndRotate() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_21 = _$_.track([1, 2, 3], __block, '50a91d60');
+		var div_19 = root_80();
+
+		{
+			var div_20 = _$_.hydrating ? _$_.hydrate_child() : div_19.firstChild;
+
+			{
+				var node_20 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
+
+				_$_.render_component(RootKeyedList, node_20, {
+					get items() {
+						return lazy_21.value;
+					}
+				});
+
+				_$_.pop(div_20);
+			}
+
+			var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : div_20.nextSibling;
+
+			button_22.__click = () => _$_.set(lazy_21, [...lazy_21.value, lazy_21.value.length + 1]);
+
+			var button_23 = _$_.hydrating ? _$_.hydrate_sibling() : button_22.nextSibling;
+
+			button_23.__click = () => _$_.set(lazy_21, [
+				..._$_.with_scope(__block, () => lazy_21.value.slice(1)),
+				lazy_21.value[0]
+			]);
+		}
+
+		_$_.append(__anchor, div_19);
 	});
 }
 

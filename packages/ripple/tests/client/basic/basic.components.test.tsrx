@@ -666,3 +666,74 @@ describe('basic client > components & composition', () => {
 		expect(container.querySelector('.wrapper .z').textContent).toBe('I am Z');
 	});
 });
+
+describe('all-component children', () => {
+	// Children that are all static components render into their parent through
+	// an append-into sentinel instead of a `<!>` placeholder per child. A child
+	// whose root is control flow must still re-render at its own position.
+	it('re-renders a root @if child in place, before its siblings', () => {
+		function Toggle(props: { on: boolean }) @{
+			@if (props.on) {
+				<span>{'A'}</span>
+			} @else {
+				<span>{'a'}</span>
+			}
+		}
+
+		function Trailing() @{
+			<span>{'B'}</span>
+		}
+
+		function App() @{
+			let &[on] = track(true);
+			<>
+				<div class="host">
+					<Toggle {on} />
+					<Trailing />
+				</div>
+				<button onClick={() => (on = !on)}>{'Toggle'}</button>
+			</>
+		}
+
+		render(App);
+
+		const host = container.querySelector('.host');
+		expect(host.textContent).toBe('AB');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(host.textContent).toBe('aB');
+	});
+
+	it('moves a root keyed @for child item to the end of its own list', () => {
+		function List(props: { items: number[] }) @{
+			@for (const item of props.items; key item) {
+				<span>{item}</span>
+			}
+		}
+
+		function Trailing() @{
+			<span>{'end'}</span>
+		}
+
+		function App() @{
+			let &[items] = track([1, 2, 3]);
+			<>
+				<div class="host">
+					<List {items} />
+					<Trailing />
+				</div>
+				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+			</>
+		}
+
+		render(App);
+
+		const host = container.querySelector('.host');
+		expect(host.textContent).toBe('123end');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(host.textContent).toBe('231end');
+	});
+});

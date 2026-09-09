@@ -268,4 +268,106 @@ describe('Portal', () => {
 
 		expect(portalElement.textContent).toContain('Count: 1');
 	});
+
+	it('re-renders a root @if child at its own position among sibling portals', () => {
+		// Portal content appends through an append-into sentinel with no anchor
+		// node of its own. A child component whose root is control flow must
+		// still re-render where it was, not after content appended since.
+		const target = document.createElement('div');
+		document.body.appendChild(target);
+
+		function Toggle(props) @{
+			@if (props.on) {
+				<span class="test-portal">{'A'}</span>
+			} @else {
+				<span class="test-portal">{'a'}</span>
+			}
+		}
+
+		function TestPortalOrder() @{
+			let &[on] = track(true);
+			<>
+				<button onClick={() => (on = !on)}>{'Toggle'}</button>
+				<Portal {target}>
+					<Toggle {on} />
+				</Portal>
+				<Portal {target}>
+					<span class="test-portal">{'B'}</span>
+				</Portal>
+			</>
+		}
+
+		render(TestPortalOrder);
+
+		expect(target.textContent).toBe('AB');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(target.textContent).toBe('aB');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(target.textContent).toBe('AB');
+
+		document.body.removeChild(target);
+	});
+
+	it('moves items to the end of a keyed @for rendered as a component root inside a portal', () => {
+		const target = document.createElement('div');
+		document.body.appendChild(target);
+
+		function List(props) @{
+			@for (const item of props.items; key item) {
+				<span class="test-portal">{item}</span>
+			}
+		}
+
+		function TestPortalList() @{
+			let &[items] = track([1, 2, 3]);
+			<>
+				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+				<Portal {target}>
+					<List {items} />
+				</Portal>
+			</>
+		}
+
+		render(TestPortalList);
+
+		expect(target.textContent).toBe('123');
+
+		// Moving the first item to the end inserts before the list's anchor.
+		container.querySelector('button').click();
+		flushSync();
+		expect(target.textContent).toBe('231');
+
+		document.body.removeChild(target);
+	});
+
+	it('moves items to the end of a keyed @for rendered directly as portal children', () => {
+		const target = document.createElement('div');
+		document.body.appendChild(target);
+
+		function TestPortalFor() @{
+			let &[items] = track([1, 2, 3]);
+			<>
+				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+				<Portal {target}>
+					@for (const item of items; key item) {
+						<span class="test-portal">{item}</span>
+					}
+				</Portal>
+			</>
+		}
+
+		render(TestPortalFor);
+
+		expect(target.textContent).toBe('123');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(target.textContent).toBe('231');
+
+		document.body.removeChild(target);
+	});
 });

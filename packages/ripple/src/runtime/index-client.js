@@ -98,7 +98,8 @@ export function mount(component, options) {
 
 	target.append(anchor);
 
-	const events_ref = handle_root_events(target);
+	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
+	let events_ref = handle_root_events(target);
 
 	const root_boundary = options.rootBoundary;
 
@@ -117,7 +118,11 @@ export function mount(component, options) {
 	});
 
 	return () => {
+		// The disposer may be called again (a remount, HMR, a stale reference);
+		// only the first call owns the target's delegated-listener ref.
+		if (events_ref === null) return;
 		release_root_events(events_ref);
+		events_ref = null;
 		destroy_block(_root);
 	};
 }
@@ -139,7 +144,8 @@ export function hydrate(component, options) {
 	const previous_hydrate_node = hydrate_node;
 	let anchor = get_first_child(target);
 
-	const events_ref = handle_root_events(target);
+	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
+	let events_ref = handle_root_events(target);
 	let _root;
 
 	try {
@@ -177,7 +183,9 @@ export function hydrate(component, options) {
 	}
 
 	return () => {
+		if (events_ref === null) return;
 		release_root_events(events_ref);
+		events_ref = null;
 		destroy_block(_root);
 	};
 }

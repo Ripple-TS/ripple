@@ -195,6 +195,13 @@ function hydrate_append(anchor, dom, skip_advance) {
 		}
 
 		if (is_after_hydration_block(dom, hydrate_node)) {
+			// The cursor sits on the block's end marker. A parent normally steps
+			// past it with its own sibling navigation, but an append-into
+			// sentinel has none: the next component starts wherever this one
+			// leaves the cursor, so step past the marker here.
+			if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
+				hydrate_advance();
+			}
 			return;
 		}
 	}

@@ -477,4 +477,40 @@ describe('hydration > for blocks', () => {
 		expect(listItems[2]?.textContent).toBe('B');
 		expect(listItems[3]?.textContent).toBe('A');
 	});
+
+	it('hydrates keyed for loop and appends and rotates before a trailing sibling', async () => {
+		await hydrateComponent(
+			ServerComponents.KeyedForLoopAppendAndRotate,
+			ClientComponents.KeyedForLoopAppendAndRotate,
+		);
+
+		const host = container.querySelector('.host');
+		expect(host?.textContent).toBe('123p');
+
+		container.querySelector('.push')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('1234p');
+
+		container.querySelector('.rotate')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('2341p');
+	});
+
+	it('hydrates a root keyed for loop component and appends and rotates before a trailing sibling', async () => {
+		await hydrateComponent(
+			ServerComponents.RootKeyedForLoopAppendAndRotate,
+			ClientComponents.RootKeyedForLoopAppendAndRotate,
+		);
+
+		const host = container.querySelector('.host');
+		expect(host?.textContent).toBe('123p');
+
+		container.querySelector('.push')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('1234p');
+
+		container.querySelector('.rotate')?.click();
+		flushSync();
+		expect(host?.textContent).toBe('2341p');
+	});
 });

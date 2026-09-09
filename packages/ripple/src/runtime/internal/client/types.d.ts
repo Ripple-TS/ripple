@@ -33,6 +33,11 @@ export type DeferredTrackedEntry = {
 	r: number; // request version id
 };
 
+/**
+ * Anchor sentinel for one-shot appends at the end of `parent` (all-component
+ * children, portal content). Only valid at first render: a block that keeps
+ * inserting relative to its anchor must go through `resolve_anchor` first.
+ */
 export type AppendIntoAnchor = {
 	parent: Node;
 	/** Marks the sentinel; a missing-property read on a DOM node is cheaper than `in`. */

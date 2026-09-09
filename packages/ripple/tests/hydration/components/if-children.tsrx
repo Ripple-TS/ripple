@@ -183,3 +183,42 @@ export function StaticListThenStaticSiblings() @{
 		</p>
 	</div>
 }
+
+// All-component children render into their parent through an append-into
+// sentinel instead of a `<!>` placeholder per child. A child whose root is
+// control flow keeps re-rendering relative to its anchor after hydration, so it
+// must resolve the sentinel to its own position rather than the parent's end.
+function RootIfChild(props: { on: boolean }) @{
+	@if (props.on) {
+		<span class="root-if">{'on'}</span>
+	} @else {
+		<span class="root-if">{'off'}</span>
+	}
+}
+
+function RootForChild(props: { items: number[] }) @{
+	@for (const item of props.items; key item) {
+		<span class="root-for">{item}</span>
+	}
+}
+
+function TrailingChild() @{
+	<span class="trailing">{'end'}</span>
+}
+
+export function ComponentChildrenWithControlFlowRoots() @{
+	let &[on] = track(true);
+	let &[items] = track([1, 2, 3]);
+	<div class="wrapper">
+		<div class="host">
+			<RootIfChild {on} />
+			<RootForChild {items} />
+			<TrailingChild />
+		</div>
+		<button class="toggle" onClick={() => (on = !on)}>{'Toggle'}</button>
+		<button
+			class="rotate"
+			onClick={() => (items = [items[1], items[2], items[0]])}
+		>{'Rotate'}</button>
+	</div>
+}
