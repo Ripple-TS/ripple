@@ -1,5 +1,123 @@
 # @tsrx/ripple
 
+## 0.1.66
+
+### Patch Changes
+
+- [#1458](https://github.com/Ripple-TS/ripple/pull/1458)
+  [`bbc1445`](https://github.com/Ripple-TS/ripple/commit/bbc14455485e054c145ebc78f08a771d41ea16f1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lighter list, `@if`, and
+  mount output on the client. A controlled `@for` (the sole content of its
+  element) appends its items into the parent instead of inserting before an empty
+  text anchor, and an `@if` at the root of such an item creates an anchor only
+  once it needs a position of its own (a branch swap, or a branch that renders
+  nothing), so a keyed list of `@if` items keeps no anchor nodes in the DOM;
+  `mount()` likewise renders into the target without an anchor node. An `@if`
+  block now renders its branch directly and owns the branch's DOM range, and a
+  list keeps its inputs in block state, so every `@if` and `@for` allocates one
+  block less and no closures. Text and class updates compare against the last
+  value in the render block's state instead of a cache on the DOM node; the
+  compiler emits that compared form for single updates as well.
+
+  A selector key whose subscribers all left stays in the selector's map for reuse
+  when the key comes back, and is swept once more than 1024 released keys pile up.
+
+- [#1460](https://github.com/Ripple-TS/ripple/pull/1460)
+  [`2ef5da5`](https://github.com/Ripple-TS/ripple/commit/2ef5da52b26fc13e11537dd28df0e2b376ca0f52)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Cheaper element refs,
+  effects, and component templates on the client. A `ref` is one effect block
+  keyed on its state instead of a render block that re-evaluates the thunk and
+  creates a branch and an effect for it, since the ref value is read untracked and
+  fixed for the life of the enclosing block. Effects deferred until a component
+  has rendered are recorded as flat entries, and an effect's first run skips the
+  child and teardown sweep. A tracked value written during a flush keeps its
+  previous value for teardowns on itself instead of in a map, and `flushSync`
+  releases those values when it finishes (they were only released by the microtask
+  flush before).
+
+  The compiler types the bindings of a lazily destructured pattern
+  (`&{ item }: { item: Item }` as component props, or `const &{ item } = props`
+  from a typed initializer), so their property reads lower to direct text and
+  attribute writes. A component whose body has setup statements beside a single
+  root element clones that element instead of a fragment.
+
+- [#1457](https://github.com/Ripple-TS/ripple/pull/1457)
+  [`020d269`](https://github.com/Ripple-TS/ripple/commit/020d2699f8e1333367ac9f7abe9247bab55e272d)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix hydration when a fragment
+  root or a slot is followed by siblings. The compiler's closing `next(n)` for a
+  fragment root now counts from wherever the cursor was last positioned, so a
+  trailing element navigated to for an event or attribute, tracked text, a
+  control-flow block, a component, or a `{expression}` no longer makes the cursor
+  overshoot or fall short of the fragment's last node; a trailing element that was
+  descended into is popped back to. Control-flow bodies nested inside an element
+  now emit that `next(n)` too. At runtime, a `{expression}` leaves the cursor on
+  its own end marker like every other block, and a multi-node branch or `@for`
+  item steps to its block's end marker after appending, so the next sibling, item,
+  or component adopts the right node.
+
+- [#1462](https://github.com/Ripple-TS/ripple/pull/1462)
+  [`453bf4b`](https://github.com/Ripple-TS/ripple/commit/453bf4ba8b1b31963df26696545e446ab4b1658e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster keyed lists and
+  lighter component output on the client. A `@for` keyed by the item itself
+  (`key item`) keys by identity with no key callback, so a re-run compares the
+  item arrays directly and skips the per-item value update; a same-length keyed
+  re-run rewrites the list's block array in place instead of allocating a new one,
+  with the unchanged prefix and suffix skipped by plain compares. Static child
+  components that follow their template siblings append into the parent element
+  instead of inserting before a `<!>` placeholder, so a component with trailing
+  child components clones fewer nodes and leaves no comment anchors in the DOM.
+  The compiler also infers a primitive text type through a call whose callee is
+  declared to return one (a binding typed as a function type, an `as` assertion, a
+  function with a declared return type, or a method or function-typed property of
+  an annotated object), so such text lowers to `set_text` instead of a generic
+  expression block.
+
+- [#1463](https://github.com/Ripple-TS/ripple/pull/1463)
+  [`411809f`](https://github.com/Ripple-TS/ripple/commit/411809fb38f25b259a1078a901839318e4207871)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster cold hydration and
+  server rendering. `hydrate()` accepts `rootBoundary: false` like `mount()`,
+  stepping over the server's root marker itself instead of rendering under a `try`
+  block (a streamed shell whose root suspended still hydrates under the default
+  boundary, which alone can adopt and activate its slot). The client runtime
+  compiles less on a cold page: the hydration cursor steps live in one module and
+  assign the cursor directly, a list's first render never compiles the diff, a
+  template's clone path stays out of its hydrating closure, `run_block` keeps
+  re-run and teardown handling in separate functions, and the compiler adopts an
+  element's lone text child in place (`hydrate_text`) with no `pop()`. A `@for`
+  whose `index` nothing reads allocates no tracked index per item. Removing the
+  server's inline styles now starts from an animation frame rather than inside
+  `mount()`/`hydrate()`.
+
+  On the server, `render()` joins its buffer tree with a plain walk instead of
+  `flat(Infinity).join('')`, `escape()` returns strings without `&`, `<` or `"`
+  after a single regex test, and an `Output` allocates its stream, css and
+  async-operation collections only for the root or on first use.
+
+- [#1453](https://github.com/Ripple-TS/ripple/pull/1453)
+  [`82bc9ee`](https://github.com/Ripple-TS/ripple/commit/82bc9ee585c6b273bf69890bc2f230aba922bf19)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Speed up portals and root
+  event delegation. `<Portal>` now lowers to a dedicated `portal()` runtime call,
+  portal content appends straight into its target without a placeholder node,
+  delegated root listeners are shared per target instead of per portal, event
+  registration no longer scans every root target, and `@if` blocks and compiled
+  `event()` calls allocate fewer closures. `mount()` accepts `rootBoundary: false`
+  to render without the default root try/pending boundary. Cold code paths
+  (keyed-list diff, block error handling, effect-phase flushing, hydration
+  branches) live in their own functions so a first mount compiles less. A
+  component whose root is `@if`, `@for`, `@switch`, or `@try` now re-renders at
+  its own position when it is portal content or one of an element's all-component
+  children, instead of at the end of the parent; `mount()`/`hydrate()` disposers
+  are safe to call more than once.
+
+- [#1461](https://github.com/Ripple-TS/ripple/pull/1461)
+  [`69d50d9`](https://github.com/Ripple-TS/ripple/commit/69d50d9849d8484a88d39b2908bb682d27ec7bc9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Expand primitive text
+  inference to BigInt and Date calls, sequences, and satisfies expressions while
+  respecting shadowed or replaced built-ins. Add optional TypeScript project
+  proofs for imported primitive types and function return values, with matching
+  client/server text classification and one-shot Vite production build
+  integration.
+
 ## 0.1.65
 
 ### Patch Changes
