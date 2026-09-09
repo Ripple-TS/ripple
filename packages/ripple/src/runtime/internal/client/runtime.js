@@ -90,6 +90,8 @@ export let is_mutating_allowed = true;
  * @type {(Tracked | Derived)[]}
  */
 var old_value_holders = [];
+/** Nesting depth of running flushes; old values are released at depth zero. */
+var flush_depth = 0;
 
 /** @returns {void} */
 function release_old_values() {
@@ -1300,12 +1302,19 @@ function flush_microtasks() {
 	}
 	var pending = queue;
 	queue = create_queue();
-	flush_queue(pending);
+	flush_depth++;
+	try {
+		flush_queue(pending);
+	} finally {
+		flush_depth--;
+	}
 
 	if (!is_micro_task_queued) {
 		flush_count = 0;
 	}
-	release_old_values();
+	if (flush_depth === 0) {
+		release_old_values();
+	}
 }
 
 /**
@@ -1606,6 +1615,7 @@ export function flush_sync(fn) {
 	var previous_scheduler_mode = scheduler_mode;
 	var previous_queue = queue;
 
+	flush_depth++;
 	try {
 		scheduler_mode = FLUSH_SYNC;
 		queue = create_queue();
@@ -1625,14 +1635,16 @@ export function flush_sync(fn) {
 
 		flush_count = 0;
 
-		// Old values only matter to teardowns run by this flush; the outermost
-		// sync flush releases them like the microtask flush does.
-		if (previous_scheduler_mode !== FLUSH_SYNC) {
+		// Old values only matter to teardowns run by the flush in progress; a
+		// sync flush nested in another flush (an effect calling `flushSync`)
+		// leaves them for the outer flush's remaining teardowns.
+		if (flush_depth === 1) {
 			release_old_values();
 		}
 
 		return /** @type {T} */ (result);
 	} finally {
+		flush_depth--;
 		scheduler_mode = previous_scheduler_mode;
 		queue = previous_queue;
 	}

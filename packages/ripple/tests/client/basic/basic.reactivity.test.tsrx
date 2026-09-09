@@ -2,6 +2,41 @@ import type { PropsWithChildren, Tracked } from 'ripple';
 import { effect, flushSync, track, untrack } from 'ripple';
 
 describe('basic client > reactivity', () => {
+	it(
+		'keeps the previous value for teardowns after an effect calls flushSync mid-flush',
+		async () => {
+			const seen: number[] = [];
+
+			function App() @{
+				let &[count] = track(0);
+
+				// Runs first in the flush; the nested sync flush must not release the
+				// previous values the later teardown reads.
+				effect(() => {
+					count;
+					flushSync();
+				});
+
+				effect(() => {
+					count;
+					return () => {
+						seen.push(count);
+					};
+				});
+
+				<button onClick={() => (count += 1)}>{count}</button>
+			}
+
+			render(App);
+			flushSync();
+			container.querySelector('button').click();
+			await new Promise((resolve) => setTimeout(resolve, 0));
+
+			expect(container.querySelector('button').textContent).toBe('1');
+			expect(seen).toEqual([0]);
+		},
+	);
+
 	it('renders multiple reactive lexical blocks', () => {
 		function Basic() @{
 			let obj = {
