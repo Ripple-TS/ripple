@@ -41,12 +41,23 @@ export function renderControlledStream(
 	});
 }
 
-function renderCards(cards: CardSlot[], onChunk: (chunk: string) => void): Promise<void> {
+async function renderCards(cards: CardSlot[], onChunk: (chunk: string) => void): Promise<void> {
 	setCards(cards);
-	return new Promise((resolve, reject) => {
-		const sink: StreamSink = { push: onChunk, close: resolve, error: reject };
-		render(App, { stream: sink }).then((result) => {
-			if (result.topLevelError) reject(result.topLevelError);
-		}, reject);
-	});
+	let closed = false;
+	let failure: unknown;
+	const sink: StreamSink = {
+		push: onChunk,
+		close: () => {
+			closed = true;
+		},
+		error: (reason) => {
+			failure = reason;
+		},
+	};
+	// `render()` closes the sink before it resolves, so the error check has to
+	// come from its result rather than from the sink.
+	const result = await render(App, { stream: sink });
+	if (failure !== undefined) throw failure;
+	if (result.topLevelError) throw result.topLevelError;
+	if (!closed) throw new Error('ripple: stream did not close');
 }
