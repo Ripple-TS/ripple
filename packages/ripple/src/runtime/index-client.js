@@ -129,7 +129,10 @@ export function mount(component, options) {
  * `rootBoundary` works as in {@link mount}: the app hydrates under a default
  * `try` boundary, or with `false` directly under the root block. Server output
  * always carries the root boundary markers; without a boundary, `hydrate()`
- * steps over them itself.
+ * steps over a plain `<!--[-->` itself. A streamed shell whose root suspended
+ * starts with a `<!--[?N-->` / `<!--[!N-->` slot instead, and only a boundary
+ * can adopt its fallback and activate the chunk, so that shell hydrates under
+ * the default boundary regardless.
  * @param {Function} component
  * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions | false }} options
  * @returns {() => void}
@@ -164,21 +167,22 @@ export function hydrate(component, options) {
 		set_hydrate_node(/** @type {Comment} */ (anchor));
 
 		const root_boundary = options.rootBoundary;
+		const marker = /** @type {Comment} */ (anchor);
 
 		_root = root(() => {
-			if (root_boundary === false) {
+			if (root_boundary === false && marker.data === HYDRATION_START) {
 				// The root boundary's own hydration walk: consume the `<!--[-->`
 				// marker and render against it, as `try_block` does for the root.
 				hydrate_next();
-				render_component(component, /** @type {Comment} */ (anchor), props);
+				render_component(component, marker, props);
 				return;
 			}
 			render_root_boundary(
-				/** @type {Comment} */ (anchor),
+				marker,
 				(component_anchor) => {
 					render_component(component, component_anchor, props);
 				},
-				root_boundary,
+				root_boundary === false ? undefined : root_boundary,
 			);
 		});
 	} catch (e) {

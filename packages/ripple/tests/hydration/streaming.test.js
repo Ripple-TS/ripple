@@ -269,6 +269,25 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		expect(container.innerHTML).not.toContain('<!--[?');
 	});
 
+	it('hydrates a streamed root slot under a boundary even with rootBoundary: false', async () => {
+		const { chunks, done } = startStream(ServerComponents.StreamRootDirect, {
+			pending: ServerComponents.RootPending,
+		});
+		mountShell(chunks[0]);
+
+		// The shell starts with a slot marker: only a boundary can adopt the
+		// fallback and activate the chunk, so the opt-out does not apply here.
+		hydrate(ClientComponents.StreamRootDirect, { target: container, rootBoundary: false });
+
+		ServerComponents.controls.rootDirect.resolve('root data');
+		await done;
+		receiveChunk(chunks[1]);
+		flushSync();
+
+		expect(container.querySelector('.root-async')?.textContent).toBe('root data');
+		expect(container.innerHTML).not.toContain('<!--[?');
+	});
+
 	it('hydrates a root chunk that arrived before hydration through the normal path', async () => {
 		const { chunks, done } = startStream(ServerComponents.StreamRootDirect, {
 			pending: ServerComponents.RootPending,

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync } from 'ripple';
+import { flushSync, hydrate } from 'ripple';
+import { render } from 'ripple/server';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
 // Import server-compiled components
@@ -11,6 +12,26 @@ describe('hydration > basic', () => {
 	it('hydrates static text content', async () => {
 		await hydrateComponent(ServerComponents.StaticText, ClientComponents.StaticText);
 		expect(container.innerHTML).toBeHtml('<div>Hello World</div>');
+	});
+
+	it('hydrates without a root boundary, adopting the server DOM', async () => {
+		const { body } = await render(ServerComponents.ParentWithChild);
+		expect(body.startsWith('<!--[-->')).toBe(true);
+		container.innerHTML = body;
+		const parent = container.querySelector('.parent');
+
+		const unmount = hydrate(ClientComponents.ParentWithChild, {
+			target: container,
+			rootBoundary: false,
+		});
+
+		expect(container.querySelector('.parent')).toBe(parent);
+		expect(container.innerHTML).toBeHtml(
+			'<div class="parent"><span class="child">Child content</span></div>',
+		);
+
+		unmount();
+		expect(container.querySelector('.parent')).toBeNull();
 	});
 
 	it('hydrates multiple static elements', async () => {
