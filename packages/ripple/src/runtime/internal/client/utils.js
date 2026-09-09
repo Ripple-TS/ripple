@@ -72,6 +72,11 @@ const UNPREFIXED_UNITLESS_NUMBER_PROPERTIES = [
 	'opacity',
 	'order',
 	'orphans',
+	// The standalone CSS Transforms Level 2 `scale` property (e.g.
+	// `scale: 1.5;`) is a unitless multiplier — same semantics as the
+	// `scale()` transform function, just usable as its own property. Not on
+	// React's older `isUnitlessNumber` list, but genuinely unitless.
+	'scale',
 	'tab-size',
 	'widows',
 	'z-index',

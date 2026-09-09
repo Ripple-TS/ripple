@@ -238,7 +238,7 @@ describe('basic server > attribute rendering', () => {
 	it('render bare numbers in a style object with an implicit px suffix', async () => {
 		function Basic() @{
 			<div
-				style={{ width: 400, height: 100, zIndex: 5, opacity: 0.5, '--scale': 2 }}
+				style={{ width: 400, height: 100, zIndex: 5, opacity: 0.5, scale: 1.5, '--scale': 2 }}
 			>{'Sized box'}</div>
 		}
 
@@ -249,9 +249,11 @@ describe('basic server > attribute rendering', () => {
 
 		expect(div.style.width).toBe('400px');
 		expect(div.style.height).toBe('100px');
-		// Unitless properties must stay bare — no accidental `5px` on z-index.
+		// Unitless properties must stay bare — no accidental `5px` on z-index,
+		// and no invalid `1.5px` on the standalone CSS `scale` property.
 		expect(div.style.zIndex).toBe('5');
 		expect(div.style.opacity).toBe('0.5');
+		expect(div.style.getPropertyValue('scale')).toBe('1.5');
 		// Custom properties are commonly used as unitless multipliers and must
 		// never receive an implicit px suffix.
 		expect(div.style.getPropertyValue('--scale')).toBe('2');

@@ -310,6 +310,21 @@ describe('basic client > attribute rendering', () => {
 		expect(div.style.getPropertyValue('-webkit-line-clamp')).toBe('2');
 	});
 
+	it('leaves the standalone CSS scale property unitless', () => {
+		// `scale` (the standalone CSS Transforms Level 2 property, not the
+		// `scale()` transform function) is a unitless multiplier — `1.5` must
+		// stay `1.5`, not become the invalid `1.5px`.
+		function Basic() @{
+			<div style={{ scale: 1.5 }}>{'Scaled box'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('scale')).toBe('1.5');
+	});
+
 	it('render tracked variable as style attribute', () => {
 		function Basic() @{
 			let &[style] = track({ color: 'red', fontWeight: 'bold' });
