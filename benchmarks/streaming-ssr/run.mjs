@@ -6,7 +6,8 @@
 // ('@solidjs/web'), and Ripple's stream-mode render ('ripple/server') —
 // rendering the SAME product page: a
 // synchronous shell (~50 elements) + 10 Suspense-boundary cards (~20 elements
-// each) whose data promises resolve on a deterministic setTimeout schedule.
+// each) whose data promises resolve on a deterministic clock schedule (see
+// data.ts: a setImmediate chain, not millisecond-floored setTimeout timers).
 //
 // Scenarios (both run for every target):
 //   staggered — card i resolves at (i+1)*5ms (5, 10, …, 50): the streaming
@@ -19,7 +20,7 @@
 // Metrics per render (median over the iteration count): shellTTFB (first
 // non-empty chunk), totalTime (stream end), chunkCount, bytesTotal; the
 // all-fast scenario additionally reports renders/sec (sequential, from mean
-// totalTime — includes the ~1ms timer floor).
+// totalTime — includes the ~1ms data floor).
 //
 // Every target's entry-server exports the same contract:
 //   renderStream(scenario, onChunk) → Promise<void>  (resolves at stream end)

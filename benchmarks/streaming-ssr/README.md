@@ -40,7 +40,13 @@ read, Solid `createMemo(promise)`, or Ripple `trackAsync`.
 
 Data promises are created **once per render, before the framework render starts**
 (like backend requests fired when the HTTP request arrives), on a deterministic
-`setTimeout` schedule:
+schedule. Each card resolves once the clock passes its delay, checked on a
+`setImmediate` chain rather than a `setTimeout`: Node timers expire on the event
+loop's millisecond-floored clock and the poll phase sleeps whole milliseconds from
+when it is entered, so a 1ms timer fires anywhere from ~0 to ~2ms after the call
+depending on where within the millisecond the render started — a phase that
+dominated `totalTime` and favored targets that spend longer before yielding to the
+event loop. The chain gives every target the same arrival time:
 
 - **staggered** — card _i_ resolves at `(i+1)*5`ms (5, 10, …, 50ms). The
   streaming-shape scenario: every framework's `totalTime` is floored at ~50ms by
@@ -48,7 +54,7 @@ Data promises are created **once per render, before the framework render starts*
   framing.
 - **all-fast** — every card resolves at ~1ms. Data latency shrinks, so per-chunk
   engine overhead is more visible; this is the throughput scenario
-  (**renders/sec**, sequential, from mean `totalTime` — the ~1ms timer floor is
+  (**renders/sec**, sequential, from mean `totalTime` — the ~1ms data floor is
   included and identical for all targets).
 
 Four additional **Octane TSRX and Ripple CPU controls** reuse each target's
