@@ -46,7 +46,7 @@
     "types"
   ],
   "peerDependencies": {
-    "typescript": ">=5.9.3"
+    "typescript": "catalog:peer"
   },
   "peerDependenciesMeta": {
     "typescript": {
