@@ -217,8 +217,9 @@ export function root(fn) {
 }
 
 /**
- * @param {() => void} fn
- * @param {any} state
+ * @template T
+ * @param {(state: T) => void} fn
+ * @param {T} state
  * @returns {Block}
  */
 export function create_try_block(fn, state) {

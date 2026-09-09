@@ -45,6 +45,473 @@ import {
  */
 
 /**
+ * Boundary data is explicit so pending, catch, and streaming helpers are only
+ * compiled when used, instead of being nested in every cold try_block call.
+ * @typedef {TryBoundaryState & {
+ *   anchor: Node;
+ *   try_fn: (anchor: Node, block?: Block) => void;
+ *   catch_fn: CatchFunction | null;
+ *   pending_fn: PendingFunction | null;
+ *   reset: (() => void) | null;
+ *   pending_count: number;
+ *   request_version: number;
+ *   active_requests: Set<number>;
+ *   try_block: Block | null;
+ *   resolved_branch: Block | null;
+ *   pending_branch: Block | null;
+ *   catch_branch: Block | null;
+ *   offscreen_fragment: DocumentFragment | null;
+ *   has_resolved: boolean;
+ *   mode: 'resolved' | 'pending' | 'catch';
+ *   pending_deferreds: Map<number, (reason: any) => void>;
+ *   paused_blocks: Set<Block>;
+ *   streamed_id: string | null;
+ *   streamed_errored: boolean;
+ *   streamed_fallback: boolean;
+ *   slot_open: Comment | null;
+ *   slot_close: Comment | null;
+ * }} TryState
+ */
+
+/** @param {TryState} state */
+function clear_paused_blocks(state) {
+	state.paused_blocks.clear();
+}
+
+/**
+ * @param {TryState} state
+ * @returns {boolean}
+ */
+function resume_paused_blocks(state) {
+	if (state.paused_blocks.size === 0) {
+		return false;
+	}
+
+	var blocks = state.paused_blocks;
+	state.paused_blocks = new Set();
+	var resumed = false;
+
+	for (var block of blocks) {
+		if (!is_destroyed(block)) {
+			resume_block(block);
+			resumed = true;
+		}
+	}
+
+	return resumed;
+}
+
+/** @param {TryState} state */
+function show_resolved_fragment(state) {
+	if (state.offscreen_fragment !== null) {
+		/** @type {ChildNode} */ (state.anchor).before(state.offscreen_fragment);
+		state.offscreen_fragment = null;
+	}
+
+	state.has_resolved = true;
+	state.mode = 'resolved';
+}
+
+/** @param {TryState} state */
+function render_resolved(state) {
+	if (
+		state.try_block !== null &&
+		!is_destroyed(state.try_block) &&
+		(state.resolved_branch === null || is_destroyed(state.resolved_branch))
+	) {
+		if (state.catch_branch !== null) {
+			destroy_block(state.catch_branch);
+			state.catch_branch = null;
+		}
+		state.mode = 'resolved';
+		if (active_block !== state.try_block) {
+			with_block(state.try_block, () => {
+				state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+			});
+		} else {
+			state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+		}
+	}
+}
+
+/** @param {TryState} state */
+function destroy_resolved(state) {
+	if (state.resolved_branch !== null && !is_destroyed(state.resolved_branch)) {
+		destroy_block(state.resolved_branch);
+	}
+	state.resolved_branch = null;
+	state.offscreen_fragment = null;
+}
+
+/** @param {TryState} state */
+function move_resolved_offscreen(state) {
+	if (state.resolved_branch !== null) {
+		if (!state.offscreen_fragment) {
+			// if offcreen_fragment exists, it means the resolved_branch is already offscreen,
+			// so we can skip moving it again
+			state.offscreen_fragment = document.createDocumentFragment();
+			move_block(state.resolved_branch, state.offscreen_fragment);
+		}
+	}
+}
+
+/** @param {TryState} state */
+function render_pending(state) {
+	if (state.pending_fn === null || state.mode === 'pending') {
+		return;
+	}
+
+	move_resolved_offscreen(state);
+
+	state.mode = 'pending';
+
+	var create_pending = () => {
+		state.pending_branch = boundary_fn_running_block(() => {
+			/** @type {PendingFunction} */ (state.pending_fn)(state.anchor);
+		});
+	};
+
+	// with_block ensures the branch is parented under the TRY_BLOCK when called
+	// from async contexts (microtasks) where active_block is null. During synchronous
+	// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
+	if (
+		state.try_block !== null &&
+		!is_destroyed(state.try_block) &&
+		active_block !== state.try_block
+	) {
+		with_block(state.try_block, create_pending);
+	} else {
+		create_pending();
+	}
+}
+
+/** @param {TryState} state */
+function destroy_pending(state) {
+	if (state.pending_branch !== null && !is_destroyed(state.pending_branch)) {
+		destroy_block(state.pending_branch);
+	}
+	state.pending_branch = null;
+}
+
+/**
+ * @param {TryState} state
+ * @param {any} error
+ * @returns {void}
+ */
+function handle_error(state, error) {
+	if (state.mode === 'catch') {
+		// we don't want to do this again and render catch block again
+		return;
+	}
+	state.pending_count = 0;
+	state.active_requests.clear();
+	clear_paused_blocks(state);
+
+	// Reject all pending deferred promises so dependent async tracked settle
+	// handlers fire and clean up. The settle will see the request already
+	// cleared and skip error routing, avoiding double-catch.
+	if (state.pending_deferreds.size > 0) {
+		for (var [, reject_fn] of state.pending_deferreds) {
+			reject_fn(error);
+		}
+		state.pending_deferreds.clear();
+	}
+
+	if (state.mode === 'pending') {
+		destroy_pending(state);
+	} else if (state.mode === 'resolved') {
+		move_resolved_offscreen(state);
+	}
+
+	state.mode = 'catch';
+
+	var create_catch = () => {
+		state.catch_branch = boundary_fn_running_block(() => {
+			/** @type {CatchFunction} */ (state.catch_fn)(
+				state.anchor,
+				error,
+				(state.reset ??= () => render_resolved(state)),
+			);
+		});
+	};
+
+	// with_block ensures the branch is parented under the TRY_BLOCK when called
+	// from async contexts where active_block is null. During synchronous
+	// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
+	if (
+		state.try_block !== null &&
+		!is_destroyed(state.try_block) &&
+		active_block !== state.try_block
+	) {
+		with_block(state.try_block, create_catch);
+	} else {
+		create_catch();
+	}
+
+	destroy_resolved(state);
+}
+
+/**
+ * Retires the slot wrapper markers once the slot's fate is decided: the
+ * open comment loses its marker data (it may still serve as the boundary
+ * anchor, so it must stay in the DOM) and the close comment is dropped —
+ * keeping `[`/`]` depth balanced for scans over surrounding slots.
+ * @param {TryState} state
+ * @returns {void}
+ */
+function neutralize_slot_markers(state) {
+	/** @type {Comment} */ (state.slot_open).data = '';
+	/** @type {ChildNode} */ (state.slot_close).remove();
+}
+
+/**
+ * Reads the streamed unit error envelope for this slot and routes the
+ * error into this boundary, or the nearest catch boundary above it.
+ * @param {TryState} state
+ * @param {string} id
+ * @returns {void}
+ */
+function route_streamed_error(state, id) {
+	if (state.try_block === null || is_destroyed(state.try_block)) {
+		return;
+	}
+	neutralize_slot_markers(state);
+	var message = 'An error occurred during server rendering';
+	var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
+	if (script !== null) {
+		try {
+			message = JSON.parse(/** @type {string} */ (script.textContent)).message ?? message;
+		} catch {
+			// keep the generic message
+		}
+		script.remove();
+	}
+	var error = new Error(message);
+	if (state.catch_fn !== null) {
+		handle_error(state, error);
+		return;
+	}
+	var outer = get_boundary_with_catch(/** @type {Block} */ (state.try_block));
+	if (outer === null) {
+		throw error;
+	}
+	outer.s.c(error);
+}
+
+/**
+ * Empties the streamed slot: destroys the hydrated fallback branch and
+ * sweeps whatever remains between the wrapper comments (leftover marker
+ * comments included).
+ * @param {TryState} state
+ * @returns {void}
+ */
+function clear_streamed_slot(state) {
+	destroy_pending(state);
+	var node = /** @type {ChildNode} */ (state.slot_open).nextSibling;
+	while (node !== null && node !== state.slot_close) {
+		var next = node.nextSibling;
+		/** @type {ChildNode} */ (node).remove();
+		node = next;
+	}
+}
+
+/**
+ * Called by the inline stream runtime when this slot's chunk arrives after
+ * hydration: swaps the fallback for the streamed content and claims the
+ * new DOM through a boundary-scoped hydration walk (trackAsync inside the
+ * body picks its serialized envelope up from the same chunk).
+ * @param {TryState} state
+ * @param {HTMLTemplateElement | null} template
+ * @param {number | undefined} [errored]
+ * @returns {void}
+ */
+function activate_streamed_chunk(state, template, errored) {
+	if (state.try_block === null || is_destroyed(state.try_block)) {
+		return;
+	}
+	var id = /** @type {string} */ (state.streamed_id);
+	state.streamed_id = null;
+	if (errored) {
+		clear_streamed_slot(state);
+		route_streamed_error(state, id);
+		return;
+	}
+	clear_streamed_slot(state);
+	if (template !== null) {
+		/** @type {ChildNode} */ (state.slot_close).before(template.content);
+	}
+	var first = /** @type {ChildNode} */ (state.slot_open).nextSibling;
+	if (first === null || first === state.slot_close) {
+		neutralize_slot_markers(state);
+		return;
+	}
+	// adopt the streamed body's own <!--[--> as the boundary anchor (the
+	// node the buffered-SSR hydration path would have used) and drop the
+	// slot wrapper comments, so the resulting DOM matches buffered SSR
+	// exactly like the pre-hydration swap path does
+	if (state.anchor === state.slot_open) {
+		state.anchor = first;
+	}
+	/** @type {ChildNode} */ (state.slot_open).remove();
+	/** @type {ChildNode} */ (state.slot_close).remove();
+	var previous_hydrating = hydrating;
+	var previous_hydrate_node = hydrate_node;
+	set_hydration(true, first);
+	hydrate_next(); // consume the streamed body's <!--[-->
+	try {
+		state.has_resolved = true;
+		render_resolved(state);
+	} finally {
+		set_hydration(previous_hydrating, previous_hydrate_node);
+	}
+}
+
+/** @param {TryState} state */
+function begin_request(state) {
+	var request_id = ++state.request_version;
+	state.active_requests.add(request_id);
+
+	if (state.pending_count++ === 0 && state.pending_fn !== null && !state.has_resolved) {
+		queue_microtask(() => {
+			if (
+				state.try_block !== null &&
+				!is_destroyed(state.try_block) &&
+				state.pending_count > 0 &&
+				!state.has_resolved
+			) {
+				render_pending(state);
+			}
+		});
+	}
+
+	return request_id;
+}
+
+/**
+ * @param {TryState} state
+ * @param {number} old_request_id
+ * @returns {number}
+ */
+function replace_request(state, old_request_id) {
+	state.active_requests.delete(old_request_id);
+	state.pending_deferreds.delete(old_request_id);
+	// pending_count unchanged — one out, one in
+	var request_id = ++state.request_version;
+	state.active_requests.add(request_id);
+	return request_id;
+}
+
+/**
+ * @param {TryState} state
+ * @param {number} request_id
+ * @param {boolean} [show_resolved_branch=true]
+ * @returns {boolean}
+ */
+function complete_request(state, request_id, show_resolved_branch = true) {
+	if (!state.active_requests.delete(request_id)) {
+		return false;
+	}
+
+	state.pending_deferreds.delete(request_id);
+
+	state.pending_count--;
+
+	if (state.pending_count === 0) {
+		if (!show_resolved_branch) {
+			clear_paused_blocks(state);
+			return true;
+		}
+
+		resume_paused_blocks(state);
+
+		queue_post_block_flush_callback(() => {
+			// run this only after the blocks have a chance to run
+			// and find more pending requests (and pause themselves) before we are
+			// certain to render the resolved state.
+			// Otherwise, we'll have multiple renders.
+			if (state.try_block === null || is_destroyed(state.try_block) || state.pending_count > 0) {
+				return;
+			}
+
+			if (state.mode === 'pending') {
+				destroy_pending(state);
+				show_resolved_fragment(state);
+			}
+
+			state.has_resolved = true;
+			state.mode = 'resolved';
+		});
+		// this is more just in case here and shouldn't really cause anything to run
+		// most likely the scheduling is already there
+		// leaving it here in case there are some weird edge cases
+		queue_microtask();
+	}
+
+	return true;
+}
+
+/**
+ * @param {TryState} state
+ * @param {Comment} marker
+ * @param {string} data
+ */
+function hydrate_streamed_slot(state, marker, data) {
+	// live streamed slot
+	state.streamed_id = data.slice(HYDRATION_START_PENDING.length);
+	state.streamed_errored = data.startsWith(HYDRATION_START_ERRORED);
+	state.slot_open = marker;
+	hydrate_next(); // consume the slot wrapper open
+	state.slot_close = /** @type {Comment} */ (skip_to_hydration_end());
+	var fallback_start = /** @type {Comment} */ (hydrate_node);
+	state.streamed_fallback =
+		!state.streamed_errored &&
+		state.pending_fn !== null &&
+		fallback_start.nodeType === COMMENT_NODE &&
+		fallback_start.data === HYDRATION_START;
+	if (state.streamed_fallback) {
+		hydrate_next(); // consume the fallback's <!--[-->
+	}
+}
+
+/** @param {TryState} state */
+function register_streamed_slot(state) {
+	// continue the outer hydration walk after the slot
+	set_hydrate_node(state.slot_close);
+
+	var registry = (window.__RIPPLE_B__ ??= {});
+	var unit_id = /** @type {string} */ (state.streamed_id);
+	if (state.streamed_errored) {
+		// the inline runtime already emptied the slot and marked it errored
+		// — route the error once the surrounding hydration has finished
+		queue_microtask(() => route_streamed_error(state, unit_id));
+	} else {
+		registry[unit_id] = {
+			a: (template, errored) => activate_streamed_chunk(state, template, errored),
+		};
+	}
+}
+
+/** @param {TryState} state */
+function hydrate_streamed_fallback(state) {
+	// The body has not arrived yet; hydrate its fallback until activation.
+	if (state.streamed_fallback) {
+		state.mode = 'pending';
+		state.pending_branch = boundary_fn_running_block(() => {
+			/** @type {PendingFunction} */ (state.pending_fn)(state.anchor);
+		});
+	}
+}
+
+/** @param {TryState} state */
+function run_try(state) {
+	if (state.streamed_id !== null) {
+		hydrate_streamed_fallback(state);
+	} else {
+		state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+	}
+}
+
+/**
  * @param {Node | AppendIntoAnchor} node
  * @param {(anchor: Node, block?: Block) => void} try_fn
  * @param {CatchFunction | null} catch_fn
@@ -55,406 +522,49 @@ import {
  * @returns {void}
  */
 export function try_block(node, try_fn, catch_fn, pending_fn = null, root_controlled = false) {
-	var anchor = root_controlled ? resolve_anchor(node) : /** @type {Node} */ (node);
 	/** @type {Node | undefined} */
 	var boundary;
-	var pending_count = 0;
-	var request_version = 0;
-	/** @type {Set<number>} */
-	var active_requests = new Set();
-	/** @type {Block | null} */
-	var try_block = null;
-	/** @type {Block | null} */
-	var resolved_branch = null;
-	/** @type {Block | null} */
-	var pending_branch = null;
-	/** @type {Block | null} */
-	var catch_branch = null;
-	/** @type {DocumentFragment | null} */
-	var offscreen_fragment = null;
-	var has_resolved = false;
-	/** @type {'resolved' | 'pending' | 'catch'} */
-	var mode = 'resolved';
-	/** @type {Map<number, (reason: any) => void>} */
-	var pending_deferreds = new Map();
-	/** @type {Set<Block>} */
-	var paused_blocks = new Set();
-	/** @type {string | null} */
-	var streamed_id = null;
-	var streamed_errored = false;
-	var streamed_fallback = false;
-	/** @type {Comment | null} */
-	var slot_open = null;
-	/** @type {Comment | null} */
-	var slot_close = null;
-
-	function clear_paused_blocks() {
-		paused_blocks.clear();
-	}
-
-	/**
-	 * @returns {boolean}
-	 */
-	function resume_paused_blocks() {
-		if (paused_blocks.size === 0) {
-			return false;
-		}
-
-		var blocks = paused_blocks;
-		paused_blocks = new Set();
-		var resumed = false;
-
-		for (var block of blocks) {
-			if (!is_destroyed(block)) {
-				resume_block(block);
-				resumed = true;
-			}
-		}
-
-		return resumed;
-	}
-
-	function show_resolved_fragment() {
-		if (offscreen_fragment !== null) {
-			/** @type {ChildNode} */ (anchor).before(offscreen_fragment);
-			offscreen_fragment = null;
-		}
-
-		has_resolved = true;
-		mode = 'resolved';
-	}
-
-	function render_resolved() {
-		if (
-			try_block !== null &&
-			!is_destroyed(try_block) &&
-			(resolved_branch === null || is_destroyed(resolved_branch))
-		) {
-			if (catch_branch !== null) {
-				destroy_block(catch_branch);
-				catch_branch = null;
-			}
-			mode = 'resolved';
-			if (active_block !== try_block) {
-				with_block(try_block, () => {
-					resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
-				});
-			} else {
-				resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
-			}
-		}
-	}
-
-	function destroy_resolved() {
-		if (resolved_branch !== null && !is_destroyed(resolved_branch)) {
-			destroy_block(resolved_branch);
-		}
-		resolved_branch = null;
-		offscreen_fragment = null;
-	}
-
-	function move_resolved_offscreen() {
-		if (resolved_branch !== null) {
-			if (!offscreen_fragment) {
-				// if offcreen_fragment exists, it means the resolved_branch is already offscreen,
-				// so we can skip moving it again
-				offscreen_fragment = document.createDocumentFragment();
-				move_block(resolved_branch, offscreen_fragment);
-			}
-		}
-	}
-
-	function render_pending() {
-		if (pending_fn === null || mode === 'pending') {
-			return;
-		}
-
-		move_resolved_offscreen();
-
-		mode = 'pending';
-
-		var create_pending = () => {
-			pending_branch = boundary_fn_running_block(() => {
-				/** @type {PendingFunction} */ (pending_fn)(anchor);
-			});
-		};
-
-		// with_block ensures the branch is parented under the TRY_BLOCK when called
-		// from async contexts (microtasks) where active_block is null. During synchronous
-		// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
-		if (try_block !== null && !is_destroyed(try_block) && active_block !== try_block) {
-			with_block(try_block, create_pending);
-		} else {
-			create_pending();
-		}
-	}
-
-	function destroy_pending() {
-		if (pending_branch !== null && !is_destroyed(pending_branch)) {
-			destroy_block(pending_branch);
-		}
-		pending_branch = null;
-	}
-
-	/**
-	 * @param {any} error
-	 * @returns {void}
-	 */
-	function handle_error(error) {
-		if (mode === 'catch') {
-			// we don't want to do this again and render catch block again
-			return;
-		}
-		pending_count = 0;
-		active_requests.clear();
-		clear_paused_blocks();
-
-		// Reject all pending deferred promises so dependent async tracked settle
-		// handlers fire and clean up. The settle will see the request already
-		// cleared and skip error routing, avoiding double-catch.
-		if (pending_deferreds.size > 0) {
-			for (var [, reject_fn] of pending_deferreds) {
-				reject_fn(error);
-			}
-			pending_deferreds.clear();
-		}
-
-		if (mode === 'pending') {
-			destroy_pending();
-		} else if (mode === 'resolved') {
-			move_resolved_offscreen();
-		}
-
-		mode = 'catch';
-
-		var create_catch = () => {
-			catch_branch = boundary_fn_running_block(() => {
-				/** @type {CatchFunction} */ (catch_fn)(anchor, error, render_resolved);
-			});
-		};
-
-		// with_block ensures the branch is parented under the TRY_BLOCK when called
-		// from async contexts where active_block is null. During synchronous
-		// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
-		if (try_block !== null && !is_destroyed(try_block) && active_block !== try_block) {
-			with_block(try_block, create_catch);
-		} else {
-			create_catch();
-		}
-
-		destroy_resolved();
-	}
-
-	/**
-	 * Retires the slot wrapper markers once the slot's fate is decided: the
-	 * open comment loses its marker data (it may still serve as the boundary
-	 * anchor, so it must stay in the DOM) and the close comment is dropped —
-	 * keeping `[`/`]` depth balanced for scans over surrounding slots.
-	 * @returns {void}
-	 */
-	function neutralize_slot_markers() {
-		/** @type {Comment} */ (slot_open).data = '';
-		/** @type {ChildNode} */ (slot_close).remove();
-	}
-
-	/**
-	 * Reads the streamed unit error envelope for this slot and routes the
-	 * error into this boundary, or the nearest catch boundary above it.
-	 * @param {string} id
-	 * @returns {void}
-	 */
-	function route_streamed_error(id) {
-		if (try_block === null || is_destroyed(try_block)) {
-			return;
-		}
-		neutralize_slot_markers();
-		var message = 'An error occurred during server rendering';
-		var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
-		if (script !== null) {
-			try {
-				message = JSON.parse(/** @type {string} */ (script.textContent)).message ?? message;
-			} catch {
-				// keep the generic message
-			}
-			script.remove();
-		}
-		var error = new Error(message);
-		if (catch_fn !== null) {
-			handle_error(error);
-			return;
-		}
-		var outer = get_boundary_with_catch(/** @type {Block} */ (try_block));
-		if (outer === null) {
-			throw error;
-		}
-		outer.s.c(error);
-	}
-
-	/**
-	 * Empties the streamed slot: destroys the hydrated fallback branch and
-	 * sweeps whatever remains between the wrapper comments (leftover marker
-	 * comments included).
-	 * @returns {void}
-	 */
-	function clear_streamed_slot() {
-		destroy_pending();
-		var node = /** @type {ChildNode} */ (slot_open).nextSibling;
-		while (node !== null && node !== slot_close) {
-			var next = node.nextSibling;
-			/** @type {ChildNode} */ (node).remove();
-			node = next;
-		}
-	}
-
-	/**
-	 * Called by the inline stream runtime when this slot's chunk arrives after
-	 * hydration: swaps the fallback for the streamed content and claims the
-	 * new DOM through a boundary-scoped hydration walk (trackAsync inside the
-	 * body picks its serialized envelope up from the same chunk).
-	 * @param {HTMLTemplateElement | null} template
-	 * @param {number | undefined} [errored]
-	 * @returns {void}
-	 */
-	function activate_streamed_chunk(template, errored) {
-		if (try_block === null || is_destroyed(try_block)) {
-			return;
-		}
-		var id = /** @type {string} */ (streamed_id);
-		streamed_id = null;
-		if (errored) {
-			clear_streamed_slot();
-			route_streamed_error(id);
-			return;
-		}
-		clear_streamed_slot();
-		if (template !== null) {
-			/** @type {ChildNode} */ (slot_close).before(template.content);
-		}
-		var first = /** @type {ChildNode} */ (slot_open).nextSibling;
-		if (first === null || first === slot_close) {
-			neutralize_slot_markers();
-			return;
-		}
-		// adopt the streamed body's own <!--[--> as the boundary anchor (the
-		// node the buffered-SSR hydration path would have used) and drop the
-		// slot wrapper comments, so the resulting DOM matches buffered SSR
-		// exactly like the pre-hydration swap path does
-		if (anchor === slot_open) {
-			anchor = first;
-		}
-		/** @type {ChildNode} */ (slot_open).remove();
-		/** @type {ChildNode} */ (slot_close).remove();
-		var previous_hydrating = hydrating;
-		var previous_hydrate_node = hydrate_node;
-		set_hydration(true, first);
-		hydrate_next(); // consume the streamed body's <!--[-->
-		try {
-			has_resolved = true;
-			render_resolved();
-		} finally {
-			set_hydration(previous_hydrating, previous_hydrate_node);
-		}
-	}
-
-	function begin_request() {
-		var request_id = ++request_version;
-		active_requests.add(request_id);
-
-		if (pending_count++ === 0 && pending_fn !== null && !has_resolved) {
-			queue_microtask(() => {
-				if (try_block !== null && !is_destroyed(try_block) && pending_count > 0 && !has_resolved) {
-					render_pending();
-				}
-			});
-		}
-
-		return request_id;
-	}
-
-	/**
-	 * @param {number} old_request_id
-	 * @returns {number}
-	 */
-	function replace_request(old_request_id) {
-		active_requests.delete(old_request_id);
-		pending_deferreds.delete(old_request_id);
-		// pending_count unchanged — one out, one in
-		var request_id = ++request_version;
-		active_requests.add(request_id);
-		return request_id;
-	}
-
-	/**
-	 * @param {number} request_id
-	 * @param {boolean} [show_resolved_branch=true]
-	 * @returns {boolean}
-	 */
-	function complete_request(request_id, show_resolved_branch = true) {
-		if (!active_requests.delete(request_id)) {
-			return false;
-		}
-
-		pending_deferreds.delete(request_id);
-
-		pending_count--;
-
-		if (pending_count === 0) {
-			if (!show_resolved_branch) {
-				clear_paused_blocks();
-				return true;
-			}
-
-			resume_paused_blocks();
-
-			queue_post_block_flush_callback(() => {
-				// run this only after the blocks have a chance to run
-				// and find more pending requests (and pause themselves) before we are
-				// certain to render the resolved state.
-				// Otherwise, we'll have multiple renders.
-				if (try_block === null || is_destroyed(try_block) || pending_count > 0) {
-					return;
-				}
-
-				if (mode === 'pending') {
-					destroy_pending();
-					show_resolved_fragment();
-				}
-
-				has_resolved = true;
-				mode = 'resolved';
-			});
-			// this is more just in case here and shouldn't really cause anything to run
-			// most likely the scheduling is already there
-			// leaving it here in case there are some weird edge cases
-			queue_microtask();
-		}
-
-		return true;
-	}
-
-	/** @type {TryBoundaryState} */
+	/** @type {TryState} */
 	var state = {
+		anchor: root_controlled ? resolve_anchor(node) : /** @type {Node} */ (node),
+		try_fn,
+		catch_fn,
+		pending_fn,
+		reset: null,
+		pending_count: 0,
+		request_version: 0,
+		active_requests: new Set(),
+		try_block: null,
+		resolved_branch: null,
+		pending_branch: null,
+		catch_branch: null,
+		offscreen_fragment: null,
+		has_resolved: false,
+		mode: 'resolved',
+		pending_deferreds: new Map(),
+		paused_blocks: new Set(),
+		streamed_id: null,
+		streamed_errored: false,
+		streamed_fallback: false,
+		slot_open: null,
+		slot_close: null,
+		// Keep the boundary callback interface; only these small adapters are
+		// created eagerly, while the helpers they call can compile lazily.
 		p: pending_fn !== null,
-		b: begin_request,
-		r: complete_request,
-		c: catch_fn !== null ? handle_error : null,
-		/** @param {number} request_id @param {(reason: any) => void} reject_fn */
+		b: () => begin_request(state),
+		r: (request_id, show_resolved_branch) =>
+			complete_request(state, request_id, show_resolved_branch),
+		c: catch_fn !== null ? (error) => handle_error(state, error) : null,
 		rd: (request_id, reject_fn) => {
-			pending_deferreds.set(request_id, reject_fn);
+			state.pending_deferreds.set(request_id, reject_fn);
 		},
-		/** @param {Block} block */
 		pb: (block) => {
-			paused_blocks.add(block);
+			state.paused_blocks.add(block);
 		},
-		rp: replace_request,
+		rp: (old_request_id) => replace_request(state, old_request_id),
 	};
 
 	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
-		// Server wraps a settled try body with <!--[-->...<!--]--> markers when
-		// pending or catch is present, and the boundary hydrates as resolved.
-		// Streaming SSR instead emits a slot wrapper around the fallback:
-		// <!--[?N--> while unit N's content is still on its way, or
-		// <!--[!N--> when the unit errored after its region was already sent.
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
@@ -462,67 +572,25 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		var marker = /** @type {Comment} */ (hydrate_node);
 		var data = marker.nodeType === COMMENT_NODE ? marker.data : '';
 
-		// a slot marker at the boundary's own anchor always belongs to this
-		// boundary — the root boundary included: when the root suspends, the
-		// server emits its slot as the whole body, so the marker doubles as
-		// the hydration anchor
+		// A slot at this anchor belongs to this boundary, including the root.
 		if (data.startsWith(HYDRATION_START_PENDING) || data.startsWith(HYDRATION_START_ERRORED)) {
-			// live streamed slot
-			streamed_id = data.slice(HYDRATION_START_PENDING.length);
-			streamed_errored = data.startsWith(HYDRATION_START_ERRORED);
-			slot_open = marker;
-			hydrate_next(); // consume the slot wrapper open
-			slot_close = /** @type {Comment} */ (skip_to_hydration_end());
-			var fallback_start = /** @type {Comment} */ (hydrate_node);
-			streamed_fallback =
-				!streamed_errored &&
-				pending_fn !== null &&
-				fallback_start.nodeType === COMMENT_NODE &&
-				fallback_start.data === HYDRATION_START;
-			if (streamed_fallback) {
-				hydrate_next(); // consume the fallback's <!--[-->
-			}
+			hydrate_streamed_slot(state, marker, data);
 		} else {
-			// settled content: mark as already resolved so begin_request's
-			// microtask won't transition to pending
+			// Settled SSR content must not transition back to pending.
 			if (pending_fn !== null) {
-				has_resolved = true;
+				state.has_resolved = true;
 			}
 			hydrate_next(); // consume <!--[-->
 		}
 	}
 
-	try_block = create_try_block(() => {
-		if (streamed_id !== null) {
-			// the streamed body hasn't arrived yet — hydrate the fallback (if
-			// any) as the pending branch and wait for the chunk to activate us
-			if (streamed_fallback) {
-				mode = 'pending';
-				pending_branch = boundary_fn_running_block(() => {
-					/** @type {PendingFunction} */ (pending_fn)(anchor);
-				});
-			}
-			return;
-		}
-		resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
-	}, state);
+	state.try_block = create_try_block(run_try, state);
 
-	if (streamed_id !== null) {
-		// continue the outer hydration walk after the slot
-		set_hydrate_node(slot_close);
-
-		var registry = (window.__RIPPLE_B__ ??= {});
-		var unit_id = streamed_id;
-		if (streamed_errored) {
-			// the inline runtime already emptied the slot and marked it errored
-			// — route the error once the surrounding hydration has finished
-			queue_microtask(() => route_streamed_error(unit_id));
-		} else {
-			registry[unit_id] = { a: activate_streamed_chunk };
-		}
+	if (state.streamed_id !== null) {
+		register_streamed_slot(state);
 	}
 
-	own_anchor(node, anchor);
+	own_anchor(node, state.anchor);
 
 	if (hydrating && root_controlled) {
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));

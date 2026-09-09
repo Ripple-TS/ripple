@@ -12,6 +12,74 @@ import {
 } from 'ripple';
 
 describe('try block with catch and pending', () => {
+	it('keeps sibling boundary requests and catch resets independent', async () => {
+		const requests: {
+			resolve: (value: string) => void;
+			reject: (error: Error) => void;
+		}[] = [];
+
+		function load() {
+			return new Promise<string>((resolve, reject) => {
+				requests.push({ resolve, reject });
+			});
+		}
+
+		function Boundary() @{
+			@try {
+				let &[value] = trackAsync(load);
+				<p class="resolved">{value}</p>
+			} @pending {
+				<p class="pending">{'loading'}</p>
+			} @catch (error, reset) {
+				<button class="retry" onClick={reset}>{(error as Error).message}</button>
+			}
+		}
+
+		function App() @{
+			<>
+				<section class="first">
+					<Boundary />
+				</section>
+				<section class="second">
+					<Boundary />
+				</section>
+			</>
+		}
+
+		async function settle() {
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			flushSync();
+		}
+
+		render(App);
+		await settle();
+		expect(container.querySelectorAll('.pending')).toHaveLength(2);
+
+		requests[1].resolve('second result');
+		await settle();
+		const second = container.querySelector('.second .resolved');
+		expect(second?.textContent).toBe('second result');
+		expect(container.querySelector('.first .pending')).not.toBeNull();
+
+		requests[0].reject(new Error('first failed'));
+		await settle();
+		expect(container.querySelector('.first .retry')?.textContent).toBe('first failed');
+		expect(container.querySelector('.second .resolved')).toBe(second);
+
+		(container.querySelector('.first .retry') as HTMLButtonElement).click();
+		await settle();
+		expect(requests).toHaveLength(3);
+		expect(container.querySelector('.first .pending')).not.toBeNull();
+		expect(container.querySelector('.first .retry')).toBeNull();
+		expect(container.querySelector('.second .resolved')).toBe(second);
+
+		requests[2].resolve('first recovered');
+		await settle();
+		expect(container.querySelector('.first .resolved')?.textContent).toBe('first recovered');
+		expect(container.querySelector('.second .resolved')).toBe(second);
+		expect(container.querySelectorAll('.pending, .retry')).toHaveLength(0);
+	});
+
 	it('renders nothing for an empty pending fallback before resolving', async () => {
 		let resolve_value: (value: string) => void = () => {};
 		const promise = new Promise<string>((resolve) => {
