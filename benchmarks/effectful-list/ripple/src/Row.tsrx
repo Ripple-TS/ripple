@@ -19,7 +19,11 @@ import { fx, rowRef } from './fx.js';
 //     refs support the React-19-style cleanup-return (the teardown runs on
 //     row destruction).
 
-export default function Row(props) @{
+export default function Row(&{
+	item,
+}: {
+	item: { id: number; label: string; value: number; probe: boolean };
+}) @{
 	let &[cell] = track(null);
 
 	effect(() => {
@@ -30,7 +34,6 @@ export default function Row(props) @{
 	});
 
 	effect(() => {
-		const item = props.item;
 		const el = cell;
 		if (el !== null && item.probe) {
 			fx.h += el.offsetHeight;
@@ -44,8 +47,8 @@ export default function Row(props) @{
 			ref={(el) => {
 				cell = el;
 			}}
-		>{props.item.id}</td>
-		<td class="col-label">{props.item.label}</td>
-		<td class="col-value">{props.item.value}</td>
+		>{item.id}</td>
+		<td class="col-label">{item.label}</td>
+		<td class="col-value">{item.value}</td>
 	</tr>
 }

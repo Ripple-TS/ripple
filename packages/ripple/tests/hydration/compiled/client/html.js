@@ -411,22 +411,27 @@ export function DocLayout(__props) {
 											var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 											{
-												var expression_3 = _$_.hydrating ? _$_.hydrate_child() : a_2.firstChild;
+												var expression_3 = _$_.hydrating ? _$_.hydrate_child(true) : a_2.firstChild;
 
-												_$_.expression(expression_3, () => item.text);
 												_$_.pop(a_2);
 											}
 										}
 
 										_$_.render(
 											(__prev) => {
-												var __a = item.href;
+												var __a = item.text;
 
 												if (__prev.a !== __a) {
-													_$_.set_attribute(a_2, 'href', __prev.a = __a);
+													_$_.set_text(expression_3, __prev.a = __a);
+												}
+
+												var __b = item.href;
+
+												if (__prev.b !== __b) {
+													_$_.set_attribute(a_2, 'href', __prev.b = __b);
 												}
 											},
-											{ a: void 0 }
+											{ a: ' ', b: void 0 }
 										);
 
 										_$_.append(__anchor, li);
@@ -850,9 +855,8 @@ function NavItem(__props) {
 				var span_3 = _$_.hydrating ? _$_.hydrate_child() : a_3.firstChild;
 
 				{
-					var expression_15 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
+					var expression_15 = _$_.hydrating ? _$_.hydrate_child(true) : span_3.firstChild;
 
-					_$_.expression(expression_15, () => __props.text);
 					_$_.pop(span_3);
 				}
 			}
@@ -862,19 +866,25 @@ function NavItem(__props) {
 
 		_$_.render(
 			(__prev) => {
-				var __a = __props.href;
+				var __a = __props.text;
 
 				if (__prev.a !== __a) {
-					_$_.set_attribute(a_3, 'href', __prev.a = __a);
+					_$_.set_text(expression_15, __prev.a = __a);
 				}
 
-				var __b = `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`;
+				var __b = __props.href;
 
 				if (__prev.b !== __b) {
-					_$_.set_class(div_27, __prev.b = __b, void 0, true);
+					_$_.set_attribute(a_3, 'href', __prev.b = __b);
+				}
+
+				var __c = `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`;
+
+				if (__prev.c !== __c) {
+					_$_.set_class(div_27, __prev.c = __c, void 0, true);
 				}
 			},
-			{ a: void 0, b: _$_.UNINITIALIZED }
+			{ a: ' ', b: void 0, c: _$_.UNINITIALIZED }
 		);
 
 		_$_.append(__anchor, div_27);
@@ -1616,21 +1626,26 @@ function DocsLayoutExact(__props) {
 													var a_8 = root_75();
 
 													{
-														var expression_25 = _$_.hydrating ? _$_.hydrate_child() : a_8.firstChild;
+														var expression_25 = _$_.hydrating ? _$_.hydrate_child(true) : a_8.firstChild;
 
-														_$_.expression(expression_25, () => item.text);
 														_$_.pop(a_8);
 													}
 
 													_$_.render(
 														(__prev) => {
-															var __a = item.href;
+															var __a = item.text;
 
 															if (__prev.a !== __a) {
-																_$_.set_attribute(a_8, 'href', __prev.a = __a);
+																_$_.set_text(expression_25, __prev.a = __a);
+															}
+
+															var __b = item.href;
+
+															if (__prev.b !== __b) {
+																_$_.set_attribute(a_8, 'href', __prev.b = __b);
 															}
 														},
-														{ a: void 0 }
+														{ a: ' ', b: void 0 }
 													);
 
 													_$_.append(__anchor, a_8);

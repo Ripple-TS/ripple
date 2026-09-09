@@ -5818,11 +5818,9 @@ function transform_children(children, context) {
 					is_template_expression(node) &&
 					/** @type {ESTreeJSX.JSXExpressionContainer} */ (node).expression.type !== 'Literal',
 			)) ||
+		// Setup statements produce no DOM; only rendered siblings need a fragment.
 		normalized.filter(
-			(node) =>
-				node.type !== 'VariableDeclaration' &&
-				node.type !== 'BlockStatement' &&
-				node.type !== 'EmptyStatement',
+			(node) => is_template_element(node) || is_template_text(node) || is_template_expression(node),
 		).length > 1;
 	// A fragment template root (a component or control-flow body, not an
 	// element's children): its hydration cursor must end on its last top-level

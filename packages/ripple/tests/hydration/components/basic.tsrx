@@ -228,7 +228,13 @@ export function TsxDeclaredBeforeTopLevelTsx() @{
 	</>
 }
 
-function TextProp(&{ children }: { children: string }) @{
+// Untyped children render through the generic expression path (hydration
+// markers); typed string children hydrate a text node directly.
+function TextProp(&{ children }: { children: unknown }) @{
+	<div class="text-prop">{children}</div>
+}
+
+function TypedTextProp(&{ children }: { children: string }) @{
 	<div class="text-prop">{children}</div>
 }
 
@@ -236,6 +242,14 @@ export function TextPropWithToggle() @{
 	let &[show] = track(false);
 	<>
 		<TextProp children={show ? 'hello' : ''} />
+		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+	</>
+}
+
+export function TypedTextPropWithToggle() @{
+	let &[show] = track(false);
+	<>
+		<TypedTextProp children={show ? 'hello' : ''} />
 		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 	</>
 }

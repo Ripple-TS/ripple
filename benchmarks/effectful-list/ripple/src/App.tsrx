@@ -26,7 +26,7 @@ export default function App() @{
 		<table class="test-data">
 			<tbody>
 				@for (const item of items; key item.id) {
-					<Row item={item} />
+					<Row {item} />
 				}
 			</tbody>
 		</table>

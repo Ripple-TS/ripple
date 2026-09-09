@@ -660,6 +660,17 @@ function TextProp(__props) {
 	});
 }
 
+function TypedTextProp(__props) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="text-prop">' + _$_.escape(__props.children) + '</div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
 export function TextPropWithToggle() {
 	return _$_.tsrx_element(() => {
 		let lazy_1 = _$_.track(false, '1ba81c3b');
@@ -676,6 +687,36 @@ export function TextPropWithToggle() {
 				const args = [
 					{
 						children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
+					}
+				];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<button class="show-text">Show</button>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function TypedTextPropWithToggle() {
+	return _$_.tsrx_element(() => {
+		let lazy_2 = _$_.track(false, '649e2af0');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			{
+				const comp = TypedTextProp;
+
+				_$_.output_push(__out);
+				__out = '';
+
+				const args = [
+					{
+						children: _$_.normalize_children(lazy_2.value ? 'hello' : '')
 					}
 				];
 
