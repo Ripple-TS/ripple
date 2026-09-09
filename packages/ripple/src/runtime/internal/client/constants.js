@@ -11,6 +11,8 @@ export var ASYNC_BLOCK = 1 << 10;
 export var HEAD_BLOCK = 1 << 11;
 export var PRE_EFFECT_BLOCK = 1 << 12;
 export var DIRECT_CHILD_BLOCK = 1 << 13;
+// Content rendered outside the parent's DOM range (`<head>`, a portal target).
+export var DETACHED_BLOCK = 1 << 14;
 export var CONTAINS_TEARDOWN = 1 << 15;
 export var BLOCK_HAS_RUN = 1 << 16;
 export var TRACKED = 1 << 17;

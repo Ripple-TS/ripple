@@ -1,6 +1,6 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
-import { branch, destroy_block, render } from './blocks.js';
+import { branch, destroy_block, own_anchor, render } from './blocks.js';
 import { IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { resolve_anchor } from './operations.js';
@@ -110,6 +110,8 @@ export function if_block(node, fn, root_controlled) {
 		},
 		IF_BLOCK,
 	);
+
+	own_anchor(node, anchor);
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

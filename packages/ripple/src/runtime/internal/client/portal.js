@@ -1,7 +1,7 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
 import { branch, destroy_block, render } from './blocks.js';
-import { DESTROYED, UNINITIALIZED } from './constants.js';
+import { DESTROYED, DETACHED_BLOCK, UNINITIALIZED } from './constants.js';
 import { handle_root_events, release_root_events } from './events.js';
 import { active_block } from './runtime.js';
 import { hydrating, hydrate_node, set_hydrating, set_hydrate_node } from './hydration.js';
@@ -60,8 +60,9 @@ function run_portal(s) {
 
 	// Portal content always appends at the end of its target, so an
 	// append-into sentinel replaces a placeholder text anchor: no extra node to
-	// create, insert before, or remove on teardown.
-	s.b = branch(run_portal_children, 0, {
+	// create, insert before, or remove on teardown. The branch is detached: its
+	// DOM is removed even when a destroyed ancestor already removed its own.
+	s.b = branch(run_portal_children, DETACHED_BLOCK, {
 		start: null,
 		end: null,
 		r: s.r,

@@ -1,5 +1,5 @@
 import { render } from './blocks.js';
-import { HEAD_BLOCK } from './constants.js';
+import { DETACHED_BLOCK, HEAD_BLOCK } from './constants.js';
 import { COMMENT_NODE } from '../../../constants.js';
 import { create_text, get_first_child, get_next_sibling } from './operations.js';
 import { hydrate_node, hydrating, set_hydrate_node, set_hydrating } from './hydration.js';
@@ -49,7 +49,7 @@ export function head(hash, render_fn) {
 	}
 
 	try {
-		render(() => render_fn(anchor), null, HEAD_BLOCK);
+		render(() => render_fn(anchor), null, HEAD_BLOCK | DETACHED_BLOCK);
 	} finally {
 		if (was_hydrating) {
 			set_hydrating(true);

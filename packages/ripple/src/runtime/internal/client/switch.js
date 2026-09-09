@@ -1,6 +1,13 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
-import { branch, destroy_block, get_first_node, get_last_node, render } from './blocks.js';
+import {
+	branch,
+	destroy_block,
+	get_first_node,
+	get_last_node,
+	own_anchor,
+	render,
+} from './blocks.js';
 import { SWITCH_BLOCK } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { next_sibling, resolve_anchor } from './operations.js';
@@ -108,6 +115,8 @@ export function switch_block(node, fn, root_controlled) {
 		null,
 		SWITCH_BLOCK,
 	);
+
+	own_anchor(node, anchor);
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

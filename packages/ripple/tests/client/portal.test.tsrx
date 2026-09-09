@@ -370,4 +370,96 @@ describe('Portal', () => {
 
 		document.body.removeChild(target);
 	});
+
+	it('removes portal content when a fragment containing the portal is destroyed', () => {
+		// The `@if` branch owns a DOM range of its own (the fragment), so it
+		// tells its subtree not to remove DOM; the portal content lives in the
+		// target, outside that range, and must still go.
+		function TestPortalInFragment() @{
+			let &[open] = track(true);
+			<>
+				<button onClick={() => (open = false)}>{'Close'}</button>
+				@if (open) {
+					<>
+						<Portal target={document.body}>
+							<div class="test-portal">{'Content'}</div>
+						</Portal>
+						<span class="sibling">{'Sibling'}</span>
+					</>
+				}
+			</>
+		}
+
+		render(TestPortalInFragment);
+
+		expect(document.body.querySelector('.test-portal')).toBeTruthy();
+
+		container.querySelector('button').click();
+		flushSync();
+
+		expect(container.querySelector('.sibling')).toBeNull();
+		expect(document.body.querySelector('.test-portal')).toBeNull();
+	});
+
+	it(
+		'leaves nothing in the target after closing or retargeting a portal with control-flow roots',
+		() => {
+			// A root-controlled block inside portal content gets a text anchor of its
+			// own; the target outlives the portal, so that anchor must go with the
+			// content on close and on retarget.
+			const target1 = document.createElement('div');
+			const target2 = document.createElement('div');
+			document.body.appendChild(target1);
+			document.body.appendChild(target2);
+
+			function Toggle(props) @{
+				@if (props.on) {
+					<span class="test-portal">{'A'}</span>
+				} @else {
+					<span class="test-portal">{'a'}</span>
+				}
+			}
+
+			function List(props) @{
+				@for (const item of props.items; key item) {
+					<span class="test-portal">{item}</span>
+				}
+			}
+
+			function TestPortalCleanup() @{
+				let &[open] = track(true);
+				let &[useSecond] = track(false);
+				<>
+					<button class="close" onClick={() => (open = false)}>{'Close'}</button>
+					<button class="swap" onClick={() => (useSecond = true)}>{'Swap'}</button>
+					@if (open) {
+						<>
+							<Portal target={useSecond ? target2 : target1}>
+								<Toggle on={true} />
+							</Portal>
+							<Portal target={useSecond ? target2 : target1}>
+								<List items={[1, 2]} />
+							</Portal>
+						</>
+					}
+				</>
+			}
+
+			render(TestPortalCleanup);
+
+			expect(target1.textContent).toBe('A12');
+
+			container.querySelector('.swap').click();
+			flushSync();
+			expect(target1.childNodes.length).toBe(0);
+			expect(target2.textContent).toBe('A12');
+
+			container.querySelector('.close').click();
+			flushSync();
+			expect(target2.childNodes.length).toBe(0);
+
+			document.body.removeChild(target1);
+			document.body.removeChild(target2);
+		},
+	);
 });

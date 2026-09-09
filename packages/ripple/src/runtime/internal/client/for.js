@@ -7,6 +7,7 @@ import {
 	destroy_block_children,
 	get_first_node,
 	get_last_node,
+	own_anchor,
 	render,
 } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
@@ -225,6 +226,8 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 		FOR_BLOCK,
 	);
 
+	own_anchor(node, anchor);
+
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
@@ -298,6 +301,8 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 		null,
 		FOR_BLOCK,
 	);
+
+	own_anchor(node, anchor);
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

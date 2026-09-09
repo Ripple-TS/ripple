@@ -1,4 +1,4 @@
-/** @import { Block, Derived, Component } from '#client' */
+/** @import { AppendIntoAnchor, Block, Derived, Component } from '#client' */
 
 import {
 	BLOCK_HAS_RUN,
@@ -11,10 +11,12 @@ import {
 	RENDER_BLOCK,
 	ROOT_BLOCK,
 	TRY_BLOCK,
+	DETACHED_BLOCK,
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
 	UNINITIALIZED,
 } from './constants.js';
+import { hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
@@ -98,6 +100,24 @@ export function render_spread(element, fn, flags = 0, exclude_prop) {
  */
 export function branch(fn, flags = 0, state = null) {
 	return block(BRANCH_BLOCK | flags, fn, state);
+}
+
+function noop() {}
+
+/**
+ * Gives a text anchor materialized by `resolve_anchor` a branch block of its
+ * own, so destroying the enclosing block removes the anchor along with the
+ * content: a portal target outlives its content, and nothing else owns a node
+ * appended there. Call it after creating the anchored block so block order
+ * matches DOM order (the content is inserted before the anchor). A no-op when
+ * `anchor` is the node as received (an ordinary anchor belongs to a template)
+ * or the SSR marker the sentinel resolves to during hydration.
+ * @param {Node | AppendIntoAnchor} node
+ * @param {Node} anchor
+ */
+export function own_anchor(node, anchor) {
+	if (anchor === node || hydrating) return;
+	branch(noop, 0, { start: anchor, end: anchor });
 }
 
 /**
@@ -483,6 +503,13 @@ export function get_last_node(block) {
 export function destroy_block(block, remove_dom = true) {
 	var f = (block.f |= DESTROYED);
 	var removed = false;
+
+	// An ancestor that removed its own range tells its subtree not to bother,
+	// but detached content (a portal target, `<head>`) is not inside that
+	// range and must still be removed, by this block or by its children.
+	if ((f & DETACHED_BLOCK) !== 0) {
+		remove_dom = true;
+	}
 
 	if (
 		(remove_dom && (f & (BRANCH_BLOCK | ROOT_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) ||

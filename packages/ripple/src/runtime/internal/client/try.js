@@ -6,6 +6,7 @@ import {
 	destroy_block,
 	is_destroyed,
 	move_block,
+	own_anchor,
 	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
@@ -522,6 +523,8 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 			registry[unit_id] = { a: activate_streamed_chunk };
 		}
 	}
+
+	own_anchor(node, anchor);
 
 	if (hydrating && root_controlled) {
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
