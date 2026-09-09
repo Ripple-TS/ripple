@@ -250,6 +250,9 @@ overrides:
   esrap: ^2.3.2
   semver: ^7.7.4
 
+patchedDependencies:
+  devalue@5.9.2: 84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3
+
 importers:
 
   .:
@@ -2076,7 +2079,7 @@ importers:
         version: 2.1.1
       devalue:
         specifier: catalog:default
-        version: 5.9.2
+        version: 5.9.2(patch_hash=84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3)
       esm-env:
         specifier: catalog:default
         version: 1.2.2
@@ -10067,7 +10070,7 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
-  devalue@5.9.2: {}
+  devalue@5.9.2(patch_hash=84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3): {}
 
   devlop@1.1.0:
     dependencies:
@@ -11215,7 +11218,7 @@ snapshots:
       '@volar/language-core': 2.4.28
       '@volar/typescript': 2.4.28
       alien-signals: 3.2.0
-      devalue: 5.9.2
+      devalue: 5.9.2(patch_hash=84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3)
       entities: 7.0.1
       es-module-lexer: 1.7.0
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
@@ -11924,7 +11927,7 @@ snapshots:
       aria-query: 5.3.1
       axobject-query: 4.1.0
       clsx: 2.1.1
-      devalue: 5.9.2
+      devalue: 5.9.2(patch_hash=84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3)
       esm-env: 1.2.2
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       is-reference: 3.0.3

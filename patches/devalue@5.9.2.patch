@@ -1,0 +1,205 @@
+diff --git a/src/operations.js b/src/operations.js
+index 8f590e53df1281ee15d1184d47b30fff13d7bc4e..a322dcef9245ac801001d76866c954d163fd57c6 100644
+--- a/src/operations.js
++++ b/src/operations.js
+@@ -58,7 +58,16 @@ const stringify_operations = {
+ 
+ 	toPrimitive: (value) => value,
+ 
+-	tagOf: (value) => get_type(value),
++	tagOf: (value) => {
++		// arrays and plain objects, the common shapes, skip the string
++		// `Object.prototype.toString` allocates — unless a `Symbol.toStringTag`
++		// is present, which that call would honor
++		if (Symbol.toStringTag in value) return get_type(value);
++		if (Array.isArray(value)) return 'Array';
++		const proto = Object.getPrototypeOf(value);
++		if (proto === Object.prototype || proto === null) return 'Object';
++		return get_type(value);
++	},
+ 
+ 	isThenable: (value) => typeof value.then === 'function',
+ 
+diff --git a/src/stringify.js b/src/stringify.js
+index b5cae18d655bed357bc71edd9f904382ddb2f0db..9f4e7e40cb34247defdd26522b60c90bd2995476 100644
+--- a/src/stringify.js
++++ b/src/stringify.js
+@@ -1,4 +1,4 @@
+-import { DevalueError, stringify_key, stringify_string } from './utils.js';
++import { DevalueError, stringify_string } from './utils.js';
+ import {
+ 	HOLE,
+ 	NAN,
+@@ -84,7 +84,7 @@ function run(async, value, reducers, options) {
+ 		}
+ 	}
+ 
+-	/** @type {string[]} */
++	/** @type {import('./types.js').PathSegment[]} */
+ 	const keys = [];
+ 
+ 	let p = 0;
+@@ -200,7 +200,7 @@ function run(async, value, reducers, options) {
+ 						if (i > 0) str += ',';
+ 
+ 						if (ops.hasOwn(thing, i)) {
+-							keys.push(`[${i}]`);
++							keys.push(i);
+ 							str += flatten(ops.get(thing, i));
+ 							keys.pop();
+ 						} else if (mostly_dense) {
+@@ -251,7 +251,7 @@ function run(async, value, reducers, options) {
+ 								str = '[' + SPARSE + ',' + length;
+ 								for (let j = 0; j < populated_keys.length; j++) {
+ 									const key = populated_keys[j];
+-									keys.push(`[${key}]`);
++									keys.push(key);
+ 									str += ',' + key + ',' + flatten(ops.get(thing, key));
+ 									keys.pop();
+ 								}
+@@ -285,9 +285,9 @@ function run(async, value, reducers, options) {
+ 						const key_type = ops.typeOf(key);
+ 						const key_is_primitive =
+ 							key_type !== 'object' && key_type !== 'function' && key_type !== 'symbol';
+-						keys.push(
+-							`.get(${key_is_primitive ? stringify_primitive(ops.toPrimitive(key)) : '...'})`
+-						);
++						keys.push({
++							formatted: `.get(${key_is_primitive ? stringify_primitive(ops.toPrimitive(key)) : '...'})`
++						});
+ 						str += `,${flatten(key)},${flatten(value)}`;
+ 						keys.pop();
+ 					}
+@@ -372,7 +372,7 @@ function run(async, value, reducers, options) {
+ 								);
+ 							}
+ 
+-							keys.push(stringify_key(key));
++							keys.push(key);
+ 							str += `,${stringify_string(key)},${flatten(ops.get(thing, key))}`;
+ 							keys.pop();
+ 						}
+@@ -392,7 +392,7 @@ function run(async, value, reducers, options) {
+ 
+ 							if (started) str += ',';
+ 							started = true;
+-							keys.push(stringify_key(key));
++							keys.push(key);
+ 							str += `${stringify_string(key)}:${flatten(ops.get(thing, key))}`;
+ 							keys.pop();
+ 						}
+diff --git a/src/types.d.ts b/src/types.d.ts
+index 2ac11d892b7c66fd7ebf824e6afe392be2f9cb5b..976fea89244647fc5e34ca11ff317e7fa285239e 100644
+--- a/src/types.d.ts
++++ b/src/types.d.ts
+@@ -1,3 +1,10 @@
++/**
++ * One step of the path `stringify` records to the value being serialized,
++ * kept raw and formatted only when a `DevalueError` is raised: a property
++ * key, an array index, or an already formatted `.get(…)` step of a Map.
++ */
++export type PathSegment = string | number | { formatted: string };
++
+ export type StringValueTag =
+ 	| 'URL'
+ 	| 'URLSearchParams'
+diff --git a/src/uneval.js b/src/uneval.js
+index dcb69b447e52632ee6f8bf254a2dc7bc91d14317..cac6edaa910c48d6af5e2e61d583409696105898 100644
+--- a/src/uneval.js
++++ b/src/uneval.js
+@@ -23,7 +23,7 @@ const reserved =
+ export function uneval(value, replacer) {
+ 	const counts = new Map();
+ 
+-	/** @type {string[]} */
++	/** @type {import('./types.js').PathSegment[]} */
+ 	const keys = [];
+ 
+ 	const custom = new Map();
+@@ -66,7 +66,7 @@ export function uneval(value, replacer) {
+ 
+ 				case 'Array':
+ 					/** @type {any[]} */ (thing).forEach((value, i) => {
+-						keys.push(`[${i}]`);
++						keys.push(i);
+ 						walk(value);
+ 						keys.pop();
+ 					});
+@@ -78,7 +78,7 @@ export function uneval(value, replacer) {
+ 
+ 				case 'Map':
+ 					for (const [key, value] of thing) {
+-						keys.push(`.get(${is_primitive(key) ? stringify_primitive(key) : '...'})`);
++						keys.push({ formatted: `.get(${is_primitive(key) ? stringify_primitive(key) : '...'})` });
+ 						walk(key);
+ 						walk(value);
+ 						keys.pop();
+@@ -133,7 +133,7 @@ export function uneval(value, replacer) {
+ 							);
+ 						}
+ 
+-						keys.push(stringify_key(key));
++						keys.push(key);
+ 						walk(thing[key]);
+ 						keys.pop();
+ 					}
+diff --git a/src/utils.js b/src/utils.js
+index 6f66da204c5d82ff49cd9d7be1f43540a4f7678b..dcc837ea7e752ef371b1bbc28619c2c43e51c7c1 100644
+--- a/src/utils.js
++++ b/src/utils.js
+@@ -23,12 +23,24 @@ export class DevalueError extends Error {
+ 	constructor(message, keys, value, root) {
+ 		super(message);
+ 		this.name = 'DevalueError';
+-		this.path = keys.join('');
++		this.path = keys.map(format_key).join('');
+ 		this.value = value;
+ 		this.root = root;
+ 	}
+ }
+ 
++/**
++ * Path segments are recorded raw while stringifying — a property key, an
++ * array index, or a pre-formatted `.get(…)` step — and only formatted here,
++ * when an error is actually raised.
++ * @param {import('./types.js').PathSegment} segment
++ */
++function format_key(segment) {
++	if (typeof segment === 'number') return `[${segment}]`;
++	if (typeof segment === 'string') return stringify_key(segment);
++	return segment.formatted;
++}
++
+ /** @param {any} thing */
+ export function is_primitive(thing) {
+ 	return thing === null || (typeof thing !== 'object' && typeof thing !== 'function');
+@@ -83,8 +95,15 @@ function get_escaped_char(char) {
+ 	}
+ }
+ 
++// characters `stringify_string` escapes: quote, backslash, `<`, control
++// characters, and the line/paragraph separators
++const needs_escape = /["<\\\u0000-\u001f\u2028\u2029]/;
++
+ /** @param {string} str */
+ export function stringify_string(str) {
++	// the common case: nothing to escape, no per-character work
++	if (!needs_escape.test(str)) return `"${str}"`;
++
+ 	let result = '';
+ 	let last_pos = 0;
+ 	const len = str.length;
+@@ -103,9 +122,10 @@ export function stringify_string(str) {
+ 
+ /** @param {Record<string | symbol, any>} object */
+ export function enumerable_symbols(object) {
+-	return Object.getOwnPropertySymbols(object).filter(
+-		(symbol) => Object.getOwnPropertyDescriptor(object, symbol).enumerable
+-	);
++	const symbols = Object.getOwnPropertySymbols(object);
++	return symbols.length === 0
++		? symbols
++		: symbols.filter((symbol) => Object.getOwnPropertyDescriptor(object, symbol).enumerable);
+ }
+ 
+ const is_identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
