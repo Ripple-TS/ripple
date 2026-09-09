@@ -92,7 +92,7 @@ export function MultipleHeadElements() {
 
 				_$_.document.title = 'Page Title';
 				_$_.next();
-				_$_.append(__anchor, fragment_3, true);
+				_$_.append(__anchor, fragment_3);
 			});
 
 			_$_.append(__anchor, div_2);

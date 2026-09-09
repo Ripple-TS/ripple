@@ -215,8 +215,7 @@ export function HtmlInChildrenWithSiblings() {
 				var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
 
 				div_8.innerHTML = content ?? div_8.innerHTML;
-				_$_.next();
-				_$_.append(__anchor, fragment, true);
+				_$_.append(__anchor, fragment);
 			})
 		});
 	});
@@ -542,13 +541,10 @@ function CodeBlock({ code }) {
 		var div_21 = root_24();
 
 		{
-			var div_22 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
+			var div_23 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
+			var div_22 = _$_.hydrating ? _$_.hydrate_sibling() : div_23.nextSibling;
 
-			_$_.pop(div_22);
-
-			var div_23 = _$_.hydrating ? _$_.hydrate_sibling() : div_22.nextSibling;
-
-			div_23.innerHTML = highlighted ?? div_23.innerHTML;
+			div_22.innerHTML = highlighted ?? div_22.innerHTML;
 		}
 
 		_$_.append(__anchor, div_21);
@@ -595,6 +591,7 @@ export function HtmlAfterSwitchInChildren() {
 				var node_10 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
 
 				_$_.render_component(CodeBlock, node_10, { code: "const x = 1;" });
+				_$_.next();
 				_$_.append(__anchor, fragment_1);
 			})
 		});
@@ -662,6 +659,7 @@ export function HtmlAfterIfInChildren() {
 				var node_12 = _$_.hydrating ? _$_.hydrate_sibling() : p_2.nextSibling;
 
 				_$_.render_component(CodeBlock, node_12, { code: "const x = 1;" });
+				_$_.next();
 				_$_.append(__anchor, fragment_2);
 			})
 		});
@@ -703,6 +701,7 @@ export function HtmlAfterForInChildren() {
 				var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : p_4.nextSibling;
 
 				_$_.render_component(CodeBlock, node_14, { code: "const x = 1;" });
+				_$_.next();
 				_$_.append(__anchor, fragment_3);
 			})
 		});
@@ -749,6 +748,7 @@ export function HtmlAfterTryInChildren() {
 				var node_16 = _$_.hydrating ? _$_.hydrate_sibling() : p_5.nextSibling;
 
 				_$_.render_component(CodeBlock, node_16, { code: "const x = 1;" });
+				_$_.next();
 				_$_.append(__anchor, fragment_4);
 			})
 		});
@@ -797,6 +797,7 @@ export function HtmlAfterComponentInChildren() {
 				var node_18 = _$_.hydrating ? _$_.hydrate_sibling() : p_6.nextSibling;
 
 				_$_.render_component(CodeBlock, node_18, { code: "const x = 1;" });
+				_$_.next();
 				_$_.append(__anchor, fragment_6);
 			})
 		});
@@ -1018,9 +1019,6 @@ export function LayoutWithSidebarAndMain() {
 
 				{
 					var div_35 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
-
-					_$_.pop(div_35);
-
 					var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : div_35.nextSibling;
 
 					{
@@ -1089,6 +1087,7 @@ export function ArticleWithChildrenThenSibling() {
 				children: _$_.tsrx_element((__anchor, __block) => {
 					var fragment_9 = root_51();
 
+					_$_.next();
 					_$_.append(__anchor, fragment_9);
 				})
 			});

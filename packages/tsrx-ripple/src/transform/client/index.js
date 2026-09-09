@@ -5825,6 +5825,12 @@ function transform_children(children, context) {
 				node.type !== 'BlockStatement' &&
 				node.type !== 'EmptyStatement',
 		).length > 1;
+	// A fragment template root (a component or control-flow body, not an
+	// element's children): its hydration cursor must end on its last top-level
+	// node, since no enclosing element's traversal restores the cursor for it.
+	// `skip_children_traversal` is not the discriminator here: it leaks from an
+	// enclosing element into the control-flow bodies nested in it.
+	const is_fragment_root = is_fragment && root;
 	/** @type {AST.Identifier | null} */
 	let initial = null;
 	/** @type {(() => AST.Identifier) | null} */
@@ -5930,6 +5936,12 @@ function transform_children(children, context) {
 
 	let fragment_hop_count = 0;
 
+	// Hydration cursor lag for a fragment root: how many top-level template
+	// nodes back from the last emitted one the cursor sits, plus one. A child
+	// that was navigated to (`cached`) leaves the cursor on its own last DOM
+	// node, so the count restarts at 1; an untouched child leaves the cursor
+	// where it was, so the count grows. The fragment closes with
+	// `next(skipped - 1)` to bring the cursor onto its last node.
 	let skipped = 0;
 
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
@@ -6055,7 +6067,6 @@ function transform_children(children, context) {
 			 */
 			const render_text_expression = (identity, expr) => {
 				if (metadata?.tracking) {
-					skipped = 0;
 					state.template?.push(' ');
 					const id = flush_node(true);
 					state.update?.push({
@@ -6065,7 +6076,6 @@ function transform_children(children, context) {
 						initial: b.literal(' '),
 					});
 				} else if (normalized.length === 1) {
-					skipped++;
 					if (expr.type === 'Literal') {
 						if (
 							/** @type {NonNullable<TransformClientState['template']>} */ (state.template).length >
@@ -6092,7 +6102,6 @@ function transform_children(children, context) {
 						);
 					}
 				} else {
-					skipped++;
 					if (expr.type === 'Literal') {
 						state.template?.push(escape_html(expr.value));
 					} else {
@@ -6109,37 +6118,24 @@ function transform_children(children, context) {
 			};
 
 			if (is_template_element(node)) {
-				if (is_element_dom_element(node)) {
-					skipped++;
-				} else {
-					skipped = 0;
-				}
-
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
 
-				// After processing an element's children via child()/sibling() navigation,
-				// hydrate_node is left deep inside the element. If there's a next sibling,
-				// we need to restore hydrate_node so sibling() navigation works correctly.
+				// Processing an element's children via child()/sibling() navigation
+				// leaves hydrate_node deep inside the element. It must be back on the
+				// element before a sibling's traversal, and at the end of a fragment
+				// root, where no enclosing element's append() restores it and the
+				// fragment's closing next() walks from wherever the cursor sits.
 				//
-				// We only need pop() when we actually DESCEND into the element, which happens when:
-				// - There are Element children (including DOM elements like <button>)
-				// - There are non-literal Text children (we navigate to set text content)
-				// - There are control flow / component children
-				//
-				// The Element visitor already adds pop() for non-literal text, control flow,
-				// and component (non-DOM element) children. We need to ALSO add pop()
-				// when there are DOM element children, which the Element visitor doesn't cover.
-				const next_node = normalized[node_idx + 1];
-				const element_children = is_template_element(node)
-					? /** @type {AST.TSRXJSXElement} */ (node).children
-					: [];
-				if (next_node && is_element_dom_element(node) && element_children.length > 0) {
-					// Check if any child is a DOM element - this causes navigation but
-					// the Element visitor doesn't add pop() for it
+				// Only a navigated element (`cached`) can have been descended into.
+				// The Element visitor already adds pop() for non-literal text,
+				// control flow, and component (non-DOM element) children; DOM element
+				// children navigate without one, so add it here.
+				const element_children = /** @type {AST.TSRXJSXElement} */ (node).children;
+				if (cached !== null && is_element_dom_element(node) && element_children.length > 0) {
 					const has_dom_element_children = element_children.some(
 						(child) =>
 							is_template_element(child) &&
@@ -6147,7 +6143,6 @@ function transform_children(children, context) {
 							is_element_dom_element(child),
 					);
 
-					// Check if the Element visitor already added pop()
 					const element_visitor_adds_pop = element_children.some(
 						(child) =>
 							is_template_directive(child) ||
@@ -6168,31 +6163,23 @@ function transform_children(children, context) {
 								sibling.type !== 'VariableDeclaration' && sibling.type !== 'EmptyStatement',
 						);
 
-					// Add pop() if we have DOM element children, the Element visitor didn't already
-					// add one, and there is another renderable sibling afterward. This keeps
-					// hydrate_node anchored at the current element before sibling() traversal.
 					if (
 						has_dom_element_children &&
 						!element_visitor_adds_pop &&
-						has_following_renderable_sibling
+						(has_following_renderable_sibling || is_fragment_root)
 					) {
-						const id = cached ?? flush_node();
-						state.init?.push(b.stmt(b.call('_$_.pop', id)));
+						state.init?.push(b.stmt(b.call('_$_.pop', cached)));
 					}
 				}
 			} else if (node.type === 'JSXStyleElement') {
 				// A `<style>` in `<head>` renders as a static template element; the
 				// visitor pushes its markup (or nothing outside head).
-				skipped++;
-
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
 			} else if (is_template_fragment(node)) {
-				skipped = 0;
-
 				visit(node, {
 					...state,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
@@ -6211,7 +6198,6 @@ function transform_children(children, context) {
 
 				if (expr.type === 'Literal') {
 					if (normalized.length === 1) {
-						skipped++;
 						if (
 							/** @type {NonNullable<TransformClientState['template']>} */ (state.template).length >
 							0
@@ -6223,11 +6209,9 @@ function transform_children(children, context) {
 							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
 						}
 					} else {
-						skipped++;
 						state.template?.push(escape_html(expr.value));
 					}
 				} else if (is_static_native_tsrx_call) {
-					skipped = 0;
 					state.template?.push('<!>');
 					const id = flush_node(false);
 					const call = b.call('_$_.render_tsrx_element', expr, id, b.id('__block'));
@@ -6245,7 +6229,6 @@ function transform_children(children, context) {
 					normalized.length === 1 &&
 					!is_children_template_expression(container_expression, state.scope)
 				) {
-					skipped++;
 					state.template?.push(' ');
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
@@ -6255,7 +6238,6 @@ function transform_children(children, context) {
 							: b.stmt(call),
 					);
 				} else {
-					skipped = 0;
 					state.template?.push('<!>');
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
@@ -6277,7 +6259,6 @@ function transform_children(children, context) {
 				node.type === 'ForOfStatement' ||
 				(node.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
 			) {
-				skipped = 0;
 				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
@@ -6285,7 +6266,6 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'IfStatement' || node.type === 'JSXIfExpression') {
-				skipped = 0;
 				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
@@ -6293,7 +6273,6 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'TryStatement' || node.type === 'JSXTryExpression') {
-				skipped = 0;
 				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
@@ -6301,7 +6280,6 @@ function transform_children(children, context) {
 					namespace: state.namespace,
 				});
 			} else if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
-				skipped = 0;
 				node.metadata = { ...node.metadata, is_controlled };
 				visit(node, {
 					...state,
@@ -6314,6 +6292,10 @@ function transform_children(children, context) {
 				state.template?.push('<!>');
 			} else {
 				debugger;
+			}
+
+			if (node.type !== 'BreakStatement' && node.type !== 'ContinueStatement') {
+				skipped = cached !== null ? 1 : skipped + 1;
 			}
 		}
 	}
@@ -6339,11 +6321,9 @@ function transform_children(children, context) {
 		}
 	}
 
-	let emitted_next = false;
-	if (is_fragment && skipped > 1 && !state.skip_children_traversal) {
+	if (is_fragment_root && skipped > 1) {
 		skipped--;
 		state.init?.push(b.stmt(b.call('_$_.next', skipped !== 1 && b.literal(skipped))));
-		emitted_next = true;
 	}
 
 	const template_namespace = state.namespace || 'html';
@@ -6355,9 +6335,7 @@ function transform_children(children, context) {
 		} else if (template_namespace === 'mathml') {
 			flags |= TEMPLATE_MATHML_NAMESPACE;
 		}
-		state.final?.push(
-			b.stmt(b.call('_$_.append', b.id('__anchor'), initial, emitted_next && b.true)),
-		);
+		state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), initial)));
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			state.template
 		);

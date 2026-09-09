@@ -103,6 +103,7 @@ export function StreamPending() {
 					var node_1 = _$_.first_child_frag(fragment_2);
 
 					_$_.render_component(BasicContent, node_1, {});
+					_$_.next();
 					_$_.append(__anchor, fragment_2);
 				},
 				null,
@@ -113,6 +114,7 @@ export function StreamPending() {
 				}
 			);
 
+			_$_.next();
 			_$_.append(__anchor, fragment_1);
 		}));
 

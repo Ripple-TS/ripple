@@ -58,7 +58,7 @@ export function MultiRootChild() {
 			var fragment_1 = root_4();
 
 			_$_.next();
-			_$_.append(__anchor, fragment_1, true);
+			_$_.append(__anchor, fragment_1);
 		}));
 
 		_$_.append(__anchor, fragment);
@@ -89,6 +89,7 @@ export function LayoutWithMultipleChildren() {
 				var node_1 = _$_.first_child_frag(fragment_2);
 
 				_$_.render_component(SingleChild, node_1, {});
+				_$_.next();
 				_$_.append(__anchor, fragment_2);
 			})
 		});

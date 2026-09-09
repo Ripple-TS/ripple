@@ -257,7 +257,7 @@ function run_expression(s) {
 		if (next_is_collection || is_tsrx_element(next_value)) {
 			if (s.i && s.e && s.v === next_value) {
 				if (end !== null) {
-					advance_hydration(end);
+					settle_hydration(end);
 				}
 				return;
 			}
@@ -326,7 +326,7 @@ function run_expression(s) {
 			s.e = true;
 			s.i = true;
 			if (end !== null) {
-				advance_hydration(end);
+				settle_hydration(end);
 			}
 			return;
 		}
@@ -336,7 +336,7 @@ function run_expression(s) {
 
 	if (s.i && !s.e && s.v === next_text) {
 		if (end !== null) {
-			advance_hydration(end);
+			settle_hydration(end);
 		}
 		return;
 	}
@@ -384,7 +384,7 @@ function run_expression(s) {
 	s.e = false;
 	s.i = true;
 	if (end !== null) {
-		advance_hydration(end);
+		settle_hydration(end);
 	}
 }
 
@@ -473,17 +473,14 @@ function clear_expression_range(anchor, end) {
 }
 
 /**
+ * Leaves the hydration cursor on the expression's end marker, the last node
+ * the expression owns: the parent steps past it with its own sibling
+ * navigation, exactly as it does after an element or a control-flow block.
  * @param {Comment} end
  * @returns {void}
  */
-function advance_hydration(end) {
-	if (!hydrating) {
-		return;
-	}
-
-	var next = get_next_sibling(end);
-
-	if (next !== null) {
-		set_hydrate_node(next);
+function settle_hydration(end) {
+	if (hydrating) {
+		set_hydrate_node(end);
 	}
 }

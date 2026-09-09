@@ -93,9 +93,6 @@ export function NestedContentWithPortal() {
 
 		{
 			var div_8 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-
-			_$_.pop(div_8);
-
 			var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_8.nextSibling;
 
 			_$_.portal(node_3, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {

@@ -100,7 +100,7 @@ export function MultipleElements() {
 			var fragment_1 = root_2();
 
 			_$_.next(2);
-			_$_.append(__anchor, fragment_1, true);
+			_$_.append(__anchor, fragment_1);
 		}));
 
 		_$_.append(__anchor, fragment);
@@ -124,7 +124,7 @@ export function WithAttributes() {
 			var fragment_3 = root_5();
 
 			_$_.next();
-			_$_.append(__anchor, fragment_3, true);
+			_$_.append(__anchor, fragment_3);
 		}));
 
 		_$_.append(__anchor, fragment_2);
@@ -242,8 +242,7 @@ export function ExpressionContent() {
 				_$_.pop(span_1);
 			}
 
-			_$_.next();
-			_$_.append(__anchor, fragment_7, true);
+			_$_.append(__anchor, fragment_7);
 		}));
 
 		_$_.append(__anchor, fragment_6);
@@ -731,7 +730,7 @@ function StaticHeader() {
 			var fragment_24 = root_56();
 
 			_$_.next(2);
-			_$_.append(__anchor, fragment_24, true);
+			_$_.append(__anchor, fragment_24);
 		}));
 
 		_$_.append(__anchor, fragment_23);
@@ -768,8 +767,7 @@ export function StaticChildWithSiblings() {
 				_$_.pop(span_7);
 			}
 
-			_$_.next();
-			_$_.append(__anchor, fragment_26, true);
+			_$_.append(__anchor, fragment_26);
 		}));
 
 		_$_.append(__anchor, fragment_25);
@@ -785,7 +783,7 @@ function Header() {
 			var fragment_28 = root_60();
 
 			_$_.next(2);
-			_$_.append(__anchor, fragment_28, true);
+			_$_.append(__anchor, fragment_28);
 		}));
 
 		_$_.append(__anchor, fragment_27);
@@ -988,6 +986,7 @@ function OpaqueLead(props) {
 			var expression_30 = _$_.first_child_frag(fragment_31);
 
 			_$_.expression(expression_30, () => props.header);
+			_$_.next();
 			_$_.append(__anchor, fragment_31);
 		}));
 
@@ -1018,6 +1017,8 @@ function PrimitiveCallLead() {
 		_$_.expression(node_27, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_33 = root_77();
 			var expression_31 = _$_.first_child_frag(fragment_33, true);
+
+			_$_.next();
 
 			_$_.render(() => {
 				_$_.set_text(expression_31, String(_$_.with_scope(__block, fetchLabel)));

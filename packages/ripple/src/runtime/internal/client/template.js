@@ -1,9 +1,6 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
 import {
-	COMMENT_NODE,
-	HYDRATION_END,
-	HYDRATION_START,
 	TEMPLATE_FRAGMENT,
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
@@ -151,76 +148,55 @@ export function template(content, flags, count = 1) {
  * The hydration path of {@link append}: repositions the hydration cursor
  * instead of inserting. Kept out of the insert path so a client-only mount
  * never compiles it.
+ *
+ * Every hydrated node, block, and component leaves the cursor on its last
+ * DOM node, and whoever owns the next node steps past it: a parent element
+ * with its sibling traversal, a control-flow block by reaching its end
+ * marker, an append-into sentinel by adopting the cursor as the next
+ * component's first node.
  * @param {ChildNode | AppendIntoAnchor} anchor
  * @param {Node} dom
- * @param {boolean} [skip_advance]
  */
-function hydrate_append(anchor, dom, skip_advance) {
-	// When skip_advance is true, the caller (e.g., a fragment component) has already
-	// used next() to position hydrate_node correctly. We must NOT reset it.
-	if (skip_advance) {
-		return;
-	}
-
-	// During hydration, if anchor === dom, we're hydrating a child component
-	// where the "anchor" IS the content. If the cursor is still somewhere
-	// inside dom (at any depth), reset it to dom's level so sibling traversal
-	// works. But if the cursor has advanced past dom (e.g., because internal
-	// control flow blocks like switch/if/for advanced it through their
-	// hydration markers), preserve the advanced position.
-	if (anchor === dom) {
-		if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
-			pop(dom);
-		}
-		return;
-	}
-
-	// If the hydration cursor has descended into dom's children (e.g. after
-	// child()/sibling() traversal inside a single-node template), we need
-	// pop() to reset back to dom's sibling level before advancing.
-	// But if the cursor is already at dom's sibling level (e.g. because
-	// nested control flow blocks advanced it past dom via sibling traversal),
-	// pop() would incorrectly reset backwards — so we skip it.
+function hydrate_append(anchor, dom) {
+	// The cursor descended into dom's children (child()/sibling() traversal
+	// inside a single-node template) without a compiler-emitted pop(): bring it
+	// back up to dom before deciding where to leave it.
 	if (hydrate_node !== null && hydrate_node !== dom && dom.contains(hydrate_node)) {
 		pop(dom);
-	} else if (hydrate_node !== dom) {
-		// Cursor has advanced past dom via sibling traversal (due to nested
-		// block processing). Update the branch block's end to reflect the
-		// actual extent, which may be past the statically-assigned end from
-		// the template's assign_nodes call.
+	}
+
+	// A child component renders into the anchor it was handed, which is its
+	// own first node. Its content is hydrated, so leave the cursor on the
+	// content's last node for the parent's sibling traversal.
+	if (anchor === dom) {
+		return;
+	}
+
+	if (hydrate_node !== dom) {
+		// A fragment's cursor sits on its last top-level node, past the
+		// template's first node: widen the block's end to cover the whole
+		// fragment rather than only the node assign_nodes saw.
 		var block = /** @type {Block} */ (active_block);
 		var s = block.s;
 		if (s !== null) {
 			s.end = /** @type {Node} */ (hydrate_node);
 		}
-
-		if (is_after_hydration_block(dom, hydrate_node)) {
-			// The cursor sits on the block's end marker. A parent normally steps
-			// past it with its own sibling navigation, but an append-into
-			// sentinel has none: the next component starts wherever this one
-			// leaves the cursor, so step past the marker here.
-			if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
-				hydrate_advance();
-			}
-			return;
-		}
 	}
 
-	// Only advance if there's a next sibling. At the end of a component's
-	// content, there might not be more siblings, and that's fine.
+	// Step past the content: a branch lands on its block's end marker, the
+	// root on the boundary's end marker, an append-into sentinel on the next
+	// component's first node.
 	hydrate_advance();
-	return;
 }
 
 /**
  * Appends a DOM node before the anchor node.
  * @param {ChildNode | AppendIntoAnchor} anchor - The anchor node.
  * @param {Node} dom - The DOM node to append.
- * @param {boolean} [skip_advance] - If true, don't advance hydrate_node (used when next() already positioned it).
  */
-export function append(anchor, dom, skip_advance) {
+export function append(anchor, dom) {
 	if (hydrating) {
-		hydrate_append(anchor, dom, skip_advance);
+		hydrate_append(anchor, dom);
 		return;
 	}
 	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
@@ -232,45 +208,6 @@ export function append(anchor, dom, skip_advance) {
 		return;
 	}
 	/** @type {ChildNode} */ (anchor).before(/** @type {Node} */ (dom));
-}
-
-/**
- * @param {Node} start
- * @param {Node | null} target
- * @returns {boolean}
- */
-function is_after_hydration_block(start, target) {
-	if (
-		target === null ||
-		start.nodeType !== COMMENT_NODE ||
-		/** @type {Comment} */ (start).data !== HYDRATION_START
-	) {
-		return false;
-	}
-
-	var current = get_next_sibling(start);
-	var depth = 0;
-
-	while (current !== null && current !== target) {
-		if (current.nodeType === COMMENT_NODE) {
-			var data = /** @type {Comment} */ (current).data;
-
-			// `[`-prefixed covers plain block starts and streaming slot markers
-			if (data.startsWith(HYDRATION_START)) {
-				depth += 1;
-			} else if (data === HYDRATION_END) {
-				if (depth === 0) {
-					return true;
-				}
-
-				depth -= 1;
-			}
-		}
-
-		current = get_next_sibling(current);
-	}
-
-	return false;
 }
 
 export function text(data = '') {

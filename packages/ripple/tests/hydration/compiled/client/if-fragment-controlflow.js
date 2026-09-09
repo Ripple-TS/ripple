@@ -61,6 +61,7 @@ export function IfFragmentForElement() {
 						(pattern) => _$_.get(pattern).muzeId
 					);
 
+					_$_.next();
 					_$_.append(__anchor, fragment);
 				};
 
@@ -164,6 +165,7 @@ export function IfFragmentElements() {
 				var consequent_4 = (__anchor) => {
 					var fragment_2 = root_9();
 
+					_$_.next();
 					_$_.append(__anchor, fragment_2);
 				};
 
@@ -208,6 +210,7 @@ export function ComponentBodyFragmentControlFlow() {
 				(pattern_2) => _$_.get(pattern_2).muzeId
 			);
 
+			_$_.next();
 			_$_.append(__anchor, fragment_4);
 		}));
 
@@ -248,6 +251,7 @@ export function ComponentBodyCodeBlockControlFlow() {
 				);
 			}));
 
+			_$_.next();
 			_$_.append(__anchor, fragment_6);
 		}));
 
@@ -292,6 +296,7 @@ export function IfCodeBlockControlFlow() {
 						);
 					}));
 
+					_$_.next();
 					_$_.append(__anchor, fragment_7);
 				};
 
@@ -346,6 +351,7 @@ export function IfElseFragment() {
 						(pattern_5) => _$_.get(pattern_5).muzeId
 					);
 
+					_$_.next();
 					_$_.append(__anchor, fragment_8);
 				};
 

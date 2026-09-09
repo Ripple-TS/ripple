@@ -201,9 +201,6 @@ export function ElementWithChildrenThenIf() {
 
 			{
 				var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
-
-				_$_.pop(div_9);
-
 				var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 				{
@@ -224,8 +221,7 @@ export function ElementWithChildrenThenIf() {
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : div_10.nextSibling;
 
 			button.__click = () => _$_.set(lazy_3, !lazy_3.value);
-			_$_.next();
-			_$_.append(__anchor, fragment_3, true);
+			_$_.append(__anchor, fragment_3);
 		}));
 
 		_$_.append(__anchor, fragment_2);
@@ -244,9 +240,6 @@ export function DeepNestingThenIf() {
 
 			{
 				var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
-
-				_$_.pop(article);
-
 				var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
 				{
@@ -267,8 +260,7 @@ export function DeepNestingThenIf() {
 			var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : section_1.nextSibling;
 
 			button_1.__click = () => _$_.set(lazy_4, !lazy_4.value);
-			_$_.next();
-			_$_.append(__anchor, fragment_5, true);
+			_$_.append(__anchor, fragment_5);
 		}));
 
 		_$_.append(__anchor, fragment_4);
@@ -374,13 +366,12 @@ export function DomChildrenThenStaticSiblings() {
 			var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 			button_4.__click = () => _$_.update(lazy_6);
-			_$_.next();
 
 			_$_.render(() => {
 				_$_.set_text(expression_3, 'Item count: ' + String(lazy_6.value ?? ''));
 			});
 
-			_$_.append(__anchor, fragment_7, true);
+			_$_.append(__anchor, fragment_7);
 		}));
 
 		_$_.append(__anchor, fragment_6);
@@ -390,22 +381,6 @@ export function DomChildrenThenStaticSiblings() {
 export function StaticListThenStaticSiblings() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var div_17 = root_20();
-
-		{
-			var ul_1 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
-
-			{
-				var li_1 = _$_.hydrating ? _$_.hydrate_child() : ul_1.firstChild;
-
-				_$_.pop(li_1);
-
-				var li_2 = _$_.hydrating ? _$_.hydrate_sibling() : li_1.nextSibling;
-
-				_$_.pop(li_2);
-			}
-
-			_$_.pop(ul_1);
-		}
 
 		_$_.append(__anchor, div_17);
 	});
