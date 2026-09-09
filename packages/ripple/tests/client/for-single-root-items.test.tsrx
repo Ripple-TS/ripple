@@ -1,4 +1,4 @@
-import { RippleArray, flushSync, track } from 'ripple';
+import { RippleArray, flushSync, mount, track } from 'ripple';
 
 // Regression tests for the 0.3.85 optimization (PR #1307) that elides the
 // `<!>` wrapper for single control-flow / component root scopes. When such a
@@ -126,5 +126,120 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 			'c',
 		]);
 		expect(container.querySelector('.count').textContent).toBe('3');
+	});
+
+	describe('controlled list of root @if items (lazy anchors)', () => {
+		const text_nodes = (el) => Array.from(el.childNodes).filter((n) => n.nodeType === 3).length;
+
+		it('keeps no anchor nodes until a branch swaps, then removes the anchor with the item', () => {
+			function App() @{
+				let &[items] = track([
+					{ id: 1, code: false },
+					{ id: 2, code: true },
+					{ id: 3, code: false },
+				]);
+				<>
+					<button
+						class="swap"
+						onClick={() => {
+							items = items.map((i) => (i.id === 2 ? { ...i, code: false } : i));
+						}}
+					>{'swap'}</button>
+					<button
+						class="remove"
+						onClick={() => {
+							items = items.filter((i) => i.id !== 2);
+						}}
+					>{'remove'}</button>
+					<button
+						class="clear"
+						onClick={() => {
+							items = [];
+						}}
+					>{'clear'}</button>
+					<ul>
+						@for (const item of items; key item.id) {
+							@if (item.code) {
+								<li class="code">{item.id}</li>
+							} @else {
+								<li class="text">{item.id}</li>
+							}
+						}
+					</ul>
+				</>
+			}
+			render(App);
+			const ul = container.querySelector('ul');
+			expect(text_nodes(ul)).toBe(0);
+			expect(Array.from(ul.children).map((li) => li.className)).toEqual(['text', 'code', 'text']);
+
+			container.querySelector('.swap').click();
+			flushSync();
+			expect(Array.from(ul.children).map((li) => li.className)).toEqual(['text', 'text', 'text']);
+			// The swapped item now owns one text anchor, placed right after it.
+			expect(text_nodes(ul)).toBe(1);
+			expect(ul.children[1].nextSibling.nodeType).toBe(3);
+
+			container.querySelector('.remove').click();
+			flushSync();
+			expect(Array.from(ul.children).map((li) => li.textContent)).toEqual(['1', '3']);
+			expect(text_nodes(ul)).toBe(0);
+
+			container.querySelector('.clear').click();
+			flushSync();
+			expect(ul.childNodes.length).toBe(0);
+		});
+
+		it('moves a materialized anchor with its item and removes it on unmount', () => {
+			function App() @{
+				let &[items] = track([
+					{ id: 1, show: false },
+					{ id: 2, show: true },
+				]);
+				<>
+					<button
+						class="show"
+						onClick={() => {
+							items = items.map((i) => (i.id === 1 ? { ...i, show: true } : i));
+						}}
+					>{'show'}</button>
+					<button
+						class="reverse"
+						onClick={() => {
+							items = [...items].reverse();
+						}}
+					>{'reverse'}</button>
+					<ul>
+						@for (const item of items; key item.id) {
+							@if (item.show) {
+								<li>{item.id}</li>
+							}
+						}
+					</ul>
+				</>
+			}
+			const unmount = mount(App, { target: container, rootBoundary: false });
+			const ul = container.querySelector('ul');
+			// An empty branch materializes its anchor at once, so it has a position.
+			expect(text_nodes(ul)).toBe(1);
+			expect(ul.firstChild.nodeType).toBe(3);
+			expect(ul.children.length).toBe(1);
+
+			container.querySelector('.show').click();
+			flushSync();
+			expect(Array.from(ul.children).map((li) => li.textContent)).toEqual(['1', '2']);
+			// The content renders before its anchor.
+			expect(ul.children[0].nextSibling.nodeType).toBe(3);
+
+			container.querySelector('.reverse').click();
+			flushSync();
+			expect(Array.from(ul.children).map((li) => li.textContent)).toEqual(['2', '1']);
+			// The anchor travelled with item 1 to the end.
+			expect(ul.lastChild.nodeType).toBe(3);
+			expect(ul.lastChild.previousSibling).toBe(ul.children[1]);
+
+			unmount();
+			expect(container.childNodes.length).toBe(0);
+		});
 	});
 });

@@ -445,6 +445,10 @@ export function move_block(block, target) {
 				target.append(node);
 				node = next;
 			}
+			// An if's materialized anchor follows its range.
+			if ((f & IF_BLOCK) !== 0 && s.o !== null) {
+				move_block(s.o, target);
+			}
 			return true;
 		}
 	}
@@ -500,7 +504,8 @@ export function get_last_node(block) {
 	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
-			return s.end;
+			// An if's materialized anchor is its last node.
+			return (f & IF_BLOCK) !== 0 && s.o !== null ? s.o.s.end : s.end;
 		}
 	}
 	var child = block.last;

@@ -9,7 +9,7 @@ import {
 	remove_block_dom,
 	render,
 } from './blocks.js';
-import { IF_BLOCK, UNINITIALIZED } from './constants.js';
+import { DETACHED_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
 import { active_block, set_tracking } from './runtime.js';
@@ -128,8 +128,11 @@ function materialize_anchor(state, block) {
 
 	state.a = text;
 	// Created after the current branch, so block order follows DOM order;
-	// `update_branch` relinks it behind every later branch.
-	state.o = branch(noop, 0, { start: text, end: text });
+	// `update_branch` relinks it behind every later branch. The anchor sits
+	// outside the if's own range (it is the if's last node, see
+	// `get_last_node`), so the owner is detached: it removes the anchor even
+	// when the if has already removed its range.
+	state.o = branch(noop, DETACHED_BLOCK, { start: text, end: text });
 }
 
 /**
