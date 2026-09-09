@@ -235,6 +235,28 @@ describe('basic server > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
+	it('render bare numbers in a style object with an implicit px suffix', async () => {
+		function Basic() @{
+			<div
+				style={{ width: 400, height: 100, zIndex: 5, opacity: 0.5, '--scale': 2 }}
+			>{'Sized box'}</div>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		const div = document.querySelector('div');
+
+		expect(div.style.width).toBe('400px');
+		expect(div.style.height).toBe('100px');
+		// Unitless properties must stay bare — no accidental `5px` on z-index.
+		expect(div.style.zIndex).toBe('5');
+		expect(div.style.opacity).toBe('0.5');
+		// Custom properties are commonly used as unitless multipliers and must
+		// never receive an implicit px suffix.
+		expect(div.style.getPropertyValue('--scale')).toBe('2');
+	});
+
 	it('render tracked variable as style attribute', async () => {
 		function Basic() @{
 			let &[style] = track({ color: 'red', fontWeight: 'bold' });

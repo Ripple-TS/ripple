@@ -3,7 +3,7 @@
 import { branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
-import { is_ripple_object } from './utils.js';
+import { is_ripple_object, format_style_value } from './utils.js';
 import {
 	get_descriptors,
 	get_own_property_symbols,
@@ -96,83 +96,6 @@ export function set_attribute(element, attribute, value) {
 	} else {
 		element.setAttribute(attribute, value);
 	}
-}
-
-/**
- * CSS properties whose numeric value is unitless (aligned with React's
- * `isUnitlessNumber` list, trimmed to properties actually reachable through
- * plain `style.setProperty`). Every other property receives an implicit `px`
- * suffix when given a bare number, matching what every mainstream framework
- * (React, Vue, Preact) does for numeric style values.
- * @type {Set<string>}
- */
-const UNITLESS_NUMBER_PROPERTIES = new Set([
-	'animation-iteration-count',
-	'aspect-ratio',
-	'border-image-outset',
-	'border-image-slice',
-	'border-image-width',
-	'box-flex',
-	'box-flex-group',
-	'box-ordinal-group',
-	'column-count',
-	'columns',
-	'flex',
-	'flex-grow',
-	'flex-negative',
-	'flex-order',
-	'flex-positive',
-	'flex-shrink',
-	'font-weight',
-	'grid-area',
-	'grid-column',
-	'grid-column-end',
-	'grid-column-span',
-	'grid-column-start',
-	'grid-row',
-	'grid-row-end',
-	'grid-row-span',
-	'grid-row-start',
-	'line-clamp',
-	'line-height',
-	'opacity',
-	'order',
-	'orphans',
-	'tab-size',
-	'widows',
-	'z-index',
-	'zoom',
-	'fill-opacity',
-	'flood-opacity',
-	'stop-opacity',
-	'stroke-dasharray',
-	'stroke-dashoffset',
-	'stroke-miterlimit',
-	'stroke-opacity',
-	'stroke-width',
-]);
-
-/**
- * `style.setProperty(prop, value)` silently drops the assignment when `value`
- * is a unitless bare number for a property that requires a unit (e.g.
- * `width`, `top`, `margin`) — no error, no console warning, the property
- * simply never lands on the element. `String(400)` produces exactly that bare
- * number, so a caller passing `{ width: 400 }` (a very common ergonomic
- * shape, and the one the `style` JSX attribute type explicitly allows) gets
- * silently no-opped instead of getting `400px`.
- * @param {string} css_prop kebab-cased CSS property name
- * @param {string | number} raw_value
- * @returns {string}
- */
-function format_style_value(css_prop, raw_value) {
-	if (
-		typeof raw_value === 'number' &&
-		raw_value !== 0 &&
-		!UNITLESS_NUMBER_PROPERTIES.has(css_prop)
-	) {
-		return `${raw_value}px`;
-	}
-	return String(raw_value);
 }
 
 /**

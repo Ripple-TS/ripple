@@ -279,6 +279,37 @@ describe('basic client > attribute rendering', () => {
 		expect(div.style.width).toBe('200px');
 	});
 
+	it('leaves CSS custom properties unitless even with a numeric value', () => {
+		// Custom properties are commonly read back through `var(--foo)` as a
+		// unitless multiplier, counter, or opacity — `{ '--scale': 2 }` must stay
+		// `2`, not become `2px`.
+		function Basic() @{
+			<div style={{ '--scale': 2, '--webkit-something': 3 }}>{'Custom props'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('--scale')).toBe('2');
+		expect(div.style.getPropertyValue('--webkit-something')).toBe('3');
+	});
+
+	it('treats vendor-prefixed unitless properties as unitless too', () => {
+		// `lineClamp` is unitless, so its vendor-prefixed form (as authored via
+		// the camelCase JSX style key) must be too — a bare `2` should not become
+		// `2px` just because it's spelled `WebkitLineClamp`.
+		function Basic() @{
+			<div style={{ WebkitLineClamp: 2 }}>{'Prefixed unitless'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('-webkit-line-clamp')).toBe('2');
+	});
+
 	it('render tracked variable as style attribute', () => {
 		function Basic() @{
 			let &[style] = track({ color: 'red', fontWeight: 'bold' });
