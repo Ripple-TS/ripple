@@ -238,6 +238,58 @@ describe('@for item type inference', () => {
 		expect(code).toContain('_$_.expression(');
 	});
 
+	it('types the bindings of a lazily destructured props pattern', () => {
+		const code = compile_client(`
+			type Item = { id: number; nested: { label: string } };
+
+			export default function Row(&{ item, extra: { count } }: { item: Item; extra: { count: number } }) @{
+				<tr><td>{item.id}</td><td>{item.nested.label}</td><td>{count}</td></tr>
+			}
+		`);
+
+		expect(code).not.toContain('_$_.expression(');
+		expect(code.match(/_\$_\.set_text\(/g)).toHaveLength(3);
+		expect(code).toContain('__props.item.id');
+		expect(code).toContain('__props.extra.count');
+	});
+
+	it('types the bindings of a lazy object pattern declaration', () => {
+		const code = compile_client(`
+			export default function Row(props: { item: { id: number } }) @{
+				const &{ item } = props;
+				<p>{item.id}</p>
+			}
+		`);
+
+		expect(code).not.toContain('_$_.expression(');
+		expect(code).toContain('_$_.set_text(');
+	});
+
+	it('types the bindings of a regular destructured props pattern', () => {
+		const code = compile_client(`
+			export default function Row({ item, extra: { count } }: { item: { id: number }; extra: { count: number } }) @{
+				<tr><td>{item.id}</td><td>{count}</td></tr>
+			}
+		`);
+
+		expect(code).not.toContain('_$_.expression(');
+		expect(code).toContain('_$_.set_text(expression, __prev.a = __a)');
+		expect(code).toContain('expression_1.nodeValue = count');
+	});
+
+	it('types the bindings of a regular object pattern declaration', () => {
+		const code = compile_client(`
+			export default function Row(props: { item: { id: number }; extra: { count: number } }) @{
+				const { item, extra: { count } } = props;
+				<tr><td>{item.id}</td><td>{count}</td></tr>
+			}
+		`);
+
+		expect(code).not.toContain('_$_.expression(');
+		expect(code).toContain('_$_.set_text(expression, __prev.a = __a)');
+		expect(code).toContain('expression_1.nodeValue = count');
+	});
+
 	it('infers number and boolean literal initial values of track()', () => {
 		const code = compile_client(`
 			import { track } from 'ripple';

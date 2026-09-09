@@ -84,8 +84,25 @@ export let active_namespace = DEFAULT_NAMESPACE;
 /** @type {boolean} */
 export let is_mutating_allowed = true;
 
-/** @type {Map<Tracked | Derived, any>} */
-var old_values = new Map();
+/**
+ * Tracked values written during the current flush that hold their previous
+ * value in `o`, for teardowns that read them; released when the flush ends.
+ * @type {(Tracked | Derived)[]}
+ */
+var old_value_holders = [];
+/** Nesting depth of running flushes; old values are released at depth zero. */
+var flush_depth = 0;
+
+/** @returns {void} */
+function release_old_values() {
+	var holders = old_value_holders;
+	var length = holders.length;
+	if (length === 0) return;
+	for (var i = 0; i < length; i++) {
+		holders[i].o = UNINITIALIZED;
+	}
+	holders.length = 0;
+}
 
 // Used for controlling the flush of blocks
 /** @type {number} */
@@ -458,6 +475,8 @@ class TrackedValue {
 		this.sb = null;
 		/** @type {any} */
 		this.__v = v;
+		/** @type {any} previous value while a flush with teardowns is running */
+		this.o = UNINITIALIZED;
 	}
 	/** @returns {any} */
 	get [0]() {
@@ -520,6 +539,8 @@ class DerivedValue {
 		this.sb = null;
 		/** @type {any} */
 		this.__v = UNINITIALIZED;
+		/** @type {any} previous value while a flush with teardowns is running */
+		this.o = UNINITIALIZED;
 	}
 	/** @returns {any} */
 	get [0]() {
@@ -1239,10 +1260,12 @@ function run_phases(blocks, length) {
 function run_phase(blocks) {
 	for (var i = 0; i < blocks.length; i++) {
 		var block = blocks[i];
+		var flags = block.f;
 
 		try {
-			if ((block.f & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
-				run_block(block);
+			if ((flags & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
+				// A block that has never run has no children or teardown to clear.
+				run_block(block, (flags & BLOCK_HAS_RUN) === 0);
 			}
 		} catch (error) {
 			handle_error(error, block);
@@ -1279,12 +1302,19 @@ function flush_microtasks() {
 	}
 	var pending = queue;
 	queue = create_queue();
-	flush_queue(pending);
+	flush_depth++;
+	try {
+		flush_queue(pending);
+	} finally {
+		flush_depth--;
+	}
 
 	if (!is_micro_task_queued) {
 		flush_count = 0;
 	}
-	old_values.clear();
+	if (flush_depth === 0) {
+		release_old_values();
+	}
 }
 
 /**
@@ -1463,8 +1493,8 @@ export function get_tracked(tracked) {
 		throw ASYNC_DERIVED_READ_THROWN;
 	}
 
-	if (teardown && old_values.has(tracked)) {
-		value = old_values.get(tracked);
+	if (teardown && tracked.o !== UNINITIALIZED) {
+		value = tracked.o;
 	}
 	var get = tracked.a.get;
 	if (get !== undefined) {
@@ -1541,11 +1571,10 @@ export function set(tracked, value) {
 		var tracked_block = tracked.b;
 
 		if ((tracked_block.f & CONTAINS_TEARDOWN) !== 0) {
-			if (teardown) {
-				old_values.set(tracked, value);
-			} else {
-				old_values.set(tracked, old_value);
+			if (tracked.o === UNINITIALIZED) {
+				old_value_holders.push(tracked);
 			}
+			tracked.o = teardown ? value : old_value;
 		}
 
 		let set = tracked.a.set;
@@ -1586,6 +1615,7 @@ export function flush_sync(fn) {
 	var previous_scheduler_mode = scheduler_mode;
 	var previous_queue = queue;
 
+	flush_depth++;
 	try {
 		scheduler_mode = FLUSH_SYNC;
 		queue = create_queue();
@@ -1605,8 +1635,16 @@ export function flush_sync(fn) {
 
 		flush_count = 0;
 
+		// Old values only matter to teardowns run by the flush in progress; a
+		// sync flush nested in another flush (an effect calling `flushSync`)
+		// leaves them for the outer flush's remaining teardowns.
+		if (flush_depth === 1) {
+			release_old_values();
+		}
+
 		return /** @type {T} */ (result);
 	} finally {
+		flush_depth--;
 		scheduler_mode = previous_scheduler_mode;
 		queue = previous_queue;
 	}
@@ -1915,21 +1953,19 @@ export function pop_component() {
 	component.m = true;
 	var effects = component.e;
 	if (effects !== null) {
+		// Creating an effect block only links and schedules it, so nothing here
+		// can throw between saving and restoring the active block.
+		var previous_block = active_block;
+		var previous_reaction = active_reaction;
 		var length = effects.length;
-		for (var i = 0; i < length; i++) {
-			var { b: block, fn, r: reaction } = effects[i];
-			var previous_block = active_block;
-			var previous_reaction = active_reaction;
-
-			try {
-				active_block = block;
-				active_reaction = reaction;
-				effect(fn);
-			} finally {
-				active_block = previous_block;
-				active_reaction = previous_reaction;
-			}
+		// Flat triples: fn, block, reaction (see `user_effect`).
+		for (var i = 0; i < length; i += 3) {
+			active_block = /** @type {Block} */ (effects[i + 1]);
+			active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
+			effect(/** @type {Function} */ (effects[i]));
 		}
+		active_block = previous_block;
+		active_reaction = previous_reaction;
 	}
 	active_component = component.p;
 }

@@ -1141,6 +1141,64 @@ function infer_for_item_type_annotation(node, context) {
 }
 
 /**
+ * Records the type of each binding in a lazy pattern. Nested patterns inside a
+ * lazy pattern are lazy as well and already read through the outer source, so
+ * this only attaches type metadata and never touches the transforms; the types
+ * let typed property reads lower to direct text and attribute writes.
+ * @param {AST.Pattern} pattern
+ * @param {AnalysisContext} context
+ * @param {AST.TypeNode | undefined} type_annotation
+ */
+function assign_pattern_types(pattern, context, type_annotation) {
+	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
+
+	switch (pattern.type) {
+		case 'Identifier': {
+			if (pattern_type_annotation === undefined) return;
+			const binding = context.state.scope.get(pattern.name);
+			if (binding?.node === pattern) {
+				binding.metadata = {
+					...(binding.metadata ?? {}),
+					typeAnnotation: pattern_type_annotation,
+				};
+			}
+			return;
+		}
+		case 'AssignmentPattern':
+			assign_pattern_types(pattern.left, context, pattern_type_annotation);
+			return;
+		case 'RestElement':
+			assign_pattern_types(pattern.argument, context, pattern_type_annotation);
+			return;
+		case 'ObjectPattern':
+			for (const property of pattern.properties) {
+				assign_pattern_types(
+					property.type === 'RestElement' ? property.argument : property.value,
+					context,
+					get_object_property_type_annotation(pattern_type_annotation, property),
+				);
+			}
+			return;
+		case 'ArrayPattern':
+			for (let i = 0; i < pattern.elements.length; i += 1) {
+				const element = pattern.elements[i];
+				if (element !== null) {
+					assign_pattern_types(
+						element,
+						context,
+						get_array_element_type_annotation(
+							pattern_type_annotation,
+							i,
+							element.type === 'RestElement',
+						),
+					);
+				}
+			}
+			return;
+	}
+}
+
+/**
  * Sets up lazy transforms for declarations and function or component parameters.
  * @param {AST.Pattern} pattern
  * @param {AnalysisContext} context
@@ -1196,7 +1254,9 @@ function setup_lazy_pattern_transforms(
 				);
 				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
 
-				if (pattern.type === 'ArrayPattern' && pattern_type_annotation !== undefined) {
+				if (pattern.type === 'ObjectPattern') {
+					assign_pattern_types(pattern, context, pattern_type_annotation);
+				} else if (pattern_type_annotation !== undefined) {
 					for (let i = 0; i < pattern.elements.length; i += 1) {
 						const element = pattern.elements[i];
 						if (element?.type !== 'Identifier') continue;
@@ -1283,6 +1343,7 @@ function visit_function(node, context) {
 			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
 				if (props.lazy) {
 					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+					assign_pattern_types(props, context, get_pattern_type_annotation(props));
 				} else {
 					setup_lazy_pattern_transforms(props, context, get_pattern_type_annotation(props));
 				}
@@ -1906,7 +1967,9 @@ const visitors = {
 					context,
 					call_name === 'track'
 						? get_track_call_type_annotation(/** @type {AST.CallExpression} */ (declarator.init))
-						: undefined,
+						: !call_name && declarator.init != null
+							? get_expression_type_annotation(declarator.init, context.state)
+							: undefined,
 					node.kind !== 'const',
 					call_name === 'track' || call_name === 'trackAsync',
 				);
