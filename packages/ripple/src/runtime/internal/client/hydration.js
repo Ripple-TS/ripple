@@ -31,6 +31,17 @@ export function set_hydrating(value) {
 }
 
 /**
+ * Enters or leaves a hydration walk: both the flag and the cursor, which is
+ * allowed to be null when restoring the state of a client-only mount.
+ * @param {boolean} value
+ * @param {Node | null} node
+ */
+export function set_hydration(value, node) {
+	hydrating = value;
+	hydrate_node = node;
+}
+
+/**
  * @param {Node | null} node
  * @param {boolean} [mounting=false]
  */

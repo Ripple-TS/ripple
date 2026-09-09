@@ -11,8 +11,7 @@ import {
 	hydrate_next,
 	hydrate_node,
 	hydrating,
-	set_hydrate_node,
-	set_hydrating,
+	set_hydration,
 	track_hash_reference,
 } from './internal/client/hydration.js';
 import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
@@ -64,10 +63,7 @@ function render_root_boundary(anchor, render_content, boundary) {
  * @returns {Record<string, any>}
  */
 function normalize_props(props) {
-	if (props.children != null) {
-		return { ...props, children: normalize_children(props.children) };
-	}
-	return props;
+	return { ...props, children: normalize_children(props.children) };
 }
 
 /**
@@ -83,7 +79,10 @@ export function mount(component, options) {
 	init_operations();
 	requestAnimationFrame(remove_styles);
 
-	const props = options.props === undefined ? {} : normalize_props(options.props);
+	let props = options.props ?? {};
+	if (props.children != null) {
+		props = normalize_props(props);
+	}
 	const target = options.target;
 
 	// Clear target content in case of SSR
@@ -141,7 +140,10 @@ export function hydrate(component, options) {
 	init_operations();
 	requestAnimationFrame(remove_styles);
 
-	const props = options.props === undefined ? {} : normalize_props(options.props);
+	let props = options.props ?? {};
+	if (props.children != null) {
+		props = normalize_props(props);
+	}
 	const target = options.target;
 	const was_hydrating = hydrating;
 	const previous_hydrate_node = hydrate_node;
@@ -163,8 +165,7 @@ export function hydrate(component, options) {
 			anchor = anchor.nextSibling;
 		}
 
-		set_hydrating(true);
-		set_hydrate_node(/** @type {Comment} */ (anchor));
+		set_hydration(true, /** @type {Comment} */ (anchor));
 
 		const root_boundary = options.rootBoundary;
 		const marker = /** @type {Comment} */ (anchor);
@@ -188,8 +189,7 @@ export function hydrate(component, options) {
 	} catch (e) {
 		throw e;
 	} finally {
-		set_hydrating(was_hydrating);
-		set_hydrate_node(previous_hydrate_node, true);
+		set_hydration(was_hydrating, previous_hydrate_node);
 		if (!was_hydrating) {
 			track_hash_reference.clear();
 		}

@@ -228,41 +228,6 @@ function collection_to_array(collection) {
  */
 
 /**
- * @param {ListAnchor} anchor
- * @param {() => any} get_collection
- * @param {(anchor: Node, value: any, index?: any) => Block} render_fn
- * @param {boolean} is_controlled
- * @param {boolean} is_indexed
- * @param {((item: any) => any) | undefined} get_key
- * @param {((anchor: Node) => void) | undefined} render_empty
- * @returns {ListState}
- */
-function list_state(
-	anchor,
-	get_collection,
-	render_fn,
-	is_controlled,
-	is_indexed,
-	get_key,
-	render_empty,
-) {
-	return {
-		array: [],
-		blocks: [],
-		// null until the first reconcile
-		keys: null,
-		empty: null,
-		a: anchor,
-		g: get_collection,
-		r: render_fn,
-		c: is_controlled,
-		x: is_indexed,
-		k: get_key,
-		e: render_empty,
-	};
-}
-
-/**
  * @param {ListState} state
  */
 function run_for(state) {
@@ -333,19 +298,21 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 		hydrate_next();
 	}
 
-	render(
-		run_for,
-		list_state(
-			anchor,
-			get_collection,
-			render_fn,
-			is_controlled,
-			is_indexed,
-			undefined,
-			render_empty,
-		),
-		FOR_BLOCK,
-	);
+	/** @type {ListState} */
+	var state = {
+		array: [],
+		blocks: [],
+		keys: null,
+		empty: null,
+		a: anchor,
+		g: get_collection,
+		r: render_fn,
+		c: is_controlled,
+		x: is_indexed,
+		k: undefined,
+		e: render_empty,
+	};
+	render(run_for, state, FOR_BLOCK);
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
@@ -393,11 +360,22 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 		hydrate_next();
 	}
 
-	render(
-		run_for_keyed,
-		list_state(anchor, get_collection, render_fn, is_controlled, is_indexed, get_key, render_empty),
-		FOR_BLOCK,
-	);
+	/** @type {ListState} */
+	var state = {
+		array: [],
+		blocks: [],
+		// null until the first reconcile
+		keys: null,
+		empty: null,
+		a: anchor,
+		g: get_collection,
+		r: render_fn,
+		c: is_controlled,
+		x: is_indexed,
+		k: get_key,
+		e: render_empty,
+	};
+	render(run_for_keyed, state, FOR_BLOCK);
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 

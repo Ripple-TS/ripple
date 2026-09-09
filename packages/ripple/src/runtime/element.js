@@ -1,4 +1,4 @@
-const TSRX_ELEMENT = Symbol.for('ripple.element');
+export const TSRX_ELEMENT = Symbol.for('ripple.element');
 
 /**
  * @typedef {{

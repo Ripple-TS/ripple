@@ -22,7 +22,7 @@ import {
 	hydrate_node,
 	hydrating,
 	set_hydrate_node,
-	set_hydrating,
+	set_hydration,
 	skip_to_hydration_end,
 } from './hydration.js';
 import { resolve_anchor } from './operations.js';
@@ -346,15 +346,13 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		/** @type {ChildNode} */ (slot_close).remove();
 		var previous_hydrating = hydrating;
 		var previous_hydrate_node = hydrate_node;
-		set_hydrating(true);
-		set_hydrate_node(first);
+		set_hydration(true, first);
 		hydrate_next(); // consume the streamed body's <!--[-->
 		try {
 			has_resolved = true;
 			render_resolved();
 		} finally {
-			set_hydrating(previous_hydrating);
-			set_hydrate_node(previous_hydrate_node, true);
+			set_hydration(previous_hydrating, previous_hydrate_node);
 		}
 	}
 

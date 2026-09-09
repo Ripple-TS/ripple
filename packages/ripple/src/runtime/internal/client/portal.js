@@ -4,7 +4,7 @@ import { branch, destroy_block, render } from './blocks.js';
 import { DESTROYED, DETACHED_BLOCK, UNINITIALIZED } from './constants.js';
 import { handle_root_events, release_root_events } from './events.js';
 import { active_block } from './runtime.js';
-import { hydrating, hydrate_node, set_hydrating, set_hydrate_node } from './hydration.js';
+import { hydrating, hydrate_node, set_hydration, set_hydrating } from './hydration.js';
 import { is_tsrx_element, tsrx_element } from '../../element.js';
 
 /**
@@ -139,8 +139,7 @@ function create_portal(get_target, render_children, get_children) {
 	try {
 		render(run_portal, state);
 	} finally {
-		set_hydrating(true);
-		set_hydrate_node(/** @type {any} */ (previous_hydrate_node));
+		set_hydration(true, previous_hydrate_node);
 	}
 }
 
