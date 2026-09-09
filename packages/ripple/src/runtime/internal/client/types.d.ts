@@ -60,22 +60,47 @@ export type Block = {
 	t: ((state?: any) => void) | null;
 };
 
-export type TryBoundaryState = {
-	p: boolean; // whether pending_fn exists
-	b: () => number; // begin request, returns request id
-	r: (request_id: number, show_resolved_branch?: boolean) => boolean; // complete request, returns whether the request was active
-	c: ((error: any) => void) | null; // catch function
-	rd: (request_id: number, reject_fn: (reason: any) => void) => void; // register deferred reject function
-	pb: (block: Block) => void; // register paused block
-	rp: (old_request_id: number) => number; // replace request, returns new request id
+export type TryCatchFunction = (anchor: Node, error: any, reset?: () => void) => void;
+export type TryPendingFunction = (anchor: Node) => void;
+
+/**
+ * The state of a `@try` block or root boundary. Everything the boundary's
+ * pending, catch, request and streaming helpers need lives here, so those
+ * helpers are module functions that compile only when a boundary uses them.
+ */
+export type TryState = {
+	anchor: Node;
+	try_fn: (anchor: Node, block?: Block) => void;
+	catch_fn: TryCatchFunction | null;
+	pending_fn: TryPendingFunction | null;
+	/** the catch branch's `reset` callback, created on first use */
+	reset: (() => void) | null;
+	pending_count: number;
+	request_version: number;
+	active_requests: Set<number>;
+	try_block: Block | null;
+	resolved_branch: Block | null;
+	pending_branch: Block | null;
+	catch_branch: Block | null;
+	offscreen_fragment: DocumentFragment | null;
+	has_resolved: boolean;
+	mode: 'resolved' | 'pending' | 'catch';
+	pending_deferreds: Map<number, (reason: any) => void>;
+	paused_blocks: Set<Block>;
+	/** a streamed slot this boundary hydrated, until its chunk activates it */
+	streamed_id: string | null;
+	streamed_errored: boolean;
+	streamed_fallback: boolean;
+	slot_open: Comment | null;
+	slot_close: Comment | null;
 };
 
 export type BlockWithTryBoundary = Omit<Block, 's'> & {
-	s: TryBoundaryState;
+	s: TryState;
 };
 
 export type BlockWithTryBoundaryAndCatch = Omit<BlockWithTryBoundary, 's'> & {
-	s: TryBoundaryState & { c: NonNullable<TryBoundaryState['c']> };
+	s: TryState & { catch_fn: TryCatchFunction };
 };
 
 export type RootBoundaryOptions = {

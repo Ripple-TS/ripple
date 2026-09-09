@@ -1,15 +1,14 @@
-/** @import { AppendIntoAnchor, Block, TryBoundaryState, BlockWithTryBoundary, BlockWithTryBoundaryAndCatch } from '#client' */
+/** @import { AppendIntoAnchor, Block, TryState, TryCatchFunction, TryPendingFunction, BlockWithTryBoundary, BlockWithTryBoundaryAndCatch } from '#client' */
 
 import {
-	boundary_fn_running_block,
-	create_try_block,
+	block as create_block,
 	destroy_block,
 	is_destroyed,
 	move_block,
 	own_anchor,
 	resume_block,
 } from './blocks.js';
-import { TRY_BLOCK } from './constants.js';
+import { BRANCH_BLOCK, DIRECT_CHILD_BLOCK, TRY_BLOCK } from './constants.js';
 import {
 	COMMENT_NODE,
 	HYDRATION_START,
@@ -35,43 +34,14 @@ import {
 } from './runtime.js';
 
 /**
-	@typedef {(
-		anchor: Node,
-		error: any,
-		reset?: () => void
-	) => void} CatchFunction;
-
-	@typedef {(anchor: Node) => void} PendingFunction
+ * A boundary's branches run as direct children of its try block (see
+ * `TryState` in types.d.ts for the state they share).
+ * @param {() => void} fn
+ * @returns {Block}
  */
-
-/**
- * Boundary data is explicit so pending, catch, and streaming helpers are only
- * compiled when used, instead of being nested in every cold try_block call.
- * @typedef {TryBoundaryState & {
- *   anchor: Node;
- *   try_fn: (anchor: Node, block?: Block) => void;
- *   catch_fn: CatchFunction | null;
- *   pending_fn: PendingFunction | null;
- *   reset: (() => void) | null;
- *   pending_count: number;
- *   request_version: number;
- *   active_requests: Set<number>;
- *   try_block: Block | null;
- *   resolved_branch: Block | null;
- *   pending_branch: Block | null;
- *   catch_branch: Block | null;
- *   offscreen_fragment: DocumentFragment | null;
- *   has_resolved: boolean;
- *   mode: 'resolved' | 'pending' | 'catch';
- *   pending_deferreds: Map<number, (reason: any) => void>;
- *   paused_blocks: Set<Block>;
- *   streamed_id: string | null;
- *   streamed_errored: boolean;
- *   streamed_fallback: boolean;
- *   slot_open: Comment | null;
- *   slot_close: Comment | null;
- * }} TryState
- */
+function boundary_branch(fn) {
+	return create_block(BRANCH_BLOCK | DIRECT_CHILD_BLOCK, fn);
+}
 
 /** @param {TryState} state */
 function clear_paused_blocks(state) {
@@ -126,10 +96,10 @@ function render_resolved(state) {
 		state.mode = 'resolved';
 		if (active_block !== state.try_block) {
 			with_block(state.try_block, () => {
-				state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+				state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
 			});
 		} else {
-			state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+			state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
 		}
 	}
 }
@@ -166,8 +136,8 @@ function render_pending(state) {
 	state.mode = 'pending';
 
 	var create_pending = () => {
-		state.pending_branch = boundary_fn_running_block(() => {
-			/** @type {PendingFunction} */ (state.pending_fn)(state.anchor);
+		state.pending_branch = boundary_branch(() => {
+			/** @type {TryPendingFunction} */ (state.pending_fn)(state.anchor);
 		});
 	};
 
@@ -226,8 +196,8 @@ function handle_error(state, error) {
 	state.mode = 'catch';
 
 	var create_catch = () => {
-		state.catch_branch = boundary_fn_running_block(() => {
-			/** @type {CatchFunction} */ (state.catch_fn)(
+		state.catch_branch = boundary_branch(() => {
+			/** @type {TryCatchFunction} */ (state.catch_fn)(
 				state.anchor,
 				error,
 				(state.reset ??= () => render_resolved(state)),
@@ -295,7 +265,7 @@ function route_streamed_error(state, id) {
 	if (outer === null) {
 		throw error;
 	}
-	outer.s.c(error);
+	handle_error(outer.s, error);
 }
 
 /**
@@ -496,8 +466,8 @@ function hydrate_streamed_fallback(state) {
 	// The body has not arrived yet; hydrate its fallback until activation.
 	if (state.streamed_fallback) {
 		state.mode = 'pending';
-		state.pending_branch = boundary_fn_running_block(() => {
-			/** @type {PendingFunction} */ (state.pending_fn)(state.anchor);
+		state.pending_branch = boundary_branch(() => {
+			/** @type {TryPendingFunction} */ (state.pending_fn)(state.anchor);
 		});
 	}
 }
@@ -507,15 +477,15 @@ function run_try(state) {
 	if (state.streamed_id !== null) {
 		hydrate_streamed_fallback(state);
 	} else {
-		state.resolved_branch = boundary_fn_running_block(() => state.try_fn(state.anchor));
+		state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
 	}
 }
 
 /**
  * @param {Node | AppendIntoAnchor} node
  * @param {(anchor: Node, block?: Block) => void} try_fn
- * @param {CatchFunction | null} catch_fn
- * @param {PendingFunction | null} [pending_fn=null]
+ * @param {TryCatchFunction | null} catch_fn
+ * @param {TryPendingFunction | null} [pending_fn=null]
  * @param {boolean} [root_controlled=false] When true the block renders before
  *   the component's `__anchor`, which may be an append-into sentinel (see
  *   `resolve_anchor`).
@@ -548,20 +518,6 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		streamed_fallback: false,
 		slot_open: null,
 		slot_close: null,
-		// Keep the boundary callback interface; only these small adapters are
-		// created eagerly, while the helpers they call can compile lazily.
-		p: pending_fn !== null,
-		b: () => begin_request(state),
-		r: (request_id, show_resolved_branch) =>
-			complete_request(state, request_id, show_resolved_branch),
-		c: catch_fn !== null ? (error) => handle_error(state, error) : null,
-		rd: (request_id, reject_fn) => {
-			state.pending_deferreds.set(request_id, reject_fn);
-		},
-		pb: (block) => {
-			state.paused_blocks.add(block);
-		},
-		rp: (old_request_id) => replace_request(state, old_request_id),
 	};
 
 	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
@@ -584,7 +540,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		}
 	}
 
-	state.try_block = create_try_block(run_try, state);
+	state.try_block = create_block(TRY_BLOCK, run_try, state);
 
 	if (state.streamed_id !== null) {
 		register_streamed_slot(state);
@@ -606,7 +562,7 @@ export function get_pending_boundary(block) {
 
 	while (current !== null) {
 		var state = /** @type {BlockWithTryBoundary} */ (current).s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.p) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.pending_fn !== null) {
 			return /** @type {BlockWithTryBoundary} */ (current);
 		}
 		current = current.p;
@@ -625,7 +581,7 @@ export function get_boundary_with_catch(block) {
 
 	while (current !== null) {
 		var state = /** @type {BlockWithTryBoundary} */ (current).s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.catch_fn !== null) {
 			return /** @type {BlockWithTryBoundaryAndCatch} */ (current);
 		}
 		current = current.p;
@@ -635,11 +591,21 @@ export function get_boundary_with_catch(block) {
 }
 
 /**
+ * Routes an error into a boundary's catch branch.
+ * @param {BlockWithTryBoundaryAndCatch} boundary
+ * @param {any} error
+ * @returns {void}
+ */
+export function handle_boundary_error(boundary, error) {
+	handle_error(boundary.s, error);
+}
+
+/**
  * @param {BlockWithTryBoundary} boundary
  * @returns {number}
  */
 export function begin_boundary_request(boundary) {
-	return boundary.s.b();
+	return begin_request(boundary.s);
 }
 
 /**
@@ -648,7 +614,7 @@ export function begin_boundary_request(boundary) {
  * @returns {number}
  */
 export function replace_boundary_request(boundary, old_request_id) {
-	return boundary.s.rp(old_request_id);
+	return replace_request(boundary.s, old_request_id);
 }
 
 /**
@@ -659,7 +625,7 @@ export function replace_boundary_request(boundary, old_request_id) {
  */
 export function complete_boundary_request(boundary, request_id, show_resolved_branch = true) {
 	return boundary !== null && !is_destroyed(boundary)
-		? boundary.s.r(request_id, show_resolved_branch)
+		? complete_request(boundary.s, request_id, show_resolved_branch)
 		: false;
 }
 
@@ -670,8 +636,8 @@ export function complete_boundary_request(boundary, request_id, show_resolved_br
  * @returns {void}
  */
 export function register_boundary_deferred(boundary, request_id, reject_fn) {
-	if (boundary !== null && !is_destroyed(boundary) && boundary.s?.rd) {
-		boundary.s.rd(request_id, reject_fn);
+	if (boundary !== null && !is_destroyed(boundary)) {
+		boundary.s.pending_deferreds.set(request_id, reject_fn);
 	}
 }
 
@@ -681,7 +647,7 @@ export function register_boundary_deferred(boundary, request_id, reject_fn) {
  * @returns {void}
  */
 export function register_boundary_paused_block(boundary, block) {
-	if (boundary !== null && !is_destroyed(boundary) && boundary.s?.pb) {
-		boundary.s.pb(block);
+	if (boundary !== null && !is_destroyed(boundary)) {
+		boundary.s.paused_blocks.add(block);
 	}
 }

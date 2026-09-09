@@ -44,6 +44,7 @@ import {
 	complete_boundary_request,
 	get_boundary_with_catch,
 	get_pending_boundary,
+	handle_boundary_error,
 	register_boundary_deferred,
 	register_boundary_paused_block,
 	replace_boundary_request,
@@ -315,7 +316,7 @@ function run_derived(computed) {
 export function handle_error(error, block) {
 	var boundary_with_catch = get_boundary_with_catch(block);
 	if (boundary_with_catch !== null) {
-		boundary_with_catch.s.c(error);
+		handle_boundary_error(boundary_with_catch, error);
 		return boundary_with_catch;
 	}
 
@@ -868,7 +869,7 @@ export function track_async(fn, b, hash) {
 				// Route error to catch boundary
 				var boundary_with_catch = get_boundary_with_catch(call_site_block);
 				if (boundary_with_catch !== null) {
-					boundary_with_catch.s.c(error);
+					handle_boundary_error(boundary_with_catch, error);
 				}
 
 				if (request_id > 0 && boundary !== null) {

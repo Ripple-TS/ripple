@@ -13,7 +13,6 @@ import {
 	TRY_BLOCK,
 	DETACHED_BLOCK,
 	HEAD_BLOCK,
-	DIRECT_CHILD_BLOCK,
 	IF_BLOCK,
 } from './constants.js';
 import { hydrating } from './hydration.js';
@@ -214,25 +213,6 @@ export function root(fn) {
 		{ start: null, end: null },
 		{ b: active_block, c: null, e: null, m: false, p: active_component },
 	);
-}
-
-/**
- * @template T
- * @param {(state: T) => void} fn
- * @param {T} state
- * @returns {Block}
- */
-export function create_try_block(fn, state) {
-	return block(TRY_BLOCK, fn, state);
-}
-
-/**
- * @param {() => void} fn
- * @param {number} [flags]
- * @param {any} [state]
- */
-export function boundary_fn_running_block(fn, flags = 0, state = null) {
-	return branch(fn, DIRECT_CHILD_BLOCK | flags, state);
 }
 
 /** Creation counter: a parent always has a lower id than its descendants. */
