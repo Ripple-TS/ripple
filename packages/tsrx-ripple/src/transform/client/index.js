@@ -745,6 +745,44 @@ function transform_native_tsrx_function(node, context) {
 }
 
 /**
+ * Whether evaluating an argument outside `with_scope` is the same as inside:
+ * it contains no call (a call may read the scope) and no function (which
+ * would be created either way, but keeps the check simple).
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_scope_free_argument(node) {
+	switch (node.type) {
+		case 'Identifier':
+		case 'Literal':
+		case 'ThisExpression':
+			return true;
+		case 'MemberExpression':
+			return (
+				is_scope_free_argument(node.object) &&
+				(!node.computed || is_scope_free_argument(node.property))
+			);
+		case 'UnaryExpression':
+			return is_scope_free_argument(node.argument);
+		case 'BinaryExpression':
+		case 'LogicalExpression':
+			return is_scope_free_argument(node.left) && is_scope_free_argument(node.right);
+		case 'ConditionalExpression':
+			return (
+				is_scope_free_argument(node.test) &&
+				is_scope_free_argument(node.consequent) &&
+				is_scope_free_argument(node.alternate)
+			);
+		case 'TSAsExpression':
+		case 'TSNonNullExpression':
+		case 'TSSatisfiesExpression':
+			return is_scope_free_argument(node.expression);
+		default:
+			return false;
+	}
+}
+
+/**
  * @param {ESTreeJSX.JSXElement} node
  * @param {number} index
  * @param {TransformClientContext} context
@@ -2355,6 +2393,22 @@ const visitors = {
 			visited_call.callee.type === 'ArrowFunctionExpression'
 		) {
 			return b.call('_$_.with_scope', b.id('__block'), visited_call.callee);
+		}
+
+		// A plain call whose arguments read no scope needs no thunk: the
+		// runtime calls it under the scope with the arguments evaluated here.
+		if (
+			callee.type === 'Identifier' &&
+			!node.optional &&
+			node.arguments.length <= 3 &&
+			node.arguments.every(is_scope_free_argument)
+		) {
+			return b.call(
+				'_$_.scoped_call',
+				b.id('__block'),
+				visited_call.callee,
+				.../** @type {AST.Expression[]} */ (visited_call.arguments),
+			);
 		}
 
 		return b.call('_$_.with_scope', b.id('__block'), b.thunk(visited_call));

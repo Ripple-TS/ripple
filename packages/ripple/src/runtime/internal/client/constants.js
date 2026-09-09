@@ -25,6 +25,8 @@ export var SCHEDULED = 1 << 22;
 // A per-key match value created by a selector; its map entry is dropped once
 // the last subscriber unlinks.
 export var SELECTOR = 1 << 23;
+// A selector key whose last subscriber left; kept for reuse until a sweep.
+export var RELEASED = 1 << 24;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

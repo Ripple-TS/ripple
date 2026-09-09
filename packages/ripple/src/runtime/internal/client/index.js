@@ -47,6 +47,7 @@ export {
 	scope,
 	safe_scope,
 	with_scope,
+	scoped_call,
 	get,
 	get_tracked,
 	get_derived,

@@ -2267,7 +2267,7 @@ export function StaticCallThenStatic() {
 			var fragment_63 = root_111();
 			var expression_45 = _$_.first_child_frag(fragment_63);
 
-			_$_.render_tsrx_element(_$_.with_scope(__block, makeB), expression_45, __block);
+			_$_.render_tsrx_element(_$_.scoped_call(__block, makeB), expression_45, __block);
 			_$_.next(2);
 			_$_.append(__anchor, fragment_63);
 		}));

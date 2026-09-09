@@ -1751,7 +1751,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		expect(client.code).toContain("} else if (done.value === 'test')");
 		expect(client.code).toContain('return _$_.tsrx_element((__anchor, __block) =>');
 		expect(client.code).toContain('_$_.for(');
-		expect(client.code).toContain('_$_.render_tsrx_element(_$_.with_scope(__block, loop),');
+		expect(client.code).toContain('_$_.render_tsrx_element(_$_.scoped_call(__block, loop),');
 		expect(server.code).not.toContain('return_guard');
 		expect(server.code).toContain('if (done.value)');
 		expect(server.code).toContain('return _$_.tsrx_element(() =>');
@@ -1838,7 +1838,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
 		expect(client.code).toContain('if (flag) return;');
-		expect(client.code).toContain('_$_.with_scope(__block, sideEffect);');
+		expect(client.code).toContain('_$_.scoped_call(__block, sideEffect);');
 		expect(client.code).not.toContain('return_guard');
 		expect(server.code).toContain('if (flag) return;');
 		expect(server.code).toContain('sideEffect();');
@@ -1874,7 +1874,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
 		expect(client.code).toContain('function Test()');
-		expect(client.code).toContain('() => _$_.with_scope(__block, Test)');
+		expect(client.code).toContain('() => _$_.scoped_call(__block, Test)');
 		expect(client.code).not.toContain('Test(__anchor');
 		expect(server.code).toContain('_$_.render_expression(Test())');
 	});

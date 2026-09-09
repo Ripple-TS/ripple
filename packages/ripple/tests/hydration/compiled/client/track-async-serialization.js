@@ -32,7 +32,7 @@ const formatValue = function (...args) {
 
 function ServerCallResult({ count }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '2e21cbe9');
+		let lazy = _$_.track_async(() => _$_.scoped_call(__block, formatValue, count.value), __block, '2e21cbe9');
 		var p = root();
 
 		{

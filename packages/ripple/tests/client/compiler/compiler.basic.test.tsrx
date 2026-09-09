@@ -197,7 +197,7 @@ export function App() @{
 
 		// One merged text expression — no separate comment-anchored expression.
 		// The coercion itself needs no scope; only the user call inside it does.
-		expect(code).toContain('\'label:\' + String(void _$_.with_scope');
+		expect(code).toContain('\'label:\' + String(void _$_.scoped_call');
 		expect(code).not.toContain('_$_.expression(');
 	});
 
@@ -213,7 +213,7 @@ export function App() @{
 
 		// Already a string: no String(… ?? '') double wrap around it, and the
 		// scope wrapper sits on the user call, not on the coercion.
-		expect(code).toContain('String(_$_.with_scope(__block, fetchLabel))');
+		expect(code).toContain('String(_$_.scoped_call(__block, fetchLabel))');
 		expect(code).not.toContain('_$_.with_scope(__block, () => String(');
 		expect(code).not.toContain('String(String(');
 		expect(code).not.toContain('?? \'\'');
