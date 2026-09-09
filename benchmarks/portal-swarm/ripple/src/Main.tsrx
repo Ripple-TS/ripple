@@ -35,6 +35,9 @@ function Section(props: {
 	prefix: string;
 	bind: (setOpen: (v: boolean) => void, setTick: (v: number) => void, setDistinct: (v: boolean) => void) => void;
 }) @{
+	// Non-lazy destructure: a snapshot, so `cls` below is a plain string prop
+	// rather than a getter over `props`.
+	const { tipClass } = props;
 	let &[open] = track(false);
 	let &[tick] = track(0);
 	let &[distinct] = track(false);
@@ -58,7 +61,7 @@ function Section(props: {
 					<span class="label">{item.label}</span>
 					@if (open) {
 						<Portal target={distinct ? targetFor(item.id) : sharedTarget()}>
-							<Tip item={item} cls={props.tipClass} />
+							<Tip item={item} cls={tipClass} />
 						</Portal>
 					}
 				</li>
