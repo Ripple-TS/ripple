@@ -485,8 +485,9 @@ function reconcile_by_key(
 
 	if (state.keys === null && b_length > 0) {
 		var b_blocks = Array(b_length);
-		// Identity keys (`key item`) are the items themselves.
-		var b_keys = get_key === undefined ? b : Array(b_length);
+		// Identity keys (`key item`) are the items themselves; the list keeps a
+		// copy, as the array it rendered may later be mutated in place.
+		var b_keys = get_key === undefined ? b.slice() : Array(b_length);
 
 		// One loop, no `map` callback machinery: most lists are short.
 		for (var j = 0; j < b_length; j++) {
@@ -557,8 +558,8 @@ function reconcile_by_key_diff(
 	/** @type {number} */
 	var i = 0;
 
-	var a = state.array;
-	var a_length = a.length;
+	var a_blocks = state.blocks;
+	var a_length = a_blocks.length;
 	var b_length = b.length;
 	var j = 0;
 
@@ -593,10 +594,10 @@ function reconcile_by_key_diff(
 		}
 		return;
 	}
-	// Identity keys are the items themselves, so a matched key is also the
-	// item's current tracked value: only computed keys need `update_value`.
-	var b_keys = get_key === undefined ? b : b.map(get_key);
-	var a_blocks = state.blocks;
+	// Identity keys are the items themselves (copied, as the rendered array
+	// may later be mutated in place), so a matched key is also the item's
+	// current tracked value: only computed keys need `update_value`.
+	var b_keys = get_key === undefined ? b.slice() : b.map(get_key);
 	// A same-length run rewrites the block array in place: matched ends are
 	// already at their index, and the middle reads the old blocks from a copy
 	// taken before its first write.

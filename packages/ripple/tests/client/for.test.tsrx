@@ -195,6 +195,47 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('keyed by identity re-reads a plain array mutated in place', () => {
+		const list = [{ id: 1 }, { id: 2 }, { id: 3 }];
+		let bump = () => {};
+
+		function App() @{
+			let &[version] = track(0);
+			bump = () => {
+				version = version + 1;
+			};
+			<ul>
+				@for (const item of (version, list); key item) {
+					<li>{item.id}</li>
+				}
+			</ul>
+		}
+
+		render(App);
+		const texts = () => Array.from(container.querySelectorAll('li'), (el) => el.textContent);
+		expect(texts()).toEqual(['1', '2', '3']);
+
+		list.push({ id: 4 });
+		bump();
+		flushSync();
+		expect(texts()).toEqual(['1', '2', '3', '4']);
+
+		list.splice(0, 1);
+		bump();
+		flushSync();
+		expect(texts()).toEqual(['2', '3', '4']);
+
+		list.reverse();
+		bump();
+		flushSync();
+		expect(texts()).toEqual(['4', '3', '2']);
+
+		list.splice(1, 1, { id: 5 });
+		bump();
+		flushSync();
+		expect(texts()).toEqual(['4', '5', '2']);
+	});
+
 	it('keyed for over derived updates sibling text nodes', () => {
 		function App() @{
 			let &[count] = track(0);
