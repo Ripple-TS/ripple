@@ -83,6 +83,14 @@ var root_78 = _$_.template(`<div></div>`, 0);
 var root_80 = _$_.template(` <p>after-call</p>`, 1, 2);
 var root_79 = _$_.template(`<!>`, 1, 1);
 var root_81 = _$_.template(`<div></div>`, 0);
+var root_83 = _$_.template(`<div class="primitive-calls"> </div><button>update</button>`, 1, 2);
+var root_82 = _$_.template(`<!>`, 1, 1);
+var root_84 = _$_.template(`<b>string</b>`, 0);
+var root_85 = _$_.template(`<b>number</b>`, 0);
+var root_86 = _$_.template(`<b>bigint</b>`, 0);
+var root_87 = _$_.template(`<b>date</b>`, 0);
+var root_89 = _$_.template(`<p>before<!>after</p><p>before<!>after</p><p>before<!>after</p><p>before<!>after</p>`, 1, 4);
+var root_88 = _$_.template(`<!>`, 1, 1);
 
 import { track } from 'ripple';
 
@@ -1115,6 +1123,122 @@ export function FragmentLeadsWithPrimitiveCall() {
 		}
 
 		_$_.append(__anchor, div_32);
+	});
+}
+
+export function PrimitiveTextCalls() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_3 = _$_.track(2, __block, 'ba719d47');
+		var fragment_36 = root_82();
+		var node_30 = _$_.first_child_frag(fragment_36);
+
+		_$_.expression(node_30, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_37 = root_83();
+			var div_33 = _$_.first_child_frag(fragment_37);
+
+			{
+				var text_1 = _$_.hydrating ? _$_.hydrate_child(true) : div_33.firstChild;
+
+				_$_.pop(div_33);
+			}
+
+			var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
+
+			button_2.__click = () => _$_.update(lazy_3);
+
+			_$_.render(
+				(__prev) => {
+					var __a = "sum: " + (String(Number(lazy_3.value) + Number(lazy_3.value) ?? '') + ("; big: " + String(_$_.with_scope(__block, () => BigInt(lazy_3.value)) ?? '')));
+
+					if (__prev.a !== __a) {
+						_$_.set_text(text_1, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
+
+			_$_.append(__anchor, fragment_37);
+		}));
+
+		_$_.append(__anchor, fragment_36);
+	});
+}
+
+export function ShadowedTextCalls() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		const String = () => _$_.tsrx_element((__anchor, __block) => {
+			var b = root_84();
+
+			_$_.append(__anchor, b);
+		});
+
+		const Number = () => _$_.tsrx_element((__anchor, __block) => {
+			var b_1 = root_85();
+
+			_$_.append(__anchor, b_1);
+		});
+
+		const BigInt = () => _$_.tsrx_element((__anchor, __block) => {
+			var b_2 = root_86();
+
+			_$_.append(__anchor, b_2);
+		});
+
+		const Date = () => _$_.tsrx_element((__anchor, __block) => {
+			var b_3 = root_87();
+
+			_$_.append(__anchor, b_3);
+		});
+
+		var fragment_38 = root_88();
+		var node_31 = _$_.first_child_frag(fragment_38);
+
+		_$_.expression(node_31, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_39 = root_89();
+			var p_1 = _$_.first_child_frag(fragment_39);
+
+			{
+				var text_2 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
+				var expression_33 = _$_.hydrating ? _$_.hydrate_sibling() : text_2.nextSibling;
+
+				_$_.render_tsrx_element(_$_.with_scope(__block, String), expression_33, __block);
+				_$_.pop(p_1);
+			}
+
+			var p_2 = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
+
+			{
+				var text_3 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
+				var expression_34 = _$_.hydrating ? _$_.hydrate_sibling() : text_3.nextSibling;
+
+				_$_.render_tsrx_element(_$_.with_scope(__block, Number), expression_34, __block);
+				_$_.pop(p_2);
+			}
+
+			var p_3 = _$_.hydrating ? _$_.hydrate_sibling() : p_2.nextSibling;
+
+			{
+				var text_4 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
+				var expression_35 = _$_.hydrating ? _$_.hydrate_sibling() : text_4.nextSibling;
+
+				_$_.render_tsrx_element(_$_.with_scope(__block, BigInt), expression_35, __block);
+				_$_.pop(p_3);
+			}
+
+			var p_4 = _$_.hydrating ? _$_.hydrate_sibling() : p_3.nextSibling;
+
+			{
+				var text_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
+				var expression_36 = _$_.hydrating ? _$_.hydrate_sibling() : text_5.nextSibling;
+
+				_$_.render_tsrx_element(_$_.with_scope(__block, Date), expression_36, __block);
+				_$_.pop(p_4);
+			}
+
+			_$_.append(__anchor, fragment_39);
+		}));
+
+		_$_.append(__anchor, fragment_38);
 	});
 }
 

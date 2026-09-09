@@ -33,7 +33,7 @@ npm install ripple @ripple-ts/vite-plugin
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import ripple from '@ripple-ts/vite-plugin';
+import { ripple } from '@ripple-ts/vite-plugin';
 
 export default defineConfig({
 	plugins: [ripple()],
@@ -113,6 +113,39 @@ export function LiteralText() {
 	</div>;
 }
 ```
+
+## Text Inference
+
+Ripple infers locally known primitive text by default, including local primitive
+annotations, numeric operators, and unshadowed `String()`, `Number()`, `Boolean()`,
+`BigInt()`, and `Date()` calls. Do not require `as string` or `String()` just to
+render a number. `Date()` returns text; `new Date()` produces an object.
+
+Project-wide TypeScript checking is opt-in:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { ripple } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+	plugins: [ripple({ textTypes: { tsconfig: 'tsconfig.json' } })],
+});
+```
+
+- Requires TypeScript 5.9.3 or newer and `strictNullChecks` (or `strict: true`).
+  Resolve the tsconfig path from the Vite project root.
+- Proves strings, numbers, bigints, and their unions from imported types,
+  member reads, function return types, and control-flow narrowing. Unproven
+  values retain local inference; the option does not force children to text.
+- Applies only to production builds without watch mode. Development, HMR, and
+  watched builds keep local inference.
+- The plugin manages the checker and shares its type information with Ripple's
+  automatic server build. Applications do not need manual compiler calls or a
+  `createTextTypeProject()` setup. Independently run client/server builds must
+  use the same option, tsconfig, and unchanged source tree.
+- The analysis enables `noUncheckedIndexedAccess` internally without editing the
+  tsconfig, so potentially missing entries do not become non-null text proofs.
 
 ## Reactivity
 

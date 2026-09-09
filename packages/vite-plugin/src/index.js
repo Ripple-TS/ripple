@@ -5,6 +5,7 @@
 /// <reference types="@tsrx/ripple/types/rpc" />
 
 import { compile } from '@tsrx/ripple';
+import { create_text_types } from './text-types.js';
 import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -338,7 +339,8 @@ function scanForRipplePackages(rootDir) {
  */
 export function ripple(inlineOptions = {}) {
 	const { excludeRippleExternalModules = false } = inlineOptions;
-	const api = {};
+	const text_types = create_text_types(inlineOptions.textTypes);
+	const api = { textTypes: text_types };
 	/** @type {ResolvedConfig['root']} */
 	let root;
 	/** @type {ResolvedConfig} */
@@ -538,6 +540,7 @@ export function ripple(inlineOptions = {}) {
 			async configResolved(resolvedConfig) {
 				root = resolvedConfig.root;
 				config = resolvedConfig;
+				text_types.configure(resolvedConfig);
 			},
 
 			/**
@@ -545,6 +548,7 @@ export function ripple(inlineOptions = {}) {
 			 * can generate static import() calls that Vite will bundle.
 			 */
 			async buildStart() {
+				text_types.start(this.meta?.watchMode);
 				if (!isBuild || isSSRBuild) return;
 
 				// Reuse config loaded in the config hook if available;
@@ -884,217 +888,243 @@ export function ripple(inlineOptions = {}) {
 				},
 			},
 
+			async buildEnd(error) {
+				if (error) await text_types.dispose();
+				else await text_types.assertUnchanged();
+			},
+
+			shouldTransformCachedModule({ id }) {
+				if (text_types.enabled() && RIPPLE_EXTENSION_PATTERN.test(id)) return true;
+			},
+
 			/**
 			 * After the client build completes, trigger the SSR server build.
 			 * This only runs for the primary (non-SSR) build.
 			 */
 			async closeBundle() {
-				if (!isBuild || isSSRBuild) return;
-
-				// Reuse config loaded in buildStart, or load it now as fallback
-				if (!loadedRippleConfig) {
-					if (!rippleConfigExists(root)) return;
-					loadedRippleConfig = await loadRippleConfig(root);
-				}
-
-				if (!has_route_config(loadedRippleConfig)) return;
-
-				console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
-
-				// Re-resolve with adapter validation for production builds.
-				// loadRippleConfig already resolved the config, but the adapter
-				// is only required for production server builds.
-				loadedRippleConfig = resolveRippleConfig(loadedRippleConfig, { requireAdapter: true });
-
-				const outDir = loadedRippleConfig.build.outDir;
-
-				// ------------------------------------------------------------------
-				// Read Vite's client manifest and build a per-route asset map.
-				// This lets the production server emit <link rel="stylesheet"> and
-				// <link rel="modulepreload"> tags for every CSS/JS file a page
-				// needs (including transitive dependencies).
-				// ------------------------------------------------------------------
-				const clientOutDir = path.join(root, outDir, 'client');
-				const manifestPath = path.join(clientOutDir, '.vite', 'manifest.json');
-
-				/** @type {Record<string, { file: string, css?: string[], imports?: string[], name?: string }>} */
-				let clientManifest = {};
-				if (fs.existsSync(manifestPath)) {
-					clientManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-				} else {
-					console.warn(
-						'[@ripple-ts/vite-plugin] Client manifest not found at',
-						manifestPath,
-						'— asset preloading will be unavailable',
-					);
-				}
-
-				/**
-				 * Recursively collect all CSS files from a manifest entry and its
-				 * imports, avoiding cycles via a visited set.
-				 * @param {string} key - Manifest key (source-relative path)
-				 * @param {Set<string>} [visited] - Already visited keys
-				 * @returns {string[]}
-				 */
-				const collectCss = (key, visited = new Set()) => {
-					if (visited.has(key)) return [];
-					visited.add(key);
-					const entry = clientManifest[key];
-					if (!entry) return [];
-					/** @type {string[]} */
-					const css = [...(entry.css || [])];
-					for (const imp of entry.imports || []) {
-						css.push(...collectCss(imp, visited));
-					}
-					return css;
-				};
-
-				// Build a map of route entry → { js, css } from the manifest
-				/** @type {Record<string, { js: string, css: string[] }>} */
-				const clientAssetMap = {};
-
-				const renderRoutes = loadedRippleConfig.router.routes.filter(
-					(/** @type {Route} */ r) => r.type === 'render',
-				);
-				const uniqueEntries = [
-					...new Set(
-						renderRoutes
-							.map((/** @type {RenderRoute} */ r) => r.entry)
-							.map(get_route_entry_path)
-							.filter((entry) => typeof entry === 'string'),
-					),
-				];
-
-				for (const entry of uniqueEntries) {
-					const manifestKey = entry.startsWith('/') ? entry.slice(1) : entry;
-					const manifestEntry = clientManifest[manifestKey];
-					if (manifestEntry) {
-						clientAssetMap[entry] = {
-							js: manifestEntry.file,
-							css: [...new Set(collectCss(manifestKey))],
-						};
-					}
-				}
-
-				// Find the hydrate runtime entry in the manifest
-				let hydrateJsAsset = '';
-				for (const [key, value] of Object.entries(clientManifest)) {
-					if (key.includes('virtual:ripple-hydrate') || value.name === '__ripple_hydrate') {
-						hydrateJsAsset = value.file;
-						break;
-					}
-				}
-
-				if (hydrateJsAsset) {
-					// Store as a special key so the server can modulepreload it
-					clientAssetMap.__hydrate_js = { js: hydrateJsAsset, css: [] };
-				}
-
-				console.log(
-					`[@ripple-ts/vite-plugin] Built client asset map for ${Object.keys(clientAssetMap).length} entries`,
-				);
-
-				// Remove the .vite folder from the client build output.
-				// The manifest was only needed at build time to construct the
-				// clientAssetMap above. Leaving it in dist/client would expose
-				// source file paths publicly via the static file server.
-				const viteMetaDir = path.join(clientOutDir, '.vite');
 				try {
-					fs.rmSync(viteMetaDir, { recursive: true, force: true });
-					console.log('[@ripple-ts/vite-plugin] Removed .vite metadata from client output');
-				} catch {
-					// Non-fatal — warn but continue
-					console.warn('[@ripple-ts/vite-plugin] Could not remove .vite folder from client output');
-				}
+					if (!isBuild || isSSRBuild) return;
 
-				// Generate the virtual server entry
-				const serverEntryCode = generateServerEntry({
-					routes: loadedRippleConfig.router.routes,
-					rippleConfigPath: getRippleConfigPath(root),
-					htmlTemplatePath: './index.html',
-					rpcModulePaths: [...serverModuleModules],
-					clientAssetMap,
-				});
-				const serverEntryFile = write_project_generated_file(
-					config,
-					'server-entry.js',
-					serverEntryCode,
-				);
+					// Reuse config loaded in buildStart, or load it now as fallback
+					if (!loadedRippleConfig) {
+						if (!rippleConfigExists(root)) return;
+						loadedRippleConfig = await loadRippleConfig(root);
+					}
 
-				const VIRTUAL_SERVER_ENTRY_ID = 'virtual:ripple-server-entry';
-				const RESOLVED_VIRTUAL_SERVER_ENTRY_ID = '\0' + VIRTUAL_SERVER_ENTRY_ID;
+					if (!has_route_config(loadedRippleConfig)) return;
 
-				/** @type {Plugin} */
-				const virtualEntryPlugin = {
-					name: 'ripple-virtual-server-entry',
-					resolveId(id) {
-						if (id === VIRTUAL_SERVER_ENTRY_ID) return RESOLVED_VIRTUAL_SERVER_ENTRY_ID;
-					},
-					load(id) {
-						if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) {
-							return fs.readFileSync(serverEntryFile, 'utf-8');
+					console.log('[@ripple-ts/vite-plugin] Client build done. Starting server build...');
+
+					// Re-resolve with adapter validation for production builds.
+					// loadRippleConfig already resolved the config, but the adapter
+					// is only required for production server builds.
+					loadedRippleConfig = resolveRippleConfig(loadedRippleConfig, { requireAdapter: true });
+
+					const outDir = loadedRippleConfig.build.outDir;
+
+					// ------------------------------------------------------------------
+					// Read Vite's client manifest and build a per-route asset map.
+					// This lets the production server emit <link rel="stylesheet"> and
+					// <link rel="modulepreload"> tags for every CSS/JS file a page
+					// needs (including transitive dependencies).
+					// ------------------------------------------------------------------
+					const clientOutDir = path.join(root, outDir, 'client');
+					const manifestPath = path.join(clientOutDir, '.vite', 'manifest.json');
+
+					/** @type {Record<string, { file: string, css?: string[], imports?: string[], name?: string }>} */
+					let clientManifest = {};
+					if (fs.existsSync(manifestPath)) {
+						clientManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+					} else {
+						console.warn(
+							'[@ripple-ts/vite-plugin] Client manifest not found at',
+							manifestPath,
+							'— asset preloading will be unavailable',
+						);
+					}
+
+					/**
+					 * Recursively collect all CSS files from a manifest entry and its
+					 * imports, avoiding cycles via a visited set.
+					 * @param {string} key - Manifest key (source-relative path)
+					 * @param {Set<string>} [visited] - Already visited keys
+					 * @returns {string[]}
+					 */
+					const collectCss = (key, visited = new Set()) => {
+						if (visited.has(key)) return [];
+						visited.add(key);
+						const entry = clientManifest[key];
+						if (!entry) return [];
+						/** @type {string[]} */
+						const css = [...(entry.css || [])];
+						for (const imp of entry.imports || []) {
+							css.push(...collectCss(imp, visited));
 						}
-					},
-				};
+						return css;
+					};
 
-				const serverOutDir = path.join(root, outDir, 'server');
+					// Build a map of route entry → { js, css } from the manifest
+					/** @type {Record<string, { js: string, css: string[] }>} */
+					const clientAssetMap = {};
 
-				// Do NOT add ripple() here — the user's vite.config.ts (loaded automatically
-				// from `root`) already includes it. Adding another instance causes double
-				// compilation of .tsrx files.
-				const { build: viteBuild } = await import('vite');
-				try {
-					await viteBuild({
-						root,
-						appType: 'custom',
-						plugins: [virtualEntryPlugin],
-						build: {
-							outDir: serverOutDir,
-							emptyOutDir: true,
-							ssr: true,
-							target: loadedRippleConfig?.build?.target,
-							minify: loadedRippleConfig?.build?.minify ?? false,
-							rollupOptions: {
-								input: VIRTUAL_SERVER_ENTRY_ID,
-								output: {
-									entryFileNames: ENTRY_FILENAME,
-									format: 'esm',
+					const renderRoutes = loadedRippleConfig.router.routes.filter(
+						(/** @type {Route} */ r) => r.type === 'render',
+					);
+					const uniqueEntries = [
+						...new Set(
+							renderRoutes
+								.map((/** @type {RenderRoute} */ r) => r.entry)
+								.map(get_route_entry_path)
+								.filter((entry) => typeof entry === 'string'),
+						),
+					];
+
+					for (const entry of uniqueEntries) {
+						const manifestKey = entry.startsWith('/') ? entry.slice(1) : entry;
+						const manifestEntry = clientManifest[manifestKey];
+						if (manifestEntry) {
+							clientAssetMap[entry] = {
+								js: manifestEntry.file,
+								css: [...new Set(collectCss(manifestKey))],
+							};
+						}
+					}
+
+					// Find the hydrate runtime entry in the manifest
+					let hydrateJsAsset = '';
+					for (const [key, value] of Object.entries(clientManifest)) {
+						if (key.includes('virtual:ripple-hydrate') || value.name === '__ripple_hydrate') {
+							hydrateJsAsset = value.file;
+							break;
+						}
+					}
+
+					if (hydrateJsAsset) {
+						// Store as a special key so the server can modulepreload it
+						clientAssetMap.__hydrate_js = { js: hydrateJsAsset, css: [] };
+					}
+
+					console.log(
+						`[@ripple-ts/vite-plugin] Built client asset map for ${Object.keys(clientAssetMap).length} entries`,
+					);
+
+					// Remove the .vite folder from the client build output.
+					// The manifest was only needed at build time to construct the
+					// clientAssetMap above. Leaving it in dist/client would expose
+					// source file paths publicly via the static file server.
+					const viteMetaDir = path.join(clientOutDir, '.vite');
+					try {
+						fs.rmSync(viteMetaDir, { recursive: true, force: true });
+						console.log('[@ripple-ts/vite-plugin] Removed .vite metadata from client output');
+					} catch {
+						// Non-fatal — warn but continue
+						console.warn(
+							'[@ripple-ts/vite-plugin] Could not remove .vite folder from client output',
+						);
+					}
+
+					// Generate the virtual server entry
+					const serverEntryCode = generateServerEntry({
+						routes: loadedRippleConfig.router.routes,
+						rippleConfigPath: getRippleConfigPath(root),
+						htmlTemplatePath: './index.html',
+						rpcModulePaths: [...serverModuleModules],
+						clientAssetMap,
+					});
+					const serverEntryFile = write_project_generated_file(
+						config,
+						'server-entry.js',
+						serverEntryCode,
+					);
+
+					const VIRTUAL_SERVER_ENTRY_ID = 'virtual:ripple-server-entry';
+					const RESOLVED_VIRTUAL_SERVER_ENTRY_ID = '\0' + VIRTUAL_SERVER_ENTRY_ID;
+
+					/** @type {Plugin} */
+					const virtualEntryPlugin = {
+						name: 'ripple-virtual-server-entry',
+						configResolved(server_config) {
+							const server_plugin = server_config.plugins.find(
+								(plugin) => plugin.name === 'vite-plugin-ripple',
+							);
+							if (text_types.enabled() && !server_plugin?.api?.textTypes) {
+								throw new Error('Ripple SSR build is missing the client textTypes integration');
+							}
+							server_plugin?.api?.textTypes?.share(text_types);
+						},
+						resolveId(id) {
+							if (id === VIRTUAL_SERVER_ENTRY_ID) return RESOLVED_VIRTUAL_SERVER_ENTRY_ID;
+						},
+						load(id) {
+							if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) {
+								return fs.readFileSync(serverEntryFile, 'utf-8');
+							}
+						},
+					};
+
+					const serverOutDir = path.join(root, outDir, 'server');
+
+					// Do NOT add ripple() here — the user's vite.config.ts (loaded automatically
+					// from `root`) already includes it. Adding another instance causes double
+					// compilation of .tsrx files.
+					const { build: viteBuild } = await import('vite');
+					await text_types.assertUnchanged();
+					try {
+						await viteBuild({
+							root,
+							appType: 'custom',
+							plugins: [virtualEntryPlugin],
+							build: {
+								outDir: serverOutDir,
+								emptyOutDir: true,
+								ssr: true,
+								target: loadedRippleConfig?.build?.target,
+								minify: loadedRippleConfig?.build?.minify ?? false,
+								rollupOptions: {
+									input: VIRTUAL_SERVER_ENTRY_ID,
+									output: {
+										entryFileNames: ENTRY_FILENAME,
+										format: 'esm',
+									},
 								},
 							},
-						},
-						ssr: {
-							external: [
-								'@ripple-ts/adapter',
-								'@ripple-ts/adapter-node',
-								'@ripple-ts/adapter-bun',
-								'@ripple-ts/adapter-vercel',
-							],
-							noExternal: [],
-						},
-					});
+							ssr: {
+								external: [
+									'@ripple-ts/adapter',
+									'@ripple-ts/adapter-node',
+									'@ripple-ts/adapter-bun',
+									'@ripple-ts/adapter-vercel',
+								],
+								noExternal: [],
+							},
+						});
 
-					// Copy the HTML template into the server output so the server
-					// entry is self-contained and doesn't depend on dist/client/.
-					// This is critical for platforms like Vercel where dist/client/
-					// is served as static files and index.html would be returned as-is
-					// (with unresolved SSR placeholders) instead of going through SSR.
-					const clientHtml = path.join(clientOutDir, 'index.html');
-					const serverHtml = path.join(serverOutDir, 'index.html');
-					if (fs.existsSync(clientHtml)) {
-						fs.copyFileSync(clientHtml, serverHtml);
-						console.log('[@ripple-ts/vite-plugin] Copied HTML template to server output');
+						// Copy the HTML template into the server output so the server
+						// entry is self-contained and doesn't depend on dist/client/.
+						// This is critical for platforms like Vercel where dist/client/
+						// is served as static files and index.html would be returned as-is
+						// (with unresolved SSR placeholders) instead of going through SSR.
+						const clientHtml = path.join(clientOutDir, 'index.html');
+						const serverHtml = path.join(serverOutDir, 'index.html');
+						if (fs.existsSync(clientHtml)) {
+							fs.copyFileSync(clientHtml, serverHtml);
+							console.log('[@ripple-ts/vite-plugin] Copied HTML template to server output');
+						}
+
+						console.log('[@ripple-ts/vite-plugin] Server build complete.');
+						console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
+						console.log(
+							`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/${ENTRY_FILENAME}`,
+						);
+						await text_types.assertUnchanged();
+					} catch (error) {
+						console.error('[@ripple-ts/vite-plugin] Server build failed:', error);
+						throw new Error(
+							`Server build failed: ${error instanceof Error ? error.message : String(error)}`,
+						);
 					}
-
-					console.log('[@ripple-ts/vite-plugin] Server build complete.');
-					console.log(`[@ripple-ts/vite-plugin] Output: ${path.join(root, outDir)}`);
-					console.log(
-						`[@ripple-ts/vite-plugin] Start with: node ${outDir}/server/${ENTRY_FILENAME}`,
-					);
-				} catch (error) {
-					console.error('[@ripple-ts/vite-plugin] Server build failed:', error);
-					throw new Error(
-						`Server build failed: ${error instanceof Error ? error.message : String(error)}`,
-					);
+				} finally {
+					await text_types.dispose();
 				}
 			},
 
@@ -1182,6 +1212,7 @@ export function ripple(inlineOptions = {}) {
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
+						textTypeFacts: await text_types.getFacts(id, source_code, filename),
 					});
 
 					// Track modules with `module server` declarations for RPC (client build only)

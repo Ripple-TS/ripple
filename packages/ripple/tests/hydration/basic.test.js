@@ -309,3 +309,40 @@ describe('hydration > text runs with call-containing primitives', () => {
 		expect(container.textContent).toBe('fetchedafter-call');
 	});
 });
+
+describe('primitive text calls', () => {
+	it('hydrates merged primitive calls and updates their existing text node', async () => {
+		const { unmount } = await hydrateComponent(
+			ServerComponents.PrimitiveTextCalls,
+			ClientComponents.PrimitiveTextCalls,
+		);
+		try {
+			const node = container.querySelector('.primitive-calls');
+			const text = node.firstChild;
+			expect(node.textContent).toBe('sum: 4; big: 2');
+			container.querySelector('button').click();
+			flushSync();
+			expect(node.textContent).toBe('sum: 6; big: 3');
+			expect(node.firstChild).toBe(text);
+		} finally {
+			unmount();
+		}
+	});
+
+	it('hydrates elements returned by shadowed built-ins', async () => {
+		const { unmount } = await hydrateComponent(
+			ServerComponents.ShadowedTextCalls,
+			ClientComponents.ShadowedTextCalls,
+		);
+		try {
+			expect([...container.querySelectorAll('b')].map((node) => node.textContent)).toEqual([
+				'string',
+				'number',
+				'bigint',
+				'date',
+			]);
+		} finally {
+			unmount();
+		}
+	});
+});

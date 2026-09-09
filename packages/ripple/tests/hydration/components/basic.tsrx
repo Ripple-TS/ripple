@@ -383,3 +383,24 @@ export function FragmentLeadsWithPrimitiveCall() @{
 	// prettier-ignore
 	<div><PrimitiveCallLead /></div>
 }
+
+export function PrimitiveTextCalls() @{
+	let &[count] = track(2);
+	<>
+		<div class="primitive-calls">sum: {Number(count) + Number(count)}; big: {BigInt(count)}</div>
+		<button onClick={() => count++}>update</button>
+	</>
+}
+
+export function ShadowedTextCalls() @{
+	const String = () => <b>string</b>;
+	const Number = () => <b>number</b>;
+	const BigInt = () => <b>bigint</b>;
+	const Date = () => <b>date</b>;
+	<>
+		<p>before{String()}after</p>
+		<p>before{Number()}after</p>
+		<p>before{BigInt()}after</p>
+		<p>before{Date()}after</p>
+	</>
+}

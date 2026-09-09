@@ -7,7 +7,7 @@ import type * as AST from 'estree';
 import type {
 	AnalysisResult as CoreAnalysisResult,
 	CompileFn,
-	CompileOptions,
+	CompileOptions as CoreCompileOptions,
 	CompileResult,
 	ParseOptions,
 	VolarCompileFn,
@@ -15,6 +15,21 @@ import type {
 } from '@tsrx/core/types';
 
 export type * from '@tsrx/core/types';
+
+/** Source-bound text proofs produced by `@tsrx/ripple/typescript`. */
+export interface TextTypeFacts {
+	version: 1;
+	filename: string;
+	sourceVersion: string;
+	projectVersion: string;
+	stringChildRanges: readonly (readonly [number, number])[];
+	primitiveTextChildRanges: readonly (readonly [number, number])[];
+}
+
+export interface CompileOptions extends CoreCompileOptions {
+	/** Use the same facts for client and server compilation. */
+	textTypeFacts?: TextTypeFacts;
+}
 
 /**
  * One thing the server registers with the active request before a component
@@ -30,6 +45,8 @@ export type StyleRegistration = string | AST.Expression;
 export interface AnalysisResult extends CoreAnalysisResult {
 	/** Every stylesheet of the module, in CSS emission order. */
 	stylesheets: AST.CSS.StyleSheet[];
+	/** Authored JSX child expressions collected during analysis. */
+	textChildExpressions?: Map<string, { expression: AST.Expression; container: AST.Node }>;
 }
 
 /**

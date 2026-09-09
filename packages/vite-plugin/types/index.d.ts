@@ -104,6 +104,13 @@ export type RouteHandler = (context: Context) => Response | Promise<Response>;
 // ============================================================================
 
 export interface RipplePluginOptions {
+	/**
+	 * Opt-in primitive DOM text proofs from TypeScript. Requires TypeScript and
+	 * strictNullChecks. Active only in one-shot production builds; development,
+	 * HMR, and watch builds use local inference. Resolve tsconfig from Vite root.
+	 */
+	textTypes?: false | { tsconfig: string };
+
 	excludeRippleExternalModules?: boolean;
 }
 

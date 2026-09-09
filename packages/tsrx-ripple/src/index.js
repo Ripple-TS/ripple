@@ -5,6 +5,7 @@
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
 import { analyzeTsrx, createVolarMappingsResult, parseModule } from '@tsrx/core';
+import { register_text_type_facts } from './text-type-facts.js';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
@@ -47,6 +48,13 @@ export function compile(source, filename, options = {}) {
 		filename,
 		collect ? { ...options, collect, errors, comments } : options,
 	);
+	register_text_type_facts(
+		analysis.textChildExpressions,
+		source,
+		filename,
+		analysis.scope,
+		options.textTypeFacts,
+	);
 	const result =
 		options.mode === 'server'
 			? transform_server(
@@ -81,7 +89,6 @@ export function compile(source, filename, options = {}) {
  * @param {string} source
  * @param {string} filename
  * @param {{collect?: boolean, loose?: boolean, minify_css?: boolean}} [options]
- * @returns {object}
  */
 export function compile_to_volar_mappings(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -117,17 +124,20 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		options?.minify_css ?? false,
 	);
 
-	return createVolarMappingsResult({
-		ast: transformed.ast,
-		// Mapping generation walks the pristine source shapes. Analysis and the
-		// transform are copy-on-write — they rebuild their own tree and never
-		// mutate the parse tree — so the parsed AST *is* the source view.
-		ast_from_source: ast,
-		source,
-		generated_code: transformed.code,
-		source_map: transformed.map,
-		post_processing_changes: transformed.post_processing_changes,
-		line_offsets: transformed.line_offsets,
-		errors: transformed.errors,
-	});
+	return {
+		...createVolarMappingsResult({
+			ast: transformed.ast,
+			// Mapping generation walks the pristine source shapes. Analysis and the
+			// transform are copy-on-write — they rebuild their own tree and never
+			// mutate the parse tree — so the parsed AST *is* the source view.
+			ast_from_source: ast,
+			source,
+			generated_code: transformed.code,
+			source_map: transformed.map,
+			post_processing_changes: transformed.post_processing_changes,
+			line_offsets: transformed.line_offsets,
+			errors: transformed.errors,
+		}),
+		textChildExpressions: analysis.textChildExpressions ?? new Map(),
+	};
 }

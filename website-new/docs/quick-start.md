@@ -27,6 +27,36 @@ npm i // [!=npm auto]
 npm run dev // [!=npm auto]
 ```
 
+## Optional TypeScript Text Inference
+
+Ripple already infers locally known primitive text with the default `ripple()`
+plugin. To also resolve imported types and function return types during production
+builds, enable `textTypes` in your Vite configuration:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { ripple } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+  plugins: [ripple({ textTypes: { tsconfig: 'tsconfig.json' } })],
+});
+```
+
+This requires TypeScript 5.9.3 or newer and `strictNullChecks` enabled in your
+TypeScript configuration (`strict: true` also enables it). The tsconfig path
+resolves from the Vite project root.
+
+The plugin manages the checker and shares its type information with Ripple's
+automatic server build. You do not need to call the compiler or create a
+TypeScript project yourself. The option applies only to production builds without
+watch mode; development, HMR, and watched builds keep local inference. If you run
+client and server builds separately, use the same `textTypes` setting, tsconfig,
+and unchanged source tree for both.
+
+See [Inferred Text Updates](/docs/guide/syntax#inferred-text-updates) for an example
+and the kinds of values the checker can prove.
+
 ## Editor Integration
 
 ### VS Code

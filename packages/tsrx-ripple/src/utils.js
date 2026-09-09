@@ -24,6 +24,7 @@ import {
 	simpleHash,
 	strongHash,
 } from '@tsrx/core';
+import { has_text_type_fact } from './text-type-facts.js';
 import {
 	get_element_id,
 	get_element_identifier,
@@ -2144,18 +2145,6 @@ export function normalize_children(children, context) {
 export function expression_contains_call(expression) {
 	switch (expression.type) {
 		case 'CallExpression':
-			if (
-				expression.callee.type === 'Identifier' &&
-				expression.callee.name === 'String' &&
-				!expression.optional
-			) {
-				return expression.arguments.some((argument) => {
-					if (argument.type === 'SpreadElement') {
-						return true;
-					}
-					return expression_contains_call(argument);
-				});
-			}
 			return true;
 
 		case 'NewExpression':
@@ -3306,6 +3295,62 @@ export function is_text_primitive_literal(expression) {
 	);
 }
 
+const text_intrinsics = new Set(['String', 'Number', 'Boolean', 'BigInt', 'Date']);
+/** @type {WeakMap<object, Set<string>>} */
+const unsafe_text_intrinsics_by_root = new WeakMap();
+
+/**
+ * Called by the existing analysis visitors for writes and ambient declarations.
+ * Disable affected intrinsic names throughout the module, including calls that
+ * precede the write in source order.
+ * @param {AST.Node | null | undefined} target
+ * @param {ScopeInterface} scope
+ */
+export function record_text_intrinsic_write(target, scope) {
+	if (!target) return;
+	let unsafe = unsafe_text_intrinsics_by_root.get(scope.root);
+	if (!unsafe) unsafe_text_intrinsics_by_root.set(scope.root, (unsafe = new Set()));
+	switch (target.type) {
+		case 'Identifier':
+			if (text_intrinsics.has(target.name)) unsafe.add(target.name);
+			break;
+		case 'MemberExpression': {
+			const name = get_static_property_name(target);
+			if (
+				target.object.type === 'Identifier' &&
+				['globalThis', 'window', 'self', 'global'].includes(target.object.name)
+			) {
+				if (name === null) for (const intrinsic of text_intrinsics) unsafe.add(intrinsic);
+				else if (text_intrinsics.has(name)) unsafe.add(name);
+			}
+			break;
+		}
+		case 'ObjectPattern':
+			for (const property of target.properties) {
+				record_text_intrinsic_write(
+					property.type === 'RestElement' ? property.argument : property.value,
+					scope,
+				);
+			}
+			break;
+		case 'ArrayPattern':
+			for (const element of target.elements) record_text_intrinsic_write(element, scope);
+			break;
+		case 'AssignmentPattern':
+			record_text_intrinsic_write(target.left, scope);
+			break;
+		case 'RestElement':
+			record_text_intrinsic_write(target.argument, scope);
+			break;
+		case 'TSAsExpression':
+		case 'TSNonNullExpression':
+		case 'TSTypeAssertion':
+		case 'ParenthesizedExpression':
+			record_text_intrinsic_write(target.expression, scope);
+			break;
+	}
+}
+
 /**
  * Whether the expression provably evaluates to a text primitive — a string,
  * number, boolean, bigint, null, or undefined. These render as plain escaped
@@ -3330,6 +3375,12 @@ export function is_text_primitive_expression(
 	visited = new Set(),
 	strings_only = false,
 ) {
+	if (
+		!unsafe_text_intrinsics_by_root.get(state.scope.root)?.size &&
+		has_text_type_fact(expression, state.scope, strings_only)
+	)
+		return true;
+
 	if (expression.type === 'ParenthesizedExpression' || expression.type === 'ChainExpression') {
 		return is_text_primitive_expression(
 			/** @type {AST.Expression} */ (expression.expression),
@@ -3353,7 +3404,8 @@ export function is_text_primitive_expression(
 
 	if (
 		expression.type === 'TSNonNullExpression' ||
-		expression.type === 'TSInstantiationExpression'
+		expression.type === 'TSInstantiationExpression' ||
+		expression.type === 'TSSatisfiesExpression'
 	) {
 		return is_text_primitive_expression(
 			/** @type {AST.Expression} */ (expression.expression),
@@ -3375,10 +3427,16 @@ export function is_text_primitive_expression(
 
 	if (
 		expression.type === 'CallExpression' &&
+		!expression.optional &&
 		expression.callee.type === 'Identifier' &&
+		state.scope.get(expression.callee.name) === null &&
+		!unsafe_text_intrinsics_by_root.get(state.scope.root)?.has(expression.callee.name) &&
 		(expression.callee.name === 'String' ||
+			expression.callee.name === 'Date' ||
 			(!strings_only &&
-				(expression.callee.name === 'Number' || expression.callee.name === 'Boolean')))
+				(expression.callee.name === 'Number' ||
+					expression.callee.name === 'BigInt' ||
+					expression.callee.name === 'Boolean')))
 	) {
 		return true;
 	}
@@ -3409,6 +3467,11 @@ export function is_text_primitive_expression(
 		return !strings_only;
 	}
 
+	if (expression.type === 'SequenceExpression') {
+		const last = expression.expressions.at(-1);
+		return !!last && is_text_primitive_expression(last, state, visited, strings_only);
+	}
+
 	// `&&`/`||`/`??` return one of their operands, so both must be proven.
 	if (expression.type === 'LogicalExpression') {
 		return (
@@ -3429,7 +3492,7 @@ export function is_text_primitive_expression(
 	}
 
 	if (expression.type === 'Identifier') {
-		if (expression.name === 'undefined') {
+		if (expression.name === 'undefined' && state.scope.get('undefined') === null) {
 			return !strings_only;
 		}
 		const binding = state.scope.get(expression.name);
@@ -3440,11 +3503,10 @@ export function is_text_primitive_expression(
 			return true;
 		}
 		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
-			visited.add(binding);
 			return is_text_primitive_expression(
 				/** @type {AST.Expression} */ (binding.initial),
-				state,
-				visited,
+				{ ...state, scope: binding.scope },
+				new Set(visited).add(binding),
 				strings_only,
 			);
 		}

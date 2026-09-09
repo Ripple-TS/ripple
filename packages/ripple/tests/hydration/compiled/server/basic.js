@@ -1064,3 +1064,79 @@ export function FragmentLeadsWithPrimitiveCall() {
 		});
 	});
 }
+
+export function PrimitiveTextCalls() {
+	return _$_.tsrx_element(() => {
+		let lazy_3 = _$_.track(2, 'ba719d47');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="primitive-calls">' + _$_.escape("sum: " + (String(Number(lazy_3.value) + Number(lazy_3.value) ?? '') + ("; big: " + String(BigInt(lazy_3.value) ?? '')))) + '</div><button>update</button>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function ShadowedTextCalls() {
+	return _$_.tsrx_element(() => {
+		const String = () => _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
+				let __out = '';
+
+				__out += '<b>string</b>';
+				_$_.output_push(__out);
+			});
+		});
+
+		const Number = () => _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
+				let __out = '';
+
+				__out += '<b>number</b>';
+				_$_.output_push(__out);
+			});
+		});
+
+		const BigInt = () => _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
+				let __out = '';
+
+				__out += '<b>bigint</b>';
+				_$_.output_push(__out);
+			});
+		});
+
+		const Date = () => _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
+				let __out = '';
+
+				__out += '<b>date</b>';
+				_$_.output_push(__out);
+			});
+		});
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<p>before';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_tsrx_element(String());
+			__out += 'after</p><p>before';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_tsrx_element(Number());
+			__out += 'after</p><p>before';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_tsrx_element(BigInt());
+			__out += 'after</p><p>before';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_tsrx_element(Date());
+			__out += 'after</p>';
+			_$_.output_push(__out);
+		});
+	});
+}

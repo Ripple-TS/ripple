@@ -5,6 +5,7 @@
  */
 
 import { compile } from '@tsrx/ripple';
+import { createTextTypeProject as create_text_type_project } from '@tsrx/ripple/typescript';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -47,15 +48,33 @@ function buildComponents() {
 		const source = readFileSync(filePath, 'utf-8');
 		const outputName = basename(basename(file, '.tsrx'), '.tsrx').replace(/\.tsrx$/, '') + '.js';
 
+		// Exercise opt-in type proofs using the same snapshot in both modes.
+		let text_type_facts;
+		if (file === 'typed-text.tsrx') {
+			const project = create_text_type_project({
+				tsconfig: join(__dirname, 'tsconfig.text-types.json'),
+			});
+			try {
+				text_type_facts = { ...project.getTextTypeFacts(filePath, source), filename: file };
+				if (text_type_facts.primitiveTextChildRanges.length === 0) {
+					throw new Error('Typed hydration fixture did not produce primitive text proofs');
+				}
+			} finally {
+				project.dispose();
+			}
+		}
+
 		// Compile for client
 		const clientResult = compile(source, file, {
 			mode: 'client',
+			textTypeFacts: text_type_facts,
 		});
 		writeFileSync(join(clientOutDir, outputName), '// @ts-nocheck\n' + clientResult.code);
 
 		// Compile for server
 		const serverResult = compile(source, file, {
 			mode: 'server',
+			textTypeFacts: text_type_facts,
 		});
 		// Transform imports to use server runtime
 		const serverCode = transformServerImports(serverResult.code);

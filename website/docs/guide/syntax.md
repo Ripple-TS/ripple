@@ -114,9 +114,9 @@ function Profile({ user }) @{
 
 ## Concept: Expressions
 
-In Ripple (and JSX), we can interpolate expressions into the template with a pair
-of {braces}. Inside the braces, we can put a JavaScript expression, which will
-then be converted to a string (if it is not already) to be inserted into the DOM.
+In Ripple (and JSX), we can interpolate JavaScript expressions into the template
+with a pair of {braces}. Primitive values render as escaped text; expression
+containers can also render elements and collections.
 
 ## Example: Displaying Text
 
@@ -261,8 +261,9 @@ raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
 ## Text Expressions
 
 Plain JSX text is static escaped text. Dynamic text is just a normal
-`{expression}`. When you need explicit string coercion, write it in JavaScript
-with `String(value)`, `value + ''`, or a typed string value.
+`{expression}`. When you need explicit string coercion, use `String(value)` or
+`value + ''`. Type annotations describe values; they do not convert them at
+runtime.
 
 ```tsrx
 export function Frame({ children }) {
@@ -284,3 +285,48 @@ export function App() @{
   <div>{markup}</div>
 }
 ```
+
+### Inferred Text Updates
+
+Ripple automatically uses direct text updates for locally known primitives,
+including local primitive annotations, numeric operators, and unshadowed
+`String()`, `Number()`, `Boolean()`, `BigInt()`, and `Date()` calls. These
+optimizations work with the default `ripple()` plugin; you do not need to add
+`as string` or `String()` just to display a number. `Date()` returns text, whereas
+`new Date()` produces an object.
+
+The optional [Vite `textTypes` setting](/docs/quick-start#optional-typescript-text-inference)
+adds TypeScript project analysis for imported types and function return types.
+For example:
+
+```ts
+// types.ts
+export interface Product {
+  name: string;
+  price: number;
+}
+```
+
+```tsrx
+// ProductCard.tsrx
+import type { Product } from './types';
+
+export function ProductCard(product: Product) {
+  return <article>
+    <h2>{product.name}</h2>
+    <p>{product.price}</p>
+  </article>;
+}
+```
+
+With `textTypes` enabled, the checker resolves `Product` and proves that both
+properties can use direct text updates. Without the option, this component still
+renders correctly through Ripple's general rendering path.
+
+The checker recognizes strings, numbers, bigints, and unions of those primitives.
+It does not force arbitrary children to become text. Nullable, unknown, boxed,
+and object types retain existing local inference. The analysis enables
+`noUncheckedIndexedAccess` internally so potentially missing array entries and
+index-signature properties are not assumed to be present; it does not modify
+your tsconfig. Text remains escaped, and elements and collections keep their
+rendering behavior.

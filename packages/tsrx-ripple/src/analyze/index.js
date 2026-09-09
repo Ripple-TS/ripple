@@ -67,6 +67,7 @@ import {
 	is_tsrx_component_function,
 	has_lazy_pattern,
 	register_type_declarations,
+	record_text_intrinsic_write,
 	get_expression_type_annotation,
 	get_iterable_element_type_annotation,
 } from '../utils.js';
@@ -1651,6 +1652,23 @@ const visitors = {
 		next(scope !== undefined && scope !== state.scope ? { ...state, scope } : state);
 	},
 
+	AssignmentExpression(node, context) {
+		record_text_intrinsic_write(node.left, context.state.scope);
+		context.next();
+	},
+	UpdateExpression(node, context) {
+		record_text_intrinsic_write(node.argument, context.state.scope);
+		context.next();
+	},
+	UnaryExpression(node, context) {
+		if (node.operator === 'delete') record_text_intrinsic_write(node.argument, context.state.scope);
+		context.next();
+	},
+	TSDeclareFunction(node, context) {
+		record_text_intrinsic_write(node.id, context.state.scope);
+		context.next();
+	},
+
 	Program(_, context) {
 		return context.next({ ...context.state, function_depth: 0 });
 	},
@@ -1924,6 +1942,10 @@ const visitors = {
 	},
 
 	VariableDeclaration(node, context) {
+		if (node.declare)
+			for (const declaration of node.declarations) {
+				record_text_intrinsic_write(declaration.id, context.state.scope);
+			}
 		const { state, visit } = context;
 
 		for (const declarator of node.declarations) {
@@ -2068,6 +2090,7 @@ const visitors = {
 	},
 
 	ForOfStatement(node, context) {
+		record_text_intrinsic_write(node.left, context.state.scope);
 		if (context.state.regular_js || node.metadata?.regular_js) {
 			return context.next({ ...context.state, regular_js: true, component: undefined });
 		}
@@ -2448,6 +2471,7 @@ const visitors = {
 	},
 
 	ForInStatement(node, context) {
+		record_text_intrinsic_write(node.left, context.state.scope);
 		context.next();
 	},
 
@@ -2758,6 +2782,19 @@ const visitors = {
 	},
 
 	JSXExpressionContainer(node, context) {
+		const parent = context.path.at(-1);
+		const text_children = /** @type {AnalysisResult} */ (context.state.analysis)
+			.textChildExpressions;
+		if (
+			text_children &&
+			(parent?.type === 'JSXElement' || parent?.type === 'JSXFragment') &&
+			parent.children.includes(node) &&
+			node.expression.type !== 'JSXEmptyExpression'
+		) {
+			const expression = /** @type {AST.Expression} */ (node.expression);
+			text_children.set(`${expression.start}:${expression.end}`, { expression, container: node });
+		}
+
 		if (context.state.regular_js) {
 			return context.next();
 		}
@@ -2928,6 +2965,10 @@ export function analyze(ast, filename, options = {}) {
 		errors,
 		comments,
 		stylesheets: [],
+		textChildExpressions:
+			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)
+				? new Map()
+				: undefined,
 	});
 
 	walk(

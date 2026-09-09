@@ -3868,6 +3868,13 @@ const visitors = {
 		return context.next();
 	},
 
+	TSSatisfiesExpression(node, context) {
+		if (!context.state.to_ts) {
+			return context.visit(/** @type {AST.Expression} */ (node.expression));
+		}
+		return context.next();
+	},
+
 	TSAsExpression(node, context) {
 		if (!context.state.to_ts) {
 			return context.visit(/** @type {AST.Expression} */ (node.expression));
