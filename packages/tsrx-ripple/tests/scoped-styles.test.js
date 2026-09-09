@@ -147,9 +147,9 @@ function class_candidates(key, chain, hashes) {
 	if (!is_expression) {
 		if (!has_runtime) {
 			const value = [key, ...chain.map((label) => hash_of(label, hashes))].join(' ');
-			return [`class="${value}"`, `class: '${value}'`];
+			return [[`class="${value}"`], [`class: '${value}'`]];
 		}
-		return [`'${key}', ${chain_text(chain, hashes)}`];
+		return [[`'${key}', ${chain_text(chain, hashes)}`]];
 	}
 	const expression = key.slice(1, -1);
 	if (chain.length === 0) {
@@ -157,9 +157,17 @@ function class_candidates(key, chain, hashes) {
 		// (`_$_.with_scope(__block, helper).inFunction`), so its property
 		// read is what survives verbatim.
 		const property = expression.match(/\.[A-Za-z_$][\w$]*$/)?.[0];
-		return property ? [expression, property] : [expression];
+		return property ? [[expression], [property]] : [[expression]];
 	}
-	return [`${expression}, ${chain_text(chain, hashes)}`];
+	const text = chain_text(chain, hashes);
+	// A tracked value is compared against the render block's last value
+	// (`var __a = expr; ... set_class(el, __prev.a = __a, chain)`).
+	return [
+		[`${expression}, ${text}`],
+		...'abcdefgh'
+			.split('')
+			.map((k) => [`var __${k} = ${expression};`, `__prev.${k} = __${k}, ${text}`]),
+	];
 }
 
 /** @param {string} css */
@@ -201,7 +209,7 @@ describe('scoped-style conformance fixtures', () => {
 					for (const [key, chain] of Object.entries(fixture.expected.elements)) {
 						const candidates = class_candidates(key, chain, hashes);
 						expect(
-							candidates.some((candidate) => text.includes(candidate)),
+							candidates.some((candidate) => candidate.every((part) => text.includes(part))),
 							`${key} → ${JSON.stringify(candidates)} in:\n${code}`,
 						).toBe(true);
 					}

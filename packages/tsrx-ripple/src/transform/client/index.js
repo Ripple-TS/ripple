@@ -801,7 +801,9 @@ function visit_head_element(node, index, context) {
  * @param {TransformClientState} state
  */
 function apply_updates(init, update, state) {
-	if (update.length === 1 && !update[0].needsPrevTracking) {
+	// A compared update keeps its last value in the block state even when it
+	// is alone, so setters never cache on the DOM node.
+	if (update.length === 1 && !update[0].needsPrevTracking && !update[0].initial) {
 		init.push(
 			b.stmt(
 				b.call(
@@ -809,9 +811,6 @@ function apply_updates(init, update, state) {
 					b.thunk(
 						b.block(
 							update.map((u) => {
-								if (u.initial) {
-									return u.operation(u.expression);
-								}
 								return u.operation();
 							}),
 						),

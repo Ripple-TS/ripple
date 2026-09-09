@@ -2,7 +2,7 @@
 
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render } from './blocks.js';
-import { BRANCH_BLOCK, UNINITIALIZED } from './constants.js';
+import { BRANCH_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
 import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
@@ -11,13 +11,14 @@ import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../.
 import { is_tsrx_element } from '../../element.js';
 
 /**
- * Finds the nearest enclosing BRANCH_BLOCK in the block hierarchy.
+ * Finds the nearest enclosing block that owns a DOM range (a branch or an if
+ * block) in the block hierarchy.
  * @param {Block | null} block
  * @returns {Block | null}
  */
 function find_enclosing_branch(block) {
 	while (block !== null) {
-		if ((block.f & BRANCH_BLOCK) !== 0) {
+		if ((block.f & (BRANCH_BLOCK | IF_BLOCK)) !== 0) {
 			return block;
 		}
 		block = block.p;

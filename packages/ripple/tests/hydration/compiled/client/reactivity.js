@@ -20,9 +20,16 @@ export function TrackedState() {
 			_$_.pop(div);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression, lazy.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div);
 	});

@@ -75,9 +75,16 @@ export function MixedControlFlowStatic() {
 										(__anchor) => {
 											var div_1 = root_2();
 
-											_$_.render(() => {
-												_$_.set_class(div_1, `pending pending-${_$_.get(pattern).id}`, void 0, true);
-											});
+											_$_.render(
+												(__prev) => {
+													var __a = `pending pending-${_$_.get(pattern).id}`;
+
+													if (__prev.a !== __a) {
+														_$_.set_class(div_1, __prev.a = __a, void 0, true);
+													}
+												},
+												{ a: _$_.UNINITIALIZED }
+											);
 
 											_$_.append(__anchor, div_1);
 										},
@@ -121,9 +128,16 @@ export function MixedControlFlowStatic() {
 										(__anchor) => {
 											var div_3 = root_4();
 
-											_$_.render(() => {
-												_$_.set_class(div_3, `pending pending-${_$_.get(pattern).id}`, void 0, true);
-											});
+											_$_.render(
+												(__prev) => {
+													var __a = `pending pending-${_$_.get(pattern).id}`;
+
+													if (__prev.a !== __a) {
+														_$_.set_class(div_3, __prev.a = __a, void 0, true);
+													}
+												},
+												{ a: _$_.UNINITIALIZED }
+											);
 
 											_$_.append(__anchor, div_3);
 										},

@@ -117,8 +117,6 @@ declare global {
 			value?: string;
 		};
 		__click?: () => void;
-		// last class value applied by set_class; null once removed
-		__className?: string | null;
 		__ripple_block?: Block;
 	}
 
@@ -128,9 +126,5 @@ declare global {
 
 	interface HTMLSelectElement {
 		__value?: unknown;
-	}
-
-	interface Text {
-		__t?: string | null;
 	}
 }

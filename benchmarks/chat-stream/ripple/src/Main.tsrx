@@ -92,10 +92,10 @@ export default function ChatApp() @{
 						@for (const s of m.segments; key s.id) {
 							@if (s.type === 'code') {
 								<pre class="code">
-									<code>{segText(s, m.done)}</code>
+									<code>{segText(s, m.done) as string}</code>
 								</pre>
 							} @else {
-								<p class="text">{segText(s, m.done)}</p>
+								<p class="text">{segText(s, m.done) as string}</p>
 							}
 						}
 					</div>

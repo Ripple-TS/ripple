@@ -134,9 +134,16 @@ export function ForLoopWithIndex() {
 						_$_.pop(li_1);
 					}
 
-					_$_.render(() => {
-						_$_.set_text(expression_1, `${i.value}: ${item}`);
-					});
+					_$_.render(
+						(__prev) => {
+							var __a = `${i.value}: ${item}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_text(expression_1, __prev.a = __a);
+							}
+						},
+						{ a: ' ' }
+					);
 
 					_$_.append(__anchor, li_1);
 				},
@@ -309,9 +316,16 @@ export function ForLoopInteractive() {
 						};
 					}
 
-					_$_.render(() => {
-						_$_.set_class(div_1, `item-${i.value}`, void 0, true);
-					});
+					_$_.render(
+						(__prev) => {
+							var __a = `item-${i.value}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(div_1, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
 
 					_$_.append(__anchor, div_1);
 				},
@@ -351,9 +365,16 @@ export function NestedForLoop() {
 									_$_.pop(span_1);
 								}
 
-								_$_.render(() => {
-									_$_.set_class(span_1, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
-								});
+								_$_.render(
+									(__prev) => {
+										var __a = `cell-${rowIndex.value}-${colIndex.value}`;
+
+										if (__prev.a !== __a) {
+											_$_.set_class(span_1, __prev.a = __a, void 0, true);
+										}
+									},
+									{ a: _$_.UNINITIALIZED }
+								);
 
 								_$_.append(__anchor, span_1);
 							},
@@ -362,9 +383,16 @@ export function NestedForLoop() {
 
 						_$_.pop(div_3);
 
-						_$_.render(() => {
-							_$_.set_class(div_3, `row-${rowIndex.value}`, void 0, true);
-						});
+						_$_.render(
+							(__prev) => {
+								var __a = `row-${rowIndex.value}`;
+
+								if (__prev.a !== __a) {
+									_$_.set_class(div_3, __prev.a = __a, void 0, true);
+								}
+							},
+							{ a: _$_.UNINITIALIZED }
+						);
 					}
 
 					_$_.append(__anchor, div_3);
@@ -446,9 +474,16 @@ export function ForLoopComplexObjects() {
 						}
 					}
 
-					_$_.render(() => {
-						_$_.set_class(div_6, `user-${_$_.get(pattern_1).id}`, void 0, true);
-					});
+					_$_.render(
+						(__prev) => {
+							var __a = `user-${_$_.get(pattern_1).id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(div_6, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
 
 					_$_.append(__anchor, div_6);
 				},
@@ -502,9 +537,16 @@ export function KeyedForLoopReorder() {
 							_$_.pop(li_5);
 						}
 
-						_$_.render(() => {
-							_$_.set_class(li_5, `item-${_$_.get(pattern_2).id}`, void 0, true);
-						});
+						_$_.render(
+							(__prev) => {
+								var __a = `item-${_$_.get(pattern_2).id}`;
+
+								if (__prev.a !== __a) {
+									_$_.set_class(li_5, __prev.a = __a, void 0, true);
+								}
+							},
+							{ a: _$_.UNINITIALIZED }
+						);
 
 						_$_.append(__anchor, li_5);
 					},
@@ -552,9 +594,16 @@ export function KeyedForLoopUpdate() {
 							_$_.pop(li_6);
 						}
 
-						_$_.render(() => {
-							_$_.set_class(li_6, `item-${_$_.get(pattern_3).id}`, void 0, true);
-						});
+						_$_.render(
+							(__prev) => {
+								var __a = `item-${_$_.get(pattern_3).id}`;
+
+								if (__prev.a !== __a) {
+									_$_.set_class(li_6, __prev.a = __a, void 0, true);
+								}
+							},
+							{ a: _$_.UNINITIALIZED }
+						);
 
 						_$_.append(__anchor, li_6);
 					},
@@ -817,9 +866,16 @@ export function NestedForLoopReactive() {
 										_$_.pop(span_5);
 									}
 
-									_$_.render(() => {
-										_$_.set_class(span_5, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
-									});
+									_$_.render(
+										(__prev) => {
+											var __a = `cell-${rowIndex.value}-${colIndex.value}`;
+
+											if (__prev.a !== __a) {
+												_$_.set_class(span_5, __prev.a = __a, void 0, true);
+											}
+										},
+										{ a: _$_.UNINITIALIZED }
+									);
 
 									_$_.append(__anchor, span_5);
 								},
@@ -828,9 +884,16 @@ export function NestedForLoopReactive() {
 
 							_$_.pop(div_9);
 
-							_$_.render(() => {
-								_$_.set_class(div_9, `row-${rowIndex.value}`, void 0, true);
-							});
+							_$_.render(
+								(__prev) => {
+									var __a = `row-${rowIndex.value}`;
+
+									if (__prev.a !== __a) {
+										_$_.set_class(div_9, __prev.a = __a, void 0, true);
+									}
+								},
+								{ a: _$_.UNINITIALIZED }
+							);
 						}
 
 						_$_.append(__anchor, div_9);
@@ -927,9 +990,16 @@ export function ForLoopDeeplyNested() {
 									}
 								}
 
-								_$_.render(() => {
-									_$_.set_class(div_12, `team-${_$_.get(pattern_5).id}`, void 0, true);
-								});
+								_$_.render(
+									(__prev) => {
+										var __a = `team-${_$_.get(pattern_5).id}`;
+
+										if (__prev.a !== __a) {
+											_$_.set_class(div_12, __prev.a = __a, void 0, true);
+										}
+									},
+									{ a: _$_.UNINITIALIZED }
+								);
 
 								_$_.append(__anchor, div_12);
 							},
@@ -940,9 +1010,16 @@ export function ForLoopDeeplyNested() {
 						_$_.pop(div_11);
 					}
 
-					_$_.render(() => {
-						_$_.set_class(div_11, `dept-${_$_.get(pattern_4).id}`, void 0, true);
-					});
+					_$_.render(
+						(__prev) => {
+							var __a = `dept-${_$_.get(pattern_4).id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(div_11, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
 
 					_$_.append(__anchor, div_11);
 				},
@@ -1435,9 +1512,16 @@ export function ForLoopLargeList() {
 						_$_.pop(li_18);
 					}
 
-					_$_.render(() => {
-						_$_.set_class(li_18, `item-${i.value}`, void 0, true);
-					});
+					_$_.render(
+						(__prev) => {
+							var __a = `item-${i.value}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(li_18, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
 
 					_$_.append(__anchor, li_18);
 				},
@@ -1611,9 +1695,16 @@ function RootKeyedList(props) {
 					_$_.pop(span_8);
 				}
 
-				_$_.render(() => {
-					_$_.set_text(expression_32, _$_.get(pattern_9));
-				});
+				_$_.render(
+					(__prev) => {
+						var __a = _$_.get(pattern_9);
+
+						if (__prev.a !== __a) {
+							_$_.set_text(expression_32, __prev.a = __a);
+						}
+					},
+					{ a: ' ' }
+				);
 
 				_$_.append(__anchor, span_8);
 			},

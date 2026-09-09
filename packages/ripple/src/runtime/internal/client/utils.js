@@ -5,9 +5,7 @@
  * @returns {Text}
  */
 export function create_anchor() {
-	var t = document.createTextNode('');
-	t.__t = '';
-	return t;
+	return document.createTextNode('');
 }
 
 /**

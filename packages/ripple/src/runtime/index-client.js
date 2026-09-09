@@ -1,4 +1,4 @@
-/** @import { RootBoundaryOptions } from '#client' */
+/** @import { AppendIntoAnchor, RootBoundaryOptions } from '#client' */
 
 import { destroy_block, root } from './internal/client/blocks.js';
 import { handle_root_events, release_root_events } from './internal/client/events.js';
@@ -8,7 +8,6 @@ import {
 	init_operations,
 } from './internal/client/operations.js';
 import { render_component } from './internal/client/component.js';
-import { create_anchor } from './internal/client/utils.js';
 import { try_block } from './internal/client/try.js';
 import { remove_ssr_css } from './internal/client/css.js';
 import { normalize_children } from './element.js';
@@ -31,7 +30,7 @@ export {
 } from './internal/client/constants.js';
 
 /**
- * @param {Node} anchor
+ * @param {Node | AppendIntoAnchor} anchor
  * @param {(anchor: Node) => void} render_content
  * @param {RootBoundaryOptions | undefined} boundary
  * @returns {void}
@@ -55,6 +54,7 @@ function render_root_boundary(anchor, render_content, boundary) {
 				render_component(Pending, pending_anchor, {});
 			}
 		},
+		true,
 	);
 }
 
@@ -89,14 +89,16 @@ export function mount(component, options) {
 
 	const props = normalize_props(options.props);
 	const target = options.target;
-	const anchor = create_anchor();
 
 	// Clear target content in case of SSR
 	if (target.firstChild) {
 		target.textContent = '';
 	}
 
-	target.append(anchor);
+	// The app appends into the emptied target; a root that keeps inserting
+	// relative to its anchor materializes one (see `resolve_anchor`).
+	/** @type {AppendIntoAnchor} */
+	const anchor = { parent: target, into: true };
 
 	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
 	let events_ref = handle_root_events(target);

@@ -28,7 +28,6 @@ exports[`for statements > correctly handles intermediate statements in for block
         3
       </div>
     </div>
-    
   </div>
   <button>
     Add Item
@@ -74,7 +73,6 @@ exports[`for statements > correctly handles intermediate statements in for block
         4
       </div>
     </div>
-    
   </div>
   <button>
     Add Item
@@ -141,7 +139,6 @@ exports[`for statements > correctly handles the index in a for...of loop 1`] = `
     <div>
       2 : c
     </div>
-    
   </div>
   <button>
     Add Item
@@ -170,7 +167,6 @@ exports[`for statements > correctly handles the index in a for...of loop 2`] = `
     <div>
       3 : d
     </div>
-    
   </div>
   <button>
     Add Item
@@ -199,7 +195,6 @@ exports[`for statements > correctly handles the index in a for...of loop 3`] = `
     <div>
       3 : a
     </div>
-    
   </div>
   <button>
     Add Item

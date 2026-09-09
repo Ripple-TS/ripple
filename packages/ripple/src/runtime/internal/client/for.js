@@ -12,20 +12,14 @@ import {
 } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
-import {
-	create_text,
-	get_first_child,
-	get_last_child,
-	next_sibling,
-	resolve_anchor,
-} from './operations.js';
+import { get_first_child, get_last_child, next_sibling, resolve_anchor } from './operations.js';
 import { append } from './template.js';
-import { active_block, set, tracked, untrack } from './runtime.js';
+import { active_block, set, set_tracking, tracked } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
 
 /**
  * @template V
- * @param {Node} anchor
+ * @param {Node | AppendIntoAnchor} anchor
  * @param {V} value
  * @param {number} index
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
@@ -60,7 +54,22 @@ function create_item(anchor, value, index, render_fn, is_indexed, is_keyed) {
 	return b;
 }
 
-/** @type {Node | null} */
+/**
+ * The insertion point of a list: a node the items go before, or, for a
+ * controlled list (the sole content of its parent), an append-into sentinel so
+ * items append to the parent with no anchor node in the DOM.
+ * @typedef {Element | Text | AppendIntoAnchor} ListAnchor
+ */
+
+/**
+ * @param {Element} parent
+ * @returns {AppendIntoAnchor}
+ */
+function controlled_anchor(parent) {
+	return { parent, into: true };
+}
+
+/** @type {Node | AppendIntoAnchor | null} */
 var item_anchor = null;
 /** @type {((anchor: Node, value: any, index?: any) => Block) | null} */
 var item_render_fn = null;
@@ -77,19 +86,19 @@ function run_item(state) {
 }
 
 /**
- * @param {Node} anchor
+ * @param {ListAnchor} anchor
  * @param {(anchor: Node) => void} render_empty
  * @returns {Block}
  */
 function create_empty(anchor, render_empty) {
 	return branch(() => {
-		render_empty(anchor);
+		render_empty(/** @type {Node} */ (anchor));
 	});
 }
 
 /**
  * @param {Block} block
- * @param {ChildNode} anchor
+ * @param {ChildNode | AppendIntoAnchor} anchor
  * @returns {void}
  */
 function move(block, anchor) {
@@ -110,18 +119,43 @@ function move(block, anchor) {
 		end = s.end;
 	}
 
+	// A controlled list appends into its parent (no anchor node); anything
+	// else inserts before its anchor.
+	/** @type {Node | null} */
+	var parent = null;
+	/** @type {ChildNode | null} */
+	var before = null;
+	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
+		parent = /** @type {AppendIntoAnchor} */ (anchor).parent;
+	} else {
+		before = /** @type {ChildNode} */ (anchor);
+	}
+
 	if (node === end) {
-		anchor.before(node);
+		insert_node(parent, before, node);
 		return;
 	}
 	while (node !== null) {
 		var next_node = /** @type {Node} */ (next_sibling(node));
-		anchor.before(node);
+		insert_node(parent, before, node);
 		node = next_node;
 		if (node === end) {
-			anchor.before(/** @type {Node} */ (end));
+			insert_node(parent, before, /** @type {Node} */ (end));
 			break;
 		}
+	}
+}
+
+/**
+ * @param {Node | null} parent
+ * @param {ChildNode | null} before
+ * @param {Node} node
+ */
+function insert_node(parent, before, node) {
+	if (parent !== null) {
+		parent.appendChild(node);
+	} else {
+		/** @type {ChildNode} */ (before).before(node);
 	}
 }
 
@@ -134,8 +168,8 @@ function move(block, anchor) {
  * @param {Block[]} blocks
  * @param {number} index
  * @param {number} length
- * @param {Element | Text} fallback
- * @returns {ChildNode}
+ * @param {ListAnchor} fallback
+ * @returns {ChildNode | AppendIntoAnchor}
  */
 function block_start(blocks, index, length, fallback) {
 	if (index >= length) {
@@ -174,6 +208,110 @@ function collection_to_array(collection) {
 }
 
 /**
+ * The state of a list block. The reconciled list (`array`, `blocks`, `keys`,
+ * `empty`) and the inputs the list is re-run with both live here, so a list
+ * allocates no closures.
+ * @typedef {{
+ *   array: any[];
+ *   blocks: Block[];
+ *   keys: any[] | null;
+ *   empty: Block | null;
+ *   a: ListAnchor;
+ *   g: () => any;
+ *   r: (anchor: Node, value: any, index?: any) => Block;
+ *   c: boolean;
+ *   x: boolean;
+ *   k: ((item: any) => any) | undefined;
+ *   e: ((anchor: Node) => void) | undefined;
+ * }} ListState
+ */
+
+/**
+ * @param {ListAnchor} anchor
+ * @param {() => any} get_collection
+ * @param {(anchor: Node, value: any, index?: any) => Block} render_fn
+ * @param {boolean} is_controlled
+ * @param {boolean} is_indexed
+ * @param {((item: any) => any) | undefined} get_key
+ * @param {((anchor: Node) => void) | undefined} render_empty
+ * @returns {ListState}
+ */
+function list_state(
+	anchor,
+	get_collection,
+	render_fn,
+	is_controlled,
+	is_indexed,
+	get_key,
+	render_empty,
+) {
+	return {
+		array: [],
+		blocks: [],
+		// null until the first reconcile
+		keys: null,
+		empty: null,
+		a: anchor,
+		g: get_collection,
+		r: render_fn,
+		c: is_controlled,
+		x: is_indexed,
+		k: get_key,
+		e: render_empty,
+	};
+}
+
+/**
+ * Re-anchors a hydrated list: the hydrated anchor is the block's start marker;
+ * later inserts and end moves must go before the cursor, which now sits after
+ * the hydrated items.
+ * @param {ListState} state
+ */
+function rehydrate_anchor(state) {
+	if (hydrating) {
+		state.a = /** @type {Element | Text} */ (hydrate_node);
+	}
+}
+
+/**
+ * @param {ListState} state
+ */
+function run_for(state) {
+	var block = /** @type {Block} */ (active_block);
+	var array = collection_to_array(state.g());
+
+	// Items render untracked, as in a branch; the list tracks only its collection.
+	set_tracking(false);
+	reconcile_by_ref(state.a, block, array, state.r, state.c, state.x, state.e);
+	set_tracking(true);
+
+	rehydrate_anchor(state);
+}
+
+/**
+ * @param {ListState} state
+ */
+function run_for_keyed(state) {
+	var block = /** @type {Block} */ (active_block);
+	var array = collection_to_array(state.g());
+
+	set_tracking(false);
+	reconcile_by_key(
+		state.a,
+		block,
+		array,
+		state.r,
+		state.c,
+		state.x,
+		/** @type {(item: any) => any} */ (state.k),
+		state.e,
+	);
+	set_tracking(true);
+
+	rehydrate_anchor(state);
+}
+
+/**
  * @template V
  * @param {Element | AppendIntoAnchor} node
  * @param {() => V[] | Iterable<V>} get_collection
@@ -188,7 +326,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
 	// A root-controlled list receives the component's `__anchor`, which may be
 	// an append-into sentinel; moves and end insertions need a real node.
-	var anchor = /** @type {Element | Text} */ (root_controlled ? resolve_anchor(node) : node);
+	var anchor = /** @type {ListAnchor} */ (root_controlled ? resolve_anchor(node) : node);
 	/** @type {Node | undefined} */
 	var boundary;
 
@@ -197,7 +335,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 			var parent_node = /** @type {Element} */ (node);
 			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
 		} else {
-			anchor = /** @type {Element} */ (node).appendChild(create_text());
+			anchor = controlled_anchor(/** @type {Element} */ (node));
 		}
 	}
 
@@ -209,24 +347,20 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 	}
 
 	render(
-		() => {
-			var block = /** @type {Block} */ (active_block);
-			var collection = get_collection();
-			var array = collection_to_array(collection);
-
-			untrack(() => {
-				reconcile_by_ref(anchor, block, array, render_fn, is_controlled, is_indexed, render_empty);
-			});
-
-			if (hydrating) {
-				anchor = /** @type {Element | Text} */ (hydrate_node);
-			}
-		},
-		null,
+		run_for,
+		list_state(
+			anchor,
+			get_collection,
+			render_fn,
+			is_controlled,
+			is_indexed,
+			undefined,
+			render_empty,
+		),
 		FOR_BLOCK,
 	);
 
-	own_anchor(node, anchor);
+	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
@@ -250,7 +384,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
-	var anchor = /** @type {Element | Text} */ (root_controlled ? resolve_anchor(node) : node);
+	var anchor = /** @type {ListAnchor} */ (root_controlled ? resolve_anchor(node) : node);
 	/** @type {Node | undefined} */
 	var boundary;
 
@@ -261,7 +395,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 			/** @type {Element | Text} */ (set_hydrate_node(get_first_child(parent_node)));
 			anchor = /** @type {Element | Text} */ (get_last_child(parent_node));
 		} else {
-			anchor = /** @type {Element} */ (node).appendChild(create_text());
+			anchor = controlled_anchor(parent_node);
 		}
 	}
 
@@ -273,36 +407,20 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 	}
 
 	render(
-		() => {
-			var block = /** @type {Block} */ (active_block);
-			var collection = get_collection();
-			var array = collection_to_array(collection);
-
-			untrack(() => {
-				reconcile_by_key(
-					anchor,
-					block,
-					array,
-					render_fn,
-					is_controlled,
-					is_indexed,
-					/** @type {(item: V) => K} */ (get_key),
-					render_empty,
-				);
-			});
-
-			// The hydrated anchor is the block's start marker; later inserts and
-			// end moves must go before the cursor, which now sits after the
-			// hydrated items (the same re-anchoring `for_block` does).
-			if (hydrating) {
-				anchor = /** @type {Element | Text} */ (hydrate_node);
-			}
-		},
-		null,
+		run_for_keyed,
+		list_state(
+			anchor,
+			get_collection,
+			render_fn,
+			is_controlled,
+			is_indexed,
+			/** @type {(item: V) => K} */ (get_key),
+			render_empty,
+		),
 		FOR_BLOCK,
 	);
 
-	own_anchor(node, anchor);
+	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
@@ -313,17 +431,20 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 
 /**
  * @template V
- * @param {Element | Text} anchor
+ * @param {ListAnchor} anchor
  * @param {Block} block
  * @param {V[]} array
  * @returns {void}
  */
 function reconcile_fast_clear(anchor, block, array) {
 	var state = block.s;
-	var parent_node = /** @type {Element} */ (anchor.parentNode);
+	var into = /** @type {AppendIntoAnchor} */ (anchor).into === true;
+	var parent_node = /** @type {Element} */ (
+		into ? /** @type {AppendIntoAnchor} */ (anchor).parent : /** @type {Node} */ (anchor).parentNode
+	);
 	parent_node.textContent = '';
 	destroy_block_children(block);
-	parent_node.append(anchor);
+	if (!into) parent_node.append(/** @type {Node} */ (anchor));
 	state.array = array;
 	state.blocks = [];
 	state.empty = null;
@@ -353,7 +474,7 @@ function update_value(block, value) {
 /**
  * @template V
  * @template K
- * @param {Element | Text} anchor
+ * @param {ListAnchor} anchor
  * @param {Block} block
  * @param {V[]} b
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
@@ -377,16 +498,22 @@ function reconcile_by_key(
 	render_empty,
 ) {
 	var b_length = b.length;
+	var state = /** @type {ListState} */ (block.s);
 
-	if (block.s === null && b_length > 0) {
+	if (state.keys === null && b_length > 0) {
 		var b_blocks = Array(b_length);
-		var b_keys = b.map(get_key);
+		var b_keys = Array(b_length);
 
+		// One loop, no `map` callback machinery: most lists are short.
 		for (var j = 0; j < b_length; j++) {
-			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, true);
+			var value = b[j];
+			b_keys[j] = get_key(value);
+			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, true);
 		}
 
-		block.s = { array: b, blocks: b_blocks, keys: b_keys, empty: null };
+		state.array = b;
+		state.blocks = b_blocks;
+		state.keys = b_keys;
 		return;
 	}
 
@@ -406,7 +533,7 @@ function reconcile_by_key(
  * Keyed diff for every run after the first (or a first run with an empty
  * list). See {@link reconcile_by_key}.
  * @template V, K
- * @param {Element | Text} anchor
+ * @param {ListAnchor} anchor
  * @param {Block} block
  * @param {V[]} b
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
@@ -426,7 +553,7 @@ function reconcile_by_key_diff(
 	get_key,
 	render_empty,
 ) {
-	var state = block.s;
+	var state = /** @type {ListState} */ (block.s);
 
 	// Variables used in conditional branches - declare with initial values
 	/** @type {number} */
@@ -443,15 +570,6 @@ function reconcile_by_key_diff(
 	var patched = 0;
 	/** @type {number} */
 	var i = 0;
-
-	if (state === null) {
-		state = block.s = {
-			array: [],
-			blocks: [],
-			keys: null,
-			empty: null,
-		};
-	}
 
 	var a = state.array;
 	var a_length = a.length;
@@ -504,7 +622,8 @@ function reconcile_by_key_diff(
 	}
 
 	var a_blocks = state.blocks;
-	var a_keys = state.keys;
+	// Set by every run that leaves items behind.
+	var a_keys = /** @type {any[]} */ (state.keys);
 	var a_start = 0;
 	var b_start = 0;
 	var a_end = a_length - 1;
@@ -745,7 +864,7 @@ function reconcile_by_key_diff(
 
 /**
  * @template V
- * @param {Element | Text} anchor
+ * @param {ListAnchor} anchor
  * @param {Block} block
  * @param {V[]} b
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
@@ -755,7 +874,7 @@ function reconcile_by_key_diff(
  * @returns {void}
  */
 function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed, render_empty) {
-	var state = block.s;
+	var state = /** @type {ListState} */ (block.s);
 
 	// Variables used in conditional branches - declare with initial values
 	/** @type {number} */
@@ -772,15 +891,6 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 	var patched = 0;
 	/** @type {number} */
 	var i = 0;
-
-	if (state === null) {
-		state = block.s = {
-			array: [],
-			blocks: [],
-			keys: null,
-			empty: null,
-		};
-	}
 
 	var a = state.array;
 	var a_length = a.length;

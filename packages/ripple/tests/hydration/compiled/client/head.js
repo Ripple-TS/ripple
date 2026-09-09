@@ -237,9 +237,16 @@ export function ComputedTitle() {
 				});
 			});
 
-			_$_.render(() => {
-				_$_.set_text(expression_4, lazy_5.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_5.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_4, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, div_7);
 		}));

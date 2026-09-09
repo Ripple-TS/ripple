@@ -367,9 +367,16 @@ export function DomChildrenThenStaticSiblings() {
 
 			button_4.__click = () => _$_.update(lazy_6);
 
-			_$_.render(() => {
-				_$_.set_text(expression_3, 'Item count: ' + String(lazy_6.value ?? ''));
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = 'Item count: ' + String(lazy_6.value ?? '');
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_3, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_7);
 		}));
@@ -426,9 +433,16 @@ function RootForChild(props) {
 					_$_.pop(span_2);
 				}
 
-				_$_.render(() => {
-					_$_.set_text(expression_4, _$_.get(pattern));
-				});
+				_$_.render(
+					(__prev) => {
+						var __a = _$_.get(pattern);
+
+						if (__prev.a !== __a) {
+							_$_.set_text(expression_4, __prev.a = __a);
+						}
+					},
+					{ a: ' ' }
+				);
 
 				_$_.append(__anchor, span_2);
 			},

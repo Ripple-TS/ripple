@@ -327,9 +327,16 @@ export function DocLayout(__props) {
 							var a = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 						}
 
-						_$_.render(() => {
-							_$_.set_attribute(a, 'href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`);
-						});
+						_$_.render(
+							(__prev) => {
+								var __a = `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`;
+
+								if (__prev.a !== __a) {
+									_$_.set_attribute(a, 'href', __prev.a = __a);
+								}
+							},
+							{ a: void 0 }
+						);
 
 						_$_.append(__anchor, div_16);
 					};
@@ -356,9 +363,16 @@ export function DocLayout(__props) {
 							}
 						}
 
-						_$_.render(() => {
-							_$_.set_attribute(a_1, 'href', _$_.fallback(__props.nextLink, null).href);
-						});
+						_$_.render(
+							(__prev) => {
+								var __a = _$_.fallback(__props.nextLink, null).href;
+
+								if (__prev.a !== __a) {
+									_$_.set_attribute(a_1, 'href', __prev.a = __a);
+								}
+							},
+							{ a: void 0 }
+						);
 
 						_$_.append(__anchor, nav);
 					};
@@ -404,9 +418,16 @@ export function DocLayout(__props) {
 											}
 										}
 
-										_$_.render(() => {
-											_$_.set_attribute(a_2, 'href', item.href);
-										});
+										_$_.render(
+											(__prev) => {
+												var __a = item.href;
+
+												if (__prev.a !== __a) {
+													_$_.set_attribute(a_2, 'href', __prev.a = __a);
+												}
+											},
+											{ a: void 0 }
+										);
 
 										_$_.append(__anchor, li);
 									},
@@ -1328,9 +1349,16 @@ function DocsLayoutInner(__props) {
 											}
 										}
 
-										_$_.render(() => {
-											_$_.set_attribute(a_4, 'href', _$_.fallback(__props.nextLink, null).href);
-										});
+										_$_.render(
+											(__prev) => {
+												var __a = _$_.fallback(__props.nextLink, null).href;
+
+												if (__prev.a !== __a) {
+													_$_.set_attribute(a_4, 'href', __prev.a = __a);
+												}
+											},
+											{ a: void 0 }
+										);
 
 										_$_.append(__anchor, nav_3);
 									};
@@ -1444,9 +1472,16 @@ function DocsLayoutExact(__props) {
 											var a_5 = _$_.hydrating ? _$_.hydrate_child() : div_62.firstChild;
 										}
 
-										_$_.render(() => {
-											_$_.set_attribute(a_5, 'href', `/edit/${_$_.fallback(__props.editPath, '')}`);
-										});
+										_$_.render(
+											(__prev) => {
+												var __a = `/edit/${_$_.fallback(__props.editPath, '')}`;
+
+												if (__prev.a !== __a) {
+													_$_.set_attribute(a_5, 'href', __prev.a = __a);
+												}
+											},
+											{ a: void 0 }
+										);
 
 										_$_.append(__anchor, div_62);
 									};
@@ -1480,9 +1515,16 @@ function DocsLayoutExact(__props) {
 														}
 													}
 
-													_$_.render(() => {
-														_$_.set_attribute(a_6, 'href', _$_.fallback(__props.prevLink, null).href);
-													});
+													_$_.render(
+														(__prev) => {
+															var __a = _$_.fallback(__props.prevLink, null).href;
+
+															if (__prev.a !== __a) {
+																_$_.set_attribute(a_6, 'href', __prev.a = __a);
+															}
+														},
+														{ a: void 0 }
+													);
 
 													_$_.append(__anchor, a_6);
 												};
@@ -1515,9 +1557,16 @@ function DocsLayoutExact(__props) {
 														}
 													}
 
-													_$_.render(() => {
-														_$_.set_attribute(a_7, 'href', _$_.fallback(__props.nextLink, null).href);
-													});
+													_$_.render(
+														(__prev) => {
+															var __a = _$_.fallback(__props.nextLink, null).href;
+
+															if (__prev.a !== __a) {
+																_$_.set_attribute(a_7, 'href', __prev.a = __a);
+															}
+														},
+														{ a: void 0 }
+													);
 
 													_$_.append(__anchor, a_7);
 												};
@@ -1573,9 +1622,16 @@ function DocsLayoutExact(__props) {
 														_$_.pop(a_8);
 													}
 
-													_$_.render(() => {
-														_$_.set_attribute(a_8, 'href', item.href);
-													});
+													_$_.render(
+														(__prev) => {
+															var __a = item.href;
+
+															if (__prev.a !== __a) {
+																_$_.set_attribute(a_8, 'href', __prev.a = __a);
+															}
+														},
+														{ a: void 0 }
+													);
 
 													_$_.append(__anchor, a_8);
 												},
@@ -1664,9 +1720,16 @@ export function TemplateWithHtmlContent() {
 			var template = _$_.hydrating ? _$_.hydrate_child() : div_66.firstChild;
 		}
 
-		_$_.render(() => {
-			template.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data)) ?? template.innerHTML;
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = _$_.with_scope(__block, () => JSON.stringify(data));
+
+				if (__prev.a !== __a) {
+					template.innerHTML = (__prev.a = __a) ?? template.innerHTML;
+				}
+			},
+			{ a: template.innerHTML }
+		);
 
 		_$_.append(__anchor, div_66);
 	});
@@ -1682,9 +1745,16 @@ export function TemplateWithHtmlAndSiblings() {
 			var template_1 = _$_.hydrating ? _$_.hydrate_sibling() : h1_3.nextSibling;
 		}
 
-		_$_.render(() => {
-			template_1.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data)) ?? template_1.innerHTML;
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = _$_.with_scope(__block, () => JSON.stringify(data));
+
+				if (__prev.a !== __a) {
+					template_1.innerHTML = (__prev.a = __a) ?? template_1.innerHTML;
+				}
+			},
+			{ a: template_1.innerHTML }
+		);
 
 		_$_.append(__anchor, div_67);
 	});
@@ -1706,9 +1776,16 @@ function LayoutWithTemplate({ children, data }) {
 			}
 		}
 
-		_$_.render(() => {
-			template_2.innerHTML = _$_.with_scope(__block, () => JSON.stringify(data)) ?? template_2.innerHTML;
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = _$_.with_scope(__block, () => JSON.stringify(data));
+
+				if (__prev.a !== __a) {
+					template_2.innerHTML = (__prev.a = __a) ?? template_2.innerHTML;
+				}
+			},
+			{ a: template_2.innerHTML }
+		);
 
 		_$_.append(__anchor, div_68);
 	});
@@ -1723,9 +1800,16 @@ export function NestedTemplateInLayout() {
 			children: _$_.tsrx_element((__anchor, __block) => {
 				var div_69 = root_81();
 
-				_$_.render(() => {
-					div_69.innerHTML = doc.html ?? div_69.innerHTML;
-				});
+				_$_.render(
+					(__prev) => {
+						var __a = doc.html;
+
+						if (__prev.a !== __a) {
+							div_69.innerHTML = (__prev.a = __a) ?? div_69.innerHTML;
+						}
+					},
+					{ a: div_69.innerHTML }
+				);
 
 				_$_.append(__anchor, div_69);
 			})

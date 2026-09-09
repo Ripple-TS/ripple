@@ -15,6 +15,7 @@ import {
 	HEAD_BLOCK,
 	DIRECT_CHILD_BLOCK,
 	UNINITIALIZED,
+	IF_BLOCK,
 } from './constants.js';
 import { hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
@@ -327,6 +328,23 @@ export function unlink_block(block) {
 }
 
 /**
+ * Moves `block` to the end of its parent's child list. A block whose content
+ * is inserted before an anchor the parent already owns is created after the
+ * anchor's block; relinking keeps block order equal to DOM order, which the
+ * first/last node descent in `get_first_node`/`get_last_node` relies on.
+ * @param {Block} block
+ */
+export function move_block_last(block) {
+	var parent = /** @type {Block} */ (block.p);
+	if (parent.last === block) {
+		return;
+	}
+	unlink_block(block);
+	block.prev = block.next = null;
+	push_block(block, parent);
+}
+
+/**
  * @param {Block} block
  */
 export function pause_block(block) {
@@ -415,8 +433,8 @@ export function remove_block_dom(node, end) {
 export function move_block(block, target) {
 	var f = block.f;
 
-	// Only BRANCH_BLOCKs (excluding TRY_BLOCK) can have DOM state to move
-	if ((f & BRANCH_BLOCK) !== 0 && (f & TRY_BLOCK) === 0) {
+	// Only branch and if blocks (excluding TRY_BLOCK) can have DOM state to move
+	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			var node = s.start;
@@ -444,8 +462,8 @@ export function move_block(block, target) {
 }
 
 /**
- * Resolve the first DOM node owned by a block. A block normally records its
- * range in `s.start`/`s.end`, but an optimized single control-flow / component
+ * Resolve the first DOM node owned by a block. A branch or if block normally
+ * records its range in `s.start`/`s.end`, but an optimized single control-flow / component
  * root scope renders its content through a descendant block instead of a
  * synthesized `<!>` wrapper, so its own `s.start` is null. In that case we
  * descend into child blocks to find the real first node. Returns null when the
@@ -455,7 +473,7 @@ export function move_block(block, target) {
  */
 export function get_first_node(block) {
 	var f = block.f;
-	if ((f & BRANCH_BLOCK) !== 0 && (f & TRY_BLOCK) === 0) {
+	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			return s.start;
@@ -479,7 +497,7 @@ export function get_first_node(block) {
  */
 export function get_last_node(block) {
 	var f = block.f;
-	if ((f & BRANCH_BLOCK) !== 0 && (f & TRY_BLOCK) === 0) {
+	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			return s.end;
@@ -512,7 +530,7 @@ export function destroy_block(block, remove_dom = true) {
 	}
 
 	if (
-		(remove_dom && (f & (BRANCH_BLOCK | ROOT_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) ||
+		(remove_dom && (f & (BRANCH_BLOCK | ROOT_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) ||
 		(f & HEAD_BLOCK) !== 0
 	) {
 		var s = block.s;

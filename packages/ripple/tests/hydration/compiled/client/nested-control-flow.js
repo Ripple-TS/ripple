@@ -70,9 +70,16 @@ export function ForIf() {
 								_$_.pop(li);
 							}
 
-							_$_.render(() => {
-								_$_.set_class(li, `item item-${_$_.get(pattern).id}`, void 0, true);
-							});
+							_$_.render(
+								(__prev) => {
+									var __a = `item item-${_$_.get(pattern).id}`;
+
+									if (__prev.a !== __a) {
+										_$_.set_class(li, __prev.a = __a, void 0, true);
+									}
+								},
+								{ a: _$_.UNINITIALIZED }
+							);
 
 							_$_.append(__anchor, li);
 						};

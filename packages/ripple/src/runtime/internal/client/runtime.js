@@ -36,6 +36,7 @@ import {
 	DIRECT_CHILD_BLOCK,
 	SCHEDULED,
 	SELECTOR,
+	IF_BLOCK,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -379,8 +380,10 @@ export function run_block(block, first_run = false) {
 		active_component = block.co;
 
 		if (!first_run) {
-			// A list's children are all item branches, so there is nothing to sweep.
-			if ((block.f & FOR_BLOCK) === 0) {
+			// A list's children are all item branches, so there is nothing to
+			// sweep; an if block's children are its branch, which it replaces
+			// itself only when the condition changes.
+			if ((block.f & (FOR_BLOCK | IF_BLOCK)) === 0) {
 				destroy_non_branch_children(block);
 			}
 			run_teardown(block);

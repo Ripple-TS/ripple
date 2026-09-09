@@ -201,9 +201,16 @@ export function Greeting(props) {
 			_$_.pop(div_5);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression, 'Hello ' + props.name);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = 'Hello ' + props.name;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_5);
 	});
@@ -938,9 +945,16 @@ export function TextTailExpression() {
 			_$_.pop(div_27);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(text, "label: " + String(_$_.with_scope(__block, fetchLabel)));
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = "label: " + String(_$_.with_scope(__block, fetchLabel));
+
+				if (__prev.a !== __a) {
+					_$_.set_text(text, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_27);
 	});
@@ -956,9 +970,16 @@ export function FragmentTailExpression() {
 			_$_.pop(div_28);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_29, 'frag-' + String(_$_.with_scope(__block, fetchLabel)));
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = 'frag-' + String(_$_.with_scope(__block, fetchLabel));
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_29, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_28);
 	});
@@ -1020,9 +1041,16 @@ function PrimitiveCallLead() {
 
 			_$_.next();
 
-			_$_.render(() => {
-				_$_.set_text(expression_31, String(_$_.with_scope(__block, fetchLabel)));
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = String(_$_.with_scope(__block, fetchLabel));
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_31, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_33);
 		}));

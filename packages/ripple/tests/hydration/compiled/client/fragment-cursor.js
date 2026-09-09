@@ -152,9 +152,16 @@ export function TrailingNavigatedElements() {
 
 			button_1.__click = () => _$_.update(lazy, -1);
 
-			_$_.render(() => {
-				_$_.set_text(expression, lazy.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_1);
 		}));
@@ -287,9 +294,16 @@ export function TrackedTextThenStatic() {
 
 			_$_.next(2);
 
-			_$_.render(() => {
-				_$_.set_text(expression_1, lazy_6.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_6.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_1, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_13);
 		}));
@@ -310,9 +324,16 @@ export function StaticThenTrackedText() {
 			var div_6 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 			var expression_2 = _$_.hydrating ? _$_.hydrate_sibling(true) : div_6.nextSibling;
 
-			_$_.render(() => {
-				_$_.set_text(expression_2, lazy_7.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_7.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_2, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_15);
 		}));
@@ -370,9 +391,16 @@ export function TrailingDynamicChild() {
 				_$_.pop(div_8);
 			}
 
-			_$_.render(() => {
-				_$_.set_text(expression_3, lazy_8.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_8.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_3, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_21);
 		}));
@@ -399,9 +427,16 @@ export function DynamicChildThenStatic() {
 
 			_$_.next(2);
 
-			_$_.render(() => {
-				_$_.set_text(expression_4, lazy_9.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_9.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_4, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_23);
 		}));
@@ -553,9 +588,16 @@ export function WrapTrailingNavigatedElements() {
 			_$_.pop(div_15);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_5, lazy_12.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_12.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_5, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_15);
 	});
@@ -585,9 +627,16 @@ export function WrapTrailingStaticNavigatedElements() {
 			_$_.pop(div_16);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_6, lazy_13.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_13.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_6, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_16);
 	});
@@ -617,9 +666,16 @@ export function WrapNavigatedThenStatic() {
 			_$_.pop(div_17);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_7, lazy_14.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_14.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_7, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_17);
 	});
@@ -649,9 +705,16 @@ export function WrapLeadingNavigatedThenStatic() {
 			_$_.pop(div_18);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_8, lazy_15.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_15.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_8, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_18);
 	});
@@ -681,9 +744,16 @@ export function WrapTrailingNestedNavigated() {
 			_$_.pop(div_19);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_9, lazy_16.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_16.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_9, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_19);
 	});
@@ -713,9 +783,16 @@ export function WrapNestedNavigatedThenStatic() {
 			_$_.pop(div_20);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_10, lazy_17.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_17.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_10, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_20);
 	});
@@ -745,9 +822,16 @@ export function WrapTrackedTextThenStatic() {
 			_$_.pop(div_21);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_11, lazy_18.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_18.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_11, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_21);
 	});
@@ -777,9 +861,16 @@ export function WrapStaticThenTrackedText() {
 			_$_.pop(div_22);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_12, lazy_19.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_19.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_12, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_22);
 	});
@@ -809,9 +900,16 @@ export function WrapStaticNestedThenStatic() {
 			_$_.pop(div_23);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_13, lazy_20.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_20.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_13, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_23);
 	});
@@ -841,9 +939,16 @@ export function WrapAllStatic() {
 			_$_.pop(div_24);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_14, lazy_21.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_21.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_14, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_24);
 	});
@@ -873,9 +978,16 @@ export function WrapTrailingDynamicChild() {
 			_$_.pop(div_25);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_15, lazy_22.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_22.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_15, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_25);
 	});
@@ -905,9 +1017,16 @@ export function WrapDynamicChildThenStatic() {
 			_$_.pop(div_26);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_16, lazy_23.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_23.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_16, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_26);
 	});
@@ -937,9 +1056,16 @@ export function WrapIfThenStatic() {
 			_$_.pop(div_27);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_17, lazy_24.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_24.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_17, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_27);
 	});
@@ -969,9 +1095,16 @@ export function WrapStaticThenIf() {
 			_$_.pop(div_28);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_18, lazy_25.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_25.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_18, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_28);
 	});
@@ -1001,9 +1134,16 @@ export function WrapCompThenStatic() {
 			_$_.pop(div_29);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_19, lazy_26.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_26.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_19, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_29);
 	});
@@ -1033,9 +1173,16 @@ export function WrapStaticThenComp() {
 			_$_.pop(div_30);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_20, lazy_27.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_27.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_20, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_30);
 	});
@@ -1065,9 +1212,16 @@ export function WrapSiblingComps() {
 			_$_.pop(div_31);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_21, lazy_28.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_28.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_21, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_31);
 	});
@@ -1144,9 +1298,16 @@ export function TrailingNestedFragment() {
 				_$_.append(__anchor, fragment_41);
 			}));
 
-			_$_.render(() => {
-				_$_.set_text(expression_23, lazy_29.value);
-			});
+			_$_.render(
+				(__prev) => {
+					var __a = lazy_29.value;
+
+					if (__prev.a !== __a) {
+						_$_.set_text(expression_23, __prev.a = __a);
+					}
+				},
+				{ a: ' ' }
+			);
 
 			_$_.append(__anchor, fragment_40);
 		}));
@@ -1367,9 +1528,16 @@ export function WrapUntrackedTextThenStatic() {
 			_$_.pop(div_34);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_28, lazy_31.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_31.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_28, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_34);
 	});
@@ -1399,9 +1567,16 @@ export function WrapNestedFragmentThenStatic() {
 			_$_.pop(div_35);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_29, lazy_32.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_32.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_29, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_35);
 	});
@@ -1431,9 +1606,16 @@ export function WrapTrailingNestedFragment() {
 			_$_.pop(div_36);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_30, lazy_33.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_33.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_30, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_36);
 	});
@@ -1463,9 +1645,16 @@ export function WrapForThenStatic() {
 			_$_.pop(div_37);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_31, lazy_34.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_34.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_31, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_37);
 	});
@@ -1495,9 +1684,16 @@ export function WrapSwitchThenStatic() {
 			_$_.pop(div_38);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_32, lazy_35.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_35.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_32, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_38);
 	});
@@ -1527,9 +1723,16 @@ export function WrapTryThenStatic() {
 			_$_.pop(div_39);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_33, lazy_36.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_36.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_33, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_39);
 	});
@@ -1559,9 +1762,16 @@ export function WrapStyleThenStatic() {
 			_$_.pop(div_40);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_34, lazy_37.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_37.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_34, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_40);
 	});
@@ -1591,9 +1801,16 @@ export function WrapCollectionThenStatic() {
 			_$_.pop(div_41);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_35, lazy_38.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_38.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_35, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_41);
 	});
@@ -1623,9 +1840,16 @@ export function WrapInlineElementThenStatic() {
 			_$_.pop(div_42);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_36, lazy_39.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_39.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_36, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_42);
 	});
@@ -1740,9 +1964,16 @@ export function WrapIfOnly() {
 			_$_.pop(div_44);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_37, lazy_43.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_43.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_37, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_44);
 	});
@@ -1772,9 +2003,16 @@ export function WrapIfThenOne() {
 			_$_.pop(div_45);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_38, lazy_44.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_44.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_38, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_45);
 	});
@@ -1804,9 +2042,16 @@ export function WrapSingleRootWithIf() {
 			_$_.pop(div_46);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_39, lazy_45.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_45.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_39, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_46);
 	});
@@ -1837,9 +2082,16 @@ export function ExprThenSiblingInDiv() {
 			_$_.pop(div_47);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_41, lazy_46.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_46.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_41, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_47);
 	});
@@ -1911,9 +2163,16 @@ export function IfTwoInDiv() {
 			_$_.pop(div_48);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_42, lazy_48.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_48.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_42, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_48);
 	});
@@ -1943,9 +2202,16 @@ export function WrapIfTwoThenStatic() {
 			_$_.pop(div_49);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_43, lazy_49.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_49.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_43, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_49);
 	});
@@ -2056,9 +2322,16 @@ export function WrapStaticCallThenStatic() {
 			_$_.pop(div_52);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_46, lazy_50.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_50.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_46, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_52);
 	});
@@ -2088,9 +2361,16 @@ export function WrapStaticThenStyleThenStatic() {
 			_$_.pop(div_53);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_47, lazy_51.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_51.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_47, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_53);
 	});

@@ -32,9 +32,16 @@ export function ClickCounter() {
 			}
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression, lazy.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div);
 	});
@@ -67,9 +74,16 @@ export function IncrementDecrement() {
 			};
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_1, lazy_1.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_1.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_1, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_1);
 	});
@@ -165,9 +179,16 @@ export function MultiStateUpdate() {
 			}
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_4, lazy_4.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_4.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_4, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_3);
 	});
@@ -192,9 +213,16 @@ export function ToggleButton() {
 			}
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_6, lazy_6.value ? 'ON' : 'OFF');
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_6.value ? 'ON' : 'OFF';
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_6, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_4);
 	});
@@ -212,9 +240,16 @@ export function ChildButton(props) {
 			_$_.pop(button_6);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_7, props.label);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = props.label;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_7, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, button_6);
 	});
@@ -246,9 +281,16 @@ export function ParentWithChildButton() {
 			_$_.pop(div_5);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression_8, lazy_7.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_7.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression_8, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div_5);
 	});

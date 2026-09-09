@@ -37,8 +37,6 @@ export function init_operations() {
 
 	// the following assignments improve perf of lookups on DOM nodes
 	element_prototype.__click = undefined;
-	element_prototype.__className = undefined;
-	Text.prototype.__t = undefined;
 	event_target_prototype.__root = undefined;
 }
 

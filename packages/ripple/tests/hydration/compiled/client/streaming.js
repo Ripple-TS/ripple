@@ -78,9 +78,16 @@ function BasicContent() {
 			button.__click = () => _$_.update(lazy_1);
 		}
 
-		_$_.render(() => {
-			_$_.set_text(expression, lazy.value + ':' + lazy_1.value);
-		});
+		_$_.render(
+			(__prev) => {
+				var __a = lazy.value + ':' + lazy_1.value;
+
+				if (__prev.a !== __a) {
+					_$_.set_text(expression, __prev.a = __a);
+				}
+			},
+			{ a: ' ' }
+		);
 
 		_$_.append(__anchor, div);
 	});

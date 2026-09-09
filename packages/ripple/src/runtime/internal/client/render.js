@@ -22,18 +22,14 @@ import { normalize_css_property_name } from '@tsrx/core/runtime/html';
  * @returns {void}
  */
 export function set_text(text, value) {
-	// For objects, we apply string coercion
-	var str = value == null ? '' : typeof value === 'object' ? value + '' : value;
-	var previous = text.__t;
-	// Only server-rendered text can already hold the value; a fresh template
-	// text node never does, so skip reading it back.
-	if (previous === undefined && hydrating) {
-		previous = text.__t = text.nodeValue;
+	var str = value == null ? '' : value + '';
+	// The compiled render block compares against the value it last wrote, so
+	// nothing is cached on the node. Only server-rendered text can already
+	// hold the value; a fresh template text node never does.
+	if (hydrating && text.nodeValue === str) {
+		return;
 	}
-	if (str !== previous) {
-		text.__t = str;
-		text.nodeValue = str + '';
-	}
+	text.nodeValue = str;
 }
 
 /** @type {Map<string, string[]>} */
@@ -183,27 +179,20 @@ export function set_class(dom, value, hash, is_html = true) {
 				? value + (hash ? ' ' + hash : '')
 				: clsx([value, hash]);
 
-	// Skip the DOM write when the class we last applied is unchanged, or when
-	// an element that never had a class would only receive an empty one (the
-	// server omits an empty class attribute as well).
-	var previous = dom.__className;
-	if (previous === class_value || (previous === undefined && class_value === '')) {
-		dom.__className = class_value;
-		return;
-	}
-	dom.__className = class_value;
-
-	// Removing the attribute when the value is only an empty string causes
-	// performance issues vs simply making the className an empty string. So
-	// we should only remove the class if the value is nullish.
+	// The compiled render block compares against the class it last applied,
+	// so nothing is cached on the element. Removing the attribute when the
+	// value is only an empty string costs more than an empty className, so the
+	// class is removed only for a nullish value; an element that has no class
+	// does not receive an empty one either (the server omits an empty class
+	// attribute as well).
 	if (class_value === null) {
 		dom.removeAttribute('class');
-	} else {
-		if (is_html) {
+	} else if (is_html) {
+		if (class_value !== '' || dom.className !== '') {
 			dom.className = class_value;
-		} else {
-			dom.setAttribute('class', class_value);
 		}
+	} else if (class_value !== '' || dom.getAttribute('class')) {
+		dom.setAttribute('class', class_value);
 	}
 }
 
