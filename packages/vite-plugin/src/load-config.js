@@ -76,6 +76,30 @@ function validate_root_boundary(rootBoundary) {
 }
 
 /**
+ * @param {unknown} transport
+ * @returns {void}
+ */
+function validate_transport(transport) {
+	if (transport === undefined) return;
+	if (!transport || typeof transport !== 'object' || Array.isArray(transport)) {
+		throw new Error('[@ripple-ts/vite-plugin] transport must be an object when provided.');
+	}
+	for (const [name, handler] of Object.entries(transport)) {
+		if (
+			!handler ||
+			typeof handler !== 'object' ||
+			Array.isArray(handler) ||
+			typeof handler.encode !== 'function' ||
+			typeof handler.decode !== 'function'
+		) {
+			throw new Error(
+				`[@ripple-ts/vite-plugin] transport.${name} must be an object with encode and decode functions.`,
+			);
+		}
+	}
+}
+
+/**
  * Validate a raw ripple config and apply all defaults.
  *
  * After this function returns every optional field carries its default
@@ -125,6 +149,7 @@ export function resolveRippleConfig(raw, options = {}) {
 	}
 
 	validate_root_boundary(raw.rootBoundary);
+	validate_transport(raw.transport);
 
 	// ------------------------------------------------------------------
 	// Apply defaults
@@ -140,6 +165,7 @@ export function resolveRippleConfig(raw, options = {}) {
 			routes: raw.router?.routes ?? [],
 		},
 		rootBoundary: raw.rootBoundary ?? {},
+		transport: raw.transport ?? {},
 		ssr: {
 			streaming: raw.ssr?.streaming ?? false,
 		},

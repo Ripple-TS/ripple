@@ -29,6 +29,12 @@
       "default": "./src/runtime/index-server.js"
     },
     "./package.json": "./package.json",
+    "./transport": {
+      "types": "./types/transport.d.ts",
+      "worker": "./src/runtime/internal/server/transport.js",
+      "browser": "./src/runtime/internal/client/transport.js",
+      "default": "./src/runtime/internal/server/transport.js"
+    },
     "./server": {
       "types": "./types/server.d.ts",
       "default": "./src/server/index.js"

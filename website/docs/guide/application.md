@@ -239,6 +239,45 @@ export default {
 };
 ```
 
+### Custom Serialization
+
+Use `transport` in `ripple.config.ts` when `trackAsync` or a server function
+returns a custom type. Each named handler encodes values for devalue and decodes
+them back into application values. Hydration and RPC share these handlers, and
+RPC uses them for both arguments and return values.
+
+```ts
+import { defineConfig } from '@ripple-ts/vite-plugin';
+import { Money } from './src/money';
+
+export default defineConfig({
+  transport: {
+    Money: {
+      encode: (value) => value instanceof Money && [value.amount, value.currency],
+      decode: ([amount, currency]) => new Money(amount, currency),
+    },
+  },
+});
+```
+
+Both handlers must be synchronous and browser compatible. `encode` returns
+truthy serializable data for a value it recognizes, or `false`/`undefined` to
+leave it to other handlers and devalue's built-in types. Wrap falsy encoded data
+in an array or object. `decode` reconstructs the value from the encoded data.
+Handlers can also recognize plain objects by shape.
+
+Without a transport, or with an empty one, plain hydration data travels as raw
+JSON. Other values use devalue. Configuring a nonempty transport sends all
+hydration results through devalue, allowing encoders to recognize any value.
+RPC always uses devalue.
+
+The Vite plugin registers the transport automatically. With your own server and
+client entries, call `setTransport(transport)` from `ripple/server` before
+rendering or serving RPC and from `ripple` in the browser before `hydrate()`,
+`mount()`, or RPC calls. Registration applies to the whole application; use
+matching handlers on both sides. Calling `setTransport()` or `setTransport({})`
+restores built-in serialization.
+
 ### Cleanup
 
 Both `mount()` and `hydrate()` return a cleanup function that unmounts the

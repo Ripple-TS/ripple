@@ -66,6 +66,7 @@ import {
 } from '../../../utils/errors.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
+import { transport } from './transport.js';
 import { hydrating, track_hash_reference } from './hydration.js';
 import { create_ref_prop as create_core_ref_prop } from '@tsrx/core/runtime/ref';
 
@@ -694,7 +695,11 @@ export function track_async(fn, b, hash) {
 			if (envelope.ok) {
 				had_hydration_data = true;
 				hydration_value =
-					envelope.payload === undefined ? envelope.value : devalue.parse(envelope.payload);
+					envelope.payload === undefined
+						? envelope.value
+						: transport
+							? devalue.parse(envelope.payload, transport.revivers)
+							: devalue.parse(envelope.payload);
 				hydration_deps = envelope.deps;
 			} else {
 				// trigger the catch block

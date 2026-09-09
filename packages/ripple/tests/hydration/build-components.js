@@ -6,7 +6,7 @@
 
 import { compile } from '@tsrx/ripple';
 import { createTextTypeProject as create_text_type_project } from '@tsrx/ripple/typescript';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, cpSync } from 'fs';
 import { join, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -39,6 +39,8 @@ function buildComponents() {
 	// Ensure output directories exist
 	mkdirSync(clientOutDir, { recursive: true });
 	mkdirSync(serverOutDir, { recursive: true });
+	// Shared JS imports keep the same relative paths in both compiled targets.
+	cpSync(join(__dirname, 'fixtures'), join(__dirname, 'compiled', 'fixtures'), { recursive: true });
 
 	// Get all supported component files in components directory
 	const componentFiles = readdirSync(componentsDir).filter((f) => f.endsWith('.tsrx'));

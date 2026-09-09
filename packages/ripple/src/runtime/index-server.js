@@ -1,6 +1,7 @@
 import { output_push, noop, tsrx_element } from './internal/server/index.js';
 
 export { Fragment } from '../jsx-runtime.js';
+export { set_transport as setTransport } from './internal/server/transport.js';
 export { Context } from './internal/server/context.js';
 export {
 	untrack,

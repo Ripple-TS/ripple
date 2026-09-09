@@ -36,8 +36,8 @@ import {
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 import { get_route_entry_path } from './routes.js';
 
-// Re-export route classes
-export { RenderRoute, ServerRoute } from './routes.js';
+// Re-export browser-compatible config helpers
+export { defineConfig, RenderRoute, ServerRoute } from './config.js';
 export {
 	getRippleConfigPath,
 	loadRippleConfig,
@@ -597,6 +597,20 @@ export function ripple(inlineOptions = {}) {
 				let initPromise = null;
 				/** @type {number} */
 				let lastConfigErrorMtimeMs = 0;
+				/** @type {ResolvedRippleConfig['transport'] | undefined} */
+				let registeredTransport;
+
+				// Use the same SSR module graph as pages and RPC, including after
+				// config dependency changes. Production registers in its entry once.
+				async function loadDevConfig() {
+					const nextConfig = await loadRippleConfig(root, { vite });
+					if (nextConfig.transport !== registeredTransport) {
+						const { setTransport } = await vite.ssrLoadModule('ripple/server');
+						setTransport(nextConfig.transport);
+						registeredTransport = nextConfig.transport;
+					}
+					return nextConfig;
+				}
 
 				/**
 				 * Ensure ripple.config.ts has been loaded and the router is
@@ -646,7 +660,7 @@ export function ripple(inlineOptions = {}) {
 						}
 
 						initPromise = (async () => {
-							const nextConfig = await loadRippleConfig(root, { vite });
+							const nextConfig = await loadDevConfig();
 
 							let nextRouter = null;
 							if (has_route_config(nextConfig)) {
@@ -710,6 +724,7 @@ export function ripple(inlineOptions = {}) {
 
 						// Handle RPC requests for `module server` declarations
 						if (is_rpc_request(url.pathname)) {
+							rippleConfig = await loadDevConfig();
 							await handleRpcRequest(req, res, vite, rippleConfig.server.trustProxy, rippleConfig);
 							return;
 						}
@@ -725,7 +740,7 @@ export function ripple(inlineOptions = {}) {
 						try {
 							// Reload config to get fresh routes (for HMR)
 							const previousRoutes = rippleConfig.router.routes;
-							const freshConfig = await loadRippleConfig(root, { vite });
+							const freshConfig = await loadDevConfig();
 							if (freshConfig) {
 								rippleConfig = freshConfig;
 							}
@@ -1030,6 +1045,7 @@ export function ripple(inlineOptions = {}) {
 						htmlTemplatePath: './index.html',
 						rpcModulePaths: [...serverModuleModules],
 						clientAssetMap,
+						transport: Object.keys(loadedRippleConfig.transport).length > 0,
 					});
 					const serverEntryFile = write_project_generated_file(
 						config,
@@ -1190,6 +1206,9 @@ export function ripple(inlineOptions = {}) {
 						create_client_entry_source({
 							configPath: to_vite_root_import(getRippleConfigPath(root), root),
 							staticEntries: isBuild ? renderRouteEntries : [],
+							transport:
+								!isBuild ||
+								Object.keys((await get_current_ripple_config())?.transport ?? {}).length > 0,
 						}),
 					);
 					return fs.readFileSync(file, 'utf-8');
@@ -1233,11 +1252,6 @@ export function ripple(inlineOptions = {}) {
 	];
 
 	return plugins;
-}
-
-// This is mainly to enforce types and provide a better DX with types than anything else
-export function defineConfig(/** @type {RippleConfigOptions} */ options) {
-	return options;
 }
 
 // ============================================================================

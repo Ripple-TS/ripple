@@ -1,9 +1,12 @@
 import { DEV } from 'esm-env';
-import { trackAsync } from 'ripple';
+import { setTransport, trackAsync } from 'ripple';
+import * as devalue from 'devalue';
 
 const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
 
 describe('trackAsync serialization (server)', () => {
+	afterEach(() => setTransport());
+
 	it('serializes resolved trackAsync data as a script tag in SSR output', async () => {
 		function App() @{
 			@try {
@@ -211,6 +214,73 @@ describe('trackAsync serialization (server)', () => {
 				expect(typeof envelope.payload).toBe('string');
 			}
 		});
+
+		it('keeps the raw JSON path for an empty transport', async () => {
+			setTransport({});
+			const value = { title: 'Card', items: [1, true, null] };
+			expect(await envelope_for(value)).toEqual({ ok: true, value });
+		});
+
+		it('serializes custom classes and preserves shared references', async () => {
+			class Money {
+				amount: number;
+				currency: string;
+				constructor(amount: number, currency: string) {
+					this.amount = amount;
+					this.currency = currency;
+				}
+			}
+			const decode = ([amount, currency]: [number, string]) => new Money(amount, currency);
+			setTransport({
+				Money: {
+					encode: (value) => value instanceof Money && [value.amount, value.currency],
+					decode,
+				},
+			});
+			const money = new Money(12, '</script><script>injected</script>');
+			const envelope = await envelope_for({ first: money, second: money, date: new Date(0) });
+			expect(envelope.value).toBeUndefined();
+			const restored = devalue.parse(envelope.payload, { Money: decode });
+			expect(restored.first).toBeInstanceOf(Money);
+			expect(restored.first).toEqual(money);
+			expect(restored.second).toBe(restored.first);
+			expect(restored.date).toEqual(new Date(0));
+		});
+
+		it('lets reducers claim plain objects without first walking the JSON path', async () => {
+			const read_amount = vi.fn(() => 12);
+			const encode = vi.fn((value: any) => value?.__type === 'Money' && [value.amount]);
+			const decode = ([amount]: [number]) => ({ amount, revived: true });
+			setTransport({ Money: { encode, decode } });
+			const value = {
+				nested: {
+					__type: 'Money',
+					get amount() {
+						return read_amount();
+					},
+				},
+			};
+			const envelope = await envelope_for(value);
+			expect(envelope.value).toBeUndefined();
+			expect(devalue.parse(envelope.payload, { Money: decode })).toEqual({
+				nested: { amount: 12, revived: true },
+			});
+			expect(encode.mock.calls.filter(([node]) => node === value.nested)).toHaveLength(1);
+			expect(read_amount).toHaveBeenCalledTimes(1);
+		});
+
+		it(
+			'uses devalue for plain data under an unused transport and restores JSON after reset',
+			async () => {
+				setTransport({ Unused: { encode: () => undefined, decode: (value) => value } });
+				const value = { title: 'Card', items: [1, true, null] };
+				const envelope = await envelope_for(value);
+				expect(envelope.value).toBeUndefined();
+				expect(devalue.parse(envelope.payload)).toEqual(value);
+				setTransport();
+				expect(await envelope_for(value)).toEqual({ ok: true, value });
+			},
+		);
 	});
 
 	it('escapes serialized error payload to keep script tag safe', async () => {

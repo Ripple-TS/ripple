@@ -29,6 +29,7 @@ import {
  * @property {string} htmlTemplatePath - Path to the processed index.html template
  * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .tsrx modules with `module server` declarations
  * @property {Record<string, ClientAssetEntry>} [clientAssetMap] - Map of route entry paths to built JS/CSS asset paths
+ * @property {boolean} [transport] - Whether the app configures custom serializers
  */
 
 /**
@@ -144,7 +145,7 @@ export function generateServerEntry(options) {
 // Auto-generated server entry for production build
 // Do not edit — regenerated on each build
 
-import { render, getCss, createStream, executeServerFunction } from 'ripple/server';
+import { render, getCss, createStream, executeServerFunction${options.transport ? ', setTransport' : ''} } from 'ripple/server';
 import { createHandler, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -161,6 +162,7 @@ try {
   console.error(e.message);
   process.exit(1);
 }
+${options.transport ? '\nsetTransport(rippleConfig.transport);\n' : ''}
 
 function getComponentExport(mod, exportName) {
   if (exportName && typeof mod[exportName] === 'function') return mod[exportName];

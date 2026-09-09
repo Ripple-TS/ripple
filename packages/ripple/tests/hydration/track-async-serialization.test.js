@@ -1,6 +1,7 @@
 import { DEV } from 'esm-env';
-import { describe, it, expect, vi } from 'vitest';
-import { flushSync } from 'ripple';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { flushSync, setTransport } from 'ripple';
+import { executeServerFunction, setTransport as setServerTransport } from 'ripple/server';
 import * as devalue from 'devalue';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
@@ -12,6 +13,54 @@ const TRACK_ASYNC_ERROR_MESSAGE = DEV ? 'fetch failed' : TRACK_ASYNC_PUBLIC_ERRO
 const TRACK_ASYNC_CHILD_ERROR_MESSAGE = DEV ? 'child error' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
 
 describe('hydration > trackAsync serialization', () => {
+	afterEach(() => {
+		setTransport();
+		setServerTransport();
+		vi.unstubAllGlobals();
+	});
+
+	it('revives a custom class during hydration and sends it through RPC in both directions', async () => {
+		const serverDecode = vi.fn(ServerComponents.transport.Money.decode);
+		const clientDecode = vi.fn(ClientComponents.transport.Money.decode);
+		setServerTransport({ Money: { ...ServerComponents.transport.Money, decode: serverDecode } });
+		setTransport({ Money: { ...ClientComponents.transport.Money, decode: clientDecode } });
+		const fetchMock = vi.fn(async (_url, init) => {
+			const body = await executeServerFunction(
+				ServerComponents._$_server_$_.doubleMoney,
+				init.body,
+			);
+			return new Response(body, { status: 200 });
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { unmount } = await hydrateComponent(
+			ServerComponents.AsyncCustomType,
+			ClientComponents.AsyncCustomType,
+		);
+		try {
+			// Calling the instance method requires the client decoder, and hydration
+			// must adopt the server result without refetching it.
+			expect(container.querySelector('.result')?.textContent).toBe('12 USD');
+			expect(container.querySelector('.loading')).toBeNull();
+			expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+			expect(fetchMock).not.toHaveBeenCalled();
+			expect(clientDecode).toHaveBeenCalledTimes(1);
+			expect(serverDecode).not.toHaveBeenCalled();
+
+			container.querySelector('.increment').click();
+			flushSync();
+			await vi.waitFor(() => {
+				expect(container.querySelector('.result')?.textContent).toBe('14 USD');
+			});
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+			expect(fetchMock.mock.calls[0][0]).toMatch(/\/_\$_ripple_rpc_\$_\//);
+			expect(clientDecode).toHaveBeenCalledTimes(2);
+			expect(serverDecode).toHaveBeenCalledTimes(1);
+		} finally {
+			unmount();
+		}
+	});
+
 	it('hydrates simple string value from serialized trackAsync', async () => {
 		await hydrateComponent(ServerComponents.AsyncSimpleValue, ClientComponents.AsyncSimpleValue);
 

@@ -2168,6 +2168,9 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
+      devalue:
+        specifier: catalog:default
+        version: 5.9.2(patch_hash=84183f3b12028dbd1272adaee7c751c1aeaf5acf3d4810b9d45c79c19c83dfb3)
       ripple:
         specifier: workspace:*
         version: link:../ripple

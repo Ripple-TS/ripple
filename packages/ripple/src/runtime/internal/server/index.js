@@ -2003,6 +2003,38 @@ function serialize_track_async_result(output, hash, value, deps) {
 	);
 }
 
+const default_track_async_serializer = serialize_track_async_result;
+
+/**
+ * Switch once at registration, keeping the default serializer unchanged and
+ * avoiding a transport lookup for every result. Unused registration code can
+ * be removed from builds that only use the default renderer.
+ * @param {Record<string, (value: any) => any> | undefined} reducers
+ */
+export function set_track_async_transport(reducers) {
+	/** @type {typeof serialize_track_async_result} */
+	const serializer =
+		reducers === undefined
+			? default_track_async_serializer
+			: (output, hash, value, deps) => {
+					// Reducers can claim plain objects: devalue must do the only walk.
+					/** @type {{ ok: true, payload: string, deps?: string[] }} */
+					const envelope = { ok: true, payload: devalue.stringify(value, reducers) };
+					if (deps && deps.length > 0) envelope.deps = deps;
+					output.push_serialized_result(
+						'<script id="' +
+							get_track_async_script_id(hash) +
+							'" type="application/json">' +
+							escape_inline_script(JSON.stringify(envelope)) +
+							'</script>',
+					);
+				};
+	// Keep the function declaration so unused registration leaves exactly the
+	// original renderer in production bundles, without a mutable alias.
+	// @ts-expect-error JavaScript permits reassigning a function declaration.
+	serialize_track_async_result = serializer;
+}
+
 /**
  * Whether a value is a plain data tree that `JSON.stringify` encodes without
  * loss: strings, finite numbers (not `-0`), booleans, `null`, arrays without

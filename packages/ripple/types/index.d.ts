@@ -1,4 +1,6 @@
 import type { ExtendedEventOptions } from '@tsrx/core/types';
+export { setTransport } from './transport.js';
+export type { Transport, Transporter } from './transport.js';
 export type { RefValue } from '@tsrx/core/runtime/ref';
 export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsrx/core/types';
 

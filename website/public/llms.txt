@@ -692,6 +692,38 @@ export default {
 `index.html` must keep the `<!--ssr-head-->` and `<!--ssr-body-->` markers;
 the plugin falls back to buffered SSR with a warning when they are missing.
 
+### Custom Serialization
+
+Set `transport` in `ripple.config.ts` to serialize custom types in `trackAsync`
+hydration results and RPC arguments/results in both directions:
+
+```ts
+import { defineConfig } from '@ripple-ts/vite-plugin';
+import { Money } from './src/money';
+
+export default defineConfig({
+	transport: {
+		Money: {
+			encode: (value) => value instanceof Money && [value.amount, value.currency],
+			decode: ([amount, currency]) => new Money(amount, currency),
+		},
+	},
+});
+```
+
+Handlers are synchronous and browser compatible. `encode` returns truthy
+serializable data for recognized values, or `false`/`undefined` to skip them;
+wrap falsy data in an array or object. `decode` rebuilds the value. Encoders can
+claim plain objects too. With no transport or an empty one, plain hydration data
+uses raw JSON and other values use devalue's built-in types. A nonempty transport
+uses devalue for all hydration results. RPC always uses devalue.
+
+The Vite plugin registers the handlers at startup. For a custom integration,
+call `setTransport(transport)` from `ripple/server` before rendering or serving
+RPC, and from `ripple` in the browser before `hydrate`, `mount`, or RPC calls.
+Registration is application-wide; use the same definitions on both sides.
+`setTransport()` or `setTransport({})` restores built-in serialization.
+
 ## Raw HTML
 
 Use `innerHTML={trustedHtml}` for trusted markup. Do not pass untrusted strings to

@@ -2,6 +2,7 @@ import type { Component, RootBoundaryOptions } from '#public';
 
 // Re-export runtime types for server-compiled components
 export {
+	setTransport,
 	track,
 	untrack,
 	flushSync,
@@ -15,6 +16,8 @@ export {
 	RippleURL,
 	RippleURLSearchParams,
 } from './index.js';
+
+export type { Transport, Transporter } from './index.js';
 
 export interface RenderResult {
 	head: string;

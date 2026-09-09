@@ -13,6 +13,7 @@
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
+      "browser": "./src/config.js",
       "import": "./src/index.js",
       "default": "./src/index.js"
     },
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:default",
+    "devalue": "catalog:default",
     "ripple": "workspace:*",
     "type-fest": "catalog:default",
     "vite": "catalog:default"

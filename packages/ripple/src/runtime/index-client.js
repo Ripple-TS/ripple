@@ -18,6 +18,7 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
+export { set_transport as setTransport } from './internal/client/transport.js';
 export {
 	UNINITIALIZED,
 	TRACKED_UPDATED,

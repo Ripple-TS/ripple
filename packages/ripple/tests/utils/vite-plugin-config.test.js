@@ -18,6 +18,7 @@ describe('vite-plugin-ripple config resolution', () => {
 		expect(config.platform.env).toEqual({});
 		expect(config.server.trustProxy).toBe(false);
 		expect(config.rootBoundary).toEqual({});
+		expect(config.transport).toEqual({});
 		expect(config.build.outDir).toBe('dist');
 	});
 
@@ -77,4 +78,26 @@ describe('vite-plugin-ripple config resolution', () => {
 			}),
 		).toThrow('router.routes must be an array');
 	});
+
+	it('preserves transport functions when resolving a config again', () => {
+		const transport = {
+			Money: { encode: () => false, decode: (data) => data },
+		};
+		const config = resolveRippleConfig({ transport });
+		expect(config.transport).toBe(transport);
+		expect(resolveRippleConfig(config).transport).toBe(transport);
+	});
+
+	it.each([null, false, [], 'Money', () => {}])('rejects invalid transport %s', (transport) => {
+		expect(() => resolveRippleConfig({ transport })).toThrow('transport must be an object');
+	});
+
+	it.each([null, [], false, {}, { encode() {} }, { decode() {} }, { encode: true, decode() {} }])(
+		'rejects invalid transport handler %s',
+		(Money) => {
+			expect(() => resolveRippleConfig({ transport: { Money } })).toThrow(
+				'transport.Money must be an object with encode and decode functions',
+			);
+		},
+	);
 });

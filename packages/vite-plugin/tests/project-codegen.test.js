@@ -18,6 +18,7 @@ describe('project codegen', () => {
 		expect(source).toContain('return Array.isArray(entry) ? entry[0] : undefined;');
 		expect(source).toContain('const rootBoundary = rippleConfig.rootBoundary;');
 		expect(source).toContain('hydrate(root, { target, props, rootBoundary });');
+		expect(source).not.toContain('setTransport');
 	});
 
 	it('generates server components from named entry tuples', () => {
@@ -37,6 +38,29 @@ describe('project codegen', () => {
 		expect(source).toContain('import * as _page_0 from "/src/pages/docs/guide/dom-refs.tsrx";');
 		expect(source).toContain(
 			'"/src/pages/docs/guide/dom-refs.tsrx#DomRefsPage": getComponentExport(_page_0, "DomRefsPage"),',
+		);
+	});
+
+	it('registers transport before loading client routes and creating the server handler', () => {
+		const client = create_client_entry_source({
+			configPath: '/ripple.config.ts',
+			staticEntries: ['/src/App.tsrx'],
+			transport: true,
+		});
+		const server = generateServerEntry({
+			routes: [],
+			rippleConfigPath: '/ripple.config.ts',
+			htmlTemplatePath: './index.html',
+			transport: true,
+		});
+		for (const source of [client, server]) {
+			expect(source).toContain('setTransport(rippleConfig.transport);');
+		}
+		expect(client.indexOf('setTransport(rippleConfig.transport)')).toBeLessThan(
+			client.indexOf('const routeModules'),
+		);
+		expect(server.indexOf('setTransport(rippleConfig.transport)')).toBeLessThan(
+			server.indexOf('const handler = createHandler'),
 		);
 	});
 });

@@ -1,5 +1,7 @@
 import type { Plugin, BuildEnvironmentOptions, ViteDevServer } from 'vite';
 import type { RuntimePrimitives } from '@ripple-ts/adapter';
+import type { Transport } from 'ripple/transport';
+export type { Transport, Transporter } from 'ripple/transport';
 
 // ============================================================================
 // Plugin exports
@@ -148,6 +150,8 @@ export interface RippleConfigOptions {
 	};
 	/** Global root pending/catch UI used by client and SSR render roots */
 	rootBoundary?: RootBoundaryOptions;
+	/** Custom serializers shared by trackAsync hydration and RPC in both directions. */
+	transport?: Transport;
 	ssr?: {
 		/**
 		 * Stream render-route responses: the synchronous shell (with pending
@@ -201,6 +205,8 @@ export interface ResolvedRippleConfig {
 		routes: Route[];
 	};
 	rootBoundary: RootBoundaryOptions;
+	/** @default {} */
+	transport: Transport;
 	ssr: {
 		/** @default false */
 		streaming: boolean;
