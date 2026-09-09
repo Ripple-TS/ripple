@@ -1,15 +1,11 @@
-import * as devalue from 'devalue';
-import { transport } from './transport.js';
+import { encode, revive } from './transport.js';
 
 /**
  * @param {string} hash
  * @param {any[]} args
  */
 export async function rpc(hash, args) {
-	const body =
-		(typeof __RIPPLE_TRANSPORT__ === 'undefined' || __RIPPLE_TRANSPORT__) && transport
-			? devalue.stringify(args, transport.reducers)
-			: devalue.stringify(args);
+	const body = encode(args);
 	/** @type {Response} */
 	let response;
 
@@ -59,9 +55,5 @@ export async function rpc(hash, args) {
 		);
 	}
 
-	return (
-		(typeof __RIPPLE_TRANSPORT__ === 'undefined' || __RIPPLE_TRANSPORT__) && transport
-			? devalue.parse(data, transport.revivers)
-			: devalue.parse(data)
-	).value;
+	return revive(data).value;
 }

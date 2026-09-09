@@ -127,8 +127,6 @@ export type StreamBoundaryActivator = (
 export type StreamBoundaryRegistry = Record<string | number, 1 | { a: StreamBoundaryActivator }>;
 
 declare global {
-	/** Replaced by bundlers after checking whether registration is retained. */
-	var __RIPPLE_TRANSPORT__: boolean | undefined;
 	interface Window {
 		/** streamed-boundary registry, see {@link StreamBoundaryRegistry} */
 		__RIPPLE_B__?: StreamBoundaryRegistry;
