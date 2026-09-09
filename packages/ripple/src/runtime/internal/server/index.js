@@ -462,6 +462,18 @@ function run_derived(computed) {
 }
 
 /**
+ * Runs `fn` after the current task's microtasks have drained, so work
+ * completing in the same task can be batched into it.
+ * @type {(fn: () => void) => void}
+ */
+const defer =
+	typeof setImmediate === 'function'
+		? setImmediate
+		: (fn) => {
+				setTimeout(fn, 0);
+			};
+
+/**
  * `<div translate={false}>` should be rendered as `<div translate="no">` and _not_
  * `<div translate="false">`, which is equivalent to `<div translate="yes">`. There
  * may be other odd cases that need to be added to this list in future
@@ -520,6 +532,7 @@ export class Output {
 	/** @type {Set<string> | null} */
 	#sent_css = null;
 	#shell_flushed = false;
+	#flush_scheduled = false;
 
 	get root() {
 		return this.#root;
@@ -915,33 +928,42 @@ export class Output {
 		if (this.#streamOutput === null || this.#stream_finished || !this.#shell_flushed) {
 			return;
 		}
-		if (!unit.settled || unit.flushed || !unit.slot_sent) {
+		if (!unit.settled || unit.flushed || !unit.slot_sent || this.#flush_scheduled) {
 			return;
 		}
-		this.#flush_unit(unit);
-		this.#sweep_units();
+		// Units settling in the same macrotask (data arriving together, a
+		// batch of promises resolved by one timer or I/O callback) travel in
+		// one chunk: the flush runs once the current task's microtasks have
+		// drained. Closing the stream flushes whatever is still queued first.
+		this.#flush_scheduled = true;
+		defer(() => this.#flush_settled());
+	}
+
+	#flush_settled() {
+		this.#flush_scheduled = false;
+		if (!this.#stream_finished) {
+			this.#sweep_units();
+		}
 	}
 
 	/**
 	 * @param {FlushUnit} unit
-	 * @returns {void}
+	 * @returns {string}
 	 */
-	#flush_unit(unit) {
-		var sink = /** @type {StreamSink} */ (this.#streamOutput);
+	#unit_chunk(unit) {
 		if (unit.errored) {
 			unit.flushed = true;
-			sink.push(
+			return (
 				'<script id="' +
-					STREAM_ERROR_SCRIPT_PREFIX +
-					unit.id +
-					'" type="application/json">' +
-					escape_script(JSON.stringify({ message: unit.error })) +
-					'</script>' +
-					'<script>__RIPPLE_S__(' +
-					unit.id +
-					',1)</script>',
+				STREAM_ERROR_SCRIPT_PREFIX +
+				unit.id +
+				'" type="application/json">' +
+				escape_script(JSON.stringify({ message: unit.error })) +
+				'</script>' +
+				'<script>__RIPPLE_S__(' +
+				unit.id +
+				',1)</script>'
 			);
-			return;
 		}
 		/** @type {StreamChunk} */
 		var chunk = { css: new Set(), scripts: [], head: '' };
@@ -953,27 +975,31 @@ export class Output {
 		out += chunk.scripts.join('');
 		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
 		out += '<script>__RIPPLE_S__(' + unit.id + ')</script>';
-		sink.push(out);
+		return out;
 	}
 
 	/**
-	 * Flushes every unit whose slot has been sent and whose async work has
-	 * settled. Flushing a parent chunk marks nested unsettled slots as sent,
-	 * which can make further units eligible — loop until a fixpoint.
+	 * Streams every unit whose slot has been sent and whose async work has
+	 * settled, as one chunk. Flushing a parent marks nested unsettled slots
+	 * as sent, which can make further units eligible — loop until a fixpoint.
 	 * @returns {void}
 	 */
 	#sweep_units() {
 		var units = /** @type {FlushUnit[]} */ (this.#units);
+		var out = '';
 		var progressed = true;
 		while (progressed) {
 			progressed = false;
 			for (var i = 0; i < units.length; i++) {
 				var unit = units[i];
 				if (unit.settled && !unit.flushed && unit.slot_sent) {
-					this.#flush_unit(unit);
+					out += this.#unit_chunk(unit);
 					progressed = true;
 				}
 			}
+		}
+		if (out !== '') {
+			/** @type {StreamSink} */ (this.#streamOutput).push(out);
 		}
 	}
 
@@ -1087,6 +1113,7 @@ export class Output {
 	_closeStream() {
 		if (this.#is_root) {
 			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
+				this.#sweep_units();
 				this.#stream_finished = true;
 				if (this.#stream_template !== null && this.#stream_template.after !== '') {
 					this.#streamOutput.push(this.#stream_template.after);
@@ -1937,12 +1964,96 @@ export function track(v, hash, get, set) {
  * @returns {void}
  */
 function serialize_track_async_result(output, hash, value, deps) {
-	/** @type {{ ok: true, payload: string, deps?: string[] }} */
-	var envelope = { ok: true, payload: devalue.stringify(value) };
-	if (deps && deps.length > 0) {
-		envelope.deps = deps;
+	/** @type {string} */
+	var envelope;
+	if (is_plain_data(value, null)) {
+		// plain data: the value travels as raw JSON inside the envelope, so the
+		// client reads it straight off `JSON.parse` with no devalue pass
+		envelope = '{"ok":true,"value":' + JSON.stringify(value);
+		if (deps && deps.length > 0) {
+			envelope += ',"deps":' + JSON.stringify(deps);
+		}
+		envelope += '}';
+	} else {
+		/** @type {{ ok: true, payload: string, deps?: string[] }} */
+		var object = { ok: true, payload: devalue.stringify(value) };
+		if (deps && deps.length > 0) {
+			object.deps = deps;
+		}
+		envelope = JSON.stringify(object);
 	}
-	push_script_for_hydration((str) => output.push_serialized_result(str), hash, envelope);
+	output.push_serialized_result(
+		'<script id="' +
+			get_track_async_script_id(hash) +
+			'" type="application/json">' +
+			escape_script(envelope) +
+			'</script>',
+	);
+}
+
+/**
+ * Whether a value is a plain data tree that `JSON.stringify` encodes without
+ * loss: strings, finite numbers (not `-0`), booleans, `null`, arrays without
+ * holes and plain objects, every object reachable exactly once. `JSON.parse`
+ * on the client then yields exactly what `devalue.parse` would. Anything else
+ * — `undefined`, `NaN`, `Infinity`, `-0`, bigints, symbols, functions, Dates,
+ * Maps, Sets, class instances, null-prototype objects, symbol keys, cycles
+ * and shared references — keeps its devalue encoding.
+ * @param {unknown} value
+ * @param {Set<object> | null} seen
+ * @returns {boolean}
+ */
+function is_plain_data(value, seen) {
+	switch (typeof value) {
+		case 'string':
+		case 'boolean':
+			return true;
+		case 'number':
+			return (
+				value === value &&
+				value !== Infinity &&
+				value !== -Infinity &&
+				(value !== 0 || 1 / value > 0)
+			);
+		case 'object':
+			break;
+		default:
+			return false;
+	}
+	if (value === null) {
+		return true;
+	}
+	var proto = Object.getPrototypeOf(value);
+	var is_list = proto === Array.prototype;
+	if (!is_list && proto !== Object.prototype) {
+		return false;
+	}
+	if (seen === null) {
+		seen = new Set();
+	} else if (seen.has(value)) {
+		return false;
+	}
+	seen.add(value);
+	if (is_list) {
+		var list = /** @type {unknown[]} */ (value);
+		for (var i = 0; i < list.length; i++) {
+			if (!is_plain_data(list[i], seen)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	if (Object.getOwnPropertySymbols(value).length !== 0) {
+		return false;
+	}
+	var record = /** @type {Record<string, unknown>} */ (value);
+	var keys = Object.keys(record);
+	for (var k = 0; k < keys.length; k++) {
+		if (!is_plain_data(record[keys[k]], seen)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /**

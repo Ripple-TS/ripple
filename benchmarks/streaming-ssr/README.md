@@ -11,13 +11,13 @@ is required:
 | `react`       | `renderToPipeableStream` from `react-dom/server` (Fizz) |
 | `preact`      | `renderToPipeableStream` from `preact-render-to-string` |
 | `solid`       | `renderToStream` from `@solidjs/web` (Solid 2.0)        |
-| `ripple`      | `render(App, { stream })` + `createStream()` (Ripple)   |
+| `ripple`      | `render(App, { stream })` with a `StreamSink` (Ripple)  |
 | `inferno`     | `streamQueueAsString` from `inferno-server`             |
 
 All six **do stream** (ripple 0.3.86 gained a stream-mode `render`; see the caveat
 below). Chunks are collected via each API's natural destination — a plain
-`{ write, end }` object (octane, solid), a minimal Node `Writable` (React and
-Preact use one), or a web-stream reader loop (ripple) — timestamped with
+`{ write, end }` object (octane, solid), a `{ push, close, error }` sink (ripple),
+or a minimal Node `Writable` (React and Preact use one) — timestamped with
 `performance.now()` as they land in the harness callback.
 
 Inferno's ordered queue stream flushes the synchronous prefix, then resumes async
@@ -115,10 +115,18 @@ it.
   fallback). In all-fast this legitimately collapses the whole render to a single
   chunk — its `shellTTFB` then equals `totalTime`. `renderToStream` imports from
   `@solidjs/web` (the 2.0 package split).
-- **Ripple**: uses the workspace's public `createStream()` and
-  `render(App, { stream })` APIs. This checkout includes client swap/seed wiring;
-  the older upstream raw-block-only caveat does not describe this port. Timings
-  and bytes cover the actual emitted protocol.
+- **Ripple**: uses the workspace's public `render(App, { stream })` API with the
+  harness callback as the `StreamSink` (the same plain string destination octane
+  and solid write to; `createStream()` wraps such a sink in a web
+  `ReadableStream<Uint8Array>` for HTTP responses). Boundaries that settle in the
+  same task stream in one chunk, flushed once the task's microtasks drain
+  (`setImmediate`, as Solid and React Fizz do), so all-fast collapses to shell +
+  one chunk while staggered stays one chunk per card. The fixture build enables
+  Ripple's `textTypes` (a `tsconfig.json` beside the fixture), so card fields
+  typed through the imported `CardData` interface render as escaped text rather
+  than marker-bracketed value expressions. This checkout includes client swap/seed
+  wiring; the older upstream raw-block-only caveat does not describe this port.
+  Timings and bytes cover the actual emitted protocol.
 
 The harness correctness gate asserts the shell appears exactly once and all
 requested card payloads are present (10 cards in the shared scenarios). For

@@ -120,7 +120,7 @@ catalogs:
     clsx: ^2.1.1
     commander: ^14.0.3
     degit: ^2.8.4
-    devalue: ^5.8.1
+    devalue: ^5.9.2
     eslint: ^10.3.0
     esm-env: ^1.2.2
     esrap: *esrap_common

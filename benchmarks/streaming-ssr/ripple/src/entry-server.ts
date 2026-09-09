@@ -1,12 +1,16 @@
-import { render, createStream } from 'ripple/server';
+import { render, type StreamSink } from 'ripple/server';
 import { App, setCards } from './App.tsrx';
 import { cardData, makeCards, type CardData, type CardSlot, type Scenario } from './data';
 
 // Streaming SSR entry — Ripple target. Ripple's streaming mode is
-// `render(App, { stream: sink })` with a `createStream()` web
-// ReadableStream: the sync pass streams the shell (fallbacks included), then
-// each suspended block's resolved output is pushed as it settles. The chunks
-// arrive through a reader loop using the current public streaming API.
+// `render(App, { stream })`, where `stream` is any `StreamSink`
+// (`{ push, close, error }`): the sync pass pushes the shell (fallbacks
+// included), then each settled boundary's resolved output as a framed chunk.
+// Like the octane and solid fixtures' plain `{ write, end }` destinations, the
+// harness chunk callback plugs in directly as the sink; `createStream()` is
+// the same sink wrapped in a web `ReadableStream<Uint8Array>` for HTTP
+// responses, which would add a UTF-8 encode/decode round trip the string
+// destinations of the other targets do not pay.
 export const streaming = true;
 
 export async function renderStream(
@@ -16,8 +20,9 @@ export async function renderStream(
 	return renderCards(makeCards(scenario), onChunk);
 }
 
-// Same consumer-paced producer as Octane TSRX, using Ripple's native Web Stream.
-// Each accepted nonempty chunk releases at most one group of pending cards.
+// Same consumer-paced producer as Octane TSRX, using Ripple's native stream
+// sink. Each accepted nonempty chunk releases at most one group of pending
+// cards.
 export function renderControlledStream(
 	cardCount: number,
 	waveSize: number,
@@ -36,19 +41,12 @@ export function renderControlledStream(
 	});
 }
 
-async function renderCards(cards: CardSlot[], onChunk: (chunk: string) => void): Promise<void> {
+function renderCards(cards: CardSlot[], onChunk: (chunk: string) => void): Promise<void> {
 	setCards(cards);
-	const { stream, sink } = createStream();
-	const decoder = new TextDecoder();
-	const reader = stream.getReader();
-	const pump = (async () => {
-		for (;;) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			onChunk(decoder.decode(value));
-		}
-	})();
-	const result = await render(App, { stream: sink });
-	if (result.topLevelError) throw result.topLevelError;
-	await pump;
+	return new Promise((resolve, reject) => {
+		const sink: StreamSink = { push: onChunk, close: resolve, error: reject };
+		render(App, { stream: sink }).then((result) => {
+			if (result.topLevelError) reject(result.topLevelError);
+		}, reject);
+	});
 }

@@ -139,6 +139,80 @@ describe('trackAsync serialization (server)', () => {
 		expect(body).not.toContain('Error thrown during trackAsync execution');
 	});
 
+	describe('hydration envelope encoding', () => {
+		async function envelope_for(value: unknown) {
+			function App() @{
+				@try {
+					let &[data] = trackAsync(() => Promise.resolve(value));
+					<p>{String(data !== undefined)}</p>
+				} @pending {
+					<p>{'...'}</p>
+				}
+			}
+
+			const { body } = await render(App);
+			const match = body.match(
+				/<script id="__ripple_ta_[a-f0-9]+" type="application\/json">(.*?)<\/script>/s,
+			);
+			expect(match).not.toBeNull();
+			const text = /** @type {RegExpMatchArray} */ (match)[1];
+			expect(text).not.toContain('<');
+			return JSON.parse(text);
+		}
+
+		it('ships plain data trees as raw JSON', async () => {
+			const value = {
+				title: 'Card 0 — "alpha" \\ <b>&</b>',
+				count: 3,
+				ratio: 0.5,
+				ok: true,
+				none: null,
+				items: [{ label: 'a\nb', value: 'tab\there' }, ['x', 1, false], '😀 '],
+				'odd key': { nested: [] },
+			};
+			const envelope = await envelope_for(value);
+			expect(envelope.ok).toBe(true);
+			expect(envelope.payload).toBeUndefined();
+			expect(envelope.value).toEqual(value);
+		});
+
+		it('ships primitives as raw JSON', async () => {
+			expect((await envelope_for('hello')).value).toBe('hello');
+			expect((await envelope_for('lone � surrogate')).value).toBe('lone � surrogate');
+			expect((await envelope_for(42)).value).toBe(42);
+			expect((await envelope_for(false)).value).toBe(false);
+			expect((await envelope_for(null)).value).toBe(null);
+		});
+
+		it('keeps the devalue encoding for values JSON cannot represent', async () => {
+			const shared = { n: 1 };
+			const cyclic: { self?: unknown } = {};
+			cyclic.self = cyclic;
+			for (const value of [
+				undefined,
+				NaN,
+				Infinity,
+				-0,
+				10n,
+				new Date(0),
+				new Map([[1, 2]]),
+				new Set([1]),
+				/re/,
+				Object.create(null),
+				{ a: undefined },
+				{ a: shared, b: shared },
+				[shared, shared],
+				cyclic,
+				// eslint-disable-next-line no-sparse-arrays
+				[1, , 3],
+			]) {
+				const envelope = await envelope_for(value);
+				expect(envelope.value).toBeUndefined();
+				expect(typeof envelope.payload).toBe('string');
+			}
+		});
+	});
+
 	it('escapes serialized error payload to keep script tag safe', async () => {
 		function App() @{
 			@try {

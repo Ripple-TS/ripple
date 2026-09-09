@@ -693,7 +693,8 @@ export function track_async(fn, b, hash) {
 
 			if (envelope.ok) {
 				had_hydration_data = true;
-				hydration_value = devalue.parse(envelope.payload);
+				hydration_value =
+					envelope.payload === undefined ? envelope.value : devalue.parse(envelope.payload);
 				hydration_deps = envelope.deps;
 			} else {
 				// trigger the catch block

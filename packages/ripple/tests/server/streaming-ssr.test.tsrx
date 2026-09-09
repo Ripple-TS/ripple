@@ -38,6 +38,17 @@ function recordingSink() {
 const SLOT_OPEN_RE = /<!--\[\?(\d+)-->/;
 
 /**
+ * Settled units stream once the current task's microtasks have drained, so
+ * units settling together share one chunk: wait a macrotask for the flush.
+ */
+async function flushed(): Promise<void> {
+	// the first macrotask lets the settle microtasks schedule the flush, the
+	// second lets that flush run
+	await new Promise((resolve) => setImmediate(resolve));
+	await new Promise((resolve) => setImmediate(resolve));
+}
+
+/**
  * Applies streamed chunks the way the inline swap runtime would: collects
  * chunk templates, then repeatedly replaces `<!--[?N-->…<!--]-->` slots
  * (depth-aware over `[`-prefixed / `]` comments) with the template content.
@@ -396,9 +407,7 @@ describe('streaming nested and sibling boundaries', () => {
 		const result = render(App, { stream: sink });
 
 		d_outer.resolve('outer-done');
-		await d_outer.promise;
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushed();
 
 		expect(chunks).toHaveLength(2);
 		const parent_chunk = chunks[1];
@@ -448,9 +457,7 @@ describe('streaming nested and sibling boundaries', () => {
 		const result = render(App, { stream: sink });
 
 		d_second.resolve('B');
-		await d_second.promise;
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushed();
 
 		expect(chunks).toHaveLength(2);
 		expect(chunks[1]).toContain('second: B');
@@ -716,9 +723,7 @@ describe('streaming CSS', () => {
 		expect(chunks[0]).not.toContain('.late-styled');
 
 		d_gate.resolve(true);
-		await d_gate.promise;
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushed();
 
 		expect(chunks).toHaveLength(2);
 		// the chunk carries the style it needs, ahead of its template
