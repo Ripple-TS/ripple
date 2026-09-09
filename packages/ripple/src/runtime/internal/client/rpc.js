@@ -6,7 +6,10 @@ import { transport } from './transport.js';
  * @param {any[]} args
  */
 export async function rpc(hash, args) {
-	const body = transport ? devalue.stringify(args, transport.reducers) : devalue.stringify(args);
+	const body =
+		(typeof __RIPPLE_TRANSPORT__ === 'undefined' || __RIPPLE_TRANSPORT__) && transport
+			? devalue.stringify(args, transport.reducers)
+			: devalue.stringify(args);
 	/** @type {Response} */
 	let response;
 
@@ -56,5 +59,9 @@ export async function rpc(hash, args) {
 		);
 	}
 
-	return (transport ? devalue.parse(data, transport.revivers) : devalue.parse(data)).value;
+	return (
+		(typeof __RIPPLE_TRANSPORT__ === 'undefined' || __RIPPLE_TRANSPORT__) && transport
+			? devalue.parse(data, transport.revivers)
+			: devalue.parse(data)
+	).value;
 }

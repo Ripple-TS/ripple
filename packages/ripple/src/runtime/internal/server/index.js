@@ -2018,14 +2018,16 @@ export function set_track_async_transport(reducers) {
 			? default_track_async_serializer
 			: (output, hash, value, deps) => {
 					// Reducers can claim plain objects: devalue must do the only walk.
-					/** @type {{ ok: true, payload: string, deps?: string[] }} */
-					const envelope = { ok: true, payload: devalue.stringify(value, reducers) };
-					if (deps && deps.length > 0) envelope.deps = deps;
+					// Embed its JSON directly, avoiding another stringify of the payload
+					// string and another JSON.parse on the client before revival.
+					let envelope = '{"ok":true,"payload":' + devalue.stringify(value, reducers);
+					if (deps && deps.length > 0) envelope += ',"deps":' + JSON.stringify(deps);
+					envelope += '}';
 					output.push_serialized_result(
 						'<script id="' +
 							get_track_async_script_id(hash) +
 							'" type="application/json">' +
-							escape_inline_script(JSON.stringify(envelope)) +
+							escape_inline_script(envelope) +
 							'</script>',
 					);
 				};

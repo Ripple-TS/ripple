@@ -1,7 +1,7 @@
 import { DEV } from 'esm-env';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { flushSync, setTransport } from 'ripple';
-import { executeServerFunction, setTransport as setServerTransport } from 'ripple/server';
+import { flushSync, hydrate, setTransport } from 'ripple';
+import { executeServerFunction, render, setTransport as setServerTransport } from 'ripple/server';
 import * as devalue from 'devalue';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
@@ -17,6 +17,25 @@ describe('hydration > trackAsync serialization', () => {
 		setTransport();
 		setServerTransport();
 		vi.unstubAllGlobals();
+	});
+
+	it('also accepts string devalue payloads with a registered transport', async () => {
+		setServerTransport(ServerComponents.transport);
+		setTransport(ClientComponents.transport);
+		const { body } = await render(ServerComponents.AsyncCustomType);
+		container.innerHTML = body;
+		for (const script of container.querySelectorAll('script[id^="__ripple_ta_"]')) {
+			const envelope = JSON.parse(script.textContent);
+			envelope.payload = JSON.stringify(envelope.payload);
+			script.textContent = JSON.stringify(envelope);
+		}
+		const unmount = hydrate(ClientComponents.AsyncCustomType, { target: container });
+		try {
+			expect(container.querySelector('.result')?.textContent).toBe('12 USD');
+			expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+		} finally {
+			unmount();
+		}
 	});
 
 	it('revives a custom class during hydration and sends it through RPC in both directions', async () => {

@@ -697,8 +697,10 @@ export function track_async(fn, b, hash) {
 				hydration_value =
 					envelope.payload === undefined
 						? envelope.value
-						: transport
-							? devalue.parse(envelope.payload, transport.revivers)
+						: (typeof __RIPPLE_TRANSPORT__ === 'undefined' || __RIPPLE_TRANSPORT__) && transport
+							? typeof envelope.payload === 'string'
+								? devalue.parse(envelope.payload, transport.revivers)
+								: devalue.unflatten(envelope.payload, transport.revivers)
 							: devalue.parse(envelope.payload);
 				hydration_deps = envelope.deps;
 			} else {

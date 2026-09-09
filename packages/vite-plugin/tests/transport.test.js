@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { build, createServer } from 'vite';
+import { ripple } from '@ripple-ts/vite-plugin';
 import {
 	mkdtempSync,
 	mkdirSync,
@@ -8,6 +9,7 @@ import {
 	rmSync,
 	symlinkSync,
 	writeFileSync,
+	unlinkSync,
 } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -19,6 +21,7 @@ const packages = fileURLToPath(new URL('../../', import.meta.url));
 const cleanups = [];
 afterEach(async () => {
 	for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
+	vi.unstubAllGlobals();
 });
 
 function fixture() {
@@ -104,7 +107,7 @@ async function verify_requests(request) {
 		html.match(/<script id="__ripple_ta_[^"]+" type="application\/json">(.*?)<\/script>/s)[1],
 	);
 	expect(envelope.value).toBeUndefined();
-	expect(devalue.parse(envelope.payload, revivers)).toEqual({
+	expect(devalue.unflatten(envelope.payload, revivers)).toEqual({
 		amount: 12,
 		currency: 'USD',
 		revived: true,
@@ -119,6 +122,66 @@ async function verify_requests(request) {
 }
 
 describe('transport config integration', () => {
+	it.each(['manual', 'dynamic namespace'])(
+		'keeps %s registration in standalone client builds',
+		async (mode) => {
+			const root = fixture();
+			unlinkSync(path.join(root, 'ripple.config.ts'));
+			writeFileSync(
+				path.join(root, 'register.js'),
+				`import * as Ripple from 'ripple';
+export function register(name, value) { Ripple[name](value); }`,
+			);
+			writeFileSync(
+				path.join(root, 'main.js'),
+				`import { rpc } from 'ripple/internal/client';
+${mode === 'manual' ? "import { setTransport } from 'ripple';" : ''}
+class Money {
+  constructor(amount) { this.amount = amount; }
+  format() { return this.amount + ' USD'; }
+}
+export async function run() {
+  const transport = { Money: {
+    encode: value => value instanceof Money && [value.amount],
+    decode: ([amount]) => new Money(amount),
+  }};
+  ${mode === 'manual' ? 'setTransport(transport);' : "const { register } = await import('./register.js'); register('setTransport', transport);"}
+  return (await rpc('12345678', [new Money(7)])).format();
+}`,
+			);
+			await build({
+				root,
+				configFile: false,
+				plugins: ripple({ excludeRippleExternalModules: true }),
+				logLevel: 'silent',
+				build: {
+					minify: 'esbuild',
+					modulePreload: false,
+					rollupOptions: {
+						input: path.join(root, 'main.js'),
+						preserveEntrySignatures: 'strict',
+						output: { entryFileNames: 'main.js' },
+					},
+				},
+			});
+			vi.stubGlobal('fetch', async (_url, init) => {
+				const [value] = devalue.parse(init.body, { Money: ([amount]) => ({ amount }) });
+				expect(value.amount).toBe(7);
+				return new Response(
+					devalue.stringify(
+						{ value: { amount: 14 } },
+						{
+							Money: (value) => value?.amount && [value.amount],
+						},
+					),
+				);
+			});
+			const { run } = await import(pathToFileURL(path.join(root, 'dist/main.js')).href);
+			expect(await run()).toBe('14 USD');
+		},
+		30_000,
+	);
+
 	it('registers in the dev SSR graph and refreshes config for RPC requests', async () => {
 		const root = fixture();
 		const server = await createServer({ root });

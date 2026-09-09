@@ -543,6 +543,25 @@ export function ripple(inlineOptions = {}) {
 				text_types.configure(resolvedConfig);
 			},
 
+			async renderChunk(code, chunk, _output, meta) {
+				if (isSSRBuild || !code.includes('__RIPPLE_TRANSPORT__')) return null;
+				// Check the complete output graph, including dynamic chunks. Looking
+				// at retained registration also covers manual/namespace imports of
+				// setTransport, without requiring ripple.config.ts.
+				const enabled = Object.values(meta.chunks).some((output) =>
+					Object.entries(output.modules).some(
+						([id, module]) => id.endsWith('/runtime/transport.js') && module.renderedLength > 0,
+					),
+				);
+				const { transformWithEsbuild } = await import('vite');
+				return transformWithEsbuild(code, chunk.fileName, {
+					loader: 'js',
+					target: 'esnext',
+					sourcemap: true,
+					define: { __RIPPLE_TRANSPORT__: String(enabled) },
+				});
+			},
+
 			/**
 			 * Load render route entries before the client build so virtual:ripple-hydrate
 			 * can generate static import() calls that Vite will bundle.

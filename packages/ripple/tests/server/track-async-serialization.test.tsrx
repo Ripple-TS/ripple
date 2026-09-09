@@ -240,7 +240,7 @@ describe('trackAsync serialization (server)', () => {
 			const money = new Money(12, '</script><script>injected</script>');
 			const envelope = await envelope_for({ first: money, second: money, date: new Date(0) });
 			expect(envelope.value).toBeUndefined();
-			const restored = devalue.parse(envelope.payload, { Money: decode });
+			const restored = devalue.unflatten(envelope.payload, { Money: decode });
 			expect(restored.first).toBeInstanceOf(Money);
 			expect(restored.first).toEqual(money);
 			expect(restored.second).toBe(restored.first);
@@ -262,7 +262,7 @@ describe('trackAsync serialization (server)', () => {
 			};
 			const envelope = await envelope_for(value);
 			expect(envelope.value).toBeUndefined();
-			expect(devalue.parse(envelope.payload, { Money: decode })).toEqual({
+			expect(devalue.unflatten(envelope.payload, { Money: decode })).toEqual({
 				nested: { amount: 12, revived: true },
 			});
 			expect(encode.mock.calls.filter(([node]) => node === value.nested)).toHaveLength(1);
@@ -276,7 +276,11 @@ describe('trackAsync serialization (server)', () => {
 				const value = { title: 'Card', items: [1, true, null] };
 				const envelope = await envelope_for(value);
 				expect(envelope.value).toBeUndefined();
-				expect(devalue.parse(envelope.payload)).toEqual(value);
+				expect(devalue.unflatten(envelope.payload)).toEqual(value);
+				for (const special of [undefined, NaN, Infinity, -Infinity, -0, 10n, new Date(0)]) {
+					const encoded = await envelope_for(special);
+					expect(devalue.unflatten(encoded.payload)).toEqual(special);
+				}
 				setTransport();
 				expect(await envelope_for(value)).toEqual({ ok: true, value });
 			},
