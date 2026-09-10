@@ -52,7 +52,7 @@ import {
 	TRACKED_UPDATED,
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
-import { is_ripple_object } from '../client/utils.js';
+import { is_ripple_object, format_style_value } from '../client/utils.js';
 import { iterable_array_from, array_slice, is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	escape as escape_html,
@@ -1722,7 +1722,7 @@ function get_styles(styles) {
 	var result = '';
 	for (const key in styles) {
 		const css_prop = normalize_css_property_name(key);
-		const value = String(styles[key]).trim();
+		const value = format_style_value(css_prop, styles[key]).trim();
 		result += `${css_prop}: ${value}; `;
 	}
 	return result.trim();

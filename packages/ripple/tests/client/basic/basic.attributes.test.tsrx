@@ -244,6 +244,87 @@ describe('basic client > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
+	it('render bare numbers in a style object with an implicit px suffix', () => {
+		// `style.setProperty('width', '400')` silently no-ops for properties that
+		// require a unit — the browser drops the assignment without an error, so
+		// `{ width: 400 }` must be serialized as `400px`, matching the ergonomics
+		// every other mainstream framework (React, Vue, Preact) provides for
+		// numeric style values.
+		function Basic() @{
+			let &[width] = track(400);
+			<>
+				<button
+					onClick={() => {
+						width = width === 400 ? 200 : 400;
+					}}
+				>{'Resize'}</button>
+				<div style={{ width: width, height: 100, zIndex: 5, opacity: 0.5 }}>{'Sized box'}</div>
+			</>
+		}
+
+		render(Basic);
+
+		const button = container.querySelector('button');
+		const div = container.querySelector('div');
+
+		expect(div.style.width).toBe('400px');
+		expect(div.style.height).toBe('100px');
+		// Unitless properties must stay bare — no accidental `5px` on z-index.
+		expect(div.style.zIndex).toBe('5');
+		expect(div.style.opacity).toBe('0.5');
+
+		button.click();
+		flushSync();
+
+		expect(div.style.width).toBe('200px');
+	});
+
+	it('leaves CSS custom properties unitless even with a numeric value', () => {
+		// Custom properties are commonly read back through `var(--foo)` as a
+		// unitless multiplier, counter, or opacity — `{ '--scale': 2 }` must stay
+		// `2`, not become `2px`.
+		function Basic() @{
+			<div style={{ '--scale': 2, '--webkit-something': 3 }}>{'Custom props'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('--scale')).toBe('2');
+		expect(div.style.getPropertyValue('--webkit-something')).toBe('3');
+	});
+
+	it('treats vendor-prefixed unitless properties as unitless too', () => {
+		// `lineClamp` is unitless, so its vendor-prefixed form (as authored via
+		// the camelCase JSX style key) must be too — a bare `2` should not become
+		// `2px` just because it's spelled `WebkitLineClamp`.
+		function Basic() @{
+			<div style={{ WebkitLineClamp: 2 }}>{'Prefixed unitless'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('-webkit-line-clamp')).toBe('2');
+	});
+
+	it('leaves the standalone CSS scale property unitless', () => {
+		// `scale` (the standalone CSS Transforms Level 2 property, not the
+		// `scale()` transform function) is a unitless multiplier — `1.5` must
+		// stay `1.5`, not become the invalid `1.5px`.
+		function Basic() @{
+			<div style={{ scale: 1.5 }}>{'Scaled box'}</div>
+		}
+
+		render(Basic);
+
+		const div = container.querySelector('div');
+
+		expect(div.style.getPropertyValue('scale')).toBe('1.5');
+	});
+
 	it('render tracked variable as style attribute', () => {
 		function Basic() @{
 			let &[style] = track({ color: 'red', fontWeight: 'bold' });

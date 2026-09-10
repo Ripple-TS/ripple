@@ -3,7 +3,7 @@
 import { branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
-import { is_ripple_object } from './utils.js';
+import { is_ripple_object, format_style_value } from './utils.js';
 import {
 	get_descriptors,
 	get_own_property_symbols,
@@ -109,7 +109,7 @@ function apply_styles(element, new_styles, prev) {
 	// Apply new styles
 	for (const key in new_styles) {
 		const css_prop = normalize_css_property_name(key);
-		const value = String(new_styles[key]);
+		const value = format_style_value(css_prop, new_styles[key]);
 
 		if (!(key in prev) || prev[key] !== value) {
 			style.setProperty(css_prop, value);
