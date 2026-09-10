@@ -38,7 +38,7 @@ function CounterWithInitial_render(__anchor, __block, props) {
 			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 			_$_.expression(expression_1, () => lazy_1.value);
-			_$_.pop(span);
+			_$_.hydrating && _$_.pop(span);
 		}
 	}
 
@@ -65,7 +65,7 @@ function ComputedValues_render(__anchor, __block) {
 		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 		_$_.expression(expression_2, sum);
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -150,7 +150,7 @@ function DerivedState_render(__anchor, __block) {
 		var expression_6 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 		_$_.expression(expression_6, fullName);
-		_$_.pop(div_7);
+		_$_.hydrating && _$_.pop(div_7);
 	}
 
 	_$_.append(__anchor, div_7);

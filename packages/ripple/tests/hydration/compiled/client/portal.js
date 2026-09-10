@@ -17,7 +17,7 @@ function SimplePortal_render(__anchor, __block) {
 			_$_.append(__anchor, div_1);
 		});
 
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);
@@ -53,7 +53,7 @@ function ConditionalPortal_render(__anchor, __block) {
 		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 		_$_.if(node_1, if_1, false, lazy);
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -77,7 +77,7 @@ function PortalWithMainContent_render(__anchor, __block) {
 			_$_.append(__anchor, div_6);
 		});
 
-		_$_.pop(div_4);
+		_$_.hydrating && _$_.pop(div_4);
 	}
 
 	_$_.append(__anchor, div_4);
@@ -101,7 +101,7 @@ function NestedContentWithPortal_render(__anchor, __block) {
 			_$_.append(__anchor, div_9);
 		});
 
-		_$_.pop(div_7);
+		_$_.hydrating && _$_.pop(div_7);
 	}
 
 	_$_.append(__anchor, div_7);

@@ -165,7 +165,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 			(pattern) => _$_.get(pattern).id
 		);
 
-		_$_.pop(section);
+		_$_.hydrating && _$_.pop(section);
 	}
 
 	_$_.append(__anchor, section);
@@ -335,7 +335,7 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 						(pattern_1) => _$_.get(pattern_1).id
 					);
 
-					_$_.pop(div_4);
+					_$_.hydrating && _$_.pop(div_4);
 				}
 
 				_$_.append(__anchor, div_4);
@@ -472,7 +472,7 @@ function AsyncRow({ label }) {
 			var expression_5 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 			_$_.expression(expression_5, () => lazy_3.value);
-			_$_.pop(div_8);
+			_$_.hydrating && _$_.pop(div_8);
 		}
 
 		_$_.append(__anchor, div_8);

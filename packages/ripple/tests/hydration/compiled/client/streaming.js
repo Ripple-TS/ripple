@@ -91,7 +91,7 @@ function CatchOnlyContent_render(__anchor, __block) {
 		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 		_$_.expression(expression_1, () => lazy_2.value);
-		_$_.pop(p_1);
+		_$_.hydrating && _$_.pop(p_1);
 	}
 
 	_$_.append(__anchor, p_1);
@@ -124,7 +124,7 @@ function StreamCatchOnly_render(__anchor, __block) {
 					var expression_2 = _$_.hydrating ? _$_.hydrate_child() : em.firstChild;
 
 					_$_.expression(expression_2, () => e.message);
-					_$_.pop(em);
+					_$_.hydrating && _$_.pop(em);
 				}
 
 				_$_.append(__anchor, em);
@@ -149,7 +149,7 @@ function RejectContent_render(__anchor, __block) {
 		var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 		_$_.expression(expression_3, () => lazy_3.value);
-		_$_.pop(p_2);
+		_$_.hydrating && _$_.pop(p_2);
 	}
 
 	_$_.append(__anchor, p_2);
@@ -173,7 +173,7 @@ function StreamRejects_render(__anchor, __block) {
 				var expression_4 = _$_.hydrating ? _$_.hydrate_child() : em_1.firstChild;
 
 				_$_.expression(expression_4, () => e.message);
-				_$_.pop(em_1);
+				_$_.hydrating && _$_.pop(em_1);
 			}
 
 			_$_.append(__anchor, em_1);
@@ -199,7 +199,7 @@ function NoCatchContent_render(__anchor, __block) {
 		var expression_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 		_$_.expression(expression_5, () => lazy_4.value);
-		_$_.pop(p_4);
+		_$_.hydrating && _$_.pop(p_4);
 	}
 
 	_$_.append(__anchor, p_4);
@@ -247,7 +247,7 @@ function consequent(__anchor, lazy_5) {
 		var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
 
 		_$_.expression(expression_7, () => lazy_5.value);
-		_$_.pop(p_7);
+		_$_.hydrating && _$_.pop(p_7);
 	}
 
 	_$_.head('814bacd9', (__anchor) => {
@@ -309,7 +309,7 @@ function StreamRootDirect_render(__anchor, __block) {
 		var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
 		_$_.expression(expression_8, () => lazy_6.value);
-		_$_.pop(p_9);
+		_$_.hydrating && _$_.pop(p_9);
 	}
 
 	_$_.append(__anchor, p_9);
@@ -327,7 +327,7 @@ function OuterContent_render(__anchor, __block) {
 		var expression_9 = _$_.hydrating ? _$_.hydrate_child() : p_10.firstChild;
 
 		_$_.expression(expression_9, () => lazy_7.value);
-		_$_.pop(p_10);
+		_$_.hydrating && _$_.pop(p_10);
 	}
 
 	_$_.append(__anchor, p_10);
@@ -345,7 +345,7 @@ function InnerContent_render(__anchor, __block) {
 		var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_11.firstChild;
 
 		_$_.expression(expression_10, () => lazy_8.value);
-		_$_.pop(p_11);
+		_$_.hydrating && _$_.pop(p_11);
 	}
 
 	_$_.append(__anchor, p_11);
@@ -468,7 +468,7 @@ export function RootCatch({ error, reset }) {
 			var expression_6 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 			_$_.expression(expression_6, () => error.message);
-			_$_.pop(section);
+			_$_.hydrating && _$_.pop(section);
 		}
 
 		_$_.append(__anchor, section);

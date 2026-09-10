@@ -10,7 +10,7 @@ function Layout_render(__anchor, __block, __props) {
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 		_$_.expression(expression, () => __props.children);
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);
@@ -28,7 +28,7 @@ function TextWrappedLayout_render(__anchor, __block, __props) {
 		var expression_1 = _$_.hydrating ? _$_.hydrate_sibling() : expression_2.nextSibling;
 
 		_$_.expression(expression_1, () => __props.children);
-		_$_.pop(div_1);
+		_$_.hydrating && _$_.pop(div_1);
 	}
 
 	_$_.append(__anchor, div_1);

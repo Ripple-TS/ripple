@@ -55,7 +55,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 		var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
 		template_3.innerHTML = "after" ?? template_3.innerHTML;
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);

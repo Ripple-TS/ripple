@@ -19,7 +19,7 @@ function StaticForLoop_render(__anchor, __block) {
 					var expression = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 					_$_.expression(expression, () => item);
-					_$_.pop(li);
+					_$_.hydrating && _$_.pop(li);
 				}
 
 				_$_.append(__anchor, li);
@@ -27,7 +27,7 @@ function StaticForLoop_render(__anchor, __block) {
 			4
 		);
 
-		_$_.pop(ul);
+		_$_.hydrating && _$_.pop(ul);
 	}
 
 	_$_.append(__anchor, ul);
@@ -68,7 +68,7 @@ function ForLoopWithIndex_render(__anchor, __block) {
 			12
 		);
 
-		_$_.pop(ul_1);
+		_$_.hydrating && _$_.pop(ul_1);
 	}
 
 	_$_.append(__anchor, ul_1);
@@ -99,7 +99,7 @@ function KeyedForLoop_render(__anchor, __block) {
 					var expression_2 = _$_.hydrating ? _$_.hydrate_child() : li_2.firstChild;
 
 					_$_.expression(expression_2, () => _$_.get(pattern).name);
-					_$_.pop(li_2);
+					_$_.hydrating && _$_.pop(li_2);
 				}
 
 				_$_.append(__anchor, li_2);
@@ -108,7 +108,7 @@ function KeyedForLoop_render(__anchor, __block) {
 			(pattern) => _$_.get(pattern).id
 		);
 
-		_$_.pop(ul_2);
+		_$_.hydrating && _$_.pop(ul_2);
 	}
 
 	_$_.append(__anchor, ul_2);
@@ -146,7 +146,7 @@ function ReactiveForLoopAdd_render(__anchor, __block) {
 						var expression_3 = _$_.hydrating ? _$_.hydrate_child() : li_3.firstChild;
 
 						_$_.expression(expression_3, () => item);
-						_$_.pop(li_3);
+						_$_.hydrating && _$_.pop(li_3);
 					}
 
 					_$_.append(__anchor, li_3);
@@ -154,7 +154,7 @@ function ReactiveForLoopAdd_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_3);
+			_$_.hydrating && _$_.pop(ul_3);
 		}
 
 		_$_.append(__anchor, fragment_1);
@@ -195,7 +195,7 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 						var expression_4 = _$_.hydrating ? _$_.hydrate_child() : li_4.firstChild;
 
 						_$_.expression(expression_4, () => item);
-						_$_.pop(li_4);
+						_$_.hydrating && _$_.pop(li_4);
 					}
 
 					_$_.append(__anchor, li_4);
@@ -203,7 +203,7 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_4);
+			_$_.hydrating && _$_.pop(ul_4);
 		}
 
 		_$_.append(__anchor, fragment_3);
@@ -244,7 +244,7 @@ function ForLoopInteractive_render(__anchor, __block) {
 						var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 						_$_.expression(expression_5, () => count);
-						_$_.pop(span);
+						_$_.hydrating && _$_.pop(span);
 					}
 
 					var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
@@ -263,7 +263,7 @@ function ForLoopInteractive_render(__anchor, __block) {
 			12
 		);
 
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);
@@ -314,7 +314,7 @@ function NestedForLoop_render(__anchor, __block) {
 								var expression_6 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
 
 								_$_.expression(expression_6, () => cell);
-								_$_.pop(span_1);
+								_$_.hydrating && _$_.pop(span_1);
 							}
 
 							_$_.render(render_2, {
@@ -329,7 +329,7 @@ function NestedForLoop_render(__anchor, __block) {
 						12
 					);
 
-					_$_.pop(div_3);
+					_$_.hydrating && _$_.pop(div_3);
 					_$_.render(render_3, { a: _$_.UNINITIALIZED, _rowIndex: rowIndex, _div_3: div_3 });
 				}
 
@@ -338,7 +338,7 @@ function NestedForLoop_render(__anchor, __block) {
 			12
 		);
 
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -371,7 +371,7 @@ function EmptyForLoop_render(__anchor, __block) {
 			4
 		);
 
-		_$_.pop(div_4);
+		_$_.hydrating && _$_.pop(div_4);
 	}
 
 	_$_.append(__anchor, div_4);
@@ -413,7 +413,7 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 						var expression_8 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
 
 						_$_.expression(expression_8, () => _$_.get(pattern_1).name);
-						_$_.pop(span_3);
+						_$_.hydrating && _$_.pop(span_3);
 					}
 
 					var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : span_3.nextSibling;
@@ -422,7 +422,7 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 						var expression_9 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
 						_$_.expression(expression_9, () => _$_.get(pattern_1).role);
-						_$_.pop(span_4);
+						_$_.hydrating && _$_.pop(span_4);
 					}
 				}
 
@@ -433,7 +433,7 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 			(pattern_1) => _$_.get(pattern_1).id
 		);
 
-		_$_.pop(div_5);
+		_$_.hydrating && _$_.pop(div_5);
 	}
 
 	_$_.append(__anchor, div_5);
@@ -489,7 +489,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 						var expression_10 = _$_.hydrating ? _$_.hydrate_child() : li_5.firstChild;
 
 						_$_.expression(expression_10, () => _$_.get(pattern_2).name);
-						_$_.pop(li_5);
+						_$_.hydrating && _$_.pop(li_5);
 					}
 
 					_$_.render(render_5, { a: _$_.UNINITIALIZED, _pattern_2: pattern_2, _li_5: li_5 });
@@ -499,7 +499,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 				(pattern_2) => _$_.get(pattern_2).id
 			);
 
-			_$_.pop(ul_5);
+			_$_.hydrating && _$_.pop(ul_5);
 		}
 
 		_$_.append(__anchor, fragment_5);
@@ -551,7 +551,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 						var expression_11 = _$_.hydrating ? _$_.hydrate_child() : li_6.firstChild;
 
 						_$_.expression(expression_11, () => _$_.get(pattern_3).name);
-						_$_.pop(li_6);
+						_$_.hydrating && _$_.pop(li_6);
 					}
 
 					_$_.render(render_6, { a: _$_.UNINITIALIZED, _pattern_3: pattern_3, _li_6: li_6 });
@@ -561,7 +561,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 				(pattern_3) => _$_.get(pattern_3).id
 			);
 
-			_$_.pop(ul_6);
+			_$_.hydrating && _$_.pop(ul_6);
 		}
 
 		_$_.append(__anchor, fragment_7);
@@ -604,7 +604,7 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 						var expression_12 = _$_.hydrating ? _$_.hydrate_child() : li_7.firstChild;
 
 						_$_.expression(expression_12, () => item);
-						_$_.pop(li_7);
+						_$_.hydrating && _$_.pop(li_7);
 					}
 
 					_$_.append(__anchor, li_7);
@@ -612,7 +612,7 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_7);
+			_$_.hydrating && _$_.pop(ul_7);
 		}
 
 		_$_.append(__anchor, fragment_9);
@@ -665,7 +665,7 @@ function ForLoopInsideIf_render(__anchor, __block) {
 								var expression_13 = _$_.hydrating ? _$_.hydrate_child() : li_8.firstChild;
 
 								_$_.expression(expression_13, () => item);
-								_$_.pop(li_8);
+								_$_.hydrating && _$_.pop(li_8);
 							}
 
 							_$_.append(__anchor, li_8);
@@ -673,7 +673,7 @@ function ForLoopInsideIf_render(__anchor, __block) {
 						4
 					);
 
-					_$_.pop(ul_8);
+					_$_.hydrating && _$_.pop(ul_8);
 				}
 
 				_$_.append(__anchor, ul_8);
@@ -729,7 +729,7 @@ function ForLoopEmptyToPopulated_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_9);
+			_$_.hydrating && _$_.pop(ul_9);
 		}
 
 		_$_.append(__anchor, fragment_13);
@@ -770,7 +770,7 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 						var expression_15 = _$_.hydrating ? _$_.hydrate_child() : li_10.firstChild;
 
 						_$_.expression(expression_15, () => item);
-						_$_.pop(li_10);
+						_$_.hydrating && _$_.pop(li_10);
 					}
 
 					_$_.append(__anchor, li_10);
@@ -778,7 +778,7 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_10);
+			_$_.hydrating && _$_.pop(ul_10);
 		}
 
 		_$_.append(__anchor, fragment_15);
@@ -850,7 +850,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 									var expression_16 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
 									_$_.expression(expression_16, () => cell);
-									_$_.pop(span_5);
+									_$_.hydrating && _$_.pop(span_5);
 								}
 
 								_$_.render(render_7, {
@@ -865,7 +865,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 							12
 						);
 
-						_$_.pop(div_9);
+						_$_.hydrating && _$_.pop(div_9);
 						_$_.render(render_8, { a: _$_.UNINITIALIZED, _rowIndex: rowIndex, _div_9: div_9 });
 					}
 
@@ -874,7 +874,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 				12
 			);
 
-			_$_.pop(div_8);
+			_$_.hydrating && _$_.pop(div_8);
 		}
 	}
 
@@ -940,7 +940,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 						var expression_17 = _$_.hydrating ? _$_.hydrate_child() : h2.firstChild;
 
 						_$_.expression(expression_17, () => _$_.get(pattern_4).name);
-						_$_.pop(h2);
+						_$_.hydrating && _$_.pop(h2);
 					}
 
 					var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : h2.nextSibling;
@@ -958,7 +958,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 									var expression_18 = _$_.hydrating ? _$_.hydrate_child() : h3.firstChild;
 
 									_$_.expression(expression_18, () => _$_.get(pattern_5).name);
-									_$_.pop(h3);
+									_$_.hydrating && _$_.pop(h3);
 								}
 
 								var ul_11 = _$_.hydrating ? _$_.hydrate_sibling() : h3.nextSibling;
@@ -974,7 +974,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 												var expression_19 = _$_.hydrating ? _$_.hydrate_child() : li_11.firstChild;
 
 												_$_.expression(expression_19, () => member);
-												_$_.pop(li_11);
+												_$_.hydrating && _$_.pop(li_11);
 											}
 
 											_$_.append(__anchor, li_11);
@@ -982,7 +982,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 										4
 									);
 
-									_$_.pop(ul_11);
+									_$_.hydrating && _$_.pop(ul_11);
 								}
 							}
 
@@ -993,7 +993,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 						(pattern_5) => _$_.get(pattern_5).id
 					);
 
-					_$_.pop(div_11);
+					_$_.hydrating && _$_.pop(div_11);
 				}
 
 				_$_.render(render_10, { a: _$_.UNINITIALIZED, _pattern_4: pattern_4, _div_11: div_11 });
@@ -1003,7 +1003,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 			(pattern_4) => _$_.get(pattern_4).id
 		);
 
-		_$_.pop(div_10);
+		_$_.hydrating && _$_.pop(div_10);
 	}
 
 	_$_.append(__anchor, div_10);
@@ -1070,7 +1070,7 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 				12
 			);
 
-			_$_.pop(ul_12);
+			_$_.hydrating && _$_.pop(ul_12);
 		}
 
 		_$_.append(__anchor, fragment_17);
@@ -1158,7 +1158,7 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 				(pattern_6, i) => _$_.get(pattern_6).id
 			);
 
-			_$_.pop(ul_13);
+			_$_.hydrating && _$_.pop(ul_13);
 		}
 
 		_$_.append(__anchor, fragment_19);
@@ -1198,7 +1198,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 						var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 						_$_.expression(expression_22, () => item);
-						_$_.pop(div_14);
+						_$_.hydrating && _$_.pop(div_14);
 					}
 
 					_$_.append(__anchor, div_14);
@@ -1206,7 +1206,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 				0
 			);
 
-			_$_.pop(div_13);
+			_$_.hydrating && _$_.pop(div_13);
 		}
 
 		var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
@@ -1250,7 +1250,7 @@ function ForLoopItemState_render(__anchor, __block) {
 			(pattern_7) => _$_.get(pattern_7).id
 		);
 
-		_$_.pop(div_15);
+		_$_.hydrating && _$_.pop(div_15);
 	}
 
 	_$_.append(__anchor, div_15);
@@ -1340,7 +1340,7 @@ function ForLoopSingleItem_render(__anchor, __block) {
 					var expression_24 = _$_.hydrating ? _$_.hydrate_child() : li_14.firstChild;
 
 					_$_.expression(expression_24, () => item);
-					_$_.pop(li_14);
+					_$_.hydrating && _$_.pop(li_14);
 				}
 
 				_$_.append(__anchor, li_14);
@@ -1348,7 +1348,7 @@ function ForLoopSingleItem_render(__anchor, __block) {
 			4
 		);
 
-		_$_.pop(ul_14);
+		_$_.hydrating && _$_.pop(ul_14);
 	}
 
 	_$_.append(__anchor, ul_14);
@@ -1388,7 +1388,7 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 						var expression_25 = _$_.hydrating ? _$_.hydrate_child() : li_15.firstChild;
 
 						_$_.expression(expression_25, () => item);
-						_$_.pop(li_15);
+						_$_.hydrating && _$_.pop(li_15);
 					}
 
 					_$_.append(__anchor, li_15);
@@ -1396,7 +1396,7 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_15);
+			_$_.hydrating && _$_.pop(ul_15);
 		}
 
 		_$_.append(__anchor, fragment_23);
@@ -1442,7 +1442,7 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 						var expression_26 = _$_.hydrating ? _$_.hydrate_child() : li_16.firstChild;
 
 						_$_.expression(expression_26, () => item);
-						_$_.pop(li_16);
+						_$_.hydrating && _$_.pop(li_16);
 					}
 
 					_$_.append(__anchor, li_16);
@@ -1450,7 +1450,7 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_16);
+			_$_.hydrating && _$_.pop(ul_16);
 		}
 
 		_$_.append(__anchor, fragment_25);
@@ -1493,7 +1493,7 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 						var expression_27 = _$_.hydrating ? _$_.hydrate_child() : li_17.firstChild;
 
 						_$_.expression(expression_27, () => item);
-						_$_.pop(li_17);
+						_$_.hydrating && _$_.pop(li_17);
 					}
 
 					_$_.append(__anchor, li_17);
@@ -1501,7 +1501,7 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_17);
+			_$_.hydrating && _$_.pop(ul_17);
 		}
 
 		_$_.append(__anchor, fragment_27);
@@ -1539,7 +1539,7 @@ function ForLoopLargeList_render(__anchor, __block) {
 					var expression_28 = _$_.hydrating ? _$_.hydrate_child() : li_18.firstChild;
 
 					_$_.expression(expression_28, () => item);
-					_$_.pop(li_18);
+					_$_.hydrating && _$_.pop(li_18);
 				}
 
 				_$_.render(render_14, { a: _$_.UNINITIALIZED, _i: i, _li_18: li_18 });
@@ -1548,7 +1548,7 @@ function ForLoopLargeList_render(__anchor, __block) {
 			12
 		);
 
-		_$_.pop(ul_18);
+		_$_.hydrating && _$_.pop(ul_18);
 	}
 
 	_$_.append(__anchor, ul_18);
@@ -1591,7 +1591,7 @@ function ForLoopSwap_render(__anchor, __block) {
 						var expression_29 = _$_.hydrating ? _$_.hydrate_child() : li_19.firstChild;
 
 						_$_.expression(expression_29, () => item);
-						_$_.pop(li_19);
+						_$_.hydrating && _$_.pop(li_19);
 					}
 
 					_$_.append(__anchor, li_19);
@@ -1599,7 +1599,7 @@ function ForLoopSwap_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_19);
+			_$_.hydrating && _$_.pop(ul_19);
 		}
 
 		_$_.append(__anchor, fragment_29);
@@ -1642,7 +1642,7 @@ function ForLoopReverse_render(__anchor, __block) {
 						var expression_30 = _$_.hydrating ? _$_.hydrate_child() : li_20.firstChild;
 
 						_$_.expression(expression_30, () => item);
-						_$_.pop(li_20);
+						_$_.hydrating && _$_.pop(li_20);
 					}
 
 					_$_.append(__anchor, li_20);
@@ -1650,7 +1650,7 @@ function ForLoopReverse_render(__anchor, __block) {
 				4
 			);
 
-			_$_.pop(ul_20);
+			_$_.hydrating && _$_.pop(ul_20);
 		}
 
 		_$_.append(__anchor, fragment_31);
@@ -1684,7 +1684,7 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 						var expression_31 = _$_.hydrating ? _$_.hydrate_child() : span_7.firstChild;
 
 						_$_.expression(expression_31, () => _$_.get(pattern_8));
-						_$_.pop(span_7);
+						_$_.hydrating && _$_.pop(span_7);
 					}
 
 					_$_.append(__anchor, span_7);
@@ -1692,7 +1692,7 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 				0
 			);
 
-			_$_.pop(div_18);
+			_$_.hydrating && _$_.pop(div_18);
 		}
 
 		var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : div_18.nextSibling;
@@ -1756,7 +1756,7 @@ function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 			var node_20 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
 			_$_.render_component(RootKeyedList, node_20, new (props_site_1 ??= _$_.props_site(['items'], 1, 1, 0, { C: null, items: (__p) => __p[_$_.$0].value })).C(props_site_1, lazy_21));
-			_$_.pop(div_20);
+			_$_.hydrating && _$_.pop(div_20);
 		}
 
 		var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : div_20.nextSibling;

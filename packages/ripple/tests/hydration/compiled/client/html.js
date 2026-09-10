@@ -65,7 +65,7 @@ function MultipleHtml_render(__anchor, __block) {
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
-		_$_.pop(div_3);
+		_$_.hydrating && _$_.pop(div_3);
 	}
 
 	_$_.render(render, { _node: node, _html1: html1, _node_1: node_1, _html2: html2 });
@@ -86,7 +86,7 @@ function HtmlWithReactivity_render(__anchor, __block) {
 	{
 		var node_2 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
-		_$_.pop(div_4);
+		_$_.hydrating && _$_.pop(div_4);
 	}
 
 	_$_.render(render_1, { _node_2: node_2 });
@@ -151,7 +151,7 @@ function MultipleHtmlInChildren_render(__anchor, __block) {
 				var node_3 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
 				var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
 
-				_$_.pop(div_9);
+				_$_.hydrating && _$_.pop(div_9);
 			}
 
 			_$_.render(render_2, {
@@ -264,7 +264,7 @@ function consequent_1(__anchor, __props) {
 			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : a_1.firstChild;
 
 			_$_.expression(expression_2, () => _$_.fallback(__props.nextLink, null).text);
-			_$_.pop(a_1);
+			_$_.hydrating && _$_.pop(a_1);
 		}
 	}
 
@@ -328,7 +328,7 @@ function consequent_2(__anchor, __props) {
 				4
 			);
 
-			_$_.pop(ul);
+			_$_.hydrating && _$_.pop(ul);
 		}
 	}
 
@@ -357,11 +357,11 @@ function DocLayout_render(__anchor, __block, __props) {
 					var expression_1 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
 
 					_$_.expression(expression_1, () => __props.children);
-					_$_.pop(div_15);
+					_$_.hydrating && _$_.pop(div_15);
 				}
 			}
 
-			_$_.pop(article);
+			_$_.hydrating && _$_.pop(article);
 
 			var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
@@ -374,7 +374,7 @@ function DocLayout_render(__anchor, __block, __props) {
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
 			_$_.render_component(DocFooter, node_7, {});
-			_$_.pop(div_14);
+			_$_.hydrating && _$_.pop(div_14);
 		}
 
 		var aside = _$_.hydrating ? _$_.hydrate_sibling() : div_14.nextSibling;
@@ -383,7 +383,7 @@ function DocLayout_render(__anchor, __block, __props) {
 			var node_8 = _$_.hydrating ? _$_.hydrate_child() : aside.firstChild;
 
 			_$_.if(node_8, if_3, false, __props);
-			_$_.pop(aside);
+			_$_.hydrating && _$_.pop(aside);
 		}
 	}
 
@@ -639,7 +639,7 @@ function NavItem_render(__anchor, __block, __props) {
 			}
 		}
 
-		_$_.pop(div_27);
+		_$_.hydrating && _$_.pop(div_27);
 	}
 
 	_$_.render(render_6, {
@@ -712,13 +712,13 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 				var node_28 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(main);
 
 				_$_.render_component(PageHeader, node_28, {});
-				_$_.pop(main);
+				_$_.hydrating && _$_.pop(main);
 			}
 
-			_$_.pop(div_34);
+			_$_.hydrating && _$_.pop(div_34);
 		}
 
-		_$_.pop(div_33);
+		_$_.hydrating && _$_.pop(div_33);
 	}
 
 	_$_.append(__anchor, div_33);
@@ -790,7 +790,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 		var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_38);
 
 		_$_.render_component(SimpleFooter, node_32, {});
-		_$_.pop(div_38);
+		_$_.hydrating && _$_.pop(div_38);
 	}
 
 	_$_.append(__anchor, div_38);
@@ -836,7 +836,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 		var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_40);
 
 		_$_.render_component(SimpleFooter, node_35, {});
-		_$_.pop(div_40);
+		_$_.hydrating && _$_.pop(div_40);
 	}
 
 	_$_.append(__anchor, div_40);
@@ -936,7 +936,7 @@ function consequent_12(__anchor, __props) {
 			var expression_21 = _$_.hydrating ? _$_.hydrate_child() : a_4.firstChild;
 
 			_$_.expression(expression_21, () => _$_.fallback(__props.nextLink, null).text);
-			_$_.pop(a_4);
+			_$_.hydrating && _$_.pop(a_4);
 		}
 	}
 
@@ -986,11 +986,11 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 									var expression_20 = _$_.hydrating ? _$_.hydrate_child() : div_52.firstChild;
 
 									_$_.expression(expression_20, () => __props.children);
-									_$_.pop(div_52);
+									_$_.hydrating && _$_.pop(div_52);
 								}
 							}
 
-							_$_.pop(article_3);
+							_$_.hydrating && _$_.pop(article_3);
 
 							var node_40 = _$_.hydrating ? _$_.hydrate_sibling() : article_3.nextSibling;
 
@@ -1003,16 +1003,16 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 							var node_42 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
 							_$_.render_component(FooterStub, node_42, {});
-							_$_.pop(div_49);
+							_$_.hydrating && _$_.pop(div_49);
 						}
 					}
 				}
 			}
 
-			_$_.pop(div_48);
+			_$_.hydrating && _$_.pop(div_48);
 		}
 
-		_$_.pop(div_47);
+		_$_.hydrating && _$_.pop(div_47);
 	}
 
 	_$_.append(__anchor, div_47);
@@ -1103,7 +1103,7 @@ function consequent_14(__anchor, __props) {
 			var expression_23 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
 			_$_.expression(expression_23, () => _$_.fallback(__props.prevLink, null).text);
-			_$_.pop(span_4);
+			_$_.hydrating && _$_.pop(span_4);
 		}
 	}
 
@@ -1141,7 +1141,7 @@ function consequent_15(__anchor, __props) {
 			var expression_24 = _$_.hydrating ? _$_.hydrate_child() : span_6.firstChild;
 
 			_$_.expression(expression_24, () => _$_.fallback(__props.nextLink, null).text);
-			_$_.pop(span_6);
+			_$_.hydrating && _$_.pop(span_6);
 		}
 	}
 
@@ -1166,7 +1166,7 @@ function consequent_16(__anchor, __props) {
 		var node_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_47.nextSibling;
 
 		_$_.if(node_48, if_14, false, __props);
-		_$_.pop(nav_4);
+		_$_.hydrating && _$_.pop(nav_4);
 	}
 
 	_$_.append(__anchor, nav_4);
@@ -1224,7 +1224,7 @@ function consequent_17(__anchor, __props) {
 				4
 			);
 
-			_$_.pop(nav_5);
+			_$_.hydrating && _$_.pop(nav_5);
 		}
 	}
 
@@ -1273,11 +1273,11 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 									var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_61.firstChild;
 
 									_$_.expression(expression_22, () => __props.children);
-									_$_.pop(div_61);
+									_$_.hydrating && _$_.pop(div_61);
 								}
 							}
 
-							_$_.pop(article_4);
+							_$_.hydrating && _$_.pop(article_4);
 
 							var node_45 = _$_.hydrating ? _$_.hydrate_sibling() : article_4.nextSibling;
 
@@ -1290,11 +1290,11 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 							var node_49 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
 							_$_.render_component(FooterStub, node_49, {});
-							_$_.pop(div_58);
+							_$_.hydrating && _$_.pop(div_58);
 						}
 					}
 
-					_$_.pop(div_59);
+					_$_.hydrating && _$_.pop(div_59);
 
 					var aside_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_59.nextSibling;
 
@@ -1302,15 +1302,15 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 						var node_50 = _$_.hydrating ? _$_.hydrate_child() : aside_3.firstChild;
 
 						_$_.if(node_50, if_16, false, __props);
-						_$_.pop(aside_3);
+						_$_.hydrating && _$_.pop(aside_3);
 					}
 				}
 			}
 
-			_$_.pop(div_57);
+			_$_.hydrating && _$_.pop(div_57);
 		}
 
-		_$_.pop(div_56);
+		_$_.hydrating && _$_.pop(div_56);
 	}
 
 	_$_.append(__anchor, div_56);
@@ -1486,7 +1486,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 			code_1.innerHTML = html1 ?? code_1.innerHTML;
 		}
 
-		_$_.pop(pre);
+		_$_.hydrating && _$_.pop(pre);
 
 		var p_10 = _$_.hydrating ? _$_.hydrate_sibling() : pre.nextSibling;
 		var pre_1 = _$_.hydrating ? _$_.hydrate_sibling() : p_10.nextSibling;
@@ -1497,7 +1497,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 			code_2.innerHTML = html2 ?? code_2.innerHTML;
 		}
 
-		_$_.pop(pre_1);
+		_$_.hydrating && _$_.pop(pre_1);
 
 		var p_11 = _$_.hydrating ? _$_.hydrate_sibling() : pre_1.nextSibling;
 		var pre_2 = _$_.hydrating ? _$_.hydrate_sibling() : p_11.nextSibling;
@@ -1551,7 +1551,7 @@ export function HtmlWrapper({ children }) {
 				var expression = _$_.hydrating ? _$_.hydrate_child() : div_6.firstChild;
 
 				_$_.expression(expression, () => children);
-				_$_.pop(div_6);
+				_$_.hydrating && _$_.pop(div_6);
 			}
 		}
 
@@ -1613,7 +1613,7 @@ function DynamicHeading({ level, children }) {
 					var expression_4 = _$_.hydrating ? _$_.hydrate_child() : h1_1.firstChild;
 
 					_$_.expression(expression_4, () => children);
-					_$_.pop(h1_1);
+					_$_.hydrating && _$_.pop(h1_1);
 				}
 
 				_$_.append(__anchor, h1_1);
@@ -1626,7 +1626,7 @@ function DynamicHeading({ level, children }) {
 					var expression_5 = _$_.hydrating ? _$_.hydrate_child() : h2.firstChild;
 
 					_$_.expression(expression_5, () => children);
-					_$_.pop(h2);
+					_$_.hydrating && _$_.pop(h2);
 				}
 
 				_$_.append(__anchor, h2);
@@ -1680,7 +1680,7 @@ function ContentWrapper({ children }) {
 				var expression_6 = _$_.hydrating ? _$_.hydrate_child() : div_25.firstChild;
 
 				_$_.expression(expression_6, () => children);
-				_$_.pop(div_25);
+				_$_.hydrating && _$_.pop(div_25);
 			}
 		}
 
@@ -1702,7 +1702,7 @@ function IfHeading({ primary, children }) {
 					var expression_8 = _$_.hydrating ? _$_.hydrate_child() : h1_2.firstChild;
 
 					_$_.expression(expression_8, () => children);
-					_$_.pop(h1_2);
+					_$_.hydrating && _$_.pop(h1_2);
 				}
 
 				_$_.append(__anchor, h1_2);
@@ -1715,7 +1715,7 @@ function IfHeading({ primary, children }) {
 					var expression_9 = _$_.hydrating ? _$_.hydrate_child() : h2_1.firstChild;
 
 					_$_.expression(expression_9, () => children);
-					_$_.pop(h2_1);
+					_$_.hydrating && _$_.pop(h2_1);
 				}
 
 				_$_.append(__anchor, h2_1);
@@ -1799,7 +1799,7 @@ function Boxed({ children }) {
 			var expression_13 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
 
 			_$_.expression(expression_13, () => children);
-			_$_.pop(span_2);
+			_$_.hydrating && _$_.pop(span_2);
 		}
 
 		_$_.append(__anchor, span_2);
@@ -1850,7 +1850,7 @@ function SidebarSection({ title, children }) {
 				button.__click = () => _$_.set(lazy, !lazy.value);
 			}
 
-			_$_.pop(div_29);
+			_$_.hydrating && _$_.pop(div_29);
 
 			var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : div_29.nextSibling;
 
@@ -1862,7 +1862,7 @@ function SidebarSection({ title, children }) {
 						var expression_17 = _$_.hydrating ? _$_.hydrate_child() : div_30.firstChild;
 
 						_$_.expression(expression_17, () => children);
-						_$_.pop(div_30);
+						_$_.hydrating && _$_.pop(div_30);
 					}
 
 					_$_.append(__anchor, div_30);
@@ -1873,7 +1873,7 @@ function SidebarSection({ title, children }) {
 				});
 			}
 
-			_$_.pop(section_1);
+			_$_.hydrating && _$_.pop(section_1);
 		}
 
 		_$_.append(__anchor, section_1);
@@ -1917,7 +1917,7 @@ function SideNav({ currentPath }) {
 						})
 					});
 
-					_$_.pop(div_31);
+					_$_.hydrating && _$_.pop(div_31);
 				}
 
 				var div_32 = _$_.hydrating ? _$_.hydrate_sibling() : div_31.nextSibling;
@@ -1949,7 +1949,7 @@ function SideNav({ currentPath }) {
 						})
 					});
 
-					_$_.pop(div_32);
+					_$_.hydrating && _$_.pop(div_32);
 				}
 			}
 		}
@@ -1977,7 +1977,7 @@ function ArticleWrapper({ children }) {
 				var expression_18 = _$_.hydrating ? _$_.hydrate_child() : div_37.firstChild;
 
 				_$_.expression(expression_18, () => children);
-				_$_.pop(div_37);
+				_$_.hydrating && _$_.pop(div_37);
 			}
 		}
 
@@ -2011,11 +2011,11 @@ function InlineArticleLayout({ children }) {
 					var expression_19 = _$_.hydrating ? _$_.hydrate_child() : div_44.firstChild;
 
 					_$_.expression(expression_19, () => children);
-					_$_.pop(div_44);
+					_$_.hydrating && _$_.pop(div_44);
 				}
 			}
 
-			_$_.pop(article_2);
+			_$_.hydrating && _$_.pop(article_2);
 
 			var node_36 = _$_.hydrating ? _$_.hydrate_sibling() : article_2.nextSibling;
 
@@ -2024,7 +2024,7 @@ function InlineArticleLayout({ children }) {
 			var node_37 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_43);
 
 			_$_.render_component(SimpleFooter, node_37, {});
-			_$_.pop(div_43);
+			_$_.hydrating && _$_.pop(div_43);
 		}
 
 		_$_.append(__anchor, div_43);
@@ -2091,7 +2091,7 @@ function LayoutWithTemplate({ children, data }) {
 				var expression_26 = _$_.hydrating ? _$_.hydrate_child() : main_3.firstChild;
 
 				_$_.expression(expression_26, () => children);
-				_$_.pop(main_3);
+				_$_.hydrating && _$_.pop(main_3);
 			}
 		}
 

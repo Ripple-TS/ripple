@@ -24,7 +24,7 @@ function Content_render(__anchor, __block) {
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 		_$_.if(node, if_1, false, lazy);
-		_$_.pop(div_1);
+		_$_.hydrating && _$_.pop(div_1);
 	}
 
 	_$_.append(__anchor, div_1);
@@ -56,7 +56,7 @@ export function Layout({ children }) {
 				var expression = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
 
 				_$_.expression(expression, () => children);
-				_$_.pop(main);
+				_$_.hydrating && _$_.pop(main);
 			}
 		}
 

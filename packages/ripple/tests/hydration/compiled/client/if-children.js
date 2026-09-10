@@ -50,7 +50,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
 		_$_.if(node_3, if_1, false, lazy_1);
-		_$_.pop(div_4);
+		_$_.hydrating && _$_.pop(div_4);
 	}
 
 	_$_.append(__anchor, div_4);
@@ -109,7 +109,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 			_$_.if(node_7, if_2, false, lazy_3);
-			_$_.pop(div_10);
+			_$_.hydrating && _$_.pop(div_10);
 		}
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : div_10.nextSibling;
@@ -152,7 +152,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
 			_$_.if(node_9, if_3, false, lazy_4);
-			_$_.pop(section_1);
+			_$_.hydrating && _$_.pop(section_1);
 		}
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : section_1.nextSibling;
@@ -218,7 +218,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 			button_3.__click = () => _$_.set(lazy_5, 'preview');
 		}
 
-		_$_.pop(div_13);
+		_$_.hydrating && _$_.pop(div_13);
 
 		var div_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
 
@@ -226,7 +226,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 			_$_.if(node_11, if_4, false, lazy_5);
-			_$_.pop(div_14);
+			_$_.hydrating && _$_.pop(div_14);
 		}
 	}
 
@@ -275,10 +275,10 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 				}
 			}
 
-			_$_.pop(ul);
+			_$_.hydrating && _$_.pop(ul);
 		}
 
-		_$_.pop(div_16);
+		_$_.hydrating && _$_.pop(div_16);
 
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
@@ -385,7 +385,7 @@ function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
 			_$_.render_component(RootIfChild, append_anchor, new (props_site ??= _$_.props_site(['on'], 1, 1, 0, { C: null, on: (__p) => __p[_$_.$0].value })).C(props_site, lazy_7));
 			_$_.render_component(RootForChild, append_anchor, new (props_site_1 ??= _$_.props_site(['items'], 1, 1, 0, { C: null, items: (__p) => __p[_$_.$0].value })).C(props_site_1, lazy_8));
 			_$_.render_component(TrailingChild, append_anchor, {});
-			_$_.pop(div_19);
+			_$_.hydrating && _$_.pop(div_19);
 		}
 
 		var button_5 = _$_.hydrating ? _$_.hydrate_sibling() : div_19.nextSibling;
@@ -424,7 +424,7 @@ export function IfWithChildren({ children }) {
 						var expression = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 						_$_.expression(expression, () => children);
-						_$_.pop(div_2);
+						_$_.hydrating && _$_.pop(div_2);
 					}
 
 					_$_.append(__anchor, div_2);
@@ -435,7 +435,7 @@ export function IfWithChildren({ children }) {
 				});
 			}
 
-			_$_.pop(div);
+			_$_.hydrating && _$_.pop(div);
 		}
 
 		_$_.append(__anchor, div);
@@ -473,7 +473,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 			var div_7 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
 			div_7.__click = () => _$_.set(lazy_2, !lazy_2.value);
-			_$_.pop(div_7);
+			_$_.hydrating && _$_.pop(div_7);
 
 			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 
@@ -485,7 +485,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 						_$_.expression(expression_2, () => children);
-						_$_.pop(div_8);
+						_$_.hydrating && _$_.pop(div_8);
 					}
 
 					_$_.append(__anchor, div_8);
@@ -496,7 +496,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 				});
 			}
 
-			_$_.pop(section);
+			_$_.hydrating && _$_.pop(section);
 		}
 
 		_$_.append(__anchor, section);

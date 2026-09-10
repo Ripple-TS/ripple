@@ -75,7 +75,11 @@ export function pre_effect(fn) {
  * @param {number} [flags]
  */
 export function render(fn, state, flags = 0) {
-	return block(RENDER_BLOCK | flags, fn, state);
+	// block(), inline: a render block runs at once.
+	var block = create_block(RENDER_BLOCK | flags, fn, state);
+	run_block(block, true);
+	block.f ^= BLOCK_HAS_RUN;
+	return block;
 }
 
 /**

@@ -41,7 +41,7 @@ function ReactiveTitle_render(__anchor, __block) {
 				var expression = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 				_$_.expression(expression, () => lazy.value);
-				_$_.pop(span);
+				_$_.hydrating && _$_.pop(span);
 			}
 		}
 
@@ -102,7 +102,7 @@ function ReactiveMetaTags_render(__anchor, __block) {
 			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
 			_$_.expression(expression_1, () => lazy_1.value);
-			_$_.pop(div_3);
+			_$_.hydrating && _$_.pop(div_3);
 		}
 
 		_$_.head('4ca6a546', (__anchor) => {
@@ -136,7 +136,7 @@ function TitleWithTemplate_render(__anchor, __block) {
 			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 			_$_.expression(expression_2, () => lazy_2.value);
-			_$_.pop(div_4);
+			_$_.hydrating && _$_.pop(div_4);
 		}
 
 		_$_.head('10dc944d', (__anchor) => {
@@ -191,7 +191,7 @@ function ConditionalTitle_render(__anchor, __block) {
 			var expression_3 = _$_.hydrating ? _$_.hydrate_child() : div_6.firstChild;
 
 			_$_.expression(expression_3, () => lazy_4.value);
-			_$_.pop(div_6);
+			_$_.hydrating && _$_.pop(div_6);
 		}
 
 		_$_.head('4b39c36b', (__anchor) => {

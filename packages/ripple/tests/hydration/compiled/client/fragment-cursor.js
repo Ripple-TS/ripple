@@ -142,7 +142,7 @@ function TrailingNestedNavigated_render(__anchor, __block) {
 			button_6.__click = () => _$_.update(lazy_4);
 		}
 
-		_$_.pop(div_3);
+		_$_.hydrating && _$_.pop(div_3);
 		_$_.append(__anchor, fragment_9);
 	}));
 
@@ -169,7 +169,7 @@ function NestedNavigatedThenStatic_render(__anchor, __block) {
 			button_7.__click = () => _$_.update(lazy_5);
 		}
 
-		_$_.pop(div_5);
+		_$_.hydrating && _$_.pop(div_5);
 		_$_.next(2);
 		_$_.append(__anchor, fragment_11);
 	}));
@@ -514,7 +514,7 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 		var button_8 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 		button_8.__click = () => _$_.update(lazy_12);
-		_$_.pop(div_15);
+		_$_.hydrating && _$_.pop(div_15);
 	}
 
 	_$_.render(render_5, { a: ' ', _lazy_12: lazy_12, _expression_5: expression_5 });
@@ -551,7 +551,7 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 		var button_9 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
 
 		button_9.__click = () => _$_.update(lazy_13);
-		_$_.pop(div_16);
+		_$_.hydrating && _$_.pop(div_16);
 	}
 
 	_$_.render(render_6, { a: ' ', _lazy_13: lazy_13, _expression_6: expression_6 });
@@ -588,7 +588,7 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 		var button_10 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 		button_10.__click = () => _$_.update(lazy_14);
-		_$_.pop(div_17);
+		_$_.hydrating && _$_.pop(div_17);
 	}
 
 	_$_.render(render_7, { a: ' ', _lazy_14: lazy_14, _expression_7: expression_7 });
@@ -625,7 +625,7 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 		var button_11 = _$_.hydrating ? _$_.hydrate_sibling() : span_3.nextSibling;
 
 		button_11.__click = () => _$_.update(lazy_15);
-		_$_.pop(div_18);
+		_$_.hydrating && _$_.pop(div_18);
 	}
 
 	_$_.render(render_8, { a: ' ', _lazy_15: lazy_15, _expression_8: expression_8 });
@@ -662,7 +662,7 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 		var button_12 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
 
 		button_12.__click = () => _$_.update(lazy_16);
-		_$_.pop(div_19);
+		_$_.hydrating && _$_.pop(div_19);
 	}
 
 	_$_.render(render_9, { a: ' ', _lazy_16: lazy_16, _expression_9: expression_9 });
@@ -699,7 +699,7 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 		var button_13 = _$_.hydrating ? _$_.hydrate_sibling() : span_5.nextSibling;
 
 		button_13.__click = () => _$_.update(lazy_17);
-		_$_.pop(div_20);
+		_$_.hydrating && _$_.pop(div_20);
 	}
 
 	_$_.render(render_10, { a: ' ', _lazy_17: lazy_17, _expression_10: expression_10 });
@@ -736,7 +736,7 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 		var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
 
 		button_14.__click = () => _$_.update(lazy_18);
-		_$_.pop(div_21);
+		_$_.hydrating && _$_.pop(div_21);
 	}
 
 	_$_.render(render_11, { a: ' ', _lazy_18: lazy_18, _expression_11: expression_11 });
@@ -773,7 +773,7 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 		var button_15 = _$_.hydrating ? _$_.hydrate_sibling() : span_7.nextSibling;
 
 		button_15.__click = () => _$_.update(lazy_19);
-		_$_.pop(div_22);
+		_$_.hydrating && _$_.pop(div_22);
 	}
 
 	_$_.render(render_12, { a: ' ', _lazy_19: lazy_19, _expression_12: expression_12 });
@@ -810,7 +810,7 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 		var button_16 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
 
 		button_16.__click = () => _$_.update(lazy_20);
-		_$_.pop(div_23);
+		_$_.hydrating && _$_.pop(div_23);
 	}
 
 	_$_.render(render_13, { a: ' ', _lazy_20: lazy_20, _expression_13: expression_13 });
@@ -847,7 +847,7 @@ function WrapAllStatic_render(__anchor, __block) {
 		var button_17 = _$_.hydrating ? _$_.hydrate_sibling() : span_9.nextSibling;
 
 		button_17.__click = () => _$_.update(lazy_21);
-		_$_.pop(div_24);
+		_$_.hydrating && _$_.pop(div_24);
 	}
 
 	_$_.render(render_14, { a: ' ', _lazy_21: lazy_21, _expression_14: expression_14 });
@@ -884,7 +884,7 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 		var button_18 = _$_.hydrating ? _$_.hydrate_sibling() : span_10.nextSibling;
 
 		button_18.__click = () => _$_.update(lazy_22);
-		_$_.pop(div_25);
+		_$_.hydrating && _$_.pop(div_25);
 	}
 
 	_$_.render(render_15, { a: ' ', _lazy_22: lazy_22, _expression_15: expression_15 });
@@ -921,7 +921,7 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 		var button_19 = _$_.hydrating ? _$_.hydrate_sibling() : span_11.nextSibling;
 
 		button_19.__click = () => _$_.update(lazy_23);
-		_$_.pop(div_26);
+		_$_.hydrating && _$_.pop(div_26);
 	}
 
 	_$_.render(render_16, { a: ' ', _lazy_23: lazy_23, _expression_16: expression_16 });
@@ -958,7 +958,7 @@ function WrapIfThenStatic_render(__anchor, __block) {
 		var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : span_12.nextSibling;
 
 		button_20.__click = () => _$_.update(lazy_24);
-		_$_.pop(div_27);
+		_$_.hydrating && _$_.pop(div_27);
 	}
 
 	_$_.render(render_17, { a: ' ', _lazy_24: lazy_24, _expression_17: expression_17 });
@@ -995,7 +995,7 @@ function WrapStaticThenIf_render(__anchor, __block) {
 		var button_21 = _$_.hydrating ? _$_.hydrate_sibling() : span_13.nextSibling;
 
 		button_21.__click = () => _$_.update(lazy_25);
-		_$_.pop(div_28);
+		_$_.hydrating && _$_.pop(div_28);
 	}
 
 	_$_.render(render_18, { a: ' ', _lazy_25: lazy_25, _expression_18: expression_18 });
@@ -1032,7 +1032,7 @@ function WrapCompThenStatic_render(__anchor, __block) {
 		var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : span_14.nextSibling;
 
 		button_22.__click = () => _$_.update(lazy_26);
-		_$_.pop(div_29);
+		_$_.hydrating && _$_.pop(div_29);
 	}
 
 	_$_.render(render_19, { a: ' ', _lazy_26: lazy_26, _expression_19: expression_19 });
@@ -1069,7 +1069,7 @@ function WrapStaticThenComp_render(__anchor, __block) {
 		var button_23 = _$_.hydrating ? _$_.hydrate_sibling() : span_15.nextSibling;
 
 		button_23.__click = () => _$_.update(lazy_27);
-		_$_.pop(div_30);
+		_$_.hydrating && _$_.pop(div_30);
 	}
 
 	_$_.render(render_20, { a: ' ', _lazy_27: lazy_27, _expression_20: expression_20 });
@@ -1106,7 +1106,7 @@ function WrapSiblingComps_render(__anchor, __block) {
 		var button_24 = _$_.hydrating ? _$_.hydrate_sibling() : span_16.nextSibling;
 
 		button_24.__click = () => _$_.update(lazy_28);
-		_$_.pop(div_31);
+		_$_.hydrating && _$_.pop(div_31);
 	}
 
 	_$_.render(render_21, { a: ' ', _lazy_28: lazy_28, _expression_21: expression_21 });
@@ -1235,7 +1235,7 @@ function ForThenStatic_render(__anchor, __block) {
 					var expression_24 = _$_.hydrating ? _$_.hydrate_child() : b_2.firstChild;
 
 					_$_.expression(expression_24, () => item);
-					_$_.pop(b_2);
+					_$_.hydrating && _$_.pop(b_2);
 				}
 
 				_$_.append(__anchor, b_2);
@@ -1351,7 +1351,7 @@ function StyleThenStatic_render(__anchor, __block) {
 		var style = _$_.first_child_frag(fragment_49);
 
 		{
-			_$_.pop(style);
+			_$_.hydrating && _$_.pop(style);
 		}
 
 		_$_.next(2);
@@ -1383,7 +1383,7 @@ function CollectionThenStatic_render(__anchor, __block) {
 				var expression_25 = _$_.hydrating ? _$_.hydrate_child() : b_7.firstChild;
 
 				_$_.expression(expression_25, () => item);
-				_$_.pop(b_7);
+				_$_.hydrating && _$_.pop(b_7);
 			}
 
 			_$_.append(__anchor, b_7);
@@ -1453,7 +1453,7 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 		var button_26 = _$_.hydrating ? _$_.hydrate_sibling() : span_18.nextSibling;
 
 		button_26.__click = () => _$_.update(lazy_31);
-		_$_.pop(div_34);
+		_$_.hydrating && _$_.pop(div_34);
 	}
 
 	_$_.render(render_23, { a: ' ', _lazy_31: lazy_31, _expression_28: expression_28 });
@@ -1490,7 +1490,7 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 		var button_27 = _$_.hydrating ? _$_.hydrate_sibling() : span_19.nextSibling;
 
 		button_27.__click = () => _$_.update(lazy_32);
-		_$_.pop(div_35);
+		_$_.hydrating && _$_.pop(div_35);
 	}
 
 	_$_.render(render_24, { a: ' ', _lazy_32: lazy_32, _expression_29: expression_29 });
@@ -1527,7 +1527,7 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 		var button_28 = _$_.hydrating ? _$_.hydrate_sibling() : span_20.nextSibling;
 
 		button_28.__click = () => _$_.update(lazy_33);
-		_$_.pop(div_36);
+		_$_.hydrating && _$_.pop(div_36);
 	}
 
 	_$_.render(render_25, { a: ' ', _lazy_33: lazy_33, _expression_30: expression_30 });
@@ -1564,7 +1564,7 @@ function WrapForThenStatic_render(__anchor, __block) {
 		var button_29 = _$_.hydrating ? _$_.hydrate_sibling() : span_21.nextSibling;
 
 		button_29.__click = () => _$_.update(lazy_34);
-		_$_.pop(div_37);
+		_$_.hydrating && _$_.pop(div_37);
 	}
 
 	_$_.render(render_26, { a: ' ', _lazy_34: lazy_34, _expression_31: expression_31 });
@@ -1601,7 +1601,7 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 		var button_30 = _$_.hydrating ? _$_.hydrate_sibling() : span_22.nextSibling;
 
 		button_30.__click = () => _$_.update(lazy_35);
-		_$_.pop(div_38);
+		_$_.hydrating && _$_.pop(div_38);
 	}
 
 	_$_.render(render_27, { a: ' ', _lazy_35: lazy_35, _expression_32: expression_32 });
@@ -1638,7 +1638,7 @@ function WrapTryThenStatic_render(__anchor, __block) {
 		var button_31 = _$_.hydrating ? _$_.hydrate_sibling() : span_23.nextSibling;
 
 		button_31.__click = () => _$_.update(lazy_36);
-		_$_.pop(div_39);
+		_$_.hydrating && _$_.pop(div_39);
 	}
 
 	_$_.render(render_28, { a: ' ', _lazy_36: lazy_36, _expression_33: expression_33 });
@@ -1675,7 +1675,7 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 		var button_32 = _$_.hydrating ? _$_.hydrate_sibling() : span_24.nextSibling;
 
 		button_32.__click = () => _$_.update(lazy_37);
-		_$_.pop(div_40);
+		_$_.hydrating && _$_.pop(div_40);
 	}
 
 	_$_.render(render_29, { a: ' ', _lazy_37: lazy_37, _expression_34: expression_34 });
@@ -1712,7 +1712,7 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 		var button_33 = _$_.hydrating ? _$_.hydrate_sibling() : span_25.nextSibling;
 
 		button_33.__click = () => _$_.update(lazy_38);
-		_$_.pop(div_41);
+		_$_.hydrating && _$_.pop(div_41);
 	}
 
 	_$_.render(render_30, { a: ' ', _lazy_38: lazy_38, _expression_35: expression_35 });
@@ -1749,7 +1749,7 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 		var button_34 = _$_.hydrating ? _$_.hydrate_sibling() : span_26.nextSibling;
 
 		button_34.__click = () => _$_.update(lazy_39);
-		_$_.pop(div_42);
+		_$_.hydrating && _$_.pop(div_42);
 	}
 
 	_$_.render(render_31, { a: ' ', _lazy_39: lazy_39, _expression_36: expression_36 });
@@ -1842,7 +1842,7 @@ function SingleRootWithIf_render(__anchor, __block) {
 		var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
 
 		_$_.if(node_66, if_5, false, lazy_42);
-		_$_.pop(div_43);
+		_$_.hydrating && _$_.pop(div_43);
 	}
 
 	_$_.append(__anchor, div_43);
@@ -1878,7 +1878,7 @@ function WrapIfOnly_render(__anchor, __block) {
 		var button_35 = _$_.hydrating ? _$_.hydrate_sibling() : span_27.nextSibling;
 
 		button_35.__click = () => _$_.update(lazy_43);
-		_$_.pop(div_44);
+		_$_.hydrating && _$_.pop(div_44);
 	}
 
 	_$_.render(render_32, { a: ' ', _lazy_43: lazy_43, _expression_37: expression_37 });
@@ -1915,7 +1915,7 @@ function WrapIfThenOne_render(__anchor, __block) {
 		var button_36 = _$_.hydrating ? _$_.hydrate_sibling() : span_28.nextSibling;
 
 		button_36.__click = () => _$_.update(lazy_44);
-		_$_.pop(div_45);
+		_$_.hydrating && _$_.pop(div_45);
 	}
 
 	_$_.render(render_33, { a: ' ', _lazy_44: lazy_44, _expression_38: expression_38 });
@@ -1952,7 +1952,7 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 		var button_37 = _$_.hydrating ? _$_.hydrate_sibling() : span_29.nextSibling;
 
 		button_37.__click = () => _$_.update(lazy_45);
-		_$_.pop(div_46);
+		_$_.hydrating && _$_.pop(div_46);
 	}
 
 	_$_.render(render_34, { a: ' ', _lazy_45: lazy_45, _expression_39: expression_39 });
@@ -1990,7 +1990,7 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 		var button_38 = _$_.hydrating ? _$_.hydrate_sibling() : span_30.nextSibling;
 
 		button_38.__click = () => _$_.update(lazy_46);
-		_$_.pop(div_47);
+		_$_.hydrating && _$_.pop(div_47);
 	}
 
 	_$_.render(render_35, { a: ' ', _lazy_46: lazy_46, _expression_41: expression_41 });
@@ -2075,7 +2075,7 @@ function IfTwoInDiv_render(__anchor, __block) {
 		var button_39 = _$_.hydrating ? _$_.hydrate_sibling() : span_31.nextSibling;
 
 		button_39.__click = () => _$_.update(lazy_48);
-		_$_.pop(div_48);
+		_$_.hydrating && _$_.pop(div_48);
 	}
 
 	_$_.render(render_36, { a: ' ', _lazy_48: lazy_48, _expression_42: expression_42 });
@@ -2112,7 +2112,7 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 		var button_40 = _$_.hydrating ? _$_.hydrate_sibling() : span_32.nextSibling;
 
 		button_40.__click = () => _$_.update(lazy_49);
-		_$_.pop(div_49);
+		_$_.hydrating && _$_.pop(div_49);
 	}
 
 	_$_.render(render_37, { a: ' ', _lazy_49: lazy_49, _expression_43: expression_43 });
@@ -2142,7 +2142,7 @@ function ForTwoNodeItems_render(__anchor, __block) {
 					var expression_44 = _$_.hydrating ? _$_.hydrate_child() : b_12.firstChild;
 
 					_$_.expression(expression_44, () => item);
-					_$_.pop(b_12);
+					_$_.hydrating && _$_.pop(b_12);
 				}
 
 				_$_.next();
@@ -2151,7 +2151,7 @@ function ForTwoNodeItems_render(__anchor, __block) {
 			0
 		);
 
-		_$_.pop(div_50);
+		_$_.hydrating && _$_.pop(div_50);
 	}
 
 	_$_.append(__anchor, div_50);
@@ -2200,7 +2200,7 @@ function StaticThenStyleThenStatic_render(__anchor, __block) {
 		var style_1 = _$_.hydrating ? _$_.hydrate_sibling() : div_51.nextSibling;
 
 		{
-			_$_.pop(style_1);
+			_$_.hydrating && _$_.pop(style_1);
 		}
 
 		_$_.next(2);
@@ -2240,7 +2240,7 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 		var button_41 = _$_.hydrating ? _$_.hydrate_sibling() : span_33.nextSibling;
 
 		button_41.__click = () => _$_.update(lazy_50);
-		_$_.pop(div_52);
+		_$_.hydrating && _$_.pop(div_52);
 	}
 
 	_$_.render(render_38, { a: ' ', _lazy_50: lazy_50, _expression_46: expression_46 });
@@ -2277,7 +2277,7 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 		var button_42 = _$_.hydrating ? _$_.hydrate_sibling() : span_34.nextSibling;
 
 		button_42.__click = () => _$_.update(lazy_51);
-		_$_.pop(div_53);
+		_$_.hydrating && _$_.pop(div_53);
 	}
 
 	_$_.render(render_39, { a: ' ', _lazy_51: lazy_51, _expression_47: expression_47 });

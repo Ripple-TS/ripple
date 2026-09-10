@@ -442,7 +442,12 @@ export function run_block(block, first_run = false) {
 			register_teardown(block, res);
 		}
 
-		if (active_dependency !== null || block.d !== null) {
+		if (block.d === null) {
+			// First run (or no dependencies so far): nothing stale to unlink.
+			if (active_dependency !== null) {
+				block.d = active_dependency;
+			}
+		} else {
 			finish_dependencies(block, active_dependency);
 		}
 	} catch (error) {

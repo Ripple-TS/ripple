@@ -172,7 +172,7 @@ function MultiStateUpdate_render(__anchor, __block) {
 			var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
 			_$_.expression(expression_5, () => lazy_5.value);
-			_$_.pop(span_5);
+			_$_.hydrating && _$_.pop(span_5);
 		}
 	}
 
@@ -269,7 +269,7 @@ function ParentWithChildButton_render(__anchor, __block) {
 			var expression_8 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
 		}
 
-		_$_.pop(div_5);
+		_$_.hydrating && _$_.pop(div_5);
 	}
 
 	_$_.render(render_6, { a: ' ', _lazy_7: lazy_7, _expression_8: expression_8 });

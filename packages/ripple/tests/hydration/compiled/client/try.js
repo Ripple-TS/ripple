@@ -34,7 +34,7 @@ function RootAsyncDirect_render(__anchor, __block) {
 		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
 		_$_.expression(expression_1, () => lazy.value);
-		_$_.pop(p_3);
+		_$_.hydrating && _$_.pop(p_3);
 	}
 
 	_$_.append(__anchor, p_3);
@@ -52,7 +52,7 @@ function RootAsyncRejects_render(__anchor, __block) {
 		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 		_$_.expression(expression_2, () => lazy_1.value);
-		_$_.pop(p_4);
+		_$_.hydrating && _$_.pop(p_4);
 	}
 
 	_$_.append(__anchor, p_4);
@@ -98,7 +98,7 @@ function AsyncList_render(__anchor, __block) {
 					var expression_3 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 					_$_.expression(expression_3, () => item);
-					_$_.pop(li);
+					_$_.hydrating && _$_.pop(li);
 				}
 
 				_$_.append(__anchor, li);
@@ -106,7 +106,7 @@ function AsyncList_render(__anchor, __block) {
 			4
 		);
 
-		_$_.pop(ul);
+		_$_.hydrating && _$_.pop(ul);
 	}
 
 	_$_.append(__anchor, ul);
@@ -158,7 +158,7 @@ function AsyncContent_render(__anchor, __block) {
 		var expression_4 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 		_$_.expression(expression_4, () => lazy_3.value);
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -183,7 +183,7 @@ export function RootCatch({ error, reset }) {
 				var expression = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 				_$_.expression(expression, () => error.message);
-				_$_.pop(p_1);
+				_$_.hydrating && _$_.pop(p_1);
 			}
 
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;

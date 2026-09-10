@@ -147,14 +147,22 @@ function clone_template(t) {
 			? document.importNode(/** @type {Node} */ (node), true)
 			: /** @type {Node} */ (node).cloneNode(true);
 
+	var start = clone;
+	var end = clone;
 	if (is_fragment) {
 		// we know for sure that children exist
-		var start = /** @type {Node} */ (get_first_child(/** @type {DocumentFragment} */ (clone)));
-		var end = /** @type {Node} */ (/** @type {DocumentFragment} */ (clone).lastChild);
+		start = /** @type {Node} */ (get_first_child(/** @type {DocumentFragment} */ (clone)));
+		end = /** @type {Node} */ (/** @type {DocumentFragment} */ (clone).lastChild);
+	}
 
-		assign_nodes(start, end);
-	} else {
-		assign_nodes(clone, clone);
+	// assign_nodes, inline: every template clone records its range.
+	var block = /** @type {Block} */ (active_block);
+	var s = block.s;
+	if (s === null) {
+		block.s = { start, end };
+	} else if (s.start === null) {
+		s.start = start;
+		s.end = end;
 	}
 
 	return clone;

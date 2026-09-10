@@ -28,7 +28,7 @@ function IfFragmentForElement_render(__anchor, __block) {
 							var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
 							_$_.expression(expression, () => _$_.get(pattern).muzeId);
-							_$_.pop(p);
+							_$_.hydrating && _$_.pop(p);
 						}
 
 						_$_.append(__anchor, p);
@@ -46,7 +46,7 @@ function IfFragmentForElement_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);
@@ -105,7 +105,7 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 							var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
 							_$_.expression(expression_1, () => _$_.get(pattern_1).muzeId);
-							_$_.pop(p_1);
+							_$_.hydrating && _$_.pop(p_1);
 						}
 
 						_$_.append(__anchor, p_1);
@@ -129,7 +129,7 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_1);
+		_$_.hydrating && _$_.pop(div_1);
 	}
 
 	_$_.append(__anchor, div_1);
@@ -160,7 +160,7 @@ function IfFragmentElements_render(__anchor, __block) {
 		var node_6 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 		_$_.if(node_6, if_3, false, hasLoaded);
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -191,7 +191,7 @@ function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
 					var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 					_$_.expression(expression_2, () => _$_.get(pattern_2).muzeId);
-					_$_.pop(p_2);
+					_$_.hydrating && _$_.pop(p_2);
 				}
 
 				_$_.append(__anchor, p_2);
@@ -235,7 +235,7 @@ function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
 						var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
 						_$_.expression(expression_3, () => _$_.get(pattern_3).muzeId);
-						_$_.pop(p_3);
+						_$_.hydrating && _$_.pop(p_3);
 					}
 
 					_$_.append(__anchor, p_3);
@@ -284,7 +284,7 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 								var expression_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 								_$_.expression(expression_5, () => _$_.get(pattern_4).muzeId);
-								_$_.pop(p_4);
+								_$_.hydrating && _$_.pop(p_4);
 							}
 
 							_$_.append(__anchor, p_4);
@@ -303,7 +303,7 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_3);
+		_$_.hydrating && _$_.pop(div_3);
 	}
 
 	_$_.append(__anchor, div_3);
@@ -345,7 +345,7 @@ function IfElseFragment_render(__anchor, __block) {
 							var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_5.firstChild;
 
 							_$_.expression(expression_7, () => _$_.get(pattern_5).muzeId);
-							_$_.pop(p_5);
+							_$_.hydrating && _$_.pop(p_5);
 						}
 
 						_$_.append(__anchor, p_5);
@@ -363,7 +363,7 @@ function IfElseFragment_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_4);
+		_$_.hydrating && _$_.pop(div_4);
 	}
 
 	_$_.append(__anchor, div_4);
@@ -400,7 +400,7 @@ function IfDivFragment_render(__anchor, __block) {
 								var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_6.firstChild;
 
 								_$_.expression(expression_8, () => _$_.get(pattern_6).muzeId);
-								_$_.pop(p_6);
+								_$_.hydrating && _$_.pop(p_6);
 							}
 
 							_$_.append(__anchor, p_6);
@@ -409,7 +409,7 @@ function IfDivFragment_render(__anchor, __block) {
 						(pattern_6) => _$_.get(pattern_6).muzeId
 					);
 
-					_$_.pop(section);
+					_$_.hydrating && _$_.pop(section);
 				}
 
 				_$_.append(__anchor, section);
@@ -420,7 +420,7 @@ function IfDivFragment_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_5);
+		_$_.hydrating && _$_.pop(div_5);
 	}
 
 	_$_.append(__anchor, div_5);

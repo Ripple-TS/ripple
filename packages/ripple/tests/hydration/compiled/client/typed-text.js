@@ -31,7 +31,7 @@ function TypedText_render(__anchor, __block) {
 		{
 			var expression = _$_.hydrating ? _$_.hydrate_child(true) : div.firstChild;
 
-			_$_.pop(div);
+			_$_.hydrating && _$_.pop(div);
 		}
 
 		var p = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;

@@ -200,7 +200,7 @@ function NestedIf_render(__anchor, __block) {
 					var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
 
 					_$_.if(node_5, if_6, false, lazy_3);
-					_$_.pop(div_7);
+					_$_.hydrating && _$_.pop(div_7);
 				}
 
 				_$_.append(__anchor, div_7);
@@ -273,7 +273,7 @@ function IfElseIfChain_render(__anchor, __block) {
 		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
 		_$_.if(node_7, if_7, false, lazy_4);
-		_$_.pop(div_8);
+		_$_.hydrating && _$_.pop(div_8);
 	}
 
 	_$_.append(__anchor, div_8);

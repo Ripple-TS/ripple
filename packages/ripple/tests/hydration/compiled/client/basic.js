@@ -78,7 +78,7 @@ function ParentWithChild_render(__anchor, __block) {
 		var append_anchor = _$_.append_into(div_2);
 
 		_$_.render_component(ChildComponent, append_anchor, {});
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -184,7 +184,7 @@ function ExpressionContent_render(__anchor, __block) {
 			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
 
 			_$_.expression(expression_2, () => _$_.with_scope(__block, () => label.toUpperCase()));
-			_$_.pop(span_1);
+			_$_.hydrating && _$_.pop(span_1);
 		}
 
 		_$_.append(__anchor, fragment_7);
@@ -217,7 +217,7 @@ function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 					var expression_5 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
 
 					_$_.expression(expression_5, () => item);
-					_$_.pop(div_9);
+					_$_.hydrating && _$_.pop(div_9);
 				}
 
 				_$_.append(__anchor, div_9);
@@ -228,7 +228,7 @@ function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 		var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8);
 
 		_$_.render_component(NestedTsxTsrxFragment, node_9, { label: "from helper" });
-		_$_.pop(div_8);
+		_$_.hydrating && _$_.pop(div_8);
 	}
 
 	_$_.append(__anchor, div_8);
@@ -274,7 +274,7 @@ function MixedTsrxCollectionText_render(__anchor, __block) {
 		var expression_7 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 
 		_$_.expression(expression_7, () => content);
-		_$_.pop(div_10);
+		_$_.hydrating && _$_.pop(div_10);
 	}
 
 	_$_.append(__anchor, div_10);
@@ -320,7 +320,7 @@ function MixedTsrxCollectionSplitServerText_render(__anchor, __block) {
 		var expression_9 = _$_.hydrating ? _$_.hydrate_child() : div_11.firstChild;
 
 		_$_.expression(expression_9, () => content);
-		_$_.pop(div_11);
+		_$_.hydrating && _$_.pop(div_11);
 	}
 
 	_$_.append(__anchor, div_11);
@@ -366,7 +366,7 @@ function MixedTsrxCollectionSplitClientText_render(__anchor, __block) {
 		var expression_11 = _$_.hydrating ? _$_.hydrate_child() : div_12.firstChild;
 
 		_$_.expression(expression_11, () => content);
-		_$_.pop(div_12);
+		_$_.hydrating && _$_.pop(div_12);
 	}
 
 	_$_.append(__anchor, div_12);
@@ -404,7 +404,7 @@ function MixedTsrxCollectionPrimitiveServerText_render(__anchor, __block) {
 		var expression_13 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
 
 		_$_.expression(expression_13, () => content);
-		_$_.pop(div_13);
+		_$_.hydrating && _$_.pop(div_13);
 	}
 
 	_$_.append(__anchor, div_13);
@@ -442,7 +442,7 @@ function MixedTsrxCollectionPrimitiveClientText_render(__anchor, __block) {
 		var expression_15 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
 		_$_.expression(expression_15, () => content);
-		_$_.pop(div_14);
+		_$_.hydrating && _$_.pop(div_14);
 	}
 
 	_$_.append(__anchor, div_14);
@@ -460,7 +460,7 @@ function DynamicArrayFromCall_render(__anchor, __block) {
 		var expression_16 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
 
 		_$_.expression(expression_16, () => items);
-		_$_.pop(div_15);
+		_$_.hydrating && _$_.pop(div_15);
 	}
 
 	_$_.append(__anchor, div_15);
@@ -478,7 +478,7 @@ function DynamicArrayFromTrack_render(__anchor, __block) {
 		var expression_17 = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
 		_$_.expression(expression_17, () => lazy.value);
-		_$_.pop(div_16);
+		_$_.hydrating && _$_.pop(div_16);
 	}
 
 	_$_.append(__anchor, div_16);
@@ -501,7 +501,7 @@ function DynamicArrayFromConditional_render(__anchor, __block) {
 		var expression_18 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
 
 		_$_.expression(expression_18, () => items);
-		_$_.pop(div_17);
+		_$_.hydrating && _$_.pop(div_17);
 	}
 
 	_$_.append(__anchor, div_17);
@@ -520,7 +520,7 @@ function DynamicArrayFromLogical_render(__anchor, __block) {
 		var expression_19 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
 
 		_$_.expression(expression_19, () => items);
-		_$_.pop(div_18);
+		_$_.hydrating && _$_.pop(div_18);
 	}
 
 	_$_.append(__anchor, div_18);
@@ -601,7 +601,7 @@ function TsxDeclaredBeforeTopLevelTsx_render(__anchor, __block) {
 			var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
 			_$_.expression(expression_22, () => nested);
-			_$_.pop(div_20);
+			_$_.hydrating && _$_.pop(div_20);
 		}
 
 		_$_.append(__anchor, div_20);
@@ -632,7 +632,7 @@ function TextProp_render(__anchor, __block, __props) {
 		var expression_24 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
 
 		_$_.expression(expression_24, () => __props.children);
-		_$_.pop(div_21);
+		_$_.hydrating && _$_.pop(div_21);
 	}
 
 	_$_.append(__anchor, div_21);
@@ -649,7 +649,7 @@ function TypedTextProp_render(__anchor, __block, __props) {
 		var expression_25 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
 
 		_$_.expression(expression_25, () => __props.children);
-		_$_.pop(div_22);
+		_$_.hydrating && _$_.pop(div_22);
 	}
 
 	_$_.append(__anchor, div_22);
@@ -853,7 +853,7 @@ function ComponentAsLastSibling_render(__anchor, __block) {
 		var node_25 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_26);
 
 		_$_.render_component(LastChild, node_25, {});
-		_$_.pop(div_26);
+		_$_.hydrating && _$_.pop(div_26);
 	}
 
 	_$_.append(__anchor, div_26);
@@ -871,7 +871,7 @@ function InnerContent_render(__anchor, __block) {
 		var node_26 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_27);
 
 		_$_.render_component(LastChild, node_26, {});
-		_$_.pop(div_27);
+		_$_.hydrating && _$_.pop(div_27);
 	}
 
 	_$_.append(__anchor, div_27);
@@ -889,7 +889,7 @@ function NestedComponentAsLastSibling_render(__anchor, __block) {
 		var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
 
 		_$_.render_component(InnerContent, node_27, {});
-		_$_.pop(section_1);
+		_$_.hydrating && _$_.pop(section_1);
 	}
 
 	_$_.append(__anchor, section_1);
@@ -949,7 +949,7 @@ function FragmentChildOnly_render(__anchor, __block) {
 	var div_30 = root_75();
 
 	{
-		_$_.pop(div_30);
+		_$_.hydrating && _$_.pop(div_30);
 	}
 
 	_$_.append(__anchor, div_30);
@@ -987,7 +987,7 @@ function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
 		var append_anchor_1 = _$_.append_into(div_31);
 
 		_$_.render_component(OpaqueLead, append_anchor_1, { header: 'H' });
-		_$_.pop(div_31);
+		_$_.hydrating && _$_.pop(div_31);
 	}
 
 	_$_.append(__anchor, div_31);
@@ -1034,7 +1034,7 @@ function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 		var append_anchor_2 = _$_.append_into(div_32);
 
 		_$_.render_component(PrimitiveCallLead, append_anchor_2, {});
-		_$_.pop(div_32);
+		_$_.hydrating && _$_.pop(div_32);
 	}
 
 	_$_.append(__anchor, div_32);
@@ -1123,7 +1123,7 @@ function ShadowedTextCalls_render(__anchor, __block) {
 			var expression_33 = _$_.hydrating ? _$_.hydrate_sibling() : text_2.nextSibling;
 
 			_$_.render_tsrx_element(_$_.with_scope(__block, String), expression_33, __block);
-			_$_.pop(p_1);
+			_$_.hydrating && _$_.pop(p_1);
 		}
 
 		var p_2 = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
@@ -1133,7 +1133,7 @@ function ShadowedTextCalls_render(__anchor, __block) {
 			var expression_34 = _$_.hydrating ? _$_.hydrate_sibling() : text_3.nextSibling;
 
 			_$_.render_tsrx_element(_$_.with_scope(__block, Number), expression_34, __block);
-			_$_.pop(p_2);
+			_$_.hydrating && _$_.pop(p_2);
 		}
 
 		var p_3 = _$_.hydrating ? _$_.hydrate_sibling() : p_2.nextSibling;
@@ -1143,7 +1143,7 @@ function ShadowedTextCalls_render(__anchor, __block) {
 			var expression_35 = _$_.hydrating ? _$_.hydrate_sibling() : text_4.nextSibling;
 
 			_$_.render_tsrx_element(_$_.with_scope(__block, BigInt), expression_35, __block);
-			_$_.pop(p_3);
+			_$_.hydrating && _$_.pop(p_3);
 		}
 
 		var p_4 = _$_.hydrating ? _$_.hydrate_sibling() : p_3.nextSibling;
@@ -1153,7 +1153,7 @@ function ShadowedTextCalls_render(__anchor, __block) {
 			var expression_36 = _$_.hydrating ? _$_.hydrate_sibling() : text_5.nextSibling;
 
 			_$_.render_tsrx_element(_$_.with_scope(__block, Date), expression_36, __block);
-			_$_.pop(p_4);
+			_$_.hydrating && _$_.pop(p_4);
 		}
 
 		_$_.append(__anchor, fragment_39);
@@ -1362,7 +1362,7 @@ function Actions({ playgroundVisible = false }) {
 				})
 				: null);
 
-			_$_.pop(div_23);
+			_$_.hydrating && _$_.pop(div_23);
 		}
 
 		_$_.append(__anchor, div_23);
@@ -1380,7 +1380,7 @@ function Layout({ children }) {
 				var expression_29 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
 
 				_$_.expression(expression_29, () => children);
-				_$_.pop(div_24);
+				_$_.hydrating && _$_.pop(div_24);
 			}
 		}
 

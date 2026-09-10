@@ -18,7 +18,7 @@ function consequent(__anchor, pattern) {
 		var expression = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 
 		_$_.expression(expression, () => _$_.get(pattern).label);
-		_$_.pop(li);
+		_$_.hydrating && _$_.pop(li);
 	}
 
 	_$_.render(render, { a: _$_.UNINITIALIZED, _pattern: pattern, _li: li });
@@ -51,7 +51,7 @@ function ForIf_render(__anchor, __block) {
 			(pattern) => _$_.get(pattern).id
 		);
 
-		_$_.pop(ul);
+		_$_.hydrating && _$_.pop(ul);
 	}
 
 	_$_.append(__anchor, ul);
@@ -169,7 +169,7 @@ function ForSwitch_render(__anchor, __block) {
 			(pattern_1) => _$_.get(pattern_1).id
 		);
 
-		_$_.pop(ul_1);
+		_$_.hydrating && _$_.pop(ul_1);
 	}
 
 	_$_.append(__anchor, ul_1);
@@ -229,7 +229,7 @@ function IfSwitch_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div);
+		_$_.hydrating && _$_.pop(div);
 	}
 
 	_$_.append(__anchor, div);
@@ -289,7 +289,7 @@ function IfSwitchHidden_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_1);
+		_$_.hydrating && _$_.pop(div_1);
 	}
 
 	_$_.append(__anchor, div_1);
@@ -410,7 +410,7 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 			(pattern_2) => _$_.get(pattern_2).id
 		);
 
-		_$_.pop(ul_2);
+		_$_.hydrating && _$_.pop(ul_2);
 	}
 
 	_$_.append(__anchor, ul_2);
@@ -535,7 +535,7 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 			(pattern_3) => _$_.get(pattern_3).id
 		);
 
-		_$_.pop(ul_3);
+		_$_.hydrating && _$_.pop(ul_3);
 	}
 
 	_$_.append(__anchor, ul_3);
@@ -661,7 +661,7 @@ function ForIfSwitchWithDisabled_render(__anchor, __block) {
 			(pattern_4) => _$_.get(pattern_4).id
 		);
 
-		_$_.pop(ul_4);
+		_$_.hydrating && _$_.pop(ul_4);
 	}
 
 	_$_.append(__anchor, ul_4);
@@ -721,7 +721,7 @@ function SwitchTry_render(__anchor, __block) {
 			});
 		}
 
-		_$_.pop(div_2);
+		_$_.hydrating && _$_.pop(div_2);
 	}
 
 	_$_.append(__anchor, div_2);
@@ -916,7 +916,7 @@ function ForSwitchTry_render(__anchor, __block) {
 			(pattern_5) => _$_.get(pattern_5).id
 		);
 
-		_$_.pop(ul_5);
+		_$_.hydrating && _$_.pop(ul_5);
 	}
 
 	_$_.append(__anchor, ul_5);
@@ -1021,7 +1021,7 @@ function ForIfTry_render(__anchor, __block) {
 			(pattern_6) => _$_.get(pattern_6).id
 		);
 
-		_$_.pop(ul_6);
+		_$_.hydrating && _$_.pop(ul_6);
 	}
 
 	_$_.append(__anchor, ul_6);
@@ -1224,7 +1224,7 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 			(pattern_7) => _$_.get(pattern_7).id
 		);
 
-		_$_.pop(ul_7);
+		_$_.hydrating && _$_.pop(ul_7);
 	}
 
 	_$_.append(__anchor, ul_7);
@@ -1431,7 +1431,7 @@ function ForIfSwitchTryMulti_render(__anchor, __block) {
 			(pattern_8) => _$_.get(pattern_8).id
 		);
 
-		_$_.pop(ul_8);
+		_$_.hydrating && _$_.pop(ul_8);
 	}
 
 	_$_.append(__anchor, ul_8);

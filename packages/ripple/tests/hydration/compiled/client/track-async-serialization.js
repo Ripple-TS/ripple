@@ -97,7 +97,7 @@ function AsyncSimpleValue_render(__anchor, __block) {
 				var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
 				_$_.expression(expression_2, () => lazy_4.value);
-				_$_.pop(p_4);
+				_$_.hydrating && _$_.pop(p_4);
 			}
 
 			_$_.append(__anchor, p_4);
@@ -128,7 +128,7 @@ function AsyncNumericValue_render(__anchor, __block) {
 				var expression_3 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
 				_$_.expression(expression_3, () => lazy_5.value);
-				_$_.pop(span);
+				_$_.hydrating && _$_.pop(span);
 			}
 
 			_$_.append(__anchor, span);
@@ -162,7 +162,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 					var expression_4 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
 
 					_$_.expression(expression_4, () => lazy_6.value.name);
-					_$_.pop(span_2);
+					_$_.hydrating && _$_.pop(span_2);
 				}
 
 				var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
@@ -171,7 +171,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 					var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
 
 					_$_.expression(expression_5, () => lazy_6.value.age);
-					_$_.pop(span_3);
+					_$_.hydrating && _$_.pop(span_3);
 				}
 			}
 
@@ -207,7 +207,7 @@ function AsyncMultipleValues_render(__anchor, __block) {
 					var expression_6 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
 					_$_.expression(expression_6, () => lazy_7.value);
-					_$_.pop(span_4);
+					_$_.hydrating && _$_.pop(span_4);
 				}
 
 				var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
@@ -216,7 +216,7 @@ function AsyncMultipleValues_render(__anchor, __block) {
 					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
 					_$_.expression(expression_7, () => lazy_8.value);
-					_$_.pop(span_5);
+					_$_.hydrating && _$_.pop(span_5);
 				}
 			}
 
@@ -249,7 +249,7 @@ function AsyncWithCatch_render(__anchor, __block) {
 				var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_6.firstChild;
 
 				_$_.expression(expression_8, () => lazy_9.value);
-				_$_.pop(p_6);
+				_$_.hydrating && _$_.pop(p_6);
 			}
 
 			_$_.append(__anchor, p_6);
@@ -261,7 +261,7 @@ function AsyncWithCatch_render(__anchor, __block) {
 				var expression_9 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
 
 				_$_.expression(expression_9, () => e.message);
-				_$_.pop(p_7);
+				_$_.hydrating && _$_.pop(p_7);
 			}
 
 			_$_.append(__anchor, p_7);
@@ -291,7 +291,7 @@ function ChildWithError_render(__anchor, __block) {
 				var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
 				_$_.expression(expression_10, () => lazy_10.value);
-				_$_.pop(p_9);
+				_$_.hydrating && _$_.pop(p_9);
 			}
 
 			_$_.append(__anchor, p_9);
@@ -323,7 +323,7 @@ function ParentWithCatch_render(__anchor, __block) {
 				var expression_11 = _$_.hydrating ? _$_.hydrate_child() : p_11.firstChild;
 
 				_$_.expression(expression_11, () => e.message);
-				_$_.pop(p_11);
+				_$_.hydrating && _$_.pop(p_11);
 			}
 
 			_$_.append(__anchor, p_11);
@@ -403,7 +403,7 @@ function MoneyResult({ count }) {
 			var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
 			_$_.expression(expression, () => _$_.with_scope(__block, () => lazy.value.format()));
-			_$_.pop(p);
+			_$_.hydrating && _$_.pop(p);
 		}
 
 		_$_.append(__anchor, p);
@@ -423,7 +423,7 @@ function ServerCallResult({ count }) {
 			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
 			_$_.expression(expression_1, () => lazy_2.value);
-			_$_.pop(p_2);
+			_$_.hydrating && _$_.pop(p_2);
 		}
 
 		_$_.append(__anchor, p_2);
@@ -471,7 +471,7 @@ function ReactiveDependencyResult({ count }) {
 			var expression_12 = _$_.hydrating ? _$_.hydrate_child() : p_12.firstChild;
 
 			_$_.expression(expression_12, () => lazy_11.value);
-			_$_.pop(p_12);
+			_$_.hydrating && _$_.pop(p_12);
 		}
 
 		_$_.append(__anchor, p_12);

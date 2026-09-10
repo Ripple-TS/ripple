@@ -3608,7 +3608,8 @@ const visitors = {
 				if (needs_pop) {
 					const id = state.flush_node?.();
 
-					init.push(b.stmt(b.call('_$_.pop', id)));
+					// The cursor restore only matters while hydrating.
+					init.push(b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', id))));
 				}
 			}
 
@@ -6474,7 +6475,9 @@ function transform_children(children, context) {
 						!element_visitor_adds_pop &&
 						(has_following_renderable_sibling || is_fragment_root)
 					) {
-						state.init?.push(b.stmt(b.call('_$_.pop', cached)));
+						state.init?.push(
+							b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', cached))),
+						);
 					}
 				}
 			} else if (node.type === 'JSXStyleElement') {
