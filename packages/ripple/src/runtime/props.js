@@ -3,6 +3,7 @@ import {
 	get_descriptor,
 	get_own_property_symbols,
 	object_keys,
+	property_is_enumerable,
 } from '@tsrx/core/runtime/language-helpers';
 
 /**
@@ -126,7 +127,7 @@ function enumerable_symbols(obj) {
 	/** @type {symbol[]} */
 	var out = [];
 	for (var i = 0; i < symbols.length; i++) {
-		if (Object.prototype.propertyIsEnumerable.call(obj, symbols[i])) {
+		if (property_is_enumerable.call(obj, symbols[i])) {
 			out.push(symbols[i]);
 		}
 	}
@@ -297,7 +298,7 @@ export function props_omit(props, exclude) {
 	}
 	var symbols = get_own_property_symbols(props);
 	for (i = 0; i < symbols.length; i++) {
-		if (Object.prototype.propertyIsEnumerable.call(props, symbols[i])) {
+		if (property_is_enumerable.call(props, symbols[i])) {
 			forward_own(next, props, symbols[i], exclude);
 		}
 	}
