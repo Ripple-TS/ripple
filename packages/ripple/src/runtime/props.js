@@ -295,9 +295,11 @@ export function props_omit(props, exclude) {
 	for (var i = 0; i < own.length; i++) {
 		forward_own(next, props, own[i], exclude);
 	}
-	var symbols = enumerable_symbols(props);
+	var symbols = get_own_property_symbols(props);
 	for (i = 0; i < symbols.length; i++) {
-		forward_own(next, props, symbols[i], exclude);
+		if (Object.prototype.propertyIsEnumerable.call(props, symbols[i])) {
+			forward_own(next, props, symbols[i], exclude);
+		}
 	}
 	return next;
 }
