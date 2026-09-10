@@ -128,8 +128,9 @@ describe('primitive text inference', () => {
 		const { client, server } = expect_text('(props.call(), BigInt(props.value) satisfies bigint)');
 		for (const code of [client, server]) {
 			expect(code).not.toContain('satisfies');
-			expect(code).toContain('props.call()');
-			expect(code).toContain('BigInt(props.value)');
+			// The client reads props through the hoisted render block's state.
+			expect(code).toMatch(/(?:__prev\._)?props\.call\(\)/);
+			expect(code).toMatch(/BigInt\((?:__prev\._)?props\.value\)/);
 		}
 	});
 });

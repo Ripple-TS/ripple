@@ -321,28 +321,24 @@ function classify(name, scope) {
 
 /**
  * Returns a copy of `node` with every free reference to a captured name
- * replaced by a read of its slot on the getter's parameter.
+ * replaced by the expression `replace` gives for it (null keeps the name).
  * @template {AST.Node} T
  * @param {T} node
- * @param {Map<string, number>} captures
+ * @param {(name: string) => AST.Expression | null} replace
  * @param {Set<string>} shadowed
  * @returns {T}
  */
-function rewrite(node, captures, shadowed) {
+export function rewrite(node, replace, shadowed) {
 	if (node.type === 'Identifier') {
-		const slot = captures.get(node.name);
-		if (slot === undefined || shadowed.has(node.name)) return node;
-		return /** @type {T} */ (
-			/** @type {unknown} */ (
-				b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$' + slot)), true)
-			)
-		);
+		if (shadowed.has(node.name)) return node;
+		const replacement = replace(node.name);
+		return replacement === null ? node : /** @type {T} */ (/** @type {unknown} */ (replacement));
 	}
 
 	if (node.type.startsWith('TS')) {
 		const expression = /** @type {any} */ (node).expression;
 		return is_node(expression)
-			? { ...node, expression: rewrite(expression, captures, shadowed) }
+			? { ...node, expression: rewrite(expression, replace, shadowed) }
 			: node;
 	}
 
@@ -350,14 +346,14 @@ function rewrite(node, captures, shadowed) {
 	const copy = { ...node };
 
 	if (node.type === 'MemberExpression') {
-		copy.object = rewrite(node.object, captures, shadowed);
-		if (node.computed) copy.property = rewrite(node.property, captures, shadowed);
+		copy.object = rewrite(node.object, replace, shadowed);
+		if (node.computed) copy.property = rewrite(node.property, replace, shadowed);
 		return copy;
 	}
 
 	if (node.type === 'Property') {
-		if (node.computed) copy.key = rewrite(node.key, captures, shadowed);
-		copy.value = rewrite(node.value, captures, shadowed);
+		if (node.computed) copy.key = rewrite(node.key, replace, shadowed);
+		copy.value = rewrite(node.value, replace, shadowed);
 		if (node.shorthand && copy.value !== node.value) copy.shorthand = false;
 		return copy;
 	}
@@ -370,8 +366,8 @@ function rewrite(node, captures, shadowed) {
 		const inner = new Set(shadowed);
 		if (node.type !== 'ArrowFunctionExpression' && node.id) inner.add(node.id.name);
 		for (const name of local_names(node)) inner.add(name);
-		copy.params = node.params.map((param) => rewrite(param, captures, inner));
-		copy.body = rewrite(node.body, captures, inner);
+		copy.params = node.params.map((param) => rewrite(param, replace, inner));
+		copy.body = rewrite(node.body, replace, inner);
 		return copy;
 	}
 
@@ -379,9 +375,9 @@ function rewrite(node, captures, shadowed) {
 		if (SKIPPED_KEYS.has(key)) continue;
 		const value = /** @type {any} */ (node)[key];
 		if (Array.isArray(value)) {
-			copy[key] = value.map((item) => (is_node(item) ? rewrite(item, captures, shadowed) : item));
+			copy[key] = value.map((item) => (is_node(item) ? rewrite(item, replace, shadowed) : item));
 		} else if (is_node(value)) {
-			copy[key] = rewrite(value, captures, shadowed);
+			copy[key] = rewrite(value, replace, shadowed);
 		}
 	}
 
@@ -622,6 +618,14 @@ export function build_props_site(props, scope, hoisted, component) {
 		memo = 0;
 	}
 
+	/** @param {string} name */
+	const slot_read = (name) => {
+		const slot = captures.get(name);
+		return slot === undefined
+			? null
+			: b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$' + slot)), true);
+	};
+
 	const site_id = b.id(scope.generate('props_site'));
 	hoisted.push(b.var(site_id));
 	register_hoisted(hoisted, site_id.name);
@@ -632,7 +636,7 @@ export function build_props_site(props, scope, hoisted, component) {
 			b.prop(
 				'init',
 				b.key(getter.name),
-				b.arrow([b.id(INSTANCE)], rewrite(getter.expression, captures, new Set())),
+				b.arrow([b.id(INSTANCE)], rewrite(getter.expression, slot_read, new Set())),
 			),
 		),
 	]);

@@ -3,6 +3,14 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="count"> </div>`, 0);
 
+function render(__prev) {
+	var __a = __prev._lazy.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+}
+
 function TrackedState_render(__anchor, __block) {
 	let lazy = _$_.track(0, __block, 'c1818584');
 	var div = root();
@@ -11,17 +19,7 @@ function TrackedState_render(__anchor, __block) {
 		var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render, { a: ' ', _lazy: lazy, _expression: expression });
 	_$_.append(__anchor, div);
 }
 
@@ -77,6 +75,26 @@ ComputedValues.$r = ComputedValues_render;
 
 var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
 
+function render_1(__prev) {
+	var __a = __prev._lazy_4.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_3, __prev.a = __a);
+	}
+
+	var __b = __prev._lazy_5.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_text(__prev._expression_4, __prev.b = __b);
+	}
+
+	var __c = __prev._lazy_6.value;
+
+	if (__prev.c !== __c) {
+		_$_.set_text(__prev._expression_5, __prev.c = __c);
+	}
+}
+
 function MultipleTracked_render(__anchor, __block) {
 	let lazy_4 = _$_.track(10, __block, '843522de');
 	let lazy_5 = _$_.track(20, __block, '1308996d');
@@ -103,28 +121,17 @@ function MultipleTracked_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_4.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_3, __prev.a = __a);
-			}
-
-			var __b = lazy_5.value;
-
-			if (__prev.b !== __b) {
-				_$_.set_text(expression_4, __prev.b = __b);
-			}
-
-			var __c = lazy_6.value;
-
-			if (__prev.c !== __c) {
-				_$_.set_text(expression_5, __prev.c = __c);
-			}
-		},
-		{ a: ' ', b: ' ', c: ' ' }
-	);
+	_$_.render(render_1, {
+		a: ' ',
+		b: ' ',
+		c: ' ',
+		_lazy_4: lazy_4,
+		_expression_3: expression_3,
+		_lazy_5: lazy_5,
+		_expression_4: expression_4,
+		_lazy_6: lazy_6,
+		_expression_5: expression_5
+	});
 
 	_$_.append(__anchor, div_3);
 }

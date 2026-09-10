@@ -12,6 +12,15 @@ function Leaf_render(__anchor, __block) {
 Leaf.$r = Leaf_render;
 
 var root_2 = _$_.template(`<div class="count"> </div><button class="inc">inc</button><button class="dec">dec</button>`, 1, 3);
+
+function render(__prev) {
+	var __a = __prev._lazy.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+}
+
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNavigatedElements_render(__anchor, __block) {
@@ -34,18 +43,7 @@ function TrailingNavigatedElements_render(__anchor, __block) {
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 		button_1.__click = () => _$_.update(lazy, -1);
-
-		_$_.render(
-			(__prev) => {
-				var __a = lazy.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render, { a: ' ', _lazy: lazy, _expression: expression });
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -182,6 +180,15 @@ function NestedNavigatedThenStatic_render(__anchor, __block) {
 NestedNavigatedThenStatic.$r = NestedNavigatedThenStatic_render;
 
 var root_14 = _$_.template(` <div class="a">a</div><div class="b">b</div>`, 1, 3);
+
+function render_1(__prev) {
+	var __a = __prev._lazy_6.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_1, __prev.a = __a);
+	}
+}
+
 var root_13 = _$_.template(`<!>`, 1, 1);
 
 function TrackedTextThenStatic_render(__anchor, __block) {
@@ -194,18 +201,7 @@ function TrackedTextThenStatic_render(__anchor, __block) {
 		var expression_1 = _$_.first_child_frag(fragment_13, true);
 
 		_$_.next(2);
-
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_6.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_1, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_1, { a: ' ', _lazy_6: lazy_6, _expression_1: expression_1 });
 		_$_.append(__anchor, fragment_13);
 	}));
 
@@ -215,6 +211,15 @@ function TrackedTextThenStatic_render(__anchor, __block) {
 TrackedTextThenStatic.$r = TrackedTextThenStatic_render;
 
 var root_16 = _$_.template(`<div class="a">a</div><div class="b">b</div> `, 1, 3);
+
+function render_2(__prev) {
+	var __a = __prev._lazy_7.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_2, __prev.a = __a);
+	}
+}
+
 var root_15 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenTrackedText_render(__anchor, __block) {
@@ -228,17 +233,7 @@ function StaticThenTrackedText_render(__anchor, __block) {
 		var div_6 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 		var expression_2 = _$_.hydrating ? _$_.hydrate_sibling(true) : div_6.nextSibling;
 
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_7.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_2, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_2, { a: ' ', _lazy_7: lazy_7, _expression_2: expression_2 });
 		_$_.append(__anchor, fragment_15);
 	}));
 
@@ -286,6 +281,15 @@ function AllStatic_render(__anchor, __block) {
 AllStatic.$r = AllStatic_render;
 
 var root_22 = _$_.template(`<div class="a">a</div><div class="count"> </div>`, 1, 2);
+
+function render_3(__prev) {
+	var __a = __prev._lazy_8.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_3, __prev.a = __a);
+	}
+}
+
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function TrailingDynamicChild_render(__anchor, __block) {
@@ -302,17 +306,7 @@ function TrailingDynamicChild_render(__anchor, __block) {
 			var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_8.firstChild;
 		}
 
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_8.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_3, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_3, { a: ' ', _lazy_8: lazy_8, _expression_3: expression_3 });
 		_$_.append(__anchor, fragment_21);
 	}));
 
@@ -322,6 +316,15 @@ function TrailingDynamicChild_render(__anchor, __block) {
 TrailingDynamicChild.$r = TrailingDynamicChild_render;
 
 var root_24 = _$_.template(`<div class="count"> </div><div class="a">a</div><div class="b">b</div>`, 1, 3);
+
+function render_4(__prev) {
+	var __a = __prev._lazy_9.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_4, __prev.a = __a);
+	}
+}
+
 var root_23 = _$_.template(`<!>`, 1, 1);
 
 function DynamicChildThenStatic_render(__anchor, __block) {
@@ -338,18 +341,7 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 		}
 
 		_$_.next(2);
-
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_9.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_4, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_4, { a: ' ', _lazy_9: lazy_9, _expression_4: expression_4 });
 		_$_.append(__anchor, fragment_23);
 	}));
 
@@ -496,6 +488,14 @@ SiblingComps.$r = SiblingComps_render;
 
 var root_37 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
+function render_5(__prev) {
+	var __a = __prev._lazy_12.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_5, __prev.a = __a);
+	}
+}
+
 function WrapTrailingNavigatedElements_render(__anchor, __block) {
 	let lazy_12 = _$_.track(0, __block, '1032dbec');
 	var div_15 = root_37();
@@ -517,23 +517,21 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 		_$_.pop(div_15);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_12.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_5, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_5, { a: ' ', _lazy_12: lazy_12, _expression_5: expression_5 });
 	_$_.append(__anchor, div_15);
 }
 
 WrapTrailingNavigatedElements.$r = WrapTrailingNavigatedElements_render;
 
 var root_38 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_6(__prev) {
+	var __a = __prev._lazy_13.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_6, __prev.a = __a);
+	}
+}
 
 function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 	let lazy_13 = _$_.track(0, __block, 'c2e2a938');
@@ -556,23 +554,21 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 		_$_.pop(div_16);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_13.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_6, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_6, { a: ' ', _lazy_13: lazy_13, _expression_6: expression_6 });
 	_$_.append(__anchor, div_16);
 }
 
 WrapTrailingStaticNavigatedElements.$r = WrapTrailingStaticNavigatedElements_render;
 
 var root_39 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_7(__prev) {
+	var __a = __prev._lazy_14.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_7, __prev.a = __a);
+	}
+}
 
 function WrapNavigatedThenStatic_render(__anchor, __block) {
 	let lazy_14 = _$_.track(0, __block, 'b4046e87');
@@ -595,23 +591,21 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 		_$_.pop(div_17);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_14.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_7, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_7, { a: ' ', _lazy_14: lazy_14, _expression_7: expression_7 });
 	_$_.append(__anchor, div_17);
 }
 
 WrapNavigatedThenStatic.$r = WrapNavigatedThenStatic_render;
 
 var root_40 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_8(__prev) {
+	var __a = __prev._lazy_15.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_8, __prev.a = __a);
+	}
+}
 
 function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 	let lazy_15 = _$_.track(0, __block, 'bed7f7ef');
@@ -634,23 +628,21 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 		_$_.pop(div_18);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_15.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_8, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_8, { a: ' ', _lazy_15: lazy_15, _expression_8: expression_8 });
 	_$_.append(__anchor, div_18);
 }
 
 WrapLeadingNavigatedThenStatic.$r = WrapLeadingNavigatedThenStatic_render;
 
 var root_41 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_9(__prev) {
+	var __a = __prev._lazy_16.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_9, __prev.a = __a);
+	}
+}
 
 function WrapTrailingNestedNavigated_render(__anchor, __block) {
 	let lazy_16 = _$_.track(0, __block, 'eddbe7bc');
@@ -673,23 +665,21 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 		_$_.pop(div_19);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_16.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_9, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_9, { a: ' ', _lazy_16: lazy_16, _expression_9: expression_9 });
 	_$_.append(__anchor, div_19);
 }
 
 WrapTrailingNestedNavigated.$r = WrapTrailingNestedNavigated_render;
 
 var root_42 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_10(__prev) {
+	var __a = __prev._lazy_17.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_10, __prev.a = __a);
+	}
+}
 
 function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 	let lazy_17 = _$_.track(0, __block, '1bdc4523');
@@ -712,23 +702,21 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 		_$_.pop(div_20);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_17.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_10, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_10, { a: ' ', _lazy_17: lazy_17, _expression_10: expression_10 });
 	_$_.append(__anchor, div_20);
 }
 
 WrapNestedNavigatedThenStatic.$r = WrapNestedNavigatedThenStatic_render;
 
 var root_43 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_11(__prev) {
+	var __a = __prev._lazy_18.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_11, __prev.a = __a);
+	}
+}
 
 function WrapTrackedTextThenStatic_render(__anchor, __block) {
 	let lazy_18 = _$_.track(0, __block, '97e02c24');
@@ -751,23 +739,21 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 		_$_.pop(div_21);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_18.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_11, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_11, { a: ' ', _lazy_18: lazy_18, _expression_11: expression_11 });
 	_$_.append(__anchor, div_21);
 }
 
 WrapTrackedTextThenStatic.$r = WrapTrackedTextThenStatic_render;
 
 var root_44 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_12(__prev) {
+	var __a = __prev._lazy_19.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_12, __prev.a = __a);
+	}
+}
 
 function WrapStaticThenTrackedText_render(__anchor, __block) {
 	let lazy_19 = _$_.track(0, __block, 'd5526861');
@@ -790,23 +776,21 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 		_$_.pop(div_22);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_19.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_12, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_12, { a: ' ', _lazy_19: lazy_19, _expression_12: expression_12 });
 	_$_.append(__anchor, div_22);
 }
 
 WrapStaticThenTrackedText.$r = WrapStaticThenTrackedText_render;
 
 var root_45 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_13(__prev) {
+	var __a = __prev._lazy_20.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_13, __prev.a = __a);
+	}
+}
 
 function WrapStaticNestedThenStatic_render(__anchor, __block) {
 	let lazy_20 = _$_.track(0, __block, '7e2d3fad');
@@ -829,23 +813,21 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 		_$_.pop(div_23);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_20.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_13, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_13, { a: ' ', _lazy_20: lazy_20, _expression_13: expression_13 });
 	_$_.append(__anchor, div_23);
 }
 
 WrapStaticNestedThenStatic.$r = WrapStaticNestedThenStatic_render;
 
 var root_46 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_14(__prev) {
+	var __a = __prev._lazy_21.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_14, __prev.a = __a);
+	}
+}
 
 function WrapAllStatic_render(__anchor, __block) {
 	let lazy_21 = _$_.track(0, __block, 'b894f45a');
@@ -868,23 +850,21 @@ function WrapAllStatic_render(__anchor, __block) {
 		_$_.pop(div_24);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_21.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_14, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_14, { a: ' ', _lazy_21: lazy_21, _expression_14: expression_14 });
 	_$_.append(__anchor, div_24);
 }
 
 WrapAllStatic.$r = WrapAllStatic_render;
 
 var root_47 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_15(__prev) {
+	var __a = __prev._lazy_22.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_15, __prev.a = __a);
+	}
+}
 
 function WrapTrailingDynamicChild_render(__anchor, __block) {
 	let lazy_22 = _$_.track(0, __block, '038446ca');
@@ -907,23 +887,21 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 		_$_.pop(div_25);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_22.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_15, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_15, { a: ' ', _lazy_22: lazy_22, _expression_15: expression_15 });
 	_$_.append(__anchor, div_25);
 }
 
 WrapTrailingDynamicChild.$r = WrapTrailingDynamicChild_render;
 
 var root_48 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_16(__prev) {
+	var __a = __prev._lazy_23.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_16, __prev.a = __a);
+	}
+}
 
 function WrapDynamicChildThenStatic_render(__anchor, __block) {
 	let lazy_23 = _$_.track(0, __block, '3ec460c3');
@@ -946,23 +924,21 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 		_$_.pop(div_26);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_23.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_16, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_16, { a: ' ', _lazy_23: lazy_23, _expression_16: expression_16 });
 	_$_.append(__anchor, div_26);
 }
 
 WrapDynamicChildThenStatic.$r = WrapDynamicChildThenStatic_render;
 
 var root_49 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_17(__prev) {
+	var __a = __prev._lazy_24.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_17, __prev.a = __a);
+	}
+}
 
 function WrapIfThenStatic_render(__anchor, __block) {
 	let lazy_24 = _$_.track(0, __block, '95b417dd');
@@ -985,23 +961,21 @@ function WrapIfThenStatic_render(__anchor, __block) {
 		_$_.pop(div_27);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_24.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_17, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_17, { a: ' ', _lazy_24: lazy_24, _expression_17: expression_17 });
 	_$_.append(__anchor, div_27);
 }
 
 WrapIfThenStatic.$r = WrapIfThenStatic_render;
 
 var root_50 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_18(__prev) {
+	var __a = __prev._lazy_25.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_18, __prev.a = __a);
+	}
+}
 
 function WrapStaticThenIf_render(__anchor, __block) {
 	let lazy_25 = _$_.track(0, __block, '1f01fa6f');
@@ -1024,23 +998,21 @@ function WrapStaticThenIf_render(__anchor, __block) {
 		_$_.pop(div_28);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_25.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_18, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_18, { a: ' ', _lazy_25: lazy_25, _expression_18: expression_18 });
 	_$_.append(__anchor, div_28);
 }
 
 WrapStaticThenIf.$r = WrapStaticThenIf_render;
 
 var root_51 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_19(__prev) {
+	var __a = __prev._lazy_26.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_19, __prev.a = __a);
+	}
+}
 
 function WrapCompThenStatic_render(__anchor, __block) {
 	let lazy_26 = _$_.track(0, __block, 'e6bdb91d');
@@ -1063,23 +1035,21 @@ function WrapCompThenStatic_render(__anchor, __block) {
 		_$_.pop(div_29);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_26.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_19, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_19, { a: ' ', _lazy_26: lazy_26, _expression_19: expression_19 });
 	_$_.append(__anchor, div_29);
 }
 
 WrapCompThenStatic.$r = WrapCompThenStatic_render;
 
 var root_52 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_20(__prev) {
+	var __a = __prev._lazy_27.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_20, __prev.a = __a);
+	}
+}
 
 function WrapStaticThenComp_render(__anchor, __block) {
 	let lazy_27 = _$_.track(0, __block, '89d5704c');
@@ -1102,23 +1072,21 @@ function WrapStaticThenComp_render(__anchor, __block) {
 		_$_.pop(div_30);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_27.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_20, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_20, { a: ' ', _lazy_27: lazy_27, _expression_20: expression_20 });
 	_$_.append(__anchor, div_30);
 }
 
 WrapStaticThenComp.$r = WrapStaticThenComp_render;
 
 var root_53 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_21(__prev) {
+	var __a = __prev._lazy_28.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_21, __prev.a = __a);
+	}
+}
 
 function WrapSiblingComps_render(__anchor, __block) {
 	let lazy_28 = _$_.track(0, __block, 'c5c51af6');
@@ -1141,17 +1109,7 @@ function WrapSiblingComps_render(__anchor, __block) {
 		_$_.pop(div_31);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_28.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_21, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_21, { a: ' ', _lazy_28: lazy_28, _expression_21: expression_21 });
 	_$_.append(__anchor, div_31);
 }
 
@@ -1210,6 +1168,15 @@ NestedFragmentThenStatic.$r = NestedFragmentThenStatic_render;
 
 var root_61 = _$_.template(`<span class="x">x</span><button class="inc">inc</button>`, 1, 2);
 var root_60 = _$_.template(`<div class="count"> </div><!>`, 1, 2);
+
+function render_22(__prev) {
+	var __a = __prev._lazy_29.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_23, __prev.a = __a);
+	}
+}
+
 var root_59 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNestedFragment_render(__anchor, __block) {
@@ -1236,17 +1203,7 @@ function TrailingNestedFragment_render(__anchor, __block) {
 			_$_.append(__anchor, fragment_41);
 		}));
 
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_29.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_23, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_22, { a: ' ', _lazy_29: lazy_29, _expression_23: expression_23 });
 		_$_.append(__anchor, fragment_40);
 	}));
 
@@ -1470,6 +1427,14 @@ InlineElementThenStatic.$r = InlineElementThenStatic_render;
 
 var root_81 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
+function render_23(__prev) {
+	var __a = __prev._lazy_31.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_28, __prev.a = __a);
+	}
+}
+
 function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 	let lazy_31 = _$_.track(0, __block, '3a78abea');
 	var div_34 = root_81();
@@ -1491,23 +1456,21 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 		_$_.pop(div_34);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_31.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_28, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_23, { a: ' ', _lazy_31: lazy_31, _expression_28: expression_28 });
 	_$_.append(__anchor, div_34);
 }
 
 WrapUntrackedTextThenStatic.$r = WrapUntrackedTextThenStatic_render;
 
 var root_82 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_24(__prev) {
+	var __a = __prev._lazy_32.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_29, __prev.a = __a);
+	}
+}
 
 function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 	let lazy_32 = _$_.track(0, __block, 'db289d00');
@@ -1530,23 +1493,21 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 		_$_.pop(div_35);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_32.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_29, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_24, { a: ' ', _lazy_32: lazy_32, _expression_29: expression_29 });
 	_$_.append(__anchor, div_35);
 }
 
 WrapNestedFragmentThenStatic.$r = WrapNestedFragmentThenStatic_render;
 
 var root_83 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_25(__prev) {
+	var __a = __prev._lazy_33.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_30, __prev.a = __a);
+	}
+}
 
 function WrapTrailingNestedFragment_render(__anchor, __block) {
 	let lazy_33 = _$_.track(0, __block, 'bb509235');
@@ -1569,23 +1530,21 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 		_$_.pop(div_36);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_33.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_30, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_25, { a: ' ', _lazy_33: lazy_33, _expression_30: expression_30 });
 	_$_.append(__anchor, div_36);
 }
 
 WrapTrailingNestedFragment.$r = WrapTrailingNestedFragment_render;
 
 var root_84 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_26(__prev) {
+	var __a = __prev._lazy_34.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_31, __prev.a = __a);
+	}
+}
 
 function WrapForThenStatic_render(__anchor, __block) {
 	let lazy_34 = _$_.track(0, __block, 'a715e40a');
@@ -1608,23 +1567,21 @@ function WrapForThenStatic_render(__anchor, __block) {
 		_$_.pop(div_37);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_34.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_31, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_26, { a: ' ', _lazy_34: lazy_34, _expression_31: expression_31 });
 	_$_.append(__anchor, div_37);
 }
 
 WrapForThenStatic.$r = WrapForThenStatic_render;
 
 var root_85 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_27(__prev) {
+	var __a = __prev._lazy_35.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_32, __prev.a = __a);
+	}
+}
 
 function WrapSwitchThenStatic_render(__anchor, __block) {
 	let lazy_35 = _$_.track(0, __block, 'a598ad9f');
@@ -1647,23 +1604,21 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 		_$_.pop(div_38);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_35.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_32, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_27, { a: ' ', _lazy_35: lazy_35, _expression_32: expression_32 });
 	_$_.append(__anchor, div_38);
 }
 
 WrapSwitchThenStatic.$r = WrapSwitchThenStatic_render;
 
 var root_86 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_28(__prev) {
+	var __a = __prev._lazy_36.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_33, __prev.a = __a);
+	}
+}
 
 function WrapTryThenStatic_render(__anchor, __block) {
 	let lazy_36 = _$_.track(0, __block, '1030b116');
@@ -1686,23 +1641,21 @@ function WrapTryThenStatic_render(__anchor, __block) {
 		_$_.pop(div_39);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_36.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_33, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_28, { a: ' ', _lazy_36: lazy_36, _expression_33: expression_33 });
 	_$_.append(__anchor, div_39);
 }
 
 WrapTryThenStatic.$r = WrapTryThenStatic_render;
 
 var root_87 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_29(__prev) {
+	var __a = __prev._lazy_37.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_34, __prev.a = __a);
+	}
+}
 
 function WrapStyleThenStatic_render(__anchor, __block) {
 	let lazy_37 = _$_.track(0, __block, 'f35d8716');
@@ -1725,23 +1678,21 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 		_$_.pop(div_40);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_37.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_34, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_29, { a: ' ', _lazy_37: lazy_37, _expression_34: expression_34 });
 	_$_.append(__anchor, div_40);
 }
 
 WrapStyleThenStatic.$r = WrapStyleThenStatic_render;
 
 var root_88 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_30(__prev) {
+	var __a = __prev._lazy_38.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_35, __prev.a = __a);
+	}
+}
 
 function WrapCollectionThenStatic_render(__anchor, __block) {
 	let lazy_38 = _$_.track(0, __block, 'b1e7a298');
@@ -1764,23 +1715,21 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 		_$_.pop(div_41);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_38.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_35, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_30, { a: ' ', _lazy_38: lazy_38, _expression_35: expression_35 });
 	_$_.append(__anchor, div_41);
 }
 
 WrapCollectionThenStatic.$r = WrapCollectionThenStatic_render;
 
 var root_89 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_31(__prev) {
+	var __a = __prev._lazy_39.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_36, __prev.a = __a);
+	}
+}
 
 function WrapInlineElementThenStatic_render(__anchor, __block) {
 	let lazy_39 = _$_.track(0, __block, 'df10dc38');
@@ -1803,17 +1752,7 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 		_$_.pop(div_42);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_39.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_36, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_31, { a: ' ', _lazy_39: lazy_39, _expression_36: expression_36 });
 	_$_.append(__anchor, div_42);
 }
 
@@ -1913,6 +1852,14 @@ SingleRootWithIf.$r = SingleRootWithIf_render;
 
 var root_97 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
+function render_32(__prev) {
+	var __a = __prev._lazy_43.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_37, __prev.a = __a);
+	}
+}
+
 function WrapIfOnly_render(__anchor, __block) {
 	let lazy_43 = _$_.track(0, __block, '83c8f19d');
 	var div_44 = root_97();
@@ -1934,23 +1881,21 @@ function WrapIfOnly_render(__anchor, __block) {
 		_$_.pop(div_44);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_43.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_37, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_32, { a: ' ', _lazy_43: lazy_43, _expression_37: expression_37 });
 	_$_.append(__anchor, div_44);
 }
 
 WrapIfOnly.$r = WrapIfOnly_render;
 
 var root_98 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_33(__prev) {
+	var __a = __prev._lazy_44.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_38, __prev.a = __a);
+	}
+}
 
 function WrapIfThenOne_render(__anchor, __block) {
 	let lazy_44 = _$_.track(0, __block, '2cee9a57');
@@ -1973,23 +1918,21 @@ function WrapIfThenOne_render(__anchor, __block) {
 		_$_.pop(div_45);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_44.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_38, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_33, { a: ' ', _lazy_44: lazy_44, _expression_38: expression_38 });
 	_$_.append(__anchor, div_45);
 }
 
 WrapIfThenOne.$r = WrapIfThenOne_render;
 
 var root_99 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_34(__prev) {
+	var __a = __prev._lazy_45.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_39, __prev.a = __a);
+	}
+}
 
 function WrapSingleRootWithIf_render(__anchor, __block) {
 	let lazy_45 = _$_.track(0, __block, 'c179a57b');
@@ -2012,23 +1955,21 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 		_$_.pop(div_46);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_45.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_39, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_34, { a: ' ', _lazy_45: lazy_45, _expression_39: expression_39 });
 	_$_.append(__anchor, div_46);
 }
 
 WrapSingleRootWithIf.$r = WrapSingleRootWithIf_render;
 
 var root_100 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_35(__prev) {
+	var __a = __prev._lazy_46.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_41, __prev.a = __a);
+	}
+}
 
 function ExprThenSiblingInDiv_render(__anchor, __block) {
 	let lazy_46 = _$_.track(0, __block, 'db1d59ee');
@@ -2052,17 +1993,7 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 		_$_.pop(div_47);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_46.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_41, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_35, { a: ' ', _lazy_46: lazy_46, _expression_41: expression_41 });
 	_$_.append(__anchor, div_47);
 }
 
@@ -2118,6 +2049,14 @@ function if_7(__render, lazy_48) {
 
 var root_104 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
+function render_36(__prev) {
+	var __a = __prev._lazy_48.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_42, __prev.a = __a);
+	}
+}
+
 function IfTwoInDiv_render(__anchor, __block) {
 	let lazy_48 = _$_.track(0, __block, '0c602c2f');
 	var div_48 = root_104();
@@ -2139,23 +2078,21 @@ function IfTwoInDiv_render(__anchor, __block) {
 		_$_.pop(div_48);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_48.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_42, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_36, { a: ' ', _lazy_48: lazy_48, _expression_42: expression_42 });
 	_$_.append(__anchor, div_48);
 }
 
 IfTwoInDiv.$r = IfTwoInDiv_render;
 
 var root_106 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_37(__prev) {
+	var __a = __prev._lazy_49.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_43, __prev.a = __a);
+	}
+}
 
 function WrapIfTwoThenStatic_render(__anchor, __block) {
 	let lazy_49 = _$_.track(0, __block, 'cd8f8438');
@@ -2178,17 +2115,7 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 		_$_.pop(div_49);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_49.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_43, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_37, { a: ' ', _lazy_49: lazy_49, _expression_43: expression_43 });
 	_$_.append(__anchor, div_49);
 }
 
@@ -2287,6 +2214,14 @@ StaticThenStyleThenStatic.$r = StaticThenStyleThenStatic_render;
 
 var root_114 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
+function render_38(__prev) {
+	var __a = __prev._lazy_50.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_46, __prev.a = __a);
+	}
+}
+
 function WrapStaticCallThenStatic_render(__anchor, __block) {
 	let lazy_50 = _$_.track(0, __block, '4513c76f');
 	var div_52 = root_114();
@@ -2308,23 +2243,21 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 		_$_.pop(div_52);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_50.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_46, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_38, { a: ' ', _lazy_50: lazy_50, _expression_46: expression_46 });
 	_$_.append(__anchor, div_52);
 }
 
 WrapStaticCallThenStatic.$r = WrapStaticCallThenStatic_render;
 
 var root_115 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_39(__prev) {
+	var __a = __prev._lazy_51.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_47, __prev.a = __a);
+	}
+}
 
 function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 	let lazy_51 = _$_.track(0, __block, '5d5162df');
@@ -2347,17 +2280,7 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 		_$_.pop(div_53);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_51.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_47, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_39, { a: ' ', _lazy_51: lazy_51, _expression_47: expression_47 });
 	_$_.append(__anchor, div_53);
 }
 

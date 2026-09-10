@@ -187,6 +187,20 @@ function if_4(__render, lazy_5) {
 
 var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 0);
 
+function render(__prev) {
+	var __a = __prev._lazy_5.value === 'code' ? 'true' : 'false';
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._button_2, 'aria-selected', __prev.a = __a);
+	}
+
+	var __b = __prev._lazy_5.value === 'preview' ? 'true' : 'false';
+
+	if (__prev.b !== __b) {
+		_$_.set_attribute(__prev._button_3, 'aria-selected', __prev.b = __b);
+	}
+}
+
 function DomElementChildrenThenSibling_render(__anchor, __block) {
 	let lazy_5 = _$_.track('code', __block, '33a1e97f');
 	var div_12 = root_15();
@@ -216,22 +230,13 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_5.value === 'code' ? 'true' : 'false';
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(button_2, 'aria-selected', __prev.a = __a);
-			}
-
-			var __b = lazy_5.value === 'preview' ? 'true' : 'false';
-
-			if (__prev.b !== __b) {
-				_$_.set_attribute(button_3, 'aria-selected', __prev.b = __b);
-			}
-		},
-		{ a: void 0, b: void 0 }
-	);
+	_$_.render(render, {
+		a: void 0,
+		b: void 0,
+		_lazy_5: lazy_5,
+		_button_2: button_2,
+		_button_3: button_3
+	});
 
 	_$_.append(__anchor, div_12);
 }
@@ -239,6 +244,15 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 DomElementChildrenThenSibling.$r = DomElementChildrenThenSibling_render;
 
 var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
+
+function render_1(__prev) {
+	var __a = 'Item count: ' + String(__prev._lazy_6.value ?? '');
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_3, __prev.a = __a);
+	}
+}
+
 var root_18 = _$_.template(`<!>`, 1, 1);
 
 function DomChildrenThenStaticSiblings_render(__anchor, __block) {
@@ -269,18 +283,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 		button_4.__click = () => _$_.update(lazy_6);
-
-		_$_.render(
-			(__prev) => {
-				var __a = 'Item count: ' + String(lazy_6.value ?? '');
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_3, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_1, { a: ' ', _lazy_6: lazy_6, _expression_3: expression_3 });
 		_$_.append(__anchor, fragment_7);
 	}));
 
@@ -326,6 +329,14 @@ RootIfChild.$r = RootIfChild_render;
 
 var root_23 = _$_.template(`<span class="root-for"> </span>`, 0);
 
+function render_2(__prev) {
+	var __a = _$_.get(__prev._pattern);
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_4, __prev.a = __a);
+	}
+}
+
 function RootForChild_render(__anchor, __block, props) {
 	_$_.for_keyed(
 		__anchor,
@@ -337,17 +348,7 @@ function RootForChild_render(__anchor, __block, props) {
 				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
 			}
 
-			_$_.render(
-				(__prev) => {
-					var __a = _$_.get(pattern);
-
-					if (__prev.a !== __a) {
-						_$_.set_text(expression_4, __prev.a = __a);
-					}
-				},
-				{ a: ' ' }
-			);
-
+			_$_.render(render_2, { a: ' ', _pattern: pattern, _expression_4: expression_4 });
 			_$_.append(__anchor, span_2);
 		},
 		16

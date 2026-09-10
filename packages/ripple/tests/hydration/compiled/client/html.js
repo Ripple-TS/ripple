@@ -51,6 +51,11 @@ ComplexHtml.$r = ComplexHtml_render;
 
 var root_4 = _$_.template(`<div><!><!></div>`, 0);
 
+function render(__prev) {
+	_$_.html(__prev._node, () => __prev._html1);
+	_$_.html(__prev._node_1, () => __prev._html2);
+}
+
 function MultipleHtml_render(__anchor, __block) {
 	const html1 = '<p>First paragraph</p>';
 	const html2 = '<p>Second paragraph</p>';
@@ -63,20 +68,17 @@ function MultipleHtml_render(__anchor, __block) {
 		_$_.pop(div_3);
 	}
 
-	_$_.render(
-		(__prev) => {
-			_$_.html(node, () => html1);
-			_$_.html(node_1, () => html2);
-		},
-		{}
-	);
-
+	_$_.render(render, { _node: node, _html1: html1, _node_1: node_1, _html2: html2 });
 	_$_.append(__anchor, div_3);
 }
 
 MultipleHtml.$r = MultipleHtml_render;
 
 var root_5 = _$_.template(`<div><!><button>Increment</button></div>`, 0);
+
+function render_1(__prev) {
+	_$_.html(__prev._node_2, () => "<p>Count: 0</p>");
+}
 
 function HtmlWithReactivity_render(__anchor, __block) {
 	var div_4 = root_5();
@@ -87,10 +89,7 @@ function HtmlWithReactivity_render(__anchor, __block) {
 		_$_.pop(div_4);
 	}
 
-	_$_.render(() => {
-		_$_.html(node_2, () => "<p>Count: 0</p>");
-	});
-
+	_$_.render(render_1, { _node_2: node_2 });
 	_$_.append(__anchor, div_4);
 }
 
@@ -135,6 +134,11 @@ HtmlInChildrenWithSiblings.$r = HtmlInChildrenWithSiblings_render;
 
 var root_9 = _$_.template(`<div class="doc"><!><!></div>`, 0);
 
+function render_2(__prev) {
+	_$_.html(__prev._node_3, () => __prev._html1);
+	_$_.html(__prev._node_4, () => __prev._html2);
+}
+
 function MultipleHtmlInChildren_render(__anchor, __block) {
 	const html1 = '<p>First</p>';
 	const html2 = '<p>Second</p>';
@@ -150,13 +154,12 @@ function MultipleHtmlInChildren_render(__anchor, __block) {
 				_$_.pop(div_9);
 			}
 
-			_$_.render(
-				(__prev) => {
-					_$_.html(node_3, () => html1);
-					_$_.html(node_4, () => html2);
-				},
-				{}
-			);
+			_$_.render(render_2, {
+				_node_3: node_3,
+				_html1: html1,
+				_node_4: node_4,
+				_html2: html2
+			});
 
 			_$_.append(__anchor, div_9);
 		})
@@ -218,6 +221,14 @@ DocFooter.$r = DocFooter_render;
 
 var root_15 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
 
+function render_3(__prev) {
+	var __a = `https://github.com/edit/${_$_.fallback(__prev.___props.editPath, '')}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a, 'href', __prev.a = __a);
+	}
+}
+
 function consequent(__anchor, __props) {
 	var div_16 = root_15();
 
@@ -225,17 +236,7 @@ function consequent(__anchor, __props) {
 		var a = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_3, { a: void 0, ___props: __props, _a: a });
 	_$_.append(__anchor, div_16);
 }
 
@@ -244,6 +245,14 @@ function if_1(__render, __props) {
 }
 
 var root_16 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
+
+function render_4(__prev) {
+	var __a = _$_.fallback(__prev.___props.nextLink, null).href;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a_1, 'href', __prev.a = __a);
+	}
+}
 
 function consequent_1(__anchor, __props) {
 	var nav = root_16();
@@ -259,17 +268,7 @@ function consequent_1(__anchor, __props) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.fallback(__props.nextLink, null).href;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a_1, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_4, { a: void 0, ___props: __props, _a_1: a_1 });
 	_$_.append(__anchor, nav);
 }
 
@@ -278,6 +277,21 @@ function if_2(__render, __props) {
 }
 
 var root_18 = _$_.template(`<li><a> </a></li>`, 0);
+
+function render_5(__prev) {
+	var __a = __prev._item.text;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_3, __prev.a = __a);
+	}
+
+	var __b = __prev._item.href;
+
+	if (__prev.b !== __b) {
+		_$_.set_attribute(__prev._a_2, 'href', __prev.b = __b);
+	}
+}
+
 var root_17 = _$_.template(`<div class="toc"><ul></ul></div>`, 0);
 
 function consequent_2(__anchor, __props) {
@@ -301,22 +315,13 @@ function consequent_2(__anchor, __props) {
 						}
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = item.text;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_3, __prev.a = __a);
-							}
-
-							var __b = item.href;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(a_2, 'href', __prev.b = __b);
-							}
-						},
-						{ a: ' ', b: void 0 }
-					);
+					_$_.render(render_5, {
+						a: ' ',
+						b: void 0,
+						_item: item,
+						_expression_3: expression_3,
+						_a_2: a_2
+					});
 
 					_$_.append(__anchor, li);
 				},
@@ -596,6 +601,26 @@ function if_4(__render, __props) {
 
 var root_38 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
 
+function render_6(__prev) {
+	var __a = __prev.___props.text;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_15, __prev.a = __a);
+	}
+
+	var __b = __prev.___props.href;
+
+	if (__prev.b !== __b) {
+		_$_.set_attribute(__prev._a_3, 'href', __prev.b = __b);
+	}
+
+	var __c = `nav-item${_$_.fallback(__prev.___props.active, false) ? ' active' : ''}`;
+
+	if (__prev.c !== __c) {
+		_$_.set_class(__prev._div_27, __prev.c = __c, void 0, true);
+	}
+}
+
 function NavItem_render(__anchor, __block, __props) {
 	var div_27 = root_38();
 
@@ -617,28 +642,15 @@ function NavItem_render(__anchor, __block, __props) {
 		_$_.pop(div_27);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = __props.text;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_15, __prev.a = __a);
-			}
-
-			var __b = __props.href;
-
-			if (__prev.b !== __b) {
-				_$_.set_attribute(a_3, 'href', __prev.b = __b);
-			}
-
-			var __c = `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`;
-
-			if (__prev.c !== __c) {
-				_$_.set_class(div_27, __prev.c = __c, void 0, true);
-			}
-		},
-		{ a: ' ', b: void 0, c: _$_.UNINITIALIZED }
-	);
+	_$_.render(render_6, {
+		a: ' ',
+		b: void 0,
+		c: _$_.UNINITIALIZED,
+		___props: __props,
+		_expression_15: expression_15,
+		_a_3: a_3,
+		_div_27: div_27
+	});
 
 	_$_.append(__anchor, div_27);
 }
@@ -906,6 +918,14 @@ function if_10(__render, __props) {
 
 var root_65 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
 
+function render_7(__prev) {
+	var __a = _$_.fallback(__prev.___props.nextLink, null).href;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a_4, 'href', __prev.a = __a);
+	}
+}
+
 function consequent_12(__anchor, __props) {
 	var nav_3 = root_65();
 
@@ -920,17 +940,7 @@ function consequent_12(__anchor, __props) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.fallback(__props.nextLink, null).href;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a_4, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_7, { a: void 0, ___props: __props, _a_4: a_4 });
 	_$_.append(__anchor, nav_3);
 }
 
@@ -1048,6 +1058,14 @@ DocsLayoutWithoutData.$r = DocsLayoutWithoutData_render;
 
 var root_69 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
 
+function render_8(__prev) {
+	var __a = `/edit/${_$_.fallback(__prev.___props.editPath, '')}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a_5, 'href', __prev.a = __a);
+	}
+}
+
 function consequent_13(__anchor, __props) {
 	var div_62 = root_69();
 
@@ -1055,17 +1073,7 @@ function consequent_13(__anchor, __props) {
 		var a_5 = _$_.hydrating ? _$_.hydrate_child() : div_62.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = `/edit/${_$_.fallback(__props.editPath, '')}`;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a_5, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_8, { a: void 0, ___props: __props, _a_5: a_5 });
 	_$_.append(__anchor, div_62);
 }
 
@@ -1074,6 +1082,15 @@ function if_12(__render, __props) {
 }
 
 var root_71 = _$_.template(`<a class="pager prev"><span class="title"> </span></a>`, 0);
+
+function render_9(__prev) {
+	var __a = _$_.fallback(__prev.___props.prevLink, null).href;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a_6, 'href', __prev.a = __a);
+	}
+}
+
 var root_72 = _$_.template(`<span></span>`, 0);
 
 function consequent_14(__anchor, __props) {
@@ -1090,17 +1107,7 @@ function consequent_14(__anchor, __props) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.fallback(__props.prevLink, null).href;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a_6, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_9, { a: void 0, ___props: __props, _a_6: a_6 });
 	_$_.append(__anchor, a_6);
 }
 
@@ -1116,6 +1123,14 @@ function if_13(__render, __props) {
 
 var root_73 = _$_.template(`<a class="pager next"><span class="title"> </span></a>`, 0);
 
+function render_10(__prev) {
+	var __a = _$_.fallback(__prev.___props.nextLink, null).href;
+
+	if (__prev.a !== __a) {
+		_$_.set_attribute(__prev._a_7, 'href', __prev.a = __a);
+	}
+}
+
 function consequent_15(__anchor, __props) {
 	var a_7 = root_73();
 
@@ -1130,17 +1145,7 @@ function consequent_15(__anchor, __props) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.fallback(__props.nextLink, null).href;
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(a_7, 'href', __prev.a = __a);
-			}
-		},
-		{ a: void 0 }
-	);
-
+	_$_.render(render_10, { a: void 0, ___props: __props, _a_7: a_7 });
 	_$_.append(__anchor, a_7);
 }
 
@@ -1172,6 +1177,21 @@ function if_15(__render, __props) {
 }
 
 var root_75 = _$_.template(`<a> </a>`, 0);
+
+function render_11(__prev) {
+	var __a = __prev._item.text;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_25, __prev.a = __a);
+	}
+
+	var __b = __prev._item.href;
+
+	if (__prev.b !== __b) {
+		_$_.set_attribute(__prev._a_8, 'href', __prev.b = __b);
+	}
+}
+
 var root_74 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
 
 function consequent_17(__anchor, __props) {
@@ -1191,22 +1211,13 @@ function consequent_17(__anchor, __props) {
 						var expression_25 = _$_.hydrating ? _$_.hydrate_text() : a_8.firstChild;
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = item.text;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_25, __prev.a = __a);
-							}
-
-							var __b = item.href;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(a_8, 'href', __prev.b = __b);
-							}
-						},
-						{ a: ' ', b: void 0 }
-					);
+					_$_.render(render_11, {
+						a: ' ',
+						b: void 0,
+						_item: item,
+						_expression_25: expression_25,
+						_a_8: a_8
+					});
 
 					_$_.append(__anchor, a_8);
 				},
@@ -1359,6 +1370,14 @@ DocsLayoutExactWithoutData.$r = DocsLayoutExactWithoutData_render;
 
 var root_78 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
 
+function render_12(__prev) {
+	var __a = _$_.with_scope(__prev.___block, () => JSON.stringify(__prev._data));
+
+	if (__prev.a !== __a) {
+		__prev._template.innerHTML = (__prev.a = __a) ?? __prev._template.innerHTML;
+	}
+}
+
 function TemplateWithHtmlContent_render(__anchor, __block) {
 	const data = { title: 'Test', value: 42 };
 	var div_66 = root_78();
@@ -1367,16 +1386,12 @@ function TemplateWithHtmlContent_render(__anchor, __block) {
 		var template = _$_.hydrating ? _$_.hydrate_child() : div_66.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.with_scope(__block, () => JSON.stringify(data));
-
-			if (__prev.a !== __a) {
-				template.innerHTML = (__prev.a = __a) ?? template.innerHTML;
-			}
-		},
-		{ a: template.innerHTML }
-	);
+	_$_.render(render_12, {
+		a: template.innerHTML,
+		___block: __block,
+		_data: data,
+		_template: template
+	});
 
 	_$_.append(__anchor, div_66);
 }
@@ -1384,6 +1399,14 @@ function TemplateWithHtmlContent_render(__anchor, __block) {
 TemplateWithHtmlContent.$r = TemplateWithHtmlContent_render;
 
 var root_79 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"></template><p class="after-template">Content after template</p></div>`, 0);
+
+function render_13(__prev) {
+	var __a = _$_.with_scope(__prev.___block, () => JSON.stringify(__prev._data));
+
+	if (__prev.a !== __a) {
+		__prev._template_1.innerHTML = (__prev.a = __a) ?? __prev._template_1.innerHTML;
+	}
+}
 
 function TemplateWithHtmlAndSiblings_render(__anchor, __block) {
 	const data = { name: 'Ripple', version: '1.0' };
@@ -1394,16 +1417,12 @@ function TemplateWithHtmlAndSiblings_render(__anchor, __block) {
 		var template_1 = _$_.hydrating ? _$_.hydrate_sibling() : h1_3.nextSibling;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = _$_.with_scope(__block, () => JSON.stringify(data));
-
-			if (__prev.a !== __a) {
-				template_1.innerHTML = (__prev.a = __a) ?? template_1.innerHTML;
-			}
-		},
-		{ a: template_1.innerHTML }
-	);
+	_$_.render(render_13, {
+		a: template_1.innerHTML,
+		___block: __block,
+		_data: data,
+		_template_1: template_1
+	});
 
 	_$_.append(__anchor, div_67);
 }
@@ -1411,7 +1430,24 @@ function TemplateWithHtmlAndSiblings_render(__anchor, __block) {
 TemplateWithHtmlAndSiblings.$r = TemplateWithHtmlAndSiblings_render;
 
 var root_80 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
+
+function render_14(__prev) {
+	var __a = _$_.with_scope(__prev.___block, () => JSON.stringify(__prev._data));
+
+	if (__prev.a !== __a) {
+		__prev._template_2.innerHTML = (__prev.a = __a) ?? __prev._template_2.innerHTML;
+	}
+}
+
 var root_81 = _$_.template(`<div class="doc-content"></div>`, 0);
+
+function render_15(__prev) {
+	var __a = __prev._doc.html;
+
+	if (__prev.a !== __a) {
+		__prev._div_69.innerHTML = (__prev.a = __a) ?? __prev._div_69.innerHTML;
+	}
+}
 
 function NestedTemplateInLayout_render(__anchor, __block) {
 	const doc = { title: 'Comparison', html: '<p>Content</p>' };
@@ -1421,17 +1457,7 @@ function NestedTemplateInLayout_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_69 = root_81();
 
-			_$_.render(
-				(__prev) => {
-					var __a = doc.html;
-
-					if (__prev.a !== __a) {
-						div_69.innerHTML = (__prev.a = __a) ?? div_69.innerHTML;
-					}
-				},
-				{ a: div_69.innerHTML }
-			);
-
+			_$_.render(render_15, { a: div_69.innerHTML, _doc: doc, _div_69: div_69 });
 			_$_.append(__anchor, div_69);
 		})
 	});
@@ -2069,16 +2095,12 @@ function LayoutWithTemplate({ children, data }) {
 			}
 		}
 
-		_$_.render(
-			(__prev) => {
-				var __a = _$_.with_scope(__block, () => JSON.stringify(data));
-
-				if (__prev.a !== __a) {
-					template_2.innerHTML = (__prev.a = __a) ?? template_2.innerHTML;
-				}
-			},
-			{ a: template_2.innerHTML }
-		);
+		_$_.render(render_14, {
+			a: template_2.innerHTML,
+			___block: __block,
+			_data: data,
+			_template_2: template_2
+		});
 
 		_$_.append(__anchor, div_68);
 	});

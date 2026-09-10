@@ -33,7 +33,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain('const selector = _$_.selector(() => lazy_1.value);');
-		expect(code).toContain("_$_.selector_match(selector, __pattern.id) ? 'danger' : ''");
+		expect(code).toContain("_$_.selector_match(__prev._selector, __pattern.id) ? 'danger' : ''");
 		expect(code.indexOf('_$_.selector(')).toBeLessThan(code.indexOf('_$_.for_keyed('));
 	});
 
@@ -48,7 +48,9 @@ describe('@for selector lowering', () => {
 			}
 		`);
 
-		expect(code).toContain("!_$_.selector_match(selector, __pattern.id) ? 'plain' : 'danger'");
+		expect(code).toContain(
+			"!_$_.selector_match(__prev._selector, __pattern.id) ? 'plain' : 'danger'",
+		);
 	});
 
 	it('lowers text expressions and unkeyed loops', () => {
@@ -63,7 +65,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain('_$_.selector(() => lazy_1.value)');
-		expect(code).toContain('_$_.selector_match(selector, row.id)');
+		expect(code).toContain('_$_.selector_match(__prev._selector, __prev._row.id)');
 	});
 
 	it('keeps a plain comparison when the outer side is static', () => {
@@ -146,8 +148,9 @@ describe('grouped render read hoisting', () => {
 		`);
 
 		expect(code).not.toContain('var __pattern');
-		// Two guarded reads in the render plus the key function.
-		expect(code.match(/_\$_\.get\(pattern\)/g)).toHaveLength(3);
+		// Two guarded reads in the render (through the block state) plus the key
+		// function.
+		expect(code.match(/_\$_\.get\((?:__prev\._)?pattern\)/g)).toHaveLength(3);
 	});
 
 	it('leaves reads inside nested functions alone', () => {
@@ -163,7 +166,9 @@ describe('grouped render read hoisting', () => {
 		// The call is wrapped in a scope arrow, so its reads are nested and
 		// only the title read is unconditional: nothing to hoist.
 		expect(code).not.toContain('var __pattern');
-		expect(code).toContain('[_$_.get(pattern).id].some((id) => _$_.get(pattern).id === id)');
+		expect(code).toContain(
+			'[_$_.get(__prev._pattern).id].some((id) => _$_.get(__prev._pattern).id === id)',
+		);
 	});
 
 	it('reuses an unconditional read on conditional paths too', () => {
@@ -177,7 +182,7 @@ describe('grouped render read hoisting', () => {
 			}
 		`);
 
-		expect(code).toContain('var __pattern = _$_.get(pattern);');
+		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
 		expect(code).not.toContain('_$_.get(pattern).label');
 	});
 });
@@ -195,7 +200,7 @@ describe('@for item type inference', () => {
 
 		expect(code).not.toContain('_$_.expression(');
 		expect(code).toContain('_$_.set_text(');
-		expect(code).toContain('var __pattern = _$_.get(pattern);');
+		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
 		expect(code).toContain('__pattern.label.value');
 	});
 
@@ -273,7 +278,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(expression, __prev.a = __a)');
+		expect(code).toContain('_$_.set_text(__prev._expression, __prev.a = __a)');
 		expect(code).toContain('expression_1.nodeValue = count');
 	});
 
@@ -286,7 +291,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(expression, __prev.a = __a)');
+		expect(code).toContain('_$_.set_text(__prev._expression, __prev.a = __a)');
 		expect(code).toContain('expression_1.nodeValue = count');
 	});
 

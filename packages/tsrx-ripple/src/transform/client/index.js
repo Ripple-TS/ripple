@@ -24,7 +24,7 @@
 */
 
 import { walk } from 'zimmerframe';
-import { build_props_site, captured_locals, register_hoisted } from './props-site.js';
+import { build_props_site, captured_locals, register_hoisted, rewrite } from './props-site.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -867,6 +867,58 @@ function visit_head_element(node, index, context) {
 }
 
 /**
+ * Emits a render block. Its function lives at module level when the body's
+ * captured locals can travel on the block state (`{ _name: name }`, read as
+ * `__prev._name`), so instantiating the component allocates the state object
+ * only, not a closure and its context.
+ * @param {NonNullable<TransformClientState['init']>} init
+ * @param {AST.Statement[]} body
+ * @param {AST.Property[]} initial the state object's properties
+ * @param {TransformClientState} state
+ */
+function emit_render_block(init, body, initial, state) {
+	const fn = b.arrow([b.id('__prev')], b.block(body));
+	const captures = state.to_ts ? null : captured_locals([fn], state.scope, state.hoisted);
+
+	if (captures === null) {
+		init.push(
+			b.stmt(
+				b.call(
+					'_$_.render',
+					initial.length === 0 ? b.thunk(b.block(body)) : fn,
+					...(initial.length === 0 ? [] : [b.object(initial)]),
+				),
+			),
+		);
+		return;
+	}
+
+	const hoisted = state.hoisted;
+	const id = b.id(state.scope.generate('render'));
+	const captured = new Set(captures);
+	const hoisted_fn = rewrite(
+		fn,
+		(name) => (captured.has(name) ? b.member(b.id('__prev'), b.id('_' + name)) : null),
+		new Set(),
+	);
+	hoisted.push(
+		b.function_declaration(
+			id,
+			hoisted_fn.params,
+			/** @type {AST.BlockStatement} */ (hoisted_fn.body),
+		),
+	);
+	register_hoisted(hoisted, id.name);
+	const properties = [
+		...initial,
+		...captures.map((name) => b.prop('init', b.id('_' + name), b.id(name))),
+	];
+	init.push(
+		b.stmt(b.call('_$_.render', id, ...(properties.length === 0 ? [] : [b.object(properties)]))),
+	);
+}
+
+/**
  * @param {NonNullable<TransformClientState['init']>} init
  * @param {NonNullable<TransformClientState['update']>} update
  * @param {TransformClientState} state
@@ -875,19 +927,11 @@ function apply_updates(init, update, state) {
 	// A compared update keeps its last value in the block state even when it
 	// is alone, so setters never cache on the DOM node.
 	if (update.length === 1 && !update[0].needsPrevTracking && !update[0].initial) {
-		init.push(
-			b.stmt(
-				b.call(
-					'_$_.render',
-					b.thunk(
-						b.block(
-							update.map((u) => {
-								return u.operation();
-							}),
-						),
-					),
-				),
-			),
+		emit_render_block(
+			init,
+			update.map((u) => u.operation()),
+			[],
+			state,
 		);
 	} else {
 		/** @type {AST.Property[]} */
@@ -987,15 +1031,7 @@ function apply_updates(init, update, state) {
 
 		hoist_repeated_tracked_reads(render_statements, state);
 
-		init.push(
-			b.stmt(
-				b.call(
-					'_$_.render',
-					b.arrow([b.id('__prev')], b.block(render_statements)),
-					b.object(initial),
-				),
-			),
-		);
+		emit_render_block(init, render_statements, initial, state);
 	}
 }
 

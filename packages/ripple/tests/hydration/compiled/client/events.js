@@ -3,6 +3,14 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"> </span></div>`, 0);
 
+function render(__prev) {
+	var __a = __prev._lazy.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+}
+
 function ClickCounter_render(__anchor, __block) {
 	let lazy = _$_.track(0, __block, 'a070e3a7');
 	var div = root();
@@ -21,23 +29,21 @@ function ClickCounter_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render, { a: ' ', _lazy: lazy, _expression: expression });
 	_$_.append(__anchor, div);
 }
 
 ClickCounter.$r = ClickCounter_render;
 
 var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`, 0);
+
+function render_1(__prev) {
+	var __a = __prev._lazy_1.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_1, __prev.a = __a);
+	}
+}
 
 function IncrementDecrement_render(__anchor, __block) {
 	let lazy_1 = _$_.track(0, __block, '87fcabdd');
@@ -63,23 +69,27 @@ function IncrementDecrement_render(__anchor, __block) {
 		};
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_1.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_1, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_1, { a: ' ', _lazy_1: lazy_1, _expression_1: expression_1 });
 	_$_.append(__anchor, div_1);
 }
 
 IncrementDecrement.$r = IncrementDecrement_render;
 
 var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`, 0);
+
+function render_2(__prev) {
+	var __a = __prev._lazy_2.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_2, __prev.a = __a);
+	}
+
+	var __b = __prev._lazy_3.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_text(__prev._expression_3, __prev.b = __b);
+	}
+}
 
 function MultipleEvents_render(__anchor, __block) {
 	let lazy_2 = _$_.track(0, __block, '41b9f0b0');
@@ -110,22 +120,14 @@ function MultipleEvents_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_2.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_2, __prev.a = __a);
-			}
-
-			var __b = lazy_3.value;
-
-			if (__prev.b !== __b) {
-				_$_.set_text(expression_3, __prev.b = __b);
-			}
-		},
-		{ a: ' ', b: ' ' }
-	);
+	_$_.render(render_2, {
+		a: ' ',
+		b: ' ',
+		_lazy_2: lazy_2,
+		_expression_2: expression_2,
+		_lazy_3: lazy_3,
+		_expression_3: expression_3
+	});
 
 	_$_.append(__anchor, div_2);
 }
@@ -133,6 +135,14 @@ function MultipleEvents_render(__anchor, __block) {
 MultipleEvents.$r = MultipleEvents_render;
 
 var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`, 0);
+
+function render_3(__prev) {
+	var __a = __prev._lazy_4.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_4, __prev.a = __a);
+	}
+}
 
 function MultiStateUpdate_render(__anchor, __block) {
 	let lazy_4 = _$_.track(0, __block, '5a375160');
@@ -166,23 +176,21 @@ function MultiStateUpdate_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_4.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_4, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_3, { a: ' ', _lazy_4: lazy_4, _expression_4: expression_4 });
 	_$_.append(__anchor, div_3);
 }
 
 MultiStateUpdate.$r = MultiStateUpdate_render;
 
 var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
+
+function render_4(__prev) {
+	var __a = __prev._lazy_6.value ? 'ON' : 'OFF';
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_6, __prev.a = __a);
+	}
+}
 
 function ToggleButton_render(__anchor, __block) {
 	let lazy_6 = _$_.track(false, __block, 'be823ec7');
@@ -200,23 +208,21 @@ function ToggleButton_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_6.value ? 'ON' : 'OFF';
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_6, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_4, { a: ' ', _lazy_6: lazy_6, _expression_6: expression_6 });
 	_$_.append(__anchor, div_4);
 }
 
 ToggleButton.$r = ToggleButton_render;
 
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
+
+function render_5(__prev) {
+	var __a = __prev._props.label;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_7, __prev.a = __a);
+	}
+}
 
 function ChildButton_render(__anchor, __block, props) {
 	var button_6 = root_5();
@@ -227,23 +233,21 @@ function ChildButton_render(__anchor, __block, props) {
 		var expression_7 = _$_.hydrating ? _$_.hydrate_text() : button_6.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = props.label;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_7, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_5, { a: ' ', _props: props, _expression_7: expression_7 });
 	_$_.append(__anchor, button_6);
 }
 
 ChildButton.$r = ChildButton_render;
 
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
+
+function render_6(__prev) {
+	var __a = __prev._lazy_7.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_8, __prev.a = __a);
+	}
+}
 
 function ParentWithChildButton_render(__anchor, __block) {
 	let lazy_7 = _$_.track(0, __block, 'dcc2e0f9');
@@ -268,17 +272,7 @@ function ParentWithChildButton_render(__anchor, __block) {
 		_$_.pop(div_5);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_7.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_8, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_6, { a: ' ', _lazy_7: lazy_7, _expression_8: expression_8 });
 	_$_.append(__anchor, div_5);
 }
 

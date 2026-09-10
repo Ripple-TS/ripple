@@ -36,6 +36,15 @@ function StaticForLoop_render(__anchor, __block) {
 StaticForLoop.$r = StaticForLoop_render;
 
 var root_3 = _$_.template(`<li> </li>`, 0);
+
+function render(__prev) {
+	var __a = `${__prev._i.value}: ${__prev._item}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_1, __prev.a = __a);
+	}
+}
+
 var root_2 = _$_.template(`<ul></ul>`, 0);
 
 function ForLoopWithIndex_render(__anchor, __block) {
@@ -53,17 +62,7 @@ function ForLoopWithIndex_render(__anchor, __block) {
 					var expression_1 = _$_.hydrating ? _$_.hydrate_text() : li_1.firstChild;
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `${i.value}: ${item}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_text(expression_1, __prev.a = __a);
-						}
-					},
-					{ a: ' ' }
-				);
-
+				_$_.render(render, { a: ' ', _i: i, _item: item, _expression_1: expression_1 });
 				_$_.append(__anchor, li_1);
 			},
 			12
@@ -216,6 +215,15 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 ReactiveForLoopRemove.$r = ReactiveForLoopRemove_render;
 
 var root_13 = _$_.template(`<div><span class="value"> </span><button class="increment">+</button></div>`, 0);
+
+function render_1(__prev) {
+	var __a = `item-${__prev._i.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_1, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_12 = _$_.template(`<div></div>`, 0);
 
 function ForLoopInteractive_render(__anchor, __block) {
@@ -249,17 +257,7 @@ function ForLoopInteractive_render(__anchor, __block) {
 					};
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `item-${i.value}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_class(div_1, __prev.a = __a, void 0, true);
-						}
-					},
-					{ a: _$_.UNINITIALIZED }
-				);
-
+				_$_.render(render_1, { a: _$_.UNINITIALIZED, _i: i, _div_1: div_1 });
 				_$_.append(__anchor, div_1);
 			},
 			12
@@ -274,6 +272,23 @@ function ForLoopInteractive_render(__anchor, __block) {
 ForLoopInteractive.$r = ForLoopInteractive_render;
 
 var root_16 = _$_.template(`<span> </span>`, 0);
+
+function render_2(__prev) {
+	var __a = `cell-${__prev._rowIndex.value}-${__prev._colIndex.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._span_1, __prev.a = __a, void 0, true);
+	}
+}
+
+function render_3(__prev) {
+	var __a = `row-${__prev._rowIndex.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_3, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_15 = _$_.template(`<div></div>`, 0);
 var root_14 = _$_.template(`<div class="grid"></div>`, 0);
 
@@ -302,16 +317,12 @@ function NestedForLoop_render(__anchor, __block) {
 								_$_.pop(span_1);
 							}
 
-							_$_.render(
-								(__prev) => {
-									var __a = `cell-${rowIndex.value}-${colIndex.value}`;
-
-									if (__prev.a !== __a) {
-										_$_.set_class(span_1, __prev.a = __a, void 0, true);
-									}
-								},
-								{ a: _$_.UNINITIALIZED }
-							);
+							_$_.render(render_2, {
+								a: _$_.UNINITIALIZED,
+								_rowIndex: rowIndex,
+								_colIndex: colIndex,
+								_span_1: span_1
+							});
 
 							_$_.append(__anchor, span_1);
 						},
@@ -319,17 +330,7 @@ function NestedForLoop_render(__anchor, __block) {
 					);
 
 					_$_.pop(div_3);
-
-					_$_.render(
-						(__prev) => {
-							var __a = `row-${rowIndex.value}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_class(div_3, __prev.a = __a, void 0, true);
-							}
-						},
-						{ a: _$_.UNINITIALIZED }
-					);
+					_$_.render(render_3, { a: _$_.UNINITIALIZED, _rowIndex: rowIndex, _div_3: div_3 });
 				}
 
 				_$_.append(__anchor, div_3);
@@ -379,6 +380,15 @@ function EmptyForLoop_render(__anchor, __block) {
 EmptyForLoop.$r = EmptyForLoop_render;
 
 var root_20 = _$_.template(`<div><span class="name"> </span><span class="role"> </span></div>`, 0);
+
+function render_4(__prev) {
+	var __a = `user-${_$_.get(__prev._pattern_1).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_6, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_19 = _$_.template(`<div></div>`, 0);
 
 function ForLoopComplexObjects_render(__anchor, __block) {
@@ -416,17 +426,7 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 					}
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `user-${_$_.get(pattern_1).id}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_class(div_6, __prev.a = __a, void 0, true);
-						}
-					},
-					{ a: _$_.UNINITIALIZED }
-				);
-
+				_$_.render(render_4, { a: _$_.UNINITIALIZED, _pattern_1: pattern_1, _div_6: div_6 });
 				_$_.append(__anchor, div_6);
 			},
 			4,
@@ -442,6 +442,15 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 ForLoopComplexObjects.$r = ForLoopComplexObjects_render;
 
 var root_23 = _$_.template(`<li> </li>`, 0);
+
+function render_5(__prev) {
+	var __a = `item-${_$_.get(__prev._pattern_2).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._li_5, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_22 = _$_.template(`<button class="reorder">Reorder</button><ul></ul>`, 1, 2);
 var root_21 = _$_.template(`<!>`, 1, 1);
 
@@ -483,17 +492,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 						_$_.pop(li_5);
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = `item-${_$_.get(pattern_2).id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_class(li_5, __prev.a = __a, void 0, true);
-							}
-						},
-						{ a: _$_.UNINITIALIZED }
-					);
-
+					_$_.render(render_5, { a: _$_.UNINITIALIZED, _pattern_2: pattern_2, _li_5: li_5 });
 					_$_.append(__anchor, li_5);
 				},
 				4,
@@ -512,6 +511,15 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 KeyedForLoopReorder.$r = KeyedForLoopReorder_render;
 
 var root_26 = _$_.template(`<li> </li>`, 0);
+
+function render_6(__prev) {
+	var __a = `item-${_$_.get(__prev._pattern_3).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._li_6, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_25 = _$_.template(`<button class="update">Update</button><ul></ul>`, 1, 2);
 var root_24 = _$_.template(`<!>`, 1, 1);
 
@@ -546,17 +554,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 						_$_.pop(li_6);
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = `item-${_$_.get(pattern_3).id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_class(li_6, __prev.a = __a, void 0, true);
-							}
-						},
-						{ a: _$_.UNINITIALIZED }
-					);
-
+					_$_.render(render_6, { a: _$_.UNINITIALIZED, _pattern_3: pattern_3, _li_6: li_6 });
 					_$_.append(__anchor, li_6);
 				},
 				4,
@@ -792,6 +790,23 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 ForLoopPopulatedToEmpty.$r = ForLoopPopulatedToEmpty_render;
 
 var root_42 = _$_.template(`<span> </span>`, 0);
+
+function render_7(__prev) {
+	var __a = `cell-${__prev._rowIndex.value}-${__prev._colIndex.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._span_5, __prev.a = __a, void 0, true);
+	}
+}
+
+function render_8(__prev) {
+	var __a = `row-${__prev._rowIndex.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_9, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_41 = _$_.template(`<div></div>`, 0);
 var root_40 = _$_.template(`<div class="nested-for-reactive"><button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid"></div></div>`, 0);
 
@@ -838,16 +853,12 @@ function NestedForLoopReactive_render(__anchor, __block) {
 									_$_.pop(span_5);
 								}
 
-								_$_.render(
-									(__prev) => {
-										var __a = `cell-${rowIndex.value}-${colIndex.value}`;
-
-										if (__prev.a !== __a) {
-											_$_.set_class(span_5, __prev.a = __a, void 0, true);
-										}
-									},
-									{ a: _$_.UNINITIALIZED }
-								);
+								_$_.render(render_7, {
+									a: _$_.UNINITIALIZED,
+									_rowIndex: rowIndex,
+									_colIndex: colIndex,
+									_span_5: span_5
+								});
 
 								_$_.append(__anchor, span_5);
 							},
@@ -855,17 +866,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 						);
 
 						_$_.pop(div_9);
-
-						_$_.render(
-							(__prev) => {
-								var __a = `row-${rowIndex.value}`;
-
-								if (__prev.a !== __a) {
-									_$_.set_class(div_9, __prev.a = __a, void 0, true);
-								}
-							},
-							{ a: _$_.UNINITIALIZED }
-						);
+						_$_.render(render_8, { a: _$_.UNINITIALIZED, _rowIndex: rowIndex, _div_9: div_9 });
 					}
 
 					_$_.append(__anchor, div_9);
@@ -884,7 +885,25 @@ NestedForLoopReactive.$r = NestedForLoopReactive_render;
 
 var root_46 = _$_.template(`<li class="member"> </li>`, 0);
 var root_45 = _$_.template(`<div><h3 class="team-name"> </h3><ul></ul></div>`, 0);
+
+function render_9(__prev) {
+	var __a = `team-${_$_.get(__prev._pattern_5).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_12, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_44 = _$_.template(`<div><h2 class="dept-name"> </h2><!></div>`, 0);
+
+function render_10(__prev) {
+	var __a = `dept-${_$_.get(__prev._pattern_4).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_11, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_43 = _$_.template(`<div class="org"></div>`, 0);
 
 function ForLoopDeeplyNested_render(__anchor, __block) {
@@ -967,17 +986,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 								}
 							}
 
-							_$_.render(
-								(__prev) => {
-									var __a = `team-${_$_.get(pattern_5).id}`;
-
-									if (__prev.a !== __a) {
-										_$_.set_class(div_12, __prev.a = __a, void 0, true);
-									}
-								},
-								{ a: _$_.UNINITIALIZED }
-							);
-
+							_$_.render(render_9, { a: _$_.UNINITIALIZED, _pattern_5: pattern_5, _div_12: div_12 });
 							_$_.append(__anchor, div_12);
 						},
 						0,
@@ -987,17 +996,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 					_$_.pop(div_11);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `dept-${_$_.get(pattern_4).id}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_class(div_11, __prev.a = __a, void 0, true);
-						}
-					},
-					{ a: _$_.UNINITIALIZED }
-				);
-
+				_$_.render(render_10, { a: _$_.UNINITIALIZED, _pattern_4: pattern_4, _div_11: div_11 });
 				_$_.append(__anchor, div_11);
 			},
 			4,
@@ -1013,6 +1012,21 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 ForLoopDeeplyNested.$r = ForLoopDeeplyNested_render;
 
 var root_49 = _$_.template(`<li> </li>`, 0);
+
+function render_11(__prev) {
+	var __a = `[${__prev._i.value}] ${__prev._item}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_20, __prev.a = __a);
+	}
+
+	var __b = `item-${__prev._i.value}`;
+
+	if (__prev.b !== __b) {
+		_$_.set_class(__prev._li_12, __prev.b = __b, void 0, true);
+	}
+}
+
 var root_48 = _$_.template(`<button class="prepend">Prepend</button><ul></ul>`, 1, 2);
 var root_47 = _$_.template(`<!>`, 1, 1);
 
@@ -1042,22 +1056,14 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 						var expression_20 = _$_.hydrating ? _$_.hydrate_text() : li_12.firstChild;
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __a = `[${i.value}] ${item}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_20, __prev.a = __a);
-							}
-
-							var __b = `item-${i.value}`;
-
-							if (__prev.b !== __b) {
-								_$_.set_class(li_12, __prev.b = __b, void 0, true);
-							}
-						},
-						{ a: ' ', b: _$_.UNINITIALIZED }
-					);
+					_$_.render(render_11, {
+						a: ' ',
+						b: _$_.UNINITIALIZED,
+						_i: i,
+						_item: item,
+						_expression_20: expression_20,
+						_li_12: li_12
+					});
 
 					_$_.append(__anchor, li_12);
 				},
@@ -1076,6 +1082,28 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 ForLoopIndexUpdate.$r = ForLoopIndexUpdate_render;
 
 var root_52 = _$_.template(`<li> </li>`, 0);
+
+function render_12(__prev) {
+	var __pattern_6 = _$_.get(__prev._pattern_6);
+	var __a = `[${__prev._i.value}] ${__pattern_6.id}: ${__pattern_6.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_21, __prev.a = __a);
+	}
+
+	var __b = __prev._i.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_attribute(__prev._li_13, 'data-index', __prev.b = __b);
+	}
+
+	var __c = `item-${__pattern_6.id}`;
+
+	if (__prev.c !== __c) {
+		_$_.set_class(__prev._li_13, __prev.c = __c, void 0, true);
+	}
+}
+
 var root_51 = _$_.template(`<button class="reorder">Rotate</button><ul></ul>`, 1, 2);
 var root_50 = _$_.template(`<!>`, 1, 1);
 
@@ -1114,29 +1142,15 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 						var expression_21 = _$_.hydrating ? _$_.hydrate_text() : li_13.firstChild;
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __pattern_6 = _$_.get(pattern_6);
-							var __a = `[${i.value}] ${__pattern_6.id}: ${__pattern_6.value}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_21, __prev.a = __a);
-							}
-
-							var __b = i.value;
-
-							if (__prev.b !== __b) {
-								_$_.set_attribute(li_13, 'data-index', __prev.b = __b);
-							}
-
-							var __c = `item-${__pattern_6.id}`;
-
-							if (__prev.c !== __c) {
-								_$_.set_class(li_13, __prev.c = __c, void 0, true);
-							}
-						},
-						{ a: ' ', b: void 0, c: _$_.UNINITIALIZED }
-					);
+					_$_.render(render_12, {
+						a: ' ',
+						b: void 0,
+						c: _$_.UNINITIALIZED,
+						_pattern_6: pattern_6,
+						_i: i,
+						_expression_21: expression_21,
+						_li_13: li_13
+					});
 
 					_$_.append(__anchor, li_13);
 				},
@@ -1246,6 +1260,32 @@ ForLoopItemState.$r = ForLoopItemState_render;
 
 var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
 
+function render_13(__prev) {
+	var __a = __prev._lazy_14.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_checked(__prev._input, __prev.a = __a);
+	}
+
+	var __b = __prev._props.text;
+
+	if (__prev.b !== __b) {
+		_$_.set_text(__prev._expression_23, __prev.b = __b);
+	}
+
+	var __c = __prev._lazy_14.value ? 'completed' : 'pending';
+
+	if (__prev.c !== __c) {
+		_$_.set_class(__prev._span_6, __prev.c = __c, void 0, true);
+	}
+
+	var __d = `todo-${__prev._props.id}`;
+
+	if (__prev.d !== __d) {
+		_$_.set_class(__prev._div_16, __prev.d = __d, void 0, true);
+	}
+}
+
 function TodoItem_render(__anchor, __block, props) {
 	let lazy_14 = _$_.track(false, __block, '4f2402a4');
 	var div_16 = root_57();
@@ -1264,39 +1304,18 @@ function TodoItem_render(__anchor, __block, props) {
 		}
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_14.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_checked(input, __prev.a = __a);
-			}
-
-			var __b = props.text;
-
-			if (__prev.b !== __b) {
-				_$_.set_text(expression_23, __prev.b = __b);
-			}
-
-			var __c = lazy_14.value ? 'completed' : 'pending';
-
-			if (__prev.c !== __c) {
-				_$_.set_class(span_6, __prev.c = __c, void 0, true);
-			}
-
-			var __d = `todo-${props.id}`;
-
-			if (__prev.d !== __d) {
-				_$_.set_class(div_16, __prev.d = __d, void 0, true);
-			}
-		},
-		{
-			a: void 0,
-			b: ' ',
-			c: _$_.UNINITIALIZED,
-			d: _$_.UNINITIALIZED
-		}
-	);
+	_$_.render(render_13, {
+		a: void 0,
+		b: ' ',
+		c: _$_.UNINITIALIZED,
+		d: _$_.UNINITIALIZED,
+		_lazy_14: lazy_14,
+		_input: input,
+		_props: props,
+		_expression_23: expression_23,
+		_span_6: span_6,
+		_div_16: div_16
+	});
 
 	_$_.append(__anchor, div_16);
 }
@@ -1494,6 +1513,15 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 ForLoopRemoveFromMiddle.$r = ForLoopRemoveFromMiddle_render;
 
 var root_70 = _$_.template(`<li> </li>`, 0);
+
+function render_14(__prev) {
+	var __a = `item-${__prev._i.value}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._li_18, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_69 = _$_.template(`<ul class="large-list"></ul>`, 0);
 
 function ForLoopLargeList_render(__anchor, __block) {
@@ -1514,17 +1542,7 @@ function ForLoopLargeList_render(__anchor, __block) {
 					_$_.pop(li_18);
 				}
 
-				_$_.render(
-					(__prev) => {
-						var __a = `item-${i.value}`;
-
-						if (__prev.a !== __a) {
-							_$_.set_class(li_18, __prev.a = __a, void 0, true);
-						}
-					},
-					{ a: _$_.UNINITIALIZED }
-				);
-
+				_$_.render(render_14, { a: _$_.UNINITIALIZED, _i: i, _li_18: li_18 });
 				_$_.append(__anchor, li_18);
 			},
 			12
@@ -1696,6 +1714,14 @@ KeyedForLoopAppendAndRotate.$r = KeyedForLoopAppendAndRotate_render;
 
 var root_79 = _$_.template(`<span class="item"> </span>`, 0);
 
+function render_15(__prev) {
+	var __a = _$_.get(__prev._pattern_9);
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_32, __prev.a = __a);
+	}
+}
+
 function RootKeyedList_render(__anchor, __block, props) {
 	_$_.for_keyed(
 		__anchor,
@@ -1707,17 +1733,7 @@ function RootKeyedList_render(__anchor, __block, props) {
 				var expression_32 = _$_.hydrating ? _$_.hydrate_text() : span_8.firstChild;
 			}
 
-			_$_.render(
-				(__prev) => {
-					var __a = _$_.get(pattern_9);
-
-					if (__prev.a !== __a) {
-						_$_.set_text(expression_32, __prev.a = __a);
-					}
-				},
-				{ a: ' ' }
-			);
-
+			_$_.render(render_15, { a: ' ', _pattern_9: pattern_9, _expression_32: expression_32 });
 			_$_.append(__anchor, span_8);
 		},
 		16

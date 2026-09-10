@@ -132,6 +132,14 @@ SiblingComponents.$r = SiblingComponents_render;
 
 var root_12 = _$_.template(`<div> </div>`, 0);
 
+function render(__prev) {
+	var __a = 'Hello ' + __prev._props.name;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+}
+
 function Greeting_render(__anchor, __block, props) {
 	var div_5 = root_12();
 
@@ -139,17 +147,7 @@ function Greeting_render(__anchor, __block, props) {
 		var expression = _$_.hydrating ? _$_.hydrate_text() : div_5.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = 'Hello ' + props.name;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render, { a: ' ', _props: props, _expression: expression });
 	_$_.append(__anchor, div_5);
 }
 
@@ -901,6 +899,14 @@ NestedComponentAsLastSibling.$r = NestedComponentAsLastSibling_render;
 
 var root_73 = _$_.template(`<div> </div>`, 0);
 
+function render_1(__prev) {
+	var __a = "label: " + String(_$_.with_scope(__prev.___block, fetchLabel));
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._text, __prev.a = __a);
+	}
+}
+
 function TextTailExpression_render(__anchor, __block) {
 	var div_28 = root_73();
 
@@ -908,23 +914,21 @@ function TextTailExpression_render(__anchor, __block) {
 		var text = _$_.hydrating ? _$_.hydrate_text() : div_28.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = "label: " + String(_$_.with_scope(__block, fetchLabel));
-
-			if (__prev.a !== __a) {
-				_$_.set_text(text, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_1, { a: ' ', ___block: __block, _text: text });
 	_$_.append(__anchor, div_28);
 }
 
 TextTailExpression.$r = TextTailExpression_render;
 
 var root_74 = _$_.template(`<div> </div>`, 0);
+
+function render_2(__prev) {
+	var __a = 'frag-' + String(_$_.with_scope(__prev.___block, fetchLabel));
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_30, __prev.a = __a);
+	}
+}
 
 function FragmentTailExpression_render(__anchor, __block) {
 	var div_29 = root_74();
@@ -933,17 +937,7 @@ function FragmentTailExpression_render(__anchor, __block) {
 		var expression_30 = _$_.hydrating ? _$_.hydrate_text() : div_29.firstChild;
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = 'frag-' + String(_$_.with_scope(__block, fetchLabel));
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression_30, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
-
+	_$_.render(render_2, { a: ' ', ___block: __block, _expression_30: expression_30 });
 	_$_.append(__anchor, div_29);
 }
 
@@ -1002,6 +996,15 @@ function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
 FragmentLeadsWithOpaqueValue.$r = FragmentLeadsWithOpaqueValue_render;
 
 var root_80 = _$_.template(` <p>after-call</p>`, 1, 2);
+
+function render_3(__prev) {
+	var __a = String(_$_.with_scope(__prev.___block, fetchLabel));
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_32, __prev.a = __a);
+	}
+}
+
 var root_79 = _$_.template(`<!>`, 1, 1);
 
 function PrimitiveCallLead_render(__anchor, __block) {
@@ -1013,18 +1016,7 @@ function PrimitiveCallLead_render(__anchor, __block) {
 		var expression_32 = _$_.first_child_frag(fragment_35, true);
 
 		_$_.next();
-
-		_$_.render(
-			(__prev) => {
-				var __a = String(_$_.with_scope(__block, fetchLabel));
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_32, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_3, { a: ' ', ___block: __block, _expression_32: expression_32 });
 		_$_.append(__anchor, fragment_35);
 	}));
 
@@ -1051,6 +1043,15 @@ function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 FragmentLeadsWithPrimitiveCall.$r = FragmentLeadsWithPrimitiveCall_render;
 
 var root_83 = _$_.template(`<div class="primitive-calls"> </div><button>update</button>`, 1, 2);
+
+function render_4(__prev) {
+	var __a = "sum: " + (String(Number(__prev._lazy_3.value) + Number(__prev._lazy_3.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._lazy_3.value)) ?? '')));
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._text_1, __prev.a = __a);
+	}
+}
+
 var root_82 = _$_.template(`<!>`, 1, 1);
 
 function PrimitiveTextCalls_render(__anchor, __block) {
@@ -1069,18 +1070,7 @@ function PrimitiveTextCalls_render(__anchor, __block) {
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
 
 		button_2.__click = () => _$_.update(lazy_3);
-
-		_$_.render(
-			(__prev) => {
-				var __a = "sum: " + (String(Number(lazy_3.value) + Number(lazy_3.value) ?? '') + ("; big: " + String(_$_.with_scope(__block, () => BigInt(lazy_3.value)) ?? '')));
-
-				if (__prev.a !== __a) {
-					_$_.set_text(text_1, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render_4, { a: ' ', _lazy_3: lazy_3, ___block: __block, _text_1: text_1 });
 		_$_.append(__anchor, fragment_37);
 	}));
 

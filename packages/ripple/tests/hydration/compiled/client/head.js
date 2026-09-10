@@ -209,6 +209,15 @@ function ConditionalTitle_render(__anchor, __block) {
 ConditionalTitle.$r = ConditionalTitle_render;
 
 var root_17 = _$_.template(`<div><span> </span></div>`, 0);
+
+function render(__prev) {
+	var __a = __prev._lazy_5.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_4, __prev.a = __a);
+	}
+}
+
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function ComputedTitle_render(__anchor, __block) {
@@ -234,17 +243,7 @@ function ComputedTitle_render(__anchor, __block) {
 			});
 		});
 
-		_$_.render(
-			(__prev) => {
-				var __a = lazy_5.value;
-
-				if (__prev.a !== __a) {
-					_$_.set_text(expression_4, __prev.a = __a);
-				}
-			},
-			{ a: ' ' }
-		);
-
+		_$_.render(render, { a: ' ', _lazy_5: lazy_5, _expression_4: expression_4 });
 		_$_.append(__anchor, div_7);
 	}));
 

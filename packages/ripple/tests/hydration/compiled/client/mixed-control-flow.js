@@ -2,9 +2,58 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div> </div>`, 0);
+
+function render(__prev) {
+	var __pattern = _$_.get(__prev._pattern);
+	var __a = `A-${__pattern.id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+
+	var __b = `row row-${__pattern.id} kind-a`;
+
+	if (__prev.b !== __b) {
+		_$_.set_class(__prev._div, __prev.b = __b, void 0, true);
+	}
+}
+
 var root_2 = _$_.template(`<div>pending a</div>`, 0);
+
+function render_1(__prev) {
+	var __a = `pending pending-${_$_.get(__prev._pattern).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_1, __prev.a = __a, void 0, true);
+	}
+}
+
 var root_3 = _$_.template(`<div> </div>`, 0);
+
+function render_2(__prev) {
+	var __pattern_1 = _$_.get(__prev._pattern);
+	var __a = `B-${__pattern_1.id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_1, __prev.a = __a);
+	}
+
+	var __b = `row row-${__pattern_1.id} kind-b`;
+
+	if (__prev.b !== __b) {
+		_$_.set_class(__prev._div_2, __prev.b = __b, void 0, true);
+	}
+}
+
 var root_4 = _$_.template(`<div>pending b</div>`, 0);
+
+function render_3(__prev) {
+	var __a = `pending pending-${_$_.get(__prev._pattern).id}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_class(__prev._div_3, __prev.a = __a, void 0, true);
+	}
+}
 
 function consequent(__anchor, pattern) {
 	{
@@ -18,23 +67,13 @@ function consequent(__anchor, pattern) {
 						var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __pattern = _$_.get(pattern);
-							var __a = `A-${__pattern.id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression, __prev.a = __a);
-							}
-
-							var __b = `row row-${__pattern.id} kind-a`;
-
-							if (__prev.b !== __b) {
-								_$_.set_class(div, __prev.b = __b, void 0, true);
-							}
-						},
-						{ a: ' ', b: _$_.UNINITIALIZED }
-					);
+					_$_.render(render, {
+						a: ' ',
+						b: _$_.UNINITIALIZED,
+						_pattern: pattern,
+						_expression: expression,
+						_div: div
+					});
 
 					_$_.append(__anchor, div);
 				},
@@ -42,17 +81,7 @@ function consequent(__anchor, pattern) {
 				(__anchor) => {
 					var div_1 = root_2();
 
-					_$_.render(
-						(__prev) => {
-							var __a = `pending pending-${_$_.get(pattern).id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_class(div_1, __prev.a = __a, void 0, true);
-							}
-						},
-						{ a: _$_.UNINITIALIZED }
-					);
-
+					_$_.render(render_1, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_1: div_1 });
 					_$_.append(__anchor, div_1);
 				},
 				true
@@ -69,23 +98,13 @@ function consequent(__anchor, pattern) {
 						var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
 					}
 
-					_$_.render(
-						(__prev) => {
-							var __pattern_1 = _$_.get(pattern);
-							var __a = `B-${__pattern_1.id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_text(expression_1, __prev.a = __a);
-							}
-
-							var __b = `row row-${__pattern_1.id} kind-b`;
-
-							if (__prev.b !== __b) {
-								_$_.set_class(div_2, __prev.b = __b, void 0, true);
-							}
-						},
-						{ a: ' ', b: _$_.UNINITIALIZED }
-					);
+					_$_.render(render_2, {
+						a: ' ',
+						b: _$_.UNINITIALIZED,
+						_pattern: pattern,
+						_expression_1: expression_1,
+						_div_2: div_2
+					});
 
 					_$_.append(__anchor, div_2);
 				},
@@ -93,17 +112,7 @@ function consequent(__anchor, pattern) {
 				(__anchor) => {
 					var div_3 = root_4();
 
-					_$_.render(
-						(__prev) => {
-							var __a = `pending pending-${_$_.get(pattern).id}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_class(div_3, __prev.a = __a, void 0, true);
-							}
-						},
-						{ a: _$_.UNINITIALIZED }
-					);
-
+					_$_.render(render_3, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_3: div_3 });
 					_$_.append(__anchor, div_3);
 				},
 				true
@@ -165,8 +174,40 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 MixedControlFlowStatic.$r = MixedControlFlowStatic_render;
 
 var root_8 = _$_.template(`<p> </p>`, 0);
+
+function render_4(__prev) {
+	var __pattern_1_1 = _$_.get(__prev._pattern_1);
+	var __a = `A:${__pattern_1_1.label}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_2, __prev.a = __a);
+	}
+
+	var __b = `item item-${__pattern_1_1.id}`;
+
+	if (__prev.b !== __b) {
+		_$_.set_class(__prev._p, __prev.b = __b, void 0, true);
+	}
+}
+
 var root_9 = _$_.template(`<p class="pending">pending a</p>`, 0);
 var root_10 = _$_.template(`<p> </p>`, 0);
+
+function render_5(__prev) {
+	var __pattern_1_2 = _$_.get(__prev._pattern_1);
+	var __a = `B:${__pattern_1_2.label}`;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression_3, __prev.a = __a);
+	}
+
+	var __b = `item item-${__pattern_1_2.id}`;
+
+	if (__prev.b !== __b) {
+		_$_.set_class(__prev._p_2, __prev.b = __b, void 0, true);
+	}
+}
+
 var root_11 = _$_.template(`<p class="pending">pending b</p>`, 0);
 var root_7 = _$_.template(`<div class="mixed-reactive-list"></div>`, 0);
 var root_6 = _$_.template(`<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!>`, 1, 4);
@@ -221,23 +262,13 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 												var expression_2 = _$_.hydrating ? _$_.hydrate_text() : p.firstChild;
 											}
 
-											_$_.render(
-												(__prev) => {
-													var __pattern_1_1 = _$_.get(pattern_1);
-													var __a = `A:${__pattern_1_1.label}`;
-
-													if (__prev.a !== __a) {
-														_$_.set_text(expression_2, __prev.a = __a);
-													}
-
-													var __b = `item item-${__pattern_1_1.id}`;
-
-													if (__prev.b !== __b) {
-														_$_.set_class(p, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: _$_.UNINITIALIZED }
-											);
+											_$_.render(render_4, {
+												a: ' ',
+												b: _$_.UNINITIALIZED,
+												_pattern_1: pattern_1,
+												_expression_2: expression_2,
+												_p: p
+											});
 
 											_$_.append(__anchor, p);
 										},
@@ -261,23 +292,13 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 												var expression_3 = _$_.hydrating ? _$_.hydrate_text() : p_2.firstChild;
 											}
 
-											_$_.render(
-												(__prev) => {
-													var __pattern_1_2 = _$_.get(pattern_1);
-													var __a = `B:${__pattern_1_2.label}`;
-
-													if (__prev.a !== __a) {
-														_$_.set_text(expression_3, __prev.a = __a);
-													}
-
-													var __b = `item item-${__pattern_1_2.id}`;
-
-													if (__prev.b !== __b) {
-														_$_.set_class(p_2, __prev.b = __b, void 0, true);
-													}
-												},
-												{ a: ' ', b: _$_.UNINITIALIZED }
-											);
+											_$_.render(render_5, {
+												a: ' ',
+												b: _$_.UNINITIALIZED,
+												_pattern_1: pattern_1,
+												_expression_3: expression_3,
+												_p_2: p_2
+											});
 
 											_$_.append(__anchor, p_2);
 										},

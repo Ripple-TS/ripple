@@ -3,6 +3,14 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="resolved"><span class="value"> </span><button class="inc">inc</button></div>`, 0);
 
+function render(__prev) {
+	var __a = __prev._lazy.value + ':' + __prev._lazy_1.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._expression, __prev.a = __a);
+	}
+}
+
 function BasicContent_render(__anchor, __block) {
 	let lazy = _$_.track_async(() => controls.basic.promise, __block, '703e438e');
 	let lazy_1 = _$_.track(0, __block, '928bce39');
@@ -20,16 +28,12 @@ function BasicContent_render(__anchor, __block) {
 		button.__click = () => _$_.update(lazy_1);
 	}
 
-	_$_.render(
-		(__prev) => {
-			var __a = lazy.value + ':' + lazy_1.value;
-
-			if (__prev.a !== __a) {
-				_$_.set_text(expression, __prev.a = __a);
-			}
-		},
-		{ a: ' ' }
-	);
+	_$_.render(render, {
+		a: ' ',
+		_lazy: lazy,
+		_lazy_1: lazy_1,
+		_expression: expression
+	});
 
 	_$_.append(__anchor, div);
 }
