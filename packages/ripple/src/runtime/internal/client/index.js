@@ -93,6 +93,7 @@ export { composite } from './composite.js';
 
 export {
 	props_site,
+	props_literal,
 	props_keys,
 	props_values,
 	props_entries,

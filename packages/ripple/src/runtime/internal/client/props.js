@@ -1,4 +1,4 @@
-import { define_property } from '@tsrx/core/runtime/language-helpers';
+import { define_property, object_keys } from '@tsrx/core/runtime/language-helpers';
 import { UNINITIALIZED } from './constants.js';
 import { reads } from './runtime.js';
 import { KEYS, Props } from '../../props.js';
@@ -6,6 +6,7 @@ import { KEYS, Props } from '../../props.js';
 export {
 	Props,
 	KEYS,
+	props_literal,
 	is_props,
 	own_keys,
 	props_keys,
@@ -312,4 +313,24 @@ export function props_site(keys, mask, captures, memo, site) {
 
 	site.C = Klass;
 	return site;
+}
+
+/**
+ * A `Props` instance with the own enumerable properties of a plain object as
+ * static props: what `mount()` and `hydrate()` hand the root component. A
+ * `Props` instance passes through.
+ * @param {Record<string, any>} obj
+ * @returns {Record<string, any>}
+ */
+export function props_from(obj) {
+	if (obj instanceof Props) {
+		return obj;
+	}
+	var keys = object_keys(obj);
+	var values = [];
+	for (var i = 0; i < keys.length; i++) {
+		values.push(obj[keys[i]]);
+	}
+	var site = props_site(keys, 0, 0, 0, { C: null });
+	return keys.length > MAX_SLOTS ? new site.C(site, values) : new site.C(site, ...values);
 }

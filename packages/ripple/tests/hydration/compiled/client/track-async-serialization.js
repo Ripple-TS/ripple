@@ -2,6 +2,7 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<p class="result"> </p>`, 0);
+var props_site;
 var root_3 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_2 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_1 = _$_.template(`<!>`, 1, 1);
@@ -24,7 +25,7 @@ function AsyncCustomType_render(__anchor, __block) {
 		_$_.try(
 			node,
 			(__anchor) => {
-				_$_.render_component(MoneyResult, __anchor, { count: lazy_1 });
+				_$_.render_component(MoneyResult, __anchor, new (props_site ??= _$_.props_site(['count'], 0, 0, 0, { C: null })).C(props_site, lazy_1));
 			},
 			null,
 			(__anchor) => {
@@ -43,6 +44,7 @@ function AsyncCustomType_render(__anchor, __block) {
 AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 
 var root_4 = _$_.template(`<p class="result"> </p>`, 0);
+var props_site_1;
 var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_6 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_5 = _$_.template(`<!>`, 1, 1);
@@ -65,7 +67,7 @@ function AsyncWithServerCall_render(__anchor, __block) {
 		_$_.try(
 			node_2,
 			(__anchor) => {
-				_$_.render_component(ServerCallResult, __anchor, { count: lazy_3 });
+				_$_.render_component(ServerCallResult, __anchor, new (props_site_1 ??= _$_.props_site(['count'], 0, 0, 0, { C: null })).C(props_site_1, lazy_3));
 			},
 			null,
 			(__anchor) => {
@@ -308,13 +310,14 @@ function ChildWithError_render(__anchor, __block) {
 
 ChildWithError[_$_.$r] = ChildWithError_render;
 
+var props_site_2;
 var root_21 = _$_.template(`<p class="parent-error"> </p>`, 0);
 
 function ParentWithCatch_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			_$_.render_component(ChildWithError, __anchor, {});
+			_$_.render_component(ChildWithError, __anchor, new (props_site_2 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_2));
 		},
 		(__anchor, e) => {
 			var p_11 = root_21();
@@ -336,6 +339,7 @@ function ParentWithCatch_render(__anchor, __block) {
 ParentWithCatch[_$_.$r] = ParentWithCatch_render;
 
 var root_22 = _$_.template(`<p class="result"> </p>`, 0);
+var props_site_3;
 var root_25 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_24 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_23 = _$_.template(`<!>`, 1, 1);
@@ -358,7 +362,7 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 		_$_.try(
 			node_4,
 			(__anchor) => {
-				_$_.render_component(ReactiveDependencyResult, __anchor, { count: lazy_12 });
+				_$_.render_component(ReactiveDependencyResult, __anchor, new (props_site_3 ??= _$_.props_site(['count'], 0, 0, 0, { C: null })).C(props_site_3, lazy_12));
 			},
 			null,
 			(__anchor) => {

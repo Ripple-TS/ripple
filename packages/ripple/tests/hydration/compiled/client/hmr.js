@@ -32,12 +32,13 @@ function Content_render(__anchor, __block) {
 
 Content[_$_.$r] = Content_render;
 
+var props_site;
+var props_site_1;
+
 function LayoutWithContent_render(__anchor, __block) {
-	_$_.render_component(Layout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			_$_.render_component(Content, __anchor, {});
-		})
-	});
+	_$_.render_component(Layout, __anchor, new (props_site_1 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_1, _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(Content, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site));
+	})));
 }
 
 LayoutWithContent[_$_.$r] = LayoutWithContent_render;

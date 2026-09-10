@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, track, Props } from 'ripple';
+import { flushSync, mount, track, Props } from 'ripple';
 
 // Component call sites with a reactive prop pass a compiled props instance:
 // the props are prototype getters, so these tests cover the paths that no
@@ -259,6 +259,56 @@ describe('compiled props', () => {
 		// `App` reads its getter once when the static prop is built; the memoized
 		// forward in `Middle` never asks again.
 		expect(calls).toBe(1);
+	});
+
+	it('gives every component the same shape of props', () => {
+		let seen: Record<string, unknown[]> = {};
+		const inspect = (name: string, props: object) => {
+			seen[name] = [Props.keys(props), Object.getOwnPropertyNames(props), JSON.stringify(props)];
+		};
+
+		function Static(props: { a: number; b: string }) @{
+			inspect('static', props);
+			<span>{props.a}</span>
+		}
+
+		function Empty(props: {}) @{
+			inspect('empty', props);
+			<span>{'e'}</span>
+		}
+
+		function Closure(props: { n: number }) @{
+			inspect('closure', props);
+			<span>{props.n}</span>
+		}
+
+		function Rest(props: { keep: number; drop: number }) @{
+			const rest = Props.rest(props, 'drop');
+			inspect('rest', rest);
+			<span>{rest.keep}</span>
+		}
+
+		function Root(props: { title: string; count: number }) @{
+			inspect('root', props);
+			let &[n] = track(1);
+			<>
+				<Static a={1} b="x" />
+				<Empty />
+				<Closure n={arguments.length + n} />
+				<Rest keep={n} drop={2} />
+			</>
+		}
+
+		const unmount = mount(Root, { target: container, props: { title: 't', count: 3 } });
+		expect(seen.root).toEqual([['title', 'count'], [], '{"title":"t","count":3}']);
+		expect(seen.static).toEqual([['a', 'b'], [], '{"a":1,"b":"x"}']);
+		expect(seen.empty).toEqual([[], [], '{}']);
+		// A site whose expression reads `arguments` keeps its closure getters as
+		// own properties, under the same prototype and helpers.
+		expect(seen.closure[0]).toEqual(['n']);
+		expect(seen.closure[2]).toBe('{"n":1}');
+		expect(seen.rest).toEqual([['keep'], ['keep'], '{"keep":1}']);
+		unmount();
 	});
 
 	it('supports lazy rest destructuring of compiled props', () => {

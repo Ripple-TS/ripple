@@ -1,4 +1,9 @@
-import { define_property, get_descriptor, object_keys } from '@tsrx/core/runtime/language-helpers';
+import {
+	define_property,
+	get_descriptor,
+	get_own_property_symbols,
+	object_keys,
+} from '@tsrx/core/runtime/language-helpers';
 
 /**
  * Props objects and the helpers that read them like plain objects.
@@ -19,9 +24,15 @@ export const KEYS = Symbol('keys');
 /** Base of every compiled props class. */
 export function Props() {}
 
-Props.prototype.toJSON = function () {
-	return props_snapshot(this);
-};
+// Not enumerable: `for...in` over an instance must yield only its props.
+define_property(Props.prototype, 'toJSON', {
+	/** @this {any} */
+	value: function () {
+		return props_snapshot(this);
+	},
+	writable: true,
+	configurable: true,
+});
 
 /**
  * The prop names of a compiled props instance (a shared array: do not mutate).
@@ -30,6 +41,34 @@ Props.prototype.toJSON = function () {
  */
 export function keys_of(props) {
 	return props[KEYS];
+}
+
+/**
+ * The class of a props object whose props are its own properties: the
+ * closure literal a call site keeps when its expressions cannot live at module
+ * level (they read `this` or `arguments`), and the forwarding views built at
+ * runtime. `KEYS` is the object's own keys, so every helper sees the same
+ * contract as on a compiled instance.
+ */
+export function LiteralProps() {}
+LiteralProps.prototype = Object.create(Props.prototype);
+LiteralProps.prototype.constructor = LiteralProps;
+define_property(LiteralProps.prototype, KEYS, {
+	/** @this {any} */
+	get() {
+		return object_keys(this);
+	},
+});
+
+/**
+ * Makes a fresh object with own props a `Props` instance.
+ * @template {Record<PropertyKey, any>} T
+ * @param {T} obj
+ * @returns {T}
+ */
+export function props_literal(obj) {
+	Object.setPrototypeOf(obj, LiteralProps.prototype);
+	return obj;
 }
 
 /**
@@ -156,16 +195,15 @@ export function forwarding_descriptor(source, key, writable = false) {
 
 /**
  * The rest of `props` after `exclude`, as `const { a, ...rest } = props` gives
- * it: a new plain object whose remaining props read from the source on access,
- * so a reactive prop stays live. It has own accessors, so it enumerates
- * normally.
+ * it: a new `Props` instance whose remaining props read from the source on
+ * access, so a reactive prop stays live. Its props are own accessors.
  * @param {Record<PropertyKey, any> | null | undefined} props
  * @param {readonly PropertyKey[]} exclude
  * @returns {Record<PropertyKey, any>}
  */
 export function props_omit(props, exclude) {
 	/** @type {Record<PropertyKey, any>} */
-	var next = {};
+	var next = props_literal({});
 	if (props == null) {
 		return next;
 	}
@@ -181,21 +219,39 @@ export function props_omit(props, exclude) {
 		return next;
 	}
 
-	for (var own of Reflect.ownKeys(props)) {
-		if (exclude.includes(own)) continue;
-		var descriptor = get_descriptor(props, own);
-		if (!descriptor?.enumerable) continue;
-		define_property(
-			next,
-			own,
-			forwarding_descriptor(
-				props,
-				own,
-				descriptor.writable === true || typeof descriptor.set === 'function',
-			),
-		);
+	// Own enumerable string keys, then enumerable symbols (`Reflect.ownKeys`
+	// is several times slower than these two loops).
+	var own = object_keys(props);
+	for (var i = 0; i < own.length; i++) {
+		forward_own(next, props, own[i], exclude);
+	}
+	var symbols = get_own_property_symbols(props);
+	for (i = 0; i < symbols.length; i++) {
+		if (Object.prototype.propertyIsEnumerable.call(props, symbols[i])) {
+			forward_own(next, props, symbols[i], exclude);
+		}
 	}
 	return next;
+}
+
+/**
+ * @param {Record<PropertyKey, any>} next
+ * @param {Record<PropertyKey, any>} source
+ * @param {PropertyKey} key
+ * @param {readonly PropertyKey[]} exclude
+ */
+function forward_own(next, source, key, exclude) {
+	if (exclude.includes(key)) return;
+	var descriptor = /** @type {PropertyDescriptor} */ (get_descriptor(source, key));
+	define_property(
+		next,
+		key,
+		forwarding_descriptor(
+			source,
+			key,
+			descriptor.writable === true || typeof descriptor.set === 'function',
+		),
+	);
 }
 
 /**

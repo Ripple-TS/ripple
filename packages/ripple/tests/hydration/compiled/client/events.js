@@ -239,6 +239,7 @@ function ChildButton_render(__anchor, __block, props) {
 
 ChildButton[_$_.$r] = ChildButton_render;
 
+var props_site;
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
 
 function render_6(__prev) {
@@ -256,12 +257,13 @@ function ParentWithChildButton_render(__anchor, __block) {
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_5.firstChild;
 
-		_$_.render_component(ChildButton, node, {
-			onClick: () => {
+		_$_.render_component(ChildButton, node, new (props_site ??= _$_.props_site(['onClick', 'label'], 0, 0, 0, { C: null })).C(
+			props_site,
+			() => {
 				_$_.update(lazy_7);
 			},
-			label: "Click me"
-		});
+			"Click me"
+		));
 
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 

@@ -47,8 +47,10 @@ function CounterWithInitial_render(__anchor, __block, props) {
 
 CounterWithInitial[_$_.$r] = CounterWithInitial_render;
 
+var props_site;
+
 function CounterWrapper_render(__anchor, __block) {
-	_$_.render_component(CounterWithInitial, __anchor, { initial: 5 });
+	_$_.render_component(CounterWithInitial, __anchor, new (props_site ??= _$_.props_site(['initial'], 0, 0, 0, { C: null })).C(props_site, 5));
 }
 
 CounterWrapper[_$_.$r] = CounterWrapper_render;

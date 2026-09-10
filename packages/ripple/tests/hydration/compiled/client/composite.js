@@ -65,59 +65,65 @@ function MultiRootChild_render(__anchor, __block) {
 
 MultiRootChild[_$_.$r] = MultiRootChild_render;
 
+var props_site;
+
 function EmptyLayout_render(__anchor, __block) {
-	_$_.render_component(Layout, __anchor, {});
+	_$_.render_component(Layout, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site));
 }
 
 EmptyLayout[_$_.$r] = EmptyLayout_render;
 
+var props_site_1;
+var props_site_2;
+
 function LayoutWithSingleChild_render(__anchor, __block) {
-	_$_.render_component(Layout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			_$_.render_component(SingleChild, __anchor, {});
-		})
-	});
+	_$_.render_component(Layout, __anchor, new (props_site_2 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_2, _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(SingleChild, __anchor, new (props_site_1 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_1));
+	})));
 }
 
 LayoutWithSingleChild[_$_.$r] = LayoutWithSingleChild_render;
 
+var props_site_3;
 var root_5 = _$_.template(`<!><div class="extra">extra</div>`, 1, 2);
+var props_site_4;
 
 function LayoutWithMultipleChildren_render(__anchor, __block) {
-	_$_.render_component(Layout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			var fragment_2 = root_5();
-			var node_1 = _$_.first_child_frag(fragment_2);
+	_$_.render_component(Layout, __anchor, new (props_site_4 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_4, _$_.tsrx_element((__anchor, __block) => {
+		var fragment_2 = root_5();
+		var node_1 = _$_.first_child_frag(fragment_2);
 
-			_$_.render_component(SingleChild, node_1, {});
-			_$_.next();
-			_$_.append(__anchor, fragment_2);
-		})
-	});
+		_$_.render_component(SingleChild, node_1, new (props_site_3 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_3));
+		_$_.next();
+		_$_.append(__anchor, fragment_2);
+	})));
 }
 
 LayoutWithMultipleChildren[_$_.$r] = LayoutWithMultipleChildren_render;
 
+var props_site_5;
+var props_site_6;
+
 function LayoutWithMultiRootChild_render(__anchor, __block) {
-	_$_.render_component(Layout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			_$_.render_component(MultiRootChild, __anchor, {});
-		})
-	});
+	_$_.render_component(Layout, __anchor, new (props_site_6 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_6, _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(MultiRootChild, __anchor, new (props_site_5 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_5));
+	})));
 }
 
 LayoutWithMultiRootChild[_$_.$r] = LayoutWithMultiRootChild_render;
 
+var props_site_7;
+var props_site_8;
+
 function LayoutWithTextAroundChildren_render(__anchor, __block) {
-	_$_.render_component(TextWrappedLayout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			_$_.render_component(SingleChild, __anchor, {});
-		})
-	});
+	_$_.render_component(TextWrappedLayout, __anchor, new (props_site_8 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_8, _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(SingleChild, __anchor, new (props_site_7 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_7));
+	})));
 }
 
 LayoutWithTextAroundChildren[_$_.$r] = LayoutWithTextAroundChildren_render;
 
+var props_site_9;
 var root_6 = _$_.template(`<!>`, 1, 1);
 
 function DynamicTagElement_render(__anchor, __block) {
@@ -125,34 +131,31 @@ function DynamicTagElement_render(__anchor, __block) {
 	var fragment_3 = root_6();
 	var node_2 = _$_.first_child_frag(fragment_3);
 
-	_$_.composite(() => Tag, node_2, {
-		class: "host",
-		children: _$_.tsrx_element((__anchor, __block) => {
-			var expression_3 = _$_.text('hello');
+	_$_.composite(() => Tag, node_2, new (props_site_9 ??= _$_.props_site(['class', 'children'], 0, 0, 0, { C: null })).C(props_site_9, "host", _$_.tsrx_element((__anchor, __block) => {
+		var expression_3 = _$_.text('hello');
 
-			_$_.append(__anchor, expression_3);
-		})
-	});
+		_$_.append(__anchor, expression_3);
+	})));
 
 	_$_.append(__anchor, fragment_3);
 }
 
 DynamicTagElement[_$_.$r] = DynamicTagElement_render;
 
+var props_site_10;
 var root_7 = _$_.template(`<!>`, 1, 1);
+var props_site_11;
 
 function DynamicTagComponent_render(__anchor, __block) {
 	const Comp = SingleChild;
 
-	_$_.render_component(Layout, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			var fragment_4 = root_7();
-			var node_3 = _$_.first_child_frag(fragment_4);
+	_$_.render_component(Layout, __anchor, new (props_site_11 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_11, _$_.tsrx_element((__anchor, __block) => {
+		var fragment_4 = root_7();
+		var node_3 = _$_.first_child_frag(fragment_4);
 
-			_$_.composite(() => Comp, node_3, {});
-			_$_.append(__anchor, fragment_4);
-		})
-	});
+		_$_.composite(() => Comp, node_3, new (props_site_10 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_10));
+		_$_.append(__anchor, fragment_4);
+	})));
 }
 
 DynamicTagComponent[_$_.$r] = DynamicTagComponent_render;

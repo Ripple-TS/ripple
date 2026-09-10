@@ -40,6 +40,7 @@ function BasicContent_render(__anchor, __block) {
 
 BasicContent[_$_.$r] = BasicContent_render;
 
+var props_site;
 var root_3 = _$_.template(`<!><footer class="after-async">after-async</footer>`, 1, 2);
 var root_4 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_2 = _$_.template(`<span class="before">before</span><!><span class="sibling-after">sibling-after</span>`, 1, 3);
@@ -60,7 +61,7 @@ function StreamPending_render(__anchor, __block) {
 				var fragment_2 = root_3();
 				var node_1 = _$_.first_child_frag(fragment_2);
 
-				_$_.render_component(BasicContent, node_1, {});
+				_$_.render_component(BasicContent, node_1, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site));
 				_$_.next();
 				_$_.append(__anchor, fragment_2);
 			},
@@ -99,6 +100,7 @@ function CatchOnlyContent_render(__anchor, __block) {
 
 CatchOnlyContent[_$_.$r] = CatchOnlyContent_render;
 
+var props_site_1;
 var root_8 = _$_.template(`<em class="caught"> </em>`, 0);
 var root_7 = _$_.template(`<span class="before">before</span><!>`, 1, 2);
 var root_6 = _$_.template(`<!>`, 1, 1);
@@ -115,7 +117,7 @@ function StreamCatchOnly_render(__anchor, __block) {
 		_$_.try(
 			node_3,
 			(__anchor) => {
-				_$_.render_component(CatchOnlyContent, __anchor, {});
+				_$_.render_component(CatchOnlyContent, __anchor, new (props_site_1 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_1));
 			},
 			(__anchor, e) => {
 				var em = root_8();
@@ -157,6 +159,7 @@ function RejectContent_render(__anchor, __block) {
 
 RejectContent[_$_.$r] = RejectContent_render;
 
+var props_site_2;
 var root_10 = _$_.template(`<em class="caught"> </em>`, 0);
 var root_11 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
@@ -164,7 +167,7 @@ function StreamRejects_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			_$_.render_component(RejectContent, __anchor, {});
+			_$_.render_component(RejectContent, __anchor, new (props_site_2 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_2));
 		},
 		(__anchor, e) => {
 			var em_1 = root_10();
@@ -207,13 +210,14 @@ function NoCatchContent_render(__anchor, __block) {
 
 NoCatchContent[_$_.$r] = NoCatchContent_render;
 
+var props_site_3;
 var root_13 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
 function StreamNoCatch_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			_$_.render_component(NoCatchContent, __anchor, {});
+			_$_.render_component(NoCatchContent, __anchor, new (props_site_3 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_3));
 		},
 		null,
 		(__anchor) => {
@@ -279,13 +283,14 @@ function HeadContent_render(__anchor, __block) {
 
 HeadContent[_$_.$r] = HeadContent_render;
 
+var props_site_4;
 var root_18 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
 function StreamHead_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			_$_.render_component(HeadContent, __anchor, {});
+			_$_.render_component(HeadContent, __anchor, new (props_site_4 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_4));
 		},
 		null,
 		(__anchor) => {
@@ -353,6 +358,8 @@ function InnerContent_render(__anchor, __block) {
 
 InnerContent[_$_.$r] = InnerContent_render;
 
+var props_site_5;
+var props_site_6;
 var root_23 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
 var root_22 = _$_.template(`<!><!>`, 1, 2);
 var root_24 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
@@ -364,14 +371,14 @@ function StreamNested_render(__anchor, __block) {
 			var fragment_6 = root_22();
 			var node_6 = _$_.first_child_frag(fragment_6);
 
-			_$_.render_component(OuterContent, node_6, {});
+			_$_.render_component(OuterContent, node_6, new (props_site_5 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_5));
 
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_6.nextSibling;
 
 			_$_.try(
 				node_7,
 				(__anchor) => {
-					_$_.render_component(InnerContent, __anchor, {});
+					_$_.render_component(InnerContent, __anchor, new (props_site_6 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_6));
 				},
 				null,
 				(__anchor) => {

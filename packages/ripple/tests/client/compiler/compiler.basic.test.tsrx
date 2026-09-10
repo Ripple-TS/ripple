@@ -1028,8 +1028,9 @@ export function App() @{
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
-		expect((result.match(/children:/g) || []).length).toBe(1);
-		expect(result).toContain('children: _$_.tsrx_element(');
+		// The template children win: one `children` key on the site, holding the element.
+		expect((result.match(/'children'/g) || []).length).toBe(1);
+		expect(result).toContain('.C(props_site, _$_.tsrx_element(');
 	});
 
 	it('should not error on `this` MemberExpression with a UpdateExpression', () => {

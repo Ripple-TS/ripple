@@ -628,6 +628,18 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 }
 
 /**
+ * Whether an object pattern has a top-level rest element.
+ * @param {AST.Pattern} pattern
+ * @returns {boolean}
+ */
+function has_rest_property(pattern) {
+	return (
+		pattern.type === 'ObjectPattern' &&
+		pattern.properties.some((property) => property.type === 'RestElement')
+	);
+}
+
+/**
  * A boxed `let` (see `box_declarator` in the analyzer): the variable holds a
  * `{ v }` box so module-level code the transform hoists can capture it and
  * still read its current value; every read and write goes through `.v`.
@@ -763,11 +775,19 @@ function transform_native_tsrx_function(node, context) {
 				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 			if (!props_param.lazy) {
-				props = replace_lazy_pattern(
+				const pattern = replace_lazy_pattern(
 					/** @type {AST.Pattern} */ (
 						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
 					),
 				);
+				if (has_rest_property(pattern)) {
+					// A rest element copies own properties, which a compiled props
+					// instance keeps on its prototype: destructure its snapshot instead
+					// (a non-lazy destructuring is a snapshot either way).
+					prop_statements = [b.const(pattern, b.call('_$_.props_snapshot', b.id('__props')))];
+				} else {
+					props = pattern;
+				}
 			}
 		} else {
 			props = props_param;
@@ -2881,7 +2901,18 @@ const visitors = {
 		return {
 			...node,
 			declarations: declarations.flatMap((declarator) => {
-				const visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
+				let visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
+				if (
+					!context.state.to_ts &&
+					visited.init &&
+					visited.id.type === 'ObjectPattern' &&
+					!visited.id.lazy &&
+					has_rest_property(visited.id)
+				) {
+					// See the component parameter case: a rest element over a compiled
+					// props instance needs the snapshot's own properties.
+					visited = { ...visited, init: b.call('_$_.props_snapshot', visited.init) };
+				}
 				// `boxed` / `boxed_pattern` are set by the analyzer's `box_declarator`.
 				const metadata = /** @type {any} */ (declarator.metadata);
 				if (context.state.to_ts || !metadata) {
@@ -3498,8 +3529,16 @@ const visitors = {
 						}
 					}
 				} else if (attr.type === 'JSXSpreadAttribute') {
+					// A compiled props instance keeps its props on its prototype, which
+					// an object spread would miss: spread its snapshot (a plain object
+					// passes through).
 					spread_attributes?.push(
-						b.spread(/** @type {AST.Expression} */ (visit(attr.argument, state))),
+						b.spread(
+							b.call(
+								'_$_.props_snapshot',
+								/** @type {AST.Expression} */ (visit(attr.argument, state)),
+							),
+						),
 					);
 				}
 			}
@@ -3974,11 +4013,14 @@ const visitors = {
 
 					object_props = b.call('_$_.spread_props', b.thunk(b.array(items)));
 				}
+			} else if (state.to_ts) {
+				object_props = b.object(props);
 			} else {
+				// A site whose expressions cannot live at module level keeps the
+				// closure literal, made a `Props` instance by the runtime.
 				object_props =
-					(!state.to_ts &&
-						build_props_site(props, state.scope, state.hoisted, state.component ?? null)) ||
-					b.object(props);
+					build_props_site(props, state.scope, state.hoisted, state.component ?? null) ||
+					b.call('_$_.props_literal', b.object(props));
 			}
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or

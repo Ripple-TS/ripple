@@ -354,6 +354,7 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 
 MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 
+var props_site;
 var root_14 = _$_.template(`<div> </div>`, 0);
 var root_15 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
 var root_13 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
@@ -381,7 +382,7 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 								_$_.try(
 									__anchor,
 									(__anchor) => {
-										_$_.render_component(AsyncRow, __anchor, { label: `row-${row}` });
+										_$_.render_component(AsyncRow, __anchor, new (props_site ??= _$_.props_site(['label'], 0, 0, 0, { C: null })).C(props_site, `row-${row}`));
 									},
 									null,
 									(__anchor) => {

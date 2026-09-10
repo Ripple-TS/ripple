@@ -4,22 +4,23 @@ import * as _$_ from 'ripple/internal/client';
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 var root_2 = _$_.template(`<div class="item"> </div>`, 0);
+var props_site;
+var props_site_1;
 var root_3 = _$_.template(`<!><!>`, 1, 2);
+var props_site_2;
 
 function TestIfWithChildren_render(__anchor, __block) {
-	_$_.render_component(IfWithChildren, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			var fragment = root_3();
-			var node_1 = _$_.first_child_frag(fragment);
+	_$_.render_component(IfWithChildren, __anchor, new (props_site_2 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_2, _$_.tsrx_element((__anchor, __block) => {
+		var fragment = root_3();
+		var node_1 = _$_.first_child_frag(fragment);
 
-			_$_.render_component(ChildItem, node_1, { text: "Item 1" });
+		_$_.render_component(ChildItem, node_1, new (props_site ??= _$_.props_site(['text'], 0, 0, 0, { C: null })).C(props_site, "Item 1"));
 
-			var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_1.nextSibling;
+		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_1.nextSibling;
 
-			_$_.render_component(ChildItem, node_2, { text: "Item 2" });
-			_$_.append(__anchor, fragment);
-		})
-	});
+		_$_.render_component(ChildItem, node_2, new (props_site_1 ??= _$_.props_site(['text'], 0, 0, 0, { C: null })).C(props_site_1, "Item 2"));
+		_$_.append(__anchor, fragment);
+	})));
 }
 
 TestIfWithChildren[_$_.$r] = TestIfWithChildren_render;
@@ -60,22 +61,23 @@ IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
 var root_7 = _$_.template(`<div class="items"><!></div>`, 0);
 var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
+var props_site_3;
+var props_site_4;
 var root_8 = _$_.template(`<!><!>`, 1, 2);
+var props_site_5;
 
 function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
-	_$_.render_component(IfWithSiblingsAndChildren, __anchor, {
-		children: _$_.tsrx_element((__anchor, __block) => {
-			var fragment_1 = root_8();
-			var node_5 = _$_.first_child_frag(fragment_1);
+	_$_.render_component(IfWithSiblingsAndChildren, __anchor, new (props_site_5 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_5, _$_.tsrx_element((__anchor, __block) => {
+		var fragment_1 = root_8();
+		var node_5 = _$_.first_child_frag(fragment_1);
 
-			_$_.render_component(ChildItem, node_5, { text: "Item A" });
+		_$_.render_component(ChildItem, node_5, new (props_site_3 ??= _$_.props_site(['text'], 0, 0, 0, { C: null })).C(props_site_3, "Item A"));
 
-			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_5.nextSibling;
+		var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_5.nextSibling;
 
-			_$_.render_component(ChildItem, node_6, { text: "Item B" });
-			_$_.append(__anchor, fragment_1);
-		})
-	});
+		_$_.render_component(ChildItem, node_6, new (props_site_4 ??= _$_.props_site(['text'], 0, 0, 0, { C: null })).C(props_site_4, "Item B"));
+		_$_.append(__anchor, fragment_1);
+	})));
 }
 
 TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
@@ -367,8 +369,9 @@ function TrailingChild_render(__anchor, __block) {
 
 TrailingChild[_$_.$r] = TrailingChild_render;
 
-var props_site;
-var props_site_1;
+var props_site_6;
+var props_site_7;
+var props_site_8;
 var root_25 = _$_.template(`<div class="wrapper"><div class="host"></div><button class="toggle">Toggle</button><button class="rotate">Rotate</button></div>`, 0);
 
 function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
@@ -382,9 +385,9 @@ function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
 		{
 			var append_anchor = _$_.append_into(div_19);
 
-			_$_.render_component(RootIfChild, append_anchor, new (props_site ??= _$_.props_site(['on'], 1, 1, 0, { C: null, on: (__p) => __p[_$_.$0].value })).C(props_site, lazy_7));
-			_$_.render_component(RootForChild, append_anchor, new (props_site_1 ??= _$_.props_site(['items'], 1, 1, 0, { C: null, items: (__p) => __p[_$_.$0].value })).C(props_site_1, lazy_8));
-			_$_.render_component(TrailingChild, append_anchor, {});
+			_$_.render_component(RootIfChild, append_anchor, new (props_site_6 ??= _$_.props_site(['on'], 1, 1, 0, { C: null, on: (__p) => __p[_$_.$0].value })).C(props_site_6, lazy_7));
+			_$_.render_component(RootForChild, append_anchor, new (props_site_7 ??= _$_.props_site(['items'], 1, 1, 0, { C: null, items: (__p) => __p[_$_.$0].value })).C(props_site_7, lazy_8));
+			_$_.render_component(TrailingChild, append_anchor, new (props_site_8 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_8));
 			_$_.hydrating && _$_.pop(div_19);
 		}
 

@@ -8,7 +8,8 @@ import { is_boxed } from '../../utils.js';
 
 /**
  * Lowers the props of a component call site to a compiled props class (see
- * `props.js` in the client runtime) when the site has a reactive prop:
+ * `props.js` in the client runtime); a site with only static props gets a
+ * class of slot getters, so every call site produces the same shape:
  *
  * ```js
  * new (props_1 ??= _$_.props_site(['depth', 'path'], 3, 1, 3, {
@@ -559,7 +560,7 @@ function getter_expression(property) {
  * @returns {AST.Expression | null}
  */
 export function build_props_site(props, scope, hoisted, component) {
-	if (props.length === 0 || props.length > MAX_KEYS) return null;
+	if (props.length > MAX_KEYS) return null;
 
 	/** @type {string[]} */
 	const keys = [];
@@ -586,8 +587,6 @@ export function build_props_site(props, scope, hoisted, component) {
 			return null;
 		}
 	}
-
-	if (getters.length === 0) return null;
 
 	/** @type {Set<string>} */
 	const references = new Set();

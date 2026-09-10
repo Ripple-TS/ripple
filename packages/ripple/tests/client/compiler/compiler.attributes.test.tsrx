@@ -13,18 +13,24 @@ describe('compiler > attributes', () => {
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
-		// Should contain properly quoted hyphenated properties and unquoted valid identifiers
-		expect(result.code).toMatch(/'data-scope': "test"/);
-		expect(result.code).toMatch(/'aria-label': "accessible"/);
-		expect(result.code).toMatch(/class: "valid"/);
+		// The prop names, hyphenated or not, are the site's key list; the values
+		// are the constructor arguments.
+		expect(result.code).toMatch(/props_site\(\['data-scope', 'aria-label', 'class'\]/);
+		expect(result.code).toMatch(/\.C\(props_site, "test", "accessible", "valid"\)/);
 	});
 
 	it('generates valid JavaScript for all types of hyphenated attributes', () => {
 		const testCases = [
-			{ attr: 'data-testid="value"', expected: /'data-testid': "value"/ },
-			{ attr: 'aria-label="label"', expected: /'aria-label': "label"/ },
-			{ attr: 'data-custom-attr="custom"', expected: /'data-custom-attr': "custom"/ },
-			{ attr: 'ng-if="condition"', expected: /'ng-if': "condition"/ },
+			{
+				attr: 'data-testid="value"',
+				expected: /\['data-testid'\][\s\S]*\.C\(props_site, "value"\)/,
+			},
+			{ attr: 'aria-label="label"', expected: /\['aria-label'\][\s\S]*\.C\(props_site, "label"\)/ },
+			{
+				attr: 'data-custom-attr="custom"',
+				expected: /\['data-custom-attr'\][\s\S]*\.C\(props_site, "custom"\)/,
+			},
+			{ attr: 'ng-if="condition"', expected: /\['ng-if'\][\s\S]*\.C\(props_site, "condition"\)/ },
 		];
 
 		testCases.forEach(({ attr, expected }) => {
@@ -61,14 +67,17 @@ describe('compiler > attributes', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
 		// Valid identifiers should not be quoted
-		expect(result.code).toMatch(/validProp: "valid"/);
-		expect(result.code).toMatch(/class: "valid"/);
-		expect(result.code).toMatch(/id: "valid"/);
+		expect(result.code).toMatch(/'validProp'/);
+		expect(result.code).toMatch(/'class'/);
+		expect(result.code).toMatch(/'id'/);
 
 		// Invalid identifiers (with hyphens) should be quoted
-		expect(result.code).toMatch(/'data-invalid': "invalid"/);
-		expect(result.code).toMatch(/'aria-invalid': "invalid"/);
-		expect(result.code).toMatch(/'custom-prop': "invalid"/);
+		expect(result.code).toMatch(/'data-invalid'/);
+		expect(result.code).toMatch(/'aria-invalid'/);
+		expect(result.code).toMatch(/'custom-prop'/);
+		expect(result.code).toMatch(
+			/\.C\(props_site, "valid", "valid", "valid", "invalid", "invalid", "invalid"\)/,
+		);
 	});
 
 	it('ensures generated code is syntactically valid JavaScript', () => {
@@ -83,17 +92,18 @@ describe('compiler > attributes', () => {
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
-		// Extract the props object from the generated code and test it's valid JavaScript
-		const match = result.code.match(/_\$_.render_component\(Child,\s*[^,]+,\s*(\{[^}]+\})/);
+		// Extract the site's key list from the generated code and test it's valid JavaScript
+		const match = result.code.match(/_\$_\.props_site\((\[[^\]]*\])/);
 		expect(match).toBeTruthy();
 
-		const propsObject = match?.[1];
+		const keys = match?.[1];
 		expect(() => {
-			// Test that the object literal is syntactically valid
-			new Function(`return ${propsObject}`);
+			// Test that the array literal is syntactically valid
+			new Function(`return ${keys}`);
 		}).not.toThrow();
 
-		// Also verify it contains the expected quoted property
-		expect(propsObject).toMatch(/'data-scope': "test"/);
+		// Also verify it contains the expected quoted key
+		expect(keys).toMatch(/'data-scope'/);
+		expect(result.code).toMatch(/\.C\(props_site, "test"\)/);
 	});
 });

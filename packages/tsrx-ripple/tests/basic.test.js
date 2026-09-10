@@ -284,7 +284,8 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		const { code } = compile(source, 'App.tsrx');
 		expect(code).not.toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
 		expect(code).toContain('_$_.composite(() => Tag, ');
-		expect(code).toContain(`class: "host"`);
+		expect(code).toContain("_$_.props_site(['class', 'children'], 0, 0, 0, { C: null })");
+		expect(code).toContain('.C(props_site, "host", _$_.tsrx_element(');
 	});
 
 	it('lowers dynamic tags through the internal dynamic_element helper on the server', () => {
@@ -318,7 +319,7 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(css).toContain(`div.${cssHash} { color: red; }`);
 		expect(css).toContain(`.host.${cssHash} { color: blue; }`);
 		expect(css).toContain('/* (unused) .unused { color: green; }*/');
-		expect(code).toContain(`class: 'host ${cssHash}'`);
+		expect(code).toContain(`.C(props_site, 'host ${cssHash}', _$_.tsrx_element(`);
 	});
 
 	it('emits valid to_ts output for dynamic tags', () => {
@@ -1168,7 +1169,9 @@ describe('@tsrx/ripple named ref props', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('input_ref: input');
+		expect(code).toContain(
+			"_$_.props_site(['input_ref'], 0, 0, 0, { C: null })).C(props_site, input)",
+		);
 	});
 
 	it('wraps anonymous ref props for components', () => {
@@ -1181,7 +1184,9 @@ describe('@tsrx/ripple named ref props', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('ref: _$_.create_ref_prop(() => input, (v) => input = v)');
+		expect(code).toContain(
+			"_$_.props_site(['ref'], 0, 0, 0, { C: null })).C(props_site, _$_.create_ref_prop(() => input, (v) => input = v))",
+		);
 	});
 
 	it('keeps named ref-like props ordinary on host elements', () => {
@@ -1341,7 +1346,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
+		expect(code).toContain(
+			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
+		);
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1355,7 +1362,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
+		expect(code).toContain(
+			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
+		);
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1369,7 +1378,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
+		expect(code).toContain(
+			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
+		);
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1383,7 +1394,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
+		expect(code).toContain(
+			"_$_.render_component(Some, node, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
+		);
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1398,7 +1411,8 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: first + second });');
+		expect(code).toContain('.C(props_site, first + second));');
+		expect(code).toContain("_$_.props_site(['prop'], 0, 0, 0, { C: null })");
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1561,7 +1575,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, __anchor, { tracked: lazy });');
+		expect(code).toContain(
+			"_$_.props_site(['tracked'], 0, 0, 0, { C: null })).C(props_site, lazy));",
+		);
 	});
 
 	it('boxes a reassigned local that a reactive prop reads', () => {
@@ -1825,7 +1841,9 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(code).toContain('function Label()');
 		expect(code).toContain('return "Hi";');
-		expect(code).toContain('_$_.render_component(Label, __anchor, {})');
+		expect(code).toContain(
+			'_$_.render_component(Label, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site))',
+		);
 	});
 
 	it('uses server render_expression for conditional array expression values', () => {
@@ -1889,9 +1907,9 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toMatch(/fragment: \(\) => {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/tsx: \(\) => {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/tsrx: \(\) => {\s+return _\$_.tsrx_element/);
+		// The three arrow-valued static props travel as constructor arguments.
+		expect(code).toContain("_$_.props_site(['fragment', 'tsx', 'tsrx'], 0, 0, 0, { C: null })");
+		expect(code.match(/\(\) => \{\s+return _\$_\.tsrx_element/g)).toHaveLength(3);
 	});
 
 	it('allows return-value branches inside nested component prop functions', () => {
@@ -2114,7 +2132,9 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('_$_.render_component(Test, __anchor, {})');
+		expect(client.code).toContain(
+			'_$_.render_component(Test, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site))',
+		);
 		expect(server.code).toContain('_$_.render_component(comp, ...args)');
 	});
 
@@ -2188,7 +2208,11 @@ describe('@tsrx/ripple template elements in expression position', () => {
 	it('lowers an element-valued attribute with control flow in client and server output', () => {
 		for (const mode of ['client', 'server']) {
 			const { code } = compile(attribute_source, 'App.tsrx', { mode });
-			expect(code).toContain('prop: _$_.tsrx_element(');
+			// The client passes the element as a static prop of the site class;
+			// the server keeps the object literal.
+			expect(code).toContain(
+				mode === 'client' ? '.C(props_site, _$_.tsrx_element(' : 'prop: _$_.tsrx_element(',
+			);
 			expect(code).not.toContain('@if');
 			expect(code).not.toContain('<h1>@if');
 		}
