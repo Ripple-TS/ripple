@@ -194,6 +194,8 @@ describe('compiled props', () => {
 				all: Props.ownAllKeys(props),
 				own: Object.getOwnPropertySymbols(props).includes(ref),
 				ref: props[ref],
+				spread: Props.spread(props)[ref],
+				merged: Props.spread(props, { b: 'x' })[ref],
 			};
 		};
 
@@ -218,7 +220,14 @@ describe('compiled props', () => {
 
 		render(App);
 		expect(container.querySelector('span')?.textContent).toBe('1');
-		expect(seen).toEqual({ symbols: [ref], all: ['a', 'b', ref], own: false, ref: 'target' });
+		expect(seen).toEqual({
+			symbols: [ref],
+			all: ['a', 'b', ref],
+			own: false,
+			ref: 'target',
+			spread: 'target',
+			merged: 'target',
+		});
 		expect(plain_seen).toEqual({ symbols: [], all: ['a', 'b'] });
 
 		const hidden = Symbol('hidden');

@@ -327,13 +327,13 @@ function forward_own(next, source, key, exclude) {
 
 /**
  * `{ ...a, ...b }` over props objects: a new plain object with every prop of
- * every source read now, later sources overriding earlier ones. One source
- * gives a plain snapshot of it.
+ * every source (symbol-keyed ones included) read now, later sources overriding
+ * earlier ones. One source gives a plain snapshot of it.
  * @param {...(Record<string | symbol, any> | null | undefined)} sources
- * @returns {Record<string, any>}
+ * @returns {Record<string | symbol, any>}
  */
 export function props_spread(...sources) {
-	/** @type {Record<string, any>} */
+	/** @type {Record<string | symbol, any>} */
 	var out = {};
 	var assigned = false;
 	for (var i = 0; i < sources.length; i++) {
@@ -343,6 +343,11 @@ export function props_spread(...sources) {
 			var keys = keys_of(source);
 			for (var k = 0; k < keys.length; k++) {
 				out[keys[k]] = /** @type {Record<string, any>} */ (source)[keys[k]];
+			}
+			/** @type {symbol[]} */
+			var symbols = source[SYMBOLS];
+			for (k = 0; k < symbols.length; k++) {
+				out[symbols[k]] = /** @type {Record<symbol, any>} */ (source)[symbols[k]];
 			}
 		} else {
 			Object.assign(out, source);
