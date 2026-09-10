@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, mount, track, Props } from 'ripple';
+import { createRefKey, flushSync, mount, track, Props } from 'ripple';
 
 // Component call sites with a reactive prop pass a compiled props instance:
 // the props are prototype getters, so these tests cover the paths that no
@@ -178,6 +178,55 @@ describe('compiled props', () => {
 		bump();
 		flushSync();
 		expect(container.querySelector('span')?.textContent).toBe('2');
+	});
+
+	it('lists symbol keys and all keys of compiled, merged and plain props', () => {
+		const ref = createRefKey();
+		let seen: Record<string, unknown> = {};
+		let plain_seen: Record<string, unknown> = {};
+
+		// `Object.getOwnPropertySymbols` is not lowered, so a compiled instance
+		// shows no own symbols while the helpers see the symbol-keyed prop that
+		// travelled through the spread.
+		const inspect = (props: Record<string | symbol, unknown>) => {
+			seen = {
+				symbols: Props.ownSymbolKeys(props),
+				all: Props.ownAllKeys(props),
+				own: Object.getOwnPropertySymbols(props).includes(ref),
+				ref: props[ref],
+			};
+		};
+
+		function Child(props: Record<string | symbol, unknown>) @{
+			inspect(props);
+			<span>{String(props.a)}</span>
+		}
+
+		function Plain(props: { a: number; b: string }) @{
+			plain_seen = { symbols: Props.ownSymbolKeys(props), all: Props.ownAllKeys(props) };
+			<i>{props.b}</i>
+		}
+
+		function App() @{
+			let &[n] = track(1);
+			const refs = { [ref]: 'target' };
+			<>
+				<Child a={n} {...refs} b="s" />
+				<Plain a={n} b="s" />
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('span')?.textContent).toBe('1');
+		expect(seen).toEqual({ symbols: [ref], all: ['a', 'b', ref], own: false, ref: 'target' });
+		expect(plain_seen).toEqual({ symbols: [], all: ['a', 'b'] });
+
+		const hidden = Symbol('hidden');
+		const plain: Record<string | symbol, number> = { x: 1, [ref]: 2 };
+		Object.defineProperty(plain, hidden, { value: 3, enumerable: false });
+		expect(Props.ownSymbolKeys(plain)).toEqual([ref]);
+		expect(Props.ownAllKeys(plain)).toEqual(['x', ref]);
+		expect(Props.ownAllKeys({})).toEqual([]);
 	});
 
 	it('keeps every prop readable and live on a site above the fixed slot count', () => {

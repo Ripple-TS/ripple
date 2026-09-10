@@ -116,6 +116,52 @@ export function props_keys(obj) {
 }
 
 /**
+ * The enumerable own symbols of a plain object: what an object spread copies.
+ * @param {object} obj
+ * @returns {symbol[]}
+ */
+function enumerable_symbols(obj) {
+	var symbols = get_own_property_symbols(obj);
+	if (symbols.length === 0) return symbols;
+	/** @type {symbol[]} */
+	var out = [];
+	for (var i = 0; i < symbols.length; i++) {
+		if (Object.prototype.propertyIsEnumerable.call(obj, symbols[i])) {
+			out.push(symbols[i]);
+		}
+	}
+	return out;
+}
+
+/**
+ * The symbol keys of a props object: the enumerable own symbols of a plain
+ * object, or the symbol-keyed props of a compiled instance (a `createRefKey()`
+ * ref that travelled through a spread).
+ * @param {Record<string | symbol, any>} obj
+ * @returns {symbol[]}
+ */
+export function props_symbol_keys(obj) {
+	return obj instanceof Props ? obj[SYMBOLS].slice() : enumerable_symbols(obj);
+}
+
+/**
+ * Every key of a props object, string keys first and then symbol keys, as
+ * `Reflect.ownKeys` orders the enumerable own keys of a plain object.
+ * @param {Record<string | symbol, any>} obj
+ * @returns {(string | symbol)[]}
+ */
+export function props_all_keys(obj) {
+	/** @type {(string | symbol)[]} */
+	var keys = obj instanceof Props ? keys_of(obj).slice() : object_keys(obj);
+	/** @type {symbol[]} */
+	var symbols = obj instanceof Props ? obj[SYMBOLS] : enumerable_symbols(obj);
+	for (var i = 0; i < symbols.length; i++) {
+		keys.push(symbols[i]);
+	}
+	return keys;
+}
+
+/**
  * `Object.values` that includes the props of a compiled instance.
  * @param {Record<string | symbol, any>} obj
  * @returns {any[]}
@@ -249,11 +295,9 @@ export function props_omit(props, exclude) {
 	for (var i = 0; i < own.length; i++) {
 		forward_own(next, props, own[i], exclude);
 	}
-	var symbols = get_own_property_symbols(props);
+	var symbols = enumerable_symbols(props);
 	for (i = 0; i < symbols.length; i++) {
-		if (Object.prototype.propertyIsEnumerable.call(props, symbols[i])) {
-			forward_own(next, props, symbols[i], exclude);
-		}
+		forward_own(next, props, symbols[i], exclude);
 	}
 	return next;
 }
@@ -314,6 +358,8 @@ export function props_spread(...sources) {
  */
 export const PropsHelpers = {
 	keys: props_keys,
+	ownSymbolKeys: props_symbol_keys,
+	ownAllKeys: props_all_keys,
 	values: props_values,
 	entries: props_entries,
 	has: props_has,

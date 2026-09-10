@@ -249,6 +249,10 @@ export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
 export declare const Props: {
 	/** Like `Object.keys`, including every prop. */
 	keys<T extends object>(props: T): (keyof T & string)[];
+	/** The enumerable symbol keys, including a symbol-keyed prop such as a `createRefKey()` ref. */
+	ownSymbolKeys<T extends object>(props: T): (keyof T & symbol)[];
+	/** Every key, string keys first and then symbol keys, including every prop. */
+	ownAllKeys<T extends object>(props: T): (keyof T & (string | symbol))[];
 	/** Like `Object.values`, including every prop. */
 	values<T extends object>(props: T): T[keyof T][];
 	/** Like `Object.entries`, including every prop. */

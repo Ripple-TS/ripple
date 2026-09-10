@@ -115,10 +115,12 @@ instance for a site with spreads, or the instance `mount()` builds from its
 `Object.values`, `Object.entries`, object spread and rest destructuring of props
 compile to helpers that see every prop. Outside `.tsrx` code use the `Props`
 helpers from 'ripple', which accept compiled props and plain objects alike on
-the client and the server: `Props.keys(props)`, `Props.values(props)`,
-`Props.entries(props)`, `Props.has(props, key)`, `Props.spread(...sources)` (a
-new plain object, as `{ ...a, ...b }`) and `Props.rest(props, ...keys)` (the
-remaining props as a new instance, each read from the source on access). A prop
+the client and the server: `Props.keys(props)`, `Props.ownSymbolKeys(props)`
+(symbol-keyed props such as a `createRefKey()` ref), `Props.ownAllKeys(props)`
+(string keys then symbol keys), `Props.values(props)`, `Props.entries(props)`,
+`Props.has(props, key)`, `Props.spread(...sources)` (a new plain object, as
+`{ ...a, ...b }`) and `Props.rest(props, ...keys)` (the remaining props as a
+new instance, each read from the source on access). A prop
 expression reads the locals it uses at their current value: tracked values
 update the child; a plain `let` that is reassigned later is seen at its new
 value the next time the child re-evaluates the prop, but does not trigger an
