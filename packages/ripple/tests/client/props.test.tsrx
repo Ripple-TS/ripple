@@ -180,6 +180,87 @@ describe('compiled props', () => {
 		expect(container.querySelector('span')?.textContent).toBe('2');
 	});
 
+	it('keeps every prop readable and live on a site above the fixed slot count', () => {
+		let bump: () => void = () => {};
+		let seen: unknown[] = [];
+
+		function Wide(props: Record<string, unknown>) @{
+			seen = Props.values(props);
+			<span>{String(props.live) + '/' + String(props.own) + '/' + String(props.s17)}</span>
+		}
+
+		function App(props: { own?: string }) @{
+			let &[count] = track(1);
+			bump = () => {
+				count++;
+			};
+			<Wide
+				live={count}
+				own={props.own}
+				s0={0}
+				s1={1}
+				s2={2}
+				s3={3}
+				s4={4}
+				s5={5}
+				s6={6}
+				s7={7}
+				s8={8}
+				s9={9}
+				s10={10}
+				s11={11}
+				s12={12}
+				s13={13}
+				s14={14}
+				s15={15}
+				s16={16}
+				s17={17}
+			/>
+		}
+
+		function Root() @{
+			<App own="me" />
+		}
+
+		render(Root);
+		const text = () => container.querySelector('span')?.textContent;
+		expect(text()).toBe('1/me/17');
+		expect(seen).toEqual([1, 'me', ...Array.from({ length: 18 }, (_, i) => i)]);
+
+		bump();
+		flushSync();
+		expect(text()).toBe('2/me/17');
+	});
+
+	it('memoizes a forwarded prop whose value is undefined', () => {
+		let calls = 0;
+
+		function Leaf(props: { maybe: string | undefined }) @{
+			// Two reads of a memoizable prop: the second must not re-evaluate.
+			<span>{String(props.maybe) + String(props.maybe)}</span>
+		}
+
+		function Middle(props: { maybe: string | undefined }) @{
+			<Leaf maybe={props.maybe} />
+		}
+
+		function App() @{
+			const source = {
+				get maybe() {
+					calls++;
+					return undefined;
+				},
+			};
+			<Middle maybe={source.maybe} />
+		}
+
+		render(App);
+		expect(container.querySelector('span')?.textContent).toBe('undefinedundefined');
+		// `App` reads its getter once when the static prop is built; the memoized
+		// forward in `Middle` never asks again.
+		expect(calls).toBe(1);
+	});
+
 	it('supports lazy rest destructuring of compiled props', () => {
 		let bump: () => void = () => {};
 

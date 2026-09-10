@@ -20,14 +20,14 @@ import { is_boxed } from '../../utils.js';
  *
  * The reactive expressions are hoisted into functions created once per call
  * site, so every local they close over becomes a "capture" passed to the
- * constructor and read back through a slot. A capture is passed by value, which
- * is only equivalent to the closure for a binding that is never reassigned;
- * a site whose expression reads a reassigned local, `this`, `arguments` or a
- * class keeps the object-literal form.
+ * constructor and read back through a slot. A capture is passed by value: a
+ * rebound local is boxed by the analyzer so its box is the stable value; a
+ * site whose expression reads `this`, `arguments` or a class keeps the
+ * object-literal form.
  */
 
-/** Slot count of the widest runtime base constructor. */
-const MAX_SLOTS = 8;
+/** Slot count of the widest fixed-arity runtime base; above it the values travel in one array. */
+const MAX_SLOTS = 16;
 /** Most props a class can carry (the reactive mask is a 31-bit integer). */
 const MAX_KEYS = 31;
 
@@ -604,10 +604,6 @@ export function build_props_site(props, scope, hoisted, component) {
 		if (kind === 'capture') captures.set(name, captures.size);
 	}
 
-	if (captures.size + statics.length > MAX_SLOTS) return null;
-
-	// Memoizable getters take a slot each; when they do not all fit, none are
-	// memoized rather than losing the class.
 	let memo = 0;
 	let memo_count = 0;
 	for (const getter of getters) {
@@ -616,15 +612,22 @@ export function build_props_site(props, scope, hoisted, component) {
 			memo_count++;
 		}
 	}
-	if (captures.size + statics.length + memo_count > MAX_SLOTS) {
-		memo = 0;
-	}
+	// Above the fixed-arity bases the runtime keeps the values in one array
+	// the site passes; the slot layout (captures, statics, memo) is the same.
+	const array_values = captures.size + statics.length + memo_count > MAX_SLOTS;
 
 	/** @param {string} name */
 	const slot_read = (name) => {
 		const slot = captures.get(name);
-		return slot === undefined
-			? null
+		if (slot === undefined) return null;
+		// A fixed slot is a symbol-keyed field; above the fixed slot count the
+		// values live in the instance's array (`_$_.$v`).
+		return array_values
+			? b.member(
+					b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$v')), true),
+					b.literal(slot),
+					true,
+				)
 			: b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$' + slot)), true);
 	};
 
@@ -656,11 +659,17 @@ export function build_props_site(props, scope, hoisted, component) {
 		),
 	);
 
+	// Memo slots start as the runtime's UNINITIALIZED sentinel, passed like any
+	// other argument so the base constructor stays a straight-line store.
+	const values = [
+		...[...captures.keys()].map((name) => b.id(name)),
+		...statics,
+		...Array.from({ length: memo_count }, () => b.member(b.id('_$_'), b.id('UNINITIALIZED'))),
+	];
 	return b.new(
 		b.member(define, b.id('C')),
 		undefined,
 		site_id,
-		...[...captures.keys()].map((name) => b.id(name)),
-		...statics,
+		...(array_values ? [b.array(values)] : values),
 	);
 }

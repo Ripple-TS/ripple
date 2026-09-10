@@ -1652,7 +1652,8 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(code).toContain("_$_.props_site(['label'], 1, 1, 1, {");
 		expect(code).toContain('label: (__p) => __p[_$_.$0].label + SUFFIX');
-		expect(code).toContain('.C(props_site, props)');
+		// One memo slot, started as the runtime's sentinel by the call site.
+		expect(code).toContain('.C(props_site, props, _$_.UNINITIALIZED)');
 	});
 
 	it('marks only expressions over the own props parameter as memoizable', () => {
@@ -1671,6 +1672,28 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).toContain(
 			"_$_.props_site(['depth', 'path', 'nested', 'local', 'counted', 'label'], 63, 3, 35, {",
 		);
+	});
+
+	it('passes the values of a site above the fixed slot count as one array', () => {
+		const statics = Array.from({ length: 18 }, (_, i) => `s${i}={${i}}`).join(' ');
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test(props) @{
+				let &[count] = track(0);
+				<Some live={count} own={props.own} ${statics} />
+			}`,
+			'App.tsrx',
+		);
+
+		// 2 captures + 18 statics + 1 memo = 21 slots: above the 16 fixed slots,
+		// so the values travel in one array and captures read from it.
+		expect(code).toMatch(/\.C\(props_site, \[\s*lazy,\s*props,\s*0,\s*1,/);
+		expect(code).toMatch(/\s17,\s*_\$_\.UNINITIALIZED\s*\]\)\);/);
+		expect(code).toMatch(/'s17'\s*\],\s*3,\s*2,\s*2,\s*\{/);
+		expect(code).toContain('live: (__p) => __p[_$_.$v][0].value');
+		expect(code).toContain('own: (__p) => __p[_$_.$v][1].own');
+		expect(code).not.toContain('get live()');
 	});
 
 	it('lowers own-property enumeration of objects to props-aware helpers', () => {

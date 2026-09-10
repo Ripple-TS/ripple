@@ -106,6 +106,15 @@ export {
 	$5,
 	$6,
 	$7,
+	$8,
+	$9,
+	$10,
+	$11,
+	$12,
+	$13,
+	$14,
+	$15,
+	VALUES as $v,
 } from './props.js';
 
 export { render_component } from './component.js';
