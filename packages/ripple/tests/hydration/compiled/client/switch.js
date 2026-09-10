@@ -51,6 +51,8 @@ function SwitchStatic_render(__anchor, __block) {
 	}
 }
 
+SwitchStatic.$r = SwitchStatic_render;
+
 var root_5 = _$_.template(`<div class="case-a">Case A</div>`, 0);
 var root_6 = _$_.template(`<div class="case-b">Case B</div>`, 0);
 var root_7 = _$_.template(`<div class="case-c">Case C</div>`, 0);
@@ -116,6 +118,8 @@ function SwitchReactive_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
+SwitchReactive.$r = SwitchReactive_render;
+
 var root_8 = _$_.template(`<div class="case-1-2">1 or 2</div>`, 0);
 var root_9 = _$_.template(`<div class="case-other">Other</div>`, 0);
 
@@ -157,6 +161,8 @@ function SwitchFallthrough_render(__anchor, __block) {
 		);
 	}
 }
+
+SwitchFallthrough.$r = SwitchFallthrough_render;
 
 var root_12 = _$_.template(`<div class="level-1">Level 1</div>`, 0);
 var root_13 = _$_.template(`<div class="level-2">Level 2</div>`, 0);
@@ -223,6 +229,8 @@ function SwitchNumericLevels_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
+SwitchNumericLevels.$r = SwitchNumericLevels_render;
+
 var root_17 = _$_.template(`<div class="block-1">Block 1</div>`, 0);
 var root_18 = _$_.template(`<div class="block-2">Block 2</div>`, 0);
 var root_19 = _$_.template(`<div class="block-3">Block 3</div>`, 0);
@@ -288,6 +296,8 @@ function SwitchBlockScoped_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
+SwitchBlockScoped.$r = SwitchBlockScoped_render;
+
 var root_22 = _$_.template(`<div class="nobreak-1">NoBreak 1</div>`, 0);
 var root_23 = _$_.template(`<div class="nobreak-2">NoBreak 2</div>`, 0);
 var root_24 = _$_.template(`<div class="nobreak-3">NoBreak 3</div>`, 0);
@@ -352,6 +362,8 @@ function SwitchNoBreak_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_6);
 }
+
+SwitchNoBreak.$r = SwitchNoBreak_render;
 
 import { track } from 'ripple';
 

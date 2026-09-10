@@ -778,7 +778,13 @@ function transform_native_tsrx_function(node, context) {
 		if (node.params.length === 1) {
 			render_params.push(/** @type {AST.Identifier} */ (props));
 		}
-		context.state.hoisted.push(b.function_declaration(render_id, render_params, render_block));
+		context.state.hoisted.push(
+			b.function_declaration(render_id, render_params, render_block),
+			// `render_component` calls the render function directly through this
+			// reference (both declarations are hoisted, so the assignment may
+			// precede them in the module body).
+			b.stmt(b.assignment('=', b.member(node_id, b.id('$r')), render_id)),
+		);
 		component_body = b.block([
 			b.return(
 				b.call(

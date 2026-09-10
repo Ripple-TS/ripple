@@ -35,6 +35,8 @@ function ClickCounter_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
+ClickCounter.$r = ClickCounter_render;
+
 var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`, 0);
 
 function IncrementDecrement_render(__anchor, __block) {
@@ -74,6 +76,8 @@ function IncrementDecrement_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_1);
 }
+
+IncrementDecrement.$r = IncrementDecrement_render;
 
 var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`, 0);
 
@@ -126,6 +130,8 @@ function MultipleEvents_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
+MultipleEvents.$r = MultipleEvents_render;
+
 var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`, 0);
 
 function MultiStateUpdate_render(__anchor, __block) {
@@ -174,6 +180,8 @@ function MultiStateUpdate_render(__anchor, __block) {
 	_$_.append(__anchor, div_3);
 }
 
+MultiStateUpdate.$r = MultiStateUpdate_render;
+
 var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
 
 function ToggleButton_render(__anchor, __block) {
@@ -206,6 +214,8 @@ function ToggleButton_render(__anchor, __block) {
 	_$_.append(__anchor, div_4);
 }
 
+ToggleButton.$r = ToggleButton_render;
+
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
 
 function ChildButton_render(__anchor, __block, props) {
@@ -230,6 +240,8 @@ function ChildButton_render(__anchor, __block, props) {
 
 	_$_.append(__anchor, button_6);
 }
+
+ChildButton.$r = ChildButton_render;
 
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
 
@@ -269,6 +281,8 @@ function ParentWithChildButton_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_5);
 }
+
+ParentWithChildButton.$r = ParentWithChildButton_render;
 
 import { track } from 'ripple';
 

@@ -23,6 +23,8 @@ function SimplePortal_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
+SimplePortal.$r = SimplePortal_render;
+
 var root_3 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
 
@@ -57,6 +59,8 @@ function ConditionalPortal_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
+ConditionalPortal.$r = ConditionalPortal_render;
+
 var root_5 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
 var root_4 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
 
@@ -79,6 +83,8 @@ function PortalWithMainContent_render(__anchor, __block) {
 	_$_.append(__anchor, div_4);
 }
 
+PortalWithMainContent.$r = PortalWithMainContent_render;
+
 var root_7 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
 var root_6 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`, 0);
 
@@ -100,6 +106,8 @@ function NestedContentWithPortal_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_7);
 }
+
+NestedContentWithPortal.$r = NestedContentWithPortal_render;
 
 import { Portal, track } from 'ripple';
 

@@ -3,16 +3,29 @@
 import {
 	block,
 	branch,
+	create_block,
 	destroy_block,
 	get_first_node,
 	get_last_node,
 	move_block_last,
 	remove_block_dom,
 } from './blocks.js';
-import { DETACHED_BLOCK, IF_BLOCK, RENDER_BLOCK, UNINITIALIZED } from './constants.js';
+import {
+	BLOCK_HAS_RUN,
+	DETACHED_BLOCK,
+	IF_BLOCK,
+	RENDER_BLOCK,
+	UNINITIALIZED,
+} from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
-import { active_block, run_untracked } from './runtime.js';
+import {
+	active_block,
+	adopt_dependencies,
+	probe_dependencies,
+	run_block,
+	run_untracked,
+} from './runtime.js';
 import { append } from './template.js';
 
 /**
@@ -34,6 +47,26 @@ import { append } from './template.js';
 /** The if block currently evaluating its condition (see `run_if`). */
 /** @type {IfState | null} */
 var active_if = null;
+
+/**
+ * The branch a condition selected while probed (see `if_block`): consumed by
+ * the static path, or by the block's first `run_if` right after creation.
+ * @type {((anchor: Node) => void) | null}
+ */
+var probed_fn = null;
+/** @type {any} */
+var probed_flag = UNINITIALIZED;
+/** Whether a probe result is waiting for the block's first run. */
+var probed = false;
+
+/**
+ * @param {(anchor: Node) => void} fn
+ * @param {boolean} [flag]
+ */
+function probe_branch(fn, flag = true) {
+	probed_fn = fn;
+	probed_flag = flag;
+}
 
 function noop() {}
 
@@ -187,6 +220,16 @@ function set_branch(fn, flag = true) {
  * @param {IfState} state
  */
 function run_if(state) {
+	if (probed) {
+		// First run of a block whose condition was already evaluated by the
+		// probe in `if_block`: apply its result instead of evaluating again.
+		probed = false;
+		var fn = probed_fn;
+		var flag = probed_flag;
+		probed_fn = null;
+		update_branch(state, fn === null ? null : flag, fn);
+		return;
+	}
 	// `active_if` is only read by `set_branch` during `state.fn`; a nested if
 	// renders inside `update_branch`, after the outer `set_branch` returned, so
 	// nothing needs the outer value restored afterwards.
@@ -196,6 +239,28 @@ function run_if(state) {
 	if (!state.h) {
 		update_branch(state, null, null);
 	}
+}
+
+/**
+ * State lives on the block instead of per-if closures.
+ * @param {Node | AppendIntoAnchor} anchor
+ * @param {IfState['fn']} fn
+ * @returns {IfState}
+ */
+function if_block_state(anchor, fn) {
+	return {
+		// DOM range of the current branch
+		start: null,
+		end: null,
+		a: anchor,
+		fn,
+		// last condition
+		c: UNINITIALIZED,
+		// whether a branch was selected during the current run
+		h: false,
+		// block owning the anchor materialized from a sentinel
+		o: null,
+	};
 }
 
 /**
@@ -215,31 +280,51 @@ export function if_block(node, fn, root_controlled) {
 	var boundary;
 	var anchor = node;
 
-	if (hydrating) {
-		if (root_controlled) {
-			// A sentinel resolves to the cursor, the block's SSR boundary marker.
-			anchor = resolve_anchor(node);
-			boundary = /** @type {Node} */ (hydrate_node);
+	if (!hydrating) {
+		// Evaluate the condition before deciding whether the if needs a block.
+		// A condition that read no tracked state can never re-run (a block with
+		// no dependencies is never scheduled), so its branch renders directly
+		// under the current block: no if block, no state, and the branch's DOM
+		// and blocks belong to the enclosing block like any other content.
+		probed_fn = null;
+		/** @type {import('#client').Dependency | null} */
+		var dependencies;
+		try {
+			dependencies = probe_dependencies(fn, probe_branch);
+		} catch {
+			// A condition that throws (a pending async read) is the block's to
+			// handle: create it and let its first run evaluate the condition.
+			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+			return;
 		}
-		hydrate_next();
+		if (dependencies === null) {
+			var selected = probed_fn;
+			probed_fn = null;
+			if (selected !== null) {
+				run_untracked(selected, /** @type {Node} */ (node));
+			}
+			return;
+		}
+		// Dynamic: the block adopts the probe's dependencies and its first run
+		// applies the branch the probe selected.
+		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+		probed = true;
+		run_block(if_block, true);
+		if_block.f ^= BLOCK_HAS_RUN;
+		adopt_dependencies(if_block, dependencies);
+		return;
 	}
 
-	// State lives on the block instead of per-if closures.
-	block(RENDER_BLOCK | IF_BLOCK, run_if, {
-		// DOM range of the current branch
-		start: null,
-		end: null,
-		a: anchor,
-		fn,
-		// last condition
-		c: UNINITIALIZED,
-		// whether a branch was selected during the current run
-		h: false,
-		// block owning the anchor materialized from a sentinel
-		o: null,
-	});
+	if (root_controlled) {
+		// A sentinel resolves to the cursor, the block's SSR boundary marker.
+		anchor = resolve_anchor(node);
+		boundary = /** @type {Node} */ (hydrate_node);
+	}
+	hydrate_next();
 
-	if (hydrating && root_controlled) {
+	block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+
+	if (root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));

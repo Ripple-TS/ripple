@@ -217,7 +217,24 @@ export function props_spread(...sources) {
 				out[keys[k]] = /** @type {Record<string, any>} */ (source)[keys[k]];
 			}
 		} else {
-			Object.assign(out, source);
+			// Like `{ ...source }`: own enumerable string and symbol keys, read
+			// through getters, defined (not assigned) on the fresh object, which
+			// only matters for a key named `__proto__`.
+			for (var key of Reflect.ownKeys(source)) {
+				var descriptor = get_descriptor(source, key);
+				if (!descriptor?.enumerable) continue;
+				var value = /** @type {Record<PropertyKey, any>} */ (source)[key];
+				if (key === '__proto__') {
+					define_property(out, key, {
+						value,
+						enumerable: true,
+						configurable: true,
+						writable: true,
+					});
+				} else {
+					out[/** @type {string} */ (key)] = value;
+				}
+			}
 		}
 	}
 	return out;

@@ -9,6 +9,8 @@ function StaticText_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
+StaticText.$r = StaticText_render;
+
 var root_2 = _$_.template(`<h1>Title</h1><p>Paragraph text</p><span>Span text</span>`, 1, 3);
 var root_1 = _$_.template(`<!>`, 1, 1);
 
@@ -26,6 +28,8 @@ function MultipleElements_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
+MultipleElements.$r = MultipleElements_render;
+
 var root_3 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`, 0);
 
 function NestedElements_render(__anchor, __block) {
@@ -33,6 +37,8 @@ function NestedElements_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_1);
 }
+
+NestedElements.$r = NestedElements_render;
 
 var root_5 = _$_.template(`<input type="text" placeholder="Enter text" disabled><a href="/link" target="_blank">Link</a>`, 1, 2);
 var root_4 = _$_.template(`<!>`, 1, 1);
@@ -51,6 +57,8 @@ function WithAttributes_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
+WithAttributes.$r = WithAttributes_render;
+
 var root_6 = _$_.template(`<span class="child">Child content</span>`, 0);
 
 function ChildComponent_render(__anchor, __block) {
@@ -58,6 +66,8 @@ function ChildComponent_render(__anchor, __block) {
 
 	_$_.append(__anchor, span);
 }
+
+ChildComponent.$r = ChildComponent_render;
 
 var root_7 = _$_.template(`<div class="parent"></div>`, 0);
 
@@ -74,6 +84,8 @@ function ParentWithChild_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
+ParentWithChild.$r = ParentWithChild_render;
+
 var root_8 = _$_.template(`<div class="first">First</div>`, 0);
 
 function FirstSibling_render(__anchor, __block) {
@@ -82,6 +94,8 @@ function FirstSibling_render(__anchor, __block) {
 	_$_.append(__anchor, div_3);
 }
 
+FirstSibling.$r = FirstSibling_render;
+
 var root_9 = _$_.template(`<div class="second">Second</div>`, 0);
 
 function SecondSibling_render(__anchor, __block) {
@@ -89,6 +103,8 @@ function SecondSibling_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_4);
 }
+
+SecondSibling.$r = SecondSibling_render;
 
 var root_11 = _$_.template(`<!><!>`, 1, 2);
 var root_10 = _$_.template(`<!>`, 1, 1);
@@ -111,6 +127,8 @@ function SiblingComponents_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_4);
 }
+
+SiblingComponents.$r = SiblingComponents_render;
 
 var root_12 = _$_.template(`<div> </div>`, 0);
 
@@ -135,9 +153,13 @@ function Greeting_render(__anchor, __block, props) {
 	_$_.append(__anchor, div_5);
 }
 
+Greeting.$r = Greeting_render;
+
 function WithGreeting_render(__anchor, __block) {
 	_$_.render_component(Greeting, __anchor, { name: "World" });
 }
+
+WithGreeting.$r = WithGreeting_render;
 
 var root_14 = _$_.template(`<div> </div><span> </span>`, 1, 2);
 var root_13 = _$_.template(`<!>`, 1, 1);
@@ -172,6 +194,8 @@ function ExpressionContent_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_6);
 }
+
+ExpressionContent.$r = ExpressionContent_render;
 
 var root_15 = _$_.template(`<div class="helper-item"> </div>`, 0);
 var root_17 = _$_.template(`<span class="label"> </span><!>`, 1, 2);
@@ -211,6 +235,8 @@ function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_8);
 }
+
+NestedTsxTsrxExpressionValues.$r = NestedTsxTsrxExpressionValues_render;
 
 var root_20 = _$_.template(`<strong class="middle">beta</strong>`, 0);
 var root_21 = _$_.template(`<em class="tail">epsilon</em>`, 0);
@@ -256,6 +282,8 @@ function MixedTsrxCollectionText_render(__anchor, __block) {
 	_$_.append(__anchor, div_10);
 }
 
+MixedTsrxCollectionText.$r = MixedTsrxCollectionText_render;
+
 var root_24 = _$_.template(`<strong class="middle">beta</strong>`, 0);
 var root_25 = _$_.template(`<em class="tail">epsilon</em>`, 0);
 var root_26 = _$_.template(` `, 1, 1);
@@ -299,6 +327,8 @@ function MixedTsrxCollectionSplitServerText_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_11);
 }
+
+MixedTsrxCollectionSplitServerText.$r = MixedTsrxCollectionSplitServerText_render;
 
 var root_28 = _$_.template(`<strong class="middle">beta</strong>`, 0);
 var root_29 = _$_.template(`<em class="tail">epsilon</em>`, 0);
@@ -344,6 +374,8 @@ function MixedTsrxCollectionSplitClientText_render(__anchor, __block) {
 	_$_.append(__anchor, div_12);
 }
 
+MixedTsrxCollectionSplitClientText.$r = MixedTsrxCollectionSplitClientText_render;
+
 var root_32 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
 var root_33 = _$_.template(` `, 1, 1);
 var root_34 = _$_.template(`<div class="mixed-collection-primitive"><!></div>`, 0);
@@ -379,6 +411,8 @@ function MixedTsrxCollectionPrimitiveServerText_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_13);
 }
+
+MixedTsrxCollectionPrimitiveServerText.$r = MixedTsrxCollectionPrimitiveServerText_render;
 
 var root_35 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
 var root_36 = _$_.template(` `, 1, 1);
@@ -416,6 +450,8 @@ function MixedTsrxCollectionPrimitiveClientText_render(__anchor, __block) {
 	_$_.append(__anchor, div_14);
 }
 
+MixedTsrxCollectionPrimitiveClientText.$r = MixedTsrxCollectionPrimitiveClientText_render;
+
 var root_38 = _$_.template(`<div class="dynamic-array-call"> </div>`, 0);
 
 function DynamicArrayFromCall_render(__anchor, __block) {
@@ -432,6 +468,8 @@ function DynamicArrayFromCall_render(__anchor, __block) {
 	_$_.append(__anchor, div_15);
 }
 
+DynamicArrayFromCall.$r = DynamicArrayFromCall_render;
+
 var root_39 = _$_.template(`<div class="dynamic-array-track"> </div>`, 0);
 
 function DynamicArrayFromTrack_render(__anchor, __block) {
@@ -447,6 +485,8 @@ function DynamicArrayFromTrack_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_16);
 }
+
+DynamicArrayFromTrack.$r = DynamicArrayFromTrack_render;
 
 var root_40 = _$_.template(`<div class="dynamic-array-conditional"> </div>`, 0);
 
@@ -469,6 +509,8 @@ function DynamicArrayFromConditional_render(__anchor, __block) {
 	_$_.append(__anchor, div_17);
 }
 
+DynamicArrayFromConditional.$r = DynamicArrayFromConditional_render;
+
 var root_41 = _$_.template(`<div class="dynamic-array-logical"> </div>`, 0);
 
 function DynamicArrayFromLogical_render(__anchor, __block) {
@@ -485,6 +527,8 @@ function DynamicArrayFromLogical_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_18);
 }
+
+DynamicArrayFromLogical.$r = DynamicArrayFromLogical_render;
 
 var root_42 = _$_.template(`<section class="outer"><div class="inner">from tsrx</div></section>`, 0);
 var root_44 = _$_.template(`<!>`, 1, 1);
@@ -511,6 +555,8 @@ function NestedTsrxInsideTopLevelTsxExpression_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_15);
 }
 
+NestedTsrxInsideTopLevelTsxExpression.$r = NestedTsrxInsideTopLevelTsxExpression_render;
+
 var root_45 = _$_.template(`<div class="wrapper"><section class="native"><span class="nested-tsrx">inside nested tsrx</span></section></div>`, 0);
 var root_47 = _$_.template(`<!>`, 1, 1);
 var root_46 = _$_.template(`<!>`, 1, 1);
@@ -535,6 +581,8 @@ function NestedTsrxElementsInsideTopLevelTsxValue_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_17);
 }
+
+NestedTsrxElementsInsideTopLevelTsxValue.$r = NestedTsrxElementsInsideTopLevelTsxValue_render;
 
 var root_48 = _$_.template(`<span class="nested-tsx">inside nested tsx</span>`, 0);
 var root_49 = _$_.template(`<div class="native"> </div>`, 0);
@@ -575,6 +623,8 @@ function TsxDeclaredBeforeTopLevelTsx_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_19);
 }
 
+TsxDeclaredBeforeTopLevelTsx.$r = TsxDeclaredBeforeTopLevelTsx_render;
+
 var root_52 = _$_.template(`<div class="text-prop"><!></div>`, 0);
 
 function TextProp_render(__anchor, __block, __props) {
@@ -590,6 +640,8 @@ function TextProp_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_21);
 }
 
+TextProp.$r = TextProp_render;
+
 var root_53 = _$_.template(`<div class="text-prop"><!></div>`, 0);
 
 function TypedTextProp_render(__anchor, __block, __props) {
@@ -604,6 +656,8 @@ function TypedTextProp_render(__anchor, __block, __props) {
 
 	_$_.append(__anchor, div_22);
 }
+
+TypedTextProp.$r = TypedTextProp_render;
 
 var props_site;
 var root_55 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
@@ -632,6 +686,8 @@ function TextPropWithToggle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_21);
 }
 
+TextPropWithToggle.$r = TextPropWithToggle_render;
+
 var props_site_1;
 var root_57 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
 var root_56 = _$_.template(`<!>`, 1, 1);
@@ -659,6 +715,8 @@ function TypedTextPropWithToggle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_23);
 }
 
+TypedTextPropWithToggle.$r = TypedTextPropWithToggle_render;
+
 var root_59 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
 var root_58 = _$_.template(`<!>`, 1, 1);
 
@@ -675,6 +733,8 @@ function StaticHeader_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_25);
 }
+
+StaticHeader.$r = StaticHeader_render;
 
 var root_61 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
 var root_60 = _$_.template(`<!>`, 1, 1);
@@ -712,6 +772,8 @@ function StaticChildWithSiblings_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_27);
 }
 
+StaticChildWithSiblings.$r = StaticChildWithSiblings_render;
+
 var root_63 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
 var root_62 = _$_.template(`<!>`, 1, 1);
 
@@ -729,6 +791,8 @@ function Header_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_29);
 }
 
+Header.$r = Header_render;
+
 var root_65 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
 var root_64 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
 var root_66 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
@@ -739,6 +803,8 @@ function Content_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_25);
 }
+
+Content.$r = Content_render;
 
 var root_68 = _$_.template(`<!><!><!><!>`, 1, 4);
 
@@ -766,6 +832,8 @@ function WebsiteIndex_render(__anchor, __block) {
 	});
 }
 
+WebsiteIndex.$r = WebsiteIndex_render;
+
 var root_69 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
 
 function LastChild_render(__anchor, __block) {
@@ -773,6 +841,8 @@ function LastChild_render(__anchor, __block) {
 
 	_$_.append(__anchor, footer);
 }
+
+LastChild.$r = LastChild_render;
 
 var root_70 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p></div>`, 0);
 
@@ -791,6 +861,8 @@ function ComponentAsLastSibling_render(__anchor, __block) {
 	_$_.append(__anchor, div_26);
 }
 
+ComponentAsLastSibling.$r = ComponentAsLastSibling_render;
+
 var root_71 = _$_.template(`<div class="inner"><span>Inner text</span></div>`, 0);
 
 function InnerContent_render(__anchor, __block) {
@@ -807,6 +879,8 @@ function InnerContent_render(__anchor, __block) {
 	_$_.append(__anchor, div_27);
 }
 
+InnerContent.$r = InnerContent_render;
+
 var root_72 = _$_.template(`<section class="outer"><h2>Section title</h2></section>`, 0);
 
 function NestedComponentAsLastSibling_render(__anchor, __block) {
@@ -822,6 +896,8 @@ function NestedComponentAsLastSibling_render(__anchor, __block) {
 
 	_$_.append(__anchor, section_1);
 }
+
+NestedComponentAsLastSibling.$r = NestedComponentAsLastSibling_render;
 
 var root_73 = _$_.template(`<div> </div>`, 0);
 
@@ -846,6 +922,8 @@ function TextTailExpression_render(__anchor, __block) {
 	_$_.append(__anchor, div_28);
 }
 
+TextTailExpression.$r = TextTailExpression_render;
+
 var root_74 = _$_.template(`<div> </div>`, 0);
 
 function FragmentTailExpression_render(__anchor, __block) {
@@ -869,6 +947,8 @@ function FragmentTailExpression_render(__anchor, __block) {
 	_$_.append(__anchor, div_29);
 }
 
+FragmentTailExpression.$r = FragmentTailExpression_render;
+
 var root_75 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
 
 function FragmentChildOnly_render(__anchor, __block) {
@@ -880,6 +960,8 @@ function FragmentChildOnly_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_30);
 }
+
+FragmentChildOnly.$r = FragmentChildOnly_render;
 
 var root_77 = _$_.template(`<!><p>after-opaque</p>`, 1, 2);
 var root_76 = _$_.template(`<!>`, 1, 1);
@@ -900,6 +982,8 @@ function OpaqueLead_render(__anchor, __block, props) {
 	_$_.append(__anchor, fragment_32);
 }
 
+OpaqueLead.$r = OpaqueLead_render;
+
 var root_78 = _$_.template(`<div></div>`, 0);
 
 function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
@@ -914,6 +998,8 @@ function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_31);
 }
+
+FragmentLeadsWithOpaqueValue.$r = FragmentLeadsWithOpaqueValue_render;
 
 var root_80 = _$_.template(` <p>after-call</p>`, 1, 2);
 var root_79 = _$_.template(`<!>`, 1, 1);
@@ -945,6 +1031,8 @@ function PrimitiveCallLead_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_34);
 }
 
+PrimitiveCallLead.$r = PrimitiveCallLead_render;
+
 var root_81 = _$_.template(`<div></div>`, 0);
 
 function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
@@ -959,6 +1047,8 @@ function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_32);
 }
+
+FragmentLeadsWithPrimitiveCall.$r = FragmentLeadsWithPrimitiveCall_render;
 
 var root_83 = _$_.template(`<div class="primitive-calls"> </div><button>update</button>`, 1, 2);
 var root_82 = _$_.template(`<!>`, 1, 1);
@@ -996,6 +1086,8 @@ function PrimitiveTextCalls_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_36);
 }
+
+PrimitiveTextCalls.$r = PrimitiveTextCalls_render;
 
 var root_84 = _$_.template(`<b>string</b>`, 0);
 var root_85 = _$_.template(`<b>number</b>`, 0);
@@ -1079,6 +1171,8 @@ function ShadowedTextCalls_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_38);
 }
+
+ShadowedTextCalls.$r = ShadowedTextCalls_render;
 
 import { track } from 'ripple';
 

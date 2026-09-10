@@ -9,6 +9,8 @@ function Leaf_render(__anchor, __block) {
 	_$_.append(__anchor, i);
 }
 
+Leaf.$r = Leaf_render;
+
 var root_2 = _$_.template(`<div class="count"> </div><button class="inc">inc</button><button class="dec">dec</button>`, 1, 3);
 var root_1 = _$_.template(`<!>`, 1, 1);
 
@@ -50,6 +52,8 @@ function TrailingNavigatedElements_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
+TrailingNavigatedElements.$r = TrailingNavigatedElements_render;
+
 var root_4 = _$_.template(`<div class="host">static</div><button class="inc">inc</button><button class="dec">dec</button>`, 1, 3);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
@@ -74,6 +78,8 @@ function TrailingStaticNavigatedElements_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
+TrailingStaticNavigatedElements.$r = TrailingStaticNavigatedElements_render;
+
 var root_6 = _$_.template(`<div class="host">static</div><button class="inc">inc</button><div class="a">a</div><div class="b">b</div>`, 1, 4);
 var root_5 = _$_.template(`<!>`, 1, 1);
 
@@ -95,6 +101,8 @@ function NavigatedThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
+NavigatedThenStatic.$r = NavigatedThenStatic_render;
+
 var root_8 = _$_.template(`<button class="inc">inc</button><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_7 = _$_.template(`<!>`, 1, 1);
 
@@ -114,6 +122,8 @@ function LeadingNavigatedThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_6);
 }
+
+LeadingNavigatedThenStatic.$r = LeadingNavigatedThenStatic_render;
 
 var root_10 = _$_.template(`<div class="host">static</div><div class="wrap"><button class="inc">inc</button></div>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
@@ -141,6 +151,8 @@ function TrailingNestedNavigated_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_8);
 }
 
+TrailingNestedNavigated.$r = TrailingNestedNavigated_render;
+
 var root_12 = _$_.template(`<div class="wrap"><button class="inc">inc</button></div><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_11 = _$_.template(`<!>`, 1, 1);
 
@@ -166,6 +178,8 @@ function NestedNavigatedThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_10);
 }
+
+NestedNavigatedThenStatic.$r = NestedNavigatedThenStatic_render;
 
 var root_14 = _$_.template(` <div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_13 = _$_.template(`<!>`, 1, 1);
@@ -198,6 +212,8 @@ function TrackedTextThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_12);
 }
 
+TrackedTextThenStatic.$r = TrackedTextThenStatic_render;
+
 var root_16 = _$_.template(`<div class="a">a</div><div class="b">b</div> `, 1, 3);
 var root_15 = _$_.template(`<!>`, 1, 1);
 
@@ -229,6 +245,8 @@ function StaticThenTrackedText_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_14);
 }
 
+StaticThenTrackedText.$r = StaticThenTrackedText_render;
+
 var root_18 = _$_.template(`<div class="a">a</div><div class="wrap"><span>x</span></div><div class="b">b</div><div class="c">c</div>`, 1, 4);
 var root_17 = _$_.template(`<!>`, 1, 1);
 
@@ -246,6 +264,8 @@ function StaticNestedThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_16);
 }
 
+StaticNestedThenStatic.$r = StaticNestedThenStatic_render;
+
 var root_20 = _$_.template(`<div class="a">a</div><div class="b">b</div><div class="c">c</div>`, 1, 3);
 var root_19 = _$_.template(`<!>`, 1, 1);
 
@@ -262,6 +282,8 @@ function AllStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_18);
 }
+
+AllStatic.$r = AllStatic_render;
 
 var root_22 = _$_.template(`<div class="a">a</div><div class="count"> </div>`, 1, 2);
 var root_21 = _$_.template(`<!>`, 1, 1);
@@ -296,6 +318,8 @@ function TrailingDynamicChild_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_20);
 }
+
+TrailingDynamicChild.$r = TrailingDynamicChild_render;
 
 var root_24 = _$_.template(`<div class="count"> </div><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_23 = _$_.template(`<!>`, 1, 1);
@@ -332,6 +356,8 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_22);
 }
 
+DynamicChildThenStatic.$r = DynamicChildThenStatic_render;
+
 var root_27 = _$_.template(`<b class="if">x</b>`, 0);
 var root_26 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_25 = _$_.template(`<!>`, 1, 1);
@@ -363,6 +389,8 @@ function IfThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_24);
 }
+
+IfThenStatic.$r = IfThenStatic_render;
 
 var root_30 = _$_.template(`<b class="if">x</b>`, 0);
 var root_29 = _$_.template(`<div class="a">a</div><div class="b">b</div><!>`, 1, 3);
@@ -397,6 +425,8 @@ function StaticThenIf_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_26);
 }
 
+StaticThenIf.$r = StaticThenIf_render;
+
 var root_32 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_31 = _$_.template(`<!>`, 1, 1);
 
@@ -415,6 +445,8 @@ function CompThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_28);
 }
+
+CompThenStatic.$r = CompThenStatic_render;
 
 var root_34 = _$_.template(`<div class="a">a</div><div class="b">b</div><!>`, 1, 3);
 var root_33 = _$_.template(`<!>`, 1, 1);
@@ -435,6 +467,8 @@ function StaticThenComp_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_30);
 }
+
+StaticThenComp.$r = StaticThenComp_render;
 
 var root_36 = _$_.template(`<!><!>`, 1, 2);
 var root_35 = _$_.template(`<!>`, 1, 1);
@@ -457,6 +491,8 @@ function SiblingComps_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_32);
 }
+
+SiblingComps.$r = SiblingComps_render;
 
 var root_37 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -495,6 +531,8 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 	_$_.append(__anchor, div_15);
 }
 
+WrapTrailingNavigatedElements.$r = WrapTrailingNavigatedElements_render;
+
 var root_38 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
@@ -531,6 +569,8 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_16);
 }
+
+WrapTrailingStaticNavigatedElements.$r = WrapTrailingStaticNavigatedElements_render;
 
 var root_39 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -569,6 +609,8 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_17);
 }
 
+WrapNavigatedThenStatic.$r = WrapNavigatedThenStatic_render;
+
 var root_40 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
@@ -605,6 +647,8 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_18);
 }
+
+WrapLeadingNavigatedThenStatic.$r = WrapLeadingNavigatedThenStatic_render;
 
 var root_41 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -643,6 +687,8 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 	_$_.append(__anchor, div_19);
 }
 
+WrapTrailingNestedNavigated.$r = WrapTrailingNestedNavigated_render;
+
 var root_42 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
@@ -679,6 +725,8 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_20);
 }
+
+WrapNestedNavigatedThenStatic.$r = WrapNestedNavigatedThenStatic_render;
 
 var root_43 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -717,6 +765,8 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_21);
 }
 
+WrapTrackedTextThenStatic.$r = WrapTrackedTextThenStatic_render;
+
 var root_44 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapStaticThenTrackedText_render(__anchor, __block) {
@@ -753,6 +803,8 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_22);
 }
+
+WrapStaticThenTrackedText.$r = WrapStaticThenTrackedText_render;
 
 var root_45 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -791,6 +843,8 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_23);
 }
 
+WrapStaticNestedThenStatic.$r = WrapStaticNestedThenStatic_render;
+
 var root_46 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapAllStatic_render(__anchor, __block) {
@@ -827,6 +881,8 @@ function WrapAllStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_24);
 }
+
+WrapAllStatic.$r = WrapAllStatic_render;
 
 var root_47 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -865,6 +921,8 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 	_$_.append(__anchor, div_25);
 }
 
+WrapTrailingDynamicChild.$r = WrapTrailingDynamicChild_render;
+
 var root_48 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapDynamicChildThenStatic_render(__anchor, __block) {
@@ -901,6 +959,8 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_26);
 }
+
+WrapDynamicChildThenStatic.$r = WrapDynamicChildThenStatic_render;
 
 var root_49 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -939,6 +999,8 @@ function WrapIfThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_27);
 }
 
+WrapIfThenStatic.$r = WrapIfThenStatic_render;
+
 var root_50 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapStaticThenIf_render(__anchor, __block) {
@@ -975,6 +1037,8 @@ function WrapStaticThenIf_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_28);
 }
+
+WrapStaticThenIf.$r = WrapStaticThenIf_render;
 
 var root_51 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1013,6 +1077,8 @@ function WrapCompThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_29);
 }
 
+WrapCompThenStatic.$r = WrapCompThenStatic_render;
+
 var root_52 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapStaticThenComp_render(__anchor, __block) {
@@ -1049,6 +1115,8 @@ function WrapStaticThenComp_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_30);
 }
+
+WrapStaticThenComp.$r = WrapStaticThenComp_render;
 
 var root_53 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1087,6 +1155,8 @@ function WrapSiblingComps_render(__anchor, __block) {
 	_$_.append(__anchor, div_31);
 }
 
+WrapSiblingComps.$r = WrapSiblingComps_render;
+
 var root_55 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_54 = _$_.template(`<!>`, 1, 1);
 
@@ -1106,6 +1176,8 @@ function UntrackedTextThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_34);
 }
+
+UntrackedTextThenStatic.$r = UntrackedTextThenStatic_render;
 
 var root_58 = _$_.template(`<span class="x">x</span><span class="y">y</span>`, 1, 2);
 var root_57 = _$_.template(`<div class="a">a</div><!><div class="b">b</div><div class="c">c</div>`, 1, 4);
@@ -1133,6 +1205,8 @@ function NestedFragmentThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_36);
 }
+
+NestedFragmentThenStatic.$r = NestedFragmentThenStatic_render;
 
 var root_61 = _$_.template(`<span class="x">x</span><button class="inc">inc</button>`, 1, 2);
 var root_60 = _$_.template(`<div class="count"> </div><!>`, 1, 2);
@@ -1179,6 +1253,8 @@ function TrailingNestedFragment_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_39);
 }
 
+TrailingNestedFragment.$r = TrailingNestedFragment_render;
+
 var root_64 = _$_.template(`<b class="item"> </b>`, 0);
 var root_63 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_62 = _$_.template(`<!>`, 1, 1);
@@ -1216,6 +1292,8 @@ function ForThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_42);
 }
+
+ForThenStatic.$r = ForThenStatic_render;
 
 var root_67 = _$_.template(`<b class="zero">zero</b>`, 0);
 var root_68 = _$_.template(`<b class="other">other</b>`, 0);
@@ -1266,6 +1344,8 @@ function SwitchThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_44);
 }
 
+SwitchThenStatic.$r = SwitchThenStatic_render;
+
 var root_71 = _$_.template(`<b class="try">try</b>`, 0);
 var root_72 = _$_.template(`<b class="catch">catch</b>`, 0);
 var root_70 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
@@ -1300,6 +1380,8 @@ function TryThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_46);
 }
 
+TryThenStatic.$r = TryThenStatic_render;
+
 var root_74 = _$_.template(`<style>.styled { color: red; }</style><div class="styled a">a</div><div class="styled b">b</div>`, 1, 3);
 var root_73 = _$_.template(`<!>`, 1, 1);
 
@@ -1321,6 +1403,8 @@ function StyleThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_48);
 }
+
+StyleThenStatic.$r = StyleThenStatic_render;
 
 var root_76 = _$_.template(`<b class="item"> </b>`, 0);
 var root_77 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
@@ -1355,6 +1439,8 @@ function CollectionThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_50);
 }
 
+CollectionThenStatic.$r = CollectionThenStatic_render;
+
 var root_79 = _$_.template(`<b class="inline">inline</b>`, 0);
 var root_80 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_78 = _$_.template(`<!>`, 1, 1);
@@ -1379,6 +1465,8 @@ function InlineElementThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_52);
 }
+
+InlineElementThenStatic.$r = InlineElementThenStatic_render;
 
 var root_81 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1417,6 +1505,8 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_34);
 }
 
+WrapUntrackedTextThenStatic.$r = WrapUntrackedTextThenStatic_render;
+
 var root_82 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapNestedFragmentThenStatic_render(__anchor, __block) {
@@ -1453,6 +1543,8 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_35);
 }
+
+WrapNestedFragmentThenStatic.$r = WrapNestedFragmentThenStatic_render;
 
 var root_83 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1491,6 +1583,8 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 	_$_.append(__anchor, div_36);
 }
 
+WrapTrailingNestedFragment.$r = WrapTrailingNestedFragment_render;
+
 var root_84 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapForThenStatic_render(__anchor, __block) {
@@ -1527,6 +1621,8 @@ function WrapForThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_37);
 }
+
+WrapForThenStatic.$r = WrapForThenStatic_render;
 
 var root_85 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1565,6 +1661,8 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_38);
 }
 
+WrapSwitchThenStatic.$r = WrapSwitchThenStatic_render;
+
 var root_86 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapTryThenStatic_render(__anchor, __block) {
@@ -1601,6 +1699,8 @@ function WrapTryThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_39);
 }
+
+WrapTryThenStatic.$r = WrapTryThenStatic_render;
 
 var root_87 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1639,6 +1739,8 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_40);
 }
 
+WrapStyleThenStatic.$r = WrapStyleThenStatic_render;
+
 var root_88 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapCollectionThenStatic_render(__anchor, __block) {
@@ -1675,6 +1777,8 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_41);
 }
+
+WrapCollectionThenStatic.$r = WrapCollectionThenStatic_render;
 
 var root_89 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1713,6 +1817,8 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_42);
 }
 
+WrapInlineElementThenStatic.$r = WrapInlineElementThenStatic_render;
+
 var root_91 = _$_.template(`<b class="if">x</b>`, 0);
 var root_90 = _$_.template(`<!>`, 1, 1);
 
@@ -1741,6 +1847,8 @@ function IfOnly_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_54);
 }
+
+IfOnly.$r = IfOnly_render;
 
 var root_94 = _$_.template(`<b class="if">x</b>`, 0);
 var root_93 = _$_.template(`<!><div class="a">a</div>`, 1, 2);
@@ -1774,6 +1882,8 @@ function IfThenOne_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_55);
 }
 
+IfThenOne.$r = IfThenOne_render;
+
 var root_96 = _$_.template(`<b class="if">x</b>`, 0);
 var root_95 = _$_.template(`<div class="root"><!></div>`, 0);
 
@@ -1801,6 +1911,8 @@ function SingleRootWithIf_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_43);
 }
+
+SingleRootWithIf.$r = SingleRootWithIf_render;
 
 var root_97 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1839,6 +1951,8 @@ function WrapIfOnly_render(__anchor, __block) {
 	_$_.append(__anchor, div_44);
 }
 
+WrapIfOnly.$r = WrapIfOnly_render;
+
 var root_98 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapIfThenOne_render(__anchor, __block) {
@@ -1876,6 +1990,8 @@ function WrapIfThenOne_render(__anchor, __block) {
 	_$_.append(__anchor, div_45);
 }
 
+WrapIfThenOne.$r = WrapIfThenOne_render;
+
 var root_99 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapSingleRootWithIf_render(__anchor, __block) {
@@ -1912,6 +2028,8 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_46);
 }
+
+WrapSingleRootWithIf.$r = WrapSingleRootWithIf_render;
 
 var root_100 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -1951,6 +2069,8 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 	_$_.append(__anchor, div_47);
 }
 
+ExprThenSiblingInDiv.$r = ExprThenSiblingInDiv_render;
+
 var root_103 = _$_.template(`<b class="if">x</b><i class="if2">y</i>`, 1, 2);
 var root_102 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_101 = _$_.template(`<!>`, 1, 1);
@@ -1983,6 +2103,8 @@ function IfTwoThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_57);
 }
+
+IfTwoThenStatic.$r = IfTwoThenStatic_render;
 
 var root_105 = _$_.template(`<b class="if">x</b><i class="if2">y</i>`, 1, 2);
 var root_104 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
@@ -2033,6 +2155,8 @@ function IfTwoInDiv_render(__anchor, __block) {
 	_$_.append(__anchor, div_48);
 }
 
+IfTwoInDiv.$r = IfTwoInDiv_render;
+
 var root_106 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapIfTwoThenStatic_render(__anchor, __block) {
@@ -2070,6 +2194,8 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_49);
 }
 
+WrapIfTwoThenStatic.$r = WrapIfTwoThenStatic_render;
+
 var root_108 = _$_.template(`<b class="item"> </b><i class="sep">|</i>`, 1, 2);
 var root_107 = _$_.template(`<div class="outer"><!><span class="after">after</span></div>`, 0);
 
@@ -2106,6 +2232,8 @@ function ForTwoNodeItems_render(__anchor, __block) {
 	_$_.append(__anchor, div_50);
 }
 
+ForTwoNodeItems.$r = ForTwoNodeItems_render;
+
 var root_109 = _$_.template(`<b class="made">made</b>`, 0);
 var root_111 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_110 = _$_.template(`<!>`, 1, 1);
@@ -2132,6 +2260,8 @@ function StaticCallThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_62);
 }
 
+StaticCallThenStatic.$r = StaticCallThenStatic_render;
+
 var root_113 = _$_.template(`<div class="a">a</div><style>.styled2 { color: blue; }</style><div class="styled2 b">b</div><div class="styled2 c">c</div>`, 1, 4);
 var root_112 = _$_.template(`<!>`, 1, 1);
 
@@ -2154,6 +2284,8 @@ function StaticThenStyleThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_64);
 }
+
+StaticThenStyleThenStatic.$r = StaticThenStyleThenStatic_render;
 
 var root_114 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
@@ -2192,6 +2324,8 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, div_52);
 }
 
+WrapStaticCallThenStatic.$r = WrapStaticCallThenStatic_render;
+
 var root_115 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
@@ -2228,6 +2362,8 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_53);
 }
+
+WrapStaticThenStyleThenStatic.$r = WrapStaticThenStyleThenStatic_render;
 
 import { track } from 'ripple';
 

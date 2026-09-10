@@ -2055,7 +2055,15 @@ export function render_component(fn, anchor, props, block = active_block) {
 		p: active_component,
 	});
 
-	render_value(fn(props), /** @type {ChildNode} */ (anchor), block);
+	// A module-level component carries its render function (`$r`, see the
+	// compiler): calling it directly skips the element the component would
+	// return only to be rendered here.
+	var render = /** @type {any} */ (fn).$r;
+	if (render !== undefined) {
+		render(anchor, block, props);
+	} else {
+		render_value(fn(props), /** @type {ChildNode} */ (anchor), block);
+	}
 
 	// pop_component, inline.
 	component.m = true;
@@ -2063,6 +2071,65 @@ export function render_component(fn, anchor, props, block = active_block) {
 		create_deferred_effects(component.e);
 	}
 	active_component = component.p;
+}
+
+/**
+ * A reaction that stands in for a block whose creation is being decided (see
+ * `probe_dependencies`). Flagged destroyed so a write during the probe prunes
+ * its subscription instead of scheduling it.
+ * @type {any}
+ */
+var probe_reaction = { f: DESTROYED, d: null, blocks: null };
+
+/**
+ * Runs `fn(arg)` tracked against a scratch reaction and returns the head of
+ * the dependency chain it recorded, or null when it read no tracked state. A
+ * chain must be handed to a block with `adopt_dependencies`.
+ * @param {(arg: any) => void} fn
+ * @param {any} arg
+ * @returns {Dependency | null}
+ */
+export function probe_dependencies(fn, arg) {
+	var previous_reaction = active_reaction;
+	var previous_tracking = tracking;
+	var previous_dependency = active_dependency;
+	active_reaction = probe_reaction;
+	tracking = true;
+	active_dependency = null;
+	try {
+		fn(arg);
+		return active_dependency;
+	} catch (error) {
+		// The caller creates its block and runs it normally, which throws again
+		// where the block's own error handling sees it; the probe's
+		// subscriptions must not outlive it.
+		var recorded = /** @type {Dependency | null} */ (/** @type {unknown} */ (active_dependency));
+		while (recorded !== null) {
+			unlink_subscriber(recorded);
+			recorded = recorded.n;
+		}
+		throw error;
+	} finally {
+		active_reaction = previous_reaction;
+		tracking = previous_tracking;
+		active_dependency = previous_dependency;
+	}
+}
+
+/**
+ * Makes `block` the reaction of a dependency chain recorded by a probe.
+ * @param {Block} block
+ * @param {Dependency} head
+ */
+export function adopt_dependencies(block, head) {
+	block.d = head;
+	for (
+		var dependency = /** @type {Dependency | null} */ (head);
+		dependency !== null;
+		dependency = dependency.n
+	) {
+		dependency.r = block;
+	}
 }
 
 /**

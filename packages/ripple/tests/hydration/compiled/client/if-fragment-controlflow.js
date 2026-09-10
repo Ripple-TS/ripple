@@ -52,6 +52,8 @@ function IfFragmentForElement_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
+IfFragmentForElement.$r = IfFragmentForElement_render;
+
 var root_5 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_6 = _$_.template(`<span class="has-items">has items</span>`, 0);
 var root_7 = _$_.template(`<span class="empty">empty</span>`, 0);
@@ -132,6 +134,8 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 	_$_.append(__anchor, div_1);
 }
 
+IfFragmentForIfIf.$r = IfFragmentForIfIf_render;
+
 var root_9 = _$_.template(`<p class="muze">b</p><p class="muze">c</p>`, 1, 2);
 var root_8 = _$_.template(`<div class="feed-b"><!></div>`, 0);
 
@@ -160,6 +164,8 @@ function IfFragmentElements_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_2);
 }
+
+IfFragmentElements.$r = IfFragmentElements_render;
 
 var root_12 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_11 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
@@ -199,6 +205,8 @@ function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_3);
 }
+
+ComponentBodyFragmentControlFlow.$r = ComponentBodyFragmentControlFlow_render;
 
 var root_14 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_15 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
@@ -242,6 +250,8 @@ function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
 
 	_$_.append(__anchor, fragment_5);
 }
+
+ComponentBodyCodeBlockControlFlow.$r = ComponentBodyCodeBlockControlFlow_render;
 
 var root_17 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_18 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
@@ -297,6 +307,8 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_3);
 }
+
+IfCodeBlockControlFlow.$r = IfCodeBlockControlFlow_render;
 
 var root_20 = _$_.template(`<span class="loading">loading</span>`, 0);
 var root_22 = _$_.template(`<p class="muze"> </p>`, 0);
@@ -356,6 +368,8 @@ function IfElseFragment_render(__anchor, __block) {
 	_$_.append(__anchor, div_4);
 }
 
+IfElseFragment.$r = IfElseFragment_render;
+
 var root_25 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_24 = _$_.template(`<section><!><span class="after">after</span></section>`, 0);
 var root_23 = _$_.template(`<div class="feed-e"><!></div>`, 0);
@@ -410,6 +424,8 @@ function IfDivFragment_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_5);
 }
+
+IfDivFragment.$r = IfDivFragment_render;
 
 export function IfFragmentForElement() {
 	return _$_.tsrx_element(IfFragmentForElement_render);

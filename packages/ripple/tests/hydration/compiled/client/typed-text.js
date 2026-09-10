@@ -54,6 +54,8 @@ function TypedText_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
+TypedText.$r = TypedText_render;
+
 import { track } from 'ripple';
 
 export function TypedText() {

@@ -9,6 +9,8 @@ function RootPending_render(__anchor, __block) {
 	_$_.append(__anchor, p);
 }
 
+RootPending.$r = RootPending_render;
+
 var root_1 = _$_.template(`<section class="root-catch"><p class="root-error"> </p><button class="root-reset">retry</button></section>`, 0);
 var root_2 = _$_.template(`<p>should not render</p>`, 0);
 
@@ -19,6 +21,8 @@ function RootThrows_render(__anchor, __block) {
 
 	_$_.append(__anchor, p_2);
 }
+
+RootThrows.$r = RootThrows_render;
 
 var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 
@@ -36,6 +40,8 @@ function RootAsyncDirect_render(__anchor, __block) {
 	_$_.append(__anchor, p_3);
 }
 
+RootAsyncDirect.$r = RootAsyncDirect_render;
+
 var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 
 function RootAsyncRejects_render(__anchor, __block) {
@@ -51,6 +57,8 @@ function RootAsyncRejects_render(__anchor, __block) {
 
 	_$_.append(__anchor, p_4);
 }
+
+RootAsyncRejects.$r = RootAsyncRejects_render;
 
 var root_5 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
@@ -69,6 +77,8 @@ function AsyncListInTryPending_render(__anchor, __block) {
 		true
 	);
 }
+
+AsyncListInTryPending.$r = AsyncListInTryPending_render;
 
 var root_7 = _$_.template(`<li> </li>`, 0);
 var root_6 = _$_.template(`<ul class="items"></ul>`, 0);
@@ -102,6 +112,8 @@ function AsyncList_render(__anchor, __block) {
 	_$_.append(__anchor, ul);
 }
 
+AsyncList.$r = AsyncList_render;
+
 var root_10 = _$_.template(`<div class="loading">loading async content</div>`, 0);
 var root_9 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_8 = _$_.template(`<!>`, 1, 1);
@@ -134,6 +146,8 @@ function AsyncTryWithLeadingSibling_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
+AsyncTryWithLeadingSibling.$r = AsyncTryWithLeadingSibling_render;
+
 var root_11 = _$_.template(`<div class="resolved"> </div>`, 0);
 
 function AsyncContent_render(__anchor, __block) {
@@ -149,6 +163,8 @@ function AsyncContent_render(__anchor, __block) {
 
 	_$_.append(__anchor, div_2);
 }
+
+AsyncContent.$r = AsyncContent_render;
 
 import { trackAsync } from 'ripple';
 

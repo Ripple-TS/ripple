@@ -30,6 +30,8 @@ function Content_render(__anchor, __block) {
 	_$_.append(__anchor, div_1);
 }
 
+Content.$r = Content_render;
+
 function LayoutWithContent_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {
 		children: _$_.tsrx_element((__anchor, __block) => {
@@ -37,6 +39,8 @@ function LayoutWithContent_render(__anchor, __block) {
 		})
 	});
 }
+
+LayoutWithContent.$r = LayoutWithContent_render;
 
 import { track } from 'ripple';
 
