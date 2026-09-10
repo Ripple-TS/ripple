@@ -359,6 +359,17 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 DynamicChildThenStatic.$r = DynamicChildThenStatic_render;
 
 var root_27 = _$_.template(`<b class="if">x</b>`, 0);
+
+function consequent(__anchor, lazy_10) {
+	var b = root_27();
+
+	_$_.append(__anchor, b);
+}
+
+function if_1(__render, lazy_10) {
+	if (lazy_10.value >= 0) __render(consequent);
+}
+
 var root_26 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_25 = _$_.template(`<!>`, 1, 1);
 
@@ -371,18 +382,7 @@ function IfThenStatic_render(__anchor, __block) {
 		var fragment_25 = root_26();
 		var node_12 = _$_.first_child_frag(fragment_25);
 
-		{
-			var consequent = (__anchor) => {
-				var b = root_27();
-
-				_$_.append(__anchor, b);
-			};
-
-			_$_.if(node_12, (__render) => {
-				if (lazy_10.value >= 0) __render(consequent);
-			});
-		}
-
+		_$_.if(node_12, if_1, false, lazy_10);
 		_$_.next(2);
 		_$_.append(__anchor, fragment_25);
 	}));
@@ -393,6 +393,17 @@ function IfThenStatic_render(__anchor, __block) {
 IfThenStatic.$r = IfThenStatic_render;
 
 var root_30 = _$_.template(`<b class="if">x</b>`, 0);
+
+function consequent_1(__anchor, lazy_11) {
+	var b_1 = root_30();
+
+	_$_.append(__anchor, b_1);
+}
+
+function if_2(__render, lazy_11) {
+	if (lazy_11.value >= 0) __render(consequent_1);
+}
+
 var root_29 = _$_.template(`<div class="a">a</div><div class="b">b</div><!>`, 1, 3);
 var root_28 = _$_.template(`<!>`, 1, 1);
 
@@ -407,18 +418,7 @@ function StaticThenIf_render(__anchor, __block) {
 		var div_11 = _$_.hydrating ? _$_.hydrate_sibling() : div_12.nextSibling;
 		var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_11.nextSibling;
 
-		{
-			var consequent_1 = (__anchor) => {
-				var b_1 = root_30();
-
-				_$_.append(__anchor, b_1);
-			};
-
-			_$_.if(node_14, (__render) => {
-				if (lazy_11.value >= 0) __render(consequent_1);
-			});
-		}
-
+		_$_.if(node_14, if_2, false, lazy_11);
 		_$_.append(__anchor, fragment_27);
 	}));
 
@@ -1820,6 +1820,17 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 WrapInlineElementThenStatic.$r = WrapInlineElementThenStatic_render;
 
 var root_91 = _$_.template(`<b class="if">x</b>`, 0);
+
+function consequent_2(__anchor, lazy_40) {
+	var b_9 = root_91();
+
+	_$_.append(__anchor, b_9);
+}
+
+function if_3(__render, lazy_40) {
+	if (lazy_40.value >= 0) __render(consequent_2);
+}
+
 var root_90 = _$_.template(`<!>`, 1, 1);
 
 function IfOnly_render(__anchor, __block) {
@@ -1828,21 +1839,7 @@ function IfOnly_render(__anchor, __block) {
 	var node_63 = _$_.first_child_frag(fragment_54);
 
 	_$_.expression(node_63, () => _$_.tsrx_element((__anchor, __block) => {
-		{
-			var consequent_2 = (__anchor) => {
-				var b_9 = root_91();
-
-				_$_.append(__anchor, b_9);
-			};
-
-			_$_.if(
-				__anchor,
-				(__render) => {
-					if (lazy_40.value >= 0) __render(consequent_2);
-				},
-				true
-			);
-		}
+		_$_.if(__anchor, if_3, true, lazy_40);
 	}));
 
 	_$_.append(__anchor, fragment_54);
@@ -1851,6 +1848,17 @@ function IfOnly_render(__anchor, __block) {
 IfOnly.$r = IfOnly_render;
 
 var root_94 = _$_.template(`<b class="if">x</b>`, 0);
+
+function consequent_3(__anchor, lazy_41) {
+	var b_10 = root_94();
+
+	_$_.append(__anchor, b_10);
+}
+
+function if_4(__render, lazy_41) {
+	if (lazy_41.value >= 0) __render(consequent_3);
+}
+
 var root_93 = _$_.template(`<!><div class="a">a</div>`, 1, 2);
 var root_92 = _$_.template(`<!>`, 1, 1);
 
@@ -1863,18 +1871,7 @@ function IfThenOne_render(__anchor, __block) {
 		var fragment_56 = root_93();
 		var node_64 = _$_.first_child_frag(fragment_56);
 
-		{
-			var consequent_3 = (__anchor) => {
-				var b_10 = root_94();
-
-				_$_.append(__anchor, b_10);
-			};
-
-			_$_.if(node_64, (__render) => {
-				if (lazy_41.value >= 0) __render(consequent_3);
-			});
-		}
-
+		_$_.if(node_64, if_4, false, lazy_41);
 		_$_.next();
 		_$_.append(__anchor, fragment_56);
 	}));
@@ -1885,6 +1882,17 @@ function IfThenOne_render(__anchor, __block) {
 IfThenOne.$r = IfThenOne_render;
 
 var root_96 = _$_.template(`<b class="if">x</b>`, 0);
+
+function consequent_4(__anchor, lazy_42) {
+	var b_11 = root_96();
+
+	_$_.append(__anchor, b_11);
+}
+
+function if_5(__render, lazy_42) {
+	if (lazy_42.value >= 0) __render(consequent_4);
+}
+
 var root_95 = _$_.template(`<div class="root"><!></div>`, 0);
 
 function SingleRootWithIf_render(__anchor, __block) {
@@ -1894,18 +1902,7 @@ function SingleRootWithIf_render(__anchor, __block) {
 	{
 		var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
 
-		{
-			var consequent_4 = (__anchor) => {
-				var b_11 = root_96();
-
-				_$_.append(__anchor, b_11);
-			};
-
-			_$_.if(node_66, (__render) => {
-				if (lazy_42.value >= 0) __render(consequent_4);
-			});
-		}
-
+		_$_.if(node_66, if_5, false, lazy_42);
 		_$_.pop(div_43);
 	}
 
@@ -2072,6 +2069,18 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 ExprThenSiblingInDiv.$r = ExprThenSiblingInDiv_render;
 
 var root_103 = _$_.template(`<b class="if">x</b><i class="if2">y</i>`, 1, 2);
+
+function consequent_5(__anchor, lazy_47) {
+	var fragment_59 = root_103();
+
+	_$_.next();
+	_$_.append(__anchor, fragment_59);
+}
+
+function if_6(__render, lazy_47) {
+	if (lazy_47.value >= 0) __render(consequent_5);
+}
+
 var root_102 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_101 = _$_.template(`<!>`, 1, 1);
 
@@ -2084,19 +2093,7 @@ function IfTwoThenStatic_render(__anchor, __block) {
 		var fragment_58 = root_102();
 		var node_70 = _$_.first_child_frag(fragment_58);
 
-		{
-			var consequent_5 = (__anchor) => {
-				var fragment_59 = root_103();
-
-				_$_.next();
-				_$_.append(__anchor, fragment_59);
-			};
-
-			_$_.if(node_70, (__render) => {
-				if (lazy_47.value >= 0) __render(consequent_5);
-			});
-		}
-
+		_$_.if(node_70, if_6, false, lazy_47);
 		_$_.next(2);
 		_$_.append(__anchor, fragment_58);
 	}));
@@ -2107,6 +2104,18 @@ function IfTwoThenStatic_render(__anchor, __block) {
 IfTwoThenStatic.$r = IfTwoThenStatic_render;
 
 var root_105 = _$_.template(`<b class="if">x</b><i class="if2">y</i>`, 1, 2);
+
+function consequent_6(__anchor, lazy_48) {
+	var fragment_60 = root_105();
+
+	_$_.next();
+	_$_.append(__anchor, fragment_60);
+}
+
+function if_7(__render, lazy_48) {
+	if (lazy_48.value >= 0) __render(consequent_6);
+}
+
 var root_104 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
 
 function IfTwoInDiv_render(__anchor, __block) {
@@ -2116,18 +2125,7 @@ function IfTwoInDiv_render(__anchor, __block) {
 	{
 		var node_72 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
 
-		{
-			var consequent_6 = (__anchor) => {
-				var fragment_60 = root_105();
-
-				_$_.next();
-				_$_.append(__anchor, fragment_60);
-			};
-
-			_$_.if(node_72, (__render) => {
-				if (lazy_48.value >= 0) __render(consequent_6);
-			});
-		}
+		_$_.if(node_72, if_7, false, lazy_48);
 
 		var span_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_72.nextSibling;
 

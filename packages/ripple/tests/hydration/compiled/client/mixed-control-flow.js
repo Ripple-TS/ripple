@@ -5,6 +5,135 @@ var root_1 = _$_.template(`<div> </div>`, 0);
 var root_2 = _$_.template(`<div>pending a</div>`, 0);
 var root_3 = _$_.template(`<div> </div>`, 0);
 var root_4 = _$_.template(`<div>pending b</div>`, 0);
+
+function consequent(__anchor, pattern) {
+	{
+		var switch_case_0 = (__anchor) => {
+			_$_.try(
+				__anchor,
+				(__anchor) => {
+					var div = root_1();
+
+					{
+						var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
+					}
+
+					_$_.render(
+						(__prev) => {
+							var __pattern = _$_.get(pattern);
+							var __a = `A-${__pattern.id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_text(expression, __prev.a = __a);
+							}
+
+							var __b = `row row-${__pattern.id} kind-a`;
+
+							if (__prev.b !== __b) {
+								_$_.set_class(div, __prev.b = __b, void 0, true);
+							}
+						},
+						{ a: ' ', b: _$_.UNINITIALIZED }
+					);
+
+					_$_.append(__anchor, div);
+				},
+				null,
+				(__anchor) => {
+					var div_1 = root_2();
+
+					_$_.render(
+						(__prev) => {
+							var __a = `pending pending-${_$_.get(pattern).id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(div_1, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
+
+					_$_.append(__anchor, div_1);
+				},
+				true
+			);
+		};
+
+		var switch_case_default = (__anchor) => {
+			_$_.try(
+				__anchor,
+				(__anchor) => {
+					var div_2 = root_3();
+
+					{
+						var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
+					}
+
+					_$_.render(
+						(__prev) => {
+							var __pattern_1 = _$_.get(pattern);
+							var __a = `B-${__pattern_1.id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_text(expression_1, __prev.a = __a);
+							}
+
+							var __b = `row row-${__pattern_1.id} kind-b`;
+
+							if (__prev.b !== __b) {
+								_$_.set_class(div_2, __prev.b = __b, void 0, true);
+							}
+						},
+						{ a: ' ', b: _$_.UNINITIALIZED }
+					);
+
+					_$_.append(__anchor, div_2);
+				},
+				null,
+				(__anchor) => {
+					var div_3 = root_4();
+
+					_$_.render(
+						(__prev) => {
+							var __a = `pending pending-${_$_.get(pattern).id}`;
+
+							if (__prev.a !== __a) {
+								_$_.set_class(div_3, __prev.a = __a, void 0, true);
+							}
+						},
+						{ a: _$_.UNINITIALIZED }
+					);
+
+					_$_.append(__anchor, div_3);
+				},
+				true
+			);
+		};
+
+		_$_.switch(
+			__anchor,
+			() => {
+				var result = [];
+
+				switch (_$_.get(pattern).kind) {
+					case 'a':
+						result.push(switch_case_0);
+						return result;
+
+					default:
+						result.push(switch_case_default);
+						return result;
+				}
+			},
+			true
+		);
+	}
+}
+
+function if_1(__render, pattern) {
+	if (_$_.get(pattern).enabled) __render(consequent);
+}
+
 var root = _$_.template(`<section class="mixed-static"></section>`, 0);
 
 function MixedControlFlowStatic_render(__anchor, __block) {
@@ -21,139 +150,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 			section,
 			() => rows,
 			(__anchor, pattern) => {
-				{
-					var consequent = (__anchor) => {
-						{
-							var switch_case_0 = (__anchor) => {
-								_$_.try(
-									__anchor,
-									(__anchor) => {
-										var div = root_1();
-
-										{
-											var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
-										}
-
-										_$_.render(
-											(__prev) => {
-												var __pattern = _$_.get(pattern);
-												var __a = `A-${__pattern.id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(expression, __prev.a = __a);
-												}
-
-												var __b = `row row-${__pattern.id} kind-a`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(div, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: _$_.UNINITIALIZED }
-										);
-
-										_$_.append(__anchor, div);
-									},
-									null,
-									(__anchor) => {
-										var div_1 = root_2();
-
-										_$_.render(
-											(__prev) => {
-												var __a = `pending pending-${_$_.get(pattern).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_class(div_1, __prev.a = __a, void 0, true);
-												}
-											},
-											{ a: _$_.UNINITIALIZED }
-										);
-
-										_$_.append(__anchor, div_1);
-									},
-									true
-								);
-							};
-
-							var switch_case_default = (__anchor) => {
-								_$_.try(
-									__anchor,
-									(__anchor) => {
-										var div_2 = root_3();
-
-										{
-											var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
-										}
-
-										_$_.render(
-											(__prev) => {
-												var __pattern_1 = _$_.get(pattern);
-												var __a = `B-${__pattern_1.id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_text(expression_1, __prev.a = __a);
-												}
-
-												var __b = `row row-${__pattern_1.id} kind-b`;
-
-												if (__prev.b !== __b) {
-													_$_.set_class(div_2, __prev.b = __b, void 0, true);
-												}
-											},
-											{ a: ' ', b: _$_.UNINITIALIZED }
-										);
-
-										_$_.append(__anchor, div_2);
-									},
-									null,
-									(__anchor) => {
-										var div_3 = root_4();
-
-										_$_.render(
-											(__prev) => {
-												var __a = `pending pending-${_$_.get(pattern).id}`;
-
-												if (__prev.a !== __a) {
-													_$_.set_class(div_3, __prev.a = __a, void 0, true);
-												}
-											},
-											{ a: _$_.UNINITIALIZED }
-										);
-
-										_$_.append(__anchor, div_3);
-									},
-									true
-								);
-							};
-
-							_$_.switch(
-								__anchor,
-								() => {
-									var result = [];
-
-									switch (_$_.get(pattern).kind) {
-										case 'a':
-											result.push(switch_case_0);
-											return result;
-
-										default:
-											result.push(switch_case_default);
-											return result;
-									}
-								},
-								true
-							);
-						}
-					};
-
-					_$_.if(
-						__anchor,
-						(__render) => {
-							if (_$_.get(pattern).enabled) __render(consequent);
-						},
-						true
-					);
-				}
+				_$_.if(__anchor, if_1, true, pattern);
 			},
 			4,
 			(pattern) => _$_.get(pattern).id

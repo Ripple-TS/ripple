@@ -26,6 +26,17 @@ function TemplateWithJSON_render(__anchor, __block) {
 TemplateWithJSON.$r = TemplateWithJSON_render;
 
 var root_3 = _$_.template(`<span class="inside">inside</span>`, 0);
+
+function consequent(__anchor, show) {
+	var span = root_3();
+
+	_$_.append(__anchor, span);
+}
+
+function if_1(__render, show) {
+	if (show) __render(consequent);
+}
+
 var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 0);
 
 function TemplateAroundIfBlock_render(__anchor, __block) {
@@ -39,17 +50,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : template_2.nextSibling;
 
-		{
-			var consequent = (__anchor) => {
-				var span = root_3();
-
-				_$_.append(__anchor, span);
-			};
-
-			_$_.if(node, (__render) => {
-				if (show) __render(consequent);
-			});
-		}
+		_$_.if(node, if_1, false, show);
 
 		var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 

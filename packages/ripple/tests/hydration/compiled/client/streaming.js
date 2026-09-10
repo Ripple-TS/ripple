@@ -235,6 +235,30 @@ function RootPending_render(__anchor, __block) {
 RootPending.$r = RootPending_render;
 
 var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
+
+function consequent(__anchor, lazy_5) {
+	var p_7 = root_17();
+
+	{
+		var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
+
+		_$_.expression(expression_7, () => lazy_5.value);
+		_$_.pop(p_7);
+	}
+
+	_$_.head('814bacd9', (__anchor) => {
+		_$_.render(() => {
+			_$_.document.title = 'title:' + lazy_5.value;
+		});
+	});
+
+	_$_.append(__anchor, p_7);
+}
+
+function if_1(__render, lazy_5) {
+	if (lazy_5.value) __render(consequent);
+}
+
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function HeadContent_render(__anchor, __block) {
@@ -243,34 +267,7 @@ function HeadContent_render(__anchor, __block) {
 	var node_5 = _$_.first_child_frag(fragment_5);
 
 	_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
-		{
-			var consequent = (__anchor) => {
-				var p_7 = root_17();
-
-				{
-					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
-
-					_$_.expression(expression_7, () => lazy_5.value);
-					_$_.pop(p_7);
-				}
-
-				_$_.head('814bacd9', (__anchor) => {
-					_$_.render(() => {
-						_$_.document.title = 'title:' + lazy_5.value;
-					});
-				});
-
-				_$_.append(__anchor, p_7);
-			};
-
-			_$_.if(
-				__anchor,
-				(__render) => {
-					if (lazy_5.value) __render(consequent);
-				},
-				true
-			);
-		}
+		_$_.if(__anchor, if_1, true, lazy_5);
 	}));
 
 	_$_.append(__anchor, fragment_5);

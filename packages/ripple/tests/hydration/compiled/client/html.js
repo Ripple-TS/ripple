@@ -217,9 +217,123 @@ function DocFooter_render(__anchor, __block) {
 DocFooter.$r = DocFooter_render;
 
 var root_15 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
+
+function consequent(__anchor, __props) {
+	var div_16 = root_15();
+
+	{
+		var a = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, div_16);
+}
+
+function if_1(__render, __props) {
+	if (_$_.fallback(__props.editPath, '')) __render(consequent);
+}
+
 var root_16 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
+
+function consequent_1(__anchor, __props) {
+	var nav = root_16();
+
+	{
+		var a_1 = _$_.hydrating ? _$_.hydrate_child() : nav.firstChild;
+
+		{
+			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : a_1.firstChild;
+
+			_$_.expression(expression_2, () => _$_.fallback(__props.nextLink, null).text);
+			_$_.pop(a_1);
+		}
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = _$_.fallback(__props.nextLink, null).href;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a_1, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, nav);
+}
+
+function if_2(__render, __props) {
+	if (_$_.fallback(__props.nextLink, null)) __render(consequent_1);
+}
+
 var root_18 = _$_.template(`<li><a> </a></li>`, 0);
 var root_17 = _$_.template(`<div class="toc"><ul></ul></div>`, 0);
+
+function consequent_2(__anchor, __props) {
+	var div_17 = root_17();
+
+	{
+		var ul = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
+
+		{
+			_$_.for(
+				ul,
+				() => _$_.fallback(__props.toc, []),
+				(__anchor, item) => {
+					var li = root_18();
+
+					{
+						var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
+
+						{
+							var expression_3 = _$_.hydrating ? _$_.hydrate_text() : a_2.firstChild;
+						}
+					}
+
+					_$_.render(
+						(__prev) => {
+							var __a = item.text;
+
+							if (__prev.a !== __a) {
+								_$_.set_text(expression_3, __prev.a = __a);
+							}
+
+							var __b = item.href;
+
+							if (__prev.b !== __b) {
+								_$_.set_attribute(a_2, 'href', __prev.b = __b);
+							}
+						},
+						{ a: ' ', b: void 0 }
+					);
+
+					_$_.append(__anchor, li);
+				},
+				4
+			);
+
+			_$_.pop(ul);
+		}
+	}
+
+	_$_.append(__anchor, div_17);
+}
+
+function if_3(__render, __props) {
+	if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_2);
+}
+
 var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!></div><aside><!></aside></div>`, 0);
 
 function DocLayout_render(__anchor, __block, __props) {
@@ -246,68 +360,11 @@ function DocLayout_render(__anchor, __block, __props) {
 
 			var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
-			{
-				var consequent = (__anchor) => {
-					var div_16 = root_15();
-
-					{
-						var a = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
-					}
-
-					_$_.render(
-						(__prev) => {
-							var __a = `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`;
-
-							if (__prev.a !== __a) {
-								_$_.set_attribute(a, 'href', __prev.a = __a);
-							}
-						},
-						{ a: void 0 }
-					);
-
-					_$_.append(__anchor, div_16);
-				};
-
-				_$_.if(node_5, (__render) => {
-					if (_$_.fallback(__props.editPath, '')) __render(consequent);
-				});
-			}
+			_$_.if(node_5, if_1, false, __props);
 
 			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_5.nextSibling;
 
-			{
-				var consequent_1 = (__anchor) => {
-					var nav = root_16();
-
-					{
-						var a_1 = _$_.hydrating ? _$_.hydrate_child() : nav.firstChild;
-
-						{
-							var expression_2 = _$_.hydrating ? _$_.hydrate_child() : a_1.firstChild;
-
-							_$_.expression(expression_2, () => _$_.fallback(__props.nextLink, null).text);
-							_$_.pop(a_1);
-						}
-					}
-
-					_$_.render(
-						(__prev) => {
-							var __a = _$_.fallback(__props.nextLink, null).href;
-
-							if (__prev.a !== __a) {
-								_$_.set_attribute(a_1, 'href', __prev.a = __a);
-							}
-						},
-						{ a: void 0 }
-					);
-
-					_$_.append(__anchor, nav);
-				};
-
-				_$_.if(node_6, (__render) => {
-					if (_$_.fallback(__props.nextLink, null)) __render(consequent_1);
-				});
-			}
+			_$_.if(node_6, if_2, false, __props);
 
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
@@ -320,62 +377,7 @@ function DocLayout_render(__anchor, __block, __props) {
 		{
 			var node_8 = _$_.hydrating ? _$_.hydrate_child() : aside.firstChild;
 
-			{
-				var consequent_2 = (__anchor) => {
-					var div_17 = root_17();
-
-					{
-						var ul = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
-
-						{
-							_$_.for(
-								ul,
-								() => _$_.fallback(__props.toc, []),
-								(__anchor, item) => {
-									var li = root_18();
-
-									{
-										var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
-
-										{
-											var expression_3 = _$_.hydrating ? _$_.hydrate_text() : a_2.firstChild;
-										}
-									}
-
-									_$_.render(
-										(__prev) => {
-											var __a = item.text;
-
-											if (__prev.a !== __a) {
-												_$_.set_text(expression_3, __prev.a = __a);
-											}
-
-											var __b = item.href;
-
-											if (__prev.b !== __b) {
-												_$_.set_attribute(a_2, 'href', __prev.b = __b);
-											}
-										},
-										{ a: ' ', b: void 0 }
-									);
-
-									_$_.append(__anchor, li);
-								},
-								4
-							);
-
-							_$_.pop(ul);
-						}
-					}
-
-					_$_.append(__anchor, div_17);
-				};
-
-				_$_.if(node_8, (__render) => {
-					if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_2);
-				});
-			}
-
+			_$_.if(node_8, if_3, false, __props);
 			_$_.pop(aside);
 		}
 	}
@@ -581,6 +583,17 @@ function HtmlAfterComponentInChildren_render(__anchor, __block) {
 HtmlAfterComponentInChildren.$r = HtmlAfterComponentInChildren_render;
 
 var root_39 = _$_.template(`<div class="indicator"></div>`, 0);
+
+function consequent_4(__anchor, __props) {
+	var div_28 = root_39();
+
+	_$_.append(__anchor, div_28);
+}
+
+function if_4(__render, __props) {
+	if (_$_.fallback(__props.active, false)) __render(consequent_4);
+}
+
 var root_38 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
 
 function NavItem_render(__anchor, __block, __props) {
@@ -589,17 +602,7 @@ function NavItem_render(__anchor, __block, __props) {
 	{
 		var node_19 = _$_.hydrating ? _$_.hydrate_child() : div_27.firstChild;
 
-		{
-			var consequent_4 = (__anchor) => {
-				var div_28 = root_39();
-
-				_$_.append(__anchor, div_28);
-			};
-
-			_$_.if(node_19, (__render) => {
-				if (_$_.fallback(__props.active, false)) __render(consequent_4);
-			});
-		}
+		_$_.if(node_19, if_4, false, __props);
 
 		var a_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_19.nextSibling;
 
@@ -658,6 +661,17 @@ function PageHeader_render(__anchor, __block) {
 PageHeader.$r = PageHeader_render;
 
 var root_47 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+
+function consequent_6(__anchor) {
+	var div_36 = root_47();
+
+	_$_.append(__anchor, div_36);
+}
+
+function if_5(__render) {
+	if (true) __render(consequent_6);
+}
+
 var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!></main></div></div>`, 0);
 
 function LayoutWithSidebarAndMain_render(__anchor, __block) {
@@ -681,17 +695,7 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 				var div_35 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
 				var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : div_35.nextSibling;
 
-				{
-					var consequent_6 = (__anchor) => {
-						var div_36 = root_47();
-
-						_$_.append(__anchor, div_36);
-					};
-
-					_$_.if(node_27, (__render) => {
-						if (true) __render(consequent_6);
-					});
-				}
+				_$_.if(node_27, if_5);
 
 				var node_28 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(main);
 
@@ -723,7 +727,29 @@ SimpleFooter.$r = SimpleFooter_render;
 
 var root_51 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
 var root_52 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+
+function consequent_7(__anchor) {
+	var div_39 = root_52();
+
+	_$_.append(__anchor, div_39);
+}
+
+function if_6(__render) {
+	if (true) __render(consequent_7);
+}
+
 var root_53 = _$_.template(`<nav class="prev-next"><a href="/prev">Previous</a></nav>`, 0);
+
+function consequent_8(__anchor) {
+	var nav_2 = root_53();
+
+	_$_.append(__anchor, nav_2);
+}
+
+function if_7(__render) {
+	if (true) __render(consequent_8);
+}
+
 var root_50 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 
 function ArticleWithChildrenThenSibling_render(__anchor, __block) {
@@ -743,31 +769,11 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 
 		var node_30 = _$_.hydrating ? _$_.hydrate_sibling() : node_29.nextSibling;
 
-		{
-			var consequent_7 = (__anchor) => {
-				var div_39 = root_52();
-
-				_$_.append(__anchor, div_39);
-			};
-
-			_$_.if(node_30, (__render) => {
-				if (true) __render(consequent_7);
-			});
-		}
+		_$_.if(node_30, if_6);
 
 		var node_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_30.nextSibling;
 
-		{
-			var consequent_8 = (__anchor) => {
-				var nav_2 = root_53();
-
-				_$_.append(__anchor, nav_2);
-			};
-
-			_$_.if(node_31, (__render) => {
-				if (true) __render(consequent_8);
-			});
-		}
+		_$_.if(node_31, if_7);
 
 		var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_38);
 
@@ -782,6 +788,17 @@ ArticleWithChildrenThenSibling.$r = ArticleWithChildrenThenSibling_render;
 
 var root_55 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+
+function consequent_9(__anchor) {
+	var div_42 = root_56();
+
+	_$_.append(__anchor, div_42);
+}
+
+function if_8(__render) {
+	if (true) __render(consequent_9);
+}
+
 var root_54 = _$_.template(`<div class="content-container"><!><!></div>`, 0);
 
 function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
@@ -802,17 +819,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 
 		var node_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_33.nextSibling;
 
-		{
-			var consequent_9 = (__anchor) => {
-				var div_42 = root_56();
-
-				_$_.append(__anchor, div_42);
-			};
-
-			_$_.if(node_34, (__render) => {
-				if (true) __render(consequent_9);
-			});
-		}
+		_$_.if(node_34, if_8);
 
 		var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_40);
 
@@ -826,6 +833,17 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 ArticleWithHtmlChildThenSibling.$r = ArticleWithHtmlChildThenSibling_render;
 
 var root_58 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
+
+function consequent_10(__anchor) {
+	var div_45 = root_58();
+
+	_$_.append(__anchor, div_45);
+}
+
+function if_9(__render) {
+	if (true) __render(consequent_10);
+}
+
 var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!></div>`, 0);
 var root_59 = _$_.template(`<div class="doc-content"></div>`, 0);
 
@@ -875,7 +893,51 @@ function FooterStub_render(__anchor, __block) {
 FooterStub.$r = FooterStub_render;
 
 var root_64 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
+
+function consequent_11(__anchor, __props) {
+	var div_53 = root_64();
+
+	_$_.append(__anchor, div_53);
+}
+
+function if_10(__render, __props) {
+	if (_$_.fallback(__props.editPath, '')) __render(consequent_11);
+}
+
 var root_65 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
+
+function consequent_12(__anchor, __props) {
+	var nav_3 = root_65();
+
+	{
+		var a_4 = _$_.hydrating ? _$_.hydrate_child() : nav_3.firstChild;
+
+		{
+			var expression_21 = _$_.hydrating ? _$_.hydrate_child() : a_4.firstChild;
+
+			_$_.expression(expression_21, () => _$_.fallback(__props.nextLink, null).text);
+			_$_.pop(a_4);
+		}
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = _$_.fallback(__props.nextLink, null).href;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a_4, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, nav_3);
+}
+
+function if_11(__render, __props) {
+	if (_$_.fallback(__props.nextLink, null)) __render(consequent_12);
+}
+
 var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div></div></main></div></div>`, 0);
 
 function DocsLayoutInner_render(__anchor, __block, __props) {
@@ -922,53 +984,11 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 
 							var node_40 = _$_.hydrating ? _$_.hydrate_sibling() : article_3.nextSibling;
 
-							{
-								var consequent_11 = (__anchor) => {
-									var div_53 = root_64();
-
-									_$_.append(__anchor, div_53);
-								};
-
-								_$_.if(node_40, (__render) => {
-									if (_$_.fallback(__props.editPath, '')) __render(consequent_11);
-								});
-							}
+							_$_.if(node_40, if_10, false, __props);
 
 							var node_41 = _$_.hydrating ? _$_.hydrate_sibling() : node_40.nextSibling;
 
-							{
-								var consequent_12 = (__anchor) => {
-									var nav_3 = root_65();
-
-									{
-										var a_4 = _$_.hydrating ? _$_.hydrate_child() : nav_3.firstChild;
-
-										{
-											var expression_21 = _$_.hydrating ? _$_.hydrate_child() : a_4.firstChild;
-
-											_$_.expression(expression_21, () => _$_.fallback(__props.nextLink, null).text);
-											_$_.pop(a_4);
-										}
-									}
-
-									_$_.render(
-										(__prev) => {
-											var __a = _$_.fallback(__props.nextLink, null).href;
-
-											if (__prev.a !== __a) {
-												_$_.set_attribute(a_4, 'href', __prev.a = __a);
-											}
-										},
-										{ a: void 0 }
-									);
-
-									_$_.append(__anchor, nav_3);
-								};
-
-								_$_.if(node_41, (__render) => {
-									if (_$_.fallback(__props.nextLink, null)) __render(consequent_12);
-								});
-							}
+							_$_.if(node_41, if_11, false, __props);
 
 							var node_42 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
@@ -1027,12 +1047,183 @@ function DocsLayoutWithoutData_render(__anchor, __block) {
 DocsLayoutWithoutData.$r = DocsLayoutWithoutData_render;
 
 var root_69 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
+
+function consequent_13(__anchor, __props) {
+	var div_62 = root_69();
+
+	{
+		var a_5 = _$_.hydrating ? _$_.hydrate_child() : div_62.firstChild;
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = `/edit/${_$_.fallback(__props.editPath, '')}`;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a_5, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, div_62);
+}
+
+function if_12(__render, __props) {
+	if (_$_.fallback(__props.editPath, '')) __render(consequent_13);
+}
+
 var root_71 = _$_.template(`<a class="pager prev"><span class="title"> </span></a>`, 0);
 var root_72 = _$_.template(`<span></span>`, 0);
+
+function consequent_14(__anchor, __props) {
+	var a_6 = root_71();
+
+	{
+		var span_4 = _$_.hydrating ? _$_.hydrate_child() : a_6.firstChild;
+
+		{
+			var expression_23 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
+
+			_$_.expression(expression_23, () => _$_.fallback(__props.prevLink, null).text);
+			_$_.pop(span_4);
+		}
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = _$_.fallback(__props.prevLink, null).href;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a_6, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, a_6);
+}
+
+function alternate_1(__anchor, __props) {
+	var span_5 = root_72();
+
+	_$_.append(__anchor, span_5);
+}
+
+function if_13(__render, __props) {
+	if (_$_.fallback(__props.prevLink, null)) __render(consequent_14); else __render(alternate_1, false);
+}
+
 var root_73 = _$_.template(`<a class="pager next"><span class="title"> </span></a>`, 0);
+
+function consequent_15(__anchor, __props) {
+	var a_7 = root_73();
+
+	{
+		var span_6 = _$_.hydrating ? _$_.hydrate_child() : a_7.firstChild;
+
+		{
+			var expression_24 = _$_.hydrating ? _$_.hydrate_child() : span_6.firstChild;
+
+			_$_.expression(expression_24, () => _$_.fallback(__props.nextLink, null).text);
+			_$_.pop(span_6);
+		}
+	}
+
+	_$_.render(
+		(__prev) => {
+			var __a = _$_.fallback(__props.nextLink, null).href;
+
+			if (__prev.a !== __a) {
+				_$_.set_attribute(a_7, 'href', __prev.a = __a);
+			}
+		},
+		{ a: void 0 }
+	);
+
+	_$_.append(__anchor, a_7);
+}
+
+function if_14(__render, __props) {
+	if (_$_.fallback(__props.nextLink, null)) __render(consequent_15);
+}
+
 var root_70 = _$_.template(`<nav class="prev-next"><!><!></nav>`, 0);
+
+function consequent_16(__anchor, __props) {
+	var nav_4 = root_70();
+
+	{
+		var node_47 = _$_.hydrating ? _$_.hydrate_child() : nav_4.firstChild;
+
+		_$_.if(node_47, if_13, false, __props);
+
+		var node_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_47.nextSibling;
+
+		_$_.if(node_48, if_14, false, __props);
+		_$_.pop(nav_4);
+	}
+
+	_$_.append(__anchor, nav_4);
+}
+
+function if_15(__render, __props) {
+	if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_16);
+}
+
 var root_75 = _$_.template(`<a> </a>`, 0);
 var root_74 = _$_.template(`<div class="aside-content"><nav class="outline"></nav></div>`, 0);
+
+function consequent_17(__anchor, __props) {
+	var div_63 = root_74();
+
+	{
+		var nav_5 = _$_.hydrating ? _$_.hydrate_child() : div_63.firstChild;
+
+		{
+			_$_.for(
+				nav_5,
+				() => _$_.fallback(__props.toc, []),
+				(__anchor, item) => {
+					var a_8 = root_75();
+
+					{
+						var expression_25 = _$_.hydrating ? _$_.hydrate_text() : a_8.firstChild;
+					}
+
+					_$_.render(
+						(__prev) => {
+							var __a = item.text;
+
+							if (__prev.a !== __a) {
+								_$_.set_text(expression_25, __prev.a = __a);
+							}
+
+							var __b = item.href;
+
+							if (__prev.b !== __b) {
+								_$_.set_attribute(a_8, 'href', __prev.b = __b);
+							}
+						},
+						{ a: ' ', b: void 0 }
+					);
+
+					_$_.append(__anchor, a_8);
+				},
+				4
+			);
+
+			_$_.pop(nav_5);
+		}
+	}
+
+	_$_.append(__anchor, div_63);
+}
+
+function if_16(__render, __props) {
+	if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_17);
+}
+
 var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 
 function DocsLayoutExact_render(__anchor, __block, __props) {
@@ -1079,128 +1270,11 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 
 							var node_45 = _$_.hydrating ? _$_.hydrate_sibling() : article_4.nextSibling;
 
-							{
-								var consequent_13 = (__anchor) => {
-									var div_62 = root_69();
-
-									{
-										var a_5 = _$_.hydrating ? _$_.hydrate_child() : div_62.firstChild;
-									}
-
-									_$_.render(
-										(__prev) => {
-											var __a = `/edit/${_$_.fallback(__props.editPath, '')}`;
-
-											if (__prev.a !== __a) {
-												_$_.set_attribute(a_5, 'href', __prev.a = __a);
-											}
-										},
-										{ a: void 0 }
-									);
-
-									_$_.append(__anchor, div_62);
-								};
-
-								_$_.if(node_45, (__render) => {
-									if (_$_.fallback(__props.editPath, '')) __render(consequent_13);
-								});
-							}
+							_$_.if(node_45, if_12, false, __props);
 
 							var node_46 = _$_.hydrating ? _$_.hydrate_sibling() : node_45.nextSibling;
 
-							{
-								var consequent_16 = (__anchor) => {
-									var nav_4 = root_70();
-
-									{
-										var node_47 = _$_.hydrating ? _$_.hydrate_child() : nav_4.firstChild;
-
-										{
-											var consequent_14 = (__anchor) => {
-												var a_6 = root_71();
-
-												{
-													var span_4 = _$_.hydrating ? _$_.hydrate_child() : a_6.firstChild;
-
-													{
-														var expression_23 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
-
-														_$_.expression(expression_23, () => _$_.fallback(__props.prevLink, null).text);
-														_$_.pop(span_4);
-													}
-												}
-
-												_$_.render(
-													(__prev) => {
-														var __a = _$_.fallback(__props.prevLink, null).href;
-
-														if (__prev.a !== __a) {
-															_$_.set_attribute(a_6, 'href', __prev.a = __a);
-														}
-													},
-													{ a: void 0 }
-												);
-
-												_$_.append(__anchor, a_6);
-											};
-
-											var alternate_1 = (__anchor) => {
-												var span_5 = root_72();
-
-												_$_.append(__anchor, span_5);
-											};
-
-											_$_.if(node_47, (__render) => {
-												if (_$_.fallback(__props.prevLink, null)) __render(consequent_14); else __render(alternate_1, false);
-											});
-										}
-
-										var node_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_47.nextSibling;
-
-										{
-											var consequent_15 = (__anchor) => {
-												var a_7 = root_73();
-
-												{
-													var span_6 = _$_.hydrating ? _$_.hydrate_child() : a_7.firstChild;
-
-													{
-														var expression_24 = _$_.hydrating ? _$_.hydrate_child() : span_6.firstChild;
-
-														_$_.expression(expression_24, () => _$_.fallback(__props.nextLink, null).text);
-														_$_.pop(span_6);
-													}
-												}
-
-												_$_.render(
-													(__prev) => {
-														var __a = _$_.fallback(__props.nextLink, null).href;
-
-														if (__prev.a !== __a) {
-															_$_.set_attribute(a_7, 'href', __prev.a = __a);
-														}
-													},
-													{ a: void 0 }
-												);
-
-												_$_.append(__anchor, a_7);
-											};
-
-											_$_.if(node_48, (__render) => {
-												if (_$_.fallback(__props.nextLink, null)) __render(consequent_15);
-											});
-										}
-
-										_$_.pop(nav_4);
-									}
-
-									_$_.append(__anchor, nav_4);
-								};
-
-								_$_.if(node_46, (__render) => {
-									if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_16);
-								});
-							}
+							_$_.if(node_46, if_15, false, __props);
 
 							var node_49 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
@@ -1216,58 +1290,7 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 					{
 						var node_50 = _$_.hydrating ? _$_.hydrate_child() : aside_3.firstChild;
 
-						{
-							var consequent_17 = (__anchor) => {
-								var div_63 = root_74();
-
-								{
-									var nav_5 = _$_.hydrating ? _$_.hydrate_child() : div_63.firstChild;
-
-									{
-										_$_.for(
-											nav_5,
-											() => _$_.fallback(__props.toc, []),
-											(__anchor, item) => {
-												var a_8 = root_75();
-
-												{
-													var expression_25 = _$_.hydrating ? _$_.hydrate_text() : a_8.firstChild;
-												}
-
-												_$_.render(
-													(__prev) => {
-														var __a = item.text;
-
-														if (__prev.a !== __a) {
-															_$_.set_text(expression_25, __prev.a = __a);
-														}
-
-														var __b = item.href;
-
-														if (__prev.b !== __b) {
-															_$_.set_attribute(a_8, 'href', __prev.b = __b);
-														}
-													},
-													{ a: ' ', b: void 0 }
-												);
-
-												_$_.append(__anchor, a_8);
-											},
-											4
-										);
-
-										_$_.pop(nav_5);
-									}
-								}
-
-								_$_.append(__anchor, div_63);
-							};
-
-							_$_.if(node_50, (__render) => {
-								if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_17);
-							});
-						}
-
+						_$_.if(node_50, if_16, false, __props);
 						_$_.pop(aside_3);
 					}
 				}
@@ -1970,17 +1993,7 @@ function InlineArticleLayout({ children }) {
 
 			var node_36 = _$_.hydrating ? _$_.hydrate_sibling() : article_2.nextSibling;
 
-			{
-				var consequent_10 = (__anchor) => {
-					var div_45 = root_58();
-
-					_$_.append(__anchor, div_45);
-				};
-
-				_$_.if(node_36, (__render) => {
-					if (true) __render(consequent_10);
-				});
-			}
+			_$_.if(node_36, if_9);
 
 			var node_37 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_43);
 

@@ -208,6 +208,7 @@ export function props_omit(props, exclude) {
 export function props_spread(...sources) {
 	/** @type {Record<string, any>} */
 	var out = {};
+	var assigned = false;
 	for (var i = 0; i < sources.length; i++) {
 		var source = sources[i];
 		if (source == null) continue;
@@ -217,27 +218,14 @@ export function props_spread(...sources) {
 				out[keys[k]] = /** @type {Record<string, any>} */ (source)[keys[k]];
 			}
 		} else {
-			// Like `{ ...source }`: own enumerable string and symbol keys, read
-			// through getters, defined (not assigned) on the fresh object, which
-			// only matters for a key named `__proto__`.
-			for (var key of Reflect.ownKeys(source)) {
-				var descriptor = get_descriptor(source, key);
-				if (!descriptor?.enumerable) continue;
-				var value = /** @type {Record<PropertyKey, any>} */ (source)[key];
-				if (key === '__proto__') {
-					define_property(out, key, {
-						value,
-						enumerable: true,
-						configurable: true,
-						writable: true,
-					});
-				} else {
-					out[/** @type {string} */ (key)] = value;
-				}
-			}
+			Object.assign(out, source);
+			assigned = true;
 		}
 	}
-	return out;
+	// `Object.assign` sets rather than defines, so a source key named
+	// `__proto__` would have changed the prototype: a final spread copies the
+	// own properties onto a fresh object exactly as `{ ...source }` would.
+	return assigned ? { ...out } : out;
 }
 
 /**

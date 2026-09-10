@@ -3,48 +3,40 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="shown">Visible</div>`, 0);
 
+function consequent(__anchor, show) {
+	var div = root();
+
+	_$_.append(__anchor, div);
+}
+
+function if_1(__render, show) {
+	if (show) __render(consequent);
+}
+
 function IfTruthy_render(__anchor, __block) {
 	const show = true;
 
-	{
-		var consequent = (__anchor) => {
-			var div = root();
-
-			_$_.append(__anchor, div);
-		};
-
-		_$_.if(
-			__anchor,
-			(__render) => {
-				if (show) __render(consequent);
-			},
-			true
-		);
-	}
+	_$_.if(__anchor, if_1, true, show);
 }
 
 IfTruthy.$r = IfTruthy_render;
 
 var root_1 = _$_.template(`<div class="shown">Visible</div>`, 0);
 
+function consequent_1(__anchor, show) {
+	var div_1 = root_1();
+
+	_$_.append(__anchor, div_1);
+}
+
+function if_2(__render, show) {
+	if (show) __render(consequent_1);
+}
+
 function IfFalsy_render(__anchor, __block) {
 	const show = false;
 
-	{
-		var consequent_1 = (__anchor) => {
-			var div_1 = root_1();
-
-			_$_.append(__anchor, div_1);
-		};
-
-		_$_.if(
-			__anchor,
-			(__render) => {
-				if (show) __render(consequent_1);
-			},
-			true
-		);
-	}
+	_$_.if(__anchor, if_2, true, show);
 }
 
 IfFalsy.$r = IfFalsy_render;
@@ -52,35 +44,42 @@ IfFalsy.$r = IfFalsy_render;
 var root_2 = _$_.template(`<div class="logged-in">Welcome back!</div>`, 0);
 var root_3 = _$_.template(`<div class="logged-out">Please log in</div>`, 0);
 
+function consequent_2(__anchor, isLoggedIn) {
+	var div_2 = root_2();
+
+	_$_.append(__anchor, div_2);
+}
+
+function alternate(__anchor, isLoggedIn) {
+	var div_3 = root_3();
+
+	_$_.append(__anchor, div_3);
+}
+
+function if_3(__render, isLoggedIn) {
+	if (isLoggedIn) __render(consequent_2); else __render(alternate, false);
+}
+
 function IfElse_render(__anchor, __block) {
 	const isLoggedIn = true;
 
-	{
-		var consequent_2 = (__anchor) => {
-			var div_2 = root_2();
-
-			_$_.append(__anchor, div_2);
-		};
-
-		var alternate = (__anchor) => {
-			var div_3 = root_3();
-
-			_$_.append(__anchor, div_3);
-		};
-
-		_$_.if(
-			__anchor,
-			(__render) => {
-				if (isLoggedIn) __render(consequent_2); else __render(alternate, false);
-			},
-			true
-		);
-	}
+	_$_.if(__anchor, if_3, true, isLoggedIn);
 }
 
 IfElse.$r = IfElse_render;
 
 var root_6 = _$_.template(`<div class="content">Content visible</div>`, 0);
+
+function consequent_3(__anchor, lazy) {
+	var div_4 = root_6();
+
+	_$_.append(__anchor, div_4);
+}
+
+function if_4(__render, lazy) {
+	if (lazy.value) __render(consequent_3);
+}
+
 var root_5 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_4 = _$_.template(`<!>`, 1, 1);
 
@@ -99,18 +98,7 @@ function ReactiveIf_render(__anchor, __block) {
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
-		{
-			var consequent_3 = (__anchor) => {
-				var div_4 = root_6();
-
-				_$_.append(__anchor, div_4);
-			};
-
-			_$_.if(node, (__render) => {
-				if (lazy.value) __render(consequent_3);
-			});
-		}
-
+		_$_.if(node, if_4, false, lazy);
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -121,6 +109,23 @@ ReactiveIf.$r = ReactiveIf_render;
 
 var root_9 = _$_.template(`<div class="on">ON</div>`, 0);
 var root_10 = _$_.template(`<div class="off">OFF</div>`, 0);
+
+function consequent_4(__anchor, lazy_1) {
+	var div_5 = root_9();
+
+	_$_.append(__anchor, div_5);
+}
+
+function alternate_1(__anchor, lazy_1) {
+	var div_6 = root_10();
+
+	_$_.append(__anchor, div_6);
+}
+
+function if_5(__render, lazy_1) {
+	if (lazy_1.value) __render(consequent_4); else __render(alternate_1, false);
+}
+
 var root_8 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_7 = _$_.template(`<!>`, 1, 1);
 
@@ -139,24 +144,7 @@ function ReactiveIfElse_render(__anchor, __block) {
 
 		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
-		{
-			var consequent_4 = (__anchor) => {
-				var div_5 = root_9();
-
-				_$_.append(__anchor, div_5);
-			};
-
-			var alternate_1 = (__anchor) => {
-				var div_6 = root_10();
-
-				_$_.append(__anchor, div_6);
-			};
-
-			_$_.if(node_2, (__render) => {
-				if (lazy_1.value) __render(consequent_4); else __render(alternate_1, false);
-			});
-		}
-
+		_$_.if(node_2, if_5, false, lazy_1);
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -166,6 +154,17 @@ function ReactiveIfElse_render(__anchor, __block) {
 ReactiveIfElse.$r = ReactiveIfElse_render;
 
 var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
+
+function consequent_5(__anchor, lazy_3) {
+	var span = root_14();
+
+	_$_.append(__anchor, span);
+}
+
+function if_6(__render, lazy_3) {
+	if (lazy_3.value) __render(consequent_5);
+}
+
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
 var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1, 3);
 var root_11 = _$_.template(`<!>`, 1, 1);
@@ -200,18 +199,7 @@ function NestedIf_render(__anchor, __block) {
 					var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 					var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
 
-					{
-						var consequent_5 = (__anchor) => {
-							var span = root_14();
-
-							_$_.append(__anchor, span);
-						};
-
-						_$_.if(node_5, (__render) => {
-							if (lazy_3.value) __render(consequent_5);
-						});
-					}
-
+					_$_.if(node_5, if_6, false, lazy_3);
 					_$_.pop(div_7);
 				}
 
@@ -234,6 +222,29 @@ NestedIf.$r = NestedIf_render;
 var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_17 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_18 = _$_.template(`<div class="state">Error occurred</div>`, 0);
+
+function consequent_7(__anchor, lazy_4) {
+	var div_9 = root_16();
+
+	_$_.append(__anchor, div_9);
+}
+
+function consequent_8(__anchor, lazy_4) {
+	var div_10 = root_17();
+
+	_$_.append(__anchor, div_10);
+}
+
+function alternate_2(__anchor, lazy_4) {
+	var div_11 = root_18();
+
+	_$_.append(__anchor, div_11);
+}
+
+function if_7(__render, lazy_4) {
+	if (lazy_4.value === 'loading') __render(consequent_7); else if (lazy_4.value === 'success') __render(consequent_8, false); else __render(alternate_2, 2);
+}
+
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
 function IfElseIfChain_render(__anchor, __block) {
@@ -261,30 +272,7 @@ function IfElseIfChain_render(__anchor, __block) {
 
 		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
-		{
-			var consequent_7 = (__anchor) => {
-				var div_9 = root_16();
-
-				_$_.append(__anchor, div_9);
-			};
-
-			var consequent_8 = (__anchor) => {
-				var div_10 = root_17();
-
-				_$_.append(__anchor, div_10);
-			};
-
-			var alternate_2 = (__anchor) => {
-				var div_11 = root_18();
-
-				_$_.append(__anchor, div_11);
-			};
-
-			_$_.if(node_7, (__render) => {
-				if (lazy_4.value === 'loading') __render(consequent_7); else if (lazy_4.value === 'success') __render(consequent_8, false); else __render(alternate_2, 2);
-			});
-		}
-
+		_$_.if(node_7, if_7, false, lazy_4);
 		_$_.pop(div_8);
 	}
 

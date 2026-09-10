@@ -1594,13 +1594,13 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['sum', 'pair', 'first'], 7, 4, 0, {");
+		expect(code).toContain("_$_.props_site(['sum', 'pair', 'first'], 7, 3, 0, {");
 		expect(code).toContain(
-			'sum: (__p) => __p[_$_.$0](__p[_$_.$1], () => __p[_$_.$2].map((x) => x + __p[_$_.$3].value))',
+			'sum: (__p) => _$_.with_scope(__p[_$_.$0], () => __p[_$_.$1].map((x) => x + __p[_$_.$2].value))',
 		);
-		expect(code).toContain('pair: (__p) => ({ count: __p[_$_.$3].value, items: __p[_$_.$2] })');
-		expect(code).toContain('first: (__p) => __p[_$_.$2][0]');
-		expect(code).toContain('.C(props_site, _$_.with_scope, __block, items, lazy)');
+		expect(code).toContain('pair: (__p) => ({ count: __p[_$_.$2].value, items: __p[_$_.$1] })');
+		expect(code).toContain('first: (__p) => __p[_$_.$1][0]');
+		expect(code).toContain('.C(props_site, __block, items, lazy)');
 	});
 
 	it('references module-level bindings directly from reactive props', () => {

@@ -25,6 +25,17 @@ function TestIfWithChildren_render(__anchor, __block) {
 TestIfWithChildren.$r = TestIfWithChildren_render;
 
 var root_5 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
+
+function consequent_1(__anchor, lazy_1) {
+	var div_6 = root_5();
+
+	_$_.append(__anchor, div_6);
+}
+
+function if_1(__render, lazy_1) {
+	if (lazy_1.value) __render(consequent_1);
+}
+
 var root_4 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 
 function IfWithStaticChildren_render(__anchor, __block) {
@@ -38,18 +49,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
-		{
-			var consequent_1 = (__anchor) => {
-				var div_6 = root_5();
-
-				_$_.append(__anchor, div_6);
-			};
-
-			_$_.if(node_3, (__render) => {
-				if (lazy_1.value) __render(consequent_1);
-			});
-		}
-
+		_$_.if(node_3, if_1, false, lazy_1);
 		_$_.pop(div_4);
 	}
 
@@ -81,6 +81,17 @@ function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
 TestIfWithSiblingsAndChildren.$r = TestIfWithSiblingsAndChildren_render;
 
 var root_11 = _$_.template(`<div class="conditional">Conditional content</div>`, 0);
+
+function consequent_3(__anchor, lazy_3) {
+	var div_11 = root_11();
+
+	_$_.append(__anchor, div_11);
+}
+
+function if_2(__render, lazy_3) {
+	if (lazy_3.value) __render(consequent_3);
+}
+
 var root_10 = _$_.template(`<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!></div><button class="toggle">Toggle</button>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
 
@@ -97,18 +108,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 			var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
-			{
-				var consequent_3 = (__anchor) => {
-					var div_11 = root_11();
-
-					_$_.append(__anchor, div_11);
-				};
-
-				_$_.if(node_7, (__render) => {
-					if (lazy_3.value) __render(consequent_3);
-				});
-			}
-
+			_$_.if(node_7, if_2, false, lazy_3);
 			_$_.pop(div_10);
 		}
 
@@ -124,6 +124,17 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 ElementWithChildrenThenIf.$r = ElementWithChildrenThenIf_render;
 
 var root_14 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
+
+function consequent_4(__anchor, lazy_4) {
+	var footer = root_14();
+
+	_$_.append(__anchor, footer);
+}
+
+function if_3(__render, lazy_4) {
+	if (lazy_4.value) __render(consequent_4);
+}
+
 var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!></section><button class="btn">Toggle</button>`, 1, 2);
 var root_12 = _$_.template(`<!>`, 1, 1);
 
@@ -140,18 +151,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 			var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
 			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
-			{
-				var consequent_4 = (__anchor) => {
-					var footer = root_14();
-
-					_$_.append(__anchor, footer);
-				};
-
-				_$_.if(node_9, (__render) => {
-					if (lazy_4.value) __render(consequent_4);
-				});
-			}
-
+			_$_.if(node_9, if_3, false, lazy_4);
 			_$_.pop(section_1);
 		}
 
@@ -168,6 +168,23 @@ DeepNestingThenIf.$r = DeepNestingThenIf_render;
 
 var root_16 = _$_.template(`<pre class="code">const x = 1;</pre>`, 0);
 var root_17 = _$_.template(`<div class="preview">Preview content</div>`, 0);
+
+function consequent_5(__anchor, lazy_5) {
+	var pre = root_16();
+
+	_$_.append(__anchor, pre);
+}
+
+function alternate(__anchor, lazy_5) {
+	var div_15 = root_17();
+
+	_$_.append(__anchor, div_15);
+}
+
+function if_4(__render, lazy_5) {
+	if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
+}
+
 var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 0);
 
 function DomElementChildrenThenSibling_render(__anchor, __block) {
@@ -194,24 +211,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 		{
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
-			{
-				var consequent_5 = (__anchor) => {
-					var pre = root_16();
-
-					_$_.append(__anchor, pre);
-				};
-
-				var alternate = (__anchor) => {
-					var div_15 = root_17();
-
-					_$_.append(__anchor, div_15);
-				};
-
-				_$_.if(node_11, (__render) => {
-					if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
-				});
-			}
-
+			_$_.if(node_11, if_4, false, lazy_5);
 			_$_.pop(div_14);
 		}
 	}
@@ -302,28 +302,24 @@ StaticListThenStaticSiblings.$r = StaticListThenStaticSiblings_render;
 var root_21 = _$_.template(`<span class="root-if">on</span>`, 0);
 var root_22 = _$_.template(`<span class="root-if">off</span>`, 0);
 
+function consequent_6(__anchor, props) {
+	var span = root_21();
+
+	_$_.append(__anchor, span);
+}
+
+function alternate_1(__anchor, props) {
+	var span_1 = root_22();
+
+	_$_.append(__anchor, span_1);
+}
+
+function if_5(__render, props) {
+	if (props.on) __render(consequent_6); else __render(alternate_1, false);
+}
+
 function RootIfChild_render(__anchor, __block, props) {
-	{
-		var consequent_6 = (__anchor) => {
-			var span = root_21();
-
-			_$_.append(__anchor, span);
-		};
-
-		var alternate_1 = (__anchor) => {
-			var span_1 = root_22();
-
-			_$_.append(__anchor, span_1);
-		};
-
-		_$_.if(
-			__anchor,
-			(__render) => {
-				if (props.on) __render(consequent_6); else __render(alternate_1, false);
-			},
-			true
-		);
-	}
+	_$_.if(__anchor, if_5, true, props);
 }
 
 RootIfChild.$r = RootIfChild_render;

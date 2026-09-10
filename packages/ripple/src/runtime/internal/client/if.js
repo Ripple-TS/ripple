@@ -37,7 +37,8 @@ import { append } from './template.js';
  *   start: Node | null;
  *   end: Node | null;
  *   a: Node | AppendIntoAnchor;
- *   fn: (set_branch: (fn: (anchor: Node) => void, flag?: boolean) => void) => void;
+ *   fn: (set_branch: (fn: (anchor: Node, x: any) => void, flag?: boolean) => void, x: any) => void;
+ *   x: any;
  *   c: any;
  *   h: boolean;
  *   o: Block | null;
@@ -51,7 +52,7 @@ var active_if = null;
 /**
  * The branch a condition selected while probed (see `if_block`): consumed by
  * the static path, or by the block's first `run_if` right after creation.
- * @type {((anchor: Node) => void) | null}
+ * @type {((anchor: Node, x: any) => void) | null}
  */
 var probed_fn = null;
 /** @type {any} */
@@ -60,7 +61,7 @@ var probed_flag = UNINITIALIZED;
 var probed = false;
 
 /**
- * @param {(anchor: Node) => void} fn
+ * @param {(anchor: Node, x: any) => void} fn
  * @param {boolean} [flag]
  */
 function probe_branch(fn, flag = true) {
@@ -171,7 +172,7 @@ function materialize_anchor(state, block) {
 /**
  * @param {IfState} state
  * @param {any} condition
- * @param {((anchor: Node) => void) | null} fn
+ * @param {((anchor: Node, x: any) => void) | null} fn
  */
 function update_branch(state, condition, fn) {
 	var previous = state.c;
@@ -190,7 +191,7 @@ function update_branch(state, condition, fn) {
 	var o = state.o;
 
 	if (fn !== null) {
-		run_untracked(fn, /** @type {Node} */ (state.a));
+		run_untracked(fn, /** @type {Node} */ (state.a), state.x);
 
 		if (o !== null) {
 			move_block_last(o);
@@ -207,7 +208,7 @@ function update_branch(state, condition, fn) {
 }
 
 /**
- * @param {(anchor: Node) => void} fn
+ * @param {(anchor: Node, x: any) => void} fn
  * @param {boolean} [flag]
  */
 function set_branch(fn, flag = true) {
@@ -235,7 +236,7 @@ function run_if(state) {
 	// nothing needs the outer value restored afterwards.
 	active_if = state;
 	state.h = false;
-	state.fn(set_branch);
+	state.fn(set_branch, state.x);
 	if (!state.h) {
 		update_branch(state, null, null);
 	}
@@ -245,15 +246,18 @@ function run_if(state) {
  * State lives on the block instead of per-if closures.
  * @param {Node | AppendIntoAnchor} anchor
  * @param {IfState['fn']} fn
+ * @param {any} x
  * @returns {IfState}
  */
-function if_block_state(anchor, fn) {
+function if_block_state(anchor, fn, x) {
 	return {
 		// DOM range of the current branch
 		start: null,
 		end: null,
 		a: anchor,
 		fn,
+		// the captured local a hoisted condition and its branches receive
+		x,
 		// last condition
 		c: UNINITIALIZED,
 		// whether a branch was selected during the current run
@@ -265,7 +269,7 @@ function if_block_state(anchor, fn) {
 
 /**
  * @param {Node | AppendIntoAnchor} node
- * @param {(set_branch: (fn: (anchor: Node) => void, flag?: boolean) => void) => void} fn
+ * @param {IfState['fn']} fn
  * @param {boolean} [root_controlled] When true the block renders directly before
  *   the component's `__anchor` (no synthesized `<!>` wrapper), which may be an
  *   append-into sentinel: branches then append into the parent until the if
@@ -273,9 +277,11 @@ function if_block_state(anchor, fn) {
  *   the SSR boundary start marker sits at the cursor; we hand it to `append()`
  *   afterwards so it performs the same context-aware boundary advance the
  *   eliminated wrapper's `append()` used to do.
+ * @param {any} [x] The one local a hoisted condition and its branches capture,
+ *   passed to them as their second argument (see the compiler's if lowering).
  * @returns {void}
  */
-export function if_block(node, fn, root_controlled) {
+export function if_block(node, fn, root_controlled, x) {
 	/** @type {Node | undefined} */
 	var boundary;
 	var anchor = node;
@@ -290,24 +296,24 @@ export function if_block(node, fn, root_controlled) {
 		/** @type {import('#client').Dependency | null} */
 		var dependencies;
 		try {
-			dependencies = probe_dependencies(fn, probe_branch);
+			dependencies = probe_dependencies(fn, probe_branch, x);
 		} catch {
 			// A condition that throws (a pending async read) is the block's to
 			// handle: create it and let its first run evaluate the condition.
-			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 			return;
 		}
 		if (dependencies === null) {
 			var selected = probed_fn;
 			probed_fn = null;
 			if (selected !== null) {
-				run_untracked(selected, /** @type {Node} */ (node));
+				run_untracked(selected, /** @type {Node} */ (node), x);
 			}
 			return;
 		}
 		// Dynamic: the block adopts the probe's dependencies and its first run
 		// applies the branch the probe selected.
-		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 		probed = true;
 		run_block(if_block, true);
 		if_block.f ^= BLOCK_HAS_RUN;
@@ -322,7 +328,7 @@ export function if_block(node, fn, root_controlled) {
 	}
 	hydrate_next();
 
-	block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn));
+	block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 
 	if (root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

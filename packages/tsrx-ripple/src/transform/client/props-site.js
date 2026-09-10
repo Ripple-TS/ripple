@@ -292,8 +292,9 @@ function scan(node, references, shadowed) {
  * @returns {'direct' | 'capture' | 'bail'}
  */
 function classify(name, scope) {
-	// The runtime namespace import is module-level by construction.
-	if (name === '_$_') return 'direct';
+	// The runtime namespace import is module-level by construction; the
+	// builders spell a namespace member as one dotted identifier.
+	if (name === '_$_' || name.startsWith('_$_.')) return 'direct';
 
 	/** @type {ScopeInterface | null} */
 	let current = scope;
@@ -302,7 +303,9 @@ function classify(name, scope) {
 		const binding = current.declarations.get(name);
 		if (binding !== undefined) {
 			if (current.function_depth === 0) return 'direct';
-			return binding.reassigned || binding.updated ? 'bail' : 'capture';
+			// A capture is passed by value: fine unless the binding is rebound
+			// later (mutating the object it holds does not change its identity).
+			return binding.reassigned ? 'bail' : 'capture';
 		}
 		// A name the transform generated (`lazy`, `consequent`, template ids) is
 		// registered as a reference without any referencing node.
@@ -470,6 +473,62 @@ function is_static_shape(node, scope, component, captures) {
 	}
 }
 
+/** Names of the module-level declarations emitted so far, per `hoisted` list. */
+/** @type {WeakMap<AST.Statement[], Set<string>>} */
+const hoisted_names = new WeakMap();
+
+/**
+ * Records a name declared at module level by the transform, so the capture
+ * analysis references it directly instead of capturing it.
+ * @param {AST.Statement[]} hoisted
+ * @param {string} name
+ */
+export function register_hoisted(hoisted, name) {
+	let names = hoisted_names.get(hoisted);
+	if (names === undefined) {
+		names = new Set();
+		hoisted_names.set(hoisted, names);
+	}
+	names.add(name);
+}
+
+/**
+ * @param {AST.Statement[]} hoisted
+ * @param {string} name
+ * @returns {boolean}
+ */
+export function is_hoisted(hoisted, name) {
+	return hoisted_names.get(hoisted)?.has(name) === true;
+}
+
+/**
+ * The locals a set of compiled functions would have to capture to live at
+ * module level, or null when one of them cannot (it reads a reassigned local,
+ * `this`, `arguments` or a class).
+ * @param {AST.Function[]} functions
+ * @param {ScopeInterface} scope
+ * @param {AST.Statement[]} hoisted
+ * @param {Iterable<string>} [own] names the functions define among themselves
+ * @returns {string[] | null}
+ */
+export function captured_locals(functions, scope, hoisted, own = []) {
+	/** @type {Set<string>} */
+	const references = new Set();
+	for (const fn of functions) {
+		if (!scan(fn, references, new Set())) return null;
+	}
+	const owned = new Set(own);
+	/** @type {string[]} */
+	const captures = [];
+	for (const name of references) {
+		if (owned.has(name) || is_hoisted(hoisted, name)) continue;
+		const kind = classify(name, scope);
+		if (kind === 'bail') return null;
+		if (kind === 'capture') captures.push(name);
+	}
+	return captures;
+}
+
 /**
  * @param {AST.Property['key']} key
  * @returns {string | null}
@@ -541,6 +600,7 @@ export function build_props_site(props, scope, hoisted, component) {
 	/** @type {Map<string, number>} */
 	const captures = new Map();
 	for (const name of references) {
+		if (is_hoisted(hoisted, name)) continue;
 		const kind = classify(name, scope);
 		if (kind === 'bail') return null;
 		if (kind === 'capture') captures.set(name, captures.size);
@@ -564,6 +624,7 @@ export function build_props_site(props, scope, hoisted, component) {
 
 	const site_id = b.id(scope.generate('props_site'));
 	hoisted.push(b.var(site_id));
+	register_hoisted(hoisted, site_id.name);
 
 	const site = b.object([
 		b.prop('init', b.id('C'), b.literal(null)),

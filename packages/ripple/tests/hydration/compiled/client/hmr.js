@@ -3,6 +3,17 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 0);
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
+
+function consequent(__anchor, lazy) {
+	var p = root_2();
+
+	_$_.append(__anchor, p);
+}
+
+function if_1(__render, lazy) {
+	if (lazy.value) __render(consequent);
+}
+
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 
 function Content_render(__anchor, __block) {
@@ -12,18 +23,7 @@ function Content_render(__anchor, __block) {
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
-		{
-			var consequent = (__anchor) => {
-				var p = root_2();
-
-				_$_.append(__anchor, p);
-			};
-
-			_$_.if(node, (__render) => {
-				if (lazy.value) __render(consequent);
-			});
-		}
-
+		_$_.if(node, if_1, false, lazy);
 		_$_.pop(div_1);
 	}
 

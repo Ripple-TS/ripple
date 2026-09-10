@@ -24,7 +24,7 @@
 */
 
 import { walk } from 'zimmerframe';
-import { build_props_site } from './props-site.js';
+import { build_props_site, captured_locals, register_hoisted } from './props-site.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -242,6 +242,7 @@ function add_type_only_style_anchor(node, context) {
 
 	const anchor_id = b.id(context.state.scope.generate('style_anchor'));
 	context.state.hoisted.push(b.const(anchor_id, style_anchor), b.stmt(b.id(anchor_id.name)));
+	register_hoisted(context.state.hoisted, anchor_id.name);
 }
 
 /**
@@ -774,6 +775,7 @@ function transform_native_tsrx_function(node, context) {
 		// module bindings, so it is a module-level function that receives the
 		// props from the element instead of a closure created per instantiation.
 		const render_id = b.id(context.state.scope.generate(node_id.name + '_render'));
+		register_hoisted(context.state.hoisted, render_id.name);
 		const render_params = [b.id('__anchor'), b.id('__block')];
 		if (node.params.length === 1) {
 			render_params.push(/** @type {AST.Identifier} */ (props));
@@ -1627,6 +1629,8 @@ const visit_if_statement = (node, context) => {
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
 	/** @type {AST.Statement[]} */
 	const statements = [];
+	/** @type {{ id: AST.Identifier; body: AST.BlockStatement }[]} */
+	const branches = [];
 	let branch_count = 0;
 
 	/**
@@ -1647,7 +1651,7 @@ const visit_if_statement = (node, context) => {
 			}),
 		);
 		const branch_id = context.state.scope.generate(name);
-		statements.push(b.var(b.id(branch_id), b.arrow([b.id('__anchor')], block)));
+		branches.push({ id: b.id(branch_id), body: block });
 		const index = branch_count++;
 		return b.stmt(
 			b.call(
@@ -1701,14 +1705,59 @@ const visit_if_statement = (node, context) => {
 		);
 	};
 
-	const callback = lower_chain(node, context.state.scope);
+	const callback = b.block([lower_chain(node, context.state.scope)]);
 
+	// The condition and its branches live at module level when they capture at
+	// most one local, which the runtime hands them as a second argument: no
+	// closures are created per instantiation of the enclosing component.
+	const hoisted = context.state.hoisted;
+	const captures = captured_locals(
+		[
+			b.arrow([b.id('__render')], callback),
+			...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body)),
+		],
+		context.state.scope,
+		hoisted,
+		branches.map((branch) => branch.id.name),
+	);
+
+	if (captures !== null && captures.length <= 1) {
+		const context_params = captures.map((name) => b.id(name));
+		const if_id = b.id(context.state.scope.generate('if'));
+		for (const branch of branches) {
+			hoisted.push(
+				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+			);
+			register_hoisted(hoisted, branch.id.name);
+		}
+		hoisted.push(b.function_declaration(if_id, [b.id('__render'), ...context_params], callback));
+		register_hoisted(hoisted, if_id.name);
+		context.state.init?.push(
+			b.stmt(
+				b.call(
+					'_$_.if',
+					id,
+					if_id,
+					...(captures.length === 1
+						? [b.literal(root_controlled), b.id(captures[0])]
+						: root_controlled
+							? [b.true]
+							: []),
+				),
+			),
+		);
+		return;
+	}
+
+	for (const branch of branches) {
+		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+	}
 	statements.push(
 		b.stmt(
 			b.call(
 				'_$_.if',
 				id,
-				b.arrow([b.id('__render')], b.block([callback])),
+				b.arrow([b.id('__render')], callback),
 				root_controlled ? b.true : undefined,
 			),
 		),
@@ -6588,6 +6637,7 @@ function transform_children(children, context) {
 		}
 
 		state.hoisted.push(b.var(template_id, b.call('_$_.template', ...template_args)));
+		register_hoisted(state.hoisted, template_id);
 	}
 }
 
@@ -6618,6 +6668,7 @@ function create_continue_skip_statements(state, source_node) {
 	state.hoisted.push(
 		b.var(template_id, b.call('_$_.template', join_template(['<!>']), b.literal(0))),
 	);
+	register_hoisted(state.hoisted, template_id);
 
 	return [
 		b.var(node_id, b.call(template_id)),

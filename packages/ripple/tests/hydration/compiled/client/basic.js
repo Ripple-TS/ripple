@@ -672,10 +672,10 @@ function TextPropWithToggle_render(__anchor, __block) {
 		var fragment_22 = root_55();
 		var node_13 = _$_.first_child_frag(fragment_22);
 
-		_$_.render_component(TextProp, node_13, new (props_site ??= _$_.props_site(['children'], 1, 2, 0, {
+		_$_.render_component(TextProp, node_13, new (props_site ??= _$_.props_site(['children'], 1, 1, 0, {
 			C: null,
-			children: (__p) => __p[_$_.$0](__p[_$_.$1].value ? 'hello' : '')
-		})).C(props_site, _$_.normalize_children, lazy_1));
+			children: (__p) => _$_.normalize_children(__p[_$_.$0].value ? 'hello' : '')
+		})).C(props_site, lazy_1));
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : node_13.nextSibling;
 
@@ -701,10 +701,10 @@ function TypedTextPropWithToggle_render(__anchor, __block) {
 		var fragment_24 = root_57();
 		var node_15 = _$_.first_child_frag(fragment_24);
 
-		_$_.render_component(TypedTextProp, node_15, new (props_site_1 ??= _$_.props_site(['children'], 1, 2, 0, {
+		_$_.render_component(TypedTextProp, node_15, new (props_site_1 ??= _$_.props_site(['children'], 1, 1, 0, {
 			C: null,
-			children: (__p) => __p[_$_.$0](__p[_$_.$1].value ? 'hello' : '')
-		})).C(props_site_1, _$_.normalize_children, lazy_2));
+			children: (__p) => _$_.normalize_children(__p[_$_.$0].value ? 'hello' : '')
+		})).C(props_site_1, lazy_2));
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_15.nextSibling;
 

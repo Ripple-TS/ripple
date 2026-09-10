@@ -56,7 +56,29 @@ IfFragmentForElement.$r = IfFragmentForElement_render;
 
 var root_5 = _$_.template(`<p class="muze"> </p>`, 0);
 var root_6 = _$_.template(`<span class="has-items">has items</span>`, 0);
+
+function consequent_1(__anchor, muzes) {
+	var span = root_6();
+
+	_$_.append(__anchor, span);
+}
+
+function if_1(__render, muzes) {
+	if (muzes.length > 0) __render(consequent_1);
+}
+
 var root_7 = _$_.template(`<span class="empty">empty</span>`, 0);
+
+function consequent_2(__anchor, muzes) {
+	var span_1 = root_7();
+
+	_$_.append(__anchor, span_1);
+}
+
+function if_2(__render, muzes) {
+	if (muzes.length === 0) __render(consequent_2);
+}
+
 var root_4 = _$_.template(`<!><!><!>`, 1, 3);
 var root_3 = _$_.template(`<div class="feed"><!></div>`, 0);
 
@@ -94,32 +116,11 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 
 				var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
 
-				{
-					var consequent_1 = (__anchor) => {
-						var span = root_6();
-
-						_$_.append(__anchor, span);
-					};
-
-					_$_.if(node_4, (__render) => {
-						if (muzes.length > 0) __render(consequent_1);
-					});
-				}
+				_$_.if(node_4, if_1, false, muzes);
 
 				var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_4.nextSibling;
 
-				{
-					var consequent_2 = (__anchor) => {
-						var span_1 = root_7();
-
-						_$_.append(__anchor, span_1);
-					};
-
-					_$_.if(node_5, (__render) => {
-						if (muzes.length === 0) __render(consequent_2);
-					});
-				}
-
+				_$_.if(node_5, if_2, false, muzes);
 				_$_.append(__anchor, fragment_1);
 			};
 
@@ -137,6 +138,18 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 IfFragmentForIfIf.$r = IfFragmentForIfIf_render;
 
 var root_9 = _$_.template(`<p class="muze">b</p><p class="muze">c</p>`, 1, 2);
+
+function consequent_4(__anchor, hasLoaded) {
+	var fragment_2 = root_9();
+
+	_$_.next();
+	_$_.append(__anchor, fragment_2);
+}
+
+function if_3(__render, hasLoaded) {
+	if (hasLoaded) __render(consequent_4);
+}
+
 var root_8 = _$_.template(`<div class="feed-b"><!></div>`, 0);
 
 function IfFragmentElements_render(__anchor, __block) {
@@ -146,19 +159,7 @@ function IfFragmentElements_render(__anchor, __block) {
 	{
 		var node_6 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
-		{
-			var consequent_4 = (__anchor) => {
-				var fragment_2 = root_9();
-
-				_$_.next();
-				_$_.append(__anchor, fragment_2);
-			};
-
-			_$_.if(node_6, (__render) => {
-				if (hasLoaded) __render(consequent_4);
-			});
-		}
-
+		_$_.if(node_6, if_3, false, hasLoaded);
 		_$_.pop(div_2);
 	}
 

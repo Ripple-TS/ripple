@@ -2085,11 +2085,12 @@ var probe_reaction = { f: DESTROYED, d: null, blocks: null };
  * Runs `fn(arg)` tracked against a scratch reaction and returns the head of
  * the dependency chain it recorded, or null when it read no tracked state. A
  * chain must be handed to a block with `adopt_dependencies`.
- * @param {(arg: any) => void} fn
+ * @param {(arg: any, context: any) => void} fn
  * @param {any} arg
+ * @param {any} [context] a second argument for `fn` (a hoisted branch's captured local)
  * @returns {Dependency | null}
  */
-export function probe_dependencies(fn, arg) {
+export function probe_dependencies(fn, arg, context) {
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
@@ -2097,7 +2098,7 @@ export function probe_dependencies(fn, arg) {
 	tracking = true;
 	active_dependency = null;
 	try {
-		fn(arg);
+		fn(arg, context);
 		return active_dependency;
 	} catch (error) {
 		// The caller creates its block and runs it normally, which throws again
@@ -2135,13 +2136,14 @@ export function adopt_dependencies(block, head) {
 /**
  * Calls `fn(arg)` with tracking off, so reads inside it subscribe nothing.
  * `tracking` is restored by the enclosing `run_block` if `fn` throws.
- * @param {(arg: any) => void} fn
+ * @param {(arg: any, context: any) => void} fn
  * @param {any} arg
+ * @param {any} [context]
  */
-export function run_untracked(fn, arg) {
+export function run_untracked(fn, arg, context) {
 	var previous_tracking = tracking;
 	tracking = false;
-	fn(arg);
+	fn(arg, context);
 	tracking = previous_tracking;
 }
 

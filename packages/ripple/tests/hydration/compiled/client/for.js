@@ -1226,11 +1226,11 @@ function ForLoopItemState_render(__anchor, __block) {
 			div_15,
 			() => initialItems,
 			(__anchor, pattern_7) => {
-				_$_.render_component(TodoItem, __anchor, new (props_site ??= _$_.props_site(['id', 'text'], 3, 2, 0, {
+				_$_.render_component(TodoItem, __anchor, new (props_site ??= _$_.props_site(['id', 'text'], 3, 1, 0, {
 					C: null,
-					id: (__p) => __p[_$_.$0](__p[_$_.$1]).id,
-					text: (__p) => __p[_$_.$0](__p[_$_.$1]).text
-				})).C(props_site, _$_.get, pattern_7));
+					id: (__p) => _$_.get(__p[_$_.$0]).id,
+					text: (__p) => _$_.get(__p[_$_.$0]).text
+				})).C(props_site, pattern_7));
 			},
 			4,
 			(pattern_7) => _$_.get(pattern_7).id
