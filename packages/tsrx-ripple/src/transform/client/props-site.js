@@ -4,6 +4,7 @@
  */
 
 import { builders as b } from '@tsrx/core';
+import { is_boxed } from '../../utils.js';
 
 /**
  * Lowers the props of a component call site to a compiled props class (see
@@ -305,7 +306,8 @@ function classify(name, scope) {
 			if (current.function_depth === 0) return 'direct';
 			// A capture is passed by value: fine unless the binding is rebound
 			// later (mutating the object it holds does not change its identity).
-			return binding.reassigned ? 'bail' : 'capture';
+			// A rebound binding the analyzer boxed is captured as its box.
+			return binding.reassigned && !is_boxed(binding) ? 'bail' : 'capture';
 		}
 		// A name the transform generated (`lazy`, `consequent`, template ids) is
 		// registered as a reference without any referencing node.

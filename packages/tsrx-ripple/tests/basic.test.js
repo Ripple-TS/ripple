@@ -1564,7 +1564,7 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).toContain('_$_.render_component(Some, __anchor, { tracked: lazy });');
 	});
 
-	it('keeps the object literal when a reactive prop reads a reassigned local', () => {
+	it('boxes a reassigned local that a reactive prop reads', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
@@ -1577,9 +1577,45 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return n + lazy.value;');
-		expect(code).not.toContain('props_site');
+		// The box keeps the getter's read of `n` current after `bump()`.
+		expect(code).toContain('let n = { v: 0 };');
+		expect(code).toContain('n.v++;');
+		expect(code).toContain('prop: (__p) => __p[_$_.$0].v + __p[_$_.$1].value');
+		expect(code).toContain('.C(props_site, n, lazy, bump)');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('boxes only reassigned locals that template code reads', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test(props) @{
+				let &[count] = track(0);
+				let stable = 'a';
+				let hidden = 'b';
+				let { first, second = 'two' } = props;
+				const bump = () => { hidden = 'c'; first = 'renamed'; };
+				const peek = () => hidden;
+				<>
+					<Some prop={stable + count} />
+					<Some prop={first + second + count} onBump={bump} onPeek={peek} />
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		// Never reassigned: captured by value as is.
+		expect(code).toContain("let stable = 'a';");
+		// Reassigned but read only outside template code: left alone.
+		expect(code).toContain("let hidden = 'b';");
+		expect(code).toContain("hidden = 'c';");
+		expect(code).toContain('const peek = () => hidden;');
+		// A flat pattern expands so the rebound name gets its own box.
+		expect(code).toContain('let init = props,');
+		expect(code).toContain('first = { v: init.first },');
+		expect(code).toContain("second = init.second === void 0 ? 'two' : init.second;");
+		expect(code).toContain("first.v = 'renamed';");
+		expect(code).toContain('__p[_$_.$0].v + __p[_$_.$1] + __p[_$_.$2].value');
 	});
 
 	it('captures the locals of reactive props once and leaves nested parameters alone', () => {

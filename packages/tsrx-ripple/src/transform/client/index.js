@@ -87,6 +87,7 @@ import {
 	get_ripple_namespace_call_name,
 	is_ripple_import,
 	is_context_method_call,
+	is_boxed,
 	sole_template_if,
 	is_template_if,
 	is_ripple_portal,
@@ -624,6 +625,71 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 		);
 	}
 	return null;
+}
+
+/**
+ * A boxed `let` (see `box_declarator` in the analyzer): the variable holds a
+ * `{ v }` box so module-level code the transform hoists can capture it and
+ * still read its current value; every read and write goes through `.v`.
+ * @param {AST.VariableDeclarator} declarator the visited declarator
+ * @returns {AST.VariableDeclarator}
+ */
+function box_declarator(declarator) {
+	return {
+		...declarator,
+		init: b.object([b.prop('init', b.id('v'), declarator.init ?? b.void0)]),
+	};
+}
+
+/**
+ * Expands a flat `let` pattern with boxed names into one declarator per name:
+ * `let { a, b = 1 } = obj` where `a` is boxed becomes
+ * `let init = obj, a = { v: init.a }, b = init.b === undefined ? 1 : init.b`.
+ * Reads happen in source order, so getters on the source fire as before.
+ * @param {AST.VariableDeclarator} declarator the visited declarator
+ * @param {TransformClientContext} context
+ * @returns {AST.VariableDeclarator[]}
+ */
+function expand_boxed_pattern(declarator, context) {
+	const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (declarator.id);
+	const source = b.id(context.state.scope.generate('init'));
+	/** @type {AST.VariableDeclarator[]} */
+	const declarators = [b.declarator(source, declarator.init ?? b.void0)];
+	const elements = pattern.type === 'ObjectPattern' ? pattern.properties : pattern.elements;
+
+	for (let index = 0; index < elements.length; index++) {
+		const element = elements[index];
+		if (element === null) continue;
+		/** @type {AST.Expression} */
+		let read;
+		/** @type {AST.Pattern} */
+		let target;
+		if (element.type === 'Property') {
+			read = b.member(
+				source,
+				/** @type {AST.Expression} */ (element.key),
+				element.computed || element.key.type !== 'Identifier',
+			);
+			target = /** @type {AST.Pattern} */ (element.value);
+		} else {
+			read = b.member(source, b.literal(index), true);
+			target = /** @type {AST.Pattern} */ (element);
+		}
+		/** @type {AST.Identifier} */
+		let name;
+		if (target.type === 'AssignmentPattern') {
+			name = /** @type {AST.Identifier} */ (target.left);
+			read = b.conditional(b.binary('===', read, b.void0), target.right, read);
+		} else {
+			name = /** @type {AST.Identifier} */ (target);
+		}
+		const binding = context.state.scope.get(name.name);
+		declarators.push(
+			b.declarator(name, is_boxed(binding) ? b.object([b.prop('init', b.id('v'), read)]) : read),
+		);
+	}
+
+	return declarators;
 }
 
 /**
@@ -2814,9 +2880,21 @@ const visitors = {
 
 		return {
 			...node,
-			declarations: declarations.map(
-				(declarator) => /** @type {AST.VariableDeclarator} */ (context.visit(declarator)),
-			),
+			declarations: declarations.flatMap((declarator) => {
+				const visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
+				// `boxed` / `boxed_pattern` are set by the analyzer's `box_declarator`.
+				const metadata = /** @type {any} */ (declarator.metadata);
+				if (context.state.to_ts || !metadata) {
+					return [visited];
+				}
+				if (metadata.boxed) {
+					return [box_declarator(visited)];
+				}
+				if (metadata.boxed_pattern) {
+					return expand_boxed_pattern(visited, context);
+				}
+				return [visited];
+			}),
 		};
 	},
 

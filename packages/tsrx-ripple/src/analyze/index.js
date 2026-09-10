@@ -1638,6 +1638,117 @@ const visit_try_statement = (node, context) => {
 	}
 };
 
+/**
+ * Whether a binding declared with `let` in a component must be boxed: it is
+ * reassigned later and read from template code, which the client transform
+ * hoists into module-level functions (props getters, `@if` conditions and
+ * branches, render blocks). A hoisted function captures locals by value, so
+ * such a variable is compiled to a `{ v }` box whose identity is stable and
+ * whose current value every read sees. Bindings only rebound through a
+ * destructuring assignment are left alone (the closure form stays correct).
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function needs_box(binding) {
+	if (
+		!binding.reassigned ||
+		binding.transform !== undefined ||
+		binding.scope.function_depth === 0
+	) {
+		return false;
+	}
+	let template_read = false;
+	for (const { node, path } of binding.references) {
+		if (node === binding.node) continue;
+		const parent = path.at(-1);
+		if (
+			parent !== undefined &&
+			(parent.type === 'ArrayPattern' ||
+				parent.type === 'ObjectPattern' ||
+				parent.type === 'RestElement' ||
+				parent.type === 'AssignmentPattern' ||
+				(parent.type === 'Property' && path.at(-2)?.type === 'ObjectPattern'))
+		) {
+			return false;
+		}
+		if (
+			!template_read &&
+			path.some((ancestor) => ancestor.type.startsWith('JSX') && ancestor.type !== 'JSXCodeBlock')
+		) {
+			template_read = true;
+		}
+	}
+	return template_read;
+}
+
+/**
+ * @param {Binding} binding
+ */
+function box_binding(binding) {
+	binding.metadata = /** @type {any} */ ({ ...binding.metadata, boxed: true });
+	binding.transform = {
+		read: (node) => b.member(node ?? b.id(binding.node.name), b.id('v')),
+		assign: (node, value) => b.assignment('=', b.member(node, b.id('v')), value),
+		update: (node) => ({ ...node, argument: b.member(node.argument, b.id('v')) }),
+	};
+}
+
+/**
+ * Boxes the rebound, template-read bindings a `let` declarator introduces.
+ * A plain identifier is boxed in place; a flat object or array pattern (plain
+ * names, optional defaults, no nesting or rest) is expanded by the client
+ * transform so each boxed name gets its own box. Records the decision on the
+ * declarator's metadata.
+ * @param {AST.VariableDeclarator} declarator
+ * @param {AnalysisContext} context
+ * @param {Record<string, any>} metadata
+ */
+function box_declarator(declarator, context, metadata) {
+	const { scope } = context.state;
+	const id = declarator.id;
+
+	if (id.type === 'Identifier') {
+		const binding = scope.get(id.name);
+		if (binding !== null && binding.node === id && needs_box(binding)) {
+			box_binding(binding);
+			metadata.boxed = true;
+		}
+		return;
+	}
+
+	if ((id.type !== 'ObjectPattern' && id.type !== 'ArrayPattern') || id.lazy) {
+		return;
+	}
+
+	/** @type {AST.Identifier[]} */
+	const names = [];
+	const elements = id.type === 'ObjectPattern' ? id.properties : id.elements;
+	for (const element of elements) {
+		if (element === null) continue;
+		if (element.type === 'RestElement') return;
+		const target = element.type === 'Property' ? element.value : element;
+		if (target.type === 'Identifier') {
+			names.push(target);
+		} else if (target.type === 'AssignmentPattern' && target.left.type === 'Identifier') {
+			names.push(target.left);
+		} else {
+			return;
+		}
+	}
+
+	let boxed = false;
+	for (const name of names) {
+		const binding = scope.get(name.name);
+		if (binding !== null && binding.node === name && needs_box(binding)) {
+			box_binding(binding);
+			boxed = true;
+		}
+	}
+	if (boxed) {
+		metadata.boxed_pattern = true;
+	}
+}
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -1997,6 +2108,15 @@ const visitors = {
 				);
 
 				visit(declarator, state);
+			}
+
+			if (
+				!state.to_ts &&
+				state.mode !== 'server' &&
+				node.kind === 'let' &&
+				is_inside_component(context)
+			) {
+				box_declarator(declarator, context, metadata);
 			}
 
 			declarator.metadata = { ...metadata, path: [...context.path] };
