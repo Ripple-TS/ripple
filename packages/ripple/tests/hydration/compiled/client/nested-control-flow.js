@@ -25,8 +25,8 @@ function consequent(__anchor, pattern) {
 	_$_.append(__anchor, li);
 }
 
-function if_1(__render, pattern) {
-	if (_$_.get(pattern).show) __render(consequent);
+function if_1(pattern) {
+	if (_$_.get(pattern).show) return consequent;
 }
 
 var root = _$_.template(`<ul class="for-if"></ul>`, 0);
@@ -224,8 +224,8 @@ function IfSwitch_render(__anchor, __block) {
 				}
 			};
 
-			_$_.if(node, (__render) => {
-				if (show) __render(consequent_1);
+			_$_.if(node, () => {
+				if (show) return consequent_1;
 			});
 		}
 
@@ -284,8 +284,8 @@ function IfSwitchHidden_render(__anchor, __block) {
 				}
 			};
 
-			_$_.if(node_1, (__render) => {
-				if (show) __render(consequent_2);
+			_$_.if(node_1, () => {
+				if (show) return consequent_2;
 			});
 		}
 
@@ -389,8 +389,8 @@ function consequent_3(__anchor, pattern_2) {
 	}
 }
 
-function if_2(__render, pattern_2) {
-	if (_$_.get(pattern_2).show) __render(consequent_3);
+function if_2(pattern_2) {
+	if (_$_.get(pattern_2).show) return consequent_3;
 }
 
 var root_11 = _$_.template(`<ul class="for-if-switch-single"></ul>`, 0);
@@ -510,8 +510,8 @@ function consequent_4(__anchor, pattern_3) {
 	}
 }
 
-function if_3(__render, pattern_3) {
-	if (_$_.get(pattern_3).show) __render(consequent_4);
+function if_3(pattern_3) {
+	if (_$_.get(pattern_3).show) return consequent_4;
 }
 
 var root_14 = _$_.template(`<ul class="for-if-switch-multi"></ul>`, 0);
@@ -635,8 +635,8 @@ function consequent_5(__anchor, pattern_4) {
 	}
 }
 
-function if_4(__render, pattern_4) {
-	if (_$_.get(pattern_4).show) __render(consequent_5);
+function if_4(pattern_4) {
+	if (_$_.get(pattern_4).show) return consequent_5;
 }
 
 var root_17 = _$_.template(`<ul class="for-if-switch-disabled"></ul>`, 0);
@@ -1000,8 +1000,8 @@ function consequent_6(__anchor, pattern_6) {
 	);
 }
 
-function if_5(__render, pattern_6) {
-	if (_$_.get(pattern_6).show) __render(consequent_6);
+function if_5(pattern_6) {
+	if (_$_.get(pattern_6).show) return consequent_6;
 }
 
 var root_29 = _$_.template(`<ul class="for-if-try"></ul>`, 0);
@@ -1203,8 +1203,8 @@ function consequent_7(__anchor, pattern_7) {
 	}
 }
 
-function if_6(__render, pattern_7) {
-	if (_$_.get(pattern_7).show) __render(consequent_7);
+function if_6(pattern_7) {
+	if (_$_.get(pattern_7).show) return consequent_7;
 }
 
 var root_32 = _$_.template(`<ul class="for-if-switch-try-single"></ul>`, 0);
@@ -1406,8 +1406,8 @@ function consequent_8(__anchor, pattern_8) {
 	}
 }
 
-function if_7(__render, pattern_8) {
-	if (_$_.get(pattern_8).show) __render(consequent_8);
+function if_7(pattern_8) {
+	if (_$_.get(pattern_8).show) return consequent_8;
 }
 
 var root_37 = _$_.template(`<ul class="for-if-switch-try-multi"></ul>`, 0);

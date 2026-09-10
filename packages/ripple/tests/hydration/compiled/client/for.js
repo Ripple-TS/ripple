@@ -679,8 +679,8 @@ function ForLoopInsideIf_render(__anchor, __block) {
 				_$_.append(__anchor, ul_8);
 			};
 
-			_$_.if(node_5, (__render) => {
-				if (lazy_6.value) __render(consequent);
+			_$_.if(node_5, () => {
+				if (lazy_6.value) return consequent;
 			});
 		}
 

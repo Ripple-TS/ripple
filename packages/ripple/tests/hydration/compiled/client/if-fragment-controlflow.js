@@ -41,8 +41,8 @@ function IfFragmentForElement_render(__anchor, __block) {
 				_$_.append(__anchor, fragment);
 			};
 
-			_$_.if(node, (__render) => {
-				if (hasLoaded) __render(consequent);
+			_$_.if(node, () => {
+				if (hasLoaded) return consequent;
 			});
 		}
 
@@ -63,8 +63,8 @@ function consequent_1(__anchor, muzes) {
 	_$_.append(__anchor, span);
 }
 
-function if_1(__render, muzes) {
-	if (muzes.length > 0) __render(consequent_1);
+function if_1(muzes) {
+	if (muzes.length > 0) return consequent_1;
 }
 
 var root_7 = _$_.template(`<span class="empty">empty</span>`, 0);
@@ -75,8 +75,8 @@ function consequent_2(__anchor, muzes) {
 	_$_.append(__anchor, span_1);
 }
 
-function if_2(__render, muzes) {
-	if (muzes.length === 0) __render(consequent_2);
+function if_2(muzes) {
+	if (muzes.length === 0) return consequent_2;
 }
 
 var root_4 = _$_.template(`<!><!><!>`, 1, 3);
@@ -124,8 +124,8 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 				_$_.append(__anchor, fragment_1);
 			};
 
-			_$_.if(node_2, (__render) => {
-				if (hasLoaded) __render(consequent_3);
+			_$_.if(node_2, () => {
+				if (hasLoaded) return consequent_3;
 			});
 		}
 
@@ -146,8 +146,8 @@ function consequent_4(__anchor, hasLoaded) {
 	_$_.append(__anchor, fragment_2);
 }
 
-function if_3(__render, hasLoaded) {
-	if (hasLoaded) __render(consequent_4);
+function if_3(hasLoaded) {
+	if (hasLoaded) return consequent_4;
 }
 
 var root_8 = _$_.template(`<div class="feed-b"><!></div>`, 0);
@@ -298,8 +298,8 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 				_$_.append(__anchor, fragment_7);
 			};
 
-			_$_.if(node_10, (__render) => {
-				if (hasLoaded) __render(consequent_5);
+			_$_.if(node_10, () => {
+				if (hasLoaded) return consequent_5;
 			});
 		}
 
@@ -358,8 +358,8 @@ function IfElseFragment_render(__anchor, __block) {
 				_$_.append(__anchor, fragment_8);
 			};
 
-			_$_.if(node_11, (__render) => {
-				if (hasLoaded) __render(consequent_6); else __render(alternate, false);
+			_$_.if(node_11, () => {
+				if (hasLoaded) return consequent_6; else return alternate;
 			});
 		}
 
@@ -415,8 +415,8 @@ function IfDivFragment_render(__anchor, __block) {
 				_$_.append(__anchor, section);
 			};
 
-			_$_.if(node_13, (__render) => {
-				if (hasLoaded) __render(consequent_7);
+			_$_.if(node_13, () => {
+				if (hasLoaded) return consequent_7;
 			});
 		}
 

@@ -240,8 +240,8 @@ function consequent(__anchor, __props) {
 	_$_.append(__anchor, div_16);
 }
 
-function if_1(__render, __props) {
-	if (_$_.fallback(__props.editPath, '')) __render(consequent);
+function if_1(__props) {
+	if (_$_.fallback(__props.editPath, '')) return consequent;
 }
 
 var root_16 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
@@ -272,8 +272,8 @@ function consequent_1(__anchor, __props) {
 	_$_.append(__anchor, nav);
 }
 
-function if_2(__render, __props) {
-	if (_$_.fallback(__props.nextLink, null)) __render(consequent_1);
+function if_2(__props) {
+	if (_$_.fallback(__props.nextLink, null)) return consequent_1;
 }
 
 var root_18 = _$_.template(`<li><a> </a></li>`, 0);
@@ -335,8 +335,8 @@ function consequent_2(__anchor, __props) {
 	_$_.append(__anchor, div_17);
 }
 
-function if_3(__render, __props) {
-	if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_2);
+function if_3(__props) {
+	if (_$_.fallback(__props.toc, []).length > 0) return consequent_2;
 }
 
 var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!></div><aside><!></aside></div>`, 0);
@@ -595,8 +595,8 @@ function consequent_4(__anchor, __props) {
 	_$_.append(__anchor, div_28);
 }
 
-function if_4(__render, __props) {
-	if (_$_.fallback(__props.active, false)) __render(consequent_4);
+function if_4(__props) {
+	if (_$_.fallback(__props.active, false)) return consequent_4;
 }
 
 var root_38 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
@@ -680,8 +680,8 @@ function consequent_6(__anchor) {
 	_$_.append(__anchor, div_36);
 }
 
-function if_5(__render) {
-	if (true) __render(consequent_6);
+function if_5() {
+	if (true) return consequent_6;
 }
 
 var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!></main></div></div>`, 0);
@@ -746,8 +746,8 @@ function consequent_7(__anchor) {
 	_$_.append(__anchor, div_39);
 }
 
-function if_6(__render) {
-	if (true) __render(consequent_7);
+function if_6() {
+	if (true) return consequent_7;
 }
 
 var root_53 = _$_.template(`<nav class="prev-next"><a href="/prev">Previous</a></nav>`, 0);
@@ -758,8 +758,8 @@ function consequent_8(__anchor) {
 	_$_.append(__anchor, nav_2);
 }
 
-function if_7(__render) {
-	if (true) __render(consequent_8);
+function if_7() {
+	if (true) return consequent_8;
 }
 
 var root_50 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
@@ -807,8 +807,8 @@ function consequent_9(__anchor) {
 	_$_.append(__anchor, div_42);
 }
 
-function if_8(__render) {
-	if (true) __render(consequent_9);
+function if_8() {
+	if (true) return consequent_9;
 }
 
 var root_54 = _$_.template(`<div class="content-container"><!><!></div>`, 0);
@@ -852,8 +852,8 @@ function consequent_10(__anchor) {
 	_$_.append(__anchor, div_45);
 }
 
-function if_9(__render) {
-	if (true) __render(consequent_10);
+function if_9() {
+	if (true) return consequent_10;
 }
 
 var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!></div>`, 0);
@@ -912,8 +912,8 @@ function consequent_11(__anchor, __props) {
 	_$_.append(__anchor, div_53);
 }
 
-function if_10(__render, __props) {
-	if (_$_.fallback(__props.editPath, '')) __render(consequent_11);
+function if_10(__props) {
+	if (_$_.fallback(__props.editPath, '')) return consequent_11;
 }
 
 var root_65 = _$_.template(`<nav class="prev-next"><a> </a></nav>`, 0);
@@ -944,8 +944,8 @@ function consequent_12(__anchor, __props) {
 	_$_.append(__anchor, nav_3);
 }
 
-function if_11(__render, __props) {
-	if (_$_.fallback(__props.nextLink, null)) __render(consequent_12);
+function if_11(__props) {
+	if (_$_.fallback(__props.nextLink, null)) return consequent_12;
 }
 
 var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div></div></main></div></div>`, 0);
@@ -1077,8 +1077,8 @@ function consequent_13(__anchor, __props) {
 	_$_.append(__anchor, div_62);
 }
 
-function if_12(__render, __props) {
-	if (_$_.fallback(__props.editPath, '')) __render(consequent_13);
+function if_12(__props) {
+	if (_$_.fallback(__props.editPath, '')) return consequent_13;
 }
 
 var root_71 = _$_.template(`<a class="pager prev"><span class="title"> </span></a>`, 0);
@@ -1117,8 +1117,8 @@ function alternate_1(__anchor, __props) {
 	_$_.append(__anchor, span_5);
 }
 
-function if_13(__render, __props) {
-	if (_$_.fallback(__props.prevLink, null)) __render(consequent_14); else __render(alternate_1, false);
+function if_13(__props) {
+	if (_$_.fallback(__props.prevLink, null)) return consequent_14; else return alternate_1;
 }
 
 var root_73 = _$_.template(`<a class="pager next"><span class="title"> </span></a>`, 0);
@@ -1149,8 +1149,8 @@ function consequent_15(__anchor, __props) {
 	_$_.append(__anchor, a_7);
 }
 
-function if_14(__render, __props) {
-	if (_$_.fallback(__props.nextLink, null)) __render(consequent_15);
+function if_14(__props) {
+	if (_$_.fallback(__props.nextLink, null)) return consequent_15;
 }
 
 var root_70 = _$_.template(`<nav class="prev-next"><!><!></nav>`, 0);
@@ -1172,8 +1172,8 @@ function consequent_16(__anchor, __props) {
 	_$_.append(__anchor, nav_4);
 }
 
-function if_15(__render, __props) {
-	if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_16);
+function if_15(__props) {
+	if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) return consequent_16;
 }
 
 var root_75 = _$_.template(`<a> </a>`, 0);
@@ -1231,8 +1231,8 @@ function consequent_17(__anchor, __props) {
 	_$_.append(__anchor, div_63);
 }
 
-function if_16(__render, __props) {
-	if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_17);
+function if_16(__props) {
+	if (_$_.fallback(__props.toc, []).length > 0) return consequent_17;
 }
 
 var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
@@ -1723,8 +1723,8 @@ function IfHeading({ primary, children }) {
 
 			_$_.if(
 				__anchor,
-				(__render) => {
-					if (primary) __render(consequent_3); else __render(alternate, false);
+				() => {
+					if (primary) return consequent_3; else return alternate;
 				},
 				true
 			);
@@ -1868,8 +1868,8 @@ function SidebarSection({ title, children }) {
 					_$_.append(__anchor, div_30);
 				};
 
-				_$_.if(node_20, (__render) => {
-					if (lazy.value) __render(consequent_5);
+				_$_.if(node_20, () => {
+					if (lazy.value) return consequent_5;
 				});
 			}
 

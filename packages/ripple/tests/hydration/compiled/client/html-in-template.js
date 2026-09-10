@@ -33,8 +33,8 @@ function consequent(__anchor, show) {
 	_$_.append(__anchor, span);
 }
 
-function if_1(__render, show) {
-	if (show) __render(consequent);
+function if_1(show) {
+	if (show) return consequent;
 }
 
 var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 0);

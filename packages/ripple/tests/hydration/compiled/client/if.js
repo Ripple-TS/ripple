@@ -9,8 +9,8 @@ function consequent(__anchor, show) {
 	_$_.append(__anchor, div);
 }
 
-function if_1(__render, show) {
-	if (show) __render(consequent);
+function if_1(show) {
+	if (show) return consequent;
 }
 
 function IfTruthy_render(__anchor, __block) {
@@ -29,8 +29,8 @@ function consequent_1(__anchor, show) {
 	_$_.append(__anchor, div_1);
 }
 
-function if_2(__render, show) {
-	if (show) __render(consequent_1);
+function if_2(show) {
+	if (show) return consequent_1;
 }
 
 function IfFalsy_render(__anchor, __block) {
@@ -56,8 +56,8 @@ function alternate(__anchor, isLoggedIn) {
 	_$_.append(__anchor, div_3);
 }
 
-function if_3(__render, isLoggedIn) {
-	if (isLoggedIn) __render(consequent_2); else __render(alternate, false);
+function if_3(isLoggedIn) {
+	if (isLoggedIn) return consequent_2; else return alternate;
 }
 
 function IfElse_render(__anchor, __block) {
@@ -76,8 +76,8 @@ function consequent_3(__anchor, lazy) {
 	_$_.append(__anchor, div_4);
 }
 
-function if_4(__render, lazy) {
-	if (lazy.value) __render(consequent_3);
+function if_4(lazy) {
+	if (lazy.value) return consequent_3;
 }
 
 var root_5 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
@@ -122,8 +122,8 @@ function alternate_1(__anchor, lazy_1) {
 	_$_.append(__anchor, div_6);
 }
 
-function if_5(__render, lazy_1) {
-	if (lazy_1.value) __render(consequent_4); else __render(alternate_1, false);
+function if_5(lazy_1) {
+	if (lazy_1.value) return consequent_4; else return alternate_1;
 }
 
 var root_8 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
@@ -161,8 +161,8 @@ function consequent_5(__anchor, lazy_3) {
 	_$_.append(__anchor, span);
 }
 
-function if_6(__render, lazy_3) {
-	if (lazy_3.value) __render(consequent_5);
+function if_6(lazy_3) {
+	if (lazy_3.value) return consequent_5;
 }
 
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
@@ -206,8 +206,8 @@ function NestedIf_render(__anchor, __block) {
 				_$_.append(__anchor, div_7);
 			};
 
-			_$_.if(node_4, (__render) => {
-				if (lazy_2.value) __render(consequent_6);
+			_$_.if(node_4, () => {
+				if (lazy_2.value) return consequent_6;
 			});
 		}
 
@@ -241,8 +241,8 @@ function alternate_2(__anchor, lazy_4) {
 	_$_.append(__anchor, div_11);
 }
 
-function if_7(__render, lazy_4) {
-	if (lazy_4.value === 'loading') __render(consequent_7); else if (lazy_4.value === 'success') __render(consequent_8, false); else __render(alternate_2, 2);
+function if_7(lazy_4) {
+	if (lazy_4.value === 'loading') return consequent_7; else if (lazy_4.value === 'success') return consequent_8; else return alternate_2;
 }
 
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);

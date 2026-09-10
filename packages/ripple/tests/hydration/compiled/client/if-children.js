@@ -32,8 +32,8 @@ function consequent_1(__anchor, lazy_1) {
 	_$_.append(__anchor, div_6);
 }
 
-function if_1(__render, lazy_1) {
-	if (lazy_1.value) __render(consequent_1);
+function if_1(lazy_1) {
+	if (lazy_1.value) return consequent_1;
 }
 
 var root_4 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
@@ -88,8 +88,8 @@ function consequent_3(__anchor, lazy_3) {
 	_$_.append(__anchor, div_11);
 }
 
-function if_2(__render, lazy_3) {
-	if (lazy_3.value) __render(consequent_3);
+function if_2(lazy_3) {
+	if (lazy_3.value) return consequent_3;
 }
 
 var root_10 = _$_.template(`<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!></div><button class="toggle">Toggle</button>`, 1, 2);
@@ -131,8 +131,8 @@ function consequent_4(__anchor, lazy_4) {
 	_$_.append(__anchor, footer);
 }
 
-function if_3(__render, lazy_4) {
-	if (lazy_4.value) __render(consequent_4);
+function if_3(lazy_4) {
+	if (lazy_4.value) return consequent_4;
 }
 
 var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!></section><button class="btn">Toggle</button>`, 1, 2);
@@ -181,8 +181,8 @@ function alternate(__anchor, lazy_5) {
 	_$_.append(__anchor, div_15);
 }
 
-function if_4(__render, lazy_5) {
-	if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
+function if_4(lazy_5) {
+	if (lazy_5.value === 'code') return consequent_5; else return alternate;
 }
 
 var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 0);
@@ -317,8 +317,8 @@ function alternate_1(__anchor, props) {
 	_$_.append(__anchor, span_1);
 }
 
-function if_5(__render, props) {
-	if (props.on) __render(consequent_6); else __render(alternate_1, false);
+function if_5(props) {
+	if (props.on) return consequent_6; else return alternate_1;
 }
 
 function RootIfChild_render(__anchor, __block, props) {
@@ -430,8 +430,8 @@ export function IfWithChildren({ children }) {
 					_$_.append(__anchor, div_2);
 				};
 
-				_$_.if(node, (__render) => {
-					if (lazy.value) __render(consequent);
+				_$_.if(node, () => {
+					if (lazy.value) return consequent;
 				});
 			}
 
@@ -491,8 +491,8 @@ export function IfWithSiblingsAndChildren({ children }) {
 					_$_.append(__anchor, div_8);
 				};
 
-				_$_.if(node_4, (__render) => {
-					if (lazy_2.value) __render(consequent_2);
+				_$_.if(node_4, () => {
+					if (lazy_2.value) return consequent_2;
 				});
 			}
 

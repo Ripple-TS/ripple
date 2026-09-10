@@ -259,8 +259,8 @@ function consequent(__anchor, lazy_5) {
 	_$_.append(__anchor, p_7);
 }
 
-function if_1(__render, lazy_5) {
-	if (lazy_5.value) __render(consequent);
+function if_1(lazy_5) {
+	if (lazy_5.value) return consequent;
 }
 
 var root_16 = _$_.template(`<!>`, 1, 1);

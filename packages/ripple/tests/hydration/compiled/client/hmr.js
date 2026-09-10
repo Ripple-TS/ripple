@@ -10,8 +10,8 @@ function consequent(__anchor, lazy) {
 	_$_.append(__anchor, p);
 }
 
-function if_1(__render, lazy) {
-	if (lazy.value) __render(consequent);
+function if_1(lazy) {
+	if (lazy.value) return consequent;
 }
 
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);

@@ -1667,12 +1667,11 @@ const visit_if_statement = (node, context) => {
 	const statements = [];
 	/** @type {{ id: AST.Identifier; body: AST.BlockStatement }[]} */
 	const branches = [];
-	let branch_count = 0;
 
 	/**
-	 * Renders a branch body as a function and returns the `__render` call that
-	 * selects it. Branches are keyed by position: the first passes no flag
-	 * (`true`), the second `false`, later ones their index.
+	 * Renders a branch body as a function and returns the statement that
+	 * selects it: the condition callback returns the branch function, which
+	 * identifies the branch to the runtime.
 	 * @param {AST.Statement} branch
 	 * @param {ScopeInterface} scope
 	 * @param {string} name
@@ -1688,14 +1687,7 @@ const visit_if_statement = (node, context) => {
 		);
 		const branch_id = context.state.scope.generate(name);
 		branches.push({ id: b.id(branch_id), body: block });
-		const index = branch_count++;
-		return b.stmt(
-			b.call(
-				b.id('__render'),
-				b.id(branch_id),
-				index === 0 ? undefined : index === 1 ? b.false : b.literal(index),
-			),
-		);
+		return b.return(b.id(branch_id));
 	};
 
 	/**
@@ -1748,10 +1740,7 @@ const visit_if_statement = (node, context) => {
 	// closures are created per instantiation of the enclosing component.
 	const hoisted = context.state.hoisted;
 	const captures = captured_locals(
-		[
-			b.arrow([b.id('__render')], callback),
-			...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body)),
-		],
+		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
 		context.state.scope,
 		hoisted,
 		branches.map((branch) => branch.id.name),
@@ -1766,7 +1755,7 @@ const visit_if_statement = (node, context) => {
 			);
 			register_hoisted(hoisted, branch.id.name);
 		}
-		hoisted.push(b.function_declaration(if_id, [b.id('__render'), ...context_params], callback));
+		hoisted.push(b.function_declaration(if_id, context_params, callback));
 		register_hoisted(hoisted, if_id.name);
 		context.state.init?.push(
 			b.stmt(
@@ -1789,14 +1778,7 @@ const visit_if_statement = (node, context) => {
 		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
 	}
 	statements.push(
-		b.stmt(
-			b.call(
-				'_$_.if',
-				id,
-				b.arrow([b.id('__render')], callback),
-				root_controlled ? b.true : undefined,
-			),
-		),
+		b.stmt(b.call('_$_.if', id, b.arrow([], callback), root_controlled ? b.true : undefined)),
 	);
 
 	context.state.init?.push(b.block(statements));

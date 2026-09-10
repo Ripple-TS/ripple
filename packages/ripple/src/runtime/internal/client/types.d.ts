@@ -3,9 +3,17 @@ import type { Context } from './context.js';
 
 export { Tracked, Derived };
 
+/** One `Context.set` in a component: the context, its value, the parent's chain. */
+export type ContextEntry = {
+	k: Context<any>;
+	v: any;
+	n: null | ContextEntry;
+};
+
 export type Component = {
 	b: null | Block;
-	c: null | Map<Context<any>, any>;
+	// The chain of context values set by this component and its ancestors.
+	c: null | ContextEntry;
 	// Effects deferred until the component has rendered, as flat triples:
 	// fn, the block to create it under, the reaction active at the call.
 	e: null | Array<Function | Block | Derived | null>;

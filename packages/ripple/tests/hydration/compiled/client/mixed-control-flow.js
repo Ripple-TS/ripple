@@ -139,8 +139,8 @@ function consequent(__anchor, pattern) {
 	}
 }
 
-function if_1(__render, pattern) {
-	if (_$_.get(pattern).enabled) __render(consequent);
+function if_1(pattern) {
+	if (_$_.get(pattern).enabled) return consequent;
 }
 
 var root = _$_.template(`<section class="mixed-static"></section>`, 0);
@@ -341,8 +341,8 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 				_$_.append(__anchor, div_4);
 			};
 
-			_$_.if(node, (__render) => {
-				if (lazy.value) __render(consequent_1);
+			_$_.if(node, () => {
+				if (lazy.value) return consequent_1;
 			});
 		}
 
@@ -429,8 +429,8 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 
 					_$_.if(
 						__anchor,
-						(__render) => {
-							if (row === 1) __render(consequent_2);
+						() => {
+							if (row === 1) return consequent_2;
 						},
 						true
 					);

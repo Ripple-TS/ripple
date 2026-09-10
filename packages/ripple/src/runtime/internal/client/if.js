@@ -23,6 +23,7 @@ import {
 	active_block,
 	adopt_dependencies,
 	probe_dependencies,
+	probe_result,
 	run_block,
 	run_untracked,
 } from './runtime.js';
@@ -31,43 +32,29 @@ import { append } from './template.js';
 /**
  * The if block renders its branch directly: the block owns the branch's DOM
  * range and its children are the branch's blocks, so no branch block sits in
- * between. Its condition runs tracked; the branch renders untracked, like a
- * branch block would.
+ * between. Its condition runs tracked and returns the branch function to
+ * render (or nothing); the branch renders untracked, like a branch block
+ * would.
  * @typedef {{
  *   start: Node | null;
  *   end: Node | null;
  *   a: Node | AppendIntoAnchor;
- *   fn: (set_branch: (fn: (anchor: Node, x: any) => void, flag?: boolean) => void, x: any) => void;
+ *   fn: (x: any) => Branch | undefined;
  *   x: any;
- *   c: any;
- *   h: boolean;
+ *   b: Branch | undefined | typeof UNINITIALIZED;
  *   o: Block | null;
  * }} IfState
+ * @typedef {(anchor: Node, x: any) => void} Branch
  */
-
-/** The if block currently evaluating its condition (see `run_if`). */
-/** @type {IfState | null} */
-var active_if = null;
 
 /**
- * The branch a condition selected while probed (see `if_block`): consumed by
- * the static path, or by the block's first `run_if` right after creation.
- * @type {((anchor: Node, x: any) => void) | null}
+ * The branch the probe in `if_block` selected, waiting for the block's first
+ * `run_if` (see `probed`).
+ * @type {Branch | undefined}
  */
-var probed_fn = null;
-/** @type {any} */
-var probed_flag = UNINITIALIZED;
+var probed_branch;
 /** Whether a probe result is waiting for the block's first run. */
 var probed = false;
-
-/**
- * @param {(anchor: Node, x: any) => void} fn
- * @param {boolean} [flag]
- */
-function probe_branch(fn, flag = true) {
-	probed_fn = fn;
-	probed_flag = flag;
-}
 
 function noop() {}
 
@@ -170,14 +157,16 @@ function materialize_anchor(state, block) {
 }
 
 /**
+ * Renders `fn` as the if's branch when it is not the current one. The
+ * condition returns the branch function itself, so a branch is identified by
+ * that function and no flag is needed.
  * @param {IfState} state
- * @param {any} condition
- * @param {((anchor: Node, x: any) => void) | null} fn
+ * @param {Branch | undefined} fn
  */
-function update_branch(state, condition, fn) {
-	var previous = state.c;
-	if (previous === condition) return;
-	state.c = condition;
+function update_branch(state, fn) {
+	var previous = state.b;
+	if (previous === fn) return;
+	state.b = fn;
 
 	var block = /** @type {Block} */ (active_block);
 
@@ -190,7 +179,7 @@ function update_branch(state, condition, fn) {
 
 	var o = state.o;
 
-	if (fn !== null) {
+	if (fn !== undefined) {
 		run_untracked(fn, /** @type {Node} */ (state.a), state.x);
 
 		if (o !== null) {
@@ -208,38 +197,19 @@ function update_branch(state, condition, fn) {
 }
 
 /**
- * @param {(anchor: Node, x: any) => void} fn
- * @param {boolean} [flag]
- */
-function set_branch(fn, flag = true) {
-	var state = /** @type {IfState} */ (active_if);
-	state.h = true;
-	update_branch(state, flag, fn);
-}
-
-/**
  * @param {IfState} state
  */
 function run_if(state) {
 	if (probed) {
-		// First run of a block whose condition was already evaluated by the
-		// probe in `if_block`: apply its result instead of evaluating again.
+		// First run of a block whose condition the probe in `if_block` already
+		// evaluated: apply its result instead of evaluating again.
 		probed = false;
-		var fn = probed_fn;
-		var flag = probed_flag;
-		probed_fn = null;
-		update_branch(state, fn === null ? null : flag, fn);
+		var fn = probed_branch;
+		probed_branch = undefined;
+		update_branch(state, fn);
 		return;
 	}
-	// `active_if` is only read by `set_branch` during `state.fn`; a nested if
-	// renders inside `update_branch`, after the outer `set_branch` returned, so
-	// nothing needs the outer value restored afterwards.
-	active_if = state;
-	state.h = false;
-	state.fn(set_branch, state.x);
-	if (!state.h) {
-		update_branch(state, null, null);
-	}
+	update_branch(state, state.fn(state.x));
 }
 
 /**
@@ -258,10 +228,8 @@ function if_block_state(anchor, fn, x) {
 		fn,
 		// the captured local a hoisted condition and its branches receive
 		x,
-		// last condition
-		c: UNINITIALIZED,
-		// whether a branch was selected during the current run
-		h: false,
+		// the current branch
+		b: UNINITIALIZED,
 		// block owning the anchor materialized from a sentinel
 		o: null,
 	};
@@ -292,21 +260,19 @@ export function if_block(node, fn, root_controlled, x) {
 		// no dependencies is never scheduled), so its branch renders directly
 		// under the current block: no if block, no state, and the branch's DOM
 		// and blocks belong to the enclosing block like any other content.
-		probed_fn = null;
 		/** @type {import('#client').Dependency | null} */
 		var dependencies;
 		try {
-			dependencies = probe_dependencies(fn, probe_branch, x);
+			dependencies = probe_dependencies(fn, x);
 		} catch {
 			// A condition that throws (a pending async read) is the block's to
 			// handle: create it and let its first run evaluate the condition.
 			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 			return;
 		}
+		var selected = /** @type {Branch | undefined} */ (probe_result);
 		if (dependencies === null) {
-			var selected = probed_fn;
-			probed_fn = null;
-			if (selected !== null) {
+			if (selected !== undefined) {
 				run_untracked(selected, /** @type {Node} */ (node), x);
 			}
 			return;
@@ -314,6 +280,7 @@ export function if_block(node, fn, root_controlled, x) {
 		// Dynamic: the block adopts the probe's dependencies and its first run
 		// applies the branch the probe selected.
 		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
+		probed_branch = selected;
 		probed = true;
 		run_block(if_block, true);
 		if_block.f ^= BLOCK_HAS_RUN;

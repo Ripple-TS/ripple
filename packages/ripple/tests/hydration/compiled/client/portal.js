@@ -35,8 +35,8 @@ function consequent(__anchor, lazy) {
 	});
 }
 
-function if_1(__render, lazy) {
-	if (lazy.value) __render(consequent);
+function if_1(lazy) {
+	if (lazy.value) return consequent;
 }
 
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);

@@ -1997,7 +1997,7 @@ export function safe_scope(err = 'Cannot access outside of a component context')
 export function create_component_ctx() {
 	return {
 		b: active_block,
-		c: null,
+		c: active_component === null ? null : active_component.c,
 		e: null,
 		m: false,
 		p: active_component,
@@ -2008,14 +2008,7 @@ export function create_component_ctx() {
  * @returns {void}
  */
 export function push_component() {
-	// create_component_ctx, inline: one component per call is the common case.
-	active_component = {
-		b: active_block,
-		c: null,
-		e: null,
-		m: false,
-		p: active_component,
-	};
+	active_component = create_component_ctx();
 }
 
 /**
@@ -2046,13 +2039,14 @@ export function render_component(fn, anchor, props, block = active_block) {
 	}
 
 	// push_component, inline: one component per call is the common case.
+	var parent = active_component;
 	/** @type {Component} */
 	var component = (active_component = {
 		b: active_block,
-		c: null,
+		c: parent === null ? null : parent.c,
 		e: null,
 		m: false,
-		p: active_component,
+		p: parent,
 	});
 
 	// A module-level component carries its render function (`$r`, see the
@@ -2081,16 +2075,20 @@ export function render_component(fn, anchor, props, block = active_block) {
  */
 var probe_reaction = { f: DESTROYED, d: null, blocks: null };
 
+/** What the function last run by `probe_dependencies` returned. */
+/** @type {any} */
+export let probe_result;
+
 /**
  * Runs `fn(arg)` tracked against a scratch reaction and returns the head of
- * the dependency chain it recorded, or null when it read no tracked state. A
- * chain must be handed to a block with `adopt_dependencies`.
- * @param {(arg: any, context: any) => void} fn
+ * the dependency chain it recorded, or null when it read no tracked state; the
+ * function's own result is left in `probe_result`. A chain must be handed to
+ * a block with `adopt_dependencies`.
+ * @param {(arg: any) => any} fn
  * @param {any} arg
- * @param {any} [context] a second argument for `fn` (a hoisted branch's captured local)
  * @returns {Dependency | null}
  */
-export function probe_dependencies(fn, arg, context) {
+export function probe_dependencies(fn, arg) {
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
@@ -2098,7 +2096,7 @@ export function probe_dependencies(fn, arg, context) {
 	tracking = true;
 	active_dependency = null;
 	try {
-		fn(arg, context);
+		probe_result = fn(arg);
 		return active_dependency;
 	} catch (error) {
 		// The caller creates its block and runs it normally, which throws again

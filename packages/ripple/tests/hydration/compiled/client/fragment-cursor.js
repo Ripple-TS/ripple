@@ -358,8 +358,8 @@ function consequent(__anchor, lazy_10) {
 	_$_.append(__anchor, b);
 }
 
-function if_1(__render, lazy_10) {
-	if (lazy_10.value >= 0) __render(consequent);
+function if_1(lazy_10) {
+	if (lazy_10.value >= 0) return consequent;
 }
 
 var root_26 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
@@ -392,8 +392,8 @@ function consequent_1(__anchor, lazy_11) {
 	_$_.append(__anchor, b_1);
 }
 
-function if_2(__render, lazy_11) {
-	if (lazy_11.value >= 0) __render(consequent_1);
+function if_2(lazy_11) {
+	if (lazy_11.value >= 0) return consequent_1;
 }
 
 var root_29 = _$_.template(`<div class="a">a</div><div class="b">b</div><!>`, 1, 3);
@@ -1766,8 +1766,8 @@ function consequent_2(__anchor, lazy_40) {
 	_$_.append(__anchor, b_9);
 }
 
-function if_3(__render, lazy_40) {
-	if (lazy_40.value >= 0) __render(consequent_2);
+function if_3(lazy_40) {
+	if (lazy_40.value >= 0) return consequent_2;
 }
 
 var root_90 = _$_.template(`<!>`, 1, 1);
@@ -1794,8 +1794,8 @@ function consequent_3(__anchor, lazy_41) {
 	_$_.append(__anchor, b_10);
 }
 
-function if_4(__render, lazy_41) {
-	if (lazy_41.value >= 0) __render(consequent_3);
+function if_4(lazy_41) {
+	if (lazy_41.value >= 0) return consequent_3;
 }
 
 var root_93 = _$_.template(`<!><div class="a">a</div>`, 1, 2);
@@ -1828,8 +1828,8 @@ function consequent_4(__anchor, lazy_42) {
 	_$_.append(__anchor, b_11);
 }
 
-function if_5(__render, lazy_42) {
-	if (lazy_42.value >= 0) __render(consequent_4);
+function if_5(lazy_42) {
+	if (lazy_42.value >= 0) return consequent_4;
 }
 
 var root_95 = _$_.template(`<div class="root"><!></div>`, 0);
@@ -2008,8 +2008,8 @@ function consequent_5(__anchor, lazy_47) {
 	_$_.append(__anchor, fragment_59);
 }
 
-function if_6(__render, lazy_47) {
-	if (lazy_47.value >= 0) __render(consequent_5);
+function if_6(lazy_47) {
+	if (lazy_47.value >= 0) return consequent_5;
 }
 
 var root_102 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
@@ -2043,8 +2043,8 @@ function consequent_6(__anchor, lazy_48) {
 	_$_.append(__anchor, fragment_60);
 }
 
-function if_7(__render, lazy_48) {
-	if (lazy_48.value >= 0) __render(consequent_6);
+function if_7(lazy_48) {
+	if (lazy_48.value >= 0) return consequent_6;
 }
 
 var root_104 = _$_.template(`<div class="outer"><!><span class="after"> </span><button class="outer-inc">outer</button></div>`, 0);
