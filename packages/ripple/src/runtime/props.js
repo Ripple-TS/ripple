@@ -20,9 +20,20 @@ import {
 
 /** Every prop name of a compiled props class, in source order (on the prototype). */
 export const KEYS = Symbol('keys');
+/** The symbol-keyed props of an instance (a `createRefKey()` ref travelling through a spread). */
+export const SYMBOLS = Symbol('symbols');
+
+/** @type {symbol[]} */
+const NO_SYMBOLS = [];
 
 /** Base of every compiled props class. */
 export function Props() {}
+
+define_property(Props.prototype, SYMBOLS, {
+	get() {
+		return NO_SYMBOLS;
+	},
+});
 
 // Not enumerable: `for...in` over an instance must yield only its props.
 define_property(Props.prototype, 'toJSON', {
@@ -57,6 +68,12 @@ define_property(LiteralProps.prototype, KEYS, {
 	/** @this {any} */
 	get() {
 		return object_keys(this);
+	},
+});
+define_property(LiteralProps.prototype, SYMBOLS, {
+	/** @this {any} */
+	get() {
+		return get_own_property_symbols(this);
 	},
 });
 
@@ -154,16 +171,23 @@ export function props_has(obj, key) {
  * @returns {any}
  */
 export function props_snapshot(obj) {
-	if (!(obj instanceof Props)) {
+	// A literal-backed instance keeps its props as own properties (symbols
+	// included), so an object spread reads it directly.
+	if (!(obj instanceof Props) || obj instanceof LiteralProps) {
 		return obj;
 	}
-	/** @type {Record<string, any>} */
+	/** @type {Record<string | symbol, any>} */
 	var source = obj;
 	var keys = keys_of(source);
-	/** @type {Record<string, any>} */
+	/** @type {Record<string | symbol, any>} */
 	var out = {};
 	for (var i = 0; i < keys.length; i++) {
 		out[keys[i]] = source[keys[i]];
+	}
+	/** @type {symbol[]} */
+	var symbols = source[SYMBOLS];
+	for (i = 0; i < symbols.length; i++) {
+		out[symbols[i]] = source[symbols[i]];
 	}
 	return out;
 }
@@ -268,7 +292,7 @@ export function props_spread(...sources) {
 	for (var i = 0; i < sources.length; i++) {
 		var source = sources[i];
 		if (source == null) continue;
-		if (source instanceof Props) {
+		if (source instanceof Props && !(source instanceof LiteralProps)) {
 			var keys = keys_of(source);
 			for (var k = 0; k < keys.length; k++) {
 				out[keys[k]] = /** @type {Record<string, any>} */ (source)[keys[k]];

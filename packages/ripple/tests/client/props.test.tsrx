@@ -311,6 +311,86 @@ describe('compiled props', () => {
 		unmount();
 	});
 
+	it('merges spread sources in order with the rightmost winning', () => {
+		let bump: () => void = () => {};
+		let seen: unknown[] = [];
+
+		function Child(props: { a: number; b: number; c: number; d?: number }) @{
+			seen = [Props.keys(props), 'c' in props, 'zz' in props, JSON.stringify(props)];
+			<span>{String(props.a) + '/' + String(props.b) + '/' + String(props.c)}</span>
+		}
+
+		function App() @{
+			let &[count] = track(1);
+			bump = () => {
+				count++;
+			};
+			const first = { a: 1, b: 1 };
+			const last = { b: 3 };
+			<Child {...first} c={count} a={count * 10} {...last} />
+		}
+
+		render(App);
+		const text = () => container.querySelector('span')?.textContent;
+		expect(text()).toBe('10/3/1');
+		expect(seen).toEqual([['a', 'b', 'c'], true, false, '{"a":10,"b":3,"c":1}']);
+
+		bump();
+		flushSync();
+		expect(text()).toBe('20/3/2');
+	});
+
+	it('keeps a spread of a tracked object live, including keys that appear later', () => {
+		let grow: () => void = () => {};
+
+		function Child(props: { a?: number; b?: number }) @{
+			<span>{String(props.a) + '/' + String(props.b) + '/' + Props.keys(props).join(',')}</span>
+		}
+
+		function App() @{
+			let &[state] = track({ a: 1 });
+			grow = () => {
+				state = { a: 2, b: 3 };
+			};
+			<Child {...state} />
+		}
+
+		render(App);
+		const text = () => container.querySelector('span')?.textContent;
+		expect(text()).toBe('1/undefined/a');
+
+		grow();
+		flushSync();
+		expect(text()).toBe('2/3/a,b');
+	});
+
+	it('forwards a merged instance through an element spread', () => {
+		let toggle: () => void = () => {};
+
+		function Box(props: Record<string, unknown>) @{
+			<div {...props}>{'x'}</div>
+		}
+
+		function App() @{
+			let &[on] = track(false);
+			toggle = () => {
+				on = !on;
+			};
+			const base = { id: 'box', title: 't' };
+			<Box {...base} class={on ? 'on' : 'off'} />
+		}
+
+		render(App);
+		const div = () => container.querySelector('div');
+		expect(div()?.id).toBe('box');
+		expect(div()?.getAttribute('title')).toBe('t');
+		expect(div()?.className).toBe('off');
+
+		toggle();
+		flushSync();
+		expect(div()?.className).toBe('on');
+	});
+
 	it('supports lazy rest destructuring of compiled props', () => {
 		let bump: () => void = () => {};
 

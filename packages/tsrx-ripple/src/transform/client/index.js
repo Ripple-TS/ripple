@@ -3982,37 +3982,44 @@ const visitors = {
 			const is_with_ns = state.namespace !== DEFAULT_NAMESPACE;
 
 			let object_props;
-			if (is_spreading) {
-				// Optimization: if only one spread with no other props, pass it directly
-				if (props.length === 1 && props[0].type === 'SpreadElement') {
-					object_props = b.call('_$_.spread_props', b.thunk(props[0].argument));
-				} else {
-					// Multiple items: build array of objects/spreads for proper merge order
-					const items = [];
-					let current_obj_props = [];
-
-					for (const prop of props) {
-						if (prop.type === 'SpreadElement') {
-							// Flush accumulated regular props as an object
-							if (current_obj_props.length > 0) {
-								items.push(b.object(current_obj_props));
-								current_obj_props = [];
-							}
-							// Add the spread argument directly
-							items.push(prop.argument);
-						} else {
-							// Accumulate regular properties
-							current_obj_props.push(prop);
-						}
+			if (is_spreading && state.to_ts) {
+				object_props = b.object(props);
+			} else if (is_spreading) {
+				// A spread site merges its sources in order, rightmost winning; the
+				// site's own props between spreads are a props instance of their own.
+				// The sources thunk runs in a derived, so a spread of a tracked value
+				// stays live.
+				/** @type {AST.Expression[]} */
+				const items = [];
+				/** @type {AST.Property[]} */
+				let own_props = [];
+				const flush_own = () => {
+					if (own_props.length > 0) {
+						items.push(
+							build_props_site(own_props, state.scope, state.hoisted, state.component ?? null) ||
+								b.call('_$_.props_literal', b.object(own_props)),
+						);
+						own_props = [];
 					}
-
-					// Flush any remaining regular props
-					if (current_obj_props.length > 0) {
-						items.push(b.object(current_obj_props));
+				};
+				for (const prop of props) {
+					if (prop.type === 'SpreadElement') {
+						flush_own();
+						items.push(prop.argument);
+					} else {
+						own_props.push(prop);
 					}
-
-					object_props = b.call('_$_.spread_props', b.thunk(b.array(items)));
 				}
+				flush_own();
+
+				const merge_id = b.id(state.scope.generate('merge_site'));
+				state.hoisted.push(b.var(merge_id));
+				register_hoisted(state.hoisted, merge_id.name);
+				object_props = b.call(
+					'_$_.merge_props',
+					b.assignment('??=', merge_id, b.call('_$_.merge_site')),
+					b.thunk(b.array(items)),
+				);
 			} else if (state.to_ts) {
 				object_props = b.object(props);
 			} else {

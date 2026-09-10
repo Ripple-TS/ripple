@@ -51,7 +51,7 @@ import {
 	replace_boundary_request,
 } from './try.js';
 import { is_ripple_object } from './utils.js';
-import { forwarding_descriptor, is_props, own_keys } from './props.js';
+import { is_props, own_keys } from './props.js';
 import { render_value } from './expression.js';
 import { throw_invalid_component_type } from './component.js';
 
@@ -1698,140 +1698,6 @@ export function flush_sync(fn) {
 		scheduler_mode = previous_scheduler_mode;
 		queue = previous_queue;
 	}
-}
-
-/**
- * @param {() => Object} fn
- * @returns {Object}
- */
-export function spread_props(fn) {
-	return proxy_props(fn);
-}
-
-/**
- * `Reflect.ownKeys` that includes the prototype getters of a props instance.
- * @param {Record<string | symbol, any>} obj
- * @returns {(string | symbol)[]}
- */
-function reflect_own_keys(obj) {
-	return is_props(obj) ? own_keys(obj) : Reflect.ownKeys(obj);
-}
-
-/**
- * The descriptor a spread proxy reports for `key` of `obj`: a props instance
- * has no own descriptor, so its props are described as forwarding accessors.
- * @param {Record<string | symbol, any>} obj
- * @param {string | symbol} key
- * @returns {PropertyDescriptor | undefined}
- */
-function describe(obj, key) {
-	if (is_props(obj)) {
-		return forwarding_descriptor(obj, /** @type {string} */ (key));
-	}
-	return get_descriptor(obj, key);
-}
-
-/**
- * @param {() => Object} fn
- * @returns {Object}
- */
-export function proxy_props(fn) {
-	const memo = derived(fn, /** @type {Block} */ (active_block));
-
-	return new Proxy(
-		{},
-		{
-			get(_, property) {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads (for multiple props)
-				if (is_array(obj)) {
-					// Search in reverse order (right-to-left) since later props override earlier ones
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = obj.length - 1; i >= 0; i--) {
-						item = obj[i];
-						if (property in item) {
-							return item[property];
-						}
-					}
-					return undefined;
-				}
-
-				// Single object case
-				return obj[property];
-			},
-			has(_, property) {
-				if (property === TRACKED_OBJECT) {
-					return true;
-				}
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					for (var i = obj.length - 1; i >= 0; i--) {
-						if (property in obj[i]) {
-							return true;
-						}
-					}
-					return false;
-				}
-
-				return property in obj;
-			},
-			getOwnPropertyDescriptor(_, key) {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = obj.length - 1; i >= 0; i--) {
-						item = obj[i];
-						if (key in item) {
-							return describe(item, key);
-						}
-					}
-					return undefined;
-				}
-
-				if (key in obj) {
-					return describe(obj, key);
-				}
-			},
-			ownKeys() {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-				/** @type {Record<string | symbol, 1>} */
-				var done = {};
-				/** @type {(string | symbol)[]} */
-				var keys = [];
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					// Collect all keys from all objects, order doesn't matter
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = 0; i < obj.length; i++) {
-						item = obj[i];
-						for (const key of reflect_own_keys(item)) {
-							if (done[key]) {
-								continue;
-							}
-							done[key] = 1;
-							keys.push(key);
-						}
-					}
-					return keys;
-				}
-
-				return reflect_own_keys(obj);
-			},
-		},
-	);
 }
 
 /**

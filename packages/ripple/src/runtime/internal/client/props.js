@@ -1,7 +1,12 @@
-import { define_property, object_keys } from '@tsrx/core/runtime/language-helpers';
-import { UNINITIALIZED } from './constants.js';
-import { reads } from './runtime.js';
-import { KEYS, Props } from '../../props.js';
+import {
+	define_property,
+	get_descriptor,
+	get_own_property_symbols,
+	object_keys,
+} from '@tsrx/core/runtime/language-helpers';
+import { TRACKED_ARRAY, TRACKED_OBJECT, UNINITIALIZED } from './constants.js';
+import { active_block, derived, get_derived, reads, untrack } from './runtime.js';
+import { KEYS, SYMBOLS, Props, own_keys, is_props } from '../../props.js';
 
 export {
 	Props,
@@ -333,4 +338,241 @@ export function props_from(obj) {
 	}
 	var site = props_site(keys, 0, 0, 0, { C: null });
 	return keys.length > MAX_SLOTS ? new site.C(site, values) : new site.C(site, ...values);
+}
+
+/* ---------------------------------------------------------------------------
+ * Spread sites: `<Child {...a} extra={x} {...b} />`
+ *
+ * The sources are produced by a thunk the compiler emits (`() => [a, own, b]`,
+ * where `own` is the site's own props instance), evaluated through a derived
+ * so a spread of a tracked value stays live. A merged instance holds that
+ * derived and resolves each prop from the rightmost source that has it. Its
+ * class is per call site; a prototype getter is defined for every key the
+ * sources have shown so far, so reads by name are plain accessor reads and no
+ * Proxy is involved. `KEYS` is computed from the current sources, so the
+ * helpers are exact.
+ *
+ * A tracked object as a source is the one shape whose keys can appear later
+ * than a consumer's first read of them; that site gets a Proxy-backed instance
+ * (same prototype, same helpers) so such a read still subscribes.
+ * ------------------------------------------------------------------------- */
+
+/** The derived that produces a merged instance's sources. */
+const DERIVED = Symbol('derived');
+
+/**
+ * @this {any}
+ * @param {any} site
+ * @param {any} memo
+ */
+function MergedBase(site, memo) {
+	this[SITE] = site;
+	this[DERIVED] = memo;
+}
+MergedBase.prototype = Object.create(Props.prototype);
+MergedBase.prototype.constructor = MergedBase;
+define_property(MergedBase.prototype, KEYS, {
+	/** @this {any} */
+	get() {
+		return merged_keys(get_derived(this[DERIVED]));
+	},
+});
+define_property(MergedBase.prototype, SYMBOLS, {
+	/** @this {any} */
+	get() {
+		return merged_symbols(get_derived(this[DERIVED]));
+	},
+});
+
+/**
+ * The union of the sources' keys in spread order (a key keeps the position
+ * of its first occurrence).
+ * @param {any[]} sources
+ * @returns {string[]}
+ */
+function merged_keys(sources) {
+	/** @type {string[]} */
+	var keys = [];
+	for (var i = 0; i < sources.length; i++) {
+		var source = sources[i];
+		if (source == null) continue;
+		var source_keys = own_keys(source);
+		for (var k = 0; k < source_keys.length; k++) {
+			if (!keys.includes(source_keys[k])) keys.push(source_keys[k]);
+		}
+	}
+	return keys;
+}
+
+/**
+ * The own symbols of the plain (or literal-backed) sources: symbol-keyed
+ * refs travel through a spread like any other prop.
+ * @param {any[]} sources
+ * @returns {symbol[]}
+ */
+function merged_symbols(sources) {
+	/** @type {symbol[]} */
+	var symbols = [];
+	for (var i = 0; i < sources.length; i++) {
+		var source = sources[i];
+		if (source == null) continue;
+		var own = is_props(source) ? source[SYMBOLS] : get_own_property_symbols(source);
+		for (var k = 0; k < own.length; k++) {
+			if (!symbols.includes(own[k])) symbols.push(own[k]);
+		}
+	}
+	return symbols;
+}
+
+/**
+ * The symbol keys an element spread applies for `next`: those of a plain
+ * object, or the `SYMBOLS` of a props instance.
+ * @param {Record<string | symbol, any>} next
+ * @returns {symbol[]}
+ */
+export function spread_symbols(next) {
+	return is_props(next) ? next[SYMBOLS] : get_own_property_symbols(next);
+}
+
+/**
+ * @param {string | symbol} key
+ * @returns {() => any}
+ */
+function merged_getter(key) {
+	return /** @this {any} */ function () {
+		var sources = get_derived(this[DERIVED]);
+		ensure_merged_keys(this[SITE], sources);
+		for (var i = sources.length - 1; i >= 0; i--) {
+			var source = sources[i];
+			if (source != null && key in source) {
+				return source[key];
+			}
+		}
+		return undefined;
+	};
+}
+
+/**
+ * Defines a getter on the site's class for every key of `sources` it has not
+ * seen yet. Runs once per distinct sources array.
+ * @param {any} site
+ * @param {any[]} sources
+ */
+function ensure_merged_keys(site, sources) {
+	if (site.last === sources) return;
+	site.last = sources;
+	/** @type {(string | symbol)[]} */
+	var keys = merged_keys(sources);
+	keys = keys.concat(merged_symbols(sources));
+	for (var i = 0; i < keys.length; i++) {
+		var key = keys[i];
+		if (!site.seen.has(key)) {
+			site.seen.add(key);
+			define_property(site.C.prototype, key, {
+				get: merged_getter(key),
+				enumerable: true,
+				configurable: true,
+			});
+		}
+	}
+}
+
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
+function is_tracked_collection(value) {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		(TRACKED_OBJECT in value || TRACKED_ARRAY in value)
+	);
+}
+
+/**
+ * The per-call-site state of a spread site; the compiler emits one hoisted
+ * `merge_site()` per site.
+ * @returns {{ C: any; seen: Set<string | symbol>; last: any }}
+ */
+export function merge_site() {
+	return { C: class extends /** @type {any} */ (MergedBase) {}, seen: new Set(), last: null };
+}
+
+/**
+ * The props of a spread site.
+ * @param {{ C: any; seen: Set<string | symbol>; last: any }} site
+ * @param {() => any[]} fn produces the sources, rightmost wins
+ * @returns {Record<string | symbol, any>}
+ */
+export function merge_props(site, fn) {
+	var memo = derived(fn, /** @type {any} */ (active_block));
+	var sources = untrack(() => get_derived(memo));
+	for (var i = 0; i < sources.length; i++) {
+		if (is_tracked_collection(sources[i])) {
+			return proxy_merge(memo);
+		}
+	}
+	ensure_merged_keys(site, sources);
+	return new site.C(site, memo);
+}
+
+/**
+ * A merged instance over sources whose key set can change after a consumer
+ * first read a key: every read goes through the derived, so it subscribes.
+ * @param {any} memo
+ * @returns {Record<string | symbol, any>}
+ */
+function proxy_merge(memo) {
+	return new Proxy(Object.create(Props.prototype), {
+		get(_, property) {
+			var sources = get_derived(memo);
+			if (property === KEYS) {
+				return merged_keys(sources);
+			}
+			for (var i = sources.length - 1; i >= 0; i--) {
+				var source = sources[i];
+				if (source != null && property in source) {
+					return source[property];
+				}
+			}
+			return undefined;
+		},
+		has(_, property) {
+			if (property === TRACKED_OBJECT) {
+				return true;
+			}
+			var sources = get_derived(memo);
+			for (var i = sources.length - 1; i >= 0; i--) {
+				var source = sources[i];
+				if (source != null && property in source) {
+					return true;
+				}
+			}
+			return false;
+		},
+		getOwnPropertyDescriptor(_, key) {
+			var sources = get_derived(memo);
+			for (var i = sources.length - 1; i >= 0; i--) {
+				var source = sources[i];
+				if (source != null && key in source) {
+					return is_props(source)
+						? { get: () => source[key], enumerable: true, configurable: true }
+						: get_descriptor(source, key);
+				}
+			}
+		},
+		ownKeys() {
+			var sources = get_derived(memo);
+			/** @type {(string | symbol)[]} */
+			var keys = merged_keys(sources);
+			for (var i = 0; i < sources.length; i++) {
+				var source = sources[i];
+				if (source == null || is_props(source)) continue;
+				for (var symbol of get_own_property_symbols(source)) {
+					if (!keys.includes(symbol)) keys.push(symbol);
+				}
+			}
+			return keys;
+		},
+	});
 }

@@ -1278,7 +1278,7 @@ export function App() @{
 		},
 	);
 
-	it('uses spread_props for spreads that may contain children', () => {
+	it('merges spreads that may contain children through merge_props', () => {
 		const source = `
 function Card(props) @{
 	<div>{props.children}</div>
@@ -1293,7 +1293,7 @@ export function App() @{
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
-		expect(result).toContain('_$_.spread_props(');
+		expect(result).toContain('_$_.merge_props(merge_site ??= _$_.merge_site(), () => [');
 	});
 
 	it('reads a less-than at line start in element children as literal text', () => {
