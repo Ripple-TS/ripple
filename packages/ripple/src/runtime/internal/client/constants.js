@@ -57,3 +57,6 @@ export const SUSPENSE_PENDING = Symbol('suspense_pending');
 export const SUSPENSE_REJECTED = Symbol('suspense_rejected');
 /** @type {unique symbol} */
 export const ASYNC_DERIVED_READ_THROWN = Symbol('async_derived_read_thrown');
+
+/** The hoisted render function a module-level component carries (see `render_component`). */
+export const RENDER_ENTRY = Symbol('render');

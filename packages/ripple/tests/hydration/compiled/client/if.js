@@ -19,7 +19,7 @@ function IfTruthy_render(__anchor, __block) {
 	_$_.if(__anchor, if_1, true, show);
 }
 
-IfTruthy.$r = IfTruthy_render;
+IfTruthy[_$_.$r] = IfTruthy_render;
 
 var root_1 = _$_.template(`<div class="shown">Visible</div>`, 0);
 
@@ -39,7 +39,7 @@ function IfFalsy_render(__anchor, __block) {
 	_$_.if(__anchor, if_2, true, show);
 }
 
-IfFalsy.$r = IfFalsy_render;
+IfFalsy[_$_.$r] = IfFalsy_render;
 
 var root_2 = _$_.template(`<div class="logged-in">Welcome back!</div>`, 0);
 var root_3 = _$_.template(`<div class="logged-out">Please log in</div>`, 0);
@@ -66,7 +66,7 @@ function IfElse_render(__anchor, __block) {
 	_$_.if(__anchor, if_3, true, isLoggedIn);
 }
 
-IfElse.$r = IfElse_render;
+IfElse[_$_.$r] = IfElse_render;
 
 var root_6 = _$_.template(`<div class="content">Content visible</div>`, 0);
 
@@ -105,7 +105,7 @@ function ReactiveIf_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-ReactiveIf.$r = ReactiveIf_render;
+ReactiveIf[_$_.$r] = ReactiveIf_render;
 
 var root_9 = _$_.template(`<div class="on">ON</div>`, 0);
 var root_10 = _$_.template(`<div class="off">OFF</div>`, 0);
@@ -151,7 +151,7 @@ function ReactiveIfElse_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
-ReactiveIfElse.$r = ReactiveIfElse_render;
+ReactiveIfElse[_$_.$r] = ReactiveIfElse_render;
 
 var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
 
@@ -217,7 +217,7 @@ function NestedIf_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
-NestedIf.$r = NestedIf_render;
+NestedIf[_$_.$r] = NestedIf_render;
 
 var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_17 = _$_.template(`<div class="state">Success!</div>`, 0);
@@ -279,7 +279,7 @@ function IfElseIfChain_render(__anchor, __block) {
 	_$_.append(__anchor, div_8);
 }
 
-IfElseIfChain.$r = IfElseIfChain_render;
+IfElseIfChain[_$_.$r] = IfElseIfChain_render;
 
 import { track } from 'ripple';
 

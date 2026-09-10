@@ -38,6 +38,7 @@ import {
 	SELECTOR,
 	IF_BLOCK,
 	RELEASED,
+	RENDER_ENTRY,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -2054,10 +2055,10 @@ export function render_component(fn, anchor, props, block = active_block) {
 		p: parent,
 	});
 
-	// A module-level component carries its render function (`$r`, see the
-	// compiler): calling it directly skips the element the component would
-	// return only to be rendered here.
-	var render = /** @type {any} */ (fn).$r;
+	// A module-level component carries its render function under a symbol
+	// (see the compiler): calling it directly skips the element the component
+	// would return only to be rendered here.
+	var render = /** @type {any} */ (fn)[RENDER_ENTRY];
 	if (render !== undefined) {
 		render(anchor, block, props);
 	} else {

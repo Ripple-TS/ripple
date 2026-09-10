@@ -171,7 +171,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 	_$_.append(__anchor, section);
 }
 
-MixedControlFlowStatic.$r = MixedControlFlowStatic_render;
+MixedControlFlowStatic[_$_.$r] = MixedControlFlowStatic_render;
 
 var root_8 = _$_.template(`<p> </p>`, 0);
 
@@ -352,7 +352,7 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-MixedControlFlowReactive.$r = MixedControlFlowReactive_render;
+MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 
 var root_14 = _$_.template(`<div> </div>`, 0);
 var root_15 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
@@ -445,7 +445,7 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
-MixedControlFlowAsyncPending.$r = MixedControlFlowAsyncPending_render;
+MixedControlFlowAsyncPending[_$_.$r] = MixedControlFlowAsyncPending_render;
 
 var root_16 = _$_.template(`<div class="resolved-row"> </div>`, 0);
 

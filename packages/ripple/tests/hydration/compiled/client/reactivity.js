@@ -23,7 +23,7 @@ function TrackedState_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
-TrackedState.$r = TrackedState_render;
+TrackedState[_$_.$r] = TrackedState_render;
 
 var root_1 = _$_.template(`<div><span class="count"> </span></div>`, 0);
 
@@ -45,13 +45,13 @@ function CounterWithInitial_render(__anchor, __block, props) {
 	_$_.append(__anchor, div_1);
 }
 
-CounterWithInitial.$r = CounterWithInitial_render;
+CounterWithInitial[_$_.$r] = CounterWithInitial_render;
 
 function CounterWrapper_render(__anchor, __block) {
 	_$_.render_component(CounterWithInitial, __anchor, { initial: 5 });
 }
 
-CounterWrapper.$r = CounterWrapper_render;
+CounterWrapper[_$_.$r] = CounterWrapper_render;
 
 var root_2 = _$_.template(`<div class="sum"> </div>`, 0);
 
@@ -71,7 +71,7 @@ function ComputedValues_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
-ComputedValues.$r = ComputedValues_render;
+ComputedValues[_$_.$r] = ComputedValues_render;
 
 var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
 
@@ -136,7 +136,7 @@ function MultipleTracked_render(__anchor, __block) {
 	_$_.append(__anchor, div_3);
 }
 
-MultipleTracked.$r = MultipleTracked_render;
+MultipleTracked[_$_.$r] = MultipleTracked_render;
 
 var root_4 = _$_.template(`<div class="name"> </div>`, 0);
 
@@ -156,7 +156,7 @@ function DerivedState_render(__anchor, __block) {
 	_$_.append(__anchor, div_7);
 }
 
-DerivedState.$r = DerivedState_render;
+DerivedState[_$_.$r] = DerivedState_render;
 
 import { track } from 'ripple';
 

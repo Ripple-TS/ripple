@@ -15,7 +15,7 @@ function GuardReturnRenders_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-GuardReturnRenders.$r = GuardReturnRenders_render;
+GuardReturnRenders[_$_.$r] = GuardReturnRenders_render;
 
 var root_1 = _$_.template(`<div class="ready">ready</div>`, 1, 1);
 
@@ -31,7 +31,7 @@ function GuardReturnNull_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_1);
 }
 
-GuardReturnNull.$r = GuardReturnNull_render;
+GuardReturnNull[_$_.$r] = GuardReturnNull_render;
 
 export function GuardReturnRenders() {
 	return _$_.tsrx_element(GuardReturnRenders_render);

@@ -38,7 +38,7 @@ function BasicContent_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
-BasicContent.$r = BasicContent_render;
+BasicContent[_$_.$r] = BasicContent_render;
 
 var root_3 = _$_.template(`<!><footer class="after-async">after-async</footer>`, 1, 2);
 var root_4 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -79,7 +79,7 @@ function StreamPending_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-StreamPending.$r = StreamPending_render;
+StreamPending[_$_.$r] = StreamPending_render;
 
 var root_5 = _$_.template(`<p class="resolved"> </p>`, 0);
 
@@ -97,7 +97,7 @@ function CatchOnlyContent_render(__anchor, __block) {
 	_$_.append(__anchor, p_1);
 }
 
-CatchOnlyContent.$r = CatchOnlyContent_render;
+CatchOnlyContent[_$_.$r] = CatchOnlyContent_render;
 
 var root_8 = _$_.template(`<em class="caught"> </em>`, 0);
 var root_7 = _$_.template(`<span class="before">before</span><!>`, 1, 2);
@@ -137,7 +137,7 @@ function StreamCatchOnly_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_3);
 }
 
-StreamCatchOnly.$r = StreamCatchOnly_render;
+StreamCatchOnly[_$_.$r] = StreamCatchOnly_render;
 
 var root_9 = _$_.template(`<p class="resolved"> </p>`, 0);
 
@@ -155,7 +155,7 @@ function RejectContent_render(__anchor, __block) {
 	_$_.append(__anchor, p_2);
 }
 
-RejectContent.$r = RejectContent_render;
+RejectContent[_$_.$r] = RejectContent_render;
 
 var root_10 = _$_.template(`<em class="caught"> </em>`, 0);
 var root_11 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -187,7 +187,7 @@ function StreamRejects_render(__anchor, __block) {
 	);
 }
 
-StreamRejects.$r = StreamRejects_render;
+StreamRejects[_$_.$r] = StreamRejects_render;
 
 var root_12 = _$_.template(`<p class="resolved"> </p>`, 0);
 
@@ -205,7 +205,7 @@ function NoCatchContent_render(__anchor, __block) {
 	_$_.append(__anchor, p_4);
 }
 
-NoCatchContent.$r = NoCatchContent_render;
+NoCatchContent[_$_.$r] = NoCatchContent_render;
 
 var root_13 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
@@ -225,7 +225,7 @@ function StreamNoCatch_render(__anchor, __block) {
 	);
 }
 
-StreamNoCatch.$r = StreamNoCatch_render;
+StreamNoCatch[_$_.$r] = StreamNoCatch_render;
 
 var root_14 = _$_.template(`<section class="root-catch"> </section>`, 0);
 var root_15 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
@@ -236,7 +236,7 @@ function RootPending_render(__anchor, __block) {
 	_$_.append(__anchor, p_6);
 }
 
-RootPending.$r = RootPending_render;
+RootPending[_$_.$r] = RootPending_render;
 
 var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
 
@@ -277,7 +277,7 @@ function HeadContent_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_5);
 }
 
-HeadContent.$r = HeadContent_render;
+HeadContent[_$_.$r] = HeadContent_render;
 
 var root_18 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
@@ -297,7 +297,7 @@ function StreamHead_render(__anchor, __block) {
 	);
 }
 
-StreamHead.$r = StreamHead_render;
+StreamHead[_$_.$r] = StreamHead_render;
 
 var root_19 = _$_.template(`<p class="root-async"> </p>`, 0);
 
@@ -315,7 +315,7 @@ function StreamRootDirect_render(__anchor, __block) {
 	_$_.append(__anchor, p_9);
 }
 
-StreamRootDirect.$r = StreamRootDirect_render;
+StreamRootDirect[_$_.$r] = StreamRootDirect_render;
 
 var root_20 = _$_.template(`<p class="outer"> </p>`, 0);
 
@@ -333,7 +333,7 @@ function OuterContent_render(__anchor, __block) {
 	_$_.append(__anchor, p_10);
 }
 
-OuterContent.$r = OuterContent_render;
+OuterContent[_$_.$r] = OuterContent_render;
 
 var root_21 = _$_.template(`<p class="inner"> </p>`, 0);
 
@@ -351,7 +351,7 @@ function InnerContent_render(__anchor, __block) {
 	_$_.append(__anchor, p_11);
 }
 
-InnerContent.$r = InnerContent_render;
+InnerContent[_$_.$r] = InnerContent_render;
 
 var root_23 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
 var root_22 = _$_.template(`<!><!>`, 1, 2);
@@ -393,7 +393,7 @@ function StreamNested_render(__anchor, __block) {
 	);
 }
 
-StreamNested.$r = StreamNested_render;
+StreamNested[_$_.$r] = StreamNested_render;
 
 import { track, trackAsync } from 'ripple';
 

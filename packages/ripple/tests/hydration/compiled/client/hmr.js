@@ -30,7 +30,7 @@ function Content_render(__anchor, __block) {
 	_$_.append(__anchor, div_1);
 }
 
-Content.$r = Content_render;
+Content[_$_.$r] = Content_render;
 
 function LayoutWithContent_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {
@@ -40,7 +40,7 @@ function LayoutWithContent_render(__anchor, __block) {
 	});
 }
 
-LayoutWithContent.$r = LayoutWithContent_render;
+LayoutWithContent[_$_.$r] = LayoutWithContent_render;
 
 import { track } from 'ripple';
 

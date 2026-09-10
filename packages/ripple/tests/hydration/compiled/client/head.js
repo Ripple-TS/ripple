@@ -21,7 +21,7 @@ function StaticTitle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-StaticTitle.$r = StaticTitle_render;
+StaticTitle[_$_.$r] = StaticTitle_render;
 
 var root_3 = _$_.template(`<div><span> </span></div>`, 0);
 var root_2 = _$_.template(`<!>`, 1, 1);
@@ -57,7 +57,7 @@ function ReactiveTitle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_1);
 }
 
-ReactiveTitle.$r = ReactiveTitle_render;
+ReactiveTitle[_$_.$r] = ReactiveTitle_render;
 
 var root_6 = _$_.template(`<meta name="description" content="Page description"><link rel="stylesheet" href="/styles.css">`, 1, 2);
 var root_5 = _$_.template(`<div>Page content</div>`, 0);
@@ -84,7 +84,7 @@ function MultipleHeadElements_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
-MultipleHeadElements.$r = MultipleHeadElements_render;
+MultipleHeadElements[_$_.$r] = MultipleHeadElements_render;
 
 var root_9 = _$_.template(`<meta name="description">`, 0);
 var root_8 = _$_.template(`<div> </div>`, 0);
@@ -119,7 +119,7 @@ function ReactiveMetaTags_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
-ReactiveMetaTags.$r = ReactiveMetaTags_render;
+ReactiveMetaTags[_$_.$r] = ReactiveMetaTags_render;
 
 var root_11 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1, 1);
@@ -151,7 +151,7 @@ function TitleWithTemplate_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_5);
 }
 
-TitleWithTemplate.$r = TitleWithTemplate_render;
+TitleWithTemplate[_$_.$r] = TitleWithTemplate_render;
 
 var root_13 = _$_.template(`<div>Empty title test</div>`, 0);
 var root_12 = _$_.template(`<!>`, 1, 1);
@@ -173,7 +173,7 @@ function EmptyTitle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_6);
 }
 
-EmptyTitle.$r = EmptyTitle_render;
+EmptyTitle[_$_.$r] = EmptyTitle_render;
 
 var root_15 = _$_.template(`<div> </div>`, 0);
 var root_14 = _$_.template(`<!>`, 1, 1);
@@ -206,7 +206,7 @@ function ConditionalTitle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_7);
 }
 
-ConditionalTitle.$r = ConditionalTitle_render;
+ConditionalTitle[_$_.$r] = ConditionalTitle_render;
 
 var root_17 = _$_.template(`<div><span> </span></div>`, 0);
 
@@ -250,7 +250,7 @@ function ComputedTitle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_8);
 }
 
-ComputedTitle.$r = ComputedTitle_render;
+ComputedTitle[_$_.$r] = ComputedTitle_render;
 
 var root_20 = _$_.template(`<meta name="author" content="Test Author">`, 0);
 var root_19 = _$_.template(`<div>Content</div>`, 0);
@@ -279,7 +279,7 @@ function MultipleHeadBlocks_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_9);
 }
 
-MultipleHeadBlocks.$r = MultipleHeadBlocks_render;
+MultipleHeadBlocks[_$_.$r] = MultipleHeadBlocks_render;
 
 var root_22 = _$_.template(`<div>Styled content</div>`, 0);
 var root_21 = _$_.template(`<!>`, 1, 1);
@@ -301,7 +301,7 @@ function HeadWithStyle_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_10);
 }
 
-HeadWithStyle.$r = HeadWithStyle_render;
+HeadWithStyle[_$_.$r] = HeadWithStyle_render;
 
 import { track } from 'ripple';
 

@@ -16,7 +16,7 @@ function Layout_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div);
 }
 
-Layout.$r = Layout_render;
+Layout[_$_.$r] = Layout_render;
 
 var root_1 = _$_.template(`<div class="layout">before<!>after</div>`, 0);
 
@@ -34,7 +34,7 @@ function TextWrappedLayout_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_1);
 }
 
-TextWrappedLayout.$r = TextWrappedLayout_render;
+TextWrappedLayout[_$_.$r] = TextWrappedLayout_render;
 
 var root_2 = _$_.template(`<div class="single">single</div>`, 0);
 
@@ -44,7 +44,7 @@ function SingleChild_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
-SingleChild.$r = SingleChild_render;
+SingleChild[_$_.$r] = SingleChild_render;
 
 var root_4 = _$_.template(`<h1>title</h1><p>description</p>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
@@ -63,13 +63,13 @@ function MultiRootChild_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-MultiRootChild.$r = MultiRootChild_render;
+MultiRootChild[_$_.$r] = MultiRootChild_render;
 
 function EmptyLayout_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {});
 }
 
-EmptyLayout.$r = EmptyLayout_render;
+EmptyLayout[_$_.$r] = EmptyLayout_render;
 
 function LayoutWithSingleChild_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {
@@ -79,7 +79,7 @@ function LayoutWithSingleChild_render(__anchor, __block) {
 	});
 }
 
-LayoutWithSingleChild.$r = LayoutWithSingleChild_render;
+LayoutWithSingleChild[_$_.$r] = LayoutWithSingleChild_render;
 
 var root_5 = _$_.template(`<!><div class="extra">extra</div>`, 1, 2);
 
@@ -96,7 +96,7 @@ function LayoutWithMultipleChildren_render(__anchor, __block) {
 	});
 }
 
-LayoutWithMultipleChildren.$r = LayoutWithMultipleChildren_render;
+LayoutWithMultipleChildren[_$_.$r] = LayoutWithMultipleChildren_render;
 
 function LayoutWithMultiRootChild_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {
@@ -106,7 +106,7 @@ function LayoutWithMultiRootChild_render(__anchor, __block) {
 	});
 }
 
-LayoutWithMultiRootChild.$r = LayoutWithMultiRootChild_render;
+LayoutWithMultiRootChild[_$_.$r] = LayoutWithMultiRootChild_render;
 
 function LayoutWithTextAroundChildren_render(__anchor, __block) {
 	_$_.render_component(TextWrappedLayout, __anchor, {
@@ -116,7 +116,7 @@ function LayoutWithTextAroundChildren_render(__anchor, __block) {
 	});
 }
 
-LayoutWithTextAroundChildren.$r = LayoutWithTextAroundChildren_render;
+LayoutWithTextAroundChildren[_$_.$r] = LayoutWithTextAroundChildren_render;
 
 var root_6 = _$_.template(`<!>`, 1, 1);
 
@@ -137,7 +137,7 @@ function DynamicTagElement_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_3);
 }
 
-DynamicTagElement.$r = DynamicTagElement_render;
+DynamicTagElement[_$_.$r] = DynamicTagElement_render;
 
 var root_7 = _$_.template(`<!>`, 1, 1);
 
@@ -155,7 +155,7 @@ function DynamicTagComponent_render(__anchor, __block) {
 	});
 }
 
-DynamicTagComponent.$r = DynamicTagComponent_render;
+DynamicTagComponent[_$_.$r] = DynamicTagComponent_render;
 
 export function Layout(__props) {
 	return _$_.tsrx_element(Layout_render, __props);

@@ -11,7 +11,7 @@ function SimpleTemplateHtml_render(__anchor, __block) {
 	_$_.append(__anchor, template);
 }
 
-SimpleTemplateHtml.$r = SimpleTemplateHtml_render;
+SimpleTemplateHtml[_$_.$r] = SimpleTemplateHtml_render;
 
 var root_1 = _$_.template(`<template id="data2"></template>`, 0);
 
@@ -23,7 +23,7 @@ function TemplateWithJSON_render(__anchor, __block) {
 	_$_.append(__anchor, template_1);
 }
 
-TemplateWithJSON.$r = TemplateWithJSON_render;
+TemplateWithJSON[_$_.$r] = TemplateWithJSON_render;
 
 var root_3 = _$_.template(`<span class="inside">inside</span>`, 0);
 
@@ -61,7 +61,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
-TemplateAroundIfBlock.$r = TemplateAroundIfBlock_render;
+TemplateAroundIfBlock[_$_.$r] = TemplateAroundIfBlock_render;
 
 export function SimpleTemplateHtml() {
 	return _$_.tsrx_element(SimpleTemplateHtml_render);

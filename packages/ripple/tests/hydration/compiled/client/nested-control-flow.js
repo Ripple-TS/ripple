@@ -57,7 +57,7 @@ function ForIf_render(__anchor, __block) {
 	_$_.append(__anchor, ul);
 }
 
-ForIf.$r = ForIf_render;
+ForIf[_$_.$r] = ForIf_render;
 
 var root_3 = _$_.template(`<li> </li>`, 0);
 
@@ -175,7 +175,7 @@ function ForSwitch_render(__anchor, __block) {
 	_$_.append(__anchor, ul_1);
 }
 
-ForSwitch.$r = ForSwitch_render;
+ForSwitch[_$_.$r] = ForSwitch_render;
 
 var root_6 = _$_.template(`<p class="case-a">Case A</p>`, 0);
 var root_7 = _$_.template(`<p class="case-default">Default</p>`, 0);
@@ -235,7 +235,7 @@ function IfSwitch_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
-IfSwitch.$r = IfSwitch_render;
+IfSwitch[_$_.$r] = IfSwitch_render;
 
 var root_9 = _$_.template(`<p class="case-a">Case A</p>`, 0);
 var root_10 = _$_.template(`<p class="case-default">Default</p>`, 0);
@@ -295,7 +295,7 @@ function IfSwitchHidden_render(__anchor, __block) {
 	_$_.append(__anchor, div_1);
 }
 
-IfSwitchHidden.$r = IfSwitchHidden_render;
+IfSwitchHidden[_$_.$r] = IfSwitchHidden_render;
 
 var root_12 = _$_.template(`<li> </li>`, 0);
 
@@ -416,7 +416,7 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 	_$_.append(__anchor, ul_2);
 }
 
-ForIfSwitchSingle.$r = ForIfSwitchSingle_render;
+ForIfSwitchSingle[_$_.$r] = ForIfSwitchSingle_render;
 
 var root_15 = _$_.template(`<li> </li>`, 0);
 
@@ -541,7 +541,7 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 	_$_.append(__anchor, ul_3);
 }
 
-ForIfSwitchMulti.$r = ForIfSwitchMulti_render;
+ForIfSwitchMulti[_$_.$r] = ForIfSwitchMulti_render;
 
 var root_18 = _$_.template(`<li> </li>`, 0);
 
@@ -667,7 +667,7 @@ function ForIfSwitchWithDisabled_render(__anchor, __block) {
 	_$_.append(__anchor, ul_4);
 }
 
-ForIfSwitchWithDisabled.$r = ForIfSwitchWithDisabled_render;
+ForIfSwitchWithDisabled[_$_.$r] = ForIfSwitchWithDisabled_render;
 
 var root_21 = _$_.template(`<p class="resolved-a">A resolved</p>`, 0);
 var root_22 = _$_.template(`<p class="pending-a">A pending</p>`, 0);
@@ -727,7 +727,7 @@ function SwitchTry_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
-SwitchTry.$r = SwitchTry_render;
+SwitchTry[_$_.$r] = SwitchTry_render;
 
 var root_25 = _$_.template(`<li> </li>`, 0);
 
@@ -922,7 +922,7 @@ function ForSwitchTry_render(__anchor, __block) {
 	_$_.append(__anchor, ul_5);
 }
 
-ForSwitchTry.$r = ForSwitchTry_render;
+ForSwitchTry[_$_.$r] = ForSwitchTry_render;
 
 var root_30 = _$_.template(`<li> </li>`, 0);
 
@@ -1027,7 +1027,7 @@ function ForIfTry_render(__anchor, __block) {
 	_$_.append(__anchor, ul_6);
 }
 
-ForIfTry.$r = ForIfTry_render;
+ForIfTry[_$_.$r] = ForIfTry_render;
 
 var root_33 = _$_.template(`<li> </li>`, 0);
 
@@ -1230,7 +1230,7 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 	_$_.append(__anchor, ul_7);
 }
 
-ForIfSwitchTrySingle.$r = ForIfSwitchTrySingle_render;
+ForIfSwitchTrySingle[_$_.$r] = ForIfSwitchTrySingle_render;
 
 var root_38 = _$_.template(`<li> </li>`, 0);
 
@@ -1437,7 +1437,7 @@ function ForIfSwitchTryMulti_render(__anchor, __block) {
 	_$_.append(__anchor, ul_8);
 }
 
-ForIfSwitchTryMulti.$r = ForIfSwitchTryMulti_render;
+ForIfSwitchTryMulti[_$_.$r] = ForIfSwitchTryMulti_render;
 
 export function ForIf() {
 	return _$_.tsrx_element(ForIf_render);

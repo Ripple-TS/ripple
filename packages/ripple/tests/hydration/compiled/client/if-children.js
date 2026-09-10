@@ -22,7 +22,7 @@ function TestIfWithChildren_render(__anchor, __block) {
 	});
 }
 
-TestIfWithChildren.$r = TestIfWithChildren_render;
+TestIfWithChildren[_$_.$r] = TestIfWithChildren_render;
 
 var root_5 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
 
@@ -56,7 +56,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 	_$_.append(__anchor, div_4);
 }
 
-IfWithStaticChildren.$r = IfWithStaticChildren_render;
+IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
 var root_7 = _$_.template(`<div class="items"><!></div>`, 0);
 var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
@@ -78,7 +78,7 @@ function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
 	});
 }
 
-TestIfWithSiblingsAndChildren.$r = TestIfWithSiblingsAndChildren_render;
+TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
 
 var root_11 = _$_.template(`<div class="conditional">Conditional content</div>`, 0);
 
@@ -121,7 +121,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
-ElementWithChildrenThenIf.$r = ElementWithChildrenThenIf_render;
+ElementWithChildrenThenIf[_$_.$r] = ElementWithChildrenThenIf_render;
 
 var root_14 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 
@@ -164,7 +164,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
-DeepNestingThenIf.$r = DeepNestingThenIf_render;
+DeepNestingThenIf[_$_.$r] = DeepNestingThenIf_render;
 
 var root_16 = _$_.template(`<pre class="code">const x = 1;</pre>`, 0);
 var root_17 = _$_.template(`<div class="preview">Preview content</div>`, 0);
@@ -241,7 +241,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 	_$_.append(__anchor, div_12);
 }
 
-DomElementChildrenThenSibling.$r = DomElementChildrenThenSibling_render;
+DomElementChildrenThenSibling[_$_.$r] = DomElementChildrenThenSibling_render;
 
 var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
 
@@ -290,7 +290,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_6);
 }
 
-DomChildrenThenStaticSiblings.$r = DomChildrenThenStaticSiblings_render;
+DomChildrenThenStaticSiblings[_$_.$r] = DomChildrenThenStaticSiblings_render;
 
 var root_20 = _$_.template(`<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>`, 0);
 
@@ -300,7 +300,7 @@ function StaticListThenStaticSiblings_render(__anchor, __block) {
 	_$_.append(__anchor, div_17);
 }
 
-StaticListThenStaticSiblings.$r = StaticListThenStaticSiblings_render;
+StaticListThenStaticSiblings[_$_.$r] = StaticListThenStaticSiblings_render;
 
 var root_21 = _$_.template(`<span class="root-if">on</span>`, 0);
 var root_22 = _$_.template(`<span class="root-if">off</span>`, 0);
@@ -325,7 +325,7 @@ function RootIfChild_render(__anchor, __block, props) {
 	_$_.if(__anchor, if_5, true, props);
 }
 
-RootIfChild.$r = RootIfChild_render;
+RootIfChild[_$_.$r] = RootIfChild_render;
 
 var root_23 = _$_.template(`<span class="root-for"> </span>`, 0);
 
@@ -355,7 +355,7 @@ function RootForChild_render(__anchor, __block, props) {
 	);
 }
 
-RootForChild.$r = RootForChild_render;
+RootForChild[_$_.$r] = RootForChild_render;
 
 var root_24 = _$_.template(`<span class="trailing">end</span>`, 0);
 
@@ -365,7 +365,7 @@ function TrailingChild_render(__anchor, __block) {
 	_$_.append(__anchor, span_3);
 }
 
-TrailingChild.$r = TrailingChild_render;
+TrailingChild[_$_.$r] = TrailingChild_render;
 
 var props_site;
 var props_site_1;
@@ -400,7 +400,7 @@ function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
 	_$_.append(__anchor, div_18);
 }
 
-ComponentChildrenWithControlFlowRoots.$r = ComponentChildrenWithControlFlowRoots_render;
+ComponentChildrenWithControlFlowRoots[_$_.$r] = ComponentChildrenWithControlFlowRoots_render;
 
 import { track } from 'ripple';
 

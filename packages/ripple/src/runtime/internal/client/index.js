@@ -39,6 +39,7 @@ export {
 	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
+	RENDER_ENTRY as $r,
 } from './constants.js';
 export { event, render_event, delegate } from './events.js';
 export { portal } from './portal.js';

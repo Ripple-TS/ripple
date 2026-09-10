@@ -40,7 +40,7 @@ function AsyncCustomType_render(__anchor, __block) {
 	_$_.append(__anchor, fragment);
 }
 
-AsyncCustomType.$r = AsyncCustomType_render;
+AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 
 var root_4 = _$_.template(`<p class="result"> </p>`, 0);
 var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -81,7 +81,7 @@ function AsyncWithServerCall_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_2);
 }
 
-AsyncWithServerCall.$r = AsyncWithServerCall_render;
+AsyncWithServerCall[_$_.$r] = AsyncWithServerCall_render;
 
 var root_8 = _$_.template(`<p class="result"> </p>`, 0);
 var root_9 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -112,7 +112,7 @@ function AsyncSimpleValue_render(__anchor, __block) {
 	);
 }
 
-AsyncSimpleValue.$r = AsyncSimpleValue_render;
+AsyncSimpleValue[_$_.$r] = AsyncSimpleValue_render;
 
 var root_10 = _$_.template(`<span class="count"> </span>`, 0);
 var root_11 = _$_.template(`<span class="pending">...</span>`, 0);
@@ -143,7 +143,7 @@ function AsyncNumericValue_render(__anchor, __block) {
 	);
 }
 
-AsyncNumericValue.$r = AsyncNumericValue_render;
+AsyncNumericValue[_$_.$r] = AsyncNumericValue_render;
 
 var root_12 = _$_.template(`<div class="user"><span class="name"> </span><span class="age"> </span></div>`, 0);
 var root_13 = _$_.template(`<div class="loading">loading user...</div>`, 0);
@@ -187,7 +187,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 	);
 }
 
-AsyncObjectValue.$r = AsyncObjectValue_render;
+AsyncObjectValue[_$_.$r] = AsyncObjectValue_render;
 
 var root_14 = _$_.template(`<div class="multi"><span class="first"> </span><span class="second"> </span></div>`, 0);
 var root_15 = _$_.template(`<div class="loading">loading...</div>`, 0);
@@ -232,7 +232,7 @@ function AsyncMultipleValues_render(__anchor, __block) {
 	);
 }
 
-AsyncMultipleValues.$r = AsyncMultipleValues_render;
+AsyncMultipleValues[_$_.$r] = AsyncMultipleValues_render;
 
 var root_16 = _$_.template(`<p class="result"> </p>`, 0);
 var root_17 = _$_.template(`<p class="error"> </p>`, 0);
@@ -275,7 +275,7 @@ function AsyncWithCatch_render(__anchor, __block) {
 	);
 }
 
-AsyncWithCatch.$r = AsyncWithCatch_render;
+AsyncWithCatch[_$_.$r] = AsyncWithCatch_render;
 
 var root_19 = _$_.template(`<p class="result"> </p>`, 0);
 var root_20 = _$_.template(`<p class="pending">loading...</p>`, 0);
@@ -306,7 +306,7 @@ function ChildWithError_render(__anchor, __block) {
 	);
 }
 
-ChildWithError.$r = ChildWithError_render;
+ChildWithError[_$_.$r] = ChildWithError_render;
 
 var root_21 = _$_.template(`<p class="parent-error"> </p>`, 0);
 
@@ -333,7 +333,7 @@ function ParentWithCatch_render(__anchor, __block) {
 	);
 }
 
-ParentWithCatch.$r = ParentWithCatch_render;
+ParentWithCatch[_$_.$r] = ParentWithCatch_render;
 
 var root_22 = _$_.template(`<p class="result"> </p>`, 0);
 var root_25 = _$_.template(`<p class="loading">loading...</p>`, 0);
@@ -374,7 +374,7 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_4);
 }
 
-AsyncWithReactiveDependency.$r = AsyncWithReactiveDependency_render;
+AsyncWithReactiveDependency[_$_.$r] = AsyncWithReactiveDependency_render;
 
 import { track, trackAsync } from 'ripple';
 import { Money } from '../fixtures/money.js';

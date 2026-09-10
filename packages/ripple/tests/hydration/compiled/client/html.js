@@ -11,7 +11,7 @@ function StaticHtml_render(__anchor, __block) {
 	_$_.append(__anchor, div);
 }
 
-StaticHtml.$r = StaticHtml_render;
+StaticHtml[_$_.$r] = StaticHtml_render;
 
 var root_1 = _$_.template(`<div></div>`, 0);
 
@@ -23,7 +23,7 @@ function DynamicHtml_render(__anchor, __block) {
 	_$_.append(__anchor, div_1);
 }
 
-DynamicHtml.$r = DynamicHtml_render;
+DynamicHtml[_$_.$r] = DynamicHtml_render;
 
 var root_2 = _$_.template(`<div></div>`, 0);
 
@@ -35,7 +35,7 @@ function EmptyHtml_render(__anchor, __block) {
 	_$_.append(__anchor, div_2);
 }
 
-EmptyHtml.$r = EmptyHtml_render;
+EmptyHtml[_$_.$r] = EmptyHtml_render;
 
 var root_3 = _$_.template(`<section></section>`, 0);
 
@@ -47,7 +47,7 @@ function ComplexHtml_render(__anchor, __block) {
 	_$_.append(__anchor, section);
 }
 
-ComplexHtml.$r = ComplexHtml_render;
+ComplexHtml[_$_.$r] = ComplexHtml_render;
 
 var root_4 = _$_.template(`<div><!><!></div>`, 0);
 
@@ -72,7 +72,7 @@ function MultipleHtml_render(__anchor, __block) {
 	_$_.append(__anchor, div_3);
 }
 
-MultipleHtml.$r = MultipleHtml_render;
+MultipleHtml[_$_.$r] = MultipleHtml_render;
 
 var root_5 = _$_.template(`<div><!><button>Increment</button></div>`, 0);
 
@@ -93,7 +93,7 @@ function HtmlWithReactivity_render(__anchor, __block) {
 	_$_.append(__anchor, div_4);
 }
 
-HtmlWithReactivity.$r = HtmlWithReactivity_render;
+HtmlWithReactivity[_$_.$r] = HtmlWithReactivity_render;
 
 var root_6 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
 var root_7 = _$_.template(`<div class="vp-doc"></div>`, 0);
@@ -111,7 +111,7 @@ function HtmlInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlInChildren.$r = HtmlInChildren_render;
+HtmlInChildren[_$_.$r] = HtmlInChildren_render;
 
 var root_8 = _$_.template(`<h1>Title</h1><div class="content"></div>`, 1, 2);
 
@@ -130,7 +130,7 @@ function HtmlInChildrenWithSiblings_render(__anchor, __block) {
 	});
 }
 
-HtmlInChildrenWithSiblings.$r = HtmlInChildrenWithSiblings_render;
+HtmlInChildrenWithSiblings[_$_.$r] = HtmlInChildrenWithSiblings_render;
 
 var root_9 = _$_.template(`<div class="doc"><!><!></div>`, 0);
 
@@ -166,7 +166,7 @@ function MultipleHtmlInChildren_render(__anchor, __block) {
 	});
 }
 
-MultipleHtmlInChildren.$r = MultipleHtmlInChildren_render;
+MultipleHtmlInChildren[_$_.$r] = MultipleHtmlInChildren_render;
 
 var root_10 = _$_.template(`<div></div>`, 0);
 
@@ -178,7 +178,7 @@ function HtmlWithComments_render(__anchor, __block) {
 	_$_.append(__anchor, div_10);
 }
 
-HtmlWithComments.$r = HtmlWithComments_render;
+HtmlWithComments[_$_.$r] = HtmlWithComments_render;
 
 var root_11 = _$_.template(`<div></div>`, 0);
 
@@ -190,7 +190,7 @@ function HtmlWithEmptyComment_render(__anchor, __block) {
 	_$_.append(__anchor, div_11);
 }
 
-HtmlWithEmptyComment.$r = HtmlWithEmptyComment_render;
+HtmlWithEmptyComment[_$_.$r] = HtmlWithEmptyComment_render;
 
 var root_12 = _$_.template(`<div class="vp-doc"></div>`, 0);
 
@@ -207,7 +207,7 @@ function HtmlWithCommentsInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlWithCommentsInChildren.$r = HtmlWithCommentsInChildren_render;
+HtmlWithCommentsInChildren[_$_.$r] = HtmlWithCommentsInChildren_render;
 
 var root_13 = _$_.template(`<footer class="doc-footer">Footer content</footer>`, 0);
 
@@ -217,7 +217,7 @@ function DocFooter_render(__anchor, __block) {
 	_$_.append(__anchor, footer);
 }
 
-DocFooter.$r = DocFooter_render;
+DocFooter[_$_.$r] = DocFooter_render;
 
 var root_15 = _$_.template(`<div class="edit-link"><a>Edit</a></div>`, 0);
 
@@ -390,7 +390,7 @@ function DocLayout_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_13);
 }
 
-DocLayout.$r = DocLayout_render;
+DocLayout[_$_.$r] = DocLayout_render;
 
 var root_19 = _$_.template(`<div class="vp-doc"></div>`, 0);
 
@@ -414,7 +414,7 @@ function HtmlWithServerData_render(__anchor, __block) {
 	});
 }
 
-HtmlWithServerData.$r = HtmlWithServerData_render;
+HtmlWithServerData[_$_.$r] = HtmlWithServerData_render;
 
 var root_20 = _$_.template(`<div class="vp-doc"></div>`, 0);
 
@@ -431,7 +431,7 @@ function HtmlWithClientDefaults_render(__anchor, __block) {
 	});
 }
 
-HtmlWithClientDefaults.$r = HtmlWithClientDefaults_render;
+HtmlWithClientDefaults[_$_.$r] = HtmlWithClientDefaults_render;
 
 var root_21 = _$_.template(`<div class="vp-doc"></div>`, 0);
 
@@ -448,7 +448,7 @@ function HtmlWithUndefinedContent_render(__anchor, __block) {
 	});
 }
 
-HtmlWithUndefinedContent.$r = HtmlWithUndefinedContent_render;
+HtmlWithUndefinedContent[_$_.$r] = HtmlWithUndefinedContent_render;
 
 var root_22 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
 var root_23 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
@@ -482,7 +482,7 @@ function HtmlAfterSwitchInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlAfterSwitchInChildren.$r = HtmlAfterSwitchInChildren_render;
+HtmlAfterSwitchInChildren[_$_.$r] = HtmlAfterSwitchInChildren_render;
 
 var root_27 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
 var root_28 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
@@ -514,7 +514,7 @@ function HtmlAfterIfInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlAfterIfInChildren.$r = HtmlAfterIfInChildren_render;
+HtmlAfterIfInChildren[_$_.$r] = HtmlAfterIfInChildren_render;
 
 var root_30 = _$_.template(`<span class="for-item"> </span>`, 0);
 var root_31 = _$_.template(`<!><p>First paragraph</p><!><p>After code</p>`, 1, 4);
@@ -537,7 +537,7 @@ function HtmlAfterForInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlAfterForInChildren.$r = HtmlAfterForInChildren_render;
+HtmlAfterForInChildren[_$_.$r] = HtmlAfterForInChildren_render;
 
 var root_32 = _$_.template(`<div class="try-box"> </div>`, 0);
 var root_33 = _$_.template(`<span>error</span>`, 0);
@@ -561,7 +561,7 @@ function HtmlAfterTryInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlAfterTryInChildren.$r = HtmlAfterTryInChildren_render;
+HtmlAfterTryInChildren[_$_.$r] = HtmlAfterTryInChildren_render;
 
 var root_35 = _$_.template(`<span class="boxed"><!></span>`, 0);
 var root_36 = _$_.template(` `, 1, 1);
@@ -585,7 +585,7 @@ function HtmlAfterComponentInChildren_render(__anchor, __block) {
 	});
 }
 
-HtmlAfterComponentInChildren.$r = HtmlAfterComponentInChildren_render;
+HtmlAfterComponentInChildren[_$_.$r] = HtmlAfterComponentInChildren_render;
 
 var root_39 = _$_.template(`<div class="indicator"></div>`, 0);
 
@@ -655,7 +655,7 @@ function NavItem_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_27);
 }
 
-NavItem.$r = NavItem_render;
+NavItem[_$_.$r] = NavItem_render;
 
 var root_41 = _$_.template(`<div class="section-items"><!></div>`, 0);
 var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
@@ -670,7 +670,7 @@ function PageHeader_render(__anchor, __block) {
 	_$_.append(__anchor, header);
 }
 
-PageHeader.$r = PageHeader_render;
+PageHeader[_$_.$r] = PageHeader_render;
 
 var root_47 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 
@@ -724,7 +724,7 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 	_$_.append(__anchor, div_33);
 }
 
-LayoutWithSidebarAndMain.$r = LayoutWithSidebarAndMain_render;
+LayoutWithSidebarAndMain[_$_.$r] = LayoutWithSidebarAndMain_render;
 
 var root_48 = _$_.template(`<article class="doc-content"><div><!></div></article>`, 0);
 var root_49 = _$_.template(`<footer class="doc-footer">Footer</footer>`, 0);
@@ -735,7 +735,7 @@ function SimpleFooter_render(__anchor, __block) {
 	_$_.append(__anchor, footer_1);
 }
 
-SimpleFooter.$r = SimpleFooter_render;
+SimpleFooter[_$_.$r] = SimpleFooter_render;
 
 var root_51 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
 var root_52 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
@@ -796,7 +796,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 	_$_.append(__anchor, div_38);
 }
 
-ArticleWithChildrenThenSibling.$r = ArticleWithChildrenThenSibling_render;
+ArticleWithChildrenThenSibling[_$_.$r] = ArticleWithChildrenThenSibling_render;
 
 var root_55 = _$_.template(`<div class="doc-content"></div>`, 0);
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
@@ -842,7 +842,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 	_$_.append(__anchor, div_40);
 }
 
-ArticleWithHtmlChildThenSibling.$r = ArticleWithHtmlChildThenSibling_render;
+ArticleWithHtmlChildThenSibling[_$_.$r] = ArticleWithHtmlChildThenSibling_render;
 
 var root_58 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 
@@ -872,7 +872,7 @@ function InlineArticleWithHtmlChild_render(__anchor, __block) {
 	});
 }
 
-InlineArticleWithHtmlChild.$r = InlineArticleWithHtmlChild_render;
+InlineArticleWithHtmlChild[_$_.$r] = InlineArticleWithHtmlChild_render;
 
 var root_60 = _$_.template(`<header class="header">Header</header>`, 0);
 
@@ -882,7 +882,7 @@ function HeaderStub_render(__anchor, __block) {
 	_$_.append(__anchor, header_1);
 }
 
-HeaderStub.$r = HeaderStub_render;
+HeaderStub[_$_.$r] = HeaderStub_render;
 
 var root_61 = _$_.template(`<aside class="sidebar">Sidebar</aside>`, 0);
 
@@ -892,7 +892,7 @@ function SidebarStub_render(__anchor, __block) {
 	_$_.append(__anchor, aside_2);
 }
 
-SidebarStub.$r = SidebarStub_render;
+SidebarStub[_$_.$r] = SidebarStub_render;
 
 var root_62 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 
@@ -902,7 +902,7 @@ function FooterStub_render(__anchor, __block) {
 	_$_.append(__anchor, footer_2);
 }
 
-FooterStub.$r = FooterStub_render;
+FooterStub[_$_.$r] = FooterStub_render;
 
 var root_64 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
 
@@ -1018,7 +1018,7 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_47);
 }
 
-DocsLayoutInner.$r = DocsLayoutInner_render;
+DocsLayoutInner[_$_.$r] = DocsLayoutInner_render;
 
 var root_66 = _$_.template(`<div class="doc-content"></div>`, 0);
 
@@ -1037,7 +1037,7 @@ function DocsLayoutWithData_render(__anchor, __block) {
 	});
 }
 
-DocsLayoutWithData.$r = DocsLayoutWithData_render;
+DocsLayoutWithData[_$_.$r] = DocsLayoutWithData_render;
 
 var root_67 = _$_.template(`<div class="doc-content"></div>`, 0);
 
@@ -1054,7 +1054,7 @@ function DocsLayoutWithoutData_render(__anchor, __block) {
 	});
 }
 
-DocsLayoutWithoutData.$r = DocsLayoutWithoutData_render;
+DocsLayoutWithoutData[_$_.$r] = DocsLayoutWithoutData_render;
 
 var root_69 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
 
@@ -1316,7 +1316,7 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 	_$_.append(__anchor, div_56);
 }
 
-DocsLayoutExact.$r = DocsLayoutExact_render;
+DocsLayoutExact[_$_.$r] = DocsLayoutExact_render;
 
 var root_76 = _$_.template(`<div class="doc-content"></div>`, 0);
 
@@ -1341,7 +1341,7 @@ function DocsLayoutExactWithData_render(__anchor, __block) {
 	});
 }
 
-DocsLayoutExactWithData.$r = DocsLayoutExactWithData_render;
+DocsLayoutExactWithData[_$_.$r] = DocsLayoutExactWithData_render;
 
 var root_77 = _$_.template(`<div class="doc-content"></div>`, 0);
 
@@ -1366,7 +1366,7 @@ function DocsLayoutExactWithoutData_render(__anchor, __block) {
 	});
 }
 
-DocsLayoutExactWithoutData.$r = DocsLayoutExactWithoutData_render;
+DocsLayoutExactWithoutData[_$_.$r] = DocsLayoutExactWithoutData_render;
 
 var root_78 = _$_.template(`<div><template id="t1"></template><p class="content">Main content</p></div>`, 0);
 
@@ -1396,7 +1396,7 @@ function TemplateWithHtmlContent_render(__anchor, __block) {
 	_$_.append(__anchor, div_66);
 }
 
-TemplateWithHtmlContent.$r = TemplateWithHtmlContent_render;
+TemplateWithHtmlContent[_$_.$r] = TemplateWithHtmlContent_render;
 
 var root_79 = _$_.template(`<div class="wrapper"><h1>Title</h1><template id="data-template"></template><p class="after-template">Content after template</p></div>`, 0);
 
@@ -1427,7 +1427,7 @@ function TemplateWithHtmlAndSiblings_render(__anchor, __block) {
 	_$_.append(__anchor, div_67);
 }
 
-TemplateWithHtmlAndSiblings.$r = TemplateWithHtmlAndSiblings_render;
+TemplateWithHtmlAndSiblings[_$_.$r] = TemplateWithHtmlAndSiblings_render;
 
 var root_80 = _$_.template(`<div class="layout"><template id="page-data"></template><main><!></main></div>`, 0);
 
@@ -1463,7 +1463,7 @@ function NestedTemplateInLayout_render(__anchor, __block) {
 	});
 }
 
-NestedTemplateInLayout.$r = NestedTemplateInLayout_render;
+NestedTemplateInLayout[_$_.$r] = NestedTemplateInLayout_render;
 
 var root_82 = _$_.template(`<section class="readable-section"><p>Ergonomics</p><h2>Sibling traversal pattern</h2><p>Before first block</p><p>Before second block</p><pre class="code-block"><code></code></pre><p>Between one and two</p><pre class="code-block"><code></code></pre><p>Between two and three</p><pre class="code-block"><code></code></pre></section>`, 0);
 
@@ -1512,7 +1512,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 	_$_.append(__anchor, section_2);
 }
 
-HtmlCodeBlocksWithSiblingChain.$r = HtmlCodeBlocksWithSiblingChain_render;
+HtmlCodeBlocksWithSiblingChain[_$_.$r] = HtmlCodeBlocksWithSiblingChain_render;
 
 import { Fragment, track } from 'ripple';
 
