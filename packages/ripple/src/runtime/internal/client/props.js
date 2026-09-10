@@ -1,9 +1,20 @@
-import {
-	define_property,
-	exclude_prop_from_object,
-	object_keys,
-} from '@tsrx/core/runtime/language-helpers';
+import { define_property } from '@tsrx/core/runtime/language-helpers';
 import { reads } from './runtime.js';
+import { KEYS, Props } from '../../props.js';
+
+export {
+	Props,
+	KEYS,
+	is_props,
+	own_keys,
+	props_keys,
+	props_values,
+	props_entries,
+	props_has,
+	props_snapshot,
+	props_omit,
+	forwarding_descriptor,
+} from '../../props.js';
 
 /**
  * Compiled component props.
@@ -25,11 +36,10 @@ import { reads } from './runtime.js';
  *
  * Prototype getters are not own properties, so `Object.keys`, object spread
  * and the other own-only operations see nothing on an instance. The compiler
- * lowers those on `.tsrx` code to the helpers below; runtime code uses `KEYS`.
+ * lowers those on `.tsrx` code to the helpers in `runtime/props.js`, which
+ * are also the public `Props` namespace; runtime code uses `KEYS`.
  */
 
-/** Every prop name of a props class, in source order (on the prototype). */
-export const KEYS = Symbol('keys');
 /** The per-call-site object holding the reactive expressions. */
 const SITE = Symbol('site');
 
@@ -42,13 +52,6 @@ export const $5 = Symbol('5');
 export const $6 = Symbol('6');
 export const $7 = Symbol('7');
 const SLOTS = [$0, $1, $2, $3, $4, $5, $6, $7];
-
-/** Base of every props class. */
-export function Props() {}
-
-Props.prototype.toJSON = function () {
-	return props_snapshot(this);
-};
 
 /* One base per slot count: straight-line stores, no per-instance loop. */
 /* prettier-ignore */
@@ -206,136 +209,4 @@ export function props_site(keys, mask, captures, memo, site) {
 
 	site.C = Klass;
 	return site;
-}
-
-/**
- * The prop names of a props instance (a shared array: do not mutate).
- * @param {any} props
- * @returns {string[]}
- */
-function keys_of(props) {
-	return props[KEYS];
-}
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-export function is_props(value) {
-	return value instanceof Props;
-}
-
-/**
- * The own keys of a plain object, or every prop of a props instance (a shared
- * array: do not mutate).
- * @param {Record<string | symbol, any>} obj
- * @returns {string[]}
- */
-export function own_keys(obj) {
-	return obj instanceof Props ? keys_of(obj) : object_keys(obj);
-}
-
-/**
- * `Object.keys` for `.tsrx` code: includes the prototype getters of a props
- * instance.
- * @param {Record<string | symbol, any>} obj
- * @returns {string[]}
- */
-export function props_keys(obj) {
-	return obj instanceof Props ? keys_of(obj).slice() : object_keys(obj);
-}
-
-/**
- * `Object.values` for `.tsrx` code.
- * @param {Record<string | symbol, any>} obj
- * @returns {any[]}
- */
-export function props_values(obj) {
-	if (!(obj instanceof Props)) {
-		return Object.values(obj);
-	}
-	var keys = keys_of(obj);
-	var values = [];
-	for (var i = 0; i < keys.length; i++) {
-		values.push(obj[keys[i]]);
-	}
-	return values;
-}
-
-/**
- * `Object.entries` for `.tsrx` code.
- * @param {Record<string | symbol, any>} obj
- * @returns {[string, any][]}
- */
-export function props_entries(obj) {
-	if (!(obj instanceof Props)) {
-		return Object.entries(obj);
-	}
-	var keys = keys_of(obj);
-	/** @type {[string, any][]} */
-	var entries = [];
-	for (var i = 0; i < keys.length; i++) {
-		entries.push([keys[i], obj[keys[i]]]);
-	}
-	return entries;
-}
-
-/**
- * The object an object spread copies from: a plain object as is, a props
- * instance as a snapshot of every prop.
- * @param {any} obj
- * @returns {any}
- */
-export function props_snapshot(obj) {
-	if (!(obj instanceof Props)) {
-		return obj;
-	}
-	/** @type {Record<string, any>} */
-	var source = obj;
-	var keys = keys_of(source);
-	/** @type {Record<string, any>} */
-	var out = {};
-	for (var i = 0; i < keys.length; i++) {
-		out[keys[i]] = source[keys[i]];
-	}
-	return out;
-}
-
-/**
- * A copy of `props` without `exclude`, each remaining prop forwarding to the
- * source on read (like the language helper of the same name, which only sees
- * own properties).
- * @param {Record<PropertyKey, unknown> | null | undefined} props
- * @param {string} exclude
- * @returns {Record<PropertyKey, unknown>}
- */
-export function exclude_prop(props, exclude) {
-	if (!(props instanceof Props)) {
-		return exclude_prop_from_object(props, exclude);
-	}
-	var keys = keys_of(props);
-	/** @type {Record<PropertyKey, unknown>} */
-	var next = {};
-	for (var i = 0; i < keys.length; i++) {
-		var key = keys[i];
-		if (key !== exclude) {
-			define_property(next, key, forwarding_descriptor(props, key));
-		}
-	}
-	return next;
-}
-
-/**
- * @param {Record<PropertyKey, unknown>} source
- * @param {string} key
- * @returns {PropertyDescriptor}
- */
-export function forwarding_descriptor(source, key) {
-	return {
-		get() {
-			return source[key];
-		},
-		enumerable: true,
-		configurable: true,
-	};
 }

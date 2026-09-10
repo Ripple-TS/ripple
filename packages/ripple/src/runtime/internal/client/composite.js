@@ -8,7 +8,7 @@ import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
-import { exclude_prop } from './props.js';
+import { props_omit } from './props.js';
 
 /**
  * @typedef {Function | string | null | undefined | false} CompositeTarget
@@ -45,7 +45,7 @@ export function composite(get_component, node, props, exclude_key) {
 			if (typeof component === 'function') {
 				// Handle as regular component
 				b = branch(() => {
-					const component_props = exclude_key ? exclude_prop(props, exclude_key) : props;
+					const component_props = exclude_key ? props_omit(props, [exclude_key]) : props;
 					render_component(component, anchor, component_props);
 				});
 			} else if (is_tsrx_element(component)) {

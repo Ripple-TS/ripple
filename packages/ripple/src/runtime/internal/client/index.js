@@ -95,6 +95,7 @@ export {
 	props_keys,
 	props_values,
 	props_entries,
+	props_has,
 	props_snapshot,
 	$0,
 	$1,

@@ -212,6 +212,8 @@ export function hydrate(component, options) {
 
 export { Context } from './internal/client/context.js';
 
+export { PropsHelpers as Props } from './props.js';
+
 export {
 	flush_sync as flushSync,
 	track,

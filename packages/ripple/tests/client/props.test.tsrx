@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, track } from 'ripple';
+import { flushSync, track, Props } from 'ripple';
 
 // Component call sites with a reactive prop pass a compiled props instance:
 // the props are prototype getters, so these tests cover the paths that no
@@ -116,6 +116,68 @@ describe('compiled props', () => {
 			'{"a":2,"b":"s","c":true}',
 			'has a',
 		]);
+	});
+
+	it('reads compiled props through the Props helpers outside the compiler', () => {
+		let bump: () => void = () => {};
+		let seen: Record<string, unknown> = {};
+		let omitted: { b: string; c: number } | null = null;
+
+		// `Object.keys` in any `.tsrx` code is lowered; only a raw own-property
+		// read shows that the props are not own properties.
+		const inspect = (props: { a: number; b: string; c: number }) => {
+			seen = {
+				keys: Props.keys(props),
+				values: Props.values(props),
+				entries: Props.entries(props),
+				has_a: Props.has(props, 'a'),
+				has_d: Props.has(props, 'd'),
+				object: Props.spread(props),
+				merged: Props.spread(props, { c: 9, d: 'd' }),
+				own: Object.getOwnPropertyNames(props),
+			};
+			omitted = Props.rest(props, 'a');
+		};
+
+		function Child(props: { a: number; b: string; c: number }) @{
+			inspect(props);
+			<span>{props.a}</span>
+		}
+
+		function App() @{
+			let &[n] = track(1);
+			bump = () => {
+				n++;
+			};
+			<Child a={n} b="s" c={3} />
+		}
+
+		render(App);
+		expect(seen).toEqual({
+			keys: ['a', 'b', 'c'],
+			values: [1, 's', 3],
+			entries: [
+				['a', 1],
+				['b', 's'],
+				['c', 3],
+			],
+			has_a: true,
+			has_d: false,
+			object: { a: 1, b: 's', c: 3 },
+			merged: { a: 1, b: 's', c: 9, d: 'd' },
+			own: [],
+		});
+		expect(Object.keys(omitted!)).toEqual(['b', 'c']);
+		expect(omitted!.c).toBe(3);
+
+		// The helpers behave like Object on plain objects.
+		expect(Props.keys({ x: 1 })).toEqual(['x']);
+		expect(Props.spread({ x: 1 }, { y: 2 })).toEqual({ x: 1, y: 2 });
+		expect(Props.rest({ x: 1, y: 2 }, 'x')).toEqual({ y: 2 });
+
+		bump();
+		flushSync();
+		expect(container.querySelector('span')?.textContent).toBe('2');
 	});
 
 	it('supports lazy rest destructuring of compiled props', () => {

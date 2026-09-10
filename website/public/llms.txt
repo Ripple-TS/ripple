@@ -107,14 +107,18 @@ wrap that output in a fragment. Plain text between tags is JSX text, not
 JavaScript.
 
 On the client, a component call site with a reactive prop passes a props object
-whose props are getters on a shared prototype rather than own properties. Read
-props by name (`props.title`), with `in`, `for...in`, or `JSON.stringify`; in
-`.tsrx` code `Object.keys`, `Object.values`, `Object.entries` and object spread of
-props compile to helpers that see every prop. In plain `.ts` code those
-own-property operations see only a compiled props object's static values, so
-enumerate props in `.tsrx` code or read them by name. A prop expression that
-only combines the component's own props, constants, and captured locals (for
-example `depth={props.depth - 1}`) is evaluated once when that evaluation reads no
+whose props are getters on a shared prototype rather than own properties. Reading
+by name (`props.title`), `in`, `for...in` and `JSON.stringify` work as usual, and
+in `.tsrx` code `Object.keys`, `Object.values`, `Object.entries` and object spread
+of props compile to helpers that see every prop. Outside `.tsrx` code use the
+`Props` helpers from 'ripple', which accept compiled props and plain objects
+alike on the client and the server: `Props.keys(props)`, `Props.values(props)`,
+`Props.entries(props)`, `Props.has(props, key)`, `Props.spread(...sources)` (a
+new plain object, as `{ ...a, ...b }`) and `Props.rest(props, ...keys)` (the
+remaining props as a new object, as `const { a, ...rest } = props`, each read
+from the source on access). A prop expression that only combines the
+component's own props, constants, and captured locals (for example
+`depth={props.depth - 1}`) is evaluated once when that evaluation reads no
 tracked state.
 
 ```tsrx
