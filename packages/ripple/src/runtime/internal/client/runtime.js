@@ -1,4 +1,4 @@
-/** @import { Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
+/** @import { AppendIntoAnchor, Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
 /** @typedef {TrackedValue} Tracked */
 /** @typedef {DerivedValue} Derived */
@@ -50,6 +50,9 @@ import {
 	replace_boundary_request,
 } from './try.js';
 import { is_ripple_object } from './utils.js';
+import { forwarding_descriptor, is_props, own_keys } from './props.js';
+import { render_value } from './expression.js';
+import { throw_invalid_component_type } from './component.js';
 
 import {
 	iterable_array_from,
@@ -454,6 +457,14 @@ export function run_block(block, first_run = false) {
 }
 
 var empty_get_set = { get: undefined, set: undefined };
+
+/**
+ * Counts every read of a tracked or derived value, whether or not a reaction
+ * is tracking. A compiled props getter compares it before and after its first
+ * evaluation: an unchanged count proves the expression read no reactive state
+ * and its value can be kept (see `props.js`).
+ */
+export let reads = 0;
 
 /**
  * Complete all deferred boundary requests registered on a tracked value.
@@ -922,6 +933,7 @@ export function peek_tracked(tracked) {
 		return tracked;
 	}
 
+	reads++;
 	return tracked.__v;
 }
 
@@ -946,6 +958,8 @@ function create_dependency(tracked) {
 		return existing;
 	}
 
+	// link_subscriber, inline: the first read of every block run lands here.
+	var head = tracked.sb;
 	/** @type {Dependency} */
 	var dependency = {
 		c: tracked.c,
@@ -953,9 +967,12 @@ function create_dependency(tracked) {
 		n: null,
 		r: reaction,
 		sp: null,
-		sn: null,
+		sn: head,
 	};
-	link_subscriber(dependency, tracked);
+	if (head !== null) {
+		head.sp = dependency;
+	}
+	tracked.sb = dependency;
 	return dependency;
 }
 
@@ -1414,6 +1431,7 @@ function register_dependency(tracked) {
  * @param {Derived} computed
  */
 export function get_derived(computed) {
+	reads++;
 	update_derived(computed);
 	if (tracking) {
 		register_dependency(computed);
@@ -1504,9 +1522,15 @@ export function lazy_array_rest(lazy, index = 0) {
  * @param {Tracked} tracked
  */
 export function get_tracked(tracked) {
+	reads++;
 	var value = tracked.__v;
 	if (tracking) {
-		register_dependency(tracked);
+		// register_dependency, inline for the first read of a run.
+		if (active_dependency === null) {
+			active_dependency = create_dependency(tracked);
+		} else {
+			register_dependency(tracked);
+		}
 	}
 
 	if (value === SUSPENSE_PENDING || value === SUSPENSE_REJECTED) {
@@ -1679,6 +1703,29 @@ export function spread_props(fn) {
 }
 
 /**
+ * `Reflect.ownKeys` that includes the prototype getters of a props instance.
+ * @param {Record<string | symbol, any>} obj
+ * @returns {(string | symbol)[]}
+ */
+function reflect_own_keys(obj) {
+	return is_props(obj) ? own_keys(obj) : Reflect.ownKeys(obj);
+}
+
+/**
+ * The descriptor a spread proxy reports for `key` of `obj`: a props instance
+ * has no own descriptor, so its props are described as forwarding accessors.
+ * @param {Record<string | symbol, any>} obj
+ * @param {string | symbol} key
+ * @returns {PropertyDescriptor | undefined}
+ */
+function describe(obj, key) {
+	if (is_props(obj)) {
+		return forwarding_descriptor(obj, /** @type {string} */ (key));
+	}
+	return get_descriptor(obj, key);
+}
+
+/**
  * @param {() => Object} fn
  * @returns {Object}
  */
@@ -1739,14 +1786,14 @@ export function proxy_props(fn) {
 					for (var i = obj.length - 1; i >= 0; i--) {
 						item = obj[i];
 						if (key in item) {
-							return get_descriptor(item, key);
+							return describe(item, key);
 						}
 					}
 					return undefined;
 				}
 
 				if (key in obj) {
-					return get_descriptor(obj, key);
+					return describe(obj, key);
 				}
 			},
 			ownKeys() {
@@ -1764,7 +1811,7 @@ export function proxy_props(fn) {
 					var item;
 					for (var i = 0; i < obj.length; i++) {
 						item = obj[i];
-						for (const key of Reflect.ownKeys(item)) {
+						for (const key of reflect_own_keys(item)) {
 							if (done[key]) {
 								continue;
 							}
@@ -1775,7 +1822,7 @@ export function proxy_props(fn) {
 					return keys;
 				}
 
-				return Reflect.ownKeys(obj);
+				return reflect_own_keys(obj);
 			},
 		},
 	);
@@ -1984,6 +2031,54 @@ export function pop_component() {
 }
 
 /**
+ * Renders a component: `fn(props)` runs under a fresh component context (the
+ * owner of the component's context values and deferred effects), and the
+ * element it returns renders before `anchor`.
+ * @param {Function} fn
+ * @param {Node | AppendIntoAnchor} anchor
+ * @param {Record<string, any>} props
+ * @param {Block | null} [block=active_block]
+ * @returns {void}
+ */
+export function render_component(fn, anchor, props, block = active_block) {
+	if (typeof fn !== 'function') {
+		throw_invalid_component_type(fn);
+	}
+
+	// push_component, inline: one component per call is the common case.
+	/** @type {Component} */
+	var component = (active_component = {
+		b: active_block,
+		c: null,
+		e: null,
+		m: false,
+		p: active_component,
+	});
+
+	render_value(fn(props), /** @type {ChildNode} */ (anchor), block);
+
+	// pop_component, inline.
+	component.m = true;
+	if (component.e !== null) {
+		create_deferred_effects(component.e);
+	}
+	active_component = component.p;
+}
+
+/**
+ * Calls `fn(arg)` with tracking off, so reads inside it subscribe nothing.
+ * `tracking` is restored by the enclosing `run_block` if `fn` throws.
+ * @param {(arg: any) => void} fn
+ * @param {any} arg
+ */
+export function run_untracked(fn, arg) {
+	var previous_tracking = tracking;
+	tracking = false;
+	fn(arg);
+	tracking = previous_tracking;
+}
+
+/**
  * Creates the effects a component registered while rendering, each under the
  * block and reaction that were active at its `effect()` call.
  * @param {any[]} effects flat triples: fn, block, reaction (see `user_effect`)
@@ -2051,7 +2146,7 @@ export function fallback(value, fallback) {
  * @returns {Record<string | symbol, unknown>}
  */
 export function exclude_from_object(obj, exclude_keys) {
-	var keys = object_keys(obj);
+	var keys = own_keys(obj);
 	/** @type {Record<string | symbol, unknown>} */
 	var new_obj = {};
 
@@ -2059,6 +2154,10 @@ export function exclude_from_object(obj, exclude_keys) {
 		if (!exclude_keys.includes(key)) {
 			new_obj[key] = obj[key];
 		}
+	}
+
+	if (is_props(obj)) {
+		return new_obj;
 	}
 
 	for (const symbol of get_own_property_symbols(obj)) {

@@ -90,6 +90,22 @@ export {
 
 export { composite } from './composite.js';
 
+export {
+	props_site,
+	props_keys,
+	props_values,
+	props_entries,
+	props_snapshot,
+	$0,
+	$1,
+	$2,
+	$3,
+	$4,
+	$5,
+	$6,
+	$7,
+} from './props.js';
+
 export { render_component } from './component.js';
 
 export { for_block as for, for_block_keyed as for_keyed } from './for.js';

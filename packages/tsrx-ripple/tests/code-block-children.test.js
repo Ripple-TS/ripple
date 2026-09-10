@@ -191,7 +191,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const { code, errors } = compile(code_only, 'App.tsrx');
 		expect(errors).toEqual([]);
 		// The statements run in source order inside a real `{ }` block.
-		const block = code.indexOf('{\n\t\t\t\tconst scoped = 1;');
+		const block = code.search(/\{\n\t+const scoped = 1;/);
 		expect(block).toBeGreaterThan(-1);
 		expect(code.indexOf('items.length')).toBeGreaterThan(block);
 		// No inline component for code-only blocks.

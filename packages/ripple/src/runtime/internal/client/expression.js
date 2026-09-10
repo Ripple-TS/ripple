@@ -38,7 +38,7 @@ export function render_value(value, anchor, block) {
 	var rendered = false;
 	// is_tsrx_element, inline: every component render passes through here.
 	while (value != null && value[TSRX_ELEMENT] === true) {
-		value = value.render(anchor, block);
+		value = value.render(anchor, block, value.p);
 		rendered = true;
 	}
 	if (is_array(value)) {
@@ -115,7 +115,7 @@ function render_tsrx_collection_items(value, anchor, block) {
  * @returns {void}
  */
 function render_tsrx_element(value, anchor, block) {
-	var result = value.render(anchor, block);
+	var result = value.render(anchor, block, value.p);
 
 	if (is_tsrx_element(result)) {
 		render_tsrx_element(result, anchor, block);

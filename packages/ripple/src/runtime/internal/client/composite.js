@@ -1,6 +1,5 @@
 /** @import { Block } from '#client' */
 
-import { exclude_prop_from_object } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { hydrate_node, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
@@ -9,16 +8,17 @@ import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
+import { exclude_prop } from './props.js';
 
 /**
  * @typedef {Function | string | null | undefined | false} CompositeTarget
  * @param {() => CompositeTarget} get_component
  * @param {Node} node
  * @param {Record<string, any>} props
- * @param {string} [exclude_prop]
+ * @param {string} [exclude_key]
  * @returns {void}
  */
-export function composite(get_component, node, props, exclude_prop) {
+export function composite(get_component, node, props, exclude_key) {
 	if (hydrating) {
 		// During hydration, `node` may already point at the first real SSR node
 		// (e.g. layout children). Only skip forward when we are on an empty
@@ -45,9 +45,7 @@ export function composite(get_component, node, props, exclude_prop) {
 			if (typeof component === 'function') {
 				// Handle as regular component
 				b = branch(() => {
-					const component_props = exclude_prop
-						? exclude_prop_from_object(props, exclude_prop)
-						: props;
+					const component_props = exclude_key ? exclude_prop(props, exclude_key) : props;
 					render_component(component, anchor, component_props);
 				});
 			} else if (is_tsrx_element(component)) {
@@ -82,7 +80,7 @@ export function composite(get_component, node, props, exclude_prop) {
 						};
 					}
 
-					render_spread(element, () => props || {}, 0, exclude_prop);
+					render_spread(element, () => props || {}, 0, exclude_key);
 
 					if (is_tsrx_element(props?.children)) {
 						/** @type {Node} */
@@ -97,9 +95,9 @@ export function composite(get_component, node, props, exclude_prop) {
 						}
 
 						if (ns !== DEFAULT_NAMESPACE) {
-							with_ns(ns, () => props.children.render(child_anchor, block));
+							with_ns(ns, () => props.children.render(child_anchor, block, props.children.p));
 						} else {
-							props.children.render(child_anchor, block);
+							props.children.render(child_anchor, block, props.children.p);
 						}
 
 						if (hydrating) {

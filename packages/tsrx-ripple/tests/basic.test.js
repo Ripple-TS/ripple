@@ -1412,8 +1412,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return obj.value;');
+		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
+		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
+		expect(code).toContain('.C(props_site, obj)');
 	});
 
 	it('wraps computed member expression props in getters', () => {
@@ -1427,8 +1428,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return obj[key];');
+		expect(code).toContain("_$_.props_site(['prop'], 1, 2, 0, {");
+		expect(code).toContain('prop: (__p) => __p[_$_.$0][__p[_$_.$1]]');
+		expect(code).toContain('.C(props_site, obj, key)');
 	});
 
 	it('wraps call expression props in getters', () => {
@@ -1443,8 +1445,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('getValue');
+		expect(code).toContain("_$_.props_site(['prop'], 1, ");
+		expect(code).toContain('getValue()');
+		expect(code).not.toContain('get prop()');
 	});
 
 	it('wraps call expression props in fragment shorthand values in getters', () => {
@@ -1459,8 +1462,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('getValue');
+		expect(code).toContain("_$_.props_site(['prop'], 1, ");
+		expect(code).toContain('getValue()');
+		expect(code).not.toContain('get prop()');
 	});
 
 	it('wraps call expression props in component bodies in getters', () => {
@@ -1475,8 +1479,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('getValue');
+		expect(code).toContain("_$_.props_site(['prop'], 1, ");
+		expect(code).toContain('getValue()');
+		expect(code).not.toContain('get prop()');
 	});
 
 	it('wraps lazy tracked identifier props in fragment shorthand values in getters', () => {
@@ -1491,8 +1496,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return lazy.value;');
+		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
+		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
+		expect(code).toContain('.C(props_site, lazy)');
 	});
 
 	it('wraps lazy tracked identifier props in function fragment returns in getters', () => {
@@ -1506,8 +1512,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return lazy.value;');
+		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
+		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
+		expect(code).toContain('.C(props_site, lazy)');
 	});
 
 	it('wraps lazy tracked identifier props in getters', () => {
@@ -1522,8 +1529,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('get prop()');
-		expect(code).toContain('return lazy.value;');
+		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
+		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
+		expect(code).toContain('.C(props_site, lazy)');
 	});
 
 	it('wraps lazy tracked expression props in getters', () => {
@@ -1538,8 +1546,113 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
+		expect(code).toContain(`prop: (__p) => __p[_$_.$0].value % 2 ? 'odd' : 'even'`);
+		expect(code).toContain('.C(props_site, lazy)');
+	});
+
+	it('passes a lazy pair Tracked alias as a static prop', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test() @{
+				let &[count, countT] = track(0);
+				<Some tracked={countT} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('_$_.render_component(Some, __anchor, { tracked: lazy });');
+	});
+
+	it('keeps the object literal when a reactive prop reads a reassigned local', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test() @{
+				let &[count] = track(0);
+				let n = 0;
+				const bump = () => { n++; };
+				<Some prop={n + count} onBump={bump} />
+			}`,
+			'App.tsrx',
+		);
+
 		expect(code).toContain('get prop()');
-		expect(code).toContain(`return lazy.value % 2 ? 'odd' : 'even';`);
+		expect(code).toContain('return n + lazy.value;');
+		expect(code).not.toContain('props_site');
+	});
+
+	it('captures the locals of reactive props once and leaves nested parameters alone', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test() @{
+				let &[count] = track(0);
+				const items = [1, 2];
+				<Some sum={items.map((x) => x + count)} pair={{ count, items }} first={items[0]} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("_$_.props_site(['sum', 'pair', 'first'], 7, 4, 0, {");
+		expect(code).toContain(
+			'sum: (__p) => __p[_$_.$0](__p[_$_.$1], () => __p[_$_.$2].map((x) => x + __p[_$_.$3].value))',
+		);
+		expect(code).toContain('pair: (__p) => ({ count: __p[_$_.$3].value, items: __p[_$_.$2] })');
+		expect(code).toContain('first: (__p) => __p[_$_.$2][0]');
+		expect(code).toContain('.C(props_site, _$_.with_scope, __block, items, lazy)');
+	});
+
+	it('references module-level bindings directly from reactive props', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			const SUFFIX = '!';
+			function Some(props) { return <></>; }
+			function Test(props) @{
+				<Some label={props.label + SUFFIX} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain("_$_.props_site(['label'], 1, 1, 1, {");
+		expect(code).toContain('label: (__p) => __p[_$_.$0].label + SUFFIX');
+		expect(code).toContain('.C(props_site, props)');
+	});
+
+	it('marks only expressions over the own props parameter as memoizable', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			function Some(props) { return <></>; }
+			function Test(props) @{
+				let &[count] = track(0);
+				const obj = { v: 1 };
+				<Some depth={props.depth - 1} path={props.path + 'L'} nested={props.a.b} local={obj.v} counted={count + props.depth} label={props.on ? 'on' : 'off'} />
+			}`,
+			'App.tsrx',
+		);
+
+		// depth, path and label read only `props`; nested, local and counted do not.
+		expect(code).toContain(
+			"_$_.props_site(['depth', 'path', 'nested', 'local', 'counted', 'label'], 63, 3, 35, {",
+		);
+	});
+
+	it('lowers own-property enumeration of objects to props-aware helpers', () => {
+		const { code } = compile(
+			`function Test(props) @{
+				const keys = Object.keys(props);
+				const values = Object.values(props);
+				const entries = Object.entries(props);
+				const copy = { ...props, extra: true };
+				<span>{keys.length + values.length + entries.length + copy.extra}</span>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('_$_.props_keys(props)');
+		expect(code).toContain('_$_.props_values(props)');
+		expect(code).toContain('_$_.props_entries(props)');
+		expect(code).toContain('{ ..._$_.props_snapshot(props), extra: true }');
 	});
 
 	it('lowers tsx values nested in template expressions', () => {

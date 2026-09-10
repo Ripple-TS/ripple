@@ -1,0 +1,599 @@
+/**
+ * @import * as AST from 'estree';
+ * @import { ScopeInterface } from '../../../types/index';
+ */
+
+import { builders as b } from '@tsrx/core';
+
+/**
+ * Lowers the props of a component call site to a compiled props class (see
+ * `props.js` in the client runtime) when the site has a reactive prop:
+ *
+ * ```js
+ * new (props_1 ??= _$_.props_site(['depth', 'path'], 3, 1, 3, {
+ *   C: null,
+ *   depth: (__p) => __p[_$_.$0].depth - 1,
+ *   path: (__p) => __p[_$_.$0].path + 'L',
+ * })).C(props_1, props)
+ * ```
+ *
+ * The reactive expressions are hoisted into functions created once per call
+ * site, so every local they close over becomes a "capture" passed to the
+ * constructor and read back through a slot. A capture is passed by value, which
+ * is only equivalent to the closure for a binding that is never reassigned;
+ * a site whose expression reads a reassigned local, `this`, `arguments` or a
+ * class keeps the object-literal form.
+ */
+
+/** Slot count of the widest runtime base constructor. */
+const MAX_SLOTS = 8;
+/** Most props a class can carry (the reactive mask is a 31-bit integer). */
+const MAX_KEYS = 31;
+
+/** The compiled getter's parameter: the props instance. */
+const INSTANCE = '__p';
+
+/**
+ * Globals a prop expression may reference directly; anything else unknown to
+ * the scope chain is treated as a local and captured.
+ */
+const GLOBALS = new Set([
+	'undefined',
+	'NaN',
+	'Infinity',
+	'globalThis',
+	'window',
+	'document',
+	'navigator',
+	'location',
+	'history',
+	'console',
+	'performance',
+	'crypto',
+	'localStorage',
+	'sessionStorage',
+	'Math',
+	'JSON',
+	'Object',
+	'Array',
+	'Number',
+	'String',
+	'Boolean',
+	'Symbol',
+	'BigInt',
+	'Date',
+	'RegExp',
+	'Map',
+	'Set',
+	'WeakMap',
+	'WeakSet',
+	'WeakRef',
+	'Promise',
+	'Proxy',
+	'Reflect',
+	'Intl',
+	'Function',
+	'Error',
+	'TypeError',
+	'RangeError',
+	'SyntaxError',
+	'URL',
+	'URLSearchParams',
+	'parseInt',
+	'parseFloat',
+	'isNaN',
+	'isFinite',
+	'encodeURIComponent',
+	'decodeURIComponent',
+	'encodeURI',
+	'decodeURI',
+	'structuredClone',
+	'queueMicrotask',
+	'setTimeout',
+	'clearTimeout',
+	'setInterval',
+	'clearInterval',
+	'requestAnimationFrame',
+	'cancelAnimationFrame',
+	'fetch',
+	'Node',
+	'Element',
+	'HTMLElement',
+	'Event',
+	'CustomEvent',
+	'_$_',
+]);
+
+/** Keys of an AST node that hold types or metadata rather than child values. */
+const SKIPPED_KEYS = new Set([
+	'metadata',
+	'loc',
+	'start',
+	'end',
+	'range',
+	'leadingComments',
+	'trailingComments',
+	'typeAnnotation',
+	'typeParameters',
+	'typeArguments',
+	'returnType',
+]);
+
+/**
+ * @param {any} value
+ * @returns {value is AST.Node}
+ */
+function is_node(value) {
+	return value !== null && typeof value === 'object' && typeof value.type === 'string';
+}
+
+/**
+ * Collects the names a pattern declares.
+ * @param {AST.Node} pattern
+ * @param {Set<string>} into
+ */
+function collect_pattern_names(pattern, into) {
+	switch (pattern.type) {
+		case 'Identifier':
+			into.add(pattern.name);
+			break;
+		case 'ObjectPattern':
+			for (const property of pattern.properties) {
+				collect_pattern_names(
+					property.type === 'RestElement' ? property.argument : property.value,
+					into,
+				);
+			}
+			break;
+		case 'ArrayPattern':
+			for (const element of pattern.elements) {
+				if (element !== null) collect_pattern_names(element, into);
+			}
+			break;
+		case 'RestElement':
+			collect_pattern_names(pattern.argument, into);
+			break;
+		case 'AssignmentPattern':
+			collect_pattern_names(pattern.left, into);
+			break;
+	}
+}
+
+/**
+ * Collects the names a function declares for its body: parameters, `var`,
+ * `let`, `const`, function and class declarations anywhere inside it.
+ * @param {AST.Function} fn
+ * @returns {Set<string>}
+ */
+function local_names(fn) {
+	/** @type {Set<string>} */
+	const names = new Set();
+	for (const param of fn.params) {
+		collect_pattern_names(param, names);
+	}
+	/** @param {AST.Node} node */
+	const collect = (node) => {
+		switch (node.type) {
+			case 'VariableDeclarator':
+				collect_pattern_names(node.id, names);
+				break;
+			case 'FunctionDeclaration':
+			case 'ClassDeclaration':
+				if (node.id) names.add(node.id.name);
+				return;
+			case 'FunctionExpression':
+			case 'ArrowFunctionExpression':
+			case 'ClassExpression':
+				return;
+			case 'CatchClause':
+				if (node.param) collect_pattern_names(node.param, names);
+				break;
+		}
+		for (const key in node) {
+			if (SKIPPED_KEYS.has(key)) continue;
+			const value = /** @type {any} */ (node)[key];
+			if (Array.isArray(value)) {
+				for (const item of value) {
+					if (is_node(item)) collect(item);
+				}
+			} else if (is_node(value)) {
+				collect(value);
+			}
+		}
+	};
+	collect(fn.body);
+	return names;
+}
+
+/**
+ * Walks a compiled expression and records every free identifier it references
+ * in value position. Returns false when the expression has a shape a capture
+ * cannot represent.
+ *
+ * @param {AST.Node} node
+ * @param {Set<string>} references
+ * @param {Set<string>} shadowed names bound inside the expression at this point
+ * @returns {boolean}
+ */
+function scan(node, references, shadowed) {
+	switch (node.type) {
+		case 'Identifier':
+			if (node.name === 'arguments') return false;
+			if (!shadowed.has(node.name)) references.add(node.name);
+			return true;
+		case 'ThisExpression':
+		case 'Super':
+		case 'MetaProperty':
+		case 'ClassExpression':
+		case 'ClassDeclaration':
+		case 'YieldExpression':
+		case 'AwaitExpression':
+		case 'MethodDefinition':
+		case 'PropertyDefinition':
+			return false;
+		case 'MemberExpression':
+			if (!scan(node.object, references, shadowed)) return false;
+			return node.computed ? scan(node.property, references, shadowed) : true;
+		case 'Property':
+			if (node.computed && !scan(node.key, references, shadowed)) return false;
+			return scan(node.value, references, shadowed);
+		case 'FunctionExpression':
+		case 'ArrowFunctionExpression':
+		case 'FunctionDeclaration': {
+			const inner = new Set(shadowed);
+			if (node.type !== 'ArrowFunctionExpression' && node.id) inner.add(node.id.name);
+			for (const name of local_names(node)) inner.add(name);
+			for (const param of node.params) {
+				if (param.type === 'AssignmentPattern' && !scan(param.right, references, inner)) {
+					return false;
+				}
+			}
+			return scan(node.body, references, inner);
+		}
+		case 'VariableDeclarator':
+			return node.init === null || node.init === undefined
+				? true
+				: scan(node.init, references, shadowed);
+		case 'LabeledStatement':
+			return scan(node.body, references, shadowed);
+		case 'BreakStatement':
+		case 'ContinueStatement':
+			return true;
+	}
+
+	if (node.type.startsWith('TS')) {
+		// A type-level node carries no runtime reference; the value wrappers keep
+		// their expression.
+		const expression = /** @type {any} */ (node).expression;
+		return is_node(expression) ? scan(expression, references, shadowed) : true;
+	}
+
+	for (const key in node) {
+		if (SKIPPED_KEYS.has(key)) continue;
+		const value = /** @type {any} */ (node)[key];
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				if (is_node(item) && !scan(item, references, shadowed)) return false;
+			}
+		} else if (is_node(value) && !scan(value, references, shadowed)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * How a free identifier of a prop expression reaches the compiled getter:
+ * referenced directly (module scope or a global), passed as a capture, or not
+ * representable (a reassigned local).
+ * @param {string} name
+ * @param {ScopeInterface} scope
+ * @returns {'direct' | 'capture' | 'bail'}
+ */
+function classify(name, scope) {
+	// The runtime namespace import is module-level by construction.
+	if (name === '_$_') return 'direct';
+
+	/** @type {ScopeInterface | null} */
+	let current = scope;
+
+	while (current !== null) {
+		const binding = current.declarations.get(name);
+		if (binding !== undefined) {
+			if (current.function_depth === 0) return 'direct';
+			return binding.reassigned || binding.updated ? 'bail' : 'capture';
+		}
+		// A name the transform generated (`lazy`, `consequent`, template ids) is
+		// registered as a reference without any referencing node.
+		const references = current.references.get(name);
+		if (references !== undefined && references.length === 0) {
+			return current.function_depth === 0 ? 'direct' : 'capture';
+		}
+		current = current.parent;
+	}
+
+	return GLOBALS.has(name) ? 'direct' : 'capture';
+}
+
+/**
+ * Returns a copy of `node` with every free reference to a captured name
+ * replaced by a read of its slot on the getter's parameter.
+ * @template {AST.Node} T
+ * @param {T} node
+ * @param {Map<string, number>} captures
+ * @param {Set<string>} shadowed
+ * @returns {T}
+ */
+function rewrite(node, captures, shadowed) {
+	if (node.type === 'Identifier') {
+		const slot = captures.get(node.name);
+		if (slot === undefined || shadowed.has(node.name)) return node;
+		return /** @type {T} */ (
+			/** @type {unknown} */ (
+				b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$' + slot)), true)
+			)
+		);
+	}
+
+	if (node.type.startsWith('TS')) {
+		const expression = /** @type {any} */ (node).expression;
+		return is_node(expression)
+			? { ...node, expression: rewrite(expression, captures, shadowed) }
+			: node;
+	}
+
+	/** @type {any} */
+	const copy = { ...node };
+
+	if (node.type === 'MemberExpression') {
+		copy.object = rewrite(node.object, captures, shadowed);
+		if (node.computed) copy.property = rewrite(node.property, captures, shadowed);
+		return copy;
+	}
+
+	if (node.type === 'Property') {
+		if (node.computed) copy.key = rewrite(node.key, captures, shadowed);
+		copy.value = rewrite(node.value, captures, shadowed);
+		if (node.shorthand && copy.value !== node.value) copy.shorthand = false;
+		return copy;
+	}
+
+	if (
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'FunctionDeclaration'
+	) {
+		const inner = new Set(shadowed);
+		if (node.type !== 'ArrowFunctionExpression' && node.id) inner.add(node.id.name);
+		for (const name of local_names(node)) inner.add(name);
+		copy.params = node.params.map((param) => rewrite(param, captures, inner));
+		copy.body = rewrite(node.body, captures, inner);
+		return copy;
+	}
+
+	for (const key in node) {
+		if (SKIPPED_KEYS.has(key)) continue;
+		const value = /** @type {any} */ (node)[key];
+		if (Array.isArray(value)) {
+			copy[key] = value.map((item) => (is_node(item) ? rewrite(item, captures, shadowed) : item));
+		} else if (is_node(value)) {
+			copy[key] = rewrite(value, captures, shadowed);
+		}
+	}
+
+	return copy;
+}
+
+/**
+ * Whether `node` is a read of one prop of the enclosing component's own props
+ * parameter (`props.x`, `props?.x`, `props['x']`).
+ * @param {AST.MemberExpression} node
+ * @param {ScopeInterface} scope
+ * @param {AST.Function | null} component
+ * @returns {boolean}
+ */
+function is_own_prop_read(node, scope, component) {
+	if (component === null || node.object.type !== 'Identifier') return false;
+	if (node.computed && node.property.type !== 'Literal') return false;
+	const binding = scope.get(node.object.name);
+	return (
+		binding !== null &&
+		binding.declaration_kind === 'param' &&
+		binding.node === component.params[0] &&
+		!binding.reassigned &&
+		!binding.updated &&
+		!binding.mutated
+	);
+}
+
+/**
+ * Whether the value of a reactive prop expression can only change through a
+ * tracked read: it is built from literals, operators, captured or module-level
+ * constants and single-level reads of the component's own props. Such an
+ * expression is evaluated once and its result kept when that evaluation read
+ * no tracked state (see `memo_getter` in the client runtime).
+ * @param {AST.Node} node
+ * @param {ScopeInterface} scope
+ * @param {AST.Function | null} component
+ * @param {Map<string, number>} captures
+ * @returns {boolean}
+ */
+function is_static_shape(node, scope, component, captures) {
+	switch (node.type) {
+		case 'Literal':
+			return true;
+		case 'TemplateLiteral':
+			return node.expressions.every((expression) =>
+				is_static_shape(expression, scope, component, captures),
+			);
+		case 'Identifier': {
+			if (captures.has(node.name)) return true;
+			if (node.name === 'undefined' || node.name === 'NaN' || node.name === 'Infinity') {
+				return true;
+			}
+			const binding = scope.get(node.name);
+			return (
+				binding !== null &&
+				binding.scope.function_depth === 0 &&
+				(binding.declaration_kind === 'const' ||
+					binding.declaration_kind === 'import' ||
+					binding.declaration_kind === 'function')
+			);
+		}
+		case 'MemberExpression':
+			return is_own_prop_read(node, scope, component);
+		case 'BinaryExpression':
+		case 'LogicalExpression':
+			return (
+				is_static_shape(node.left, scope, component, captures) &&
+				is_static_shape(node.right, scope, component, captures)
+			);
+		case 'UnaryExpression':
+			return (
+				node.operator !== 'delete' && is_static_shape(node.argument, scope, component, captures)
+			);
+		case 'ConditionalExpression':
+			return (
+				is_static_shape(node.test, scope, component, captures) &&
+				is_static_shape(node.consequent, scope, component, captures) &&
+				is_static_shape(node.alternate, scope, component, captures)
+			);
+		case 'ParenthesizedExpression':
+		case 'TSAsExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSNonNullExpression':
+		case 'TSTypeAssertion':
+			return is_static_shape(/** @type {any} */ (node).expression, scope, component, captures);
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {AST.Property['key']} key
+ * @returns {string | null}
+ */
+function key_name(key) {
+	if (key.type === 'Identifier') return key.name;
+	if (key.type === 'Literal' && typeof key.value === 'string') return key.value;
+	return null;
+}
+
+/**
+ * @param {AST.Property} property
+ * @returns {AST.Expression | null}
+ */
+function getter_expression(property) {
+	const fn = property.value;
+	if (fn.type !== 'FunctionExpression' || fn.body.body.length !== 1) return null;
+	const statement = fn.body.body[0];
+	return statement.type === 'ReturnStatement' && statement.argument ? statement.argument : null;
+}
+
+/**
+ * Builds the props-class instantiation for a call site, or returns null when
+ * the site keeps its object literal.
+ *
+ * @param {(AST.Property | AST.SpreadElement)[]} props
+ * @param {ScopeInterface} scope
+ * @param {AST.Statement[]} hoisted
+ * @param {AST.Function | null} component the enclosing component function
+ * @returns {AST.Expression | null}
+ */
+export function build_props_site(props, scope, hoisted, component) {
+	if (props.length === 0 || props.length > MAX_KEYS) return null;
+
+	/** @type {string[]} */
+	const keys = [];
+	/** @type {{ name: string; index: number; expression: AST.Expression }[]} */
+	const getters = [];
+	/** @type {AST.Expression[]} */
+	const statics = [];
+	let mask = 0;
+
+	for (let i = 0; i < props.length; i++) {
+		const property = props[i];
+		if (property.type !== 'Property' || property.computed) return null;
+		const name = key_name(property.key);
+		if (name === null) return null;
+		keys.push(name);
+		if (property.kind === 'get') {
+			const expression = getter_expression(property);
+			if (expression === null) return null;
+			getters.push({ name, index: i, expression });
+			mask |= 1 << i;
+		} else if (property.kind === 'init') {
+			statics.push(/** @type {AST.Expression} */ (property.value));
+		} else {
+			return null;
+		}
+	}
+
+	if (getters.length === 0) return null;
+
+	/** @type {Set<string>} */
+	const references = new Set();
+	for (const getter of getters) {
+		if (!scan(getter.expression, references, new Set())) return null;
+	}
+
+	/** @type {Map<string, number>} */
+	const captures = new Map();
+	for (const name of references) {
+		const kind = classify(name, scope);
+		if (kind === 'bail') return null;
+		if (kind === 'capture') captures.set(name, captures.size);
+	}
+
+	if (captures.size + statics.length > MAX_SLOTS) return null;
+
+	// Memoizable getters take a slot each; when they do not all fit, none are
+	// memoized rather than losing the class.
+	let memo = 0;
+	let memo_count = 0;
+	for (const getter of getters) {
+		if (is_static_shape(getter.expression, scope, component, captures)) {
+			memo |= 1 << getter.index;
+			memo_count++;
+		}
+	}
+	if (captures.size + statics.length + memo_count > MAX_SLOTS) {
+		memo = 0;
+	}
+
+	const site_id = b.id(scope.generate('props_site'));
+	hoisted.push(b.var(site_id));
+
+	const site = b.object([
+		b.prop('init', b.id('C'), b.literal(null)),
+		...getters.map((getter) =>
+			b.prop(
+				'init',
+				b.key(getter.name),
+				b.arrow([b.id(INSTANCE)], rewrite(getter.expression, captures, new Set())),
+			),
+		),
+	]);
+
+	const define = b.assignment(
+		'??=',
+		site_id,
+		b.call(
+			'_$_.props_site',
+			b.array(keys.map((key) => b.literal(key))),
+			b.literal(mask),
+			b.literal(captures.size),
+			b.literal(memo),
+			site,
+		),
+	);
+
+	return b.new(
+		b.member(define, b.id('C')),
+		undefined,
+		site_id,
+		...[...captures.keys()].map((name) => b.id(name)),
+		...statics,
+	);
+}

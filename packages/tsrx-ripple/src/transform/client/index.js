@@ -24,6 +24,7 @@
 */
 
 import { walk } from 'zimmerframe';
+import { build_props_site } from './props-site.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -85,6 +86,9 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
+	is_context_method_call,
+	sole_template_if,
+	is_template_if,
 	is_ripple_portal,
 	replace_lazy_pattern,
 	has_lazy_pattern,
@@ -622,6 +626,33 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 }
 
 /**
+ * Whether a compiled render body reads `this` or `arguments` of the function
+ * that contains it (through arrows only; a nested `function` has its own).
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function references_function_scope(node) {
+	let found = false;
+	walk(node, null, {
+		_(node, { next }) {
+			if (found) return;
+			if (
+				node.type === 'ThisExpression' ||
+				(node.type === 'Identifier' && node.name === 'arguments')
+			) {
+				found = true;
+				return;
+			}
+			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') {
+				return;
+			}
+			next();
+		},
+	});
+	return found;
+}
+
+/**
  * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
  * @param {TransformClientContext} context
  * @returns {AST.Function | AST.Expression | AST.EmptyStatement}
@@ -719,19 +750,51 @@ function transform_native_tsrx_function(node, context) {
 		value_params[0] = props;
 	}
 	const params = is_tsrx_element ? [b.id('__anchor'), b.id('__block')] : value_params;
-	const component_body = is_tsrx_element
-		? b.block([...(prop_statements ?? []), ...transformed_body])
-		: b.block([
-				b.return(
-					b.call(
-						'_$_.tsrx_element',
-						b.arrow(
-							[b.id('__anchor'), b.id('__block')],
-							b.block([...(prop_statements ?? []), ...transformed_body]),
-						),
-					),
+	const render_block = b.block([...(prop_statements ?? []), ...transformed_body]);
+	/** @type {AST.BlockStatement} */
+	let component_body;
+	if (is_tsrx_element) {
+		component_body = render_block;
+	} else if (
+		node.type === 'FunctionDeclaration' &&
+		node_id &&
+		!node.async &&
+		!node.generator &&
+		!is_synthetic_children &&
+		(node.params.length === 0 || (node.params.length === 1 && props.type === 'Identifier')) &&
+		context.path.every(
+			(ancestor) =>
+				ancestor.type === 'Program' ||
+				ancestor.type === 'ExportNamedDeclaration' ||
+				ancestor.type === 'ExportDefaultDeclaration',
+		) &&
+		!references_function_scope(render_block)
+	) {
+		// A module-level component: its render body sees only its props and
+		// module bindings, so it is a module-level function that receives the
+		// props from the element instead of a closure created per instantiation.
+		const render_id = b.id(context.state.scope.generate(node_id.name + '_render'));
+		const render_params = [b.id('__anchor'), b.id('__block')];
+		if (node.params.length === 1) {
+			render_params.push(/** @type {AST.Identifier} */ (props));
+		}
+		context.state.hoisted.push(b.function_declaration(render_id, render_params, render_block));
+		component_body = b.block([
+			b.return(
+				b.call(
+					'_$_.tsrx_element',
+					render_id,
+					...(node.params.length === 1 ? [/** @type {AST.Identifier} */ (props)] : []),
 				),
-			]);
+			),
+		]);
+	} else {
+		component_body = b.block([
+			b.return(
+				b.call('_$_.tsrx_element', b.arrow([b.id('__anchor'), b.id('__block')], render_block)),
+			),
+		]);
+	}
 	const func =
 		node.type === 'FunctionDeclaration' && node_id
 			? b.function(node_id, params, component_body)
@@ -1556,75 +1619,90 @@ const visit_if_statement = (node, context) => {
 	}
 
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
+	/** @type {AST.Statement[]} */
 	const statements = [];
+	let branch_count = 0;
 
-	const consequent_scope =
-		/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
-		context.state.scope;
-	const consequent_body =
-		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent = b.block(
-		transform_body(consequent_body, {
-			...context,
-			state: { ...context.state, flush_node: null, scope: consequent_scope },
-		}),
-	);
-	const consequent_id = context.state.scope.generate('consequent');
-
-	statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], consequent)));
-
-	let alternate_id;
-
-	if (node.alternate !== null) {
-		const alternate = /** @type {AST.Statement} */ (node.alternate);
-		const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
-		/** @type {AST.Node[]} */
-		let alternate_body =
-			alternate.type === 'IfStatement'
-				? [alternate]
-				: alternate.type === 'BlockStatement'
-					? alternate.body
-					: [alternate];
-		const alternate_block = b.block(
-			transform_body(alternate_body, {
+	/**
+	 * Renders a branch body as a function and returns the `__render` call that
+	 * selects it. Branches are keyed by position: the first passes no flag
+	 * (`true`), the second `false`, later ones their index.
+	 * @param {AST.Statement} branch
+	 * @param {ScopeInterface} scope
+	 * @param {string} name
+	 * @returns {AST.Statement}
+	 */
+	const render_branch = (branch, scope, name) => {
+		const body = branch.type === 'BlockStatement' ? branch.body : [branch];
+		const block = b.block(
+			transform_body(body, {
 				...context,
-				state: { ...context.state, flush_node: null, scope: alternate_scope },
+				state: { ...context.state, flush_node: null, scope },
 			}),
 		);
-		alternate_id = context.state.scope.generate('alternate');
-		statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
-	}
+		const branch_id = context.state.scope.generate(name);
+		statements.push(b.var(b.id(branch_id), b.arrow([b.id('__anchor')], block)));
+		const index = branch_count++;
+		return b.stmt(
+			b.call(
+				b.id('__render'),
+				b.id(branch_id),
+				index === 0 ? undefined : index === 1 ? b.false : b.literal(index),
+			),
+		);
+	};
 
-	/** @type {AST.Statement[]} */
-	const callback_body = [];
+	/**
+	 * Lowers a template `@if` into the JS `if` the condition callback runs. An
+	 * `@else if`, and a branch whose only statement is another `@if`, fold into
+	 * the same block: their conditions are evaluated by this callback and their
+	 * branches become branches of this block.
+	 * @param {AST.IfStatement | AST.JSXIfExpression} if_node
+	 * @param {ScopeInterface} scope
+	 * @returns {AST.IfStatement}
+	 */
+	const lower_chain = (if_node, scope) => {
+		const consequent = /** @type {AST.Statement} */ (if_node.consequent);
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(consequent)) || scope;
+		const nested_consequent = sole_template_if(consequent);
+		const consequent_statement = nested_consequent
+			? b.block([lower_chain(nested_consequent, consequent_scope)])
+			: render_branch(consequent, consequent_scope, 'consequent');
 
-	callback_body.push(
-		b.if(
+		/** @type {AST.Statement | undefined} */
+		let alternate_statement;
+		if (if_node.alternate) {
+			const alternate = /** @type {AST.Statement} */ (if_node.alternate);
+			const alternate_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(alternate)) || scope;
+			const nested_alternate = is_template_if(alternate) ? alternate : sole_template_if(alternate);
+			alternate_statement = nested_alternate
+				? lower_chain(nested_alternate, alternate_scope)
+				: render_branch(alternate, alternate_scope, 'alternate');
+		}
+
+		return b.if(
 			/** @type {AST.Expression} */ (
-				context.visit(node.test, {
+				context.visit(if_node.test, {
 					...context.state,
+					scope,
 					metadata: { ...context.state.metadata },
 				})
 			),
-			b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
-			alternate_id
-				? b.stmt(
-						b.call(
-							b.id('__render'),
-							b.id(alternate_id),
-							node.alternate ? b.literal(false) : undefined,
-						),
-					)
-				: undefined,
-		),
-	);
+			consequent_statement,
+			alternate_statement,
+		);
+	};
+
+	const callback = lower_chain(node, context.state.scope);
 
 	statements.push(
 		b.stmt(
 			b.call(
 				'_$_.if',
 				id,
-				b.arrow([b.id('__render')], b.block(callback_body)),
+				b.arrow([b.id('__render')], b.block([callback])),
 				root_controlled ? b.true : undefined,
 			),
 		),
@@ -2165,6 +2243,26 @@ const visitors = {
 		}
 	},
 
+	ObjectExpression(node, context) {
+		if (context.state.to_ts) {
+			return context.next();
+		}
+		const visited = /** @type {AST.ObjectExpression} */ (context.next() ?? node);
+		if (!visited.properties.some((property) => property.type === 'SpreadElement')) {
+			return visited;
+		}
+		// An object spread copies own properties only; a compiled props instance
+		// is snapshotted first so its prototype getters are copied too.
+		return {
+			...visited,
+			properties: visited.properties.map((property) =>
+				property.type === 'SpreadElement' && property.argument.type !== 'ObjectExpression'
+					? { ...property, argument: b.call('_$_.props_snapshot', property.argument) }
+					: property,
+			),
+		};
+	},
+
 	Identifier(node, context) {
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
@@ -2280,6 +2378,28 @@ const visitors = {
 			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
 		}
 
+		// `Object.keys(props)` and friends: compiled props keep their props as
+		// prototype getters, which the own-property enumerators would miss.
+		if (
+			!context.state.to_ts &&
+			callee.type === 'MemberExpression' &&
+			!callee.computed &&
+			callee.object.type === 'Identifier' &&
+			callee.object.name === 'Object' &&
+			callee.property.type === 'Identifier' &&
+			node.arguments.length === 1 &&
+			node.arguments[0].type !== 'SpreadElement' &&
+			context.state.scope.get('Object') === null
+		) {
+			const helper = OBJECT_ENUMERATORS.get(callee.property.name);
+			if (helper !== undefined) {
+				return b.call(
+					'_$_.' + helper,
+					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
+				);
+			}
+		}
+
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (!context.state.to_ts && callee.type === 'Identifier' && is_ripple_import(callee, context)) {
 			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
@@ -2357,7 +2477,8 @@ const visitors = {
 			is_inside_call_expression(context) ||
 			!context.path.some((node) => is_native_tsrx_function_node(node)) ||
 			is_declared_function_within_component(callee, context) ||
-			is_global_coercion_call(callee, context)
+			is_global_coercion_call(callee, context) ||
+			is_context_method_call(callee, context)
 		) {
 			if (context.state.to_ts) {
 				return context.next();
@@ -3543,8 +3664,11 @@ const visitors = {
 								(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
 							) {
 								property = binding.transform.read(property);
-								metadata.tracking = true;
 							}
+							// A bare identifier is a plain variable read: the value it holds
+							// (for a lazy pair's `T` alias, the Tracked object itself) is
+							// stable, so the prop needs no getter.
+							metadata.tracking = property.type !== 'Identifier';
 						}
 
 						if (attr_name === 'class' && scope_class !== null) {
@@ -3697,7 +3821,10 @@ const visitors = {
 					object_props = b.call('_$_.spread_props', b.thunk(b.array(items)));
 				}
 			} else {
-				object_props = b.object(props);
+				object_props =
+					(!state.to_ts &&
+						build_props_site(props, state.scope, state.hoisted, state.component ?? null)) ||
+					b.object(props);
 			}
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or
@@ -7758,3 +7885,10 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 
 	return result;
 }
+
+/** Own-property enumerators lowered to their props-aware runtime helpers. */
+const OBJECT_ENUMERATORS = new Map([
+	['keys', 'props_keys'],
+	['values', 'props_values'],
+	['entries', 'props_entries'],
+]);

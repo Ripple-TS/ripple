@@ -1788,6 +1788,90 @@ export function is_ripple_import(callee, context) {
 }
 
 /**
+ * Whether `callee` is `ctx.get(...)` or `ctx.set(...)` on a binding initialized
+ * with `new Context(...)` imported from 'ripple'. Context methods resolve the
+ * active component, not the active scope, so such a call needs no
+ * `with_scope` wrapper.
+ * @param {AST.Expression | AST.Super} callee
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_context_method_call(callee, context) {
+	if (
+		callee.type !== 'MemberExpression' ||
+		callee.computed ||
+		callee.object.type !== 'Identifier' ||
+		callee.property.type !== 'Identifier' ||
+		(callee.property.name !== 'get' && callee.property.name !== 'set')
+	) {
+		return false;
+	}
+	const binding = context.state.scope.get(callee.object.name);
+	const initial = binding?.initial;
+	if (
+		!binding ||
+		binding.reassigned ||
+		!initial ||
+		initial.type !== 'NewExpression' ||
+		initial.callee.type !== 'Identifier'
+	) {
+		return false;
+	}
+	const constructor_name = initial.callee.name;
+	const constructor_binding = context.state.scope.get(constructor_name);
+	const import_declaration = constructor_binding?.initial;
+	if (
+		constructor_binding?.declaration_kind !== 'import' ||
+		!import_declaration ||
+		import_declaration.type !== 'ImportDeclaration' ||
+		import_declaration.source.type !== 'Literal' ||
+		import_declaration.source.value !== 'ripple'
+	) {
+		return false;
+	}
+	return import_declaration.specifiers.some(
+		(specifier) =>
+			specifier.type === 'ImportSpecifier' &&
+			specifier.local.name === constructor_name &&
+			specifier.imported.type === 'Identifier' &&
+			specifier.imported.name === 'Context',
+	);
+}
+
+/**
+ * Whether an `if` lowers to a control-flow block (as opposed to a plain JS
+ * `if` in setup code).
+ * @param {AST.Node} node
+ * @returns {node is AST.IfStatement | AST.JSXIfExpression}
+ */
+export function is_template_if(node) {
+	if (node.type === 'JSXIfExpression') return true;
+	if (node.type !== 'IfStatement' || node.metadata?.regular_js) return false;
+	return !(
+		(node.metadata?.script_only || node.metadata?.has_continue) &&
+		!node.metadata?.has_template &&
+		!node.alternate
+	);
+}
+
+/**
+ * The template `@if` that is the only statement of a control-flow branch body,
+ * or null. Such an `@if` renders directly before the branch's anchor, so the
+ * client and server transforms fold it into the enclosing block's condition
+ * (one block and one hydration boundary per chain instead of one per `@if`).
+ * @param {AST.Node} branch
+ * @returns {AST.IfStatement | AST.JSXIfExpression | null}
+ */
+export function sole_template_if(branch) {
+	const body =
+		branch.type === 'BlockStatement' ? branch.body : [/** @type {AST.Statement} */ (branch)];
+	const statements = body.filter((statement) => statement.type !== 'EmptyStatement');
+	if (statements.length !== 1) return null;
+	const statement = statements[0];
+	return is_template_if(statement) ? statement : null;
+}
+
+/**
  * Returns true if node is a function declared within a component
  * @param {AST.Node} node
  * @param {CommonContext} context

@@ -78,7 +78,13 @@ function normalize_props(props) {
  */
 export function mount(component, options) {
 	init_operations();
-	requestAnimationFrame(remove_styles);
+	// Only a page with server-rendered inline styles has anything to remove.
+	// Requesting a frame otherwise makes the browser attach layout to the
+	// mounted tree before the app's next update, which slows a teardown that
+	// would have preceded the first paint.
+	if (document.querySelector('style[data-ripple-ssr]') !== null) {
+		requestAnimationFrame(remove_styles);
+	}
 
 	let props = options.props ?? {};
 	if (props.children != null) {

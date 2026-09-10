@@ -82,6 +82,8 @@ import {
 	is_flattenable_template_fragment,
 	get_scope_class_chain,
 	build_scope_class_expression,
+	is_template_if,
+	sole_template_if,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -1451,46 +1453,57 @@ const visit_if_statement = (node, context) => {
 		return;
 	}
 
-	const consequent = b.block(
-		transform_body(consequent_body, {
-			...context,
-			state: {
-				...context.state,
-				scope: /** @type {ScopeInterface} */ (consequent_scope),
-				control_flow_branch_body: true,
-			},
-		}),
-	);
-
-	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-
-	/** @type {AST.BlockStatement | AST.IfStatement | null} */
-	let alternate = null;
-	if (node.alternate) {
-		const alternate_scope = context.state.scopes.get(node.alternate) || context.state.scope;
-		const alternate_body_nodes =
-			node.alternate.type === 'IfStatement'
-				? [node.alternate]
-				: node.alternate.type === 'BlockStatement'
-					? node.alternate.body
-					: [node.alternate];
-
-		alternate = b.block(
-			transform_body(alternate_body_nodes, {
+	/**
+	 * @param {AST.Statement} branch
+	 * @param {ScopeInterface} scope
+	 * @returns {AST.BlockStatement}
+	 */
+	const render_branch = (branch, scope) =>
+		b.block(
+			transform_body(branch.type === 'BlockStatement' ? branch.body : [branch], {
 				...context,
-				state: {
-					...context.state,
-					scope: alternate_scope,
-					control_flow_branch_body: node.alternate.type !== 'IfStatement',
-				},
+				state: { ...context.state, scope, control_flow_branch_body: true },
 			}),
 		);
-	}
 
-	context.state.init?.push(
-		b.if(/** @type {AST.Expression} */ (context.visit(node.test)), consequent, alternate),
-	);
+	/**
+	 * Mirrors the client transform: an `@else if`, and a branch whose only
+	 * statement is another `@if`, fold into the enclosing block, so the chain
+	 * emits one hydration boundary.
+	 * @param {AST.IfStatement | AST.JSXIfExpression} if_node
+	 * @param {ScopeInterface} scope
+	 * @returns {AST.IfStatement}
+	 */
+	const lower_chain = (if_node, scope) => {
+		const consequent = /** @type {AST.Statement} */ (if_node.consequent);
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(consequent)) || scope;
+		const nested_consequent = sole_template_if(consequent);
+		const consequent_statement = nested_consequent
+			? b.block([lower_chain(nested_consequent, consequent_scope)])
+			: render_branch(consequent, consequent_scope);
 
+		/** @type {AST.Statement | undefined} */
+		let alternate_statement;
+		if (if_node.alternate) {
+			const alternate = /** @type {AST.Statement} */ (if_node.alternate);
+			const alternate_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(alternate)) || scope;
+			const nested_alternate = is_template_if(alternate) ? alternate : sole_template_if(alternate);
+			alternate_statement = nested_alternate
+				? lower_chain(nested_alternate, alternate_scope)
+				: render_branch(alternate, alternate_scope);
+		}
+
+		return b.if(
+			/** @type {AST.Expression} */ (context.visit(if_node.test, { ...context.state, scope })),
+			consequent_statement,
+			alternate_statement,
+		);
+	};
+
+	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+	context.state.init?.push(lower_chain(node, context.state.scope));
 	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 };
 

@@ -1,18 +1,18 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
 import {
+	block,
 	branch,
 	destroy_block,
 	get_first_node,
 	get_last_node,
 	move_block_last,
 	remove_block_dom,
-	render,
 } from './blocks.js';
-import { DETACHED_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
+import { DETACHED_BLOCK, IF_BLOCK, RENDER_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
-import { active_block, set_tracking } from './runtime.js';
+import { active_block, run_untracked } from './runtime.js';
 import { append } from './template.js';
 
 /**
@@ -157,9 +157,7 @@ function update_branch(state, condition, fn) {
 	var o = state.o;
 
 	if (fn !== null) {
-		set_tracking(false);
-		fn(/** @type {Node} */ (state.a));
-		set_tracking(true);
+		run_untracked(fn, /** @type {Node} */ (state.a));
 
 		if (o !== null) {
 			move_block_last(o);
@@ -189,14 +187,12 @@ function set_branch(fn, flag = true) {
  * @param {IfState} state
  */
 function run_if(state) {
-	var previous_if = active_if;
+	// `active_if` is only read by `set_branch` during `state.fn`; a nested if
+	// renders inside `update_branch`, after the outer `set_branch` returned, so
+	// nothing needs the outer value restored afterwards.
 	active_if = state;
 	state.h = false;
-	try {
-		state.fn(set_branch);
-	} finally {
-		active_if = previous_if;
-	}
+	state.fn(set_branch);
 	if (!state.h) {
 		update_branch(state, null, null);
 	}
@@ -229,23 +225,19 @@ export function if_block(node, fn, root_controlled) {
 	}
 
 	// State lives on the block instead of per-if closures.
-	render(
-		run_if,
-		{
-			// DOM range of the current branch
-			start: null,
-			end: null,
-			a: anchor,
-			fn,
-			// last condition
-			c: UNINITIALIZED,
-			// whether a branch was selected during the current run
-			h: false,
-			// block owning the anchor materialized from a sentinel
-			o: null,
-		},
-		IF_BLOCK,
-	);
+	block(RENDER_BLOCK | IF_BLOCK, run_if, {
+		// DOM range of the current branch
+		start: null,
+		end: null,
+		a: anchor,
+		fn,
+		// last condition
+		c: UNINITIALIZED,
+		// whether a branch was selected during the current run
+		h: false,
+		// block owning the anchor materialized from a sentinel
+		o: null,
+	});
 
 	if (hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

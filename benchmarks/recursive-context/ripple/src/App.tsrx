@@ -35,15 +35,15 @@ export function showMid() {
 }
 
 function Mid(props) @{
-	let &[local, localT] = track(0);
-	let &[visible] = track(true);
+	let localT = track(0);
+	let visibleT = track(true);
 	_bumpLocal = () => {
-		local += 1;
+		localT.value += 1;
 	};
 	_setVisible = (v) => {
-		visible = v;
+		visibleT.value = v;
 	};
-	@if (visible) {
+	@if (visibleT.value) {
 		LocalCtx.set(localT);
 		<div class="mid">
 			<Node depth={props.depth - 1} path={props.path + 'L'} />
@@ -79,10 +79,10 @@ function Leaf(props) @{
 }
 
 export default function App(props) @{
-	let &[root, rootT] = track(0);
+	let rootT = track(0);
 	RootCtx.set(rootT);
 	_bumpRoot = () => {
-		root += 1;
+		rootT.value += 1;
 	};
 	<Node depth={props.depth} path="" />
 }
