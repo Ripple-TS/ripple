@@ -89,35 +89,6 @@ export {
 
 export { composite } from './composite.js';
 
-export {
-	props_site,
-	props_literal,
-	merge_site,
-	merge_props,
-	props_keys,
-	props_values,
-	props_entries,
-	props_has,
-	props_snapshot,
-	$0,
-	$1,
-	$2,
-	$3,
-	$4,
-	$5,
-	$6,
-	$7,
-	$8,
-	$9,
-	$10,
-	$11,
-	$12,
-	$13,
-	$14,
-	$15,
-	VALUES as $v,
-} from './props.js';
-
 export { render_component } from './component.js';
 
 export { for_block as for, for_block_keyed as for_keyed } from './for.js';

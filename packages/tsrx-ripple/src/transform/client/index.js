@@ -24,7 +24,7 @@
 */
 
 import { walk } from 'zimmerframe';
-import { build_props_site, captured_locals, register_hoisted, rewrite } from './props-site.js';
+import { captured_locals, register_hoisted, rewrite } from './hoist.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -87,7 +87,6 @@ import {
 	get_ripple_namespace_call_name,
 	is_ripple_import,
 	is_context_method_call,
-	is_boxed,
 	sole_template_if,
 	is_template_if,
 	is_ripple_portal,
@@ -640,71 +639,6 @@ function has_rest_property(pattern) {
 }
 
 /**
- * A boxed `let` (see `box_declarator` in the analyzer): the variable holds a
- * `{ v }` box so module-level code the transform hoists can capture it and
- * still read its current value; every read and write goes through `.v`.
- * @param {AST.VariableDeclarator} declarator the visited declarator
- * @returns {AST.VariableDeclarator}
- */
-function box_declarator(declarator) {
-	return {
-		...declarator,
-		init: b.object([b.prop('init', b.id('v'), declarator.init ?? b.void0)]),
-	};
-}
-
-/**
- * Expands a flat `let` pattern with boxed names into one declarator per name:
- * `let { a, b = 1 } = obj` where `a` is boxed becomes
- * `let init = obj, a = { v: init.a }, b = init.b === undefined ? 1 : init.b`.
- * Reads happen in source order, so getters on the source fire as before.
- * @param {AST.VariableDeclarator} declarator the visited declarator
- * @param {TransformClientContext} context
- * @returns {AST.VariableDeclarator[]}
- */
-function expand_boxed_pattern(declarator, context) {
-	const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (declarator.id);
-	const source = b.id(context.state.scope.generate('init'));
-	/** @type {AST.VariableDeclarator[]} */
-	const declarators = [b.declarator(source, declarator.init ?? b.void0)];
-	const elements = pattern.type === 'ObjectPattern' ? pattern.properties : pattern.elements;
-
-	for (let index = 0; index < elements.length; index++) {
-		const element = elements[index];
-		if (element === null) continue;
-		/** @type {AST.Expression} */
-		let read;
-		/** @type {AST.Pattern} */
-		let target;
-		if (element.type === 'Property') {
-			read = b.member(
-				source,
-				/** @type {AST.Expression} */ (element.key),
-				element.computed || element.key.type !== 'Identifier',
-			);
-			target = /** @type {AST.Pattern} */ (element.value);
-		} else {
-			read = b.member(source, b.literal(index), true);
-			target = /** @type {AST.Pattern} */ (element);
-		}
-		/** @type {AST.Identifier} */
-		let name;
-		if (target.type === 'AssignmentPattern') {
-			name = /** @type {AST.Identifier} */ (target.left);
-			read = b.conditional(b.binary('===', read, b.void0), target.right, read);
-		} else {
-			name = /** @type {AST.Identifier} */ (target);
-		}
-		const binding = context.state.scope.get(name.name);
-		declarators.push(
-			b.declarator(name, is_boxed(binding) ? b.object([b.prop('init', b.id('v'), read)]) : read),
-		);
-	}
-
-	return declarators;
-}
-
-/**
  * Whether a compiled render body reads `this` or `arguments` of the function
  * that contains it (through arrows only; a nested `function` has its own).
  * @param {AST.Node} node
@@ -738,7 +672,6 @@ function references_function_scope(node) {
  */
 function transform_native_tsrx_function(node, context) {
 	node.metadata.native_tsrx_function = true;
-	let prop_statements;
 	const metadata = {};
 	const is_tsrx_element = context.state.is_tsrx_element;
 
@@ -780,14 +713,7 @@ function transform_native_tsrx_function(node, context) {
 						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
 					),
 				);
-				if (has_rest_property(pattern)) {
-					// A rest element copies own properties, which a compiled props
-					// instance keeps on its prototype: destructure its snapshot instead
-					// (a non-lazy destructuring is a snapshot either way).
-					prop_statements = [b.const(pattern, b.call('_$_.props_snapshot', b.id('__props')))];
-				} else {
-					props = pattern;
-				}
+				props = pattern;
 			}
 		} else {
 			props = props_param;
@@ -837,7 +763,7 @@ function transform_native_tsrx_function(node, context) {
 		value_params[0] = props;
 	}
 	const params = is_tsrx_element ? [b.id('__anchor'), b.id('__block')] : value_params;
-	const render_block = b.block([...(prop_statements ?? []), ...transformed_body]);
+	const render_block = b.block(transformed_body);
 	/** @type {AST.BlockStatement} */
 	let component_body;
 	if (is_tsrx_element) {
@@ -2404,26 +2330,6 @@ const visitors = {
 		}
 	},
 
-	ObjectExpression(node, context) {
-		if (context.state.to_ts) {
-			return context.next();
-		}
-		const visited = /** @type {AST.ObjectExpression} */ (context.next() ?? node);
-		if (!visited.properties.some((property) => property.type === 'SpreadElement')) {
-			return visited;
-		}
-		// An object spread copies own properties only; a compiled props instance
-		// is snapshotted first so its prototype getters are copied too.
-		return {
-			...visited,
-			properties: visited.properties.map((property) =>
-				property.type === 'SpreadElement' && property.argument.type !== 'ObjectExpression'
-					? { ...property, argument: b.call('_$_.props_snapshot', property.argument) }
-					: property,
-			),
-		};
-	},
-
 	Identifier(node, context) {
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
@@ -2537,28 +2443,6 @@ const visitors = {
 		// `with_scope` is needed either.
 		if (!context.state.to_ts && node.metadata?.tsrx_code_block_component) {
 			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
-		}
-
-		// `Object.keys(props)` and friends: compiled props keep their props as
-		// prototype getters, which the own-property enumerators would miss.
-		if (
-			!context.state.to_ts &&
-			callee.type === 'MemberExpression' &&
-			!callee.computed &&
-			callee.object.type === 'Identifier' &&
-			callee.object.name === 'Object' &&
-			callee.property.type === 'Identifier' &&
-			node.arguments.length === 1 &&
-			node.arguments[0].type !== 'SpreadElement' &&
-			context.state.scope.get('Object') === null
-		) {
-			const helper = OBJECT_ENUMERATORS.get(callee.property.name);
-			if (helper !== undefined) {
-				return b.call(
-					'_$_.' + helper,
-					/** @type {AST.Expression} */ (context.visit(node.arguments[0])),
-				);
-			}
 		}
 
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
@@ -2900,32 +2784,9 @@ const visitors = {
 
 		return {
 			...node,
-			declarations: declarations.flatMap((declarator) => {
-				let visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
-				if (
-					!context.state.to_ts &&
-					visited.init &&
-					visited.id.type === 'ObjectPattern' &&
-					!visited.id.lazy &&
-					has_rest_property(visited.id)
-				) {
-					// See the component parameter case: a rest element over a compiled
-					// props instance needs the snapshot's own properties.
-					visited = { ...visited, init: b.call('_$_.props_snapshot', visited.init) };
-				}
-				// `boxed` / `boxed_pattern` are set by the analyzer's `box_declarator`.
-				const metadata = /** @type {any} */ (declarator.metadata);
-				if (context.state.to_ts || !metadata) {
-					return [visited];
-				}
-				if (metadata.boxed) {
-					return [box_declarator(visited)];
-				}
-				if (metadata.boxed_pattern) {
-					return expand_boxed_pattern(visited, context);
-				}
-				return [visited];
-			}),
+			declarations: declarations.map(
+				(declarator) => /** @type {AST.VariableDeclarator} */ (context.visit(declarator)),
+			),
 		};
 	},
 
@@ -3529,16 +3390,8 @@ const visitors = {
 						}
 					}
 				} else if (attr.type === 'JSXSpreadAttribute') {
-					// A compiled props instance keeps its props on its prototype, which
-					// an object spread would miss: spread its snapshot (a plain object
-					// passes through).
 					spread_attributes?.push(
-						b.spread(
-							b.call(
-								'_$_.props_snapshot',
-								/** @type {AST.Expression} */ (visit(attr.argument, state)),
-							),
-						),
+						b.spread(/** @type {AST.Expression} */ (visit(attr.argument, state))),
 					);
 				}
 			}
@@ -3858,10 +3711,6 @@ const visitors = {
 							) {
 								property = binding.transform.read(property);
 							}
-							// A bare identifier is a plain variable read: the value it holds
-							// (for a lazy pair's `T` alias, the Tracked object itself) is
-							// stable, so the prop needs no getter.
-							metadata.tracking = property.type !== 'Identifier';
 						}
 
 						if (attr_name === 'class' && scope_class !== null) {
@@ -3871,41 +3720,17 @@ const visitors = {
 									: b.array([property, scope_class]);
 						}
 
-						if (metadata.tracking) {
-							if (attr_name === 'children') {
-								children_prop = b.prop(
-									'get',
-									b.id('children'),
-									b.function(
-										null,
-										[],
-										b.block([b.return(b.call('_$_.normalize_children', property))]),
-									),
-								);
-								props.push(children_prop);
-								continue;
-							}
-
-							props.push(
-								b.prop(
-									'get',
-									b.key(attr_name),
-									b.function(null, [], b.block([b.return(property)])),
-								),
+						if (attr_name === 'children') {
+							children_prop = b.prop(
+								'init',
+								b.id('children'),
+								b.call('_$_.normalize_children', property),
 							);
-						} else {
-							if (attr_name === 'children') {
-								children_prop = b.prop(
-									'init',
-									b.id('children'),
-									b.call('_$_.normalize_children', property),
-								);
-								props.push(children_prop);
-								continue;
-							}
-
-							props.push(b.prop('init', b.key(attr_name), property));
+							props.push(children_prop);
+							continue;
 						}
+
+						props.push(b.prop('init', b.key(attr_name), property));
 					}
 				} else if (attr.type === 'JSXSpreadAttribute') {
 					props.push(
@@ -3981,54 +3806,7 @@ const visitors = {
 			// We're calling a component from within svg/mathml context
 			const is_with_ns = state.namespace !== DEFAULT_NAMESPACE;
 
-			let object_props;
-			if (is_spreading && state.to_ts) {
-				object_props = b.object(props);
-			} else if (is_spreading) {
-				// A spread site merges its sources in order, rightmost winning; the
-				// site's own props between spreads are a props instance of their own.
-				// The sources thunk runs in a derived, so a spread of a tracked value
-				// stays live.
-				/** @type {AST.Expression[]} */
-				const items = [];
-				/** @type {AST.Property[]} */
-				let own_props = [];
-				const flush_own = () => {
-					if (own_props.length > 0) {
-						items.push(
-							build_props_site(own_props, state.scope, state.hoisted, state.component ?? null) ||
-								b.call('_$_.props_literal', b.object(own_props)),
-						);
-						own_props = [];
-					}
-				};
-				for (const prop of props) {
-					if (prop.type === 'SpreadElement') {
-						flush_own();
-						items.push(prop.argument);
-					} else {
-						own_props.push(prop);
-					}
-				}
-				flush_own();
-
-				const merge_id = b.id(state.scope.generate('merge_site'));
-				state.hoisted.push(b.var(merge_id));
-				register_hoisted(state.hoisted, merge_id.name);
-				object_props = b.call(
-					'_$_.merge_props',
-					b.assignment('??=', merge_id, b.call('_$_.merge_site')),
-					b.thunk(b.array(items)),
-				);
-			} else if (state.to_ts) {
-				object_props = b.object(props);
-			} else {
-				// A site whose expressions cannot live at module level keeps the
-				// closure literal, made a `Props` instance by the runtime.
-				object_props =
-					build_props_site(props, state.scope, state.hoisted, state.component ?? null) ||
-					b.call('_$_.props_literal', b.object(props));
-			}
+			const object_props = b.object(props);
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or
 			// null) and re-renders when a tracked expression changes.
@@ -4037,7 +3815,7 @@ const visitors = {
 					'_$_.composite',
 					b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
 					id,
-					object_props,
+					b.thunk(object_props),
 				);
 				state.init?.push(
 					is_with_ns
@@ -8092,10 +7870,3 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 
 	return result;
 }
-
-/** Own-property enumerators lowered to their props-aware runtime helpers. */
-const OBJECT_ENUMERATORS = new Map([
-	['keys', 'props_keys'],
-	['values', 'props_values'],
-	['entries', 'props_entries'],
-]);

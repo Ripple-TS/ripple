@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { track, type Tracked } from 'ripple';
 
 // For loop components for hydration testing
 
@@ -544,17 +544,17 @@ export function KeyedForLoopAppendAndRotate() @{
 	</div>
 }
 
-function RootKeyedList(props: { items: number[] }) @{
-	@for (const item of props.items; key item) {
+function RootKeyedList(props: { items: Tracked<number[]> }) @{
+	@for (const item of props.items.value; key item) {
 		<span class="item">{item}</span>
 	}
 }
 
 export function RootKeyedForLoopAppendAndRotate() @{
-	let &[items] = track([1, 2, 3]);
+	let &[items, itemsTracked] = track([1, 2, 3]);
 	<div class="wrapper">
 		<div class="host">
-			<RootKeyedList {items} />
+			<RootKeyedList items={itemsTracked} />
 			<p class="tail">{'p'}</p>
 		</div>
 		<button class="push" onClick={() => (items = [...items, items.length + 1])}>{'Push'}</button>

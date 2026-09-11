@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { track, type Tracked } from 'ripple';
 
 // Minimal repro for hydration issue with if block containing children
 // Based on SidebarGroup pattern from website-new
@@ -188,16 +188,16 @@ export function StaticListThenStaticSiblings() @{
 // sentinel instead of a `<!>` placeholder per child. A child whose root is
 // control flow keeps re-rendering relative to its anchor after hydration, so it
 // must resolve the sentinel to its own position rather than the parent's end.
-function RootIfChild(props: { on: boolean }) @{
-	@if (props.on) {
+function RootIfChild(props: { on: Tracked<boolean> }) @{
+	@if (props.on.value) {
 		<span class="root-if">{'on'}</span>
 	} @else {
 		<span class="root-if">{'off'}</span>
 	}
 }
 
-function RootForChild(props: { items: number[] }) @{
-	@for (const item of props.items; key item) {
+function RootForChild(props: { items: Tracked<number[]> }) @{
+	@for (const item of props.items.value; key item) {
 		<span class="root-for">{item}</span>
 	}
 }
@@ -207,12 +207,12 @@ function TrailingChild() @{
 }
 
 export function ComponentChildrenWithControlFlowRoots() @{
-	let &[on] = track(true);
-	let &[items] = track([1, 2, 3]);
+	let &[on, onTracked] = track(true);
+	let &[items, itemsTracked] = track([1, 2, 3]);
 	<div class="wrapper">
 		<div class="host">
-			<RootIfChild {on} />
-			<RootForChild {items} />
+			<RootIfChild on={onTracked} />
+			<RootForChild items={itemsTracked} />
 			<TrailingChild />
 		</div>
 		<button class="toggle" onClick={() => (on = !on)}>{'Toggle'}</button>

@@ -651,7 +651,7 @@ function TextProp(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children);
+				_$_.render_expression(__props.children.value);
 			}
 
 			__out += '</div>';
@@ -665,7 +665,7 @@ function TypedTextProp(__props) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="text-prop">' + _$_.escape(__props.children) + '</div>';
+			__out += '<div class="text-prop">' + _$_.escape(__props.children.value) + '</div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -686,7 +686,7 @@ export function TextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
+						children: _$_.normalize_children(_$_.track(() => lazy_1.value ? 'hello' : '', '649e2af0'))
 					}
 				];
 
@@ -703,7 +703,7 @@ export function TextPropWithToggle() {
 
 export function TypedTextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track(false, '649e2af0');
+		let lazy_2 = _$_.track(false, 'ba719d47');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -716,7 +716,7 @@ export function TypedTextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(lazy_2.value ? 'hello' : '')
+						children: _$_.normalize_children(_$_.track(() => lazy_2.value ? 'hello' : '', '6fb091f9'))
 					}
 				];
 
@@ -1067,7 +1067,7 @@ export function FragmentLeadsWithPrimitiveCall() {
 
 export function PrimitiveTextCalls() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track(2, 'ba719d47');
+		let lazy_3 = _$_.track(2, 'eea72017');
 
 		_$_.regular_block(() => {
 			let __out = '';

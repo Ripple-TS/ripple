@@ -51,7 +51,6 @@ import {
 	replace_boundary_request,
 } from './try.js';
 import { is_ripple_object } from './utils.js';
-import { is_props, own_keys } from './props.js';
 import { render_value } from './expression.js';
 import { throw_invalid_component_type } from './component.js';
 
@@ -465,14 +464,6 @@ export function run_block(block, first_run = false) {
 var empty_get_set = { get: undefined, set: undefined };
 
 /**
- * Counts every read of a tracked or derived value, whether or not a reaction
- * is tracking. A compiled props getter compares it before and after its first
- * evaluation: an unchanged count proves the expression read no reactive state
- * and its value can be kept (see `props.js`).
- */
-export let reads = 0;
-
-/**
  * Complete all deferred boundary requests registered on a tracked value.
  * @param {Tracked} t
  * @param {boolean} [show_resolved=true]
@@ -491,11 +482,11 @@ class TrackedValue {
 	/**
 	 * @param {any} v
 	 * @param {Block} block
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} [hash]
 	 */
 	constructor(v, block, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		/** @type {Block} */
 		this.b = block;
@@ -549,11 +540,11 @@ class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {Block} block
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} [hash]
 	 */
 	constructor(fn, block, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		/** @type {Block} */
 		this.b = block;
@@ -620,7 +611,7 @@ if (DEV) {
  * @param {Block} block
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked}
  */
 export function tracked(v, block, hash, get, set) {
@@ -638,7 +629,7 @@ export function tracked(v, block, hash, get, set) {
  * @param {Block} block
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Derived}
  */
 export function derived(fn, block, hash, get, set) {
@@ -656,7 +647,7 @@ export function derived(fn, block, hash, get, set) {
  * @param {Block} b
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked | Derived}
  */
 export function track(v, b, hash, get, set) {
@@ -939,7 +930,6 @@ export function peek_tracked(tracked) {
 		return tracked;
 	}
 
-	reads++;
 	return tracked.__v;
 }
 
@@ -1437,7 +1427,6 @@ function register_dependency(tracked) {
  * @param {Derived} computed
  */
 export function get_derived(computed) {
-	reads++;
 	update_derived(computed);
 	if (tracking) {
 		register_dependency(computed);
@@ -1528,7 +1517,6 @@ export function lazy_array_rest(lazy, index = 0) {
  * @param {Tracked} tracked
  */
 export function get_tracked(tracked) {
-	reads++;
 	var value = tracked.__v;
 	if (tracking) {
 		// register_dependency, inline for the first read of a run.
@@ -1628,14 +1616,33 @@ export function set(tracked, value) {
 		}
 
 		let set = tracked.a.set;
-		if (set !== undefined) {
+		if (typeof set === 'function') {
 			value = untrack(() => set(value, old_value));
+		} else if (DEV && set === undefined && (tracked.f & DERIVED) !== 0) {
+			warn_readonly_derived_write(/** @type {Derived} */ (tracked));
 		}
 
 		tracked.__v = value;
 		tracked.c = increment_clock();
 		mark_subscribers(tracked);
 	}
+}
+
+/** @type {WeakSet<object>} */
+var warned_derived = new WeakSet();
+
+/**
+ * A derived created without a setter is read-only by contract (`Derived<V>`);
+ * a write still lands as a temporary value until the next recompute, so in
+ * development it is reported once per derived.
+ * @param {Derived} derived
+ */
+function warn_readonly_derived_write(derived) {
+	if (warned_derived.has(derived)) return;
+	warned_derived.add(derived);
+	console.warn(
+		'Writing to a read-only derived. Create it with a setter, `track(fn, undefined, true)` or `track(fn, get, set)`, when it is meant to be written.',
+	);
 }
 
 /**
@@ -2085,18 +2092,13 @@ export function fallback(value, fallback) {
  * @returns {Record<string | symbol, unknown>}
  */
 export function exclude_from_object(obj, exclude_keys) {
-	var keys = own_keys(obj);
 	/** @type {Record<string | symbol, unknown>} */
 	var new_obj = {};
 
-	for (const key of keys) {
+	for (const key in obj) {
 		if (!exclude_keys.includes(key)) {
 			new_obj[key] = obj[key];
 		}
-	}
-
-	if (is_props(obj)) {
-		return new_obj;
 	}
 
 	for (const symbol of get_own_property_symbols(obj)) {

@@ -97,35 +97,37 @@ HtmlWithReactivity[_$_.$r] = HtmlWithReactivity_render;
 
 var root_6 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
 var root_7 = _$_.template(`<div class="vp-doc"></div>`, 0);
-var props_site;
 
 function HtmlInChildren_render(__anchor, __block) {
 	const content = '<p><strong>Bold</strong> text</p>';
 
-	_$_.render_component(HtmlWrapper, __anchor, new (props_site ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site, _$_.tsrx_element((__anchor, __block) => {
-		var div_7 = root_7();
+	_$_.render_component(HtmlWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_7 = root_7();
 
-		div_7.innerHTML = content ?? div_7.innerHTML;
-		_$_.append(__anchor, div_7);
-	})));
+			div_7.innerHTML = content ?? div_7.innerHTML;
+			_$_.append(__anchor, div_7);
+		})
+	});
 }
 
 HtmlInChildren[_$_.$r] = HtmlInChildren_render;
 
 var root_8 = _$_.template(`<h1>Title</h1><div class="content"></div>`, 1, 2);
-var props_site_1;
 
 function HtmlInChildrenWithSiblings_render(__anchor, __block) {
 	const content = '<p>Dynamic content</p>';
 
-	_$_.render_component(HtmlWrapper, __anchor, new (props_site_1 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_1, _$_.tsrx_element((__anchor, __block) => {
-		var fragment = root_8();
-		var h1 = _$_.first_child_frag(fragment);
-		var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
+	_$_.render_component(HtmlWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment = root_8();
+			var h1 = _$_.first_child_frag(fragment);
+			var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
 
-		div_8.innerHTML = content ?? div_8.innerHTML;
-		_$_.append(__anchor, fragment);
-	})));
+			div_8.innerHTML = content ?? div_8.innerHTML;
+			_$_.append(__anchor, fragment);
+		})
+	});
 }
 
 HtmlInChildrenWithSiblings[_$_.$r] = HtmlInChildrenWithSiblings_render;
@@ -137,31 +139,31 @@ function render_2(__prev) {
 	_$_.html(__prev._node_4, () => __prev._html2);
 }
 
-var props_site_2;
-
 function MultipleHtmlInChildren_render(__anchor, __block) {
 	const html1 = '<p>First</p>';
 	const html2 = '<p>Second</p>';
 
-	_$_.render_component(HtmlWrapper, __anchor, new (props_site_2 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_2, _$_.tsrx_element((__anchor, __block) => {
-		var div_9 = root_9();
+	_$_.render_component(HtmlWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_9 = root_9();
 
-		{
-			var node_3 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
-			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
+			{
+				var node_3 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
+				var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
 
-			_$_.hydrating && _$_.pop(div_9);
-		}
+				_$_.hydrating && _$_.pop(div_9);
+			}
 
-		_$_.render(render_2, {
-			_node_3: node_3,
-			_html1: html1,
-			_node_4: node_4,
-			_html2: html2
-		});
+			_$_.render(render_2, {
+				_node_3: node_3,
+				_html1: html1,
+				_node_4: node_4,
+				_html2: html2
+			});
 
-		_$_.append(__anchor, div_9);
-	})));
+			_$_.append(__anchor, div_9);
+		})
+	});
 }
 
 MultipleHtmlInChildren[_$_.$r] = MultipleHtmlInChildren_render;
@@ -191,17 +193,18 @@ function HtmlWithEmptyComment_render(__anchor, __block) {
 HtmlWithEmptyComment[_$_.$r] = HtmlWithEmptyComment_render;
 
 var root_12 = _$_.template(`<div class="vp-doc"></div>`, 0);
-var props_site_3;
 
 function HtmlWithCommentsInChildren_render(__anchor, __block) {
 	const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
 
-	_$_.render_component(HtmlWrapper, __anchor, new (props_site_3 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_3, _$_.tsrx_element((__anchor, __block) => {
-		var div_12 = root_12();
+	_$_.render_component(HtmlWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_12 = root_12();
 
-		div_12.innerHTML = content ?? div_12.innerHTML;
-		_$_.append(__anchor, div_12);
-	})));
+			div_12.innerHTML = content ?? div_12.innerHTML;
+			_$_.append(__anchor, div_12);
+		})
+	});
 }
 
 HtmlWithCommentsInChildren[_$_.$r] = HtmlWithCommentsInChildren_render;
@@ -273,7 +276,6 @@ function if_2(__props) {
 	if (_$_.fallback(__props.nextLink, null)) return consequent_1;
 }
 
-var props_site_4;
 var root_18 = _$_.template(`<li><a> </a></li>`, 0);
 
 function render_5(__prev) {
@@ -371,7 +373,7 @@ function DocLayout_render(__anchor, __block, __props) {
 
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
-			_$_.render_component(DocFooter, node_7, new (props_site_4 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_4));
+			_$_.render_component(DocFooter, node_7, {});
 			_$_.hydrating && _$_.pop(div_14);
 		}
 
@@ -391,58 +393,59 @@ function DocLayout_render(__anchor, __block, __props) {
 DocLayout[_$_.$r] = DocLayout_render;
 
 var root_19 = _$_.template(`<div class="vp-doc"></div>`, 0);
-var props_site_5;
 
 function HtmlWithServerData_render(__anchor, __block) {
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 
-	_$_.render_component(DocLayout, __anchor, new (props_site_5 ??= _$_.props_site(['editPath', 'nextLink', 'toc', 'children'], 0, 0, 0, { C: null })).C(
-		props_site_5,
-		"docs/introduction.md",
-		{ href: '/docs/quick-start', text: 'Quick Start' },
-		[
+	_$_.render_component(DocLayout, __anchor, {
+		editPath: "docs/introduction.md",
+		nextLink: { href: '/docs/quick-start', text: 'Quick Start' },
+		toc: [
 			{ href: '#intro', text: 'Introduction' },
 			{ href: '#features', text: 'Features' }
 		],
-		_$_.tsrx_element((__anchor, __block) => {
+
+		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_18 = root_19();
 
 			div_18.innerHTML = content ?? div_18.innerHTML;
 			_$_.append(__anchor, div_18);
 		})
-	));
+	});
 }
 
 HtmlWithServerData[_$_.$r] = HtmlWithServerData_render;
 
 var root_20 = _$_.template(`<div class="vp-doc"></div>`, 0);
-var props_site_6;
 
 function HtmlWithClientDefaults_render(__anchor, __block) {
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 
-	_$_.render_component(DocLayout, __anchor, new (props_site_6 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_6, _$_.tsrx_element((__anchor, __block) => {
-		var div_19 = root_20();
+	_$_.render_component(DocLayout, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_19 = root_20();
 
-		div_19.innerHTML = content ?? div_19.innerHTML;
-		_$_.append(__anchor, div_19);
-	})));
+			div_19.innerHTML = content ?? div_19.innerHTML;
+			_$_.append(__anchor, div_19);
+		})
+	});
 }
 
 HtmlWithClientDefaults[_$_.$r] = HtmlWithClientDefaults_render;
 
 var root_21 = _$_.template(`<div class="vp-doc"></div>`, 0);
-var props_site_7;
 
 function HtmlWithUndefinedContent_render(__anchor, __block) {
 	const content = undefined;
 
-	_$_.render_component(DocLayout, __anchor, new (props_site_7 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_7, _$_.tsrx_element((__anchor, __block) => {
-		var div_20 = root_21();
+	_$_.render_component(DocLayout, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_20 = root_21();
 
-		div_20.innerHTML = content ?? div_20.innerHTML;
-		_$_.append(__anchor, div_20);
-	})));
+			div_20.innerHTML = content ?? div_20.innerHTML;
+			_$_.append(__anchor, div_20);
+		})
+	});
 }
 
 HtmlWithUndefinedContent[_$_.$r] = HtmlWithUndefinedContent_render;
@@ -451,135 +454,135 @@ var root_22 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
 var root_23 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
 var root_24 = _$_.template(`<div class="code-block"><div class="header"><button>Copy</button><span class="lang">js</span></div><div class="content"></div></div>`, 0);
 var root_25 = _$_.template(`<div class="wrapper"><div class="inner"><!></div></div>`, 0);
-var props_site_8;
-var props_site_9;
 var root_26 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1, 5);
-var props_site_10;
 
 function HtmlAfterSwitchInChildren_render(__anchor, __block) {
-	_$_.render_component(ContentWrapper, __anchor, new (props_site_10 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_10, _$_.tsrx_element((__anchor, __block) => {
-		var fragment_1 = root_26();
-		var node_9 = _$_.first_child_frag(fragment_1);
+	_$_.render_component(ContentWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment_1 = root_26();
+			var node_9 = _$_.first_child_frag(fragment_1);
 
-		_$_.render_component(DynamicHeading, node_9, new (props_site_8 ??= _$_.props_site(['level', 'children'], 0, 0, 0, { C: null })).C(props_site_8, 1, _$_.tsrx_element((__anchor, __block) => {
-			var expression_7 = _$_.text('Title');
+			_$_.render_component(DynamicHeading, node_9, {
+				level: 1,
+				children: _$_.tsrx_element((__anchor, __block) => {
+					var expression_7 = _$_.text('Title');
 
-			_$_.append(__anchor, expression_7);
-		})));
+					_$_.append(__anchor, expression_7);
+				})
+			});
 
-		var p_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_9.nextSibling;
-		var p = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
-		var node_10 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
+			var p_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_9.nextSibling;
+			var p = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
+			var node_10 = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
 
-		_$_.render_component(CodeBlock, node_10, new (props_site_9 ??= _$_.props_site(['code'], 0, 0, 0, { C: null })).C(props_site_9, "const x = 1;"));
-		_$_.next();
-		_$_.append(__anchor, fragment_1);
-	})));
+			_$_.render_component(CodeBlock, node_10, { code: "const x = 1;" });
+			_$_.next();
+			_$_.append(__anchor, fragment_1);
+		})
+	});
 }
 
 HtmlAfterSwitchInChildren[_$_.$r] = HtmlAfterSwitchInChildren_render;
 
 var root_27 = _$_.template(`<h1 class="heading"><!></h1>`, 0);
 var root_28 = _$_.template(`<h2 class="heading"><!></h2>`, 0);
-var props_site_11;
-var props_site_12;
 var root_29 = _$_.template(`<!><p>First paragraph</p><p>Second paragraph</p><!><p>After code</p>`, 1, 5);
-var props_site_13;
 
 function HtmlAfterIfInChildren_render(__anchor, __block) {
-	_$_.render_component(ContentWrapper, __anchor, new (props_site_13 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_13, _$_.tsrx_element((__anchor, __block) => {
-		var fragment_2 = root_29();
-		var node_11 = _$_.first_child_frag(fragment_2);
+	_$_.render_component(ContentWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment_2 = root_29();
+			var node_11 = _$_.first_child_frag(fragment_2);
 
-		_$_.render_component(IfHeading, node_11, new (props_site_11 ??= _$_.props_site(['primary', 'children'], 0, 0, 0, { C: null })).C(props_site_11, true, _$_.tsrx_element((__anchor, __block) => {
-			var expression_10 = _$_.text('Title');
+			_$_.render_component(IfHeading, node_11, {
+				primary: true,
+				children: _$_.tsrx_element((__anchor, __block) => {
+					var expression_10 = _$_.text('Title');
 
-			_$_.append(__anchor, expression_10);
-		})));
+					_$_.append(__anchor, expression_10);
+				})
+			});
 
-		var p_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_11.nextSibling;
-		var p_2 = _$_.hydrating ? _$_.hydrate_sibling() : p_3.nextSibling;
-		var node_12 = _$_.hydrating ? _$_.hydrate_sibling() : p_2.nextSibling;
+			var p_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_11.nextSibling;
+			var p_2 = _$_.hydrating ? _$_.hydrate_sibling() : p_3.nextSibling;
+			var node_12 = _$_.hydrating ? _$_.hydrate_sibling() : p_2.nextSibling;
 
-		_$_.render_component(CodeBlock, node_12, new (props_site_12 ??= _$_.props_site(['code'], 0, 0, 0, { C: null })).C(props_site_12, "const x = 1;"));
-		_$_.next();
-		_$_.append(__anchor, fragment_2);
-	})));
+			_$_.render_component(CodeBlock, node_12, { code: "const x = 1;" });
+			_$_.next();
+			_$_.append(__anchor, fragment_2);
+		})
+	});
 }
 
 HtmlAfterIfInChildren[_$_.$r] = HtmlAfterIfInChildren_render;
 
 var root_30 = _$_.template(`<span class="for-item"> </span>`, 0);
-var props_site_14;
-var props_site_15;
 var root_31 = _$_.template(`<!><p>First paragraph</p><!><p>After code</p>`, 1, 4);
-var props_site_16;
 
 function HtmlAfterForInChildren_render(__anchor, __block) {
-	_$_.render_component(ContentWrapper, __anchor, new (props_site_16 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_16, _$_.tsrx_element((__anchor, __block) => {
-		var fragment_3 = root_31();
-		var node_13 = _$_.first_child_frag(fragment_3);
+	_$_.render_component(ContentWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment_3 = root_31();
+			var node_13 = _$_.first_child_frag(fragment_3);
 
-		_$_.render_component(ForList, node_13, new (props_site_14 ??= _$_.props_site(['items'], 0, 0, 0, { C: null })).C(props_site_14, ['Title', 'Subtitle']));
+			_$_.render_component(ForList, node_13, { items: ['Title', 'Subtitle'] });
 
-		var p_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_13.nextSibling;
-		var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : p_4.nextSibling;
+			var p_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_13.nextSibling;
+			var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : p_4.nextSibling;
 
-		_$_.render_component(CodeBlock, node_14, new (props_site_15 ??= _$_.props_site(['code'], 0, 0, 0, { C: null })).C(props_site_15, "const x = 1;"));
-		_$_.next();
-		_$_.append(__anchor, fragment_3);
-	})));
+			_$_.render_component(CodeBlock, node_14, { code: "const x = 1;" });
+			_$_.next();
+			_$_.append(__anchor, fragment_3);
+		})
+	});
 }
 
 HtmlAfterForInChildren[_$_.$r] = HtmlAfterForInChildren_render;
 
 var root_32 = _$_.template(`<div class="try-box"> </div>`, 0);
 var root_33 = _$_.template(`<span>error</span>`, 0);
-var props_site_17;
-var props_site_18;
 var root_34 = _$_.template(`<!><p>First paragraph</p><!><p>After code</p>`, 1, 4);
-var props_site_19;
 
 function HtmlAfterTryInChildren_render(__anchor, __block) {
-	_$_.render_component(ContentWrapper, __anchor, new (props_site_19 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_19, _$_.tsrx_element((__anchor, __block) => {
-		var fragment_4 = root_34();
-		var node_15 = _$_.first_child_frag(fragment_4);
+	_$_.render_component(ContentWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment_4 = root_34();
+			var node_15 = _$_.first_child_frag(fragment_4);
 
-		_$_.render_component(TryBox, node_15, new (props_site_17 ??= _$_.props_site(['value'], 0, 0, 0, { C: null })).C(props_site_17, "Title"));
+			_$_.render_component(TryBox, node_15, { value: "Title" });
 
-		var p_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_15.nextSibling;
-		var node_16 = _$_.hydrating ? _$_.hydrate_sibling() : p_5.nextSibling;
+			var p_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_15.nextSibling;
+			var node_16 = _$_.hydrating ? _$_.hydrate_sibling() : p_5.nextSibling;
 
-		_$_.render_component(CodeBlock, node_16, new (props_site_18 ??= _$_.props_site(['code'], 0, 0, 0, { C: null })).C(props_site_18, "const x = 1;"));
-		_$_.next();
-		_$_.append(__anchor, fragment_4);
-	})));
+			_$_.render_component(CodeBlock, node_16, { code: "const x = 1;" });
+			_$_.next();
+			_$_.append(__anchor, fragment_4);
+		})
+	});
 }
 
 HtmlAfterTryInChildren[_$_.$r] = HtmlAfterTryInChildren_render;
 
 var root_35 = _$_.template(`<span class="boxed"><!></span>`, 0);
 var root_36 = _$_.template(` `, 1, 1);
-var props_site_20;
-var props_site_21;
-var props_site_22;
 var root_37 = _$_.template(`<!><p>First paragraph</p><!><p>After code</p>`, 1, 4);
-var props_site_23;
 
 function HtmlAfterComponentInChildren_render(__anchor, __block) {
-	_$_.render_component(ContentWrapper, __anchor, new (props_site_23 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_23, _$_.tsrx_element((__anchor, __block) => {
-		var fragment_6 = root_37();
-		var node_17 = _$_.first_child_frag(fragment_6);
+	_$_.render_component(ContentWrapper, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var fragment_6 = root_37();
+			var node_17 = _$_.first_child_frag(fragment_6);
 
-		_$_.render_component(IndirectHeading, node_17, new (props_site_21 ??= _$_.props_site(['text'], 0, 0, 0, { C: null })).C(props_site_21, "Title"));
+			_$_.render_component(IndirectHeading, node_17, { text: "Title" });
 
-		var p_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_17.nextSibling;
-		var node_18 = _$_.hydrating ? _$_.hydrate_sibling() : p_6.nextSibling;
+			var p_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_17.nextSibling;
+			var node_18 = _$_.hydrating ? _$_.hydrate_sibling() : p_6.nextSibling;
 
-		_$_.render_component(CodeBlock, node_18, new (props_site_22 ??= _$_.props_site(['code'], 0, 0, 0, { C: null })).C(props_site_22, "const x = 1;"));
-		_$_.next();
-		_$_.append(__anchor, fragment_6);
-	})));
+			_$_.render_component(CodeBlock, node_18, { code: "const x = 1;" });
+			_$_.next();
+			_$_.append(__anchor, fragment_6);
+		})
+	});
 }
 
 HtmlAfterComponentInChildren[_$_.$r] = HtmlAfterComponentInChildren_render;
@@ -656,14 +659,8 @@ NavItem[_$_.$r] = NavItem_render;
 
 var root_41 = _$_.template(`<div class="section-items"><!></div>`, 0);
 var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
-var props_site_24;
-var props_site_25;
 var root_43 = _$_.template(`<!><!>`, 1, 2);
-var props_site_26;
-var props_site_27;
-var props_site_28;
 var root_44 = _$_.template(`<!><!>`, 1, 2);
-var props_site_29;
 var root_42 = _$_.template(`<aside class="sidebar"><nav><div class="group"></div><div class="group"></div></nav></aside>`, 0);
 var root_45 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 
@@ -675,8 +672,6 @@ function PageHeader_render(__anchor, __block) {
 
 PageHeader[_$_.$r] = PageHeader_render;
 
-var props_site_30;
-var props_site_31;
 var root_47 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 
 function consequent_6(__anchor) {
@@ -689,7 +684,6 @@ function if_5() {
 	if (true) return consequent_6;
 }
 
-var props_site_32;
 var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!></main></div></div>`, 0);
 
 function LayoutWithSidebarAndMain_render(__anchor, __block) {
@@ -698,14 +692,14 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 	{
 		var node_25 = _$_.hydrating ? _$_.hydrate_child() : div_33.firstChild;
 
-		_$_.render_component(PageHeader, node_25, new (props_site_30 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_30));
+		_$_.render_component(PageHeader, node_25, {});
 
 		var div_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_25.nextSibling;
 
 		{
 			var node_26 = _$_.hydrating ? _$_.hydrate_child() : div_34.firstChild;
 
-			_$_.render_component(SideNav, node_26, new (props_site_31 ??= _$_.props_site(['currentPath'], 0, 0, 0, { C: null })).C(props_site_31, "/intro"));
+			_$_.render_component(SideNav, node_26, { currentPath: "/intro" });
 
 			var main = _$_.hydrating ? _$_.hydrate_sibling() : node_26.nextSibling;
 
@@ -717,7 +711,7 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 
 				var node_28 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(main);
 
-				_$_.render_component(PageHeader, node_28, new (props_site_32 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_32));
+				_$_.render_component(PageHeader, node_28, {});
 				_$_.hydrating && _$_.pop(main);
 			}
 
@@ -744,7 +738,6 @@ function SimpleFooter_render(__anchor, __block) {
 SimpleFooter[_$_.$r] = SimpleFooter_render;
 
 var root_51 = _$_.template(`<h1>Title</h1><p>Content goes here.</p>`, 1, 2);
-var props_site_33;
 var root_52 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 
 function consequent_7(__anchor) {
@@ -769,7 +762,6 @@ function if_7() {
 	if (true) return consequent_8;
 }
 
-var props_site_34;
 var root_50 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 
 function ArticleWithChildrenThenSibling_render(__anchor, __block) {
@@ -778,12 +770,14 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 	{
 		var node_29 = _$_.hydrating ? _$_.hydrate_child() : div_38.firstChild;
 
-		_$_.render_component(ArticleWrapper, node_29, new (props_site_33 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_33, _$_.tsrx_element((__anchor, __block) => {
-			var fragment_9 = root_51();
+		_$_.render_component(ArticleWrapper, node_29, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var fragment_9 = root_51();
 
-			_$_.next();
-			_$_.append(__anchor, fragment_9);
-		})));
+				_$_.next();
+				_$_.append(__anchor, fragment_9);
+			})
+		});
 
 		var node_30 = _$_.hydrating ? _$_.hydrate_sibling() : node_29.nextSibling;
 
@@ -795,7 +789,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 
 		var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_38);
 
-		_$_.render_component(SimpleFooter, node_32, new (props_site_34 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_34));
+		_$_.render_component(SimpleFooter, node_32, {});
 		_$_.hydrating && _$_.pop(div_38);
 	}
 
@@ -805,7 +799,6 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 ArticleWithChildrenThenSibling[_$_.$r] = ArticleWithChildrenThenSibling_render;
 
 var root_55 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_35;
 var root_56 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 
 function consequent_9(__anchor) {
@@ -818,7 +811,6 @@ function if_8() {
 	if (true) return consequent_9;
 }
 
-var props_site_36;
 var root_54 = _$_.template(`<div class="content-container"><!><!></div>`, 0);
 
 function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
@@ -828,12 +820,14 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 	{
 		var node_33 = _$_.hydrating ? _$_.hydrate_child() : div_40.firstChild;
 
-		_$_.render_component(ArticleWrapper, node_33, new (props_site_35 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_35, _$_.tsrx_element((__anchor, __block) => {
-			var div_41 = root_55();
+		_$_.render_component(ArticleWrapper, node_33, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var div_41 = root_55();
 
-			div_41.innerHTML = htmlContent ?? div_41.innerHTML;
-			_$_.append(__anchor, div_41);
-		})));
+				div_41.innerHTML = htmlContent ?? div_41.innerHTML;
+				_$_.append(__anchor, div_41);
+			})
+		});
 
 		var node_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_33.nextSibling;
 
@@ -841,7 +835,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 
 		var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_40);
 
-		_$_.render_component(SimpleFooter, node_35, new (props_site_36 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_36));
+		_$_.render_component(SimpleFooter, node_35, {});
 		_$_.hydrating && _$_.pop(div_40);
 	}
 
@@ -862,20 +856,20 @@ function if_9() {
 	if (true) return consequent_10;
 }
 
-var props_site_37;
 var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!></div>`, 0);
 var root_59 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_38;
 
 function InlineArticleWithHtmlChild_render(__anchor, __block) {
 	const htmlContent = '<pre><code>const x = 1;</code></pre>';
 
-	_$_.render_component(InlineArticleLayout, __anchor, new (props_site_38 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_38, _$_.tsrx_element((__anchor, __block) => {
-		var div_46 = root_59();
+	_$_.render_component(InlineArticleLayout, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_46 = root_59();
 
-		div_46.innerHTML = htmlContent ?? div_46.innerHTML;
-		_$_.append(__anchor, div_46);
-	})));
+			div_46.innerHTML = htmlContent ?? div_46.innerHTML;
+			_$_.append(__anchor, div_46);
+		})
+	});
 }
 
 InlineArticleWithHtmlChild[_$_.$r] = InlineArticleWithHtmlChild_render;
@@ -910,8 +904,6 @@ function FooterStub_render(__anchor, __block) {
 
 FooterStub[_$_.$r] = FooterStub_render;
 
-var props_site_39;
-var props_site_40;
 var root_64 = _$_.template(`<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>`, 0);
 
 function consequent_11(__anchor, __props) {
@@ -956,7 +948,6 @@ function if_11(__props) {
 	if (_$_.fallback(__props.nextLink, null)) return consequent_12;
 }
 
-var props_site_41;
 var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div></div></main></div></div>`, 0);
 
 function DocsLayoutInner_render(__anchor, __block, __props) {
@@ -965,14 +956,14 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 	{
 		var node_38 = _$_.hydrating ? _$_.hydrate_child() : div_47.firstChild;
 
-		_$_.render_component(HeaderStub, node_38, new (props_site_39 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_39));
+		_$_.render_component(HeaderStub, node_38, {});
 
 		var div_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_38.nextSibling;
 
 		{
 			var node_39 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
 
-			_$_.render_component(SidebarStub, node_39, new (props_site_40 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_40));
+			_$_.render_component(SidebarStub, node_39, {});
 
 			var main_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_39.nextSibling;
 
@@ -1011,7 +1002,7 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 
 							var node_42 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
-							_$_.render_component(FooterStub, node_42, new (props_site_41 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_41));
+							_$_.render_component(FooterStub, node_42, {});
 							_$_.hydrating && _$_.pop(div_49);
 						}
 					}
@@ -1030,39 +1021,41 @@ function DocsLayoutInner_render(__anchor, __block, __props) {
 DocsLayoutInner[_$_.$r] = DocsLayoutInner_render;
 
 var root_66 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_42;
 
 function DocsLayoutWithData_render(__anchor, __block) {
 	const htmlContent = '<h1>Title</h1><p>Content</p>';
 
-	_$_.render_component(DocsLayoutInner, __anchor, new (props_site_42 ??= _$_.props_site(['editPath', 'nextLink', 'children'], 0, 0, 0, { C: null })).C(props_site_42, "docs/styling.md", { href: '/next', text: 'Next' }, _$_.tsrx_element((__anchor, __block) => {
-		var div_54 = root_66();
+	_$_.render_component(DocsLayoutInner, __anchor, {
+		editPath: "docs/styling.md",
+		nextLink: { href: '/next', text: 'Next' },
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_54 = root_66();
 
-		div_54.innerHTML = htmlContent ?? div_54.innerHTML;
-		_$_.append(__anchor, div_54);
-	})));
+			div_54.innerHTML = htmlContent ?? div_54.innerHTML;
+			_$_.append(__anchor, div_54);
+		})
+	});
 }
 
 DocsLayoutWithData[_$_.$r] = DocsLayoutWithData_render;
 
 var root_67 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_43;
 
 function DocsLayoutWithoutData_render(__anchor, __block) {
 	const htmlContent = undefined;
 
-	_$_.render_component(DocsLayoutInner, __anchor, new (props_site_43 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_43, _$_.tsrx_element((__anchor, __block) => {
-		var div_55 = root_67();
+	_$_.render_component(DocsLayoutInner, __anchor, {
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_55 = root_67();
 
-		div_55.innerHTML = htmlContent ?? div_55.innerHTML;
-		_$_.append(__anchor, div_55);
-	})));
+			div_55.innerHTML = htmlContent ?? div_55.innerHTML;
+			_$_.append(__anchor, div_55);
+		})
+	});
 }
 
 DocsLayoutWithoutData[_$_.$r] = DocsLayoutWithoutData_render;
 
-var props_site_44;
-var props_site_45;
 var root_69 = _$_.template(`<div class="edit-link"><a>Edit on GitHub</a></div>`, 0);
 
 function render_8(__prev) {
@@ -1183,7 +1176,6 @@ function if_15(__props) {
 	if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) return consequent_16;
 }
 
-var props_site_46;
 var root_75 = _$_.template(`<a> </a>`, 0);
 
 function render_11(__prev) {
@@ -1251,14 +1243,14 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 	{
 		var node_43 = _$_.hydrating ? _$_.hydrate_child() : div_56.firstChild;
 
-		_$_.render_component(HeaderStub, node_43, new (props_site_44 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_44));
+		_$_.render_component(HeaderStub, node_43, {});
 
 		var div_57 = _$_.hydrating ? _$_.hydrate_sibling() : node_43.nextSibling;
 
 		{
 			var node_44 = _$_.hydrating ? _$_.hydrate_child() : div_57.firstChild;
 
-			_$_.render_component(SidebarStub, node_44, new (props_site_45 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_45));
+			_$_.render_component(SidebarStub, node_44, {});
 
 			var main_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_44.nextSibling;
 
@@ -1297,7 +1289,7 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 
 							var node_49 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
-							_$_.render_component(FooterStub, node_49, new (props_site_46 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_46));
+							_$_.render_component(FooterStub, node_49, {});
 							_$_.hydrating && _$_.pop(div_58);
 						}
 					}
@@ -1327,33 +1319,31 @@ function DocsLayoutExact_render(__anchor, __block, __props) {
 DocsLayoutExact[_$_.$r] = DocsLayoutExact_render;
 
 var root_76 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_47;
 
 function DocsLayoutExactWithData_render(__anchor, __block) {
 	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
 
-	_$_.render_component(DocsLayoutExact, __anchor, new (props_site_47 ??= _$_.props_site(['editPath', 'prevLink', 'nextLink', 'toc', 'children'], 0, 0, 0, { C: null })).C(
-		props_site_47,
-		"docs/guide/styling.md",
-		{ href: '/prev', text: 'Previous' },
-		{ href: '/next', text: 'Next' },
-		[
+	_$_.render_component(DocsLayoutExact, __anchor, {
+		editPath: "docs/guide/styling.md",
+		prevLink: { href: '/prev', text: 'Previous' },
+		nextLink: { href: '/next', text: 'Next' },
+		toc: [
 			{ href: '#intro', text: 'Introduction' },
 			{ href: '#usage', text: 'Usage' }
 		],
-		_$_.tsrx_element((__anchor, __block) => {
+
+		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_64 = root_76();
 
 			div_64.innerHTML = htmlContent ?? div_64.innerHTML;
 			_$_.append(__anchor, div_64);
 		})
-	));
+	});
 }
 
 DocsLayoutExactWithData[_$_.$r] = DocsLayoutExactWithData_render;
 
 var root_77 = _$_.template(`<div class="doc-content"></div>`, 0);
-var props_site_48;
 
 function DocsLayoutExactWithoutData_render(__anchor, __block) {
 	const htmlContent = undefined;
@@ -1362,12 +1352,18 @@ function DocsLayoutExactWithoutData_render(__anchor, __block) {
 	const nextLink = undefined;
 	const toc = undefined;
 
-	_$_.render_component(DocsLayoutExact, __anchor, new (props_site_48 ??= _$_.props_site(['editPath', 'prevLink', 'nextLink', 'toc', 'children'], 0, 0, 0, { C: null })).C(props_site_48, editPath, prevLink, nextLink, toc, _$_.tsrx_element((__anchor, __block) => {
-		var div_65 = root_77();
+	_$_.render_component(DocsLayoutExact, __anchor, {
+		editPath,
+		prevLink,
+		nextLink,
+		toc,
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_65 = root_77();
 
-		div_65.innerHTML = htmlContent ?? div_65.innerHTML;
-		_$_.append(__anchor, div_65);
-	})));
+			div_65.innerHTML = htmlContent ?? div_65.innerHTML;
+			_$_.append(__anchor, div_65);
+		})
+	});
 }
 
 DocsLayoutExactWithoutData[_$_.$r] = DocsLayoutExactWithoutData_render;
@@ -1453,17 +1449,18 @@ function render_15(__prev) {
 	}
 }
 
-var props_site_49;
-
 function NestedTemplateInLayout_render(__anchor, __block) {
 	const doc = { title: 'Comparison', html: '<p>Content</p>' };
 
-	_$_.render_component(LayoutWithTemplate, __anchor, new (props_site_49 ??= _$_.props_site(['data', 'children'], 0, 0, 0, { C: null })).C(props_site_49, doc, _$_.tsrx_element((__anchor, __block) => {
-		var div_69 = root_81();
+	_$_.render_component(LayoutWithTemplate, __anchor, {
+		data: doc,
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var div_69 = root_81();
 
-		_$_.render(render_15, { a: div_69.innerHTML, _doc: doc, _div_69: div_69 });
-		_$_.append(__anchor, div_69);
-	})));
+			_$_.render(render_15, { a: div_69.innerHTML, _doc: doc, _div_69: div_69 });
+			_$_.append(__anchor, div_69);
+		})
+	});
 }
 
 NestedTemplateInLayout[_$_.$r] = NestedTemplateInLayout_render;
@@ -1811,13 +1808,15 @@ function Boxed({ children }) {
 
 function IndirectHeading({ text }) {
 	return _$_.tsrx_element((__anchor, __block) => {
-		_$_.render_component(Boxed, __anchor, new (props_site_20 ??= _$_.props_site(['children'], 0, 0, 0, { C: null })).C(props_site_20, _$_.tsrx_element((__anchor, __block) => {
-			var fragment_5 = root_36();
-			var expression_14 = _$_.first_child_frag(fragment_5, true);
+		_$_.render_component(Boxed, __anchor, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var fragment_5 = root_36();
+				var expression_14 = _$_.first_child_frag(fragment_5, true);
 
-			expression_14.nodeValue = text;
-			_$_.append(__anchor, fragment_5);
-		})));
+				expression_14.nodeValue = text;
+				_$_.append(__anchor, fragment_5);
+			})
+		});
 	});
 }
 
@@ -1894,17 +1893,29 @@ function SideNav({ currentPath }) {
 				{
 					var append_anchor = _$_.append_into(div_31);
 
-					_$_.render_component(SidebarSection, append_anchor, new (props_site_26 ??= _$_.props_site(['title', 'children'], 0, 0, 0, { C: null })).C(props_site_26, "Getting Started", _$_.tsrx_element((__anchor, __block) => {
-						var fragment_7 = root_43();
-						var node_21 = _$_.first_child_frag(fragment_7);
+					_$_.render_component(SidebarSection, append_anchor, {
+						title: "Getting Started",
+						children: _$_.tsrx_element((__anchor, __block) => {
+							var fragment_7 = root_43();
+							var node_21 = _$_.first_child_frag(fragment_7);
 
-						_$_.render_component(NavItem, node_21, new (props_site_24 ??= _$_.props_site(['href', 'text', 'active'], 0, 0, 0, { C: null })).C(props_site_24, "/intro", "Introduction", currentPath === '/intro'));
+							_$_.render_component(NavItem, node_21, {
+								href: "/intro",
+								text: "Introduction",
+								active: currentPath === '/intro'
+							});
 
-						var node_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_21.nextSibling;
+							var node_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_21.nextSibling;
 
-						_$_.render_component(NavItem, node_22, new (props_site_25 ??= _$_.props_site(['href', 'text', 'active'], 0, 0, 0, { C: null })).C(props_site_25, "/start", "Quick Start", currentPath === '/start'));
-						_$_.append(__anchor, fragment_7);
-					})));
+							_$_.render_component(NavItem, node_22, {
+								href: "/start",
+								text: "Quick Start",
+								active: currentPath === '/start'
+							});
+
+							_$_.append(__anchor, fragment_7);
+						})
+					});
 
 					_$_.hydrating && _$_.pop(div_31);
 				}
@@ -1914,17 +1925,29 @@ function SideNav({ currentPath }) {
 				{
 					var append_anchor_1 = _$_.append_into(div_32);
 
-					_$_.render_component(SidebarSection, append_anchor_1, new (props_site_29 ??= _$_.props_site(['title', 'children'], 0, 0, 0, { C: null })).C(props_site_29, "Guide", _$_.tsrx_element((__anchor, __block) => {
-						var fragment_8 = root_44();
-						var node_23 = _$_.first_child_frag(fragment_8);
+					_$_.render_component(SidebarSection, append_anchor_1, {
+						title: "Guide",
+						children: _$_.tsrx_element((__anchor, __block) => {
+							var fragment_8 = root_44();
+							var node_23 = _$_.first_child_frag(fragment_8);
 
-						_$_.render_component(NavItem, node_23, new (props_site_27 ??= _$_.props_site(['href', 'text', 'active'], 0, 0, 0, { C: null })).C(props_site_27, "/guide/app", "Application", currentPath === '/guide/app'));
+							_$_.render_component(NavItem, node_23, {
+								href: "/guide/app",
+								text: "Application",
+								active: currentPath === '/guide/app'
+							});
 
-						var node_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_23.nextSibling;
+							var node_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_23.nextSibling;
 
-						_$_.render_component(NavItem, node_24, new (props_site_28 ??= _$_.props_site(['href', 'text', 'active'], 0, 0, 0, { C: null })).C(props_site_28, "/guide/syntax", "Syntax", currentPath === '/guide/syntax'));
-						_$_.append(__anchor, fragment_8);
-					})));
+							_$_.render_component(NavItem, node_24, {
+								href: "/guide/syntax",
+								text: "Syntax",
+								active: currentPath === '/guide/syntax'
+							});
+
+							_$_.append(__anchor, fragment_8);
+						})
+					});
 
 					_$_.hydrating && _$_.pop(div_32);
 				}
@@ -2000,7 +2023,7 @@ function InlineArticleLayout({ children }) {
 
 			var node_37 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_43);
 
-			_$_.render_component(SimpleFooter, node_37, new (props_site_37 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_37));
+			_$_.render_component(SimpleFooter, node_37, {});
 			_$_.hydrating && _$_.pop(div_43);
 		}
 

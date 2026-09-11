@@ -233,48 +233,23 @@ interface TrackedCallable<V> {
 // Supports destructuring `const [one, two] = track(0);`
 export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
+// A computed value: `track(() => ...)`. Its `value` is read-only unless the
+// call opted into writes (see `WritableDerived`). A `Tracked` satisfies it.
+interface DerivedBase<V> {
+	'#v': V;
+	readonly value: V;
+}
+export type Derived<V> = [V, Derived<V>] & DerivedBase<V> & TrackedCallable<V>;
+// A computed value created with a setter (`track(fn, get, set)`) or with
+// `true` in the setter position: writes land as a temporary value until the
+// next recompute.
+export type WritableDerived<V> = [V, WritableDerived<V>] & TrackedBase<V> & TrackedCallable<V>;
+
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
 export type InferComponent<T> = T extends () => infer R ? (R extends Component<any> ? R : T) : T;
 
 export type Props<K extends PropertyKey = any, V = unknown> = Record<K, V>;
-
-/**
- * `Object`-shaped helpers that read a props object like a plain object. On the
- * client a component's props are getters on a shared prototype, so `Object.keys`,
- * `Object.entries` and object spread see nothing on them outside `.tsrx` code
- * (where the compiler lowers those to these helpers). The helpers accept plain
- * objects too and behave the same on the server.
- */
-export declare const Props: {
-	/** Like `Object.keys`, including every prop. */
-	keys<T extends object>(props: T): (keyof T & string)[];
-	/** The enumerable symbol keys, including a symbol-keyed prop such as a `createRefKey()` ref. */
-	ownSymbolKeys<T extends object>(props: T): (keyof T & symbol)[];
-	/** Every key, string keys first and then symbol keys, including every prop. */
-	ownAllKeys<T extends object>(props: T): (keyof T & (string | symbol))[];
-	/** Like `Object.values`, including every prop. */
-	values<T extends object>(props: T): T[keyof T][];
-	/** Like `Object.entries`, including every prop. */
-	entries<T extends object>(props: T): { [K in keyof T]: [K, T[K]] }[keyof T][];
-	/** Whether `key` is one of the props (own property or compiled prop). */
-	has<T extends object>(props: T, key: PropertyKey): key is keyof T;
-	/** `{ ...a, ...b }` over props objects: a new plain object with every prop read now. */
-	spread(): {};
-	spread<A extends object>(a: A): Expand<A>;
-	spread<A extends object, B extends object>(a: A, b: B): Expand<Omit<A, keyof B> & B>;
-	spread<A extends object, B extends object, C extends object>(
-		a: A,
-		b: B,
-		c: C,
-	): Expand<Omit<A, keyof B | keyof C> & Omit<B, keyof C> & C>;
-	spread(...sources: object[]): Record<string, unknown>;
-	/**
-	 * `const { a, ...rest } = props` as a call: a new object with the remaining
-	 * props, each read from `props` on access so reactive props stay live.
-	 */
-	rest<T extends object, K extends keyof T>(props: T, ...keys: K[]): Omit<T, K>;
-};
 export type PropsWithExtras<T extends object> = Props & T & Record<string, unknown>;
 export type PropsWithChildren<T extends object = {}> = Expand<
 	Omit<T, 'children'> & { children: Children }
@@ -288,12 +263,17 @@ type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
 // Overload for tracked values - returns the original tracked value type
 export function track<V>(value: Tracked<V>): Tracked<V>;
-// Overload for function values - infers the return type of the function
+// Overload for function values - a read-only derived
 export function track<V>(
 	value: () => V,
 	get?: (v: InferComponent<V>) => InferComponent<V>,
-	set?: (next: InferComponent<V>, prev: InferComponent<V>) => InferComponent<V>,
-): Tracked<InferComponent<V>>;
+): Derived<InferComponent<V>>;
+// Overload for function values with a setter (or `true`) - a writable derived
+export function track<V>(
+	value: () => V,
+	get: ((v: InferComponent<V>) => InferComponent<V>) | undefined,
+	set: ((next: InferComponent<V>, prev: InferComponent<V>) => InferComponent<V>) | true,
+): WritableDerived<InferComponent<V>>;
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
 

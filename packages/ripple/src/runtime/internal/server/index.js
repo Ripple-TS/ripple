@@ -1552,7 +1552,7 @@ export function set(tracked, value) {
 
 	if (value !== old_value) {
 		var s = tracked.a.set;
-		tracked.v = s ? s(value, tracked.v) : value;
+		tracked.v = typeof s === 'function' ? s(value, tracked.v) : value;
 		tracked.c = increment_clock();
 	}
 }
@@ -1792,11 +1792,11 @@ var empty_get_set = { get: undefined, set: undefined };
 class TrackedValue {
 	/**
 	 * @param {any} v
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} hash
 	 */
 	constructor(v, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		/** @type {AbortController | null} */
 		this.aa = null;
@@ -1847,11 +1847,11 @@ class TrackedValue {
 class DerivedValue {
 	/**
 	 * @param {Function} fn
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} hash
 	 */
 	constructor(fn, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		// we always should have an active block
 		/** @type {Block} */
@@ -1906,7 +1906,7 @@ class DerivedValue {
  * @param {any} v
  * @param {string} hash
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked}
  */
 function tracked(v, hash, get, set) {
@@ -1937,7 +1937,7 @@ export function exclude_from_object(obj, exclude_keys) {
  * @param {any} v
  * @param {string} hash
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Derived}
  */
 function derived(v, hash, get, set) {
@@ -1950,7 +1950,7 @@ function derived(v, hash, get, set) {
  * @param {any} v
  * @param {string} hash
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked | Derived}
  */
 export function track(v, hash, get, set) {

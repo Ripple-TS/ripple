@@ -6,7 +6,6 @@ import { init_operations } from './internal/client/operations.js';
 import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
 import { remove_styles } from './internal/client/css.js';
-import { props_from } from './internal/client/props.js';
 import { normalize_children } from './element.js';
 import {
 	hydrate_next,
@@ -91,9 +90,6 @@ export function mount(component, options) {
 	if (props.children != null) {
 		props = normalize_props(props);
 	}
-	// The root component receives the same shape as every other: a `Props`
-	// instance with the given values as static props.
-	props = props_from(props);
 	const target = options.target;
 
 	// Clear target content in case of SSR
@@ -155,9 +151,6 @@ export function hydrate(component, options) {
 	if (props.children != null) {
 		props = normalize_props(props);
 	}
-	// The root component receives the same shape as every other: a `Props`
-	// instance with the given values as static props.
-	props = props_from(props);
 	const target = options.target;
 	const was_hydrating = hydrating;
 	const previous_hydrate_node = hydrate_node;
@@ -218,8 +211,6 @@ export function hydrate(component, options) {
 }
 
 export { Context } from './internal/client/context.js';
-
-export { PropsHelpers as Props } from './props.js';
 
 export {
 	flush_sync as flushSync,

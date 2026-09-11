@@ -941,7 +941,7 @@ function RootKeyedList(props) {
 
 			__out += '<!--[-->';
 
-			for (const item of props.items) {
+			for (const item of props.items.value) {
 				__out += '<span class="item">' + _$_.escape(item) + '</span>';
 			}
 
@@ -962,7 +962,7 @@ export function RootKeyedForLoopAppendAndRotate() {
 
 			{
 				const comp = RootKeyedList;
-				const args = [{ items: lazy_21.value }];
+				const args = [{ items: lazy_21 }];
 
 				_$_.output_push(__out);
 				__out = '';

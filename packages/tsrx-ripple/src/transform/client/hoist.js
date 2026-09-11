@@ -4,40 +4,18 @@
  */
 
 import { builders as b } from '@tsrx/core';
-import { is_boxed } from '../../utils.js';
 
 /**
- * Lowers the props of a component call site to a compiled props class (see
- * `props.js` in the client runtime); a site with only static props gets a
- * class of slot getters, so every call site produces the same shape:
- *
- * ```js
- * new (props_1 ??= _$_.props_site(['depth', 'path'], 3, 1, 3, {
- *   C: null,
- *   depth: (__p) => __p[_$_.$0].depth - 1,
- *   path: (__p) => __p[_$_.$0].path + 'L',
- * })).C(props_1, props)
- * ```
- *
- * The reactive expressions are hoisted into functions created once per call
- * site, so every local they close over becomes a "capture" passed to the
- * constructor and read back through a slot. A capture is passed by value: a
- * rebound local is boxed by the analyzer so its box is the stable value; a
- * site whose expression reads `this`, `arguments` or a class keeps the
- * object-literal form.
+ * Support for hoisting template code (`@if` conditions and branches, render
+ * blocks) into module-level functions created once per call site: free-variable
+ * analysis of the compiled expressions, classification of each free name
+ * (module-level or global, a local to capture, or not representable), and the
+ * rewrite that reads captured locals back from where the caller stores them.
  */
 
-/** Slot count of the widest fixed-arity runtime base; above it the values travel in one array. */
-const MAX_SLOTS = 16;
-/** Most props a class can carry (the reactive mask is a 31-bit integer). */
-const MAX_KEYS = 31;
-
-/** The compiled getter's parameter: the props instance. */
-const INSTANCE = '__p';
-
 /**
- * Globals a prop expression may reference directly; anything else unknown to
- * the scope chain is treated as a local and captured.
+ * Globals a hoisted expression may reference directly; anything else unknown
+ * to the scope chain is treated as a local and captured.
  */
 const GLOBALS = new Set([
 	'undefined',
@@ -286,7 +264,7 @@ function scan(node, references, shadowed) {
 }
 
 /**
- * How a free identifier of a prop expression reaches the compiled getter:
+ * How a free identifier of a hoisted expression reaches the compiled function:
  * referenced directly (module scope or a global), passed as a capture, or not
  * representable (a reassigned local).
  * @param {string} name
@@ -307,8 +285,7 @@ function classify(name, scope) {
 			if (current.function_depth === 0) return 'direct';
 			// A capture is passed by value: fine unless the binding is rebound
 			// later (mutating the object it holds does not change its identity).
-			// A rebound binding the analyzer boxed is captured as its box.
-			return binding.reassigned && !is_boxed(binding) ? 'bail' : 'capture';
+			return binding.reassigned ? 'bail' : 'capture';
 		}
 		// A name the transform generated (`lazy`, `consequent`, template ids) is
 		// registered as a reference without any referencing node.
@@ -387,91 +364,6 @@ export function rewrite(node, replace, shadowed) {
 	return copy;
 }
 
-/**
- * Whether `node` is a read of one prop of the enclosing component's own props
- * parameter (`props.x`, `props?.x`, `props['x']`).
- * @param {AST.MemberExpression} node
- * @param {ScopeInterface} scope
- * @param {AST.Function | null} component
- * @returns {boolean}
- */
-function is_own_prop_read(node, scope, component) {
-	if (component === null || node.object.type !== 'Identifier') return false;
-	if (node.computed && node.property.type !== 'Literal') return false;
-	const binding = scope.get(node.object.name);
-	return (
-		binding !== null &&
-		binding.declaration_kind === 'param' &&
-		binding.node === component.params[0] &&
-		!binding.reassigned &&
-		!binding.updated &&
-		!binding.mutated
-	);
-}
-
-/**
- * Whether the value of a reactive prop expression can only change through a
- * tracked read: it is built from literals, operators, captured or module-level
- * constants and single-level reads of the component's own props. Such an
- * expression is evaluated once and its result kept when that evaluation read
- * no tracked state (see `memo_getter` in the client runtime).
- * @param {AST.Node} node
- * @param {ScopeInterface} scope
- * @param {AST.Function | null} component
- * @param {Map<string, number>} captures
- * @returns {boolean}
- */
-function is_static_shape(node, scope, component, captures) {
-	switch (node.type) {
-		case 'Literal':
-			return true;
-		case 'TemplateLiteral':
-			return node.expressions.every((expression) =>
-				is_static_shape(expression, scope, component, captures),
-			);
-		case 'Identifier': {
-			if (captures.has(node.name)) return true;
-			if (node.name === 'undefined' || node.name === 'NaN' || node.name === 'Infinity') {
-				return true;
-			}
-			const binding = scope.get(node.name);
-			return (
-				binding !== null &&
-				binding.scope.function_depth === 0 &&
-				(binding.declaration_kind === 'const' ||
-					binding.declaration_kind === 'import' ||
-					binding.declaration_kind === 'function')
-			);
-		}
-		case 'MemberExpression':
-			return is_own_prop_read(node, scope, component);
-		case 'BinaryExpression':
-		case 'LogicalExpression':
-			return (
-				is_static_shape(node.left, scope, component, captures) &&
-				is_static_shape(node.right, scope, component, captures)
-			);
-		case 'UnaryExpression':
-			return (
-				node.operator !== 'delete' && is_static_shape(node.argument, scope, component, captures)
-			);
-		case 'ConditionalExpression':
-			return (
-				is_static_shape(node.test, scope, component, captures) &&
-				is_static_shape(node.consequent, scope, component, captures) &&
-				is_static_shape(node.alternate, scope, component, captures)
-			);
-		case 'ParenthesizedExpression':
-		case 'TSAsExpression':
-		case 'TSSatisfiesExpression':
-		case 'TSNonNullExpression':
-		case 'TSTypeAssertion':
-			return is_static_shape(/** @type {any} */ (node).expression, scope, component, captures);
-		default:
-			return false;
-	}
-}
-
 /** Names of the module-level declarations emitted so far, per `hoisted` list. */
 /** @type {WeakMap<AST.Statement[], Set<string>>} */
 const hoisted_names = new WeakMap();
@@ -526,149 +418,4 @@ export function captured_locals(functions, scope, hoisted, own = []) {
 		if (kind === 'capture') captures.push(name);
 	}
 	return captures;
-}
-
-/**
- * @param {AST.Property['key']} key
- * @returns {string | null}
- */
-function key_name(key) {
-	if (key.type === 'Identifier') return key.name;
-	if (key.type === 'Literal' && typeof key.value === 'string') return key.value;
-	return null;
-}
-
-/**
- * @param {AST.Property} property
- * @returns {AST.Expression | null}
- */
-function getter_expression(property) {
-	const fn = property.value;
-	if (fn.type !== 'FunctionExpression' || fn.body.body.length !== 1) return null;
-	const statement = fn.body.body[0];
-	return statement.type === 'ReturnStatement' && statement.argument ? statement.argument : null;
-}
-
-/**
- * Builds the props-class instantiation for a call site, or returns null when
- * the site keeps its object literal.
- *
- * @param {(AST.Property | AST.SpreadElement)[]} props
- * @param {ScopeInterface} scope
- * @param {AST.Statement[]} hoisted
- * @param {AST.Function | null} component the enclosing component function
- * @returns {AST.Expression | null}
- */
-export function build_props_site(props, scope, hoisted, component) {
-	if (props.length > MAX_KEYS) return null;
-
-	/** @type {string[]} */
-	const keys = [];
-	/** @type {{ name: string; index: number; expression: AST.Expression }[]} */
-	const getters = [];
-	/** @type {AST.Expression[]} */
-	const statics = [];
-	let mask = 0;
-
-	for (let i = 0; i < props.length; i++) {
-		const property = props[i];
-		if (property.type !== 'Property' || property.computed) return null;
-		const name = key_name(property.key);
-		if (name === null) return null;
-		keys.push(name);
-		if (property.kind === 'get') {
-			const expression = getter_expression(property);
-			if (expression === null) return null;
-			getters.push({ name, index: i, expression });
-			mask |= 1 << i;
-		} else if (property.kind === 'init') {
-			statics.push(/** @type {AST.Expression} */ (property.value));
-		} else {
-			return null;
-		}
-	}
-
-	/** @type {Set<string>} */
-	const references = new Set();
-	for (const getter of getters) {
-		if (!scan(getter.expression, references, new Set())) return null;
-	}
-
-	/** @type {Map<string, number>} */
-	const captures = new Map();
-	for (const name of references) {
-		if (is_hoisted(hoisted, name)) continue;
-		const kind = classify(name, scope);
-		if (kind === 'bail') return null;
-		if (kind === 'capture') captures.set(name, captures.size);
-	}
-
-	let memo = 0;
-	let memo_count = 0;
-	for (const getter of getters) {
-		if (is_static_shape(getter.expression, scope, component, captures)) {
-			memo |= 1 << getter.index;
-			memo_count++;
-		}
-	}
-	// Above the fixed-arity bases the runtime keeps the values in one array
-	// the site passes; the slot layout (captures, statics, memo) is the same.
-	const array_values = captures.size + statics.length + memo_count > MAX_SLOTS;
-
-	/** @param {string} name */
-	const slot_read = (name) => {
-		const slot = captures.get(name);
-		if (slot === undefined) return null;
-		// A fixed slot is a symbol-keyed field; above the fixed slot count the
-		// values live in the instance's array (`_$_.$v`).
-		return array_values
-			? b.member(
-					b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$v')), true),
-					b.literal(slot),
-					true,
-				)
-			: b.member(b.id(INSTANCE), b.member(b.id('_$_'), b.id('$' + slot)), true);
-	};
-
-	const site_id = b.id(scope.generate('props_site'));
-	hoisted.push(b.var(site_id));
-	register_hoisted(hoisted, site_id.name);
-
-	const site = b.object([
-		b.prop('init', b.id('C'), b.literal(null)),
-		...getters.map((getter) =>
-			b.prop(
-				'init',
-				b.key(getter.name),
-				b.arrow([b.id(INSTANCE)], rewrite(getter.expression, slot_read, new Set())),
-			),
-		),
-	]);
-
-	const define = b.assignment(
-		'??=',
-		site_id,
-		b.call(
-			'_$_.props_site',
-			b.array(keys.map((key) => b.literal(key))),
-			b.literal(mask),
-			b.literal(captures.size),
-			b.literal(memo),
-			site,
-		),
-	);
-
-	// Memo slots start as the runtime's UNINITIALIZED sentinel, passed like any
-	// other argument so the base constructor stays a straight-line store.
-	const values = [
-		...[...captures.keys()].map((name) => b.id(name)),
-		...statics,
-		...Array.from({ length: memo_count }, () => b.member(b.id('_$_'), b.id('UNINITIALIZED'))),
-	];
-	return b.new(
-		b.member(define, b.id('C')),
-		undefined,
-		site_id,
-		...(array_values ? [b.array(values)] : values),
-	);
 }

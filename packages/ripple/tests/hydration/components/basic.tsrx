@@ -1,6 +1,6 @@
 // Basic static components for hydration testing
 import { track } from 'ripple';
-import type { Children } from 'ripple';
+import type { Children, Derived } from 'ripple';
 
 export function StaticText() @{
 	<div>{'Hello World'}</div>
@@ -230,18 +230,18 @@ export function TsxDeclaredBeforeTopLevelTsx() @{
 
 // Untyped children render through the generic expression path (hydration
 // markers); typed string children hydrate a text node directly.
-function TextProp(&{ children }: { children: unknown }) @{
-	<div class="text-prop">{children}</div>
+function TextProp(&{ children }: { children: Derived<unknown> }) @{
+	<div class="text-prop">{children.value}</div>
 }
 
-function TypedTextProp(&{ children }: { children: string }) @{
-	<div class="text-prop">{children}</div>
+function TypedTextProp(&{ children }: { children: Derived<string> }) @{
+	<div class="text-prop">{children.value}</div>
 }
 
 export function TextPropWithToggle() @{
 	let &[show] = track(false);
 	<>
-		<TextProp children={show ? 'hello' : ''} />
+		<TextProp children={track(() => (show ? 'hello' : ''))} />
 		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 	</>
 }
@@ -249,7 +249,7 @@ export function TextPropWithToggle() @{
 export function TypedTextPropWithToggle() @{
 	let &[show] = track(false);
 	<>
-		<TypedTextProp children={show ? 'hello' : ''} />
+		<TypedTextProp children={track(() => (show ? 'hello' : ''))} />
 		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 	</>
 }

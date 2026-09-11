@@ -533,9 +533,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 		var button_4 = _$_.first_child_frag(fragment_7);
 
 		button_4.__click = () => {
-			_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1
-				? { ..._$_.props_snapshot(item), name: 'Updated' }
-				: item)));
+			_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
 		};
 
 		var ul_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
@@ -1223,7 +1221,6 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 
 ForLoopWithSiblings[_$_.$r] = ForLoopWithSiblings_render;
 
-var props_site;
 var root_56 = _$_.template(`<div></div>`, 0);
 
 function ForLoopItemState_render(__anchor, __block) {
@@ -1240,11 +1237,7 @@ function ForLoopItemState_render(__anchor, __block) {
 			div_15,
 			() => initialItems,
 			(__anchor, pattern_7) => {
-				_$_.render_component(TodoItem, __anchor, new (props_site ??= _$_.props_site(['id', 'text'], 3, 1, 0, {
-					C: null,
-					id: (__p) => _$_.get(__p[_$_.$0]).id,
-					text: (__p) => _$_.get(__p[_$_.$0]).text
-				})).C(props_site, pattern_7));
+				_$_.render_component(TodoItem, __anchor, { id: _$_.get(pattern_7).id, text: _$_.get(pattern_7).text });
 			},
 			4,
 			(pattern_7) => _$_.get(pattern_7).id
@@ -1725,7 +1718,7 @@ function render_15(__prev) {
 function RootKeyedList_render(__anchor, __block, props) {
 	_$_.for_keyed(
 		__anchor,
-		() => props.items,
+		() => props.items.value,
 		(__anchor, pattern_9) => {
 			var span_8 = root_79();
 
@@ -1742,7 +1735,6 @@ function RootKeyedList_render(__anchor, __block, props) {
 
 RootKeyedList[_$_.$r] = RootKeyedList_render;
 
-var props_site_1;
 var root_80 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
@@ -1755,7 +1747,7 @@ function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 		{
 			var node_20 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
-			_$_.render_component(RootKeyedList, node_20, new (props_site_1 ??= _$_.props_site(['items'], 1, 1, 0, { C: null, items: (__p) => __p[_$_.$0].value })).C(props_site_1, lazy_21));
+			_$_.render_component(RootKeyedList, node_20, { items: lazy_21 });
 			_$_.hydrating && _$_.pop(div_20);
 		}
 

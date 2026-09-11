@@ -491,7 +491,7 @@ describe('try block', () => {
 	it('destroying try block while in resolved state cleans up resolved branch', async () => {
 		let resolved_effect_teardown_count = 0;
 
-		function ResolvedChild(&{ data }: { data: string }) @{
+		function ResolvedChild({ data: &[data] }: { data: Tracked<string> }) @{
 			effect(() => {
 				return () => {
 					resolved_effect_teardown_count++;
@@ -505,8 +505,8 @@ describe('try block', () => {
 			<>
 				@if (show) {
 					@try {
-						let &[data] = trackAsync(() => Promise.resolve('hello'));
-						<ResolvedChild {data} />
+						let &[data, dataTracked] = trackAsync(() => Promise.resolve('hello'));
+						<ResolvedChild data={dataTracked} />
 					} @pending {
 						<p class="pending">{'loading...'}</p>
 					} @catch (err) {

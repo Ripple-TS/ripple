@@ -2,7 +2,6 @@
 
 import { branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP } from './constants.js';
-import { is_props, own_keys, spread_symbols } from './props.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
 import { is_ripple_object } from './utils.js';
 import {
@@ -283,7 +282,7 @@ export function apply_element_spread(element, fn, exclude_prop) {
 		var next = fn();
 		var current_symbols = /** @type {Record<symbol, any>} */ ({});
 
-		for (const symbol of spread_symbols(next)) {
+		for (const symbol of get_own_property_symbols(next)) {
 			if (symbol.description !== REF_PROP) {
 				continue;
 			}
@@ -313,8 +312,6 @@ export function apply_element_spread(element, fn, exclude_prop) {
 
 		/** @type {Record<string, any>} */
 		var current_ref_props = {};
-		// A props instance keeps its props on its prototype; `KEYS` lists them
-		// (live for a merged instance). A plain object enumerates as usual.
 		var keys = spread_keys(next);
 
 		for (const key of keys) {
@@ -396,9 +393,6 @@ export function apply_element_spread(element, fn, exclude_prop) {
  * @returns {string[]}
  */
 function spread_keys(next) {
-	if (is_props(next)) {
-		return own_keys(next);
-	}
 	/** @type {string[]} */
 	var keys = [];
 	for (var key in next) keys.push(key);

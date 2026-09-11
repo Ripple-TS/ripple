@@ -1028,9 +1028,9 @@ export function App() @{
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
-		// The template children win: one `children` key on the site, holding the element.
-		expect((result.match(/'children'/g) || []).length).toBe(1);
-		expect(result).toContain('.C(props_site, _$_.tsrx_element(');
+		// The template children win: one `children` key, holding the element.
+		expect((result.match(/children:/g) || []).length).toBe(1);
+		expect(result).toContain('children: _$_.tsrx_element(');
 	});
 
 	it('should not error on `this` MemberExpression with a UpdateExpression', () => {
@@ -1278,7 +1278,7 @@ export function App() @{
 		},
 	);
 
-	it('merges spreads that may contain children through merge_props', () => {
+	it('spreads props objects as plain object spreads', () => {
 		const source = `
 function Card(props) @{
 	<div>{props.children}</div>
@@ -1293,7 +1293,7 @@ export function App() @{
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
-		expect(result).toContain('_$_.merge_props(merge_site ??= _$_.merge_site(), () => [');
+		expect(result).toContain('_$_.render_component(Card, __anchor, { ...props })');
 	});
 
 	it('reads a less-than at line start in element children as literal text', () => {

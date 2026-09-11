@@ -284,8 +284,8 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		const { code } = compile(source, 'App.tsrx');
 		expect(code).not.toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
 		expect(code).toContain('_$_.composite(() => Tag, ');
-		expect(code).toContain("_$_.props_site(['class', 'children'], 0, 0, 0, { C: null })");
-		expect(code).toContain('.C(props_site, "host", _$_.tsrx_element(');
+		expect(code).toContain('class: "host"');
+		expect(code).toContain('children: _$_.tsrx_element(');
 	});
 
 	it('lowers dynamic tags through the internal dynamic_element helper on the server', () => {
@@ -319,7 +319,7 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(css).toContain(`div.${cssHash} { color: red; }`);
 		expect(css).toContain(`.host.${cssHash} { color: blue; }`);
 		expect(css).toContain('/* (unused) .unused { color: green; }*/');
-		expect(code).toContain(`.C(props_site, 'host ${cssHash}', _$_.tsrx_element(`);
+		expect(code).toContain(`class: 'host ${cssHash}'`);
 	});
 
 	it('emits valid to_ts output for dynamic tags', () => {
@@ -1169,9 +1169,7 @@ describe('@tsrx/ripple named ref props', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.props_site(['input_ref'], 0, 0, 0, { C: null })).C(props_site, input)",
-		);
+		expect(code).toContain('{ input_ref: input }');
 	});
 
 	it('wraps anonymous ref props for components', () => {
@@ -1184,9 +1182,7 @@ describe('@tsrx/ripple named ref props', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.props_site(['ref'], 0, 0, 0, { C: null })).C(props_site, _$_.create_ref_prop(() => input, (v) => input = v))",
-		);
+		expect(code).toContain('{ ref: _$_.create_ref_prop(() => input, (v) => input = v) }');
 	});
 
 	it('keeps named ref-like props ordinary on host elements', () => {
@@ -1346,10 +1342,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
-		);
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 	});
 
 	it('passes plain identifier props directly in tsx expression values', () => {
@@ -1362,10 +1355,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
-		);
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 	});
 
 	it('passes plain identifier props directly in tsrx expression values', () => {
@@ -1378,10 +1368,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.render_component(Some, __anchor, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
-		);
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 	});
 
 	it('passes plain identifier props directly in component bodies', () => {
@@ -1394,10 +1381,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.render_component(Some, node, new (props_site ??= _$_.props_site(['prop'], 0, 0, 0, { C: null })).C(props_site, placeholder));",
-		);
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
 	});
 
 	it('passes plain non-tracked expression props directly', () => {
@@ -1411,12 +1395,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.C(props_site, first + second));');
-		expect(code).toContain("_$_.props_site(['prop'], 0, 0, 0, { C: null })");
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('{ prop: first + second }');
 	});
 
-	it('wraps member expression props in getters', () => {
+	it('passes member expression props as plain values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
 			function Test() {
@@ -1426,12 +1408,11 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
-		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
-		expect(code).toContain('.C(props_site, obj)');
+		expect(code).toContain('{ prop: obj.value }');
+		expect(code).not.toContain('get prop()');
 	});
 
-	it('wraps computed member expression props in getters', () => {
+	it('passes computed member expression props as plain values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
 			function Test() {
@@ -1442,12 +1423,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, 2, 0, {");
-		expect(code).toContain('prop: (__p) => __p[_$_.$0][__p[_$_.$1]]');
-		expect(code).toContain('.C(props_site, obj, key)');
+		expect(code).toContain('{ prop: obj[key] }');
 	});
 
-	it('wraps call expression props in getters', () => {
+	it('passes call expression props as plain values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
 			function getValue() {
@@ -1459,12 +1438,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, ");
-		expect(code).toContain('getValue()');
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('{ prop: _$_.with_scope(__block, getValue) }');
 	});
 
-	it('wraps call expression props in fragment shorthand values in getters', () => {
+	it('passes call expression props in fragment shorthand values as plain values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
 			function getValue() {
@@ -1476,12 +1453,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, ");
-		expect(code).toContain('getValue()');
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('{ prop: _$_.with_scope(__block, getValue) }');
 	});
 
-	it('wraps call expression props in component bodies in getters', () => {
+	it('passes call expression props in component bodies as plain values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
 			function getValue() {
@@ -1493,12 +1468,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, ");
-		expect(code).toContain('getValue()');
-		expect(code).not.toContain('get prop()');
+		expect(code).toContain('{ prop: _$_.with_scope(__block, getValue) }');
 	});
 
-	it('wraps lazy tracked identifier props in fragment shorthand values in getters', () => {
+	it('reads lazy tracked identifier props in fragment shorthand values once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
@@ -1510,12 +1483,11 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
-		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
-		expect(code).toContain('.C(props_site, lazy)');
+		// A prop is a value: the lazy alias is read when the component is called.
+		expect(code).toContain('{ prop: lazy.value }');
 	});
 
-	it('wraps lazy tracked identifier props in function fragment returns in getters', () => {
+	it('reads lazy tracked identifier props in function fragment returns once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
@@ -1526,12 +1498,11 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
-		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
-		expect(code).toContain('.C(props_site, lazy)');
+		// A prop is a value: the lazy alias is read when the component is called.
+		expect(code).toContain('{ prop: lazy.value }');
 	});
 
-	it('wraps lazy tracked identifier props in getters', () => {
+	it('reads lazy tracked identifier props once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
@@ -1543,12 +1514,11 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain("_$_.props_site(['prop'], 1, 1, 0, {");
-		expect(code).toContain('prop: (__p) => __p[_$_.$0].value');
-		expect(code).toContain('.C(props_site, lazy)');
+		// A prop is a value: the lazy alias is read when the component is called.
+		expect(code).toContain('{ prop: lazy.value }');
 	});
 
-	it('wraps lazy tracked expression props in getters', () => {
+	it('reads lazy tracked expression props once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
@@ -1560,8 +1530,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(`prop: (__p) => __p[_$_.$0].value % 2 ? 'odd' : 'even'`);
-		expect(code).toContain('.C(props_site, lazy)');
+		expect(code).toContain(`{ prop: lazy.value % 2 ? 'odd' : 'even' }`);
 	});
 
 	it('passes a lazy pair Tracked alias as a static prop', () => {
@@ -1575,144 +1544,10 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"_$_.props_site(['tracked'], 0, 0, 0, { C: null })).C(props_site, lazy));",
-		);
+		expect(code).toContain('{ tracked: lazy }');
 	});
 
-	it('boxes a reassigned local that a reactive prop reads', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test() @{
-				let &[count] = track(0);
-				let n = 0;
-				const bump = () => { n++; };
-				<Some prop={n + count} onBump={bump} />
-			}`,
-			'App.tsrx',
-		);
-
-		// The box keeps the getter's read of `n` current after `bump()`.
-		expect(code).toContain('let n = { v: 0 };');
-		expect(code).toContain('n.v++;');
-		expect(code).toContain('prop: (__p) => __p[_$_.$0].v + __p[_$_.$1].value');
-		expect(code).toContain('.C(props_site, n, lazy, bump)');
-		expect(code).not.toContain('get prop()');
-	});
-
-	it('boxes only reassigned locals that template code reads', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test(props) @{
-				let &[count] = track(0);
-				let stable = 'a';
-				let hidden = 'b';
-				let { first, second = 'two' } = props;
-				const bump = () => { hidden = 'c'; first = 'renamed'; };
-				const peek = () => hidden;
-				<>
-					<Some prop={stable + count} />
-					<Some prop={first + second + count} onBump={bump} onPeek={peek} />
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		// Never reassigned: captured by value as is.
-		expect(code).toContain("let stable = 'a';");
-		// Reassigned but read only outside template code: left alone.
-		expect(code).toContain("let hidden = 'b';");
-		expect(code).toContain("hidden = 'c';");
-		expect(code).toContain('const peek = () => hidden;');
-		// A flat pattern expands so the rebound name gets its own box.
-		expect(code).toContain('let init = props,');
-		expect(code).toContain('first = { v: init.first },');
-		expect(code).toContain("second = init.second === void 0 ? 'two' : init.second;");
-		expect(code).toContain("first.v = 'renamed';");
-		expect(code).toContain('__p[_$_.$0].v + __p[_$_.$1] + __p[_$_.$2].value');
-	});
-
-	it('captures the locals of reactive props once and leaves nested parameters alone', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test() @{
-				let &[count] = track(0);
-				const items = [1, 2];
-				<Some sum={items.map((x) => x + count)} pair={{ count, items }} first={items[0]} />
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("_$_.props_site(['sum', 'pair', 'first'], 7, 3, 0, {");
-		expect(code).toContain(
-			'sum: (__p) => _$_.with_scope(__p[_$_.$0], () => __p[_$_.$1].map((x) => x + __p[_$_.$2].value))',
-		);
-		expect(code).toContain('pair: (__p) => ({ count: __p[_$_.$2].value, items: __p[_$_.$1] })');
-		expect(code).toContain('first: (__p) => __p[_$_.$1][0]');
-		expect(code).toContain('.C(props_site, __block, items, lazy)');
-	});
-
-	it('references module-level bindings directly from reactive props', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			const SUFFIX = '!';
-			function Some(props) { return <></>; }
-			function Test(props) @{
-				<Some label={props.label + SUFFIX} />
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("_$_.props_site(['label'], 1, 1, 1, {");
-		expect(code).toContain('label: (__p) => __p[_$_.$0].label + SUFFIX');
-		// One memo slot, started as the runtime's sentinel by the call site.
-		expect(code).toContain('.C(props_site, props, _$_.UNINITIALIZED)');
-	});
-
-	it('marks only expressions over the own props parameter as memoizable', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test(props) @{
-				let &[count] = track(0);
-				const obj = { v: 1 };
-				<Some depth={props.depth - 1} path={props.path + 'L'} nested={props.a.b} local={obj.v} counted={count + props.depth} label={props.on ? 'on' : 'off'} />
-			}`,
-			'App.tsrx',
-		);
-
-		// depth, path and label read only `props`; nested, local and counted do not.
-		expect(code).toContain(
-			"_$_.props_site(['depth', 'path', 'nested', 'local', 'counted', 'label'], 63, 3, 35, {",
-		);
-	});
-
-	it('passes the values of a site above the fixed slot count as one array', () => {
-		const statics = Array.from({ length: 18 }, (_, i) => `s${i}={${i}}`).join(' ');
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test(props) @{
-				let &[count] = track(0);
-				<Some live={count} own={props.own} ${statics} />
-			}`,
-			'App.tsrx',
-		);
-
-		// 2 captures + 18 statics + 1 memo = 21 slots: above the 16 fixed slots,
-		// so the values travel in one array and captures read from it.
-		expect(code).toMatch(/\.C\(props_site, \[\s*lazy,\s*props,\s*0,\s*1,/);
-		expect(code).toMatch(/\s17,\s*_\$_\.UNINITIALIZED\s*\]\)\);/);
-		expect(code).toMatch(/'s17'\s*\],\s*3,\s*2,\s*2,\s*\{/);
-		expect(code).toContain('live: (__p) => __p[_$_.$v][0].value');
-		expect(code).toContain('own: (__p) => __p[_$_.$v][1].own');
-		expect(code).not.toContain('get live()');
-	});
-
-	it('lowers own-property enumeration of objects to props-aware helpers', () => {
+	it('leaves own-property enumeration and object spread of props alone', () => {
 		const { code } = compile(
 			`function Test(props) @{
 				const keys = Object.keys(props);
@@ -1724,10 +1559,11 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.props_keys(props)');
-		expect(code).toContain('_$_.props_values(props)');
-		expect(code).toContain('_$_.props_entries(props)');
-		expect(code).toContain('{ ..._$_.props_snapshot(props), extra: true }');
+		// Props are plain objects, so the `Object` calls and the spread stay as written.
+		expect(code).toContain('Object.keys(props)');
+		expect(code).toContain('Object.values(props)');
+		expect(code).toContain('Object.entries(props)');
+		expect(code).toContain('{ ...props, extra: true }');
 	});
 
 	it('lowers tsx values nested in template expressions', () => {
@@ -1841,9 +1677,7 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(code).toContain('function Label()');
 		expect(code).toContain('return "Hi";');
-		expect(code).toContain(
-			'_$_.render_component(Label, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site))',
-		);
+		expect(code).toContain('_$_.render_component(Label, __anchor, {})');
 	});
 
 	it('uses server render_expression for conditional array expression values', () => {
@@ -1907,8 +1741,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			'App.tsrx',
 		);
 
-		// The three arrow-valued static props travel as constructor arguments.
-		expect(code).toContain("_$_.props_site(['fragment', 'tsx', 'tsrx'], 0, 0, 0, { C: null })");
+		expect(code).toContain('fragment: () => {');
 		expect(code.match(/\(\) => \{\s+return _\$_\.tsrx_element/g)).toHaveLength(3);
 	});
 
@@ -2132,9 +1965,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain(
-			'_$_.render_component(Test, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site))',
-		);
+		expect(client.code).toContain('_$_.render_component(Test, __anchor, {})');
 		expect(server.code).toContain('_$_.render_component(comp, ...args)');
 	});
 
@@ -2208,11 +2039,7 @@ describe('@tsrx/ripple template elements in expression position', () => {
 	it('lowers an element-valued attribute with control flow in client and server output', () => {
 		for (const mode of ['client', 'server']) {
 			const { code } = compile(attribute_source, 'App.tsrx', { mode });
-			// The client passes the element as a static prop of the site class;
-			// the server keeps the object literal.
-			expect(code).toContain(
-				mode === 'client' ? '.C(props_site, _$_.tsrx_element(' : 'prop: _$_.tsrx_element(',
-			);
+			expect(code).toContain('prop: _$_.tsrx_element(');
 			expect(code).not.toContain('@if');
 			expect(code).not.toContain('<h1>@if');
 		}

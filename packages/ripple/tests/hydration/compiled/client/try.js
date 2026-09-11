@@ -60,14 +60,13 @@ function RootAsyncRejects_render(__anchor, __block) {
 
 RootAsyncRejects[_$_.$r] = RootAsyncRejects_render;
 
-var props_site;
 var root_5 = _$_.template(`<p class="loading">loading...</p>`, 0);
 
 function AsyncListInTryPending_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			_$_.render_component(AsyncList, __anchor, new (props_site ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site));
+			_$_.render_component(AsyncList, __anchor, {});
 		},
 		null,
 		(__anchor) => {
@@ -115,7 +114,6 @@ function AsyncList_render(__anchor, __block) {
 
 AsyncList[_$_.$r] = AsyncList_render;
 
-var props_site_1;
 var root_10 = _$_.template(`<div class="loading">loading async content</div>`, 0);
 var root_9 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_8 = _$_.template(`<!>`, 1, 1);
@@ -132,7 +130,7 @@ function AsyncTryWithLeadingSibling_render(__anchor, __block) {
 		_$_.try(
 			node,
 			(__anchor) => {
-				_$_.render_component(AsyncContent, __anchor, new (props_site_1 ??= _$_.props_site([], 0, 0, 0, { C: null })).C(props_site_1));
+				_$_.render_component(AsyncContent, __anchor, {});
 			},
 			null,
 			(__anchor) => {

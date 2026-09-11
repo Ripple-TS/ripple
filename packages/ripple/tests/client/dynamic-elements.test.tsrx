@@ -1,4 +1,4 @@
-import type { PropsWithExtras } from 'ripple';
+import type { Derived, PropsWithExtras } from 'ripple';
 import { createRefKey, effect, flushSync, track } from 'ripple';
 
 describe('dynamic DOM elements', () => {
@@ -522,13 +522,13 @@ describe('dynamic DOM elements', () => {
 
 	it('handles spread attributes with class and CSS scoping ', () => {
 		function DynamicButton(&{ ...rest }: PropsWithExtras<{
-			class: string;
-			id: string;
+			class: Derived<string>;
+			id: Derived<string>;
 			onClick: EventListener;
 		}>) @{
 			const tag = track('button');
 			<>
-				<{tag} {...rest}>{rest.class}</{tag}>
+				<{tag} {...rest}>{rest.class.value}</{tag}>
 				<style>
 					.even {
 						background-color: green;
@@ -543,8 +543,8 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let &[count] = track(0);
 			<DynamicButton
-				class={count % 2 ? 'even' : 'odd'}
-				id={count % 2 ? 'even' : 'odd'}
+				class={track(() => (count % 2 ? 'even' : 'odd'))}
+				id={track(() => (count % 2 ? 'even' : 'odd'))}
 				onClick={() => {
 					count++;
 				}}
@@ -726,7 +726,7 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let &[active] = track(false);
 			<Button
-				data-active={String(active)}
+				data-active={track(() => String(active))}
 				onClick={() => {
 					active = !active;
 				}}
@@ -811,7 +811,7 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let &[active] = track(false);
 			<Button
-				data-active={String(active)}
+				data-active={track(() => String(active))}
 				onClick={() => {
 					active = !active;
 				}}
