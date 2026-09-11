@@ -1333,10 +1333,16 @@ function visit_function(node, context) {
 		tracked: false,
 		path: [...context.path],
 	};
-	if (!context.state.to_ts && context.state.mode !== 'server' && node.params.length > 0) {
-		const scope = context.state.scopes.get(node);
-		if (scope) {
-			/** @type {AnalysisResult} */ (context.state.analysis).box_candidates.push({ node, scope });
+	if (!context.state.to_ts && context.state.mode !== 'server') {
+		const candidates = /** @type {AnalysisResult} */ (context.state.analysis).box_candidates;
+		if (node.params.length > 0) {
+			const scope = context.state.scopes.get(node);
+			if (scope) candidates.push({ node, scope });
+		}
+		// A reassigned function declaration is reboxed at the top of the block
+		// that declares it, where the declaration has already been hoisted.
+		if (node.type === 'FunctionDeclaration' && node.id) {
+			candidates.push({ node, scope: context.state.scope, declaration: true });
 		}
 	}
 
@@ -1745,6 +1751,22 @@ function pattern_names(pattern, into) {
 				if (element !== null) pattern_names(element, into);
 			}
 			break;
+	}
+}
+
+/**
+ * Boxes a function declaration that is reassigned later and read from template
+ * code: the transform reboxes the name at the top of the declaring block
+ * (`f = { v: f }`), after which reads and calls go through `.v`.
+ * @param {AST.FunctionDeclaration} node
+ * @param {ScopeInterface} scope the scope the declaration lives in
+ */
+function box_function_declaration(node, scope) {
+	const id = /** @type {AST.Identifier} */ (node.id);
+	const binding = scope.get(id.name);
+	if (binding !== null && binding.node === id && needs_box(binding)) {
+		box_binding(binding);
+		node.metadata = /** @type {any} */ ({ ...node.metadata, boxed_declaration: true });
 	}
 }
 
@@ -3216,9 +3238,11 @@ export function analyze(ast, filename, options = {}) {
 	validate_server_module_imports(analysis, filename, collect);
 
 	// Boxing needs every reference of a binding, so it runs after the walk.
-	for (const { node, scope: candidate_scope } of analysis.box_candidates) {
+	for (const { node, scope: candidate_scope, declaration } of analysis.box_candidates) {
 		if (node.type === 'VariableDeclarator') {
 			box_declarator(node, candidate_scope);
+		} else if (declaration) {
+			box_function_declaration(/** @type {AST.FunctionDeclaration} */ (node), candidate_scope);
 		} else {
 			box_params(node, candidate_scope);
 		}

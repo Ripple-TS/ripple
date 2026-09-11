@@ -719,6 +719,31 @@ function box_pattern_names(declarator, names, context) {
 }
 
 /**
+ * The statements that rebox the boxed function declarations of a statement
+ * list, first thing in it (`f = { v: f }`): the declarations are hoisted, so
+ * the box holds the function before any statement can read the name.
+ * @param {AST.Node[]} statements the source statements
+ * @returns {AST.Statement[]}
+ */
+function box_declaration_statements(statements) {
+	/** @type {AST.Statement[]} */
+	const boxes = [];
+	for (const statement of statements) {
+		if (
+			statement.type === 'FunctionDeclaration' &&
+			statement.id &&
+			/** @type {any} */ (statement.metadata)?.boxed_declaration
+		) {
+			const name = statement.id.name;
+			boxes.push(
+				b.stmt(b.assignment('=', b.id(name), b.object([b.prop('init', b.id('v'), b.id(name))]))),
+			);
+		}
+	}
+	return boxes;
+}
+
+/**
  * The statements that turn a function's or catch clause's boxed parameters
  * into their boxes, first thing in the body: `mode = { v: mode }`.
  * @param {AST.Function | AST.CatchClause} node
@@ -4343,7 +4368,7 @@ const visitors = {
 
 	BlockStatement(node, context) {
 		/** @type {AST.Statement[]} */
-		const statements = [];
+		const statements = context.state.to_ts ? [] : box_declaration_statements(node.body);
 
 		for (const statement of node.body) {
 			push_statement(
@@ -6864,6 +6889,7 @@ function transform_body(body, { visit, state }) {
 	}
 
 	const init = [
+		...(state.to_ts ? [] : box_declaration_statements(body)),
 		.../** @type {AST.Statement[]} */ (body_state.init),
 		.../** @type {NonNullable<TransformClientState['final']>} */ (body_state.final),
 	];

@@ -349,6 +349,34 @@ describe('boxed locals', () => {
 		expect(text()).toBe('byd1');
 	});
 
+	it('boxes a reassigned function declaration', () => {
+		let swap: () => void = () => {};
+		let bump: () => void = () => {};
+
+		function App() @{
+			let &[n] = track(0);
+			function greet() {
+				return 'hi';
+			}
+			swap = () => {
+				greet = () => 'bye';
+			};
+			bump = () => {
+				n++;
+			};
+			<span>{greet() + n}</span>
+		}
+
+		render(App);
+		const text = () => container.querySelector('span')?.textContent;
+		expect(text()).toBe('hi0');
+
+		swap();
+		bump();
+		flushSync();
+		expect(text()).toBe('bye1');
+	});
+
 	it('a let declared without an initializer starts as undefined', () => {
 		let assign: () => void = () => {};
 		let bump: () => void = () => {};

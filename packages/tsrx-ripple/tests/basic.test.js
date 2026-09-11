@@ -275,6 +275,22 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).toContain("for (label.v of ['c'])");
 	});
 
+	it('reboxes a reassigned function declaration at the top of its block', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function App() @{
+				let &[n] = track(0);
+				function greet() { return 'hi'; }
+				const swap = () => { greet = () => 'bye'; };
+				<span onClick={swap}>{greet() + n}</span>
+			}`,
+			'App.tsrx',
+		);
+		expect(code).toContain('greet = { v: greet };\n\n\tlet lazy');
+		expect(code).toContain("greet.v = () => 'bye';");
+		expect(code).toContain('__prev._greet.v()');
+	});
+
 	it('leaves a let alone that template code only reads', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';

@@ -55,6 +55,8 @@ export interface AnalysisResult extends CoreAnalysisResult {
 	box_candidates: {
 		node: AST.VariableDeclarator | AST.Function | AST.CatchClause;
 		scope: ScopeInterface;
+		/** The node is a function declaration considered as a binding, not for its parameters. */
+		declaration?: boolean;
 	}[];
 }
 
