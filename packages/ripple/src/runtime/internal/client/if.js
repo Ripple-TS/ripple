@@ -22,7 +22,7 @@ import { create_text, resolve_anchor } from './operations.js';
 import {
 	active_block,
 	adopt_dependencies,
-	probe_dependencies,
+	probe_if,
 	probe_result,
 	run_block,
 	run_untracked,
@@ -255,32 +255,28 @@ export function if_block(node, fn, root_controlled, x) {
 	var anchor = node;
 
 	if (!hydrating) {
-		// Evaluate the condition before deciding whether the if needs a block.
-		// A condition that read no tracked state can never re-run (a block with
-		// no dependencies is never scheduled), so its branch renders directly
-		// under the current block: no if block, no state, and the branch's DOM
-		// and blocks belong to the enclosing block like any other content.
+		// Evaluate the condition before deciding whether the if needs a block:
+		// a condition that read no tracked state has its branch rendered by the
+		// probe itself, directly under the current block, with no if block, no
+		// state, and the branch's DOM and blocks belonging to the enclosing
+		// block like any other content.
 		/** @type {import('#client').Dependency | null} */
 		var dependencies;
 		try {
-			dependencies = probe_dependencies(fn, x);
+			dependencies = probe_if(fn, x, node);
 		} catch {
 			// A condition that throws (a pending async read) is the block's to
 			// handle: create it and let its first run evaluate the condition.
 			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 			return;
 		}
-		var selected = /** @type {Branch | undefined} */ (probe_result);
 		if (dependencies === null) {
-			if (selected !== undefined) {
-				run_untracked(selected, /** @type {Node} */ (node), x);
-			}
 			return;
 		}
 		// Dynamic: the block adopts the probe's dependencies and its first run
 		// applies the branch the probe selected.
 		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
-		probed_branch = selected;
+		probed_branch = /** @type {Branch | undefined} */ (probe_result);
 		probed = true;
 		run_block(if_block, true);
 		if_block.f ^= BLOCK_HAS_RUN;

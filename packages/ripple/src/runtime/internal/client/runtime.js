@@ -1948,50 +1948,66 @@ export function render_component(fn, anchor, props, block = active_block) {
 
 /**
  * A reaction that stands in for a block whose creation is being decided (see
- * `probe_dependencies`). Flagged destroyed so a write during the probe prunes
+ * `probe_if`). Flagged destroyed so a write during the probe prunes
  * its subscription instead of scheduling it.
  * @type {any}
  */
 var probe_reaction = { f: DESTROYED, d: null, blocks: null };
 
-/** What the function last run by `probe_dependencies` returned. */
+/** What the condition last run by `probe_if` returned: the selected branch. */
 /** @type {any} */
 export let probe_result;
 
 /**
- * Runs `fn(arg)` tracked against a scratch reaction and returns the head of
- * the dependency chain it recorded, or null when it read no tracked state; the
- * function's own result is left in `probe_result`. A chain must be handed to
- * a block with `adopt_dependencies`.
- * @param {(arg: any) => any} fn
- * @param {any} arg
+ * Evaluates an if condition once, tracked, against a scratch reaction that is
+ * never scheduled, and renders the branch it selected straight away when the
+ * evaluation recorded no dependency: such a condition can never re-run (a
+ * block with no dependencies is never scheduled), so the if needs no block.
+ * Returns the recorded dependency chain otherwise, with `probe_result` holding
+ * the selected branch for the block that adopts the chain. A throwing
+ * condition (a pending async read) unlinks what it recorded and rethrows, so
+ * the caller can create the block that handles it.
+ * @param {(x: any) => any} fn
+ * @param {any} x
+ * @param {Node | import('#client').AppendIntoAnchor} node
  * @returns {Dependency | null}
  */
-export function probe_dependencies(fn, arg) {
+export function probe_if(fn, x, node) {
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	active_reaction = probe_reaction;
 	tracking = true;
 	active_dependency = null;
+	/** @type {Dependency | null} */
+	var recorded;
 	try {
-		probe_result = fn(arg);
-		return active_dependency;
+		probe_result = fn(x);
+		recorded = active_dependency;
 	} catch (error) {
-		// The caller creates its block and runs it normally, which throws again
-		// where the block's own error handling sees it; the probe's
-		// subscriptions must not outlive it.
-		var recorded = /** @type {Dependency | null} */ (/** @type {unknown} */ (active_dependency));
-		while (recorded !== null) {
-			unlink_subscriber(recorded);
-			recorded = recorded.n;
+		var pending = /** @type {Dependency | null} */ (/** @type {unknown} */ (active_dependency));
+		while (pending !== null) {
+			unlink_subscriber(pending);
+			pending = pending.n;
 		}
-		throw error;
-	} finally {
 		active_reaction = previous_reaction;
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
+		throw error;
 	}
+	active_reaction = previous_reaction;
+	active_dependency = previous_dependency;
+	if (recorded === null) {
+		// The branch renders untracked, like a branch block would; `tracking`
+		// is restored by the enclosing `run_block` if the branch throws.
+		var branch = probe_result;
+		if (branch !== undefined) {
+			tracking = false;
+			branch(node, x);
+		}
+	}
+	tracking = previous_tracking;
+	return recorded;
 }
 
 /**
