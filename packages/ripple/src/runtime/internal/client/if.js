@@ -3,30 +3,16 @@
 import {
 	block,
 	branch,
-	create_block,
 	destroy_block,
 	get_first_node,
 	get_last_node,
 	move_block_last,
 	remove_block_dom,
 } from './blocks.js';
-import {
-	BLOCK_HAS_RUN,
-	DETACHED_BLOCK,
-	IF_BLOCK,
-	RENDER_BLOCK,
-	UNINITIALIZED,
-} from './constants.js';
+import { DETACHED_BLOCK, IF_BLOCK, RENDER_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
-import {
-	active_block,
-	adopt_dependencies,
-	probe_if,
-	probe_result,
-	run_block,
-	run_untracked,
-} from './runtime.js';
+import { active_block, probe_if, run_untracked } from './runtime.js';
 import { append } from './template.js';
 
 /**
@@ -46,15 +32,6 @@ import { append } from './template.js';
  * }} IfState
  * @typedef {(anchor: Node, x: any) => void} Branch
  */
-
-/**
- * The branch the probe in `if_block` selected, waiting for the block's first
- * `run_if` (see `probed`).
- * @type {Branch | undefined}
- */
-var probed_branch;
-/** Whether a probe result is waiting for the block's first run. */
-var probed = false;
 
 function noop() {}
 
@@ -200,15 +177,6 @@ function update_branch(state, fn) {
  * @param {IfState} state
  */
 function run_if(state) {
-	if (probed) {
-		// First run of a block whose condition the probe in `if_block` already
-		// evaluated: apply its result instead of evaluating again.
-		probed = false;
-		var fn = probed_branch;
-		probed_branch = undefined;
-		update_branch(state, fn);
-		return;
-	}
 	update_branch(state, state.fn(state.x));
 }
 
@@ -259,28 +227,19 @@ export function if_block(node, fn, root_controlled, x) {
 		// a condition that read no tracked state has its branch rendered by the
 		// probe itself, directly under the current block, with no if block, no
 		// state, and the branch's DOM and blocks belonging to the enclosing
-		// block like any other content.
-		/** @type {import('#client').Dependency | null} */
-		var dependencies;
+		// block like any other content. A dynamic condition gets its block,
+		// whose first run evaluates it again and subscribes it.
+		var rendered;
 		try {
-			dependencies = probe_if(fn, x, node);
+			rendered = probe_if(fn, x, node);
 		} catch {
 			// A condition that throws (a pending async read) is the block's to
 			// handle: create it and let its first run evaluate the condition.
+			rendered = false;
+		}
+		if (!rendered) {
 			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
-			return;
 		}
-		if (dependencies === null) {
-			return;
-		}
-		// Dynamic: the block adopts the probe's dependencies and its first run
-		// applies the branch the probe selected.
-		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
-		probed_branch = /** @type {Branch | undefined} */ (probe_result);
-		probed = true;
-		run_block(if_block, true);
-		if_block.f ^= BLOCK_HAS_RUN;
-		adopt_dependencies(if_block, dependencies);
 		return;
 	}
 
