@@ -1638,6 +1638,141 @@ const visit_try_statement = (node, context) => {
 	}
 };
 
+/**
+ * Whether a binding is the target of a `ref={name}` attribute (directly, in
+ * an expression container, or as an element of a ref array): the compiled
+ * setter assigns it when the element mounts and unmounts.
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function is_ref_target(binding) {
+	for (const { node, path } of binding.references) {
+		if (node === binding.node) continue;
+		for (let i = path.length - 1; i >= 0 && i >= path.length - 3; i--) {
+			const ancestor = path[i];
+			if (ancestor.type === 'JSXAttribute') {
+				const name = /** @type {any} */ (ancestor).name;
+				if (name?.type === 'JSXIdentifier' && name.name === 'ref') return true;
+				break;
+			}
+			if (ancestor.type !== 'JSXExpressionContainer' && ancestor.type !== 'ArrayExpression') break;
+		}
+	}
+	return false;
+}
+
+/**
+ * Whether a `let` binding must be boxed: it is written after its declaration
+ * (reassigned in the source, or assigned by a compiled ref setter) and read
+ * from template code, which the client transform hoists into module-level
+ * functions (`@if` and `@switch` conditions and branches, render blocks). A
+ * hoisted function captures locals by value, so such a variable is compiled to
+ * a `{ v }` box whose identity is stable and whose current value every read
+ * and write sees, exactly as a closure would. Bindings rebound through a
+ * destructuring assignment target are left alone (the closure form stays).
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function needs_box(binding) {
+	if (
+		binding.transform !== undefined ||
+		binding.scope.function_depth === 0 ||
+		(!binding.reassigned && !is_ref_target(binding))
+	) {
+		return false;
+	}
+	let template_read = false;
+	for (const { node, path } of binding.references) {
+		if (node === binding.node) continue;
+		const parent = path.at(-1);
+		if (
+			parent !== undefined &&
+			(parent.type === 'ArrayPattern' ||
+				parent.type === 'ObjectPattern' ||
+				parent.type === 'RestElement' ||
+				parent.type === 'AssignmentPattern' ||
+				(parent.type === 'Property' && path.at(-2)?.type === 'ObjectPattern'))
+		) {
+			return false;
+		}
+		if (
+			!template_read &&
+			path.some((ancestor) => ancestor.type.startsWith('JSX') && ancestor.type !== 'JSXCodeBlock')
+		) {
+			template_read = true;
+		}
+	}
+	return template_read;
+}
+
+/**
+ * @param {Binding} binding
+ */
+function box_binding(binding) {
+	binding.metadata = /** @type {any} */ ({ ...binding.metadata, boxed: true });
+	binding.transform = {
+		read: (node) => b.member(node ?? b.id(binding.node.name), b.id('v')),
+		assign: (node, value) => b.assignment('=', b.member(node, b.id('v')), value),
+		update: (node) => ({ ...node, argument: b.member(node.argument, b.id('v')) }),
+	};
+}
+
+/**
+ * Boxes the bindings a `let` declarator introduces that `needs_box`. A plain
+ * identifier is boxed in place; a flat object or array pattern (plain names,
+ * optional defaults, no nesting or rest) is expanded by the client transform
+ * so each boxed name gets its own box. Runs after the walk, once every
+ * reference (a later reassignment, a `ref` attribute) has been seen; records
+ * the decision on the declarator's metadata.
+ * @param {AST.VariableDeclarator} declarator
+ * @param {ScopeInterface} scope
+ */
+function box_declarator(declarator, scope) {
+	const metadata = /** @type {Record<string, any>} */ (declarator.metadata);
+	const id = declarator.id;
+
+	if (id.type === 'Identifier') {
+		const binding = scope.get(id.name);
+		if (binding !== null && binding.node === id && needs_box(binding)) {
+			box_binding(binding);
+			metadata.boxed = true;
+		}
+		return;
+	}
+
+	if ((id.type !== 'ObjectPattern' && id.type !== 'ArrayPattern') || id.lazy) {
+		return;
+	}
+
+	/** @type {AST.Identifier[]} */
+	const names = [];
+	const elements = id.type === 'ObjectPattern' ? id.properties : id.elements;
+	for (const element of elements) {
+		if (element === null) continue;
+		if (element.type === 'RestElement') return;
+		const target = element.type === 'Property' ? element.value : element;
+		if (target.type === 'Identifier') {
+			names.push(target);
+		} else if (target.type === 'AssignmentPattern' && target.left.type === 'Identifier') {
+			names.push(target.left);
+		} else {
+			return;
+		}
+	}
+
+	let boxed = false;
+	for (const name of names) {
+		const binding = scope.get(name.name);
+		if (binding !== null && binding.node === name && needs_box(binding)) {
+			box_binding(binding);
+			boxed = true;
+		}
+	}
+	if (boxed) {
+		metadata.boxed_pattern = true;
+	}
+}
+
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
 	_(node, { state, next, path }) {
@@ -2000,6 +2135,12 @@ const visitors = {
 			}
 
 			declarator.metadata = { ...metadata, path: [...context.path] };
+			if (!state.to_ts && state.mode !== 'server' && node.kind === 'let') {
+				/** @type {AnalysisResult} */ (state.analysis).let_declarators.push({
+					declarator,
+					scope: state.scope,
+				});
+			}
 		}
 	},
 
@@ -2965,6 +3106,7 @@ export function analyze(ast, filename, options = {}) {
 		errors,
 		comments,
 		stylesheets: [],
+		let_declarators: [],
 		textChildExpressions:
 			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)
 				? new Map()
@@ -2992,6 +3134,11 @@ export function analyze(ast, filename, options = {}) {
 	);
 
 	validate_server_module_imports(analysis, filename, collect);
+
+	// Boxing needs every reference of a binding, so it runs after the walk.
+	for (const { declarator, scope: declarator_scope } of analysis.let_declarators) {
+		box_declarator(declarator, declarator_scope);
+	}
 
 	// Style scopes need every element's ancestor path, which the walk above
 	// records, so they are resolved last.

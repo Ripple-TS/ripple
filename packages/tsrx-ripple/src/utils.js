@@ -1788,6 +1788,17 @@ export function is_ripple_import(callee, context) {
 }
 
 /**
+ * Whether the analyzer boxed this binding (a written `let` that template code
+ * reads; see `box_declarator` in the analyzer). The flag lives on the binding
+ * metadata, whose type is owned by `@tsrx/core`.
+ * @param {Binding | null | undefined} binding
+ * @returns {boolean}
+ */
+export function is_boxed(binding) {
+	return /** @type {any} */ (binding?.metadata)?.boxed === true;
+}
+
+/**
  * Whether `callee` is `ctx.get(...)` or `ctx.set(...)` on a binding initialized
  * with `new Context(...)` imported from 'ripple'. Context methods resolve the
  * active component, not the active scope, so such a call needs no

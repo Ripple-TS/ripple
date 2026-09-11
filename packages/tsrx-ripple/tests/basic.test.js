@@ -196,6 +196,46 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).not.toContain('var consequent =');
 	});
 
+	it('boxes a let that hoisted code writes, so the hoist keeps closure semantics', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function App() @{
+				let div;
+				let &[show] = track(true);
+				let clicks = 0;
+				@if (show) {
+					<div ref={div} onClick={() => clicks++}>{'x'}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Both lets are written by template code (a ref setter, a handler), so
+		// they are boxed and the branch is hoisted with the boxes as captures.
+		expect(code).toContain('let div = { v: void 0 };');
+		expect(code).toContain('let clicks = { v: 0 };');
+		expect(code).toContain('function consequent(__anchor, { lazy, div, clicks })');
+		expect(code).toContain('_$_.ref(div_1, () => div.v, (v) => div.v = v);');
+		expect(code).toContain('clicks.v++');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, { lazy, div, clicks });');
+	});
+
+	it('leaves a let alone that template code only reads', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function App() @{
+				let &[show] = track(true);
+				let label = 'x';
+				@if (show) {
+					<span>{label}</span>
+				}
+			}`,
+			'App.tsrx',
+		);
+		expect(code).toContain("let label = 'x';");
+		expect(code).not.toContain('{ v:');
+	});
+
 	it('passes a single captured local bare', () => {
 		const { code } = compile(
 			`function Node(props) @{
