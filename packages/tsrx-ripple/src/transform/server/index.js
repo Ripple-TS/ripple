@@ -54,6 +54,7 @@ import {
 	is_native_tsrx_function_node,
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
+	component_arrow_body,
 	is_tsrx_component_function,
 	is_style_element,
 	lower_dynamic_element,
@@ -1308,7 +1309,7 @@ function transform_native_tsrx_function(node, context) {
 		: b.block([b.return(b.call('_$_.tsrx_element', b.arrow([], b.block(body_statements))))]);
 
 	if (node.type === 'ArrowFunctionExpression') {
-		const fn = b.arrow(component_params, component_body);
+		const fn = b.arrow(component_params, component_arrow_body(node, component_body));
 		fn.metadata.native_tsrx_function = true;
 		return fn;
 	}
@@ -1621,7 +1622,11 @@ const visit_for_of_statement = (node, context) => {
 		return context.next();
 	}
 
-	if (!is_inside_component(context)) {
+	// A `@for` directive is always a template loop, wherever it is written — a
+	// template built outside a component (a value-producing function, module
+	// scope) still renders through this lowering. Only the plain `for…of` form
+	// this visitor also serves is ordinary JavaScript when no component owns it.
+	if (node.type !== 'JSXForExpression' && !is_inside_component(context)) {
 		context.next();
 		return;
 	}

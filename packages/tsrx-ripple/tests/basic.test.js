@@ -2119,8 +2119,15 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect(server.code).not.toContain('_$_.pop_component()');
 	};
 
-	it('compiles native template returns as value-producing functions', () => {
-		expect_value_function(`function Test() { return <p />; }`);
+	it('compiles a bare template return exactly like a `@{ … }` component', () => {
+		const source = `function Test() { return <p />; }`;
+		const code_block_source = `function Test() @{ <p /> }`;
+
+		for (const options of [{}, { mode: 'server' }]) {
+			expect(compile(source, 'App.tsrx', options).code).toBe(
+				compile(code_block_source, 'App.tsrx', options).code,
+			);
+		}
 	});
 
 	it('compiles template variables and alternate returns as renderable values', () => {

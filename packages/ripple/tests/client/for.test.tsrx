@@ -447,4 +447,148 @@ describe('for statements', () => {
 
 		expect(getTexts()).toEqual(objects.slice(15).reverse().map((o) => o.text));
 	});
+
+	it('renders the index and the key from a function that returns its template', () => {
+		function Plain({ items }) {
+			return <ul>
+				@for (const item of items) {
+					<li class="plain">{item.text}</li>
+				}
+			</ul>;
+		}
+
+		function Indexed({ items }) {
+			return <ul>
+				@for (const item of items; index i) {
+					<li class="indexed">{i + ': ' + item.text}</li>
+				}
+			</ul>;
+		}
+
+		function Keyed({ items }) {
+			return <ul>
+				@for (const item of items; key item.id) {
+					<li class="keyed">{item.text}</li>
+				}
+			</ul>;
+		}
+
+		function IndexedAndKeyed({ items }) {
+			return <ul>
+				@for (const item of items; index i; key item.id) {
+					<li class="indexed-keyed">{i + ': ' + item.text}</li>
+				}
+			</ul>;
+		}
+
+		const Arrow = ({ items }) => <ul>
+			@for (const item of items; index i) {
+				<li class="arrow">{i + ': ' + item.text}</li>
+			}
+		</ul>;
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<>
+				<Plain {items} />
+				<Indexed {items} />
+				<Keyed {items} />
+				<IndexedAndKeyed {items} />
+				<Arrow {items} />
+			</>
+		}
+
+		render(App);
+
+		const texts = (selector) => Array.from(container.querySelectorAll(selector)).map(
+			(el) => el.textContent,
+		);
+
+		expect(texts('.plain')).toEqual(['a', 'b']);
+		expect(texts('.indexed')).toEqual(['0: a', '1: b']);
+		expect(texts('.keyed')).toEqual(['a', 'b']);
+		expect(texts('.indexed-keyed')).toEqual(['0: a', '1: b']);
+		expect(texts('.arrow')).toEqual(['0: a', '1: b']);
+	});
+
+	it('renders the index and the key from a template held in a variable', () => {
+		function Indexed({ items }) {
+			const list = <ul>
+				@for (const item of items; index i) {
+					<li class="indexed">{i + ': ' + item.text}</li>
+				}
+			</ul>;
+			return list;
+		}
+
+		function Keyed({ items }) {
+			return [
+				<ul>
+					@for (const item of items; key item.id) {
+						<li class="keyed">{item.text}</li>
+					}
+				</ul>,
+			];
+		}
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<>
+				<Indexed {items} />
+				<Keyed {items} />
+			</>
+		}
+
+		render(App);
+
+		const texts = (selector) => Array.from(container.querySelectorAll(selector)).map(
+			(el) => el.textContent,
+		);
+
+		expect(texts('.indexed')).toEqual(['0: a', '1: b']);
+		expect(texts('.keyed')).toEqual(['a', 'b']);
+	});
+
+	it('renders a bare `@for` held in a variable through an expression', () => {
+		function Returned({ items }) {
+			const yo = @for (const item of items; index i; key item.id) {
+				<li class="returned">{i + ': ' + item.text}</li>
+			};
+			return <ul>{yo}</ul>;
+		}
+
+		function Held({ items }) {
+			const yo = @for (const item of items; index i) {
+				<li class="held">{i + ': ' + item.text}</li>
+			};
+			const list = <ul>{yo}</ul>;
+			return list;
+		}
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<>
+				<Returned {items} />
+				<Held {items} />
+			</>
+		}
+
+		render(App);
+
+		const texts = (selector) => Array.from(container.querySelectorAll(selector)).map(
+			(el) => el.textContent,
+		);
+
+		expect(texts('.returned')).toEqual(['0: a', '1: b']);
+		expect(texts('.held')).toEqual(['0: a', '1: b']);
+	});
 });

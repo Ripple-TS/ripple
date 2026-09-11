@@ -108,6 +108,7 @@ import {
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
 	is_code_block_function_body,
+	component_arrow_body,
 	is_tsrx_component_function,
 	is_style_element,
 	dynamic_element_import_local,
@@ -864,12 +865,12 @@ function transform_native_tsrx_function(node, context) {
 			...context.state,
 			flush_node: null,
 			// A synthetic children render arrow is itself a tsrx_element render
-			// context, so it inherits the enclosing component. When the enclosing
-			// function is a `function C() { return <jsx> }` component (transformed
-			// via the generic function path, which never sets `component`), there is
-			// no component to inherit. Fall back to this arrow as the component
-			// boundary so directive-branch elements in statement position are not
-			// misread as out-of-component template statements and double-wrapped.
+			// context, so it inherits the enclosing component. A template written
+			// outside any component — a plain value-producing function or module
+			// scope — has none to inherit, so fall back to this arrow as the
+			// component boundary and directive-branch elements in statement
+			// position are not misread as out-of-component template statements
+			// and double-wrapped.
 			component: is_synthetic_children ? (context.state.component ?? node) : node,
 			metadata,
 			scope: component_scope,
@@ -946,7 +947,7 @@ function transform_native_tsrx_function(node, context) {
 		node.type === 'FunctionDeclaration' && node_id
 			? b.function(node_id, params, component_body)
 			: node.type === 'ArrowFunctionExpression'
-				? b.arrow(params, component_body)
+				? b.arrow(params, component_arrow_body(node, component_body))
 				: b.function(node_id, params, component_body);
 
 	func.metadata.native_tsrx_function = true;

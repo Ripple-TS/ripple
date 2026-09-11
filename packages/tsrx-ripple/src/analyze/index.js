@@ -2386,10 +2386,6 @@ const visitors = {
 			return context.next({ ...context.state, regular_js: true, component: undefined });
 		}
 
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-
 		infer_for_item_type_annotation(node, context);
 
 		if (node.index) {
