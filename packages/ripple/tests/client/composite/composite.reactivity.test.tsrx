@@ -1,4 +1,4 @@
-import type { Props, Tracked } from 'ripple';
+import type { Derived, Props, Tracked } from 'ripple';
 import { RippleObject, effect, flushSync, track } from 'ripple';
 
 describe('composite > reactivity', () => {
@@ -77,8 +77,8 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated state', () => {
-		function Button(props: { count: number }) @{
-			let &[count] = track(() => props.count);
+		function Button(props: { count: Tracked<number> }) @{
+			let &[count] = track(() => props.count.value);
 			<button
 				onClick={() => {
 					count++;
@@ -89,7 +89,7 @@ describe('composite > reactivity', () => {
 		}
 
 		function App() @{
-			let &[count] = track(0);
+			let &[count, countTracked] = track(0);
 			<div>
 				<button
 					onClick={() => {
@@ -98,7 +98,7 @@ describe('composite > reactivity', () => {
 				>
 					{'parent: ' + count}
 				</button>
-				<Button {count} />
+				<Button count={countTracked} />
 			</div>
 		}
 
@@ -123,7 +123,7 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated connected state (destructured props)', () => {
-		function Button(&{ count }: { count: number }) @{
+		function Button({ count: &[count] }: { count: Tracked<number> }) @{
 			let &[local_count] = track(() => count);
 			<button
 				onClick={() => {
@@ -135,7 +135,7 @@ describe('composite > reactivity', () => {
 		}
 
 		function App() @{
-			let &[count] = track(0);
+			let &[count, countTracked] = track(0);
 			<div>
 				<button
 					onClick={() => {
@@ -144,7 +144,7 @@ describe('composite > reactivity', () => {
 				>
 					{'parent: ' + count}
 				</button>
-				<Button {count} />
+				<Button count={countTracked} />
 			</div>
 		}
 
@@ -172,29 +172,31 @@ describe('composite > reactivity', () => {
 		let logs: string[] = [];
 
 		function App() @{
-			let &[a] = track(1);
-			let &[b] = track(2);
-			let &[c] = track(3);
-			let &[obj] = track(
-				() => ({
-					a,
-					b,
-					c,
-				}),
-			);
+			const a = track(1);
+			const b = track(2);
+			const c = track(3);
+			const obj = { a, b, c };
 			<>
 				<Child {...obj} />
 				<button
 					onClick={() => {
-						a++;
-						b++;
-						c++;
+						a.value++;
+						b.value++;
+						c.value++;
 					}}
 				>{'Increment all'}</button>
 			</>
 		}
 
-		function Child(&{ a, b, c }: { a: number; b: number; c: number }) @{
+		function Child({
+			a: &[a],
+			b: &[b],
+			c: &[c],
+		}: {
+			a: Tracked<number>;
+			b: Tracked<number>;
+			c: Tracked<number>;
+		}) @{
 			effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
@@ -217,8 +219,8 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity for spread props via intermediate components and lazy destructuring', () => {
 		function App() @{
-			let &[count] = track(0);
-			<CounterWrapper {count} up={() => count++} down={() => count--} />
+			let &[count, countTracked] = track(0);
+			<CounterWrapper count={countTracked} up={() => count++} down={() => count--} />
 		}
 
 		function CounterWrapper(props: Props) @{
@@ -227,7 +229,7 @@ describe('composite > reactivity', () => {
 			</div>
 		}
 
-		function Counter(&{ count, up, down, ...rest }: Props) @{
+		function Counter({ count: &[count], up, down, ...rest }: Props) @{
 			<>
 				<button onClick={() => up()}>{'UP'}</button>
 				<button onClick={() => down()}>{'DOWN'}</button>
@@ -256,42 +258,47 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		function App() @{
-			let &[count] = track(0);
-			<CounterWrapper {count} up={() => count++} />
+			let &[count, countTracked] = track(0);
+			<CounterWrapper count={countTracked} up={() => count++} />
 		}
 
-		function CounterWrapper(props: { count: number; up: () => void }) @{
+		function CounterWrapper(props: { count: Tracked<number>; up: () => void }) @{
 			const more: {
-				double: Tracked<number>;
+				double: Derived<number>;
 				another?: number;
 				extra: number;
 			} = new RippleObject({
-				double: track(() => props.count * 2),
+				double: track(() => props.count.value * 2),
 				another: 0,
 				extra: 100,
 			});
 			effect(() => {
-				props.count;
-				if (props.count === 1) {
+				const count = props.count.value;
+				if (count === 1) {
 					delete more.another;
-				} else if (props.count === 2) {
+				} else if (count === 2) {
 					more.another = 0;
 				}
 			});
 			<div>
-				<Counter {...props} double={more.double} another={more.another} extra={more.extra} />
+				<Counter
+					{...props}
+					double={more.double}
+					another={track(() => more.another)}
+					extra={more.extra}
+				/>
 			</div>
 		}
 
-		function Counter(&{
-			count,
+		function Counter({
+			count: &[count],
 			up,
 			...rest
 		}: {
-			count: number;
+			count: Tracked<number>;
 			up: () => void;
-			double: Tracked<number>;
-			another?: number;
+			double: Derived<number>;
+			another: Derived<number | undefined>;
 			extra: number;
 		}) @{
 			<>

@@ -10,6 +10,7 @@ import type {
 	CompileOptions as CoreCompileOptions,
 	CompileResult,
 	ParseOptions,
+	ScopeInterface,
 	VolarCompileFn,
 	VolarCompileOptions,
 } from '@tsrx/core/types';
@@ -47,6 +48,16 @@ export interface AnalysisResult extends CoreAnalysisResult {
 	stylesheets: AST.CSS.StyleSheet[];
 	/** Authored JSX child expressions collected during analysis. */
 	textChildExpressions?: Map<string, { expression: AST.Expression; container: AST.Node }>;
+	/**
+	 * `let` declarators, functions and catch clauses of a client build, whose
+	 * written, template-read bindings are boxed after the walk.
+	 */
+	box_candidates: {
+		node: AST.VariableDeclarator | AST.Function | AST.CatchClause;
+		scope: ScopeInterface;
+		/** The node is a function declaration considered as a binding, not for its parameters. */
+		declaration?: boolean;
+	}[];
 }
 
 /**

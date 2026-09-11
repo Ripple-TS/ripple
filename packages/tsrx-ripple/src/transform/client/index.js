@@ -24,6 +24,7 @@
 */
 
 import { walk } from 'zimmerframe';
+import { captured_locals, register_hoisted, rewrite } from './hoist.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -85,6 +86,10 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	is_ripple_import,
+	is_context_method_call,
+	is_boxed,
+	sole_template_if,
+	is_template_if,
 	is_ripple_portal,
 	replace_lazy_pattern,
 	has_lazy_pattern,
@@ -238,6 +243,7 @@ function add_type_only_style_anchor(node, context) {
 
 	const anchor_id = b.id(context.state.scope.generate('style_anchor'));
 	context.state.hoisted.push(b.const(anchor_id, style_anchor), b.stmt(b.id(anchor_id.name)));
+	register_hoisted(context.state.hoisted, anchor_id.name);
 }
 
 /**
@@ -563,6 +569,14 @@ function visit_function(node, context) {
 		body = { ...body, body: [b.var('__block', b.call('_$_.scope')), ...body.body] };
 	}
 
+	const boxes = box_param_statements(node);
+	if (boxes.length > 0) {
+		body =
+			body.type === 'BlockStatement'
+				? { ...body, body: [...boxes, ...body.body] }
+				: b.block([...boxes, b.return(body)]);
+	}
+
 	return {
 		...node,
 		params: transformed_params.map((param) => context.visit(param, state)),
@@ -622,13 +636,162 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 }
 
 /**
+ * Whether an object pattern has a top-level rest element.
+ * @param {AST.Pattern} pattern
+ * @returns {boolean}
+ */
+function has_rest_property(pattern) {
+	return (
+		pattern.type === 'ObjectPattern' &&
+		pattern.properties.some((property) => property.type === 'RestElement')
+	);
+}
+
+/**
+ * A boxed `let` (see `box_declarator` in the analyzer): the variable holds a
+ * `{ v }` box so module-level code the transform hoists can capture it and
+ * still read and write its current value; every access goes through `.v`.
+ * @param {AST.VariableDeclarator} declarator the visited declarator
+ * @returns {AST.VariableDeclarator}
+ */
+function box_declarator(declarator) {
+	return {
+		...declarator,
+		init: b.object([b.prop('init', b.id('v'), declarator.init ?? b.void0)]),
+	};
+}
+
+/**
+ * Boxes the written names of a `let` pattern: each is renamed inside the
+ * pattern and declared as its box right after it, so `let { a: [first] } = x`
+ * with `first` boxed becomes `let { a: [first_1] } = x, first = { v: first_1 }`.
+ * JavaScript keeps doing the destructuring, defaults and rest included.
+ * @param {AST.VariableDeclarator} declarator the visited declarator
+ * @param {string[]} names
+ * @param {TransformClientContext} context
+ * @returns {AST.VariableDeclarator[]}
+ */
+function box_pattern_names(declarator, names, context) {
+	/** @type {Map<string, AST.Identifier>} */
+	const renamed = new Map();
+	for (const name of names) {
+		renamed.set(name, b.id(context.state.scope.generate(name)));
+	}
+	/**
+	 * @template {AST.Node} T
+	 * @param {T} node
+	 * @returns {T}
+	 */
+	const rename = (node) => {
+		switch (node.type) {
+			case 'Identifier': {
+				const fresh = renamed.get(node.name);
+				return fresh === undefined ? node : /** @type {T} */ (/** @type {AST.Node} */ (fresh));
+			}
+			case 'AssignmentPattern':
+				return { ...node, left: rename(node.left) };
+			case 'RestElement':
+				return { ...node, argument: rename(node.argument) };
+			case 'ObjectPattern':
+				return {
+					...node,
+					properties: node.properties.map((property) =>
+						property.type === 'RestElement'
+							? rename(property)
+							: { ...property, value: rename(property.value), shorthand: false },
+					),
+				};
+			case 'ArrayPattern':
+				return {
+					...node,
+					elements: node.elements.map((element) => (element === null ? null : rename(element))),
+				};
+			default:
+				return node;
+		}
+	};
+	/** @type {AST.VariableDeclarator[]} */
+	const declarators = [{ ...declarator, id: rename(declarator.id) }];
+	for (const [name, fresh] of renamed) {
+		declarators.push(b.declarator(b.id(name), b.object([b.prop('init', b.id('v'), fresh)])));
+	}
+	return declarators;
+}
+
+/**
+ * The statements that rebox the boxed function declarations of a statement
+ * list, first thing in it (`f = { v: f }`): the declarations are hoisted, so
+ * the box holds the function before any statement can read the name.
+ * @param {AST.Node[]} statements the source statements
+ * @returns {AST.Statement[]}
+ */
+function box_declaration_statements(statements) {
+	/** @type {AST.Statement[]} */
+	const boxes = [];
+	for (const statement of statements) {
+		if (
+			statement.type === 'FunctionDeclaration' &&
+			statement.id &&
+			/** @type {any} */ (statement.metadata)?.boxed_declaration
+		) {
+			const name = statement.id.name;
+			boxes.push(
+				b.stmt(b.assignment('=', b.id(name), b.object([b.prop('init', b.id('v'), b.id(name))]))),
+			);
+		}
+	}
+	return boxes;
+}
+
+/**
+ * The statements that turn a function's or catch clause's boxed parameters
+ * into their boxes, first thing in the body: `mode = { v: mode }`.
+ * @param {AST.Function | AST.CatchClause} node
+ * @returns {AST.Statement[]}
+ */
+function box_param_statements(node) {
+	/** @type {string[] | undefined} */
+	const boxed = /** @type {any} */ (node.metadata)?.boxed_params;
+	if (!boxed) return [];
+	return boxed.map((name) =>
+		b.stmt(b.assignment('=', b.id(name), b.object([b.prop('init', b.id('v'), b.id(name))]))),
+	);
+}
+
+/**
+ * Whether a compiled render body reads `this` or `arguments` of the function
+ * that contains it (through arrows only; a nested `function` has its own).
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function references_function_scope(node) {
+	let found = false;
+	walk(node, null, {
+		_(node, { next }) {
+			if (found) return;
+			if (
+				node.type === 'ThisExpression' ||
+				(node.type === 'Identifier' && node.name === 'arguments')
+			) {
+				found = true;
+				return;
+			}
+			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') {
+				return;
+			}
+			next();
+		},
+	});
+	return found;
+}
+
+/**
  * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
  * @param {TransformClientContext} context
  * @returns {AST.Function | AST.Expression | AST.EmptyStatement}
  */
 function transform_native_tsrx_function(node, context) {
 	node.metadata.native_tsrx_function = true;
-	let prop_statements;
 	const metadata = {};
 	const is_tsrx_element = context.state.is_tsrx_element;
 
@@ -665,11 +828,12 @@ function transform_native_tsrx_function(node, context) {
 				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 			if (!props_param.lazy) {
-				props = replace_lazy_pattern(
+				const pattern = replace_lazy_pattern(
 					/** @type {AST.Pattern} */ (
 						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
 					),
 				);
+				props = pattern;
 			}
 		} else {
 			props = props_param;
@@ -719,19 +883,65 @@ function transform_native_tsrx_function(node, context) {
 		value_params[0] = props;
 	}
 	const params = is_tsrx_element ? [b.id('__anchor'), b.id('__block')] : value_params;
-	const component_body = is_tsrx_element
-		? b.block([...(prop_statements ?? []), ...transformed_body])
-		: b.block([
-				b.return(
-					b.call(
-						'_$_.tsrx_element',
-						b.arrow(
-							[b.id('__anchor'), b.id('__block')],
-							b.block([...(prop_statements ?? []), ...transformed_body]),
-						),
-					),
+	const render_block = b.block([...box_param_statements(node), ...transformed_body]);
+	/** @type {AST.BlockStatement} */
+	let component_body;
+	if (is_tsrx_element) {
+		component_body = render_block;
+	} else if (
+		node.type === 'FunctionDeclaration' &&
+		node_id &&
+		!node.async &&
+		!node.generator &&
+		!is_synthetic_children &&
+		node.params.length <= 1 &&
+		context.path.every(
+			(ancestor) =>
+				ancestor.type === 'Program' ||
+				ancestor.type === 'ExportNamedDeclaration' ||
+				ancestor.type === 'ExportDefaultDeclaration',
+		) &&
+		!references_function_scope(render_block)
+	) {
+		// A module-level component: its render body sees only its props and
+		// module bindings, so it is a module-level function that receives the
+		// props from the element instead of a closure created per instantiation.
+		// A destructuring parameter destructures in the render function's own
+		// signature; the component then takes the props object under `__props`.
+		const render_id = b.id(context.state.scope.generate(node_id.name + '_render'));
+		register_hoisted(context.state.hoisted, render_id.name);
+		/** @type {AST.Pattern[]} */
+		const render_params = [b.id('__anchor'), b.id('__block')];
+		const component_props = props.type === 'Identifier' ? props : b.id('__props');
+		if (node.params.length === 1) {
+			render_params.push(props);
+			params[0] = component_props;
+		}
+		context.state.hoisted.push(
+			b.function_declaration(render_id, render_params, render_block),
+			// `render_component` calls the render function directly through this
+			// symbol-keyed reference (both declarations are hoisted, so the
+			// assignment may precede them in the module body).
+			b.stmt(
+				b.assignment('=', b.member(node_id, b.member(b.id('_$_'), b.id('$r')), true), render_id),
+			),
+		);
+		component_body = b.block([
+			b.return(
+				b.call(
+					'_$_.tsrx_element',
+					render_id,
+					...(node.params.length === 1 ? [component_props] : []),
 				),
-			]);
+			),
+		]);
+	} else {
+		component_body = b.block([
+			b.return(
+				b.call('_$_.tsrx_element', b.arrow([b.id('__anchor'), b.id('__block')], render_block)),
+			),
+		]);
+	}
 	const func =
 		node.type === 'FunctionDeclaration' && node_id
 			? b.function(node_id, params, component_body)
@@ -796,6 +1006,58 @@ function visit_head_element(node, index, context) {
 }
 
 /**
+ * Emits a render block. Its function lives at module level when the body's
+ * captured locals can travel on the block state (`{ _name: name }`, read as
+ * `__prev._name`), so instantiating the component allocates the state object
+ * only, not a closure and its context.
+ * @param {NonNullable<TransformClientState['init']>} init
+ * @param {AST.Statement[]} body
+ * @param {AST.Property[]} initial the state object's properties
+ * @param {TransformClientState} state
+ */
+function emit_render_block(init, body, initial, state) {
+	const fn = b.arrow([b.id('__prev')], b.block(body));
+	const captures = state.to_ts ? null : captured_locals([fn], state.scope, state.hoisted);
+
+	if (captures === null) {
+		init.push(
+			b.stmt(
+				b.call(
+					'_$_.render',
+					initial.length === 0 ? b.thunk(b.block(body)) : fn,
+					...(initial.length === 0 ? [] : [b.object(initial)]),
+				),
+			),
+		);
+		return;
+	}
+
+	const hoisted = state.hoisted;
+	const id = b.id(state.scope.generate('render'));
+	const captured = new Set(captures);
+	const hoisted_fn = rewrite(
+		fn,
+		(name) => (captured.has(name) ? b.member(b.id('__prev'), b.id('_' + name)) : null),
+		new Set(),
+	);
+	hoisted.push(
+		b.function_declaration(
+			id,
+			hoisted_fn.params,
+			/** @type {AST.BlockStatement} */ (hoisted_fn.body),
+		),
+	);
+	register_hoisted(hoisted, id.name);
+	const properties = [
+		...initial,
+		...captures.map((name) => b.prop('init', b.id('_' + name), b.id(name))),
+	];
+	init.push(
+		b.stmt(b.call('_$_.render', id, ...(properties.length === 0 ? [] : [b.object(properties)]))),
+	);
+}
+
+/**
  * @param {NonNullable<TransformClientState['init']>} init
  * @param {NonNullable<TransformClientState['update']>} update
  * @param {TransformClientState} state
@@ -804,19 +1066,11 @@ function apply_updates(init, update, state) {
 	// A compared update keeps its last value in the block state even when it
 	// is alone, so setters never cache on the DOM node.
 	if (update.length === 1 && !update[0].needsPrevTracking && !update[0].initial) {
-		init.push(
-			b.stmt(
-				b.call(
-					'_$_.render',
-					b.thunk(
-						b.block(
-							update.map((u) => {
-								return u.operation();
-							}),
-						),
-					),
-				),
-			),
+		emit_render_block(
+			init,
+			update.map((u) => u.operation()),
+			[],
+			state,
 		);
 	} else {
 		/** @type {AST.Property[]} */
@@ -916,15 +1170,7 @@ function apply_updates(init, update, state) {
 
 		hoist_repeated_tracked_reads(render_statements, state);
 
-		init.push(
-			b.stmt(
-				b.call(
-					'_$_.render',
-					b.arrow([b.id('__prev')], b.block(render_statements)),
-					b.object(initial),
-				),
-			),
-		);
+		emit_render_block(init, render_statements, initial, state);
 	}
 }
 
@@ -1415,6 +1661,37 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
+ * How hoisted control-flow functions receive the locals they capture through
+ * the runtime's single context argument: one local as itself, several as one
+ * object literal built at the call (`{ depth, path }`, the values at that
+ * moment) and destructured in each hoisted signature, so the hoisted code
+ * reads the names it was written with.
+ * @param {string[]} captures
+ * @returns {{ params: AST.Pattern[]; args: AST.Expression[] }}
+ */
+function capture_context(captures) {
+	if (captures.length <= 1) {
+		return { params: captures.map((name) => b.id(name)), args: captures.map((name) => b.id(name)) };
+	}
+	const pattern = captures.map(
+		(name) =>
+			/** @type {AST.AssignmentProperty} */ ({
+				type: 'Property',
+				kind: 'init',
+				key: b.id(name),
+				value: b.id(name),
+				computed: false,
+				shorthand: true,
+				method: false,
+			}),
+	);
+	return {
+		params: [b.object_pattern(pattern)],
+		args: [b.object(captures.map((name) => b.prop('init', b.id(name), b.id(name), false, true)))],
+	};
+}
+
+/**
  * Shared by the plain statement and the `@`-directive forms.
  * @type {Visitor<AST.SwitchStatement | AST.JSXSwitchExpression, TransformClientState, AST.Node>}
  */
@@ -1437,37 +1714,40 @@ const visit_switch_statement = (node, context) => {
 	}
 
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
-	const statements = [];
+	/** @type {{ id: AST.Identifier; body: AST.BlockStatement }[]} */
+	const branches = [];
+	/** @type {AST.SwitchCase[]} */
 	const cases = [];
 
+	// A `@switch` is an `@if` chain with a different selector: the callback
+	// runs the JS `switch` and returns the case function to render (a `@case`
+	// never falls through; an empty one renders nothing), so it shares the if
+	// runtime, which probes it once and renders a static case with no block.
 	let id_gen = 0;
-	let counter = 0;
 	for (const switch_case of node.cases) {
-		const case_body = [];
 		const consequent = switch_case.consequent;
+		/** @type {AST.Statement[]} */
+		const case_body = [];
 
 		if (consequent.length !== 0) {
 			const flattened_consequent = flatten_switch_consequent(consequent);
 			const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
-
-			const block = transform_body(flattened_consequent, {
-				...context,
-				state: { ...context.state, scope: consequent_scope, flush_node: null },
-			});
+			const block = b.block(
+				transform_body(flattened_consequent, {
+					...context,
+					state: { ...context.state, scope: consequent_scope, flush_node: null },
+				}),
+			);
 			const is_default = switch_case.test == null;
-			const consequent_id = context.state.scope.generate(
+			const case_id = context.state.scope.generate(
 				'switch_case_' + (is_default ? 'default' : id_gen),
 			);
-
-			statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], b.block(block))));
-			case_body.push(
-				b.stmt(b.call(b.member(b.id('result'), b.id('push'), false), b.id(consequent_id))),
-			);
+			branches.push({ id: b.id(case_id), body: block });
+			case_body.push(b.return(b.id(case_id)));
 			id_gen++;
+		} else {
+			case_body.push(b.return());
 		}
-		case_body.push(b.return(b.id('result')));
-
-		counter++;
 
 		cases.push(
 			b.switch_case(
@@ -1477,20 +1757,63 @@ const visit_switch_statement = (node, context) => {
 		);
 	}
 
-	statements.push(
-		b.stmt(
-			b.call(
-				'_$_.switch',
-				id,
-				b.thunk(
-					b.block([
-						b.var(b.id('result'), b.array([])),
-						b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
-					]),
-				),
-				root_controlled ? b.true : undefined,
+	const callback = b.block([
+		b.switch(
+			/** @type {AST.Expression} */ (
+				context.visit(node.discriminant, {
+					...context.state,
+					metadata: { ...context.state.metadata },
+				})
 			),
+			cases,
 		),
+	]);
+
+	// Same hoisting as `@if`: module-level selector and cases, their captured
+	// locals passed through the runtime.
+	const hoisted = context.state.hoisted;
+	const captures = captured_locals(
+		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
+		context.state.scope,
+		hoisted,
+		branches.map((branch) => branch.id.name),
+	);
+
+	if (captures !== null) {
+		const { params: context_params, args: context_args } = capture_context(captures);
+		const switch_id = b.id(context.state.scope.generate('switch'));
+		for (const branch of branches) {
+			hoisted.push(
+				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+			);
+			register_hoisted(hoisted, branch.id.name);
+		}
+		hoisted.push(b.function_declaration(switch_id, context_params, callback));
+		register_hoisted(hoisted, switch_id.name);
+		context.state.init?.push(
+			b.stmt(
+				b.call(
+					'_$_.switch',
+					id,
+					switch_id,
+					...(context_args.length > 0
+						? [b.literal(root_controlled), ...context_args]
+						: root_controlled
+							? [b.true]
+							: []),
+				),
+			),
+		);
+		return;
+	}
+
+	/** @type {AST.Statement[]} */
+	const statements = [];
+	for (const branch of branches) {
+		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+	}
+	statements.push(
+		b.stmt(b.call('_$_.switch', id, b.arrow([], callback), root_controlled ? b.true : undefined)),
 	);
 
 	context.state.init?.push(b.block(statements));
@@ -1556,78 +1879,124 @@ const visit_if_statement = (node, context) => {
 	}
 
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
+	/** @type {AST.Statement[]} */
 	const statements = [];
+	/** @type {{ id: AST.Identifier; body: AST.BlockStatement }[]} */
+	const branches = [];
 
-	const consequent_scope =
-		/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
-		context.state.scope;
-	const consequent_body =
-		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent = b.block(
-		transform_body(consequent_body, {
-			...context,
-			state: { ...context.state, flush_node: null, scope: consequent_scope },
-		}),
-	);
-	const consequent_id = context.state.scope.generate('consequent');
-
-	statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], consequent)));
-
-	let alternate_id;
-
-	if (node.alternate !== null) {
-		const alternate = /** @type {AST.Statement} */ (node.alternate);
-		const alternate_scope = context.state.scopes.get(alternate) || context.state.scope;
-		/** @type {AST.Node[]} */
-		let alternate_body =
-			alternate.type === 'IfStatement'
-				? [alternate]
-				: alternate.type === 'BlockStatement'
-					? alternate.body
-					: [alternate];
-		const alternate_block = b.block(
-			transform_body(alternate_body, {
+	/**
+	 * Renders a branch body as a function and returns the statement that
+	 * selects it: the condition callback returns the branch function, which
+	 * identifies the branch to the runtime.
+	 * @param {AST.Statement} branch
+	 * @param {ScopeInterface} scope
+	 * @param {string} name
+	 * @returns {AST.Statement}
+	 */
+	const render_branch = (branch, scope, name) => {
+		const body = branch.type === 'BlockStatement' ? branch.body : [branch];
+		const block = b.block(
+			transform_body(body, {
 				...context,
-				state: { ...context.state, flush_node: null, scope: alternate_scope },
+				state: { ...context.state, flush_node: null, scope },
 			}),
 		);
-		alternate_id = context.state.scope.generate('alternate');
-		statements.push(b.var(b.id(alternate_id), b.arrow([b.id('__anchor')], alternate_block)));
-	}
+		const branch_id = context.state.scope.generate(name);
+		branches.push({ id: b.id(branch_id), body: block });
+		return b.return(b.id(branch_id));
+	};
 
-	/** @type {AST.Statement[]} */
-	const callback_body = [];
+	/**
+	 * Lowers a template `@if` into the JS `if` the condition callback runs. An
+	 * `@else if`, and a branch whose only statement is another `@if`, fold into
+	 * the same block: their conditions are evaluated by this callback and their
+	 * branches become branches of this block.
+	 * @param {AST.IfStatement | AST.JSXIfExpression} if_node
+	 * @param {ScopeInterface} scope
+	 * @returns {AST.IfStatement}
+	 */
+	const lower_chain = (if_node, scope) => {
+		const consequent = /** @type {AST.Statement} */ (if_node.consequent);
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(consequent)) || scope;
+		const nested_consequent = sole_template_if(consequent);
+		const consequent_statement = nested_consequent
+			? b.block([lower_chain(nested_consequent, consequent_scope)])
+			: render_branch(consequent, consequent_scope, 'consequent');
 
-	callback_body.push(
-		b.if(
+		/** @type {AST.Statement | undefined} */
+		let alternate_statement;
+		if (if_node.alternate) {
+			const alternate = /** @type {AST.Statement} */ (if_node.alternate);
+			const alternate_scope =
+				/** @type {ScopeInterface} */ (context.state.scopes.get(alternate)) || scope;
+			const nested_alternate = is_template_if(alternate) ? alternate : sole_template_if(alternate);
+			alternate_statement = nested_alternate
+				? lower_chain(nested_alternate, alternate_scope)
+				: render_branch(alternate, alternate_scope, 'alternate');
+		}
+
+		return b.if(
 			/** @type {AST.Expression} */ (
-				context.visit(node.test, {
+				context.visit(if_node.test, {
 					...context.state,
+					scope,
 					metadata: { ...context.state.metadata },
 				})
 			),
-			b.stmt(b.call(b.id('__render'), b.id(consequent_id))),
-			alternate_id
-				? b.stmt(
-						b.call(
-							b.id('__render'),
-							b.id(alternate_id),
-							node.alternate ? b.literal(false) : undefined,
-						),
-					)
-				: undefined,
-		),
+			consequent_statement,
+			alternate_statement,
+		);
+	};
+
+	const callback = b.block([lower_chain(node, context.state.scope)]);
+
+	// The condition and its branches live at module level; the locals they
+	// capture travel through the runtime's one context slot, bare when there is
+	// one and as an object literal destructured in the hoisted signatures when
+	// there are more (see `capture_context`), so no closures are created per
+	// instantiation of the enclosing component.
+	const hoisted = context.state.hoisted;
+	const captures = captured_locals(
+		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
+		context.state.scope,
+		hoisted,
+		branches.map((branch) => branch.id.name),
 	);
 
-	statements.push(
-		b.stmt(
-			b.call(
-				'_$_.if',
-				id,
-				b.arrow([b.id('__render')], b.block(callback_body)),
-				root_controlled ? b.true : undefined,
+	if (captures !== null) {
+		const { params: context_params, args: context_args } = capture_context(captures);
+		const if_id = b.id(context.state.scope.generate('if'));
+		for (const branch of branches) {
+			hoisted.push(
+				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+			);
+			register_hoisted(hoisted, branch.id.name);
+		}
+		hoisted.push(b.function_declaration(if_id, context_params, callback));
+		register_hoisted(hoisted, if_id.name);
+		context.state.init?.push(
+			b.stmt(
+				b.call(
+					'_$_.if',
+					id,
+					if_id,
+					...(context_args.length > 0
+						? [b.literal(root_controlled), ...context_args]
+						: root_controlled
+							? [b.true]
+							: []),
+				),
 			),
-		),
+		);
+		return;
+	}
+
+	for (const branch of branches) {
+		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+	}
+	statements.push(
+		b.stmt(b.call('_$_.if', id, b.arrow([], callback), root_controlled ? b.true : undefined)),
 	);
 
 	context.state.init?.push(b.block(statements));
@@ -1690,15 +2059,16 @@ const visit_try_statement = (node, context) => {
 								? [handler_param]
 								: []),
 					],
-					b.block(
-						transform_body(handler.body.body, {
+					b.block([
+						...box_param_statements(handler),
+						...transform_body(handler.body.body, {
 							...context,
 							state: {
 								...context.state,
 								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
 							},
 						}),
-					),
+					]),
 				);
 
 	const pending_arg =
@@ -2357,7 +2727,8 @@ const visitors = {
 			is_inside_call_expression(context) ||
 			!context.path.some((node) => is_native_tsrx_function_node(node)) ||
 			is_declared_function_within_component(callee, context) ||
-			is_global_coercion_call(callee, context)
+			is_global_coercion_call(callee, context) ||
+			is_context_method_call(callee, context)
 		) {
 			if (context.state.to_ts) {
 				return context.next();
@@ -2618,14 +2989,38 @@ const visitors = {
 
 		return {
 			...node,
-			declarations: declarations.map(
-				(declarator) => /** @type {AST.VariableDeclarator} */ (context.visit(declarator)),
-			),
+			declarations: declarations.flatMap((declarator) => {
+				const visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
+				// `boxed` / `boxed_names` are set by the analyzer's `box_declarator`.
+				const metadata = /** @type {any} */ (declarator.metadata);
+				if (context.state.to_ts || !metadata) {
+					return [visited];
+				}
+				if (metadata.boxed) {
+					return [box_declarator(visited)];
+				}
+				if (metadata.boxed_names) {
+					return box_pattern_names(visited, metadata.boxed_names, context);
+				}
+				return [visited];
+			}),
 		};
 	},
 
 	VariableDeclarator(node, context) {
 		return context.next();
+	},
+
+	CatchClause(node, context) {
+		const visited = /** @type {AST.CatchClause} */ (context.next() ?? node);
+		if (context.state.to_ts) {
+			return visited;
+		}
+		const boxes = box_param_statements(node);
+		if (boxes.length === 0) {
+			return visited;
+		}
+		return { ...visited, body: { ...visited.body, body: [...boxes, ...visited.body.body] } };
 	},
 
 	FunctionDeclaration(node, context) {
@@ -3414,7 +3809,8 @@ const visitors = {
 				if (needs_pop) {
 					const id = state.flush_node?.();
 
-					init.push(b.stmt(b.call('_$_.pop', id)));
+					// The cursor restore only matters while hydrating.
+					init.push(b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', id))));
 				}
 			}
 
@@ -3543,7 +3939,6 @@ const visitors = {
 								(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
 							) {
 								property = binding.transform.read(property);
-								metadata.tracking = true;
 							}
 						}
 
@@ -3554,41 +3949,17 @@ const visitors = {
 									: b.array([property, scope_class]);
 						}
 
-						if (metadata.tracking) {
-							if (attr_name === 'children') {
-								children_prop = b.prop(
-									'get',
-									b.id('children'),
-									b.function(
-										null,
-										[],
-										b.block([b.return(b.call('_$_.normalize_children', property))]),
-									),
-								);
-								props.push(children_prop);
-								continue;
-							}
-
-							props.push(
-								b.prop(
-									'get',
-									b.key(attr_name),
-									b.function(null, [], b.block([b.return(property)])),
-								),
+						if (attr_name === 'children') {
+							children_prop = b.prop(
+								'init',
+								b.id('children'),
+								b.call('_$_.normalize_children', property),
 							);
-						} else {
-							if (attr_name === 'children') {
-								children_prop = b.prop(
-									'init',
-									b.id('children'),
-									b.call('_$_.normalize_children', property),
-								);
-								props.push(children_prop);
-								continue;
-							}
-
-							props.push(b.prop('init', b.key(attr_name), property));
+							props.push(children_prop);
+							continue;
 						}
+
+						props.push(b.prop('init', b.key(attr_name), property));
 					}
 				} else if (attr.type === 'JSXSpreadAttribute') {
 					props.push(
@@ -3664,41 +4035,7 @@ const visitors = {
 			// We're calling a component from within svg/mathml context
 			const is_with_ns = state.namespace !== DEFAULT_NAMESPACE;
 
-			let object_props;
-			if (is_spreading) {
-				// Optimization: if only one spread with no other props, pass it directly
-				if (props.length === 1 && props[0].type === 'SpreadElement') {
-					object_props = b.call('_$_.spread_props', b.thunk(props[0].argument));
-				} else {
-					// Multiple items: build array of objects/spreads for proper merge order
-					const items = [];
-					let current_obj_props = [];
-
-					for (const prop of props) {
-						if (prop.type === 'SpreadElement') {
-							// Flush accumulated regular props as an object
-							if (current_obj_props.length > 0) {
-								items.push(b.object(current_obj_props));
-								current_obj_props = [];
-							}
-							// Add the spread argument directly
-							items.push(prop.argument);
-						} else {
-							// Accumulate regular properties
-							current_obj_props.push(prop);
-						}
-					}
-
-					// Flush any remaining regular props
-					if (current_obj_props.length > 0) {
-						items.push(b.object(current_obj_props));
-					}
-
-					object_props = b.call('_$_.spread_props', b.thunk(b.array(items)));
-				}
-			} else {
-				object_props = b.object(props);
-			}
+			const object_props = b.object(props);
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or
 			// null) and re-renders when a tracked expression changes.
@@ -3707,7 +4044,7 @@ const visitors = {
 					'_$_.composite',
 					b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
 					id,
-					object_props,
+					b.thunk(object_props),
 				);
 				state.init?.push(
 					is_with_ns
@@ -4031,7 +4368,7 @@ const visitors = {
 
 	BlockStatement(node, context) {
 		/** @type {AST.Statement[]} */
-		const statements = [];
+		const statements = context.state.to_ts ? [] : box_declaration_statements(node.body);
 
 		for (const statement of node.body) {
 			push_statement(
@@ -6274,7 +6611,9 @@ function transform_children(children, context) {
 						!element_visitor_adds_pop &&
 						(has_following_renderable_sibling || is_fragment_root)
 					) {
-						state.init?.push(b.stmt(b.call('_$_.pop', cached)));
+						state.init?.push(
+							b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', cached))),
+						);
 					}
 				}
 			} else if (node.type === 'JSXStyleElement') {
@@ -6455,6 +6794,7 @@ function transform_children(children, context) {
 		}
 
 		state.hoisted.push(b.var(template_id, b.call('_$_.template', ...template_args)));
+		register_hoisted(state.hoisted, template_id);
 	}
 }
 
@@ -6485,6 +6825,7 @@ function create_continue_skip_statements(state, source_node) {
 	state.hoisted.push(
 		b.var(template_id, b.call('_$_.template', join_template(['<!>']), b.literal(0))),
 	);
+	register_hoisted(state.hoisted, template_id);
 
 	return [
 		b.var(node_id, b.call(template_id)),
@@ -6548,6 +6889,7 @@ function transform_body(body, { visit, state }) {
 	}
 
 	const init = [
+		...(state.to_ts ? [] : box_declaration_statements(body)),
 		.../** @type {AST.Statement[]} */ (body_state.init),
 		.../** @type {NonNullable<TransformClientState['final']>} */ (body_state.final),
 	];

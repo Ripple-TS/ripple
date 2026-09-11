@@ -1,4 +1,4 @@
-/** @import { Component } from '#client' */
+/** @import { Component, ContextEntry } from '#client' */
 
 import { active_component } from './runtime.js';
 
@@ -16,25 +16,25 @@ export class Context {
 
 	get() {
 		const component = active_component;
-		const context = this;
 
 		if (component === null) {
 			throw new Error('No active component found, cannot get context');
 		}
-		/** @type {Component | null} */
-		let current_component = component;
 
-		while (current_component !== null) {
-			const context_map = current_component.c;
+		// A component inherits its parent's chain of set entries when it is
+		// created, so only the values that were set are visited, not every
+		// ancestor; the most recent set of a context is nearest the head.
+		/** @type {ContextEntry | null} */
+		let entry = component.c;
 
-			if (context_map?.has(context)) {
-				return context_map.get(context);
+		while (entry !== null) {
+			if (entry.k === this) {
+				return entry.v;
 			}
-
-			current_component = current_component.p;
+			entry = entry.n;
 		}
 
-		return context._v;
+		return this._v;
 	}
 
 	/**
@@ -43,19 +43,12 @@ export class Context {
 	 */
 	set(value) {
 		const component = active_component;
-		const context = this;
 
 		if (component === null) {
 			throw new Error('No active component found, cannot set context');
 		}
 
-		let current_context = component.c;
-
-		if (current_context === null) {
-			current_context = component.c = new Map();
-		}
-
-		current_context.set(context, value);
+		component.c = { k: this, v: value, n: component.c };
 	}
 }
 

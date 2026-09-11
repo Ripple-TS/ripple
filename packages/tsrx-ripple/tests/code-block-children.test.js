@@ -191,7 +191,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const { code, errors } = compile(code_only, 'App.tsrx');
 		expect(errors).toEqual([]);
 		// The statements run in source order inside a real `{ }` block.
-		const block = code.indexOf('{\n\t\t\t\tconst scoped = 1;');
+		const block = code.search(/\{\n\t+const scoped = 1;/);
 		expect(block).toBeGreaterThan(-1);
 		expect(code.indexOf('items.length')).toBeGreaterThan(block);
 		// No inline component for code-only blocks.
@@ -253,8 +253,9 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 	it('scopes code-block children inside control-flow branches (client)', () => {
 		const { code, errors } = compile(inside_if, 'App.tsrx');
 		expect(errors).toEqual([]);
-		// `label` lives inside the inline component within the @if branch.
-		const branch = code.indexOf('var consequent =');
+		// `label` lives inside the inline component within the @if branch (a
+		// module-level function when the branch captures at most one local).
+		const branch = code.search(/(?:function|var) consequent\b/);
 		const label = code.indexOf(`const label = 'shown';`);
 		expect(branch).toBeGreaterThan(-1);
 		expect(label).toBeGreaterThan(branch);

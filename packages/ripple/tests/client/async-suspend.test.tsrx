@@ -336,7 +336,7 @@ describe('async suspense', () => {
 			let double_effect_runs = 0;
 			let quadruple_effect_runs = 0;
 			let times_rendered = 0;
-			function Child(&{ count }: { count: number }) @{
+			function Child({ count: &[count] }: { count: Tracked<number> }) @{
 				const &[double]: [number] = trackAsync(() => {
 					const result = count * 2;
 
@@ -367,10 +367,10 @@ describe('async suspense', () => {
 			}
 
 			function App() @{
-				let &[count] = track(2);
+				let &[count, countTracked] = track(2);
 				<>
 					@try {
-						<Child {count} />
+						<Child count={countTracked} />
 					} @pending {
 						<div class="pending">{'Loading...'}</div>
 					}
@@ -429,7 +429,7 @@ describe('async suspense', () => {
 			let double_effect_runs = 0;
 			let quadruple_effect_runs = 0;
 			let times_rendered = 0;
-			function Child(&{ count }: { count: number }) @{
+			function Child({ count: &[count] }: { count: Tracked<number> }) @{
 				const &[double]: [number] = trackAsync(() => {
 					const result = count * 2;
 
@@ -460,10 +460,10 @@ describe('async suspense', () => {
 			}
 
 			function App() @{
-				let &[count] = track(2);
+				let &[count, countTracked] = track(2);
 				<>
 					@try {
-						<Child {count} />
+						<Child count={countTracked} />
 					} @pending {
 						<div class="pending">{'Loading...'}</div>
 					}

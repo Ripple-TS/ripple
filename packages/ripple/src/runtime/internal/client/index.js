@@ -39,6 +39,7 @@ export {
 	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
+	RENDER_ENTRY as $r,
 } from './constants.js';
 export { event, render_event, delegate } from './events.js';
 export { portal } from './portal.js';
@@ -58,7 +59,6 @@ export {
 	lazy_array_update_pre,
 	set,
 	tracked,
-	spread_props,
 	computed_property,
 	call_property,
 	get_property,
@@ -80,7 +80,6 @@ export {
 	exclude_from_object,
 	derived,
 	tick,
-	proxy_props,
 	with_block,
 	with_ns,
 	handle_error,
@@ -100,7 +99,7 @@ export { if_block as if } from './if.js';
 
 export { try_block as try, get_pending_boundary } from './try.js';
 
-export { switch_block as switch } from './switch.js';
+export { if_block as switch } from './if.js';
 
 export { template, append, text } from './template.js';
 

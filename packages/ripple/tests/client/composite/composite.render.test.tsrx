@@ -1,16 +1,16 @@
-import { RippleArray, flushSync, track, type Component } from 'ripple';
+import { RippleArray, flushSync, track, type Component, type Tracked } from 'ripple';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
-		function Button(&{ count }: { count: number }) @{
+		function Button({ count: &[count] }: { count: Tracked<number> }) @{
 			<div>{count}</div>
 		}
 
 		function App() @{
-			let &[count] = track(0);
+			let &[count, countTracked] = track(0);
 			<>
 				<button onClick={() => count++}>{'Increment'}</button>
-				<Button {count} />
+				<Button count={countTracked} />
 			</>
 		}
 

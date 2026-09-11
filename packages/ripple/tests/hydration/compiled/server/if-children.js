@@ -245,7 +245,7 @@ function RootIfChild(props) {
 
 			__out += '<!--[-->';
 
-			if (props.on) {
+			if (props.on.value) {
 				__out += '<span class="root-if">on</span>';
 			} else {
 				__out += '<span class="root-if">off</span>';
@@ -264,7 +264,7 @@ function RootForChild(props) {
 
 			__out += '<!--[-->';
 
-			for (const item of props.items) {
+			for (const item of props.items.value) {
 				__out += '<span class="root-for">' + _$_.escape(item) + '</span>';
 			}
 
@@ -298,7 +298,7 @@ export function ComponentChildrenWithControlFlowRoots() {
 			{
 				{
 					const comp = RootIfChild;
-					const args = [{ on: lazy_7.value }];
+					const args = [{ on: lazy_7 }];
 
 					_$_.output_push(__out);
 					__out = '';
@@ -307,7 +307,7 @@ export function ComponentChildrenWithControlFlowRoots() {
 
 				{
 					const comp = RootForChild;
-					const args = [{ items: lazy_8.value }];
+					const args = [{ items: lazy_8 }];
 
 					_$_.output_push(__out);
 					__out = '';

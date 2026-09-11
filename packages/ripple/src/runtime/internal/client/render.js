@@ -312,8 +312,9 @@ export function apply_element_spread(element, fn, exclude_prop) {
 
 		/** @type {Record<string, any>} */
 		var current_ref_props = {};
+		var keys = spread_keys(next);
 
-		for (const key in next) {
+		for (const key of keys) {
 			if (key === exclude_prop) continue;
 
 			const ref_fn = next[key];
@@ -346,14 +347,14 @@ export function apply_element_spread(element, fn, exclude_prop) {
 
 		for (let key in remove_listeners) {
 			// Remove event listeners that are no longer present
-			if ((!(key in next) || is_ref_prop(next[key])) && remove_listeners[key]) {
+			if ((!keys.includes(key) || is_ref_prop(next[key])) && remove_listeners[key]) {
 				remove_listeners[key]();
 				remove_listeners[key] = undefined;
 			}
 		}
 
 		for (const key in prev) {
-			if (!(key in next) || is_ref_prop(next[key])) {
+			if (!keys.includes(key) || is_ref_prop(next[key])) {
 				if (key === '#class') {
 					continue;
 				}
@@ -363,7 +364,7 @@ export function apply_element_spread(element, fn, exclude_prop) {
 
 		/** @type {typeof prev} */
 		const current = {};
-		for (const key in next) {
+		for (const key of keys) {
 			if (key === 'children' || key === exclude_prop) continue;
 
 			let value = next[key];
@@ -383,6 +384,19 @@ export function apply_element_spread(element, fn, exclude_prop) {
 		}
 		prev = current;
 	};
+}
+
+/**
+ * The keys an element spread applies: every prop of a props instance, or the
+ * enumerable keys of a plain object.
+ * @param {Record<string | symbol, any>} next
+ * @returns {string[]}
+ */
+function spread_keys(next) {
+	/** @type {string[]} */
+	var keys = [];
+	for (var key in next) keys.push(key);
+	return keys;
 }
 
 /**

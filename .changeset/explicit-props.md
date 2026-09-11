@@ -1,0 +1,6 @@
+---
+'ripple': patch
+'@tsrx/ripple': patch
+---
+
+Component props are plain objects, evaluated once. A call site such as `<Child a={x} b="y" />` compiles to the object literal `{ a: x, b: 'y' }` and passes it to the component as is: no getters, no props class, no Proxy for spreads, no `Props` helpers, and no `Object.keys`/spread lowering, so props behave like any other object in `.tsrx` and `.ts` code alike. A prop expression is evaluated when the component is called, so a child that must follow a change now receives a live value explicitly: a tracked object (`count={countTracked}`) or a derived (`title={track(() => label + count)}`), read through `.value` or unwrapped with lazy destructuring in the parameter list (`{ count: &[count] }`). `count={count}` on a lazy binding passes the current number. `track(fn)` is typed `Derived<V>` with a read-only `value`; `track(fn, get, set)` or `track(fn, undefined, true)` is a `WritableDerived<V>`, and a write to a read-only derived warns in development. A dynamic element (`<{tag} class={x} />`) still updates its attributes reactively. `Props.keys`, `Props.values`, `Props.entries`, `Props.has`, `Props.spread`, `Props.rest`, `Props.ownSymbolKeys` and `Props.ownAllKeys` are removed, as they are plain `Object` operations now.

@@ -2,6 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { track, flushSync, type Tracked } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
+// Declared at module scope on purpose: a module-level component takes the
+// hoisted `_render` lowering, which an in-suite declaration never exercises.
+function ModuleLevelDashboard({ user }) {
+	if (!user) {
+		return <p class="ml-empty">No user found</p>;
+	}
+	return <p class="ml-user">{user}</p>;
+}
+
 describe('returns in restricted scopes', () => {
 	it('throws error when return is used in module scope', () => {
 		expect(
@@ -235,5 +244,19 @@ describe('function returns in client components', () => {
 		container.querySelector('button')?.click();
 		flushSync();
 		expect(container.querySelector('.empty')?.textContent).toBe('No user found');
+	});
+
+	it('renders every branch of a module-level component that returns templates', () => {
+		function App() @{
+			<>
+				<ModuleLevelDashboard user={null} />
+				<ModuleLevelDashboard user="Adam" />
+			</>
+		}
+
+		render(App);
+
+		expect(container.querySelector('.ml-empty')?.textContent).toBe('No user found');
+		expect(container.querySelector('.ml-user')?.textContent).toBe('Adam');
 	});
 });

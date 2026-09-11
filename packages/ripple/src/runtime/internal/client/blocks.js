@@ -75,7 +75,11 @@ export function pre_effect(fn) {
  * @param {number} [flags]
  */
 export function render(fn, state, flags = 0) {
-	return block(RENDER_BLOCK | flags, fn, state);
+	// block(), inline: a render block runs at once.
+	var block = create_block(RENDER_BLOCK | flags, fn, state);
+	run_block(block, true);
+	block.f ^= BLOCK_HAS_RUN;
+	return block;
 }
 
 /**
@@ -241,6 +245,27 @@ function push_block(block, parent_block) {
  * @returns {Block}
  */
 export function block(flags, fn, state = null, co) {
+	var block = create_block(flags, fn, state, co);
+
+	if ((flags & EFFECT_BLOCK) !== 0) {
+		schedule_update(block);
+	} else {
+		run_block(block, true);
+		block.f ^= BLOCK_HAS_RUN;
+	}
+
+	return block;
+}
+
+/**
+ * Allocates a block and links it under the active block without running it.
+ * @param {number} flags
+ * @param {Function} fn
+ * @param {any} [state]
+ * @param {Component} [co]
+ * @returns {Block}
+ */
+export function create_block(flags, fn, state = null, co) {
 	/** @type {Block} */
 	var block = {
 		co: co || active_component,
@@ -273,13 +298,6 @@ export function block(flags, fn, state = null, co) {
 			block.prev = parent_last;
 			parent_block.last = block;
 		}
-	}
-
-	if ((flags & EFFECT_BLOCK) !== 0) {
-		schedule_update(block);
-	} else {
-		run_block(block, true);
-		block.f ^= BLOCK_HAS_RUN;
 	}
 
 	return block;

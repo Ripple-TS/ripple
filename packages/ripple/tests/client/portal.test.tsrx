@@ -1,4 +1,4 @@
-import { Portal, flushSync, track } from 'ripple';
+import { Portal, flushSync, track, type Tracked } from 'ripple';
 
 describe('Portal', () => {
 	afterEach(() => {
@@ -276,8 +276,8 @@ describe('Portal', () => {
 		const target = document.createElement('div');
 		document.body.appendChild(target);
 
-		function Toggle(props) @{
-			@if (props.on) {
+		function Toggle(props: { on: Tracked<boolean> }) @{
+			@if (props.on.value) {
 				<span class="test-portal">{'A'}</span>
 			} @else {
 				<span class="test-portal">{'a'}</span>
@@ -285,11 +285,11 @@ describe('Portal', () => {
 		}
 
 		function TestPortalOrder() @{
-			let &[on] = track(true);
+			let &[on, onTracked] = track(true);
 			<>
 				<button onClick={() => (on = !on)}>{'Toggle'}</button>
 				<Portal {target}>
-					<Toggle {on} />
+					<Toggle on={onTracked} />
 				</Portal>
 				<Portal {target}>
 					<span class="test-portal">{'B'}</span>
@@ -316,18 +316,18 @@ describe('Portal', () => {
 		const target = document.createElement('div');
 		document.body.appendChild(target);
 
-		function List(props) @{
-			@for (const item of props.items; key item) {
+		function List(props: { items: Tracked<number[]> }) @{
+			@for (const item of props.items.value; key item) {
 				<span class="test-portal">{item}</span>
 			}
 		}
 
 		function TestPortalList() @{
-			let &[items] = track([1, 2, 3]);
+			let &[items, itemsTracked] = track([1, 2, 3]);
 			<>
 				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
 				<Portal {target}>
-					<List {items} />
+					<List items={itemsTracked} />
 				</Portal>
 			</>
 		}

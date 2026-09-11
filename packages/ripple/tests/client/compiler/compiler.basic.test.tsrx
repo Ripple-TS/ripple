@@ -213,8 +213,8 @@ export function App() @{
 
 		// Already a string: no String(… ?? '') double wrap around it, and the
 		// scope wrapper sits on the user call, not on the coercion.
-		expect(code).toContain('String(_$_.with_scope(__block, fetchLabel))');
-		expect(code).not.toContain('_$_.with_scope(__block, () => String(');
+		expect(code).toContain('String(_$_.with_scope(__prev.___block, fetchLabel))');
+		expect(code).not.toContain('_$_.with_scope(__prev.___block, () => String(');
 		expect(code).not.toContain('String(String(');
 		expect(code).not.toContain('?? \'\'');
 	});
@@ -1028,6 +1028,7 @@ export function App() @{
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
 		// Template children should take precedence - explicit children prop should be removed
+		// The template children win: one `children` key, holding the element.
 		expect((result.match(/children:/g) || []).length).toBe(1);
 		expect(result).toContain('children: _$_.tsrx_element(');
 	});
@@ -1277,7 +1278,7 @@ export function App() @{
 		},
 	);
 
-	it('uses spread_props for spreads that may contain children', () => {
+	it('spreads props objects as plain object spreads', () => {
 		const source = `
 function Card(props) @{
 	<div>{props.children}</div>
@@ -1292,7 +1293,7 @@ export function App() @{
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' }).code;
 
-		expect(result).toContain('_$_.spread_props(');
+		expect(result).toContain('_$_.render_component(Card, __anchor, { ...props })');
 	});
 
 	it('reads a less-than at line start in element children as literal text', () => {

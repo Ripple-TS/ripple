@@ -3,6 +3,7 @@ export const TSRX_ELEMENT = Symbol.for('ripple.element');
 /**
  * @typedef {{
  * 	render: Function;
+ * 	p: any;
  * 	[TSRX_ELEMENT]: true;
  * }} TSRXElement
  */
@@ -11,20 +12,26 @@ export const TSRX_ELEMENT = Symbol.for('ripple.element');
  * Elements share one constructor so every instance has the same shape and the
  * marker lives on the prototype instead of being defined per allocation.
  * @param {Function} render
+ * @param {any} p
  * @this {TSRXElement}
  */
-function TSRXElementImpl(render) {
+function TSRXElementImpl(render, p) {
 	this.render = render;
+	this.p = p;
 }
 /** @type {any} */ (TSRXElementImpl.prototype)[TSRX_ELEMENT] = true;
 
 /**
- * @param {Function} render
+ * @param {Function} render `(anchor, block, p) => …`
+ * @param {any} [p] a value handed back to `render` as its third argument: a
+ *   module-level component render function receives the component's props
+ *   this way instead of closing over them, so instantiating the component
+ *   allocates no closure
  * @returns {TSRXElement}
  */
-export function tsrx_element(render) {
+export function tsrx_element(render, p = null) {
 	return /** @type {TSRXElement} */ (
-		/** @type {unknown} */ (new /** @type {any} */ (TSRXElementImpl)(render))
+		/** @type {unknown} */ (new /** @type {any} */ (TSRXElementImpl)(render, p))
 	);
 }
 

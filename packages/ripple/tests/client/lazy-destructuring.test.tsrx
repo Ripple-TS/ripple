@@ -24,19 +24,19 @@ describe('lazy destructuring', () => {
 	});
 
 	it('lazily accesses object properties with const', () => {
-		function Inner(&{ a, b }: { a: number; b: string }) @{
+		function Inner({ a: &[a], b: &[b] }: { a: Tracked<number>; b: Tracked<string> }) @{
 			<pre>{`${a}-${b}`}</pre>
 		}
 
 		function Test() @{
-			let &[a] = track(1);
-			let &[b] = track('hello');
+			const a = track(1);
+			const b = track('hello');
 			<>
 				<Inner {a} {b} />
 				<button
 					onClick={() => {
-						a = 2;
-						b = 'world';
+						a.value = 2;
+						b.value = 'world';
 					}}
 				>{'update'}</button>
 			</>
@@ -50,19 +50,25 @@ describe('lazy destructuring', () => {
 	});
 
 	it('lazily accesses array elements with const', () => {
-		function Inner(&{ first, second }: { first: number; second: number }) @{
+		function Inner({
+			first: &[first],
+			second: &[second],
+		}: {
+			first: Tracked<number>;
+			second: Tracked<number>;
+		}) @{
 			<pre>{`${first}-${second}`}</pre>
 		}
 
 		function Test() @{
-			let &[first] = track(10);
-			let &[second] = track(20);
+			const first = track(10);
+			const second = track(20);
 			<>
 				<Inner {first} {second} />
 				<button
 					onClick={() => {
-						first = 30;
-						second = 40;
+						first.value = 30;
+						second.value = 40;
 					}}
 				>{'update'}</button>
 			</>
@@ -113,14 +119,14 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports lazy destructuring in component params with reactivity', () => {
-		function Inner(&{ count }: { count: number }) @{
+		function Inner({ count: &[count] }: { count: Tracked<number> }) @{
 			<pre>{count}</pre>
 		}
 
 		function Test() @{
-			let &[count] = track(0);
+			let &[count, countTracked] = track(0);
 			<>
-				<Inner {count} />
+				<Inner count={countTracked} />
 				<button
 					onClick={() => {
 						count++;

@@ -1,4 +1,5 @@
 import type {
+	Derived,
 	Tracked,
 	PropsWithChildren,
 	PropsWithExtras,
@@ -292,14 +293,14 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('updates explicit text children props reactively', () => {
-		function TextProp(&{ children }: PropsWithChildren<{}>) @{
-			<div class="text-prop">{children}</div>
+		function TextProp(&{ children }: { children: Derived<string> }) @{
+			<div class="text-prop">{children.value}</div>
 		}
 
 		function Basic() @{
 			let &[show] = track(false);
 			<>
-				<TextProp children={show ? 'hello' : ''} />
+				<TextProp children={track(() => (show ? 'hello' : ''))} />
 				<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 			</>
 		}
@@ -672,8 +673,8 @@ describe('all-component children', () => {
 	// an append-into sentinel instead of a `<!>` placeholder per child. A child
 	// whose root is control flow must still re-render at its own position.
 	it('re-renders a root @if child in place, before its siblings', () => {
-		function Toggle(props: { on: boolean }) @{
-			@if (props.on) {
+		function Toggle(props: { on: Tracked<boolean> }) @{
+			@if (props.on.value) {
 				<span>{'A'}</span>
 			} @else {
 				<span>{'a'}</span>
@@ -685,10 +686,10 @@ describe('all-component children', () => {
 		}
 
 		function App() @{
-			let &[on] = track(true);
+			let &[on, onTracked] = track(true);
 			<>
 				<div class="host">
-					<Toggle {on} />
+					<Toggle on={onTracked} />
 					<Trailing />
 				</div>
 				<button onClick={() => (on = !on)}>{'Toggle'}</button>
@@ -706,8 +707,8 @@ describe('all-component children', () => {
 	});
 
 	it('moves a root keyed @for child item to the end of its own list', () => {
-		function List(props: { items: number[] }) @{
-			@for (const item of props.items; key item) {
+		function List(props: { items: Tracked<number[]> }) @{
+			@for (const item of props.items.value; key item) {
 				<span>{item}</span>
 			}
 		}
@@ -717,10 +718,10 @@ describe('all-component children', () => {
 		}
 
 		function App() @{
-			let &[items] = track([1, 2, 3]);
+			let &[items, itemsTracked] = track([1, 2, 3]);
 			<>
 				<div class="host">
-					<List {items} />
+					<List items={itemsTracked} />
 					<Trailing />
 				</div>
 				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>

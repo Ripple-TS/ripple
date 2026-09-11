@@ -1,4 +1,4 @@
-/** @import { Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
+/** @import { AppendIntoAnchor, Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
 /** @typedef {TrackedValue} Tracked */
 /** @typedef {DerivedValue} Derived */
@@ -38,6 +38,7 @@ import {
 	SELECTOR,
 	IF_BLOCK,
 	RELEASED,
+	RENDER_ENTRY,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -50,6 +51,8 @@ import {
 	replace_boundary_request,
 } from './try.js';
 import { is_ripple_object } from './utils.js';
+import { render_value } from './expression.js';
+import { throw_invalid_component_type } from './component.js';
 
 import {
 	iterable_array_from,
@@ -439,7 +442,12 @@ export function run_block(block, first_run = false) {
 			register_teardown(block, res);
 		}
 
-		if (active_dependency !== null || block.d !== null) {
+		if (block.d === null) {
+			// First run (or no dependencies so far): nothing stale to unlink.
+			if (active_dependency !== null) {
+				block.d = active_dependency;
+			}
+		} else {
 			finish_dependencies(block, active_dependency);
 		}
 	} catch (error) {
@@ -474,11 +482,11 @@ class TrackedValue {
 	/**
 	 * @param {any} v
 	 * @param {Block} block
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} [hash]
 	 */
 	constructor(v, block, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		/** @type {Block} */
 		this.b = block;
@@ -532,11 +540,11 @@ class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {Block} block
-	 * @param {{ get?: Function; set?: Function }} a
+	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} [hash]
 	 */
 	constructor(fn, block, a, hash) {
-		/** @type {{ get?: Function; set?: Function }} */
+		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
 		/** @type {Block} */
 		this.b = block;
@@ -603,7 +611,7 @@ if (DEV) {
  * @param {Block} block
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked}
  */
 export function tracked(v, block, hash, get, set) {
@@ -621,7 +629,7 @@ export function tracked(v, block, hash, get, set) {
  * @param {Block} block
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Derived}
  */
 export function derived(fn, block, hash, get, set) {
@@ -639,7 +647,7 @@ export function derived(fn, block, hash, get, set) {
  * @param {Block} b
  * @param {string} [hash]
  * @param {(value: any) => any} [get]
- * @param {(next: any, prev: any) => any} [set]
+ * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Tracked | Derived}
  */
 export function track(v, b, hash, get, set) {
@@ -946,6 +954,8 @@ function create_dependency(tracked) {
 		return existing;
 	}
 
+	// link_subscriber, inline: the first read of every block run lands here.
+	var head = tracked.sb;
 	/** @type {Dependency} */
 	var dependency = {
 		c: tracked.c,
@@ -953,9 +963,12 @@ function create_dependency(tracked) {
 		n: null,
 		r: reaction,
 		sp: null,
-		sn: null,
+		sn: head,
 	};
-	link_subscriber(dependency, tracked);
+	if (head !== null) {
+		head.sp = dependency;
+	}
+	tracked.sb = dependency;
 	return dependency;
 }
 
@@ -1506,7 +1519,12 @@ export function lazy_array_rest(lazy, index = 0) {
 export function get_tracked(tracked) {
 	var value = tracked.__v;
 	if (tracking) {
-		register_dependency(tracked);
+		// register_dependency, inline for the first read of a run.
+		if (active_dependency === null) {
+			active_dependency = create_dependency(tracked);
+		} else {
+			register_dependency(tracked);
+		}
 	}
 
 	if (value === SUSPENSE_PENDING || value === SUSPENSE_REJECTED) {
@@ -1598,14 +1616,33 @@ export function set(tracked, value) {
 		}
 
 		let set = tracked.a.set;
-		if (set !== undefined) {
+		if (typeof set === 'function') {
 			value = untrack(() => set(value, old_value));
+		} else if (DEV && set === undefined && (tracked.f & DERIVED) !== 0) {
+			warn_readonly_derived_write(/** @type {Derived} */ (tracked));
 		}
 
 		tracked.__v = value;
 		tracked.c = increment_clock();
 		mark_subscribers(tracked);
 	}
+}
+
+/** @type {WeakSet<object>} */
+var warned_derived = new WeakSet();
+
+/**
+ * A derived created without a setter is read-only by contract (`Derived<V>`);
+ * a write still lands as a temporary value until the next recompute, so in
+ * development it is reported once per derived.
+ * @param {Derived} derived
+ */
+function warn_readonly_derived_write(derived) {
+	if (warned_derived.has(derived)) return;
+	warned_derived.add(derived);
+	console.warn(
+		'Writing to a read-only derived. Create it with a setter, `track(fn, undefined, true)` or `track(fn, get, set)`, when it is meant to be written.',
+	);
 }
 
 /**
@@ -1668,117 +1705,6 @@ export function flush_sync(fn) {
 		scheduler_mode = previous_scheduler_mode;
 		queue = previous_queue;
 	}
-}
-
-/**
- * @param {() => Object} fn
- * @returns {Object}
- */
-export function spread_props(fn) {
-	return proxy_props(fn);
-}
-
-/**
- * @param {() => Object} fn
- * @returns {Object}
- */
-export function proxy_props(fn) {
-	const memo = derived(fn, /** @type {Block} */ (active_block));
-
-	return new Proxy(
-		{},
-		{
-			get(_, property) {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads (for multiple props)
-				if (is_array(obj)) {
-					// Search in reverse order (right-to-left) since later props override earlier ones
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = obj.length - 1; i >= 0; i--) {
-						item = obj[i];
-						if (property in item) {
-							return item[property];
-						}
-					}
-					return undefined;
-				}
-
-				// Single object case
-				return obj[property];
-			},
-			has(_, property) {
-				if (property === TRACKED_OBJECT) {
-					return true;
-				}
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					for (var i = obj.length - 1; i >= 0; i--) {
-						if (property in obj[i]) {
-							return true;
-						}
-					}
-					return false;
-				}
-
-				return property in obj;
-			},
-			getOwnPropertyDescriptor(_, key) {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = obj.length - 1; i >= 0; i--) {
-						item = obj[i];
-						if (key in item) {
-							return get_descriptor(item, key);
-						}
-					}
-					return undefined;
-				}
-
-				if (key in obj) {
-					return get_descriptor(obj, key);
-				}
-			},
-			ownKeys() {
-				/** @type {Record<string | symbol, any> | Record<string | symbol, any>[]} */
-				var obj = get_derived(memo);
-				/** @type {Record<string | symbol, 1>} */
-				var done = {};
-				/** @type {(string | symbol)[]} */
-				var keys = [];
-
-				// Handle array of objects/spreads
-				if (is_array(obj)) {
-					// Collect all keys from all objects, order doesn't matter
-					/** @type {Record<string | symbol, any>} */
-					var item;
-					for (var i = 0; i < obj.length; i++) {
-						item = obj[i];
-						for (const key of Reflect.ownKeys(item)) {
-							if (done[key]) {
-								continue;
-							}
-							done[key] = 1;
-							keys.push(key);
-						}
-					}
-					return keys;
-				}
-
-				return Reflect.ownKeys(obj);
-			},
-		},
-	);
 }
 
 /**
@@ -1950,7 +1876,7 @@ export function safe_scope(err = 'Cannot access outside of a component context')
 export function create_component_ctx() {
 	return {
 		b: active_block,
-		c: null,
+		c: active_component === null ? null : active_component.c,
 		e: null,
 		m: false,
 		p: active_component,
@@ -1961,14 +1887,7 @@ export function create_component_ctx() {
  * @returns {void}
  */
 export function push_component() {
-	// create_component_ctx, inline: one component per call is the common case.
-	active_component = {
-		b: active_block,
-		c: null,
-		e: null,
-		m: false,
-		p: active_component,
-	};
+	active_component = create_component_ctx();
 }
 
 /**
@@ -1981,6 +1900,137 @@ export function pop_component() {
 		create_deferred_effects(component.e);
 	}
 	active_component = component.p;
+}
+
+/**
+ * Renders a component: `fn(props)` runs under a fresh component context (the
+ * owner of the component's context values and deferred effects), and the
+ * element it returns renders before `anchor`.
+ * @param {Function} fn
+ * @param {Node | AppendIntoAnchor} anchor
+ * @param {Record<string, any>} props
+ * @param {Block | null} [block=active_block]
+ * @returns {void}
+ */
+export function render_component(fn, anchor, props, block = active_block) {
+	if (typeof fn !== 'function') {
+		throw_invalid_component_type(fn);
+	}
+
+	// push_component, inline: one component per call is the common case.
+	var parent = active_component;
+	/** @type {Component} */
+	var component = (active_component = {
+		b: active_block,
+		c: parent === null ? null : parent.c,
+		e: null,
+		m: false,
+		p: parent,
+	});
+
+	// A module-level component carries its render function under a symbol
+	// (see the compiler): calling it directly skips the element the component
+	// would return only to be rendered here.
+	var render = /** @type {any} */ (fn)[RENDER_ENTRY];
+	if (render !== undefined) {
+		render(anchor, block, props);
+	} else {
+		render_value(fn(props), /** @type {ChildNode} */ (anchor), block);
+	}
+
+	// pop_component, inline.
+	component.m = true;
+	if (component.e !== null) {
+		create_deferred_effects(component.e);
+	}
+	active_component = component.p;
+}
+
+/**
+ * A reaction that stands in for a block whose creation is being decided (see
+ * `probe_if`). Flagged destroyed so a write during the probe prunes
+ * its subscription instead of scheduling it.
+ * @type {any}
+ */
+var probe_reaction = { f: DESTROYED, d: null, blocks: null };
+
+/**
+ * Evaluates an if condition once, tracked, against a scratch reaction that is
+ * never scheduled. When the evaluation recorded no dependency the condition
+ * can never re-run (a block with no dependencies is never scheduled), so the
+ * selected branch is rendered straight away, untracked, and true is returned:
+ * the if needs no block. Otherwise the recorded links are unlinked again and
+ * false is returned: the caller creates the block, whose own first run
+ * evaluates the condition and subscribes it. The links are never handed to
+ * the block, because a write during the block's first run (a child's setup,
+ * a nested if) would prune links that still point at this destroyed reaction
+ * before the block could take them over. A throwing condition (a pending
+ * async read) unlinks what it recorded and rethrows.
+ * @param {(x: any) => any} fn
+ * @param {any} x
+ * @param {Node | import('#client').AppendIntoAnchor} node
+ * @returns {boolean} whether the branch was rendered without a block
+ */
+export function probe_if(fn, x, node) {
+	var previous_reaction = active_reaction;
+	var previous_tracking = tracking;
+	var previous_dependency = active_dependency;
+	active_reaction = probe_reaction;
+	tracking = true;
+	active_dependency = null;
+	/** @type {Dependency | null} */
+	var recorded;
+	/** @type {any} */
+	var branch;
+	try {
+		branch = fn(x);
+		recorded = active_dependency;
+	} catch (error) {
+		unlink_dependencies(active_dependency);
+		active_reaction = previous_reaction;
+		tracking = previous_tracking;
+		active_dependency = previous_dependency;
+		throw error;
+	}
+	active_reaction = previous_reaction;
+	active_dependency = previous_dependency;
+	if (recorded !== null) {
+		unlink_dependencies(recorded);
+		tracking = previous_tracking;
+		return false;
+	}
+	// The branch renders untracked, like a branch block would; `tracking` is
+	// restored by the enclosing `run_block` if the branch throws.
+	if (branch !== undefined) {
+		tracking = false;
+		branch(node, x);
+	}
+	tracking = previous_tracking;
+	return true;
+}
+
+/**
+ * @param {Dependency | null} dependency the head of a recorded chain
+ */
+function unlink_dependencies(dependency) {
+	while (dependency !== null) {
+		unlink_subscriber(dependency);
+		dependency = dependency.n;
+	}
+}
+
+/**
+ * Calls `fn(arg)` with tracking off, so reads inside it subscribe nothing.
+ * `tracking` is restored by the enclosing `run_block` if `fn` throws.
+ * @param {(arg: any, context: any) => void} fn
+ * @param {any} arg
+ * @param {any} [context]
+ */
+export function run_untracked(fn, arg, context) {
+	var previous_tracking = tracking;
+	tracking = false;
+	fn(arg, context);
+	tracking = previous_tracking;
 }
 
 /**
@@ -2051,11 +2101,10 @@ export function fallback(value, fallback) {
  * @returns {Record<string | symbol, unknown>}
  */
 export function exclude_from_object(obj, exclude_keys) {
-	var keys = object_keys(obj);
 	/** @type {Record<string | symbol, unknown>} */
 	var new_obj = {};
 
-	for (const key of keys) {
+	for (const key in obj) {
 		if (!exclude_keys.includes(key)) {
 			new_obj[key] = obj[key];
 		}

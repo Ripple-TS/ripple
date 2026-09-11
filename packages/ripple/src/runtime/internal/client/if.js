@@ -1,39 +1,37 @@
 /** @import { AppendIntoAnchor, Block } from '#client' */
 
 import {
+	block,
 	branch,
 	destroy_block,
 	get_first_node,
 	get_last_node,
 	move_block_last,
 	remove_block_dom,
-	render,
 } from './blocks.js';
-import { DETACHED_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
+import { DETACHED_BLOCK, IF_BLOCK, RENDER_BLOCK, UNINITIALIZED } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
-import { active_block, set_tracking } from './runtime.js';
+import { active_block, probe_if, run_untracked } from './runtime.js';
 import { append } from './template.js';
 
 /**
  * The if block renders its branch directly: the block owns the branch's DOM
  * range and its children are the branch's blocks, so no branch block sits in
- * between. Its condition runs tracked; the branch renders untracked, like a
- * branch block would.
+ * between. Its condition runs tracked and returns the branch function to
+ * render (or nothing); the branch renders untracked, like a branch block
+ * would.
  * @typedef {{
  *   start: Node | null;
  *   end: Node | null;
  *   a: Node | AppendIntoAnchor;
- *   fn: (set_branch: (fn: (anchor: Node) => void, flag?: boolean) => void) => void;
- *   c: any;
- *   h: boolean;
+ *   fn: (x: any) => Branch | undefined;
+ *   x: any;
+ *   b: Branch | undefined | typeof UNINITIALIZED;
  *   o: Block | null;
  * }} IfState
+ * @typedef {(anchor: Node, x: any) => void} Branch
  */
-
-/** The if block currently evaluating its condition (see `run_if`). */
-/** @type {IfState | null} */
-var active_if = null;
 
 function noop() {}
 
@@ -136,14 +134,16 @@ function materialize_anchor(state, block) {
 }
 
 /**
+ * Renders `fn` as the if's branch when it is not the current one. The
+ * condition returns the branch function itself, so a branch is identified by
+ * that function and no flag is needed.
  * @param {IfState} state
- * @param {any} condition
- * @param {((anchor: Node) => void) | null} fn
+ * @param {Branch | undefined} fn
  */
-function update_branch(state, condition, fn) {
-	var previous = state.c;
-	if (previous === condition) return;
-	state.c = condition;
+function update_branch(state, fn) {
+	var previous = state.b;
+	if (previous === fn) return;
+	state.b = fn;
 
 	var block = /** @type {Block} */ (active_block);
 
@@ -156,10 +156,8 @@ function update_branch(state, condition, fn) {
 
 	var o = state.o;
 
-	if (fn !== null) {
-		set_tracking(false);
-		fn(/** @type {Node} */ (state.a));
-		set_tracking(true);
+	if (fn !== undefined) {
+		run_untracked(fn, /** @type {Node} */ (state.a), state.x);
 
 		if (o !== null) {
 			move_block_last(o);
@@ -176,35 +174,38 @@ function update_branch(state, condition, fn) {
 }
 
 /**
- * @param {(anchor: Node) => void} fn
- * @param {boolean} [flag]
- */
-function set_branch(fn, flag = true) {
-	var state = /** @type {IfState} */ (active_if);
-	state.h = true;
-	update_branch(state, flag, fn);
-}
-
-/**
  * @param {IfState} state
  */
 function run_if(state) {
-	var previous_if = active_if;
-	active_if = state;
-	state.h = false;
-	try {
-		state.fn(set_branch);
-	} finally {
-		active_if = previous_if;
-	}
-	if (!state.h) {
-		update_branch(state, null, null);
-	}
+	update_branch(state, state.fn(state.x));
+}
+
+/**
+ * State lives on the block instead of per-if closures.
+ * @param {Node | AppendIntoAnchor} anchor
+ * @param {IfState['fn']} fn
+ * @param {any} x
+ * @returns {IfState}
+ */
+function if_block_state(anchor, fn, x) {
+	return {
+		// DOM range of the current branch
+		start: null,
+		end: null,
+		a: anchor,
+		fn,
+		// the captured local a hoisted condition and its branches receive
+		x,
+		// the current branch
+		b: UNINITIALIZED,
+		// block owning the anchor materialized from a sentinel
+		o: null,
+	};
 }
 
 /**
  * @param {Node | AppendIntoAnchor} node
- * @param {(set_branch: (fn: (anchor: Node) => void, flag?: boolean) => void) => void} fn
+ * @param {IfState['fn']} fn
  * @param {boolean} [root_controlled] When true the block renders directly before
  *   the component's `__anchor` (no synthesized `<!>` wrapper), which may be an
  *   append-into sentinel: branches then append into the parent until the if
@@ -212,42 +213,46 @@ function run_if(state) {
  *   the SSR boundary start marker sits at the cursor; we hand it to `append()`
  *   afterwards so it performs the same context-aware boundary advance the
  *   eliminated wrapper's `append()` used to do.
+ * @param {any} [x] The one local a hoisted condition and its branches capture,
+ *   passed to them as their second argument (see the compiler's if lowering).
  * @returns {void}
  */
-export function if_block(node, fn, root_controlled) {
+export function if_block(node, fn, root_controlled, x) {
 	/** @type {Node | undefined} */
 	var boundary;
 	var anchor = node;
 
-	if (hydrating) {
-		if (root_controlled) {
-			// A sentinel resolves to the cursor, the block's SSR boundary marker.
-			anchor = resolve_anchor(node);
-			boundary = /** @type {Node} */ (hydrate_node);
+	if (!hydrating) {
+		// Evaluate the condition before deciding whether the if needs a block:
+		// a condition that read no tracked state has its branch rendered by the
+		// probe itself, directly under the current block, with no if block, no
+		// state, and the branch's DOM and blocks belonging to the enclosing
+		// block like any other content. A dynamic condition gets its block,
+		// whose first run evaluates it again and subscribes it.
+		var rendered;
+		try {
+			rendered = probe_if(fn, x, node);
+		} catch {
+			// A condition that throws (a pending async read) is the block's to
+			// handle: create it and let its first run evaluate the condition.
+			rendered = false;
 		}
-		hydrate_next();
+		if (!rendered) {
+			block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
+		}
+		return;
 	}
 
-	// State lives on the block instead of per-if closures.
-	render(
-		run_if,
-		{
-			// DOM range of the current branch
-			start: null,
-			end: null,
-			a: anchor,
-			fn,
-			// last condition
-			c: UNINITIALIZED,
-			// whether a branch was selected during the current run
-			h: false,
-			// block owning the anchor materialized from a sentinel
-			o: null,
-		},
-		IF_BLOCK,
-	);
+	if (root_controlled) {
+		// A sentinel resolves to the cursor, the block's SSR boundary marker.
+		anchor = resolve_anchor(node);
+		boundary = /** @type {Node} */ (hydrate_node);
+	}
+	hydrate_next();
 
-	if (hydrating && root_controlled) {
+	block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
+
+	if (root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));

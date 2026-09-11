@@ -233,6 +233,18 @@ interface TrackedCallable<V> {
 // Supports destructuring `const [one, two] = track(0);`
 export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
+// A computed value: `track(() => ...)`. Its `value` is read-only unless the
+// call opted into writes (see `WritableDerived`). A `Tracked` satisfies it.
+interface DerivedBase<V> {
+	'#v': V;
+	readonly value: V;
+}
+export type Derived<V> = [V, Derived<V>] & DerivedBase<V> & TrackedCallable<V>;
+// A computed value created with a setter (`track(fn, get, set)`) or with
+// `true` in the setter position: writes land as a temporary value until the
+// next recompute.
+export type WritableDerived<V> = [V, WritableDerived<V>] & TrackedBase<V> & TrackedCallable<V>;
+
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
 export type InferComponent<T> = T extends () => infer R ? (R extends Component<any> ? R : T) : T;
@@ -251,12 +263,17 @@ type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
 // Overload for tracked values - returns the original tracked value type
 export function track<V>(value: Tracked<V>): Tracked<V>;
-// Overload for function values - infers the return type of the function
+// Overload for function values - a read-only derived
 export function track<V>(
 	value: () => V,
 	get?: (v: InferComponent<V>) => InferComponent<V>,
-	set?: (next: InferComponent<V>, prev: InferComponent<V>) => InferComponent<V>,
-): Tracked<InferComponent<V>>;
+): Derived<InferComponent<V>>;
+// Overload for function values with a setter (or `true`) - a writable derived
+export function track<V>(
+	value: () => V,
+	get: ((v: InferComponent<V>) => InferComponent<V>) | undefined,
+	set: ((next: InferComponent<V>, prev: InferComponent<V>) => InferComponent<V>) | true,
+): WritableDerived<InferComponent<V>>;
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
 

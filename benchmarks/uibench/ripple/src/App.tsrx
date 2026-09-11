@@ -1,4 +1,4 @@
-import { track, type Tracked } from 'ripple';
+import { track, type Derived, type Tracked } from 'ripple';
 import { bindSetter } from '../../shared/bridge.js';
 import { INITIAL_SNAPSHOT } from '../../shared/workloads.js';
 
@@ -43,10 +43,10 @@ type RippleSnapshot =
 	| { kind: 'anim'; boxes: RippleAnimBox[] }
 	| { kind: 'tree'; nodes: TreeNode[] };
 
-function TableView(props: { rows: RippleTableRow[] }) @{
+function TableView(props: { rows: Derived<RippleTableRow[]> }) @{
 	<table class="uibench-table" data-kind="table">
 		<tbody>
-			@for (const row of props.rows; key row.id) {
+			@for (const row of props.rows.value; key row.id) {
 				<tr data-id={row.id} class={row.active.value ? 'active' : 'inactive'}>
 					<th>{row.label as string}</th>
 					@for (const cell of row.cells; key cell.id) {
@@ -58,9 +58,9 @@ function TableView(props: { rows: RippleTableRow[] }) @{
 	</table>
 }
 
-function AnimView(props: { boxes: RippleAnimBox[] }) @{
+function AnimView(props: { boxes: Derived<RippleAnimBox[]> }) @{
 	<div class="uibench-anim" data-kind="anim">
-		@for (const box of props.boxes; key box.id) {
+		@for (const box of props.boxes.value; key box.id) {
 			<div class="box" data-id={box.id} style={{ transform: box.transform.value }}></div>
 		}
 	</div>
@@ -79,9 +79,9 @@ function TreeItem(props: { node: TreeNode }) @{
 	</li>
 }
 
-function TreeView(props: { nodes: TreeNode[] }) @{
+function TreeView(props: { nodes: Derived<TreeNode[]> }) @{
 	<ul class="uibench-tree" data-kind="tree">
-		@for (const node of props.nodes; key node.id) {
+		@for (const node of props.nodes.value; key node.id) {
 			<TreeItem node={node} />
 		}
 	</ul>
@@ -132,15 +132,17 @@ export default function App() @{
 		snapshot = adapt(next);
 	});
 
+	// A prop is a value: each view gets a derived so a new snapshot of the same
+	// kind updates the rows in place instead of being read once.
 	@switch (snapshot.kind) {
 		@case 'table': {
-			<TableView rows={snapshot.rows} />
+			<TableView rows={track(() => (snapshot as { rows: RippleTableRow[] }).rows)} />
 		}
 		@case 'anim': {
-			<AnimView boxes={snapshot.boxes} />
+			<AnimView boxes={track(() => (snapshot as { boxes: RippleAnimBox[] }).boxes)} />
 		}
 		@case 'tree': {
-			<TreeView nodes={snapshot.nodes} />
+			<TreeView nodes={track(() => (snapshot as { nodes: TreeNode[] }).nodes)} />
 		}
 	}
 }

@@ -140,15 +140,11 @@ export function IfElseIfChain() {
 			if (lazy_4.value === 'loading') {
 				__out += '<div class="state">Loading...</div>';
 			} else {
-				__out += '<!--[-->';
-
 				if (lazy_4.value === 'success') {
 					__out += '<div class="state">Success!</div>';
 				} else {
 					__out += '<div class="state">Error occurred</div>';
 				}
-
-				__out += '<!--]-->';
 			}
 
 			__out += '<!--]--></div>';

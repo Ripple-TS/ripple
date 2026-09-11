@@ -202,4 +202,98 @@ describe('for statements in SSR', () => {
 			),
 		).toThrow('Continue statements are not allowed inside TSRX template for...of loops');
 	});
+
+	it('renders the loop from a function that returns its template', async () => {
+		function Plain({ items }) {
+			return <ul>
+				@for (const item of items) {
+					<li>{item.text}</li>
+				}
+			</ul>;
+		}
+
+		function Indexed({ items }) {
+			return <ul>
+				@for (const item of items; index i) {
+					<li>{i + ': ' + item.text}</li>
+				}
+			</ul>;
+		}
+
+		function Keyed({ items }) {
+			return <ul>
+				@for (const item of items; key item.id) {
+					<li>{item.text}</li>
+				}
+			</ul>;
+		}
+
+		const Arrow = ({ items }) => <ul>
+			@for (const item of items; index i) {
+				<li>{i + ': ' + item.text}</li>
+			}
+		</ul>;
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<>
+				<Plain {items} />
+				<Indexed {items} />
+				<Keyed {items} />
+				<Arrow {items} />
+			</>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml(
+			'<ul><li>a</li><li>b</li></ul>' + '<ul><li>0: a</li><li>1: b</li></ul>' +
+				'<ul><li>a</li><li>b</li></ul>' +
+				'<ul><li>0: a</li><li>1: b</li></ul>',
+		);
+	});
+
+	it('renders the loop from a template held in a variable', async () => {
+		function Indexed({ items }) {
+			const list = <ul>
+				@for (const item of items; index i) {
+					<li>{i + ': ' + item.text}</li>
+				}
+			</ul>;
+			return list;
+		}
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<Indexed {items} />
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<ul><li>0: a</li><li>1: b</li></ul>');
+	});
+
+	it('renders a bare `@for` held in a variable through an expression', async () => {
+		function Returned({ items }) {
+			const yo = @for (const item of items; index i; key item.id) {
+				<li>{i + ': ' + item.text}</li>
+			};
+			return <ul>{yo}</ul>;
+		}
+
+		function App() @{
+			const items = [
+				{ id: 1, text: 'a' },
+				{ id: 2, text: 'b' },
+			];
+			<Returned {items} />
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<ul><li>0: a</li><li>1: b</li></ul>');
+	});
 });

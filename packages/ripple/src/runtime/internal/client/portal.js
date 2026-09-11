@@ -85,7 +85,7 @@ function run_portal_children(state) {
 	}
 	var children = state.c;
 	if (is_tsrx_element(children)) {
-		children.render(state.a, state.b);
+		children.render(state.a, state.b, children.p);
 	}
 }
 

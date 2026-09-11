@@ -1333,6 +1333,18 @@ function visit_function(node, context) {
 		tracked: false,
 		path: [...context.path],
 	};
+	if (!context.state.to_ts && context.state.mode !== 'server') {
+		const candidates = /** @type {AnalysisResult} */ (context.state.analysis).box_candidates;
+		if (node.params.length > 0) {
+			const scope = context.state.scopes.get(node);
+			if (scope) candidates.push({ node, scope });
+		}
+		// A reassigned function declaration is reboxed at the top of the block
+		// that declares it, where the declaration has already been hoisted.
+		if (node.type === 'FunctionDeclaration' && node.id) {
+			candidates.push({ node, scope: context.state.scope, declaration: true });
+		}
+	}
 
 	if (is_tsrx_component_function(node)) {
 		node.metadata.native_tsrx_function = true;
@@ -1637,6 +1649,212 @@ const visit_try_statement = (node, context) => {
 		context.visit(node.finalizer, state);
 	}
 };
+
+/**
+ * Whether a binding is the target of a `ref={name}` attribute (directly, in
+ * an expression container, or as an element of a ref array): the compiled
+ * setter assigns it when the element mounts and unmounts.
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function is_ref_target(binding) {
+	for (const { node, path } of binding.references) {
+		if (node === binding.node) continue;
+		for (let i = path.length - 1; i >= 0 && i >= path.length - 3; i--) {
+			const ancestor = path[i];
+			if (ancestor.type === 'JSXAttribute') {
+				const name = /** @type {any} */ (ancestor).name;
+				if (name?.type === 'JSXIdentifier' && name.name === 'ref') return true;
+				break;
+			}
+			if (ancestor.type !== 'JSXExpressionContainer' && ancestor.type !== 'ArrayExpression') break;
+		}
+	}
+	return false;
+}
+
+/**
+ * Whether a binding is the left side of a `for...of` / `for...in` statement
+ * (`for (name of list)`), which assigns it on every iteration without the
+ * scope analysis counting that as a reassignment.
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function is_loop_target(binding) {
+	for (const { node, path } of binding.references) {
+		const parent = path.at(-1);
+		if (
+			parent !== undefined &&
+			(parent.type === 'ForOfStatement' || parent.type === 'ForInStatement') &&
+			parent.left === node
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Whether a binding must be boxed: it is written after its declaration
+ * (reassigned in the source, including through a destructuring assignment
+ * target, or assigned by a compiled ref setter) and read from template code,
+ * which the client transform hoists into module-level functions (`@if` and
+ * `@switch` conditions and branches, render blocks). A hoisted function
+ * captures locals by value, so such a variable is compiled to a `{ v }` box
+ * whose identity is stable and whose current value every read and write sees,
+ * exactly as a closure would.
+ * @param {Binding} binding
+ * @returns {boolean}
+ */
+function needs_box(binding) {
+	if (
+		binding.transform !== undefined ||
+		binding.scope.function_depth === 0 ||
+		(!binding.reassigned && !is_ref_target(binding) && !is_loop_target(binding))
+	) {
+		return false;
+	}
+	for (const { node, path } of binding.references) {
+		if (node === binding.node) continue;
+		if (
+			path.some((ancestor) => ancestor.type.startsWith('JSX') && ancestor.type !== 'JSXCodeBlock')
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * The names a parameter or catch pattern declares (defaults excluded).
+ * @param {AST.Pattern} pattern
+ * @param {string[]} into
+ */
+function pattern_names(pattern, into) {
+	switch (pattern.type) {
+		case 'Identifier':
+			into.push(pattern.name);
+			break;
+		case 'AssignmentPattern':
+			pattern_names(pattern.left, into);
+			break;
+		case 'RestElement':
+			pattern_names(pattern.argument, into);
+			break;
+		case 'ObjectPattern':
+			for (const property of pattern.properties) {
+				pattern_names(property.type === 'RestElement' ? property : property.value, into);
+			}
+			break;
+		case 'ArrayPattern':
+			for (const element of pattern.elements) {
+				if (element !== null) pattern_names(element, into);
+			}
+			break;
+	}
+}
+
+/**
+ * Boxes a function declaration that is reassigned later and read from template
+ * code: the transform reboxes the name at the top of the declaring block
+ * (`f = { v: f }`), after which reads and calls go through `.v`.
+ * @param {AST.FunctionDeclaration} node
+ * @param {ScopeInterface} scope the scope the declaration lives in
+ */
+function box_function_declaration(node, scope) {
+	const id = /** @type {AST.Identifier} */ (node.id);
+	const binding = scope.get(id.name);
+	if (binding !== null && binding.node === id && needs_box(binding)) {
+		box_binding(binding);
+		node.metadata = /** @type {any} */ ({ ...node.metadata, boxed_declaration: true });
+	}
+}
+
+/**
+ * Boxes the written, template-read names a function's parameters or a catch
+ * clause's parameter declare: the transform reassigns each to its box as the
+ * first statement of the body (`mode = { v: mode }`), so a rebound parameter
+ * behaves like any boxed `let`.
+ * @param {AST.Function | AST.CatchClause} node
+ * @param {ScopeInterface} scope the scope the parameters are declared in
+ */
+function box_params(node, scope) {
+	/** @type {string[]} */
+	const names = [];
+	if (node.type === 'CatchClause') {
+		if (node.param) pattern_names(node.param, names);
+	} else {
+		for (const param of node.params) pattern_names(param, names);
+	}
+	/** @type {string[]} */
+	const boxed = [];
+	for (const name of names) {
+		const binding = scope.get(name);
+		if (binding !== null && binding.scope === scope && needs_box(binding)) {
+			box_binding(binding);
+			boxed.push(name);
+		}
+	}
+	if (boxed.length > 0) {
+		node.metadata = /** @type {any} */ ({ ...node.metadata, boxed_params: boxed });
+	}
+}
+
+/**
+ * @param {Binding} binding
+ */
+function box_binding(binding) {
+	binding.metadata = /** @type {any} */ ({ ...binding.metadata, boxed: true });
+	binding.transform = {
+		read: (node) => b.member(node ?? b.id(binding.node.name), b.id('v')),
+		assign: (node, value) => b.assignment('=', b.member(node, b.id('v')), value),
+		update: (node) => ({ ...node, argument: b.member(node.argument, b.id('v')) }),
+	};
+}
+
+/**
+ * Boxes the bindings a `let` declarator introduces that `needs_box`. A plain
+ * identifier is boxed in place; a boxed name inside a pattern of any shape is
+ * renamed in the pattern by the client transform and declared as its box next
+ * to it. Runs after the walk, once every reference (a later reassignment, a
+ * `ref` attribute) has been seen; records the decision on the declarator's
+ * metadata.
+ * @param {AST.VariableDeclarator} declarator
+ * @param {ScopeInterface} scope
+ */
+function box_declarator(declarator, scope) {
+	const metadata = /** @type {Record<string, any>} */ (declarator.metadata);
+	const id = declarator.id;
+
+	if (id.type === 'Identifier') {
+		const binding = scope.get(id.name);
+		if (binding !== null && binding.node === id && needs_box(binding)) {
+			box_binding(binding);
+			metadata.boxed = true;
+		}
+		return;
+	}
+
+	if ((id.type !== 'ObjectPattern' && id.type !== 'ArrayPattern') || id.lazy) {
+		return;
+	}
+
+	/** @type {string[]} */
+	const names = [];
+	pattern_names(id, names);
+	/** @type {string[]} */
+	const boxed = [];
+	for (const name of names) {
+		const binding = scope.get(name);
+		if (binding !== null && binding.scope === scope && needs_box(binding)) {
+			box_binding(binding);
+			boxed.push(name);
+		}
+	}
+	if (boxed.length > 0) {
+		metadata.boxed_names = boxed;
+	}
+}
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
 const visitors = {
@@ -2000,6 +2218,21 @@ const visitors = {
 			}
 
 			declarator.metadata = { ...metadata, path: [...context.path] };
+			// A `let` in a loop head gets a fresh binding per iteration, which a
+			// shared box would collapse: closures made in the loop must keep their
+			// own value, so it is never boxed.
+			const parent = context.path.at(-1);
+			const in_loop_head =
+				parent !== undefined &&
+				(parent.type === 'ForStatement' ||
+					parent.type === 'ForInStatement' ||
+					parent.type === 'ForOfStatement');
+			if (!state.to_ts && state.mode !== 'server' && node.kind === 'let' && !in_loop_head) {
+				/** @type {AnalysisResult} */ (state.analysis).box_candidates.push({
+					node: declarator,
+					scope: state.scope,
+				});
+			}
 		}
 	},
 
@@ -2076,6 +2309,16 @@ const visitors = {
 		context.next();
 	},
 
+	CatchClause(node, context) {
+		if (!context.state.to_ts && context.state.mode !== 'server' && node.param) {
+			const scope = context.state.scopes.get(node);
+			if (scope) {
+				/** @type {AnalysisResult} */ (context.state.analysis).box_candidates.push({ node, scope });
+			}
+		}
+		context.next();
+	},
+
 	ForStatement(node, context) {
 		// `for`/`for…in`/`while`/`do…while` have no template directive form, so
 		// they are always ordinary JavaScript — render via `@for` (a `for…of`) or
@@ -2141,10 +2384,6 @@ const visitors = {
 
 		if (context.state.regular_js || node.metadata?.regular_js) {
 			return context.next({ ...context.state, regular_js: true, component: undefined });
-		}
-
-		if (!is_inside_component(context)) {
-			return context.next();
 		}
 
 		infer_for_item_type_annotation(node, context);
@@ -2965,6 +3204,7 @@ export function analyze(ast, filename, options = {}) {
 		errors,
 		comments,
 		stylesheets: [],
+		box_candidates: [],
 		textChildExpressions:
 			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)
 				? new Map()
@@ -2992,6 +3232,17 @@ export function analyze(ast, filename, options = {}) {
 	);
 
 	validate_server_module_imports(analysis, filename, collect);
+
+	// Boxing needs every reference of a binding, so it runs after the walk.
+	for (const { node, scope: candidate_scope, declaration } of analysis.box_candidates) {
+		if (node.type === 'VariableDeclarator') {
+			box_declarator(node, candidate_scope);
+		} else if (declaration) {
+			box_function_declaration(/** @type {AST.FunctionDeclaration} */ (node), candidate_scope);
+		} else {
+			box_params(node, candidate_scope);
+		}
+	}
 
 	// Style scopes need every element's ancestor path, which the walk above
 	// records, so they are resolved last.
