@@ -107,17 +107,17 @@ catalogs:
       specifier: ^0.1.70
       version: 0.1.70
     '@tsrx/eslint-plugin':
-      specifier: ^0.3.136
-      version: 0.3.136
+      specifier: ^0.3.137
+      version: 0.3.137
     '@tsrx/language-server':
-      specifier: ^0.3.136
-      version: 0.3.136
+      specifier: ^0.3.137
+      version: 0.3.137
     '@tsrx/prettier-plugin':
-      specifier: ^0.3.136
-      version: 0.3.136
+      specifier: ^0.3.137
+      version: 0.3.137
     '@tsrx/typescript-plugin':
-      specifier: ^0.3.136
-      version: 0.3.136
+      specifier: ^0.3.137
+      version: 0.3.137
     '@types/bun':
       specifier: ^1.3.9
       version: 1.3.10
@@ -271,7 +271,7 @@ importers:
         version: 0.1.70(@typescript-eslint/types@8.56.1)
       '@tsrx/prettier-plugin':
         specifier: catalog:default
-        version: 0.3.136(@typescript-eslint/types@8.56.1)(prettier@3.9.6)
+        version: 0.3.137(@typescript-eslint/types@8.56.1)(prettier@3.9.6)
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:packages/tsrx-ripple
@@ -2195,13 +2195,13 @@ importers:
         version: 4.2.1(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0))
       '@tsrx/eslint-plugin':
         specifier: catalog:default
-        version: 0.3.136(@tsrx/eslint-parser@0.3.136(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
+        version: 0.3.137(@tsrx/eslint-parser@0.3.137(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
       '@tsrx/language-server':
         specifier: catalog:default
-        version: 0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@typescript-eslint/parser':
         specifier: catalog:default
         version: 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
@@ -2263,7 +2263,7 @@ importers:
         version: link:../packages/vite-plugin
       '@tsrx/typescript-plugin':
         specifier: catalog:default
-        version: 0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+        version: 0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       ripple:
         specifier: workspace:*
         version: link:../packages/ripple
@@ -4240,29 +4240,29 @@ packages:
   '@tsrx/core@0.1.70':
     resolution: {integrity: sha512-jeeKk/ch9cAPZGHiNj2wW/ZefBKdtPho4X4szcAKk1uvGoGz/dQnJcIWxZc6QnyolEfFzz2Mo0l4hJWVOMQeXA==}
 
-  '@tsrx/eslint-parser@0.3.136':
-    resolution: {integrity: sha512-uOgdWEfg10bF5016kFtlqaw3qHIJpVJr9MEY1c9H0oAu/Y3NWrn6hUPetn93Y34UeUgFXHMC04NZUzgimP75iw==}
+  '@tsrx/eslint-parser@0.3.137':
+    resolution: {integrity: sha512-c0nYp6dt74o5IDaxWByG7d12QUDlqHttOtG0B78/ophsM7SLuGXmItz/9jMNWhcCXS+EIcl/qeo2fbmdDql8CQ==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       eslint: '>=9.0.0'
 
-  '@tsrx/eslint-plugin@0.3.136':
-    resolution: {integrity: sha512-kkvAuGaLy2kylEO9kPxK1y9+U5wTvCGWkGQ5l9YgeuExpV5D/opEbbz5TOdZtMb20skJD9GAoDIziVUcpawnNw==}
+  '@tsrx/eslint-plugin@0.3.137':
+    resolution: {integrity: sha512-/nwdqp1jWpOSLkhYegdEopolzOlMx1w6lCVmup+ZQTFMGToLXHBzmMmZ5TxZ118N4wE4tmEpLgvksvP0Woncgw==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
-      '@tsrx/eslint-parser': 0.3.136
+      '@tsrx/eslint-parser': 0.3.137
       '@typescript-eslint/parser': ^8.56.1
       eslint: '>=9.0.0'
 
-  '@tsrx/language-server@0.3.136':
-    resolution: {integrity: sha512-lKTeg49M7K3UhSzin6idLAwtANCQ3qOA7s8n/vyDrRPiNTsMw87ybLBpez7q9PQR33ltpp9mE0xJulqvYuiEaQ==}
+  '@tsrx/language-server@0.3.137':
+    resolution: {integrity: sha512-WFcwXiKqHIfLfste4RgTNO2Au0JiVKiacWZ0zyHQs9w7aESug75BIDylwaUjcUU/frbU8kma+IwrOcXVNls9CQ==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
       typescript: ^5.9.3
 
-  '@tsrx/prettier-plugin@0.3.136':
-    resolution: {integrity: sha512-Q4IaxDbw/Hv2ip3qFj8nNI7UO2e3gqRkMZMdo6NMIvXdWMgr282o/fGNdxOR0OYLMlHJqBnjyZqzqLVMHFzs1w==}
+  '@tsrx/prettier-plugin@0.3.137':
+    resolution: {integrity: sha512-3TXdOEaCjXRhW50U2vJ/pdVR6ft3qSsERw3bMJME/qYpcVNocLdh+0Ffr6Lgu1r66KAuTU0WTUwtHLSPGr3hGw==}
     peerDependencies:
       prettier: '>=2.0.0'
 
@@ -4297,8 +4297,8 @@ packages:
       '@solidjs/web': 2.0.0-rc.3
       solid-js: 2.0.0-rc.3
 
-  '@tsrx/typescript-plugin@0.3.136':
-    resolution: {integrity: sha512-nDW+Xfz39tT/PNh5tPcmqk5FRuSOX59crJwsD88uctE1aMvfxUCNP16qcOe8rDyNJJ/d6TAfBB2h0m97SGvHaA==}
+  '@tsrx/typescript-plugin@0.3.137':
+    resolution: {integrity: sha512-YLIG73qD48Cmhm6Sqb6qacpQH5aMp8Kq8wyNJLyKBV1W82gHooP1TOwyLwmakN5ks95GLKjQoKfGxCijtuyHuw==}
     hasBin: true
     peerDependencies:
       '@tsrx/preact': 0.1.70
@@ -9133,23 +9133,23 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/eslint-parser@0.3.136(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@tsrx/eslint-parser@0.3.137(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
     dependencies:
       '@tsrx/core': 0.1.70(@typescript-eslint/types@8.56.1)
       eslint: 10.3.0(jiti@2.6.1)(supports-color@7.2.0)
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/eslint-plugin@0.3.136(@tsrx/eslint-parser@0.3.136(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@tsrx/eslint-plugin@0.3.137(@tsrx/eslint-parser@0.3.137(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0)))(@typescript-eslint/parser@8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))':
     dependencies:
-      '@tsrx/eslint-parser': 0.3.136(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
+      '@tsrx/eslint-parser': 0.3.137(@typescript-eslint/types@8.56.1)(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))
       '@typescript-eslint/parser': 8.56.1(eslint@10.3.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       eslint: 10.3.0(jiti@2.6.1)(supports-color@7.2.0)
 
-  '@tsrx/language-server@0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
+  '@tsrx/language-server@0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(@volar/language-service@2.4.28)(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
     dependencies:
       '@tsrx/core': 0.1.70(@typescript-eslint/types@8.56.1)
-      '@tsrx/typescript-plugin': 0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
+      '@tsrx/typescript-plugin': 0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)
       '@volar/language-server': 2.4.28
       typescript: 5.9.3
       volar-service-css: 0.0.70(@volar/language-service@2.4.28)
@@ -9166,7 +9166,7 @@ snapshots:
       - '@volar/language-service'
       - octane
 
-  '@tsrx/prettier-plugin@0.3.136(@typescript-eslint/types@8.56.1)(prettier@3.9.6)':
+  '@tsrx/prettier-plugin@0.3.137(@typescript-eslint/types@8.56.1)(prettier@3.9.6)':
     dependencies:
       '@tsrx/core': 0.1.70(@typescript-eslint/types@8.56.1)
       prettier: 3.9.6
@@ -9190,7 +9190,7 @@ snapshots:
 
   '@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1)':
     dependencies:
-      '@tsrx/core': 0.1.69(@typescript-eslint/types@8.56.1)
+      '@tsrx/core': 0.1.70(@typescript-eslint/types@8.56.1)
       esrap: 2.3.2(@typescript-eslint/types@8.56.1)
       is-reference: 3.0.3
       source-map: 0.7.6
@@ -9239,7 +9239,7 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  '@tsrx/typescript-plugin@0.3.136(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
+  '@tsrx/typescript-plugin@0.3.137(@tsrx/react@0.2.70(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.1.65(@typescript-eslint/types@8.56.1))(@tsrx/solid@0.1.70(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)))(typescript@5.9.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       '@volar/typescript': 2.4.28
