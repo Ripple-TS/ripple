@@ -166,26 +166,6 @@ export function get_tsrx_component_function_name(node, context) {
 }
 
 /**
- * Keeps the body shape an arrow component was written with. A concise
- * `({ items }) => <ul>…</ul>` lowers to nothing but its `tsrx_element(…)`
- * wrapper, so re-emitting it as `=> { return … }` would only add noise; an
- * arrow written with a block (or a `@{ … }`) body keeps its block.
- * @param {AST.Function} node
- * @param {AST.BlockStatement} body
- * @returns {AST.BlockStatement | AST.Expression}
- */
-export function component_arrow_body(node, body) {
-	if (node.body?.type === 'BlockStatement' || node.body?.type === 'JSXCodeBlock') {
-		return body;
-	}
-	const [statement] = body.body;
-	if (body.body.length === 1 && statement.type === 'ReturnStatement' && statement.argument) {
-		return statement.argument;
-	}
-	return body;
-}
-
-/**
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
@@ -196,9 +176,7 @@ export function is_tsrx_component_function(node) {
 			(node.type === 'FunctionDeclaration' ||
 				node.type === 'FunctionExpression' ||
 				node.type === 'ArrowFunctionExpression') &&
-			// A `@{ … }` body is always a component body, even when it renders
-			// nothing; every other shape is one when it returns a template.
-			(node.body?.type === 'JSXCodeBlock' || function_has_native_tsrx_return(node)))
+			node.body?.type === 'JSXCodeBlock')
 	);
 }
 

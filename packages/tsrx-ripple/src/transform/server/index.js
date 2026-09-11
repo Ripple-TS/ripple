@@ -54,7 +54,6 @@ import {
 	is_native_tsrx_function_node,
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
-	component_arrow_body,
 	is_tsrx_component_function,
 	is_style_element,
 	lower_dynamic_element,
@@ -1309,7 +1308,7 @@ function transform_native_tsrx_function(node, context) {
 		: b.block([b.return(b.call('_$_.tsrx_element', b.arrow([], b.block(body_statements))))]);
 
 	if (node.type === 'ArrowFunctionExpression') {
-		const fn = b.arrow(component_params, component_arrow_body(node, component_body));
+		const fn = b.arrow(component_params, component_body);
 		fn.metadata.native_tsrx_function = true;
 		return fn;
 	}
