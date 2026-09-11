@@ -220,6 +220,61 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).toContain('_$_.if(__anchor, if_1, true, { lazy, div, clicks });');
 	});
 
+	it('boxes rebound parameters, nested pattern names, catch parameters and pattern targets', () => {
+		const { code } = compile(
+			`import { track, trackAsync } from 'ripple';
+			export function Panel({ mode = 'view' }) @{
+				let &[show] = track(true);
+				const edit = () => { mode = 'edit'; };
+				@if (show) {
+					<button onClick={edit}>{mode}</button>
+				}
+			}
+			export function Names(props) @{
+				let &[count] = track(0);
+				let { user: { first, last = 'none' }, tags: [tag] } = props;
+				const rename = () => { first = 'renamed'; tag = 't2'; };
+				<span onClick={rename}>{first + last + tag + count}</span>
+			}
+			export function Loader() @{
+				let &[n] = track(0);
+				@try {
+					let &[data] = trackAsync(() => Promise.resolve('x'));
+					<p>{data}</p>
+				} @catch (err) {
+					const clear = () => { err = null; };
+					<button onClick={clear}>{String(err) + n}</button>
+				}
+			}
+			export function Pair() @{
+				let &[tick] = track(0);
+				let label = 'a';
+				let other = 'x';
+				const swap = () => { [label] = ['b']; ({ other } = { other: 'y' }); for (label of ['c']) {} };
+				<span onClick={swap}>{label + other + tick}</span>
+			}`,
+			'App.tsrx',
+		);
+
+		// A parameter is reboxed first thing in the body and the branch reads the box.
+		expect(code).toContain('mode = { v: mode };');
+		expect(code).toContain("mode.v = 'edit';");
+		expect(code).toContain('() => mode.v');
+		// Boxed names inside a pattern are renamed there and declared as boxes beside it.
+		expect(code).toContain(
+			"let { user: { first: first_1, last = 'none' }, tags: [tag_1] } = props,\n\t\tfirst = { v: first_1 },\n\t\ttag = { v: tag_1 };",
+		);
+		expect(code).toContain('__prev._first.v');
+		// A catch parameter is reboxed at the top of the handler.
+		expect(code).toContain('err = { v: err };');
+		expect(code).toContain('err.v = null;');
+		// A destructuring assignment target writes the box.
+		expect(code).toContain("let label = { v: 'a' };");
+		expect(code).toContain('label.v = $$value[0]');
+		expect(code).toContain('other.v = $$value.other');
+		expect(code).toContain("for (label.v of ['c'])");
+	});
+
 	it('leaves a let alone that template code only reads', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';

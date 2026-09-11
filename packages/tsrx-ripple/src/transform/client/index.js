@@ -569,6 +569,14 @@ function visit_function(node, context) {
 		body = { ...body, body: [b.var('__block', b.call('_$_.scope')), ...body.body] };
 	}
 
+	const boxes = box_param_statements(node);
+	if (boxes.length > 0) {
+		body =
+			body.type === 'BlockStatement'
+				? { ...body, body: [...boxes, ...body.body] }
+				: b.block([...boxes, b.return(body)]);
+	}
+
 	return {
 		...node,
 		params: transformed_params.map((param) => context.visit(param, state)),
@@ -654,54 +662,75 @@ function box_declarator(declarator) {
 }
 
 /**
- * Expands a flat `let` pattern with boxed names into one declarator per name:
- * `let { a, b = 1 } = obj` where `a` is boxed becomes
- * `let init = obj, a = { v: init.a }, b = init.b === undefined ? 1 : init.b`.
- * Reads happen in source order, so getters on the source fire as before.
+ * Boxes the written names of a `let` pattern: each is renamed inside the
+ * pattern and declared as its box right after it, so `let { a: [first] } = x`
+ * with `first` boxed becomes `let { a: [first_1] } = x, first = { v: first_1 }`.
+ * JavaScript keeps doing the destructuring, defaults and rest included.
  * @param {AST.VariableDeclarator} declarator the visited declarator
+ * @param {string[]} names
  * @param {TransformClientContext} context
  * @returns {AST.VariableDeclarator[]}
  */
-function expand_boxed_pattern(declarator, context) {
-	const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (declarator.id);
-	const source = b.id(context.state.scope.generate('init'));
-	/** @type {AST.VariableDeclarator[]} */
-	const declarators = [b.declarator(source, declarator.init ?? b.void0)];
-	const elements = pattern.type === 'ObjectPattern' ? pattern.properties : pattern.elements;
-
-	for (let index = 0; index < elements.length; index++) {
-		const element = elements[index];
-		if (element === null) continue;
-		/** @type {AST.Expression} */
-		let read;
-		/** @type {AST.Pattern} */
-		let target;
-		if (element.type === 'Property') {
-			read = b.member(
-				source,
-				/** @type {AST.Expression} */ (element.key),
-				element.computed || element.key.type !== 'Identifier',
-			);
-			target = /** @type {AST.Pattern} */ (element.value);
-		} else {
-			read = b.member(source, b.literal(index), true);
-			target = /** @type {AST.Pattern} */ (element);
-		}
-		/** @type {AST.Identifier} */
-		let name;
-		if (target.type === 'AssignmentPattern') {
-			name = /** @type {AST.Identifier} */ (target.left);
-			read = b.conditional(b.binary('===', read, b.void0), target.right, read);
-		} else {
-			name = /** @type {AST.Identifier} */ (target);
-		}
-		const binding = context.state.scope.get(name.name);
-		declarators.push(
-			b.declarator(name, is_boxed(binding) ? b.object([b.prop('init', b.id('v'), read)]) : read),
-		);
+function box_pattern_names(declarator, names, context) {
+	/** @type {Map<string, AST.Identifier>} */
+	const renamed = new Map();
+	for (const name of names) {
+		renamed.set(name, b.id(context.state.scope.generate(name)));
 	}
-
+	/**
+	 * @template {AST.Node} T
+	 * @param {T} node
+	 * @returns {T}
+	 */
+	const rename = (node) => {
+		switch (node.type) {
+			case 'Identifier': {
+				const fresh = renamed.get(node.name);
+				return fresh === undefined ? node : /** @type {T} */ (/** @type {AST.Node} */ (fresh));
+			}
+			case 'AssignmentPattern':
+				return { ...node, left: rename(node.left) };
+			case 'RestElement':
+				return { ...node, argument: rename(node.argument) };
+			case 'ObjectPattern':
+				return {
+					...node,
+					properties: node.properties.map((property) =>
+						property.type === 'RestElement'
+							? rename(property)
+							: { ...property, value: rename(property.value), shorthand: false },
+					),
+				};
+			case 'ArrayPattern':
+				return {
+					...node,
+					elements: node.elements.map((element) => (element === null ? null : rename(element))),
+				};
+			default:
+				return node;
+		}
+	};
+	/** @type {AST.VariableDeclarator[]} */
+	const declarators = [{ ...declarator, id: rename(declarator.id) }];
+	for (const [name, fresh] of renamed) {
+		declarators.push(b.declarator(b.id(name), b.object([b.prop('init', b.id('v'), fresh)])));
+	}
 	return declarators;
+}
+
+/**
+ * The statements that turn a function's or catch clause's boxed parameters
+ * into their boxes, first thing in the body: `mode = { v: mode }`.
+ * @param {AST.Function | AST.CatchClause} node
+ * @returns {AST.Statement[]}
+ */
+function box_param_statements(node) {
+	/** @type {string[] | undefined} */
+	const boxed = /** @type {any} */ (node.metadata)?.boxed_params;
+	if (!boxed) return [];
+	return boxed.map((name) =>
+		b.stmt(b.assignment('=', b.id(name), b.object([b.prop('init', b.id('v'), b.id(name))]))),
+	);
 }
 
 /**
@@ -829,7 +858,7 @@ function transform_native_tsrx_function(node, context) {
 		value_params[0] = props;
 	}
 	const params = is_tsrx_element ? [b.id('__anchor'), b.id('__block')] : value_params;
-	const render_block = b.block(transformed_body);
+	const render_block = b.block([...box_param_statements(node), ...transformed_body]);
 	/** @type {AST.BlockStatement} */
 	let component_body;
 	if (is_tsrx_element) {
@@ -2005,15 +2034,16 @@ const visit_try_statement = (node, context) => {
 								? [handler_param]
 								: []),
 					],
-					b.block(
-						transform_body(handler.body.body, {
+					b.block([
+						...box_param_statements(handler),
+						...transform_body(handler.body.body, {
 							...context,
 							state: {
 								...context.state,
 								scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
 							},
 						}),
-					),
+					]),
 				);
 
 	const pending_arg =
@@ -2936,7 +2966,7 @@ const visitors = {
 			...node,
 			declarations: declarations.flatMap((declarator) => {
 				const visited = /** @type {AST.VariableDeclarator} */ (context.visit(declarator));
-				// `boxed` / `boxed_pattern` are set by the analyzer's `box_declarator`.
+				// `boxed` / `boxed_names` are set by the analyzer's `box_declarator`.
 				const metadata = /** @type {any} */ (declarator.metadata);
 				if (context.state.to_ts || !metadata) {
 					return [visited];
@@ -2944,8 +2974,8 @@ const visitors = {
 				if (metadata.boxed) {
 					return [box_declarator(visited)];
 				}
-				if (metadata.boxed_pattern) {
-					return expand_boxed_pattern(visited, context);
+				if (metadata.boxed_names) {
+					return box_pattern_names(visited, metadata.boxed_names, context);
 				}
 				return [visited];
 			}),
@@ -2954,6 +2984,18 @@ const visitors = {
 
 	VariableDeclarator(node, context) {
 		return context.next();
+	},
+
+	CatchClause(node, context) {
+		const visited = /** @type {AST.CatchClause} */ (context.next() ?? node);
+		if (context.state.to_ts) {
+			return visited;
+		}
+		const boxes = box_param_statements(node);
+		if (boxes.length === 0) {
+			return visited;
+		}
+		return { ...visited, body: { ...visited.body, body: [...boxes, ...visited.body.body] } };
 	},
 
 	FunctionDeclaration(node, context) {

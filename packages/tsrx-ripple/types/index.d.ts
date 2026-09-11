@@ -48,8 +48,14 @@ export interface AnalysisResult extends CoreAnalysisResult {
 	stylesheets: AST.CSS.StyleSheet[];
 	/** Authored JSX child expressions collected during analysis. */
 	textChildExpressions?: Map<string, { expression: AST.Expression; container: AST.Node }>;
-	/** `let` declarators of a client build, boxed after the walk when template code writes them. */
-	let_declarators: { declarator: AST.VariableDeclarator; scope: ScopeInterface }[];
+	/**
+	 * `let` declarators, functions and catch clauses of a client build, whose
+	 * written, template-read bindings are boxed after the walk.
+	 */
+	box_candidates: {
+		node: AST.VariableDeclarator | AST.Function | AST.CatchClause;
+		scope: ScopeInterface;
+	}[];
 }
 
 /**
