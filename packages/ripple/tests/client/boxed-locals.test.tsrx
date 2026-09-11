@@ -328,7 +328,8 @@ describe('boxed locals', () => {
 			let other = 'x';
 			let last = '';
 			swap = () => {
-				[label, other] = ['b', 'y'];
+				[label] = ['b'];
+				({ other } = { other: 'y' });
 				for (last of ['c', 'd']) {
 					// the loop variable is the boxed let
 				}
