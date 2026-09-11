@@ -197,7 +197,8 @@ export function is_tsrx_component_function(node) {
 				node.type === 'FunctionExpression' ||
 				node.type === 'ArrowFunctionExpression') &&
 			// A `@{ … }` body is always a component body, even when it renders
-			// nothing; every other shape is one when it returns a template.
+			// nothing; every other shape is one when it has a bare template return
+			// (`return <…>` / `() => <…>`). Nested `return <…>` stays ordinary JS.
 			(node.body?.type === 'JSXCodeBlock' || function_has_native_tsrx_return(node)))
 	);
 }
@@ -418,7 +419,10 @@ export function function_has_native_tsrx_return(node) {
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	return statements_contain_native_tsrx_return(body);
+	// Only a top-level `return <…>` promotes the function. Nested template
+	// returns (inside `if`/`switch`/`try`) stay ordinary JavaScript so the
+	// function remains value-producing and `render_value` mounts them.
+	return statements_have_bare_native_tsrx_return(body);
 }
 
 /**
@@ -644,6 +648,24 @@ function is_renderable_component_return_argument(argument) {
 		);
 	}
 	return false;
+}
+
+/**
+ * @param {any[]} statements
+ * @returns {boolean}
+ */
+function statements_have_bare_native_tsrx_return(statements) {
+	let has_top_level = false;
+	for (const statement of statements) {
+		if (statement.type === 'ReturnStatement') {
+			if (is_native_tsrx_template_node(statement.argument)) {
+				has_top_level = true;
+			}
+		} else if (statement_contains_native_tsrx_return(statement)) {
+			return false;
+		}
+	}
+	return has_top_level;
 }
 
 /**

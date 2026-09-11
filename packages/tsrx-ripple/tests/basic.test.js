@@ -2175,8 +2175,26 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect(client.code).toContain('return _$_.tsrx_element((__anchor, __block) =>');
 		expect(client.code).not.toContain('return_guard');
 		expect(client.code).not.toContain('_$_.if(');
+		expect(client.code).not.toContain('_$_.$r');
+		expect(client.code).not.toContain('Dashboard_render');
 		expect(server.code).toContain('if (!_$_.lazy_array_get(lazy, 0))');
 		expect(server.code).not.toContain('return_guard');
+	});
+
+	it('keeps conditional template returns as a value-producing function', () => {
+		expect_value_function(`function Test({ items }) {
+			if (!items.length) return <p>empty</p>;
+			return <ul>{items}</ul>;
+		}`);
+		const client = compile(
+			`function Test({ items }) {
+				if (!items.length) return <p>empty</p>;
+				return <ul>{items}</ul>;
+			}`,
+			'App.tsrx',
+		);
+		expect(client.code).not.toContain('_$_.$r');
+		expect(client.code).not.toContain('Test_render');
 	});
 
 	it('does not use direct calls to disqualify native template functions', () => {
