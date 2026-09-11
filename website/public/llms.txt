@@ -106,27 +106,37 @@ If output needs multiple siblings, text, or expression containers after setup,
 wrap that output in a fragment. Plain text between tags is JSX text, not
 JavaScript.
 
-On the client every component receives its props as a `Props` instance,
-whatever the call site looked like: a class instance whose props are getters on
-a shared prototype (the compiled form of `<Child a={x} b="y" />`), a merged
-instance for a site with spreads, or the instance `mount()` builds from its
-`props` option. Read props by name (`props.title`); `in`, `for...in` and
-`JSON.stringify` work as usual, and in `.tsrx` code `Object.keys`,
-`Object.values`, `Object.entries`, object spread and rest destructuring of props
-compile to helpers that see every prop. Outside `.tsrx` code use the `Props`
-helpers from 'ripple', which accept compiled props and plain objects alike on
-the client and the server: `Props.keys(props)`, `Props.ownSymbolKeys(props)`
-(symbol-keyed props such as a `createRefKey()` ref), `Props.ownAllKeys(props)`
-(string keys then symbol keys), `Props.values(props)`, `Props.entries(props)`,
-`Props.has(props, key)`, `Props.spread(...sources)` (a new plain object, as
-`{ ...a, ...b }`) and `Props.rest(props, ...keys)` (the remaining props as a
-new instance, each read from the source on access). A prop
-expression reads the locals it uses at their current value: tracked values
-update the child; a plain `let` that is reassigned later is seen at its new
-value the next time the child re-evaluates the prop, but does not trigger an
-update by itself. A prop expression that only combines the component's own
-props, constants, and captured locals (for example `depth={props.depth - 1}`)
-is evaluated once when that evaluation reads no tracked state.
+Props are plain objects. `<Child a={x} b="y" />` builds `{ a: x, b: 'y' }` once,
+when the component is called, and passes it as is: every prop expression is
+evaluated at that moment, and the object works everywhere a plain object does
+(`Object.keys`, spread, `JSON.stringify`, `structuredClone`, `.ts` helpers, a
+call like `{Format(props)}`). A prop only changes what the child shows when the
+value itself is live: pass a tracked object (`count={countTracked}`) for state
+the child may also write, or a derived (`title={track(() => label + count)}`)
+for a computed, read-only value. The child reads `.value`, or unwraps the value
+into a lazy binding in its parameter list:
+
+```tsrx
+import { track, type Derived, type Tracked } from 'ripple';
+
+function Card({ title, count: &[count] }: { title: Derived<string>; count: Tracked<number> }) @{
+	<p>{title.value} ({count})</p>
+}
+
+export function App() @{
+	let &[count, countTracked] = track(0);
+	const label = 'Clicks';
+	<>
+		<Card title={track(() => label + ': ' + count)} count={countTracked} />
+		<button onClick={() => count++}>More</button>
+	</>
+}
+```
+
+`count={count}` on a lazy binding passes its current value, a number, and the
+child never sees later changes; the types say which it is, since `number` is a
+value and `Tracked<number>` is live. Destructuring props (`{ a, ...rest }`) and
+lazy destructuring (`&{ a, ...rest }`) both work on the plain object.
 
 ```tsrx
 export function LiteralText() {
@@ -197,6 +207,13 @@ function CounterValue({ count }: { count: Tracked<number> }) {
 	return <p>Shared value: {count.value}</p>;
 }
 ```
+
+`track(fn)` returns a `Derived`: its `value` is read-only in the types, and a
+write to it warns in development. Pass a setter, or `true` in the setter
+position, when the derived is meant to accept writes
+(`track(() => draft, undefined, true)` is a `WritableDerived`); a write then
+holds until the next recompute. A `Tracked` satisfies `Derived` where only reads
+are needed.
 
 You can also keep the tracked object and read or write `.value` directly.
 
@@ -768,6 +785,8 @@ Do:
 - Use JSX text for literal children.
 - Use `@for` for rendered lists and `@if` for conditional rendering.
 - Use Ripple collections for reactive collection state.
+- Pass a tracked or a derived as a prop when the child must follow a change; a
+  prop expression is evaluated once, when the component is called.
 - Put a `<style>` block beside the elements it styles, inside a fragment or
   element; assign a block to a variable to share it as a theme (`apply`,
   `$class`) or class map.
