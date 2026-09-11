@@ -1254,6 +1254,29 @@ ForThenStatic[_$_.$r] = ForThenStatic_render;
 
 var root_67 = _$_.template(`<b class="zero">zero</b>`, 0);
 var root_68 = _$_.template(`<b class="other">other</b>`, 0);
+
+function switch_case_0(__anchor, lazy_30) {
+	var b_3 = root_67();
+
+	_$_.append(__anchor, b_3);
+}
+
+function switch_case_default(__anchor, lazy_30) {
+	var b_4 = root_68();
+
+	_$_.append(__anchor, b_4);
+}
+
+function switch_1(lazy_30) {
+	switch (lazy_30.value) {
+		case 0:
+			return switch_case_0;
+
+		default:
+			return switch_case_default;
+	}
+}
+
 var root_66 = _$_.template(`<!><div class="a">a</div><div class="b">b</div>`, 1, 3);
 var root_65 = _$_.template(`<!>`, 1, 1);
 
@@ -1266,34 +1289,7 @@ function SwitchThenStatic_render(__anchor, __block) {
 		var fragment_45 = root_66();
 		var node_47 = _$_.first_child_frag(fragment_45);
 
-		{
-			var switch_case_0 = (__anchor) => {
-				var b_3 = root_67();
-
-				_$_.append(__anchor, b_3);
-			};
-
-			var switch_case_default = (__anchor) => {
-				var b_4 = root_68();
-
-				_$_.append(__anchor, b_4);
-			};
-
-			_$_.switch(node_47, () => {
-				var result = [];
-
-				switch (lazy_30.value) {
-					case 0:
-						result.push(switch_case_0);
-						return result;
-
-					default:
-						result.push(switch_case_default);
-						return result;
-				}
-			});
-		}
-
+		_$_.switch(node_47, switch_1, false, lazy_30);
 		_$_.next(2);
 		_$_.append(__anchor, fragment_45);
 	}));

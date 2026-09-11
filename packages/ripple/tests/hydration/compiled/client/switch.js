@@ -5,50 +5,41 @@ var root = _$_.template(`<div class="status-success">Success</div>`, 0);
 var root_1 = _$_.template(`<div class="status-error">Error</div>`, 0);
 var root_2 = _$_.template(`<div class="status-unknown">Unknown</div>`, 0);
 
+function switch_case_0(__anchor, status) {
+	var div = root();
+
+	_$_.append(__anchor, div);
+}
+
+function switch_case_1(__anchor, status) {
+	var div_1 = root_1();
+
+	_$_.append(__anchor, div_1);
+}
+
+function switch_case_default(__anchor, status) {
+	var div_2 = root_2();
+
+	_$_.append(__anchor, div_2);
+}
+
+function switch_1(status) {
+	switch (status) {
+		case 'success':
+			return switch_case_0;
+
+		case 'error':
+			return switch_case_1;
+
+		default:
+			return switch_case_default;
+	}
+}
+
 function SwitchStatic_render(__anchor, __block) {
 	const status = 'success';
 
-	{
-		var switch_case_0 = (__anchor) => {
-			var div = root();
-
-			_$_.append(__anchor, div);
-		};
-
-		var switch_case_1 = (__anchor) => {
-			var div_1 = root_1();
-
-			_$_.append(__anchor, div_1);
-		};
-
-		var switch_case_default = (__anchor) => {
-			var div_2 = root_2();
-
-			_$_.append(__anchor, div_2);
-		};
-
-		_$_.switch(
-			__anchor,
-			() => {
-				var result = [];
-
-				switch (status) {
-					case 'success':
-						result.push(switch_case_0);
-						return result;
-
-					case 'error':
-						result.push(switch_case_1);
-						return result;
-
-					default:
-						result.push(switch_case_default);
-						return result;
-				}
-			},
-			true
-		);
-	}
+	_$_.switch(__anchor, switch_1, true, status);
 }
 
 SwitchStatic[_$_.$r] = SwitchStatic_render;
@@ -56,6 +47,38 @@ SwitchStatic[_$_.$r] = SwitchStatic_render;
 var root_5 = _$_.template(`<div class="case-a">Case A</div>`, 0);
 var root_6 = _$_.template(`<div class="case-b">Case B</div>`, 0);
 var root_7 = _$_.template(`<div class="case-c">Case C</div>`, 0);
+
+function switch_case_0_1(__anchor, lazy) {
+	var div_3 = root_5();
+
+	_$_.append(__anchor, div_3);
+}
+
+function switch_case_1_1(__anchor, lazy) {
+	var div_4 = root_6();
+
+	_$_.append(__anchor, div_4);
+}
+
+function switch_case_default_1(__anchor, lazy) {
+	var div_5 = root_7();
+
+	_$_.append(__anchor, div_5);
+}
+
+function switch_2(lazy) {
+	switch (lazy.value) {
+		case 'a':
+			return switch_case_0_1;
+
+		case 'b':
+			return switch_case_1_1;
+
+		default:
+			return switch_case_default_1;
+	}
+}
+
 var root_4 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
@@ -74,44 +97,7 @@ function SwitchReactive_render(__anchor, __block) {
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
-		{
-			var switch_case_0_1 = (__anchor) => {
-				var div_3 = root_5();
-
-				_$_.append(__anchor, div_3);
-			};
-
-			var switch_case_1_1 = (__anchor) => {
-				var div_4 = root_6();
-
-				_$_.append(__anchor, div_4);
-			};
-
-			var switch_case_default_1 = (__anchor) => {
-				var div_5 = root_7();
-
-				_$_.append(__anchor, div_5);
-			};
-
-			_$_.switch(node, () => {
-				var result = [];
-
-				switch (lazy.value) {
-					case 'a':
-						result.push(switch_case_0_1);
-						return result;
-
-					case 'b':
-						result.push(switch_case_1_1);
-						return result;
-
-					default:
-						result.push(switch_case_default_1);
-						return result;
-				}
-			});
-		}
-
+		_$_.switch(node, switch_2, false, lazy);
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -123,43 +109,35 @@ SwitchReactive[_$_.$r] = SwitchReactive_render;
 var root_8 = _$_.template(`<div class="case-1-2">1 or 2</div>`, 0);
 var root_9 = _$_.template(`<div class="case-other">Other</div>`, 0);
 
+function switch_case_0_2(__anchor, val) {
+	var div_6 = root_8();
+
+	_$_.append(__anchor, div_6);
+}
+
+function switch_case_default_2(__anchor, val) {
+	var div_7 = root_9();
+
+	_$_.append(__anchor, div_7);
+}
+
+function switch_3(val) {
+	switch (val) {
+		case 1:
+			return;
+
+		case 2:
+			return switch_case_0_2;
+
+		default:
+			return switch_case_default_2;
+	}
+}
+
 function SwitchFallthrough_render(__anchor, __block) {
 	const val = 1;
 
-	{
-		var switch_case_0_2 = (__anchor) => {
-			var div_6 = root_8();
-
-			_$_.append(__anchor, div_6);
-		};
-
-		var switch_case_default_2 = (__anchor) => {
-			var div_7 = root_9();
-
-			_$_.append(__anchor, div_7);
-		};
-
-		_$_.switch(
-			__anchor,
-			() => {
-				var result = [];
-
-				switch (val) {
-					case 1:
-						return result;
-
-					case 2:
-						result.push(switch_case_0_2);
-						return result;
-
-					default:
-						result.push(switch_case_default_2);
-						return result;
-				}
-			},
-			true
-		);
-	}
+	_$_.switch(__anchor, switch_3, true, val);
 }
 
 SwitchFallthrough[_$_.$r] = SwitchFallthrough_render;
@@ -167,6 +145,38 @@ SwitchFallthrough[_$_.$r] = SwitchFallthrough_render;
 var root_12 = _$_.template(`<div class="level-1">Level 1</div>`, 0);
 var root_13 = _$_.template(`<div class="level-2">Level 2</div>`, 0);
 var root_14 = _$_.template(`<div class="level-3">Level 3</div>`, 0);
+
+function switch_case_0_3(__anchor, lazy_1) {
+	var div_8 = root_12();
+
+	_$_.append(__anchor, div_8);
+}
+
+function switch_case_1_2(__anchor, lazy_1) {
+	var div_9 = root_13();
+
+	_$_.append(__anchor, div_9);
+}
+
+function switch_case_2(__anchor, lazy_1) {
+	var div_10 = root_14();
+
+	_$_.append(__anchor, div_10);
+}
+
+function switch_4(lazy_1) {
+	switch (lazy_1.value) {
+		case 1:
+			return switch_case_0_3;
+
+		case 2:
+			return switch_case_1_2;
+
+		case 3:
+			return switch_case_2;
+	}
+}
+
 var root_11 = _$_.template(`<button class="level-toggle">Toggle Level</button><!>`, 1, 2);
 var root_10 = _$_.template(`<!>`, 1, 1);
 
@@ -185,44 +195,7 @@ function SwitchNumericLevels_render(__anchor, __block) {
 
 		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
-		{
-			var switch_case_0_3 = (__anchor) => {
-				var div_8 = root_12();
-
-				_$_.append(__anchor, div_8);
-			};
-
-			var switch_case_1_2 = (__anchor) => {
-				var div_9 = root_13();
-
-				_$_.append(__anchor, div_9);
-			};
-
-			var switch_case_2 = (__anchor) => {
-				var div_10 = root_14();
-
-				_$_.append(__anchor, div_10);
-			};
-
-			_$_.switch(node_2, () => {
-				var result = [];
-
-				switch (lazy_1.value) {
-					case 1:
-						result.push(switch_case_0_3);
-						return result;
-
-					case 2:
-						result.push(switch_case_1_2);
-						return result;
-
-					case 3:
-						result.push(switch_case_2);
-						return result;
-				}
-			});
-		}
-
+		_$_.switch(node_2, switch_4, false, lazy_1);
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -234,6 +207,38 @@ SwitchNumericLevels[_$_.$r] = SwitchNumericLevels_render;
 var root_17 = _$_.template(`<div class="block-1">Block 1</div>`, 0);
 var root_18 = _$_.template(`<div class="block-2">Block 2</div>`, 0);
 var root_19 = _$_.template(`<div class="block-3">Block 3</div>`, 0);
+
+function switch_case_0_4(__anchor, lazy_2) {
+	var div_11 = root_17();
+
+	_$_.append(__anchor, div_11);
+}
+
+function switch_case_1_3(__anchor, lazy_2) {
+	var div_12 = root_18();
+
+	_$_.append(__anchor, div_12);
+}
+
+function switch_case_2_1(__anchor, lazy_2) {
+	var div_13 = root_19();
+
+	_$_.append(__anchor, div_13);
+}
+
+function switch_5(lazy_2) {
+	switch (lazy_2.value) {
+		case 1:
+			return switch_case_0_4;
+
+		case 2:
+			return switch_case_1_3;
+
+		case 3:
+			return switch_case_2_1;
+	}
+}
+
 var root_16 = _$_.template(`<button class="block-toggle">Toggle</button><!>`, 1, 2);
 var root_15 = _$_.template(`<!>`, 1, 1);
 
@@ -252,44 +257,7 @@ function SwitchBlockScoped_render(__anchor, __block) {
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
-		{
-			var switch_case_0_4 = (__anchor) => {
-				var div_11 = root_17();
-
-				_$_.append(__anchor, div_11);
-			};
-
-			var switch_case_1_3 = (__anchor) => {
-				var div_12 = root_18();
-
-				_$_.append(__anchor, div_12);
-			};
-
-			var switch_case_2_1 = (__anchor) => {
-				var div_13 = root_19();
-
-				_$_.append(__anchor, div_13);
-			};
-
-			_$_.switch(node_4, () => {
-				var result = [];
-
-				switch (lazy_2.value) {
-					case 1:
-						result.push(switch_case_0_4);
-						return result;
-
-					case 2:
-						result.push(switch_case_1_3);
-						return result;
-
-					case 3:
-						result.push(switch_case_2_1);
-						return result;
-				}
-			});
-		}
-
+		_$_.switch(node_4, switch_5, false, lazy_2);
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -301,6 +269,38 @@ SwitchBlockScoped[_$_.$r] = SwitchBlockScoped_render;
 var root_22 = _$_.template(`<div class="nobreak-1">NoBreak 1</div>`, 0);
 var root_23 = _$_.template(`<div class="nobreak-2">NoBreak 2</div>`, 0);
 var root_24 = _$_.template(`<div class="nobreak-3">NoBreak 3</div>`, 0);
+
+function switch_case_0_5(__anchor, lazy_3) {
+	var div_14 = root_22();
+
+	_$_.append(__anchor, div_14);
+}
+
+function switch_case_1_4(__anchor, lazy_3) {
+	var div_15 = root_23();
+
+	_$_.append(__anchor, div_15);
+}
+
+function switch_case_2_2(__anchor, lazy_3) {
+	var div_16 = root_24();
+
+	_$_.append(__anchor, div_16);
+}
+
+function switch_6(lazy_3) {
+	switch (lazy_3.value) {
+		case 1:
+			return switch_case_0_5;
+
+		case 2:
+			return switch_case_1_4;
+
+		case 3:
+			return switch_case_2_2;
+	}
+}
+
 var root_21 = _$_.template(`<button class="nobreak-toggle">Toggle</button><!>`, 1, 2);
 var root_20 = _$_.template(`<!>`, 1, 1);
 
@@ -319,44 +319,7 @@ function SwitchNoBreak_render(__anchor, __block) {
 
 		var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
-		{
-			var switch_case_0_5 = (__anchor) => {
-				var div_14 = root_22();
-
-				_$_.append(__anchor, div_14);
-			};
-
-			var switch_case_1_4 = (__anchor) => {
-				var div_15 = root_23();
-
-				_$_.append(__anchor, div_15);
-			};
-
-			var switch_case_2_2 = (__anchor) => {
-				var div_16 = root_24();
-
-				_$_.append(__anchor, div_16);
-			};
-
-			_$_.switch(node_6, () => {
-				var result = [];
-
-				switch (lazy_3.value) {
-					case 1:
-						result.push(switch_case_0_5);
-						return result;
-
-					case 2:
-						result.push(switch_case_1_4);
-						return result;
-
-					case 3:
-						result.push(switch_case_2_2);
-						return result;
-				}
-			});
-		}
-
+		_$_.switch(node_6, switch_6, false, lazy_3);
 		_$_.append(__anchor, fragment_7);
 	}));
 

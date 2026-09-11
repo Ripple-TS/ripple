@@ -1558,37 +1558,40 @@ const visit_switch_statement = (node, context) => {
 	}
 
 	const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
-	const statements = [];
+	/** @type {{ id: AST.Identifier; body: AST.BlockStatement }[]} */
+	const branches = [];
+	/** @type {AST.SwitchCase[]} */
 	const cases = [];
 
+	// A `@switch` is an `@if` chain with a different selector: the callback
+	// runs the JS `switch` and returns the case function to render (a `@case`
+	// never falls through; an empty one renders nothing), so it shares the if
+	// runtime, which probes it once and renders a static case with no block.
 	let id_gen = 0;
-	let counter = 0;
 	for (const switch_case of node.cases) {
-		const case_body = [];
 		const consequent = switch_case.consequent;
+		/** @type {AST.Statement[]} */
+		const case_body = [];
 
 		if (consequent.length !== 0) {
 			const flattened_consequent = flatten_switch_consequent(consequent);
 			const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
-
-			const block = transform_body(flattened_consequent, {
-				...context,
-				state: { ...context.state, scope: consequent_scope, flush_node: null },
-			});
+			const block = b.block(
+				transform_body(flattened_consequent, {
+					...context,
+					state: { ...context.state, scope: consequent_scope, flush_node: null },
+				}),
+			);
 			const is_default = switch_case.test == null;
-			const consequent_id = context.state.scope.generate(
+			const case_id = context.state.scope.generate(
 				'switch_case_' + (is_default ? 'default' : id_gen),
 			);
-
-			statements.push(b.var(b.id(consequent_id), b.arrow([b.id('__anchor')], b.block(block))));
-			case_body.push(
-				b.stmt(b.call(b.member(b.id('result'), b.id('push'), false), b.id(consequent_id))),
-			);
+			branches.push({ id: b.id(case_id), body: block });
+			case_body.push(b.return(b.id(case_id)));
 			id_gen++;
+		} else {
+			case_body.push(b.return());
 		}
-		case_body.push(b.return(b.id('result')));
-
-		counter++;
 
 		cases.push(
 			b.switch_case(
@@ -1598,20 +1601,63 @@ const visit_switch_statement = (node, context) => {
 		);
 	}
 
-	statements.push(
-		b.stmt(
-			b.call(
-				'_$_.switch',
-				id,
-				b.thunk(
-					b.block([
-						b.var(b.id('result'), b.array([])),
-						b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
-					]),
-				),
-				root_controlled ? b.true : undefined,
+	const callback = b.block([
+		b.switch(
+			/** @type {AST.Expression} */ (
+				context.visit(node.discriminant, {
+					...context.state,
+					metadata: { ...context.state.metadata },
+				})
 			),
+			cases,
 		),
+	]);
+
+	// Same hoisting rule as `@if`: module-level when the selector and the cases
+	// capture at most one local, passed through the runtime.
+	const hoisted = context.state.hoisted;
+	const captures = captured_locals(
+		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
+		context.state.scope,
+		hoisted,
+		branches.map((branch) => branch.id.name),
+	);
+
+	if (captures !== null && captures.length <= 1) {
+		const context_params = captures.map((name) => b.id(name));
+		const switch_id = b.id(context.state.scope.generate('switch'));
+		for (const branch of branches) {
+			hoisted.push(
+				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+			);
+			register_hoisted(hoisted, branch.id.name);
+		}
+		hoisted.push(b.function_declaration(switch_id, context_params, callback));
+		register_hoisted(hoisted, switch_id.name);
+		context.state.init?.push(
+			b.stmt(
+				b.call(
+					'_$_.switch',
+					id,
+					switch_id,
+					...(captures.length === 1
+						? [b.literal(root_controlled), b.id(captures[0])]
+						: root_controlled
+							? [b.true]
+							: []),
+				),
+			),
+		);
+		return;
+	}
+
+	/** @type {AST.Statement[]} */
+	const statements = [];
+	for (const branch of branches) {
+		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+	}
+	statements.push(
+		b.stmt(b.call('_$_.switch', id, b.arrow([], callback), root_controlled ? b.true : undefined)),
 	);
 
 	context.state.init?.push(b.block(statements));

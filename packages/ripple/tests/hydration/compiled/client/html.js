@@ -1635,16 +1635,12 @@ function DynamicHeading({ level, children }) {
 			_$_.switch(
 				__anchor,
 				() => {
-					var result = [];
-
 					switch (level) {
 						case 1:
-							result.push(switch_case_0);
-							return result;
+							return switch_case_0;
 
 						case 2:
-							result.push(switch_case_1);
-							return result;
+							return switch_case_1;
 					}
 				},
 				true

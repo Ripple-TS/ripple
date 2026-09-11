@@ -55,88 +55,80 @@ function render_3(__prev) {
 	}
 }
 
-function consequent(__anchor, pattern) {
-	{
-		var switch_case_0 = (__anchor) => {
-			_$_.try(
-				__anchor,
-				(__anchor) => {
-					var div = root_1();
+function switch_case_0(__anchor, pattern) {
+	_$_.try(
+		__anchor,
+		(__anchor) => {
+			var div = root_1();
 
-					{
-						var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
-					}
+			{
+				var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
+			}
 
-					_$_.render(render, {
-						a: ' ',
-						b: _$_.UNINITIALIZED,
-						_pattern: pattern,
-						_expression: expression,
-						_div: div
-					});
+			_$_.render(render, {
+				a: ' ',
+				b: _$_.UNINITIALIZED,
+				_pattern: pattern,
+				_expression: expression,
+				_div: div
+			});
 
-					_$_.append(__anchor, div);
-				},
-				null,
-				(__anchor) => {
-					var div_1 = root_2();
+			_$_.append(__anchor, div);
+		},
+		null,
+		(__anchor) => {
+			var div_1 = root_2();
 
-					_$_.render(render_1, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_1: div_1 });
-					_$_.append(__anchor, div_1);
-				},
-				true
-			);
-		};
+			_$_.render(render_1, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_1: div_1 });
+			_$_.append(__anchor, div_1);
+		},
+		true
+	);
+}
 
-		var switch_case_default = (__anchor) => {
-			_$_.try(
-				__anchor,
-				(__anchor) => {
-					var div_2 = root_3();
+function switch_case_default(__anchor, pattern) {
+	_$_.try(
+		__anchor,
+		(__anchor) => {
+			var div_2 = root_3();
 
-					{
-						var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
-					}
+			{
+				var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
+			}
 
-					_$_.render(render_2, {
-						a: ' ',
-						b: _$_.UNINITIALIZED,
-						_pattern: pattern,
-						_expression_1: expression_1,
-						_div_2: div_2
-					});
+			_$_.render(render_2, {
+				a: ' ',
+				b: _$_.UNINITIALIZED,
+				_pattern: pattern,
+				_expression_1: expression_1,
+				_div_2: div_2
+			});
 
-					_$_.append(__anchor, div_2);
-				},
-				null,
-				(__anchor) => {
-					var div_3 = root_4();
+			_$_.append(__anchor, div_2);
+		},
+		null,
+		(__anchor) => {
+			var div_3 = root_4();
 
-					_$_.render(render_3, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_3: div_3 });
-					_$_.append(__anchor, div_3);
-				},
-				true
-			);
-		};
+			_$_.render(render_3, { a: _$_.UNINITIALIZED, _pattern: pattern, _div_3: div_3 });
+			_$_.append(__anchor, div_3);
+		},
+		true
+	);
+}
 
-		_$_.switch(
-			__anchor,
-			() => {
-				var result = [];
+function switch_1(pattern) {
+	switch (_$_.get(pattern).kind) {
+		case 'a':
+			return switch_case_0;
 
-				switch (_$_.get(pattern).kind) {
-					case 'a':
-						result.push(switch_case_0);
-						return result;
-
-					default:
-						result.push(switch_case_default);
-						return result;
-				}
-			},
-			true
-		);
+		default:
+			return switch_case_default;
 	}
+}
+
+function consequent(__anchor, pattern) {
+	_$_.switch(__anchor, switch_1, true, pattern);
 }
 
 function if_1(pattern) {
@@ -315,16 +307,12 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 								_$_.switch(
 									__anchor,
 									() => {
-										var result = [];
-
 										switch (lazy_1.value) {
 											case 'a':
-												result.push(switch_case_0_1);
-												return result;
+												return switch_case_0_1;
 
 											default:
-												result.push(switch_case_default_1);
-												return result;
+												return switch_case_default_1;
 										}
 									},
 									true
@@ -410,16 +398,12 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 							_$_.switch(
 								__anchor,
 								() => {
-									var result = [];
-
 									switch (state) {
 										case 'slow':
-											result.push(switch_case_0_2);
-											return result;
+											return switch_case_0_2;
 
 										default:
-											result.push(switch_case_default_2);
-											return result;
+											return switch_case_default_2;
 									}
 								},
 								true

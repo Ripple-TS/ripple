@@ -137,6 +137,47 @@ describe('@tsrx/ripple faithful text output', () => {
 	});
 });
 
+describe('@tsrx/ripple @switch client lowering', () => {
+	it('lowers @switch onto the if runtime with hoisted cases', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function Badge(props) @{
+				let &[n] = track(0);
+				<>
+					@switch (props.status) {
+						@case 'busy': {
+							<p>{'busy'}</p>
+						}
+						@case 'off': {
+						}
+						@default: {
+							<p>{'idle'}</p>
+						}
+					}
+					@switch (n % 2) {
+						@case 0: {
+							<span>{'even'}</span>
+						}
+					}
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		// The selector returns the case function; an empty case returns nothing.
+		expect(code).toContain("case 'busy':\n\t\t\treturn switch_case_0;");
+		expect(code).toContain("case 'off':\n\t\t\treturn;");
+		expect(code).toContain('default:\n\t\t\treturn switch_case_default;');
+		// Cases and selector are module-level, with the one capture passed through.
+		expect(code).toContain('function switch_case_0(__anchor, props)');
+		expect(code).toContain('function switch_1(props)');
+		expect(code).toContain('_$_.switch(node, switch_1, false, props);');
+		expect(code).toContain('function switch_2(lazy)');
+		expect(code).toContain('_$_.switch(node_1, switch_2, false, lazy);');
+		expect(code).not.toContain('result.push');
+	});
+});
+
 describe('@tsrx/ripple @switch to_ts', () => {
 	// Split the generated `switch (...) { … }` into per-case bodies (text between labels).
 	const case_bodies = (code) =>
