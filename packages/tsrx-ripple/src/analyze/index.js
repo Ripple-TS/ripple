@@ -2196,7 +2196,16 @@ const visitors = {
 			}
 
 			declarator.metadata = { ...metadata, path: [...context.path] };
-			if (!state.to_ts && state.mode !== 'server' && node.kind === 'let') {
+			// A `let` in a loop head gets a fresh binding per iteration, which a
+			// shared box would collapse: closures made in the loop must keep their
+			// own value, so it is never boxed.
+			const parent = context.path.at(-1);
+			const in_loop_head =
+				parent !== undefined &&
+				(parent.type === 'ForStatement' ||
+					parent.type === 'ForInStatement' ||
+					parent.type === 'ForOfStatement');
+			if (!state.to_ts && state.mode !== 'server' && node.kind === 'let' && !in_loop_head) {
 				/** @type {AnalysisResult} */ (state.analysis).box_candidates.push({
 					node: declarator,
 					scope: state.scope,

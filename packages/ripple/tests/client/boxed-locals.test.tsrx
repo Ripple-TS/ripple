@@ -375,3 +375,18 @@ describe('boxed locals', () => {
 		expect(text()).toBe('set/1');
 	});
 });
+
+describe('boxing keeps per-iteration bindings', () => {
+	it('does not box a for-loop variable, whose closures see their own iteration', () => {
+		function App() @{
+			const list = [];
+			for (let i = 0; i < 3; i++) {
+				list.push(<span>{i}</span>);
+			}
+			<div>{list}</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div')?.textContent).toBe('012');
+	});
+});
