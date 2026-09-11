@@ -774,7 +774,7 @@ function transform_native_tsrx_function(node, context) {
 		!node.async &&
 		!node.generator &&
 		!is_synthetic_children &&
-		(node.params.length === 0 || (node.params.length === 1 && props.type === 'Identifier')) &&
+		node.params.length <= 1 &&
 		context.path.every(
 			(ancestor) =>
 				ancestor.type === 'Program' ||
@@ -786,11 +786,16 @@ function transform_native_tsrx_function(node, context) {
 		// A module-level component: its render body sees only its props and
 		// module bindings, so it is a module-level function that receives the
 		// props from the element instead of a closure created per instantiation.
+		// A destructuring parameter destructures in the render function's own
+		// signature; the component then takes the props object under `__props`.
 		const render_id = b.id(context.state.scope.generate(node_id.name + '_render'));
 		register_hoisted(context.state.hoisted, render_id.name);
+		/** @type {AST.Pattern[]} */
 		const render_params = [b.id('__anchor'), b.id('__block')];
+		const component_props = props.type === 'Identifier' ? props : b.id('__props');
 		if (node.params.length === 1) {
-			render_params.push(/** @type {AST.Identifier} */ (props));
+			render_params.push(props);
+			params[0] = component_props;
 		}
 		context.state.hoisted.push(
 			b.function_declaration(render_id, render_params, render_block),
@@ -806,7 +811,7 @@ function transform_native_tsrx_function(node, context) {
 				b.call(
 					'_$_.tsrx_element',
 					render_id,
-					...(node.params.length === 1 ? [/** @type {AST.Identifier} */ (props)] : []),
+					...(node.params.length === 1 ? [component_props] : []),
 				),
 			),
 		]);
@@ -1536,6 +1541,37 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
+ * How hoisted control-flow functions receive the locals they capture through
+ * the runtime's single context argument: one local as itself, several as one
+ * object literal built at the call (`{ depth, path }`, the values at that
+ * moment) and destructured in each hoisted signature, so the hoisted code
+ * reads the names it was written with.
+ * @param {string[]} captures
+ * @returns {{ params: AST.Pattern[]; args: AST.Expression[] }}
+ */
+function capture_context(captures) {
+	if (captures.length <= 1) {
+		return { params: captures.map((name) => b.id(name)), args: captures.map((name) => b.id(name)) };
+	}
+	const pattern = captures.map(
+		(name) =>
+			/** @type {AST.AssignmentProperty} */ ({
+				type: 'Property',
+				kind: 'init',
+				key: b.id(name),
+				value: b.id(name),
+				computed: false,
+				shorthand: true,
+				method: false,
+			}),
+	);
+	return {
+		params: [b.object_pattern(pattern)],
+		args: [b.object(captures.map((name) => b.prop('init', b.id(name), b.id(name), false, true)))],
+	};
+}
+
+/**
  * Shared by the plain statement and the `@`-directive forms.
  * @type {Visitor<AST.SwitchStatement | AST.JSXSwitchExpression, TransformClientState, AST.Node>}
  */
@@ -1613,8 +1649,8 @@ const visit_switch_statement = (node, context) => {
 		),
 	]);
 
-	// Same hoisting rule as `@if`: module-level when the selector and the cases
-	// capture at most one local, passed through the runtime.
+	// Same hoisting as `@if`: module-level selector and cases, their captured
+	// locals passed through the runtime.
 	const hoisted = context.state.hoisted;
 	const captures = captured_locals(
 		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
@@ -1623,8 +1659,8 @@ const visit_switch_statement = (node, context) => {
 		branches.map((branch) => branch.id.name),
 	);
 
-	if (captures !== null && captures.length <= 1) {
-		const context_params = captures.map((name) => b.id(name));
+	if (captures !== null) {
+		const { params: context_params, args: context_args } = capture_context(captures);
 		const switch_id = b.id(context.state.scope.generate('switch'));
 		for (const branch of branches) {
 			hoisted.push(
@@ -1640,8 +1676,8 @@ const visit_switch_statement = (node, context) => {
 					'_$_.switch',
 					id,
 					switch_id,
-					...(captures.length === 1
-						? [b.literal(root_controlled), b.id(captures[0])]
+					...(context_args.length > 0
+						? [b.literal(root_controlled), ...context_args]
 						: root_controlled
 							? [b.true]
 							: []),
@@ -1795,9 +1831,11 @@ const visit_if_statement = (node, context) => {
 
 	const callback = b.block([lower_chain(node, context.state.scope)]);
 
-	// The condition and its branches live at module level when they capture at
-	// most one local, which the runtime hands them as a second argument: no
-	// closures are created per instantiation of the enclosing component.
+	// The condition and its branches live at module level; the locals they
+	// capture travel through the runtime's one context slot, bare when there is
+	// one and as an object literal destructured in the hoisted signatures when
+	// there are more (see `capture_context`), so no closures are created per
+	// instantiation of the enclosing component.
 	const hoisted = context.state.hoisted;
 	const captures = captured_locals(
 		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
@@ -1806,8 +1844,8 @@ const visit_if_statement = (node, context) => {
 		branches.map((branch) => branch.id.name),
 	);
 
-	if (captures !== null && captures.length <= 1) {
-		const context_params = captures.map((name) => b.id(name));
+	if (captures !== null) {
+		const { params: context_params, args: context_args } = capture_context(captures);
 		const if_id = b.id(context.state.scope.generate('if'));
 		for (const branch of branches) {
 			hoisted.push(
@@ -1823,8 +1861,8 @@ const visit_if_statement = (node, context) => {
 					'_$_.if',
 					id,
 					if_id,
-					...(captures.length === 1
-						? [b.literal(root_controlled), b.id(captures[0])]
+					...(context_args.length > 0
+						? [b.literal(root_controlled), ...context_args]
 						: root_controlled
 							? [b.true]
 							: []),

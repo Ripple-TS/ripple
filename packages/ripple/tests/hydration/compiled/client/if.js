@@ -166,6 +166,25 @@ function if_6(lazy_3) {
 }
 
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
+
+function consequent_6(__anchor, { lazy_2, lazy_3 }) {
+	var div_7 = root_13();
+
+	{
+		var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
+		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
+
+		_$_.if(node_5, if_6, false, lazy_3);
+		_$_.hydrating && _$_.pop(div_7);
+	}
+
+	_$_.append(__anchor, div_7);
+}
+
+function if_7({ lazy_2, lazy_3 }) {
+	if (lazy_2.value) return consequent_6;
+}
+
 var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1, 3);
 var root_11 = _$_.template(`<!>`, 1, 1);
 
@@ -191,26 +210,7 @@ function NestedIf_render(__anchor, __block) {
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
-		{
-			var consequent_6 = (__anchor) => {
-				var div_7 = root_13();
-
-				{
-					var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-					var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
-
-					_$_.if(node_5, if_6, false, lazy_3);
-					_$_.hydrating && _$_.pop(div_7);
-				}
-
-				_$_.append(__anchor, div_7);
-			};
-
-			_$_.if(node_4, () => {
-				if (lazy_2.value) return consequent_6;
-			});
-		}
-
+		_$_.if(node_4, if_7, false, { lazy_2, lazy_3 });
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -241,7 +241,7 @@ function alternate_2(__anchor, lazy_4) {
 	_$_.append(__anchor, div_11);
 }
 
-function if_7(lazy_4) {
+function if_8(lazy_4) {
 	if (lazy_4.value === 'loading') return consequent_7; else if (lazy_4.value === 'success') return consequent_8; else return alternate_2;
 }
 
@@ -272,7 +272,7 @@ function IfElseIfChain_render(__anchor, __block) {
 
 		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
-		_$_.if(node_7, if_7, false, lazy_4);
+		_$_.if(node_7, if_8, false, lazy_4);
 		_$_.hydrating && _$_.pop(div_8);
 	}
 

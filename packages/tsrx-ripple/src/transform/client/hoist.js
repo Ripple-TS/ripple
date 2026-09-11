@@ -186,6 +186,23 @@ function local_names(fn) {
 }
 
 /**
+ * Whether an assignment target writes a name not bound inside the expression.
+ * @param {AST.Node} target
+ * @param {Set<string>} shadowed
+ * @returns {boolean}
+ */
+function writes_free_name(target, shadowed) {
+	if (target.type === 'Identifier') return !shadowed.has(target.name);
+	if (target.type === 'MemberExpression') return false;
+	const names = new Set();
+	collect_pattern_names(/** @type {AST.Pattern} */ (target), names);
+	for (const name of names) {
+		if (!shadowed.has(name)) return true;
+	}
+	return false;
+}
+
+/**
  * Walks a compiled expression and records every free identifier it references
  * in value position. Returns false when the expression has a shape a capture
  * cannot represent.
@@ -214,6 +231,15 @@ function scan(node, references, shadowed) {
 		case 'MemberExpression':
 			if (!scan(node.object, references, shadowed)) return false;
 			return node.computed ? scan(node.property, references, shadowed) : true;
+		case 'AssignmentExpression':
+			// A write to a free name (a ref setter `(v) => div = v`, an assignment
+			// in a handler) must reach the binding itself, which a capture by
+			// value cannot do.
+			if (writes_free_name(node.left, shadowed)) return false;
+			break;
+		case 'UpdateExpression':
+			if (writes_free_name(node.argument, shadowed)) return false;
+			break;
 		case 'Property':
 			if (node.computed && !scan(node.key, references, shadowed)) return false;
 			return scan(node.value, references, shadowed);

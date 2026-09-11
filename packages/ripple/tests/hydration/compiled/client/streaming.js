@@ -228,6 +228,24 @@ function StreamNoCatch_render(__anchor, __block) {
 StreamNoCatch[_$_.$r] = StreamNoCatch_render;
 
 var root_14 = _$_.template(`<section class="root-catch"> </section>`, 0);
+
+function RootCatch_render(__anchor, __block, { error, reset }) {
+	var section = root_14();
+
+	_$_.event('Click', section, reset);
+
+	{
+		var expression_6 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
+
+		_$_.expression(expression_6, () => error.message);
+		_$_.hydrating && _$_.pop(section);
+	}
+
+	_$_.append(__anchor, section);
+}
+
+RootCatch[_$_.$r] = RootCatch_render;
+
 var root_15 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
 
 function RootPending_render(__anchor, __block) {
@@ -239,30 +257,6 @@ function RootPending_render(__anchor, __block) {
 RootPending[_$_.$r] = RootPending_render;
 
 var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
-
-function consequent(__anchor, lazy_5) {
-	var p_7 = root_17();
-
-	{
-		var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
-
-		_$_.expression(expression_7, () => lazy_5.value);
-		_$_.hydrating && _$_.pop(p_7);
-	}
-
-	_$_.head('814bacd9', (__anchor) => {
-		_$_.render(() => {
-			_$_.document.title = 'title:' + lazy_5.value;
-		});
-	});
-
-	_$_.append(__anchor, p_7);
-}
-
-function if_1(lazy_5) {
-	if (lazy_5.value) return consequent;
-}
-
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function HeadContent_render(__anchor, __block) {
@@ -271,7 +265,34 @@ function HeadContent_render(__anchor, __block) {
 	var node_5 = _$_.first_child_frag(fragment_5);
 
 	_$_.expression(node_5, () => _$_.tsrx_element((__anchor, __block) => {
-		_$_.if(__anchor, if_1, true, lazy_5);
+		{
+			var consequent = (__anchor) => {
+				var p_7 = root_17();
+
+				{
+					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
+
+					_$_.expression(expression_7, () => lazy_5.value);
+					_$_.hydrating && _$_.pop(p_7);
+				}
+
+				_$_.head('814bacd9', (__anchor) => {
+					_$_.render(() => {
+						_$_.document.title = 'title:' + lazy_5.value;
+					});
+				});
+
+				_$_.append(__anchor, p_7);
+			};
+
+			_$_.if(
+				__anchor,
+				() => {
+					if (lazy_5.value) return consequent;
+				},
+				true
+			);
+		}
 	}));
 
 	_$_.append(__anchor, fragment_5);
@@ -458,21 +479,8 @@ export function StreamNoCatch() {
 	return _$_.tsrx_element(StreamNoCatch_render);
 }
 
-export function RootCatch({ error, reset }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var section = root_14();
-
-		_$_.event('Click', section, reset);
-
-		{
-			var expression_6 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
-
-			_$_.expression(expression_6, () => error.message);
-			_$_.hydrating && _$_.pop(section);
-		}
-
-		_$_.append(__anchor, section);
-	});
+export function RootCatch(__props) {
+	return _$_.tsrx_element(RootCatch_render, __props);
 }
 
 export function RootPending() {

@@ -2,6 +2,27 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 0);
+
+function Layout_render(__anchor, __block, { children }) {
+	var div = root();
+
+	{
+		var nav = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
+		var main = _$_.hydrating ? _$_.hydrate_sibling() : nav.nextSibling;
+
+		{
+			var expression = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
+
+			_$_.expression(expression, () => children);
+			_$_.hydrating && _$_.pop(main);
+		}
+	}
+
+	_$_.append(__anchor, div);
+}
+
+Layout[_$_.$r] = Layout_render;
+
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
 
 function consequent(__anchor, lazy) {
@@ -44,24 +65,8 @@ LayoutWithContent[_$_.$r] = LayoutWithContent_render;
 
 import { track } from 'ripple';
 
-export function Layout({ children }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div = root();
-
-		{
-			var nav = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
-			var main = _$_.hydrating ? _$_.hydrate_sibling() : nav.nextSibling;
-
-			{
-				var expression = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
-
-				_$_.expression(expression, () => children);
-				_$_.hydrating && _$_.pop(main);
-			}
-		}
-
-		_$_.append(__anchor, div);
-	});
+export function Layout(__props) {
+	return _$_.tsrx_element(Layout_render, __props);
 }
 
 export function Content() {

@@ -623,6 +623,39 @@ ForLoopMixedOperations[_$_.$r] = ForLoopMixedOperations_render;
 
 var root_33 = _$_.template(`<li> </li>`, 0);
 var root_32 = _$_.template(`<ul class="list"></ul>`, 0);
+
+function consequent(__anchor, { lazy_6, lazy_7 }) {
+	var ul_8 = root_32();
+
+	{
+		_$_.for(
+			ul_8,
+			() => lazy_7.value,
+			(__anchor, item) => {
+				var li_8 = root_33();
+
+				{
+					var expression_13 = _$_.hydrating ? _$_.hydrate_child() : li_8.firstChild;
+
+					_$_.expression(expression_13, () => item);
+					_$_.hydrating && _$_.pop(li_8);
+				}
+
+				_$_.append(__anchor, li_8);
+			},
+			4
+		);
+
+		_$_.hydrating && _$_.pop(ul_8);
+	}
+
+	_$_.append(__anchor, ul_8);
+}
+
+function if_1({ lazy_6, lazy_7 }) {
+	if (lazy_6.value) return consequent;
+}
+
 var root_31 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1, 3);
 var root_30 = _$_.template(`<!>`, 1, 1);
 
@@ -648,40 +681,7 @@ function ForLoopInsideIf_render(__anchor, __block) {
 
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
 
-		{
-			var consequent = (__anchor) => {
-				var ul_8 = root_32();
-
-				{
-					_$_.for(
-						ul_8,
-						() => lazy_7.value,
-						(__anchor, item) => {
-							var li_8 = root_33();
-
-							{
-								var expression_13 = _$_.hydrating ? _$_.hydrate_child() : li_8.firstChild;
-
-								_$_.expression(expression_13, () => item);
-								_$_.hydrating && _$_.pop(li_8);
-							}
-
-							_$_.append(__anchor, li_8);
-						},
-						4
-					);
-
-					_$_.hydrating && _$_.pop(ul_8);
-				}
-
-				_$_.append(__anchor, ul_8);
-			};
-
-			_$_.if(node_5, () => {
-				if (lazy_6.value) return consequent;
-			});
-		}
-
+		_$_.if(node_5, if_1, false, { lazy_6, lazy_7 });
 		_$_.append(__anchor, fragment_11);
 	}));
 

@@ -2,6 +2,23 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<p class="result"> </p>`, 0);
+
+function MoneyResult_render(__anchor, __block, { count }) {
+	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, '2e21cbe9');
+	var p = root();
+
+	{
+		var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
+
+		_$_.expression(expression, () => _$_.with_scope(__block, () => lazy.value.format()));
+		_$_.hydrating && _$_.pop(p);
+	}
+
+	_$_.append(__anchor, p);
+}
+
+MoneyResult[_$_.$r] = MoneyResult_render;
+
 var root_3 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_2 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_1 = _$_.template(`<!>`, 1, 1);
@@ -43,6 +60,23 @@ function AsyncCustomType_render(__anchor, __block) {
 AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 
 var root_4 = _$_.template(`<p class="result"> </p>`, 0);
+
+function ServerCallResult_render(__anchor, __block, { count }) {
+	let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '4e502c38');
+	var p_2 = root_4();
+
+	{
+		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
+
+		_$_.expression(expression_1, () => lazy_2.value);
+		_$_.hydrating && _$_.pop(p_2);
+	}
+
+	_$_.append(__anchor, p_2);
+}
+
+ServerCallResult[_$_.$r] = ServerCallResult_render;
+
 var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_6 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_5 = _$_.template(`<!>`, 1, 1);
@@ -336,6 +370,23 @@ function ParentWithCatch_render(__anchor, __block) {
 ParentWithCatch[_$_.$r] = ParentWithCatch_render;
 
 var root_22 = _$_.template(`<p class="result"> </p>`, 0);
+
+function ReactiveDependencyResult_render(__anchor, __block, { count }) {
+	let lazy_11 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '18c43c3a');
+	var p_12 = root_22();
+
+	{
+		var expression_12 = _$_.hydrating ? _$_.hydrate_child() : p_12.firstChild;
+
+		_$_.expression(expression_12, () => lazy_11.value);
+		_$_.hydrating && _$_.pop(p_12);
+	}
+
+	_$_.append(__anchor, p_12);
+}
+
+ReactiveDependencyResult[_$_.$r] = ReactiveDependencyResult_render;
+
 var root_25 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_24 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
 var root_23 = _$_.template(`<!>`, 1, 1);
@@ -394,40 +445,16 @@ const formatValue = function (...args) {
 	return _$_.rpc('1215faad', args);
 };
 
-function MoneyResult({ count }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, '2e21cbe9');
-		var p = root();
-
-		{
-			var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
-
-			_$_.expression(expression, () => _$_.with_scope(__block, () => lazy.value.format()));
-			_$_.hydrating && _$_.pop(p);
-		}
-
-		_$_.append(__anchor, p);
-	});
+function MoneyResult(__props) {
+	return _$_.tsrx_element(MoneyResult_render, __props);
 }
 
 export function AsyncCustomType() {
 	return _$_.tsrx_element(AsyncCustomType_render);
 }
 
-function ServerCallResult({ count }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '4e502c38');
-		var p_2 = root_4();
-
-		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
-
-			_$_.expression(expression_1, () => lazy_2.value);
-			_$_.hydrating && _$_.pop(p_2);
-		}
-
-		_$_.append(__anchor, p_2);
-	});
+function ServerCallResult(__props) {
+	return _$_.tsrx_element(ServerCallResult_render, __props);
 }
 
 export function AsyncWithServerCall() {
@@ -462,20 +489,8 @@ export function ParentWithCatch() {
 	return _$_.tsrx_element(ParentWithCatch_render);
 }
 
-function ReactiveDependencyResult({ count }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_11 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '18c43c3a');
-		var p_12 = root_22();
-
-		{
-			var expression_12 = _$_.hydrating ? _$_.hydrate_child() : p_12.firstChild;
-
-			_$_.expression(expression_12, () => lazy_11.value);
-			_$_.hydrating && _$_.pop(p_12);
-		}
-
-		_$_.append(__anchor, p_12);
-	});
+function ReactiveDependencyResult(__props) {
+	return _$_.tsrx_element(ReactiveDependencyResult_render, __props);
 }
 
 export function AsyncWithReactiveDependency() {

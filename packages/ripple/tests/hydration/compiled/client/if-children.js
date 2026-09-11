@@ -2,8 +2,62 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
+
+function consequent(__anchor, { lazy, children }) {
+	var div_2 = root_1();
+
+	{
+		var expression = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
+
+		_$_.expression(expression, () => children);
+		_$_.hydrating && _$_.pop(div_2);
+	}
+
+	_$_.append(__anchor, div_2);
+}
+
+function if_1({ lazy, children }) {
+	if (lazy.value) return consequent;
+}
+
 var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
+
+function IfWithChildren_render(__anchor, __block, { children }) {
+	let lazy = _$_.track(true, __block, 'c64714b1');
+	var div = root();
+
+	{
+		var div_1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
+
+		div_1.__click = () => _$_.set(lazy, !lazy.value);
+
+		var node = _$_.hydrating ? _$_.hydrate_sibling() : div_1.nextSibling;
+
+		_$_.if(node, if_1, false, { lazy, children });
+		_$_.hydrating && _$_.pop(div);
+	}
+
+	_$_.append(__anchor, div);
+}
+
+IfWithChildren[_$_.$r] = IfWithChildren_render;
+
 var root_2 = _$_.template(`<div class="item"> </div>`, 0);
+
+function ChildItem_render(__anchor, __block, { text: label }) {
+	var div_3 = root_2();
+
+	{
+		var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_3.firstChild;
+
+		expression_1.nodeValue = label;
+	}
+
+	_$_.append(__anchor, div_3);
+}
+
+ChildItem[_$_.$r] = ChildItem_render;
+
 var root_3 = _$_.template(`<!><!>`, 1, 2);
 
 function TestIfWithChildren_render(__anchor, __block) {
@@ -32,7 +86,7 @@ function consequent_1(__anchor, lazy_1) {
 	_$_.append(__anchor, div_6);
 }
 
-function if_1(lazy_1) {
+function if_2(lazy_1) {
 	if (lazy_1.value) return consequent_1;
 }
 
@@ -49,7 +103,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
-		_$_.if(node_3, if_1, false, lazy_1);
+		_$_.if(node_3, if_2, false, lazy_1);
 		_$_.hydrating && _$_.pop(div_4);
 	}
 
@@ -59,7 +113,47 @@ function IfWithStaticChildren_render(__anchor, __block) {
 IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
 var root_7 = _$_.template(`<div class="items"><!></div>`, 0);
+
+function consequent_2(__anchor, { lazy_2, children }) {
+	var div_8 = root_7();
+
+	{
+		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
+
+		_$_.expression(expression_2, () => children);
+		_$_.hydrating && _$_.pop(div_8);
+	}
+
+	_$_.append(__anchor, div_8);
+}
+
+function if_3({ lazy_2, children }) {
+	if (lazy_2.value) return consequent_2;
+}
+
 var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
+
+function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
+	let lazy_2 = _$_.track(true, __block, 'a1b8fb4c');
+	var section = root_6();
+
+	{
+		var div_7 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
+
+		div_7.__click = () => _$_.set(lazy_2, !lazy_2.value);
+		_$_.hydrating && _$_.pop(div_7);
+
+		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
+
+		_$_.if(node_4, if_3, false, { lazy_2, children });
+		_$_.hydrating && _$_.pop(section);
+	}
+
+	_$_.append(__anchor, section);
+}
+
+IfWithSiblingsAndChildren[_$_.$r] = IfWithSiblingsAndChildren_render;
+
 var root_8 = _$_.template(`<!><!>`, 1, 2);
 
 function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
@@ -88,7 +182,7 @@ function consequent_3(__anchor, lazy_3) {
 	_$_.append(__anchor, div_11);
 }
 
-function if_2(lazy_3) {
+function if_4(lazy_3) {
 	if (lazy_3.value) return consequent_3;
 }
 
@@ -108,7 +202,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 			var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
-			_$_.if(node_7, if_2, false, lazy_3);
+			_$_.if(node_7, if_4, false, lazy_3);
 			_$_.hydrating && _$_.pop(div_10);
 		}
 
@@ -131,7 +225,7 @@ function consequent_4(__anchor, lazy_4) {
 	_$_.append(__anchor, footer);
 }
 
-function if_3(lazy_4) {
+function if_5(lazy_4) {
 	if (lazy_4.value) return consequent_4;
 }
 
@@ -151,7 +245,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 			var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
 			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
-			_$_.if(node_9, if_3, false, lazy_4);
+			_$_.if(node_9, if_5, false, lazy_4);
 			_$_.hydrating && _$_.pop(section_1);
 		}
 
@@ -181,7 +275,7 @@ function alternate(__anchor, lazy_5) {
 	_$_.append(__anchor, div_15);
 }
 
-function if_4(lazy_5) {
+function if_6(lazy_5) {
 	if (lazy_5.value === 'code') return consequent_5; else return alternate;
 }
 
@@ -225,7 +319,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 		{
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
-			_$_.if(node_11, if_4, false, lazy_5);
+			_$_.if(node_11, if_6, false, lazy_5);
 			_$_.hydrating && _$_.pop(div_14);
 		}
 	}
@@ -317,12 +411,12 @@ function alternate_1(__anchor, props) {
 	_$_.append(__anchor, span_1);
 }
 
-function if_5(props) {
+function if_7(props) {
 	if (props.on.value) return consequent_6; else return alternate_1;
 }
 
 function RootIfChild_render(__anchor, __block, props) {
-	_$_.if(__anchor, if_5, true, props);
+	_$_.if(__anchor, if_7, true, props);
 }
 
 RootIfChild[_$_.$r] = RootIfChild_render;
@@ -402,56 +496,12 @@ ComponentChildrenWithControlFlowRoots[_$_.$r] = ComponentChildrenWithControlFlow
 
 import { track } from 'ripple';
 
-export function IfWithChildren({ children }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy = _$_.track(true, __block, 'c64714b1');
-		var div = root();
-
-		{
-			var div_1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
-
-			div_1.__click = () => _$_.set(lazy, !lazy.value);
-
-			var node = _$_.hydrating ? _$_.hydrate_sibling() : div_1.nextSibling;
-
-			{
-				var consequent = (__anchor) => {
-					var div_2 = root_1();
-
-					{
-						var expression = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
-
-						_$_.expression(expression, () => children);
-						_$_.hydrating && _$_.pop(div_2);
-					}
-
-					_$_.append(__anchor, div_2);
-				};
-
-				_$_.if(node, () => {
-					if (lazy.value) return consequent;
-				});
-			}
-
-			_$_.hydrating && _$_.pop(div);
-		}
-
-		_$_.append(__anchor, div);
-	});
+export function IfWithChildren(__props) {
+	return _$_.tsrx_element(IfWithChildren_render, __props);
 }
 
-export function ChildItem({ text: label }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div_3 = root_2();
-
-		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_3.firstChild;
-
-			expression_1.nodeValue = label;
-		}
-
-		_$_.append(__anchor, div_3);
-	});
+export function ChildItem(__props) {
+	return _$_.tsrx_element(ChildItem_render, __props);
 }
 
 export function TestIfWithChildren() {
@@ -462,43 +512,8 @@ export function IfWithStaticChildren() {
 	return _$_.tsrx_element(IfWithStaticChildren_render);
 }
 
-export function IfWithSiblingsAndChildren({ children }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_2 = _$_.track(true, __block, 'a1b8fb4c');
-		var section = root_6();
-
-		{
-			var div_7 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
-
-			div_7.__click = () => _$_.set(lazy_2, !lazy_2.value);
-			_$_.hydrating && _$_.pop(div_7);
-
-			var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
-
-			{
-				var consequent_2 = (__anchor) => {
-					var div_8 = root_7();
-
-					{
-						var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
-
-						_$_.expression(expression_2, () => children);
-						_$_.hydrating && _$_.pop(div_8);
-					}
-
-					_$_.append(__anchor, div_8);
-				};
-
-				_$_.if(node_4, () => {
-					if (lazy_2.value) return consequent_2;
-				});
-			}
-
-			_$_.hydrating && _$_.pop(section);
-		}
-
-		_$_.append(__anchor, section);
-	});
+export function IfWithSiblingsAndChildren(__props) {
+	return _$_.tsrx_element(IfWithSiblingsAndChildren_render, __props);
 }
 
 export function TestIfWithSiblingsAndChildren() {

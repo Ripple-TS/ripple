@@ -12,6 +12,30 @@ function RootPending_render(__anchor, __block) {
 RootPending[_$_.$r] = RootPending_render;
 
 var root_1 = _$_.template(`<section class="root-catch"><p class="root-error"> </p><button class="root-reset">retry</button></section>`, 0);
+
+function RootCatch_render(__anchor, __block, { error, reset }) {
+	var section = root_1();
+
+	{
+		var p_1 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
+
+		{
+			var expression = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
+
+			_$_.expression(expression, () => error.message);
+			_$_.hydrating && _$_.pop(p_1);
+		}
+
+		var button = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
+
+		_$_.event('Click', button, reset);
+	}
+
+	_$_.append(__anchor, section);
+}
+
+RootCatch[_$_.$r] = RootCatch_render;
+
 var root_2 = _$_.template(`<p>should not render</p>`, 0);
 
 function RootThrows_render(__anchor, __block) {
@@ -172,27 +196,8 @@ export function RootPending() {
 	return _$_.tsrx_element(RootPending_render);
 }
 
-export function RootCatch({ error, reset }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var section = root_1();
-
-		{
-			var p_1 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
-
-			{
-				var expression = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
-
-				_$_.expression(expression, () => error.message);
-				_$_.hydrating && _$_.pop(p_1);
-			}
-
-			var button = _$_.hydrating ? _$_.hydrate_sibling() : p_1.nextSibling;
-
-			_$_.event('Click', button, reset);
-		}
-
-		_$_.append(__anchor, section);
-	});
+export function RootCatch(__props) {
+	return _$_.tsrx_element(RootCatch_render, __props);
 }
 
 export function RootThrows() {

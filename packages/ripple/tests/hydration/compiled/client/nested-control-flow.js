@@ -194,6 +194,14 @@ function switch_2(kind) {
 	}
 }
 
+function consequent_1(__anchor, { show, kind }) {
+	_$_.switch(__anchor, switch_2, true, kind);
+}
+
+function if_2({ show, kind }) {
+	if (show) return consequent_1;
+}
+
 var root_5 = _$_.template(`<div class="if-switch"><!></div>`, 0);
 
 function IfSwitch_render(__anchor, __block) {
@@ -204,16 +212,7 @@ function IfSwitch_render(__anchor, __block) {
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
-		{
-			var consequent_1 = (__anchor) => {
-				_$_.switch(__anchor, switch_2, true, kind);
-			};
-
-			_$_.if(node, () => {
-				if (show) return consequent_1;
-			});
-		}
-
+		_$_.if(node, if_2, false, { show, kind });
 		_$_.hydrating && _$_.pop(div);
 	}
 
@@ -247,6 +246,14 @@ function switch_3(kind) {
 	}
 }
 
+function consequent_2(__anchor, { show, kind }) {
+	_$_.switch(__anchor, switch_3, true, kind);
+}
+
+function if_3({ show, kind }) {
+	if (show) return consequent_2;
+}
+
 var root_8 = _$_.template(`<div class="if-switch-hidden"><!><p class="after">after</p></div>`, 0);
 
 function IfSwitchHidden_render(__anchor, __block) {
@@ -257,16 +264,7 @@ function IfSwitchHidden_render(__anchor, __block) {
 	{
 		var node_1 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
-		{
-			var consequent_2 = (__anchor) => {
-				_$_.switch(__anchor, switch_3, true, kind);
-			};
-
-			_$_.if(node_1, () => {
-				if (show) return consequent_2;
-			});
-		}
-
+		_$_.if(node_1, if_3, false, { show, kind });
 		_$_.hydrating && _$_.pop(div_1);
 	}
 
@@ -359,7 +357,7 @@ function consequent_3(__anchor, pattern_2) {
 	_$_.switch(__anchor, switch_4, true, pattern_2);
 }
 
-function if_2(pattern_2) {
+function if_4(pattern_2) {
 	if (_$_.get(pattern_2).show) return consequent_3;
 }
 
@@ -374,7 +372,7 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 			ul_2,
 			() => items,
 			(__anchor, pattern_2) => {
-				_$_.if(__anchor, if_2, true, pattern_2);
+				_$_.if(__anchor, if_4, true, pattern_2);
 			},
 			4,
 			(pattern_2) => _$_.get(pattern_2).id
@@ -472,7 +470,7 @@ function consequent_4(__anchor, pattern_3) {
 	_$_.switch(__anchor, switch_5, true, pattern_3);
 }
 
-function if_3(pattern_3) {
+function if_5(pattern_3) {
 	if (_$_.get(pattern_3).show) return consequent_4;
 }
 
@@ -491,7 +489,7 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 			ul_3,
 			() => items,
 			(__anchor, pattern_3) => {
-				_$_.if(__anchor, if_3, true, pattern_3);
+				_$_.if(__anchor, if_5, true, pattern_3);
 			},
 			4,
 			(pattern_3) => _$_.get(pattern_3).id
@@ -589,7 +587,7 @@ function consequent_5(__anchor, pattern_4) {
 	_$_.switch(__anchor, switch_6, true, pattern_4);
 }
 
-function if_4(pattern_4) {
+function if_6(pattern_4) {
 	if (_$_.get(pattern_4).show) return consequent_5;
 }
 
@@ -609,7 +607,7 @@ function ForIfSwitchWithDisabled_render(__anchor, __block) {
 			ul_4,
 			() => items,
 			(__anchor, pattern_4) => {
-				_$_.if(__anchor, if_4, true, pattern_4);
+				_$_.if(__anchor, if_6, true, pattern_4);
 			},
 			4,
 			(pattern_4) => _$_.get(pattern_4).id
@@ -942,7 +940,7 @@ function consequent_6(__anchor, pattern_6) {
 	);
 }
 
-function if_5(pattern_6) {
+function if_7(pattern_6) {
 	if (_$_.get(pattern_6).show) return consequent_6;
 }
 
@@ -957,7 +955,7 @@ function ForIfTry_render(__anchor, __block) {
 			ul_6,
 			() => items,
 			(__anchor, pattern_6) => {
-				_$_.if(__anchor, if_5, true, pattern_6);
+				_$_.if(__anchor, if_7, true, pattern_6);
 			},
 			4,
 			(pattern_6) => _$_.get(pattern_6).id
@@ -1137,7 +1135,7 @@ function consequent_7(__anchor, pattern_7) {
 	_$_.switch(__anchor, switch_9, true, pattern_7);
 }
 
-function if_6(pattern_7) {
+function if_8(pattern_7) {
 	if (_$_.get(pattern_7).show) return consequent_7;
 }
 
@@ -1152,7 +1150,7 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 			ul_7,
 			() => items,
 			(__anchor, pattern_7) => {
-				_$_.if(__anchor, if_6, true, pattern_7);
+				_$_.if(__anchor, if_8, true, pattern_7);
 			},
 			4,
 			(pattern_7) => _$_.get(pattern_7).id
@@ -1332,7 +1330,7 @@ function consequent_8(__anchor, pattern_8) {
 	_$_.switch(__anchor, switch_10, true, pattern_8);
 }
 
-function if_7(pattern_8) {
+function if_9(pattern_8) {
 	if (_$_.get(pattern_8).show) return consequent_8;
 }
 
@@ -1351,7 +1349,7 @@ function ForIfSwitchTryMulti_render(__anchor, __block) {
 			ul_8,
 			() => items,
 			(__anchor, pattern_8) => {
-				_$_.if(__anchor, if_7, true, pattern_8);
+				_$_.if(__anchor, if_9, true, pattern_8);
 			},
 			4,
 			(pattern_8) => _$_.get(pattern_8).id

@@ -196,8 +196,57 @@ function ExpressionContent_render(__anchor, __block) {
 ExpressionContent[_$_.$r] = ExpressionContent_render;
 
 var root_15 = _$_.template(`<div class="helper-item"> </div>`, 0);
+
+function NestedHelperItem_render(__anchor, __block, { item }) {
+	var div_7 = root_15();
+
+	{
+		var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_7.firstChild;
+
+		expression_3.nodeValue = item;
+	}
+
+	_$_.append(__anchor, div_7);
+}
+
+NestedHelperItem[_$_.$r] = NestedHelperItem_render;
+
 var root_17 = _$_.template(`<span class="label"> </span><!>`, 1, 2);
 var root_16 = _$_.template(`<!>`, 1, 1);
+
+function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
+	var fragment_8 = root_16();
+	var node_7 = _$_.first_child_frag(fragment_8);
+
+	_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_9 = root_17();
+		var span_2 = _$_.first_child_frag(fragment_9);
+
+		{
+			var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
+
+			expression_4.nodeValue = label;
+		}
+
+		var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
+
+		_$_.for(
+			node_6,
+			() => [1, 2, 3, 4],
+			(__anchor, item) => {
+				_$_.render_component(NestedHelperItem, __anchor, { item });
+			},
+			0
+		);
+
+		_$_.append(__anchor, fragment_9);
+	}));
+
+	_$_.append(__anchor, fragment_8);
+}
+
+NestedTsxTsrxFragment[_$_.$r] = NestedTsxTsrxFragment_render;
+
 var root_19 = _$_.template(`<div class="app-item"> </div>`, 0);
 var root_18 = _$_.template(`<div class="nested-expression-values"><!></div>`, 0);
 
@@ -795,7 +844,52 @@ Header[_$_.$r] = Header_render;
 
 var root_65 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
 var root_64 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
+
+function Actions_render(__anchor, __block, { playgroundVisible = false }) {
+	var div_23 = root_64();
+
+	{
+		var a_2 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
+		var a_1 = _$_.hydrating ? _$_.hydrate_sibling() : a_2.nextSibling;
+		var expression_28 = _$_.hydrating ? _$_.hydrate_sibling() : a_1.nextSibling;
+
+		_$_.expression(expression_28, () => playgroundVisible
+			? _$_.tsrx_element((__anchor, __block) => {
+				var a = root_65();
+
+				_$_.append(__anchor, a);
+			})
+			: null);
+
+		_$_.hydrating && _$_.pop(div_23);
+	}
+
+	_$_.append(__anchor, div_23);
+}
+
+Actions[_$_.$r] = Actions_render;
+
 var root_66 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+
+function Layout_render(__anchor, __block, { children }) {
+	var main = root_66();
+
+	{
+		var div_24 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
+
+		{
+			var expression_29 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
+
+			_$_.expression(expression_29, () => children);
+			_$_.hydrating && _$_.pop(div_24);
+		}
+	}
+
+	_$_.append(__anchor, main);
+}
+
+Layout[_$_.$r] = Layout_render;
+
 var root_67 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
 
 function Content_render(__anchor, __block) {
@@ -1216,51 +1310,12 @@ export function ExpressionContent() {
 	return _$_.tsrx_element(ExpressionContent_render);
 }
 
-function NestedHelperItem({ item }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div_7 = root_15();
-
-		{
-			var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_7.firstChild;
-
-			expression_3.nodeValue = item;
-		}
-
-		_$_.append(__anchor, div_7);
-	});
+function NestedHelperItem(__props) {
+	return _$_.tsrx_element(NestedHelperItem_render, __props);
 }
 
-function NestedTsxTsrxFragment({ label }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_8 = root_16();
-		var node_7 = _$_.first_child_frag(fragment_8);
-
-		_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_9 = root_17();
-			var span_2 = _$_.first_child_frag(fragment_9);
-
-			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
-
-				expression_4.nodeValue = label;
-			}
-
-			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
-
-			_$_.for(
-				node_6,
-				() => [1, 2, 3, 4],
-				(__anchor, item) => {
-					_$_.render_component(NestedHelperItem, __anchor, { item });
-				},
-				0
-			);
-
-			_$_.append(__anchor, fragment_9);
-		}));
-
-		_$_.append(__anchor, fragment_8);
-	});
+function NestedTsxTsrxFragment(__props) {
+	return _$_.tsrx_element(NestedTsxTsrxFragment_render, __props);
 }
 
 export function NestedTsxTsrxExpressionValues() {
@@ -1347,47 +1402,12 @@ function Header() {
 	return _$_.tsrx_element(Header_render);
 }
 
-function Actions({ playgroundVisible = false }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var div_23 = root_64();
-
-		{
-			var a_2 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
-			var a_1 = _$_.hydrating ? _$_.hydrate_sibling() : a_2.nextSibling;
-			var expression_28 = _$_.hydrating ? _$_.hydrate_sibling() : a_1.nextSibling;
-
-			_$_.expression(expression_28, () => playgroundVisible
-				? _$_.tsrx_element((__anchor, __block) => {
-					var a = root_65();
-
-					_$_.append(__anchor, a);
-				})
-				: null);
-
-			_$_.hydrating && _$_.pop(div_23);
-		}
-
-		_$_.append(__anchor, div_23);
-	});
+function Actions(__props) {
+	return _$_.tsrx_element(Actions_render, __props);
 }
 
-function Layout({ children }) {
-	return _$_.tsrx_element((__anchor, __block) => {
-		var main = root_66();
-
-		{
-			var div_24 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
-
-			{
-				var expression_29 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
-
-				_$_.expression(expression_29, () => children);
-				_$_.hydrating && _$_.pop(div_24);
-			}
-		}
-
-		_$_.append(__anchor, main);
-	});
+function Layout(__props) {
+	return _$_.tsrx_element(Layout_render, __props);
 }
 
 function Content() {

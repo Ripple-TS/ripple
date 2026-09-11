@@ -137,6 +137,79 @@ describe('@tsrx/ripple faithful text output', () => {
 	});
 });
 
+describe('@tsrx/ripple hoisted component entries and control flow', () => {
+	it('gives a component with a destructuring parameter a direct render entry', () => {
+		const { code } = compile(
+			`function Leaf({ path, depth = 0 }) @{
+				<span>{path + depth}</span>
+			}`,
+			'App.tsrx',
+		);
+
+		// The pattern destructures in the render function's own signature; the
+		// component takes the props object under `__props`.
+		expect(code).toContain('function Leaf_render(__anchor, __block, { path, depth = 0 })');
+		expect(code).toContain('Leaf[_$_.$r] = Leaf_render;');
+		expect(code).toContain(
+			'function Leaf(__props) {\n\treturn _$_.tsrx_element(Leaf_render, __props);',
+		);
+	});
+
+	it('keeps the __props entry for lazy and nested lazy parameters', () => {
+		const lazy = compile(
+			`function Lazy(&{ count }) @{
+				<span>{count}</span>
+			}`,
+			'App.tsrx',
+		).code;
+		expect(lazy).toContain('function Lazy_render(__anchor, __block, __props)');
+		expect(lazy).toContain('Lazy[_$_.$r] = Lazy_render;');
+
+		const nested = compile(
+			`function Nested({ count: &[count] }) @{
+				<span>{count}</span>
+			}`,
+			'App.tsrx',
+		).code;
+		expect(nested).toContain('Nested[_$_.$r] = Nested_render;');
+		expect(nested).toContain('function Nested(__props) {');
+	});
+
+	it('hoists an @if that captures several locals, packed into one object', () => {
+		const { code } = compile(
+			`function Node({ depth, path }) @{
+				@if (depth > 0) {
+					<div>{path}</div>
+				} @else {
+					<span>{path}</span>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Condition and branches are module-level and destructure the packed
+		// captures; the call builds the object from the locals at that moment.
+		expect(code).toContain('function if_1({ depth, path })');
+		expect(code).toContain('function consequent(__anchor, { depth, path })');
+		expect(code).toContain('function alternate(__anchor, { depth, path })');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, { depth, path });');
+		expect(code).not.toContain('var consequent =');
+	});
+
+	it('passes a single captured local bare', () => {
+		const { code } = compile(
+			`function Node(props) @{
+				@if (props.depth > 0) {
+					<div>{props.path}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+		expect(code).toContain('function if_1(props)');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, props);');
+	});
+});
+
 describe('@tsrx/ripple @switch client lowering', () => {
 	it('lowers @switch onto the if runtime with hoisted cases', () => {
 		const { code } = compile(
