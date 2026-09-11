@@ -402,6 +402,22 @@ describe('basic client > reactivity', () => {
 		expect(state.finalValue).toBe(5);
 	});
 
+	it('reschedules an @if after its first branch writes a condition dependency', () => {
+		function App() @{
+			let &[show] = track(true);
+			@if (show) {
+				show = false;
+				<span>yes</span>
+			} @else {
+				<span>no</span>
+			}
+		}
+
+		render(App);
+		flushSync();
+		expect(container.querySelector('span')?.textContent).toBe('no');
+	});
+
 	it('keeps other subscribers after a destroyed block writes shared state in its cleanup', () => {
 		function App() @{
 			let &[count] = track(0);

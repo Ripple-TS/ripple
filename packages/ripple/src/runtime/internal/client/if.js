@@ -274,13 +274,17 @@ export function if_block(node, fn, root_controlled, x) {
 			return;
 		}
 		// Dynamic: the block adopts the probe's dependencies and its first run
-		// applies the branch the probe selected.
+		// applies the branch the probe selected. Retarget `r` before that run
+		// so a write during the untracked branch schedules this if instead of
+		// pruning DESTROYED probe links. Install `d` only after: `run_block`
+		// would otherwise finish_dependencies the adopted chain.
 		var if_block = create_block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
 		probed_branch = /** @type {Branch | undefined} */ (probe_result);
 		probed = true;
+		adopt_dependencies(if_block, dependencies);
 		run_block(if_block, true);
 		if_block.f ^= BLOCK_HAS_RUN;
-		adopt_dependencies(if_block, dependencies);
+		if_block.d = dependencies;
 		return;
 	}
 

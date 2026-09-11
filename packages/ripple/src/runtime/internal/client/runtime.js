@@ -2012,11 +2012,13 @@ export function probe_if(fn, x, node) {
 
 /**
  * Makes `block` the reaction of a dependency chain recorded by a probe.
+ * Does not assign `block.d`: the first `run_block` must see `d === null`
+ * so it does not unlink the chain when the untracked first branch
+ * records no dependencies of its own.
  * @param {Block} block
  * @param {Dependency} head
  */
 export function adopt_dependencies(block, head) {
-	block.d = head;
 	for (
 		var dependency = /** @type {Dependency | null} */ (head);
 		dependency !== null;
