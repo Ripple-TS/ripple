@@ -657,6 +657,10 @@ export default function App() @{
 
 export default function App() @{
   const swapMe = track(() => Child1, undefined, true);
+  // A plain Tracked works too. Create it empty and assign the component,
+  // because track(Child1) would treat the function as a computation:
+  // const swapMe = track<Component>();
+  // swapMe.value = Child1;
 
   <>
 		<Child {swapMe} />

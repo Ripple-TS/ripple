@@ -1,4 +1,4 @@
-import type { DynamicProps, PropsWithExtras, TSRXElement } from 'ripple';
+import type { Component, DynamicProps, PropsWithExtras, TSRXElement } from 'ripple';
 import { createRefKey, track } from 'ripple';
 
 describe('server dynamic DOM elements', () => {
@@ -11,6 +11,26 @@ describe('server dynamic DOM elements', () => {
 		const { body } = await render(App);
 
 		expect(body).toBeHtml('<div>Hello World</div>');
+	});
+
+	it('renders a component held in a plain tracked assigned after creation', async () => {
+		function Child() @{
+			<p>{'I am the child'}</p>
+		}
+
+		function App() @{
+			// track(Child) would make a derived that calls the component, so an
+			// empty tracked receives the component through `.value` instead.
+			const Body = track<Component>();
+			Body.value = Child;
+			<div>
+				<{Body.value} />
+			</div>
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toBeHtml('<div><p>I am the child</p></div>');
 	});
 
 	it('renders static dynamic element from a plain object with a tracked property', async () => {

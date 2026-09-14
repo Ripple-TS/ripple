@@ -183,7 +183,10 @@ export function App() @{
 Ripple has built-in support for dynamic components, a way to render different
 components based on reactive state. Instead of hardcoding which component to show,
 you can store a component in a writable derived, `track(() => Child1, undefined, true)`
-(the third argument `true` makes it writable), and update it at runtime.
+(the third argument `true` makes it writable), and update it at runtime. Passing a
+function to `track()` always creates a derived, so to hold a component (or any
+function) in a plain `Tracked` instead, create the tracked empty and assign it:
+`const swapMe = track<Component>(); swapMe.value = Child1;`.
 When the tracked value changes, Ripple automatically unmounts the previous
 component and mounts the new one. Dynamic components are rendered with the
 `<{expression}>` tag syntax. This makes it straightforward to pass components as
@@ -197,6 +200,10 @@ import { track, type Component, type Derived } from 'ripple';
 
 export function App() @{
   const swapMe = track(() => Child1, undefined, true);
+  // A plain Tracked works too. Create it empty and assign the component,
+  // because track(Child1) would treat the function as a computation:
+  // const swapMe = track<Component>();
+  // swapMe.value = Child1;
 
   <>
     <Child {swapMe} />

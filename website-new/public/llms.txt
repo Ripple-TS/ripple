@@ -348,7 +348,7 @@ same expression: `</{expression}>`. Ripple host elements use `class`, not
 React's `className`.
 
 ```tsrx
-import { track } from 'ripple';
+import { track, type Component } from 'ripple';
 
 type Tag = 'section' | 'article';
 
@@ -363,6 +363,10 @@ function Details() {
 export function DynamicPanel() @{
 	const tag = track('section' as Tag);
 	const Body = track(() => Summary, undefined, true);
+	// Or hold it in a plain Tracked: create it empty and assign the component,
+	// because track(Summary) would treat the function as a computation.
+	// const Body = track<Component>();
+	// Body.value = Summary;
 
 	<>
 		<{tag.value} class="panel">
@@ -378,6 +382,11 @@ export function DynamicPanel() @{
 	</>
 }
 ```
+
+`track(() => Summary, undefined, true)` holds a component; the third argument
+`true` makes the derived writable so `Body.value` can be switched. A function
+passed to `track()` always creates a derived, so a plain `Tracked` holding a
+component or any other function is created empty and assigned through `.value`.
 
 The tag expression must resolve to an element name: an identifier, member
 access, static string, or a runtime expression composed of those. Calls,
