@@ -268,6 +268,24 @@ describe('@for item type inference', () => {
 		expect(code).toContain('expression_1.nodeValue = count');
 	});
 
+	it('types track() calls by their explicit type argument', () => {
+		const code = compile_client(`
+			import { track } from 'ripple';
+
+			export default function App() @{
+				const label = track<string>('');
+				const n = track<number>();
+				const raw = track('');
+				<><p>{label.value}</p><p>{n.value}</p><p>{raw.value}</p></>
+			}
+		`);
+
+		// The parser exposes call generics as \`typeArguments\`; both typed calls
+		// lower to direct text writes, the untyped one keeps the generic expression.
+		expect(code.match(/_\$_\.set_text\(/g)).toHaveLength(2);
+		expect(code).toContain('_$_.expression(expression_2, () => raw.value)');
+	});
+
 	it('infers number and boolean literal initial values of track()', () => {
 		const code = compile_client(`
 			import { track } from 'ripple';

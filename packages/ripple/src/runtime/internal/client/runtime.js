@@ -1761,6 +1761,11 @@ export function pop_component() {
  * @returns {void}
  */
 export function render_component(fn, anchor, props, block = active_block) {
+	// An optional component (an undefined prop, an import that resolved to
+	// nothing) renders nothing; any other non-function is a programming error.
+	if (fn == null) {
+		return;
+	}
 	if (typeof fn !== 'function') {
 		throw_invalid_component_type(fn);
 	}

@@ -176,8 +176,8 @@ describe('composite > render', () => {
 			<div {...props}>
 				{children}
 
-				<NonExistent />
 				// @ts-expect-error - intentionally testing behavior when a component is undefined
+				<NonExistent />
 			</div>
 		}
 
@@ -192,6 +192,23 @@ describe('composite > render', () => {
 
 		expect(undefinedTag).toBeNull();
 		expect(div.innerHTML).not.toContain('<undefined');
+	});
+
+	it('renders nothing for a local or imported component value that is undefined', () => {
+		const pick = (): Component | undefined => undefined;
+
+		function App() @{
+			const Local = pick();
+			<div>
+				{'before'}
+				<Local />
+				{'after'}
+			</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('div').textContent).toBe('beforeafter');
 	});
 });
 

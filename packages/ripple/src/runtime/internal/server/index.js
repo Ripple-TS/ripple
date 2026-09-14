@@ -176,6 +176,11 @@ export function render_expression(value) {
  * @returns {void}
  */
 export function render_component(fn, props) {
+	// An optional component (an undefined prop, an import that resolved to
+	// nothing) renders nothing; any other non-function is a programming error.
+	if (fn == null) {
+		return;
+	}
 	if (typeof fn !== 'function' || is_tsrx_element(fn)) {
 		throw_invalid_component_type(fn);
 	}

@@ -2646,33 +2646,19 @@ const visitors = {
 			}
 
 			const args = [b.object(props)];
-
-			// Check if this is a locally defined component
-			const component_name =
-				element_id.type === 'Identifier' ? /** @type {AST.Identifier} */ (element_id).name : null;
-			const local_metadata = component_name
-				? state.component_metadata.find((m) => m.id === component_name)
-				: null;
 			const comp_id = b.id('comp');
 			const args_id = b.id('args');
-			const comp_call = b.call('_$_.render_component', comp_id, b.spread(args_id));
-			const comp_call_statement = b.stmt(comp_call);
-
 			const visited_id = /** @type {AST.Expression} */ (visit(element_id, state));
-			/** @type {AST.Statement[]} */
-			const statements = [b.const(comp_id, visited_id), b.const(args_id, b.array(args))];
 
-			if (local_metadata) {
-				// Locally defined components are statically known.
-				statements.push(comp_call_statement);
-			} else {
-				// Imported components and component-valued props (e.g. `children`,
-				// optional component props) may be undefined at render time —
-				// render nothing instead of crashing.
-				statements.push(b.if(comp_id, b.block([comp_call_statement])));
-			}
-
-			state.init?.push(b.block(statements));
+			// A nullish component (an optional component prop) renders nothing;
+			// `render_component` skips it.
+			state.init?.push(
+				b.block([
+					b.const(comp_id, visited_id),
+					b.const(args_id, b.array(args)),
+					b.stmt(b.call('_$_.render_component', comp_id, b.spread(args_id))),
+				]),
+			);
 		}
 	},
 
@@ -3470,9 +3456,6 @@ function accumulate_output_pushes(program) {
  * @returns {{ ast: AST.Program; code: string; map: RawSourceMap | null; css: string; cssHash: string | null; }}
  */
 export function transform_server(filename, source, analysis, minify_css, dev = false) {
-	// Use component metadata collected during the analyze phase
-	const component_metadata = analysis.component_metadata || [];
-
 	/** @type {TransformServerState} */
 	const state = {
 		imports: new Set(),
@@ -3481,7 +3464,7 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		scopes: analysis.scopes,
 		// Filled by the style pre-pass in CSS emission order.
 		stylesheets: analysis.stylesheets,
-		component_metadata,
+		component_metadata: analysis.component_metadata,
 		ancestor_server_block: undefined,
 		server_block_locals: [],
 		server_exported_names: [],

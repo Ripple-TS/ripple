@@ -3960,16 +3960,16 @@ const visitors = {
 						: b.stmt(shared),
 				);
 			} else {
-				const component = /** @type {AST.Expression} */ (visit(element_id, state));
-				const shared = b.call('_$_.render_component', component, id, object_props);
-				const render = is_with_ns
-					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(shared)))
-					: b.stmt(shared);
-				// A component received as a parameter (an optional component prop)
-				// may be undefined at render time: render nothing, as the server does.
-				const binding = element_id.type === 'Identifier' ? state.scope.get(element_id.name) : null;
+				const shared = b.call(
+					'_$_.render_component',
+					/** @type {AST.Expression} */ (visit(element_id, state)),
+					id,
+					object_props,
+				);
 				state.init?.push(
-					binding?.declaration_kind === 'param' ? b.if(component, b.block([render])) : render,
+					is_with_ns
+						? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(shared)))
+						: b.stmt(shared),
 				);
 			}
 		}

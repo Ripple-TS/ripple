@@ -8,6 +8,24 @@ import type {
 } from 'ripple';
 
 describe('basic server > components & composition', () => {
+	it('renders nothing for a component prop that is undefined', async () => {
+		function Child({ Comp }: { Comp?: Component }) @{
+			<div>
+				{'before'}
+				<Comp />
+				{'after'}
+			</div>
+		}
+
+		function App() @{
+			<Child />
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toBeHtml('<div>beforeafter</div>');
+	});
+
 	async function render_expected_invalid_component(App: Component) {
 		const console_error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 		try {
