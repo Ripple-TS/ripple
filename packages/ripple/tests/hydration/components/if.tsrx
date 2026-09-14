@@ -26,30 +26,30 @@ export function IfElse() @{
 }
 
 export function ReactiveIf() @{
-	let &[show] = track(true);
+	const show = track(true);
 	<>
 		<button
 			class="toggle"
 			onClick={() => {
-				show = !show;
+				show.value = !show.value;
 			}}
 		>{'Toggle'}</button>
-		@if (show) {
+		@if (show.value) {
 			<div class="content">{'Content visible'}</div>
 		}
 	</>
 }
 
 export function ReactiveIfElse() @{
-	let &[isOn] = track(false);
+	const isOn = track(false);
 	<>
 		<button
 			class="toggle"
 			onClick={() => {
-				isOn = !isOn;
+				isOn.value = !isOn.value;
 			}}
 		>{'Toggle'}</button>
-		@if (isOn) {
+		@if (isOn.value) {
 			<div class="on">{'ON'}</div>
 		} @else {
 			<div class="off">{'OFF'}</div>
@@ -58,25 +58,25 @@ export function ReactiveIfElse() @{
 }
 
 export function NestedIf() @{
-	let &[outer] = track(true);
-	let &[inner] = track(true);
+	const outer = track(true);
+	const inner = track(true);
 	<>
 		<button
 			class="outer-toggle"
 			onClick={() => {
-				outer = !outer;
+				outer.value = !outer.value;
 			}}
 		>{'Outer'}</button>
 		<button
 			class="inner-toggle"
 			onClick={() => {
-				inner = !inner;
+				inner.value = !inner.value;
 			}}
 		>{'Inner'}</button>
-		@if (outer) {
+		@if (outer.value) {
 			<div class="outer-content">
 				{'Outer'}
-				@if (inner) {
+				@if (inner.value) {
 					<span class="inner-content">{'Inner'}</span>
 				}
 			</div>
@@ -85,29 +85,29 @@ export function NestedIf() @{
 }
 
 export function IfElseIfChain() @{
-	let &[status] = track<'loading' | 'success' | 'error'>('loading');
+	const status = track<'loading' | 'success' | 'error'>('loading');
 	<div>
 		<button
 			class="success"
 			onClick={() => {
-				status = 'success';
+				status.value = 'success';
 			}}
 		>{'Success'}</button>
 		<button
 			class="error"
 			onClick={() => {
-				status = 'error';
+				status.value = 'error';
 			}}
 		>{'Error'}</button>
 		<button
 			class="loading"
 			onClick={() => {
-				status = 'loading';
+				status.value = 'loading';
 			}}
 		>{'Loading'}</button>
-		@if (status === 'loading') {
+		@if (status.value === 'loading') {
 			<div class="state">{'Loading...'}</div>
-		} @else if (status === 'success') {
+		} @else if (status.value === 'success') {
 			<div class="state">{'Success!'}</div>
 		} @else {
 			<div class="state">{'Error occurred'}</div>

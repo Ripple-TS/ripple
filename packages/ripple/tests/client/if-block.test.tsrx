@@ -48,15 +48,15 @@ describe('if block', () => {
 		let toggle: () => void = () => {};
 
 		function App(props: { fixed: boolean }) @{
-			let &[on] = track(false);
+			const on = track(false);
 			toggle = () => {
-				on = !on;
+				on.value = !on.value;
 			};
 			<>
 				@if (props.fixed) {
 					<b>{'fixed'}</b>
 				}
-				@if (on) {
+				@if (on.value) {
 					<i>{'on'}</i>
 				} @else {
 					<i>{'off'}</i>

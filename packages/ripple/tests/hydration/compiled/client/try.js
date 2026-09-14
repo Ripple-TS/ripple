@@ -51,13 +51,13 @@ RootThrows[_$_.$r] = RootThrows_render;
 var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 
 function RootAsyncDirect_render(__anchor, __block) {
-	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, 'd6bf9e33');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, 'd6bf9e33');
 	var p_3 = root_3();
 
 	{
 		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_3.firstChild;
 
-		_$_.expression(expression_1, () => lazy.value);
+		_$_.expression(expression_1, () => value.value);
 		_$_.hydrating && _$_.pop(p_3);
 	}
 
@@ -69,13 +69,13 @@ RootAsyncDirect[_$_.$r] = RootAsyncDirect_render;
 var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 
 function RootAsyncRejects_render(__anchor, __block) {
-	let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, 'd2fe7b64');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, 'd2fe7b64');
 	var p_4 = root_4();
 
 	{
 		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
-		_$_.expression(expression_2, () => lazy_1.value);
+		_$_.expression(expression_2, () => value.value);
 		_$_.hydrating && _$_.pop(p_4);
 	}
 
@@ -108,13 +108,13 @@ var root_7 = _$_.template(`<li> </li>`, 0);
 var root_6 = _$_.template(`<ul class="items"></ul>`, 0);
 
 function AsyncList_render(__anchor, __block) {
-	let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b3d31627');
+	const items = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b3d31627');
 	var ul = root_6();
 
 	{
 		_$_.for(
 			ul,
-			() => lazy_2.value,
+			() => items.value,
 			(__anchor, item) => {
 				var li = root_7();
 
@@ -175,13 +175,13 @@ AsyncTryWithLeadingSibling[_$_.$r] = AsyncTryWithLeadingSibling_render;
 var root_11 = _$_.template(`<div class="resolved"> </div>`, 0);
 
 function AsyncContent_render(__anchor, __block) {
-	let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
 	var div_2 = root_11();
 
 	{
 		var expression_4 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
-		_$_.expression(expression_4, () => lazy_3.value);
+		_$_.expression(expression_4, () => value.value);
 		_$_.hydrating && _$_.pop(div_2);
 	}
 

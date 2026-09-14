@@ -121,7 +121,7 @@ var root_7 = _$_.template(`<button class="add">Add</button><ul></ul>`, 1, 2);
 var root_6 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveForLoopAdd_render(__anchor, __block) {
-	let lazy = _$_.track(['A', 'B'], __block, 'e145678a');
+	const items = _$_.track(['A', 'B'], __block, 'e145678a');
 	var fragment = root_6();
 	var node = _$_.first_child_frag(fragment);
 
@@ -130,7 +130,7 @@ function ReactiveForLoopAdd_render(__anchor, __block) {
 		var button = _$_.first_child_frag(fragment_1);
 
 		button.__click = () => {
-			_$_.set(lazy, [...lazy.value, 'C']);
+			items.value = [...items.value, 'C'];
 		};
 
 		var ul_3 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
@@ -138,7 +138,7 @@ function ReactiveForLoopAdd_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_3,
-				() => lazy.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_3 = root_8();
 
@@ -170,7 +170,7 @@ var root_10 = _$_.template(`<button class="remove">Remove</button><ul></ul>`, 1,
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveForLoopRemove_render(__anchor, __block) {
-	let lazy_1 = _$_.track(['A', 'B', 'C'], __block, 'b4e9bd54');
+	const items = _$_.track(['A', 'B', 'C'], __block, 'b4e9bd54');
 	var fragment_2 = root_9();
 	var node_1 = _$_.first_child_frag(fragment_2);
 
@@ -179,7 +179,7 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 		var button_1 = _$_.first_child_frag(fragment_3);
 
 		button_1.__click = () => {
-			_$_.set(lazy_1, _$_.with_scope(__block, () => lazy_1.value.slice(0, -1)));
+			items.value = _$_.with_scope(__block, () => items.value.slice(0, -1));
 		};
 
 		var ul_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
@@ -187,7 +187,7 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_4,
-				() => lazy_1.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_4 = root_11();
 
@@ -227,13 +227,13 @@ function render_1(__prev) {
 var root_12 = _$_.template(`<div></div>`, 0);
 
 function ForLoopInteractive_render(__anchor, __block) {
-	let lazy_2 = _$_.track([0, 0, 0], __block, '36f563df');
+	const counts = _$_.track([0, 0, 0], __block, '36f563df');
 	var div = root_12();
 
 	{
 		_$_.for(
 			div,
-			() => lazy_2.value,
+			() => counts.value,
 			(__anchor, count, i) => {
 				var div_1 = root_13();
 
@@ -250,10 +250,10 @@ function ForLoopInteractive_render(__anchor, __block) {
 					var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 					button_2.__click = () => {
-						const newCounts = [...lazy_2.value];
+						const newCounts = [...counts.value];
 
 						newCounts[i.value]++;
-						_$_.set(lazy_2, newCounts);
+						counts.value = newCounts;
 					};
 				}
 
@@ -455,7 +455,7 @@ var root_22 = _$_.template(`<button class="reorder">Reorder</button><ul></ul>`, 
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopReorder_render(__anchor, __block) {
-	let lazy_3 = _$_.track(
+	const items = _$_.track(
 		[
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
@@ -473,7 +473,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 		var button_3 = _$_.first_child_frag(fragment_5);
 
 		button_3.__click = () => {
-			_$_.set(lazy_3, [lazy_3.value[2], lazy_3.value[0], lazy_3.value[1]]);
+			items.value = [items.value[2], items.value[0], items.value[1]];
 		};
 
 		var ul_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
@@ -481,7 +481,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 		{
 			_$_.for_keyed(
 				ul_5,
-				() => lazy_3.value,
+				() => items.value,
 				(__anchor, pattern_2) => {
 					var li_5 = root_23();
 
@@ -524,7 +524,7 @@ var root_25 = _$_.template(`<button class="update">Update</button><ul></ul>`, 1,
 var root_24 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopUpdate_render(__anchor, __block) {
-	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], __block, '7a2c2ada');
+	const items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], __block, '7a2c2ada');
 	var fragment_6 = root_24();
 	var node_3 = _$_.first_child_frag(fragment_6);
 
@@ -533,7 +533,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 		var button_4 = _$_.first_child_frag(fragment_7);
 
 		button_4.__click = () => {
-			_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
+			items.value = _$_.with_scope(__block, () => items.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item));
 		};
 
 		var ul_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
@@ -541,7 +541,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 		{
 			_$_.for_keyed(
 				ul_6,
-				() => lazy_4.value,
+				() => items.value,
 				(__anchor, pattern_3) => {
 					var li_6 = root_26();
 
@@ -575,7 +575,7 @@ var root_28 = _$_.template(`<button class="shuffle">Shuffle</button><ul></ul>`, 
 var root_27 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopMixedOperations_render(__anchor, __block) {
-	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], __block, '3dd7c7b6');
+	const items = _$_.track(['A', 'B', 'C', 'D'], __block, '3dd7c7b6');
 	var fragment_8 = root_27();
 	var node_4 = _$_.first_child_frag(fragment_8);
 
@@ -584,7 +584,7 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 		var button_5 = _$_.first_child_frag(fragment_9);
 
 		button_5.__click = () => {
-			_$_.set(lazy_5, ['D', 'C', 'A', 'E']);
+			items.value = ['D', 'C', 'A', 'E'];
 		};
 
 		var ul_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
@@ -592,7 +592,7 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_7,
-				() => lazy_5.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_7 = root_29();
 
@@ -624,13 +624,13 @@ ForLoopMixedOperations[_$_.$r] = ForLoopMixedOperations_render;
 var root_33 = _$_.template(`<li> </li>`, 0);
 var root_32 = _$_.template(`<ul class="list"></ul>`, 0);
 
-function consequent(__anchor, { lazy_6, lazy_7 }) {
+function consequent(__anchor, { showList, items }) {
 	var ul_8 = root_32();
 
 	{
 		_$_.for(
 			ul_8,
-			() => lazy_7.value,
+			() => items.value,
 			(__anchor, item) => {
 				var li_8 = root_33();
 
@@ -652,16 +652,16 @@ function consequent(__anchor, { lazy_6, lazy_7 }) {
 	_$_.append(__anchor, ul_8);
 }
 
-function if_1({ lazy_6, lazy_7 }) {
-	if (lazy_6.value) return consequent;
+function if_1({ showList, items }) {
+	if (showList.value) return consequent;
 }
 
 var root_31 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1, 3);
 var root_30 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopInsideIf_render(__anchor, __block) {
-	let lazy_6 = _$_.track(true, __block, '0528df30');
-	let lazy_7 = _$_.track(['X', 'Y', 'Z'], __block, 'bf375103');
+	const showList = _$_.track(true, __block, '0528df30');
+	const items = _$_.track(['X', 'Y', 'Z'], __block, 'bf375103');
 	var fragment_10 = root_30();
 	var node_6 = _$_.first_child_frag(fragment_10);
 
@@ -670,18 +670,18 @@ function ForLoopInsideIf_render(__anchor, __block) {
 		var button_6 = _$_.first_child_frag(fragment_11);
 
 		button_6.__click = () => {
-			_$_.set(lazy_6, !lazy_6.value);
+			showList.value = !showList.value;
 		};
 
 		var button_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
 		button_7.__click = () => {
-			_$_.set(lazy_7, [...lazy_7.value, 'W']);
+			items.value = [...items.value, 'W'];
 		};
 
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
 
-		_$_.if(node_5, if_1, false, { lazy_6, lazy_7 });
+		_$_.if(node_5, if_1, false, { showList, items });
 		_$_.append(__anchor, fragment_11);
 	}));
 
@@ -695,7 +695,7 @@ var root_35 = _$_.template(`<button class="populate">Populate</button><ul class=
 var root_34 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopEmptyToPopulated_render(__anchor, __block) {
-	let lazy_8 = _$_.track([], __block, '525c5dbc');
+	const items = _$_.track([], __block, '525c5dbc');
 	var fragment_12 = root_34();
 	var node_7 = _$_.first_child_frag(fragment_12);
 
@@ -704,7 +704,7 @@ function ForLoopEmptyToPopulated_render(__anchor, __block) {
 		var button_8 = _$_.first_child_frag(fragment_13);
 
 		button_8.__click = () => {
-			_$_.set(lazy_8, ['One', 'Two', 'Three']);
+			items.value = ['One', 'Two', 'Three'];
 		};
 
 		var ul_9 = _$_.hydrating ? _$_.hydrate_sibling() : button_8.nextSibling;
@@ -712,14 +712,15 @@ function ForLoopEmptyToPopulated_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_9,
-				() => lazy_8.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_9 = root_36();
 
 					{
-						var expression_14 = _$_.hydrating ? _$_.hydrate_text() : li_9.firstChild;
+						var expression_14 = _$_.hydrating ? _$_.hydrate_child() : li_9.firstChild;
 
-						expression_14.nodeValue = item;
+						_$_.expression(expression_14, () => item);
+						_$_.hydrating && _$_.pop(li_9);
 					}
 
 					_$_.append(__anchor, li_9);
@@ -743,7 +744,7 @@ var root_38 = _$_.template(`<button class="clear">Clear</button><ul class="list"
 var root_37 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopPopulatedToEmpty_render(__anchor, __block) {
-	let lazy_9 = _$_.track(['One', 'Two', 'Three'], __block, 'ee47f078');
+	const items = _$_.track(['One', 'Two', 'Three'], __block, 'ee47f078');
 	var fragment_14 = root_37();
 	var node_8 = _$_.first_child_frag(fragment_14);
 
@@ -752,7 +753,7 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 		var button_9 = _$_.first_child_frag(fragment_15);
 
 		button_9.__click = () => {
-			_$_.set(lazy_9, []);
+			items.value = [];
 		};
 
 		var ul_10 = _$_.hydrating ? _$_.hydrate_sibling() : button_9.nextSibling;
@@ -760,7 +761,7 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_10,
-				() => lazy_9.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_10 = root_39();
 
@@ -809,23 +810,23 @@ var root_41 = _$_.template(`<div></div>`, 0);
 var root_40 = _$_.template(`<div class="nested-for-reactive"><button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid"></div></div>`, 0);
 
 function NestedForLoopReactive_render(__anchor, __block) {
-	let lazy_10 = _$_.track([[1, 2], [3, 4]], __block, 'a2f41fb3');
+	const grid = _$_.track([[1, 2], [3, 4]], __block, 'a2f41fb3');
 	var div_7 = root_40();
 
 	{
 		var button_10 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 
 		button_10.__click = () => {
-			_$_.set(lazy_10, [...lazy_10.value, [5, 6]]);
+			grid.value = [...grid.value, [5, 6]];
 		};
 
 		var button_11 = _$_.hydrating ? _$_.hydrate_sibling() : button_10.nextSibling;
 
 		button_11.__click = () => {
-			const newGrid = _$_.with_scope(__block, () => lazy_10.value.map((row) => [...row]));
+			const newGrid = _$_.with_scope(__block, () => grid.value.map((row) => [...row]));
 
 			newGrid[0][0] = 99;
-			_$_.set(lazy_10, newGrid);
+			grid.value = newGrid;
 		};
 
 		var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : button_11.nextSibling;
@@ -833,7 +834,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 		{
 			_$_.for(
 				div_8,
-				() => lazy_10.value,
+				() => grid.value,
 				(__anchor, row, rowIndex) => {
 					var div_9 = root_41();
 
@@ -1029,7 +1030,7 @@ var root_48 = _$_.template(`<button class="prepend">Prepend</button><ul></ul>`, 
 var root_47 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopIndexUpdate_render(__anchor, __block) {
-	let lazy_11 = _$_.track(['First', 'Second', 'Third'], __block, 'f61e31e6');
+	const items = _$_.track(['First', 'Second', 'Third'], __block, 'f61e31e6');
 	var fragment_16 = root_47();
 	var node_10 = _$_.first_child_frag(fragment_16);
 
@@ -1038,7 +1039,7 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 		var button_12 = _$_.first_child_frag(fragment_17);
 
 		button_12.__click = () => {
-			_$_.set(lazy_11, ['Zeroth', ...lazy_11.value]);
+			items.value = ['Zeroth', ...items.value];
 		};
 
 		var ul_12 = _$_.hydrating ? _$_.hydrate_sibling() : button_12.nextSibling;
@@ -1046,7 +1047,7 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_12,
-				() => lazy_11.value,
+				() => items.value,
 				(__anchor, item, i) => {
 					var li_12 = root_49();
 
@@ -1106,7 +1107,7 @@ var root_51 = _$_.template(`<button class="reorder">Rotate</button><ul></ul>`, 1
 var root_50 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopWithIndex_render(__anchor, __block) {
-	let lazy_12 = _$_.track(
+	const items = _$_.track(
 		[
 			{ id: 'a', value: 'Alpha' },
 			{ id: 'b', value: 'Beta' },
@@ -1124,7 +1125,7 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 		var button_13 = _$_.first_child_frag(fragment_19);
 
 		button_13.__click = () => {
-			_$_.set(lazy_12, [lazy_12.value[1], lazy_12.value[2], lazy_12.value[0]]);
+			items.value = [items.value[1], items.value[2], items.value[0]];
 		};
 
 		var ul_13 = _$_.hydrating ? _$_.hydrate_sibling() : button_13.nextSibling;
@@ -1132,7 +1133,7 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 		{
 			_$_.for_keyed(
 				ul_13,
-				() => lazy_12.value,
+				() => items.value,
 				(__anchor, pattern_6, i) => {
 					var li_13 = root_52();
 
@@ -1172,7 +1173,7 @@ var root_54 = _$_.template(`<div class="wrapper"><header class="before">Before</
 var root_53 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopWithSiblings_render(__anchor, __block) {
-	let lazy_13 = _$_.track(['A', 'B'], __block, '3c7e8152');
+	const items = _$_.track(['A', 'B'], __block, '3c7e8152');
 	var fragment_20 = root_53();
 	var node_13 = _$_.first_child_frag(fragment_20);
 
@@ -1186,7 +1187,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 
 			_$_.for(
 				node_12,
-				() => lazy_13.value,
+				() => items.value,
 				(__anchor, item) => {
 					var div_14 = root_55();
 
@@ -1210,7 +1211,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 		var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
 
 		button_14.__click = () => {
-			_$_.set(lazy_13, [...lazy_13.value, 'C']);
+			items.value = [...items.value, 'C'];
 		};
 
 		_$_.append(__anchor, fragment_21);
@@ -1254,7 +1255,7 @@ ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
 
 function render_13(__prev) {
-	var __a = __prev._lazy_14.value;
+	var __a = __prev._done.value;
 
 	if (__prev.a !== __a) {
 		_$_.set_checked(__prev._input, __prev.a = __a);
@@ -1266,7 +1267,7 @@ function render_13(__prev) {
 		_$_.set_text(__prev._expression_23, __prev.b = __b);
 	}
 
-	var __c = __prev._lazy_14.value ? 'completed' : 'pending';
+	var __c = __prev._done.value ? 'completed' : 'pending';
 
 	if (__prev.c !== __c) {
 		_$_.set_class(__prev._span_6, __prev.c = __c, void 0, true);
@@ -1280,14 +1281,14 @@ function render_13(__prev) {
 }
 
 function TodoItem_render(__anchor, __block, props) {
-	let lazy_14 = _$_.track(false, __block, '4f2402a4');
+	const done = _$_.track(false, __block, '4f2402a4');
 	var div_16 = root_57();
 
 	{
 		var input = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
 		input.__change = (e) => {
-			_$_.set(lazy_14, e.target.checked);
+			done.value = e.target.checked;
 		};
 
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : input.nextSibling;
@@ -1302,7 +1303,7 @@ function TodoItem_render(__anchor, __block, props) {
 		b: ' ',
 		c: _$_.UNINITIALIZED,
 		d: _$_.UNINITIALIZED,
-		_lazy_14: lazy_14,
+		_done: done,
 		_input: input,
 		_props: props,
 		_expression_23: expression_23,
@@ -1354,7 +1355,7 @@ var root_61 = _$_.template(`<button class="prepend">Prepend A</button><ul></ul>`
 var root_60 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopAddAtBeginning_render(__anchor, __block) {
-	let lazy_15 = _$_.track(['B', 'C'], __block, '1561403a');
+	const items = _$_.track(['B', 'C'], __block, '1561403a');
 	var fragment_22 = root_60();
 	var node_14 = _$_.first_child_frag(fragment_22);
 
@@ -1363,7 +1364,7 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 		var button_15 = _$_.first_child_frag(fragment_23);
 
 		button_15.__click = () => {
-			_$_.set(lazy_15, ['A', ...lazy_15.value]);
+			items.value = ['A', ...items.value];
 		};
 
 		var ul_15 = _$_.hydrating ? _$_.hydrate_sibling() : button_15.nextSibling;
@@ -1371,7 +1372,7 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_15,
-				() => lazy_15.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_15 = root_62();
 
@@ -1405,7 +1406,7 @@ var root_64 = _$_.template(`<button class="insert">Insert B</button><ul></ul>`, 
 var root_63 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopAddInMiddle_render(__anchor, __block) {
-	let lazy_16 = _$_.track(['A', 'C'], __block, '1bc60b46');
+	const items = _$_.track(['A', 'C'], __block, '1bc60b46');
 	var fragment_24 = root_63();
 	var node_15 = _$_.first_child_frag(fragment_24);
 
@@ -1414,10 +1415,10 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 		var button_16 = _$_.first_child_frag(fragment_25);
 
 		button_16.__click = () => {
-			const copy = [...lazy_16.value];
+			const copy = [...items.value];
 
 			_$_.with_scope(__block, () => copy.splice(1, 0, 'B'));
-			_$_.set(lazy_16, copy);
+			items.value = copy;
 		};
 
 		var ul_16 = _$_.hydrating ? _$_.hydrate_sibling() : button_16.nextSibling;
@@ -1425,7 +1426,7 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_16,
-				() => lazy_16.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_16 = root_65();
 
@@ -1459,7 +1460,7 @@ var root_67 = _$_.template(`<button class="remove-middle">Remove B</button><ul><
 var root_66 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopRemoveFromMiddle_render(__anchor, __block) {
-	let lazy_17 = _$_.track(['A', 'B', 'C'], __block, '1c87f95f');
+	const items = _$_.track(['A', 'B', 'C'], __block, '1c87f95f');
 	var fragment_26 = root_66();
 	var node_16 = _$_.first_child_frag(fragment_26);
 
@@ -1468,7 +1469,7 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 		var button_17 = _$_.first_child_frag(fragment_27);
 
 		button_17.__click = () => {
-			_$_.set(lazy_17, _$_.with_scope(__block, () => lazy_17.value.filter((item) => item !== 'B')));
+			items.value = _$_.with_scope(__block, () => items.value.filter((item) => item !== 'B'));
 		};
 
 		var ul_17 = _$_.hydrating ? _$_.hydrate_sibling() : button_17.nextSibling;
@@ -1476,7 +1477,7 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_17,
-				() => lazy_17.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_17 = root_68();
 
@@ -1554,7 +1555,7 @@ var root_72 = _$_.template(`<button class="swap">Swap First and Last</button><ul
 var root_71 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopSwap_render(__anchor, __block) {
-	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], __block, '5f8d152f');
+	const items = _$_.track(['A', 'B', 'C', 'D'], __block, '5f8d152f');
 	var fragment_28 = root_71();
 	var node_17 = _$_.first_child_frag(fragment_28);
 
@@ -1563,10 +1564,10 @@ function ForLoopSwap_render(__anchor, __block) {
 		var button_18 = _$_.first_child_frag(fragment_29);
 
 		button_18.__click = () => {
-			const copy = [...lazy_18.value];
+			const copy = [...items.value];
 
 			[copy[0], copy[3]] = [copy[3], copy[0]];
-			_$_.set(lazy_18, copy);
+			items.value = copy;
 		};
 
 		var ul_19 = _$_.hydrating ? _$_.hydrate_sibling() : button_18.nextSibling;
@@ -1574,7 +1575,7 @@ function ForLoopSwap_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_19,
-				() => lazy_18.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_19 = root_73();
 
@@ -1608,7 +1609,7 @@ var root_75 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 
 var root_74 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopReverse_render(__anchor, __block) {
-	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], __block, '24602e64');
+	const items = _$_.track(['A', 'B', 'C', 'D'], __block, '24602e64');
 	var fragment_30 = root_74();
 	var node_18 = _$_.first_child_frag(fragment_30);
 
@@ -1617,7 +1618,7 @@ function ForLoopReverse_render(__anchor, __block) {
 		var button_19 = _$_.first_child_frag(fragment_31);
 
 		button_19.__click = () => {
-			_$_.set(lazy_19, _$_.with_scope(__block, () => [...lazy_19.value].reverse()));
+			items.value = _$_.with_scope(__block, () => [...items.value].reverse());
 		};
 
 		var ul_20 = _$_.hydrating ? _$_.hydrate_sibling() : button_19.nextSibling;
@@ -1625,7 +1626,7 @@ function ForLoopReverse_render(__anchor, __block) {
 		{
 			_$_.for(
 				ul_20,
-				() => lazy_19.value,
+				() => items.value,
 				(__anchor, item) => {
 					var li_20 = root_76();
 
@@ -1658,7 +1659,7 @@ var root_78 = _$_.template(`<span class="item"> </span>`, 0);
 var root_77 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
-	let lazy_20 = _$_.track([1, 2, 3], __block, 'a8b41504');
+	const items = _$_.track([1, 2, 3], __block, 'a8b41504');
 	var div_17 = root_77();
 
 	{
@@ -1669,7 +1670,7 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 
 			_$_.for_keyed(
 				node_19,
-				() => lazy_20.value,
+				() => items.value,
 				(__anchor, pattern_8) => {
 					var span_7 = root_78();
 
@@ -1690,14 +1691,14 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 
 		var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : div_18.nextSibling;
 
-		button_20.__click = () => _$_.set(lazy_20, [...lazy_20.value, lazy_20.value.length + 1]);
+		button_20.__click = () => items.value = [...items.value, items.value.length + 1];
 
 		var button_21 = _$_.hydrating ? _$_.hydrate_sibling() : button_20.nextSibling;
 
-		button_21.__click = () => _$_.set(lazy_20, [
-			..._$_.with_scope(__block, () => lazy_20.value.slice(1)),
-			lazy_20.value[0]
-		]);
+		button_21.__click = () => items.value = [
+			..._$_.with_scope(__block, () => items.value.slice(1)),
+			items.value[0]
+		];
 	}
 
 	_$_.append(__anchor, div_17);
@@ -1738,7 +1739,7 @@ RootKeyedList[_$_.$r] = RootKeyedList_render;
 var root_80 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
-	let lazy_21 = _$_.track([1, 2, 3], __block, '50a91d60');
+	const items = _$_.track([1, 2, 3], __block, '50a91d60');
 	var div_19 = root_80();
 
 	{
@@ -1747,20 +1748,20 @@ function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 		{
 			var node_20 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
-			_$_.render_component(RootKeyedList, node_20, { items: lazy_21 });
+			_$_.render_component(RootKeyedList, node_20, { items });
 			_$_.hydrating && _$_.pop(div_20);
 		}
 
 		var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : div_20.nextSibling;
 
-		button_22.__click = () => _$_.set(lazy_21, [...lazy_21.value, lazy_21.value.length + 1]);
+		button_22.__click = () => items.value = [...items.value, items.value.length + 1];
 
 		var button_23 = _$_.hydrating ? _$_.hydrate_sibling() : button_22.nextSibling;
 
-		button_23.__click = () => _$_.set(lazy_21, [
-			..._$_.with_scope(__block, () => lazy_21.value.slice(1)),
-			lazy_21.value[0]
-		]);
+		button_23.__click = () => items.value = [
+			..._$_.with_scope(__block, () => items.value.slice(1)),
+			items.value[0]
+		];
 	}
 
 	_$_.append(__anchor, div_19);

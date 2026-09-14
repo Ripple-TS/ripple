@@ -1,5 +1,4 @@
 import { is_void_element } from '@tsrx/core/runtime/html';
-import { exclude_prop_from_object } from '@tsrx/core/runtime/language-helpers';
 import {
 	escape,
 	get,
@@ -10,7 +9,6 @@ import {
 	spread_attrs,
 	spread_inner_html,
 } from './index.js';
-import { tsrx_element } from '../../element.js';
 
 /**
  * @param {any} value
@@ -37,7 +35,7 @@ function render_child(value) {
  */
 function render_element(tag, props) {
 	output_push(`<${tag}`);
-	output_push(spread_attrs(props, undefined, 'is'));
+	output_push(spread_attrs(props));
 
 	if (is_void_element(tag)) {
 		output_push(' />');
@@ -57,24 +55,25 @@ function render_element(tag, props) {
 }
 
 /**
- * @param {{ is?: Function | string | null | undefined | false, [key: string]: any }} props
- * @returns {import('../../element.js').TSRXElement}
+ * Renders a dynamic tag (`<{tag} />`): a component function, a tag name, or
+ * nothing when the tag is `null`, `undefined`, or `false`. The compiler passes
+ * the tag and the element's own props separately, so the props never carry
+ * the tag.
+ * @param {any} tag
+ * @param {Record<string, any>} props
+ * @returns {void}
  */
-export function dynamic_element(props) {
-	return tsrx_element(() => {
-		const component = get(props?.is);
-		if (component == null || component === false) {
-			return;
-		}
+export function dynamic_element(tag, props) {
+	const component = get(tag);
+	if (component == null || component === false) {
+		return;
+	}
 
-		const dynamic_props = props || {};
-
-		if (typeof component === 'function') {
-			render_component(component, exclude_prop_from_object(dynamic_props, 'is'));
-		} else if (is_tsrx_element(component)) {
-			throw new TypeError('Invalid component type: received a TSRXElement value.');
-		} else {
-			render_element(String(component), dynamic_props);
-		}
-	});
+	if (typeof component === 'function') {
+		render_component(component, props);
+	} else if (is_tsrx_element(component)) {
+		throw new TypeError('Invalid component type: received a TSRXElement value.');
+	} else {
+		render_element(String(component), props);
+	}
 }

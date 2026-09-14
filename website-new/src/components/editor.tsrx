@@ -17,19 +17,21 @@ const CURSOR = '<span class="typing-cursor">|</span>';
 
 export function Editor() @{
 	let nodeRef: Tracked<HTMLElement> = track();
-	let &[loading] = track(true);
-	let &[content] = track('');
+	const loading = track(true);
+	const content = track('');
 	effect(() => {
 		if (nodeRef.value) {
 			fetchMessage().then((message: string) => {
-				content = message;
+				content.value = message;
 
-				loading = false;
+				loading.value = false;
 			});
 		}
 	});
 	effect(() => {
-		if (!content) {
+		const text = content.value;
+
+		if (!text) {
 			return;
 		}
 
@@ -39,17 +41,17 @@ export function Editor() @{
 		function addChar() {
 			charIndex += STEP;
 
-			if (charIndex < content.length) {
-				nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
+			if (charIndex < text.length) {
+				nodeRef.value.innerHTML = text.substring(0, charIndex) + CURSOR;
 				timeoutId = window.setTimeout(addChar, INTERVAL);
 			} else {
-				nodeRef.value.innerHTML = content;
+				nodeRef.value.innerHTML = text;
 			}
 		}
 
 		timeoutId = window.setTimeout(addChar, 1000);
 
-		if (charIndex >= content.length) {
+		if (charIndex >= text.length) {
 			window.clearTimeout(timeoutId);
 		}
 
@@ -70,7 +72,7 @@ export function Editor() @{
 			</div>
 			<div class="editor-content">
 				<pre class="editor-code" ref={bindNode(nodeRef)}>
-					@if (loading) {
+					@if (loading.value) {
 						<span class="editor-loader">Loading...</span>
 					}
 				</pre>

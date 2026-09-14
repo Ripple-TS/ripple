@@ -32,11 +32,11 @@ export function resetControls() {
 resetControls();
 
 function BasicContent() @{
-	let &[data] = trackAsync(() => controls.basic.promise);
-	let &[count] = track(0);
+	const data = trackAsync(() => controls.basic.promise);
+	const count = track(0);
 	<div class="resolved">
-		<span class="value">{data + ':' + count}</span>
-		<button class="inc" onClick={() => count++}>{'inc'}</button>
+		<span class="value">{data.value + ':' + count.value}</span>
+		<button class="inc" onClick={() => count.value++}>{'inc'}</button>
 	</div>
 }
 
@@ -56,8 +56,8 @@ export function StreamPending() @{
 }
 
 function CatchOnlyContent() @{
-	let &[data] = trackAsync(() => controls.catchOnly.promise);
-	<p class="resolved">{data}</p>
+	const data = trackAsync(() => controls.catchOnly.promise);
+	<p class="resolved">{data.value}</p>
 }
 
 export function StreamCatchOnly() @{
@@ -72,8 +72,8 @@ export function StreamCatchOnly() @{
 }
 
 function RejectContent() @{
-	let &[data] = trackAsync(() => controls.rejects.promise);
-	<p class="resolved">{data}</p>
+	const data = trackAsync(() => controls.rejects.promise);
+	<p class="resolved">{data.value}</p>
 }
 
 export function StreamRejects() @{
@@ -87,8 +87,8 @@ export function StreamRejects() @{
 }
 
 function NoCatchContent() @{
-	let &[data] = trackAsync(() => controls.noCatch.promise);
-	<p class="resolved">{data}</p>
+	const data = trackAsync(() => controls.noCatch.promise);
+	<p class="resolved">{data.value}</p>
 }
 
 export function StreamNoCatch() @{
@@ -108,14 +108,14 @@ export function RootPending() @{
 }
 
 function HeadContent() @{
-	let &[data] = trackAsync(() => controls.head.promise);
+	const data = trackAsync(() => controls.head.promise);
 	<>
-		@if (data) {
+		@if (data.value) {
 			<>
 				<head>
-					<title>{'title:' + data}</title>
+					<title>{'title:' + data.value}</title>
 				</head>
-				<p class="head-content">{data}</p>
+				<p class="head-content">{data.value}</p>
 			</>
 		}
 	</>
@@ -130,18 +130,18 @@ export function StreamHead() @{
 }
 
 export function StreamRootDirect() @{
-	let &[data] = trackAsync(() => controls.rootDirect.promise);
-	<p class="root-async">{data}</p>
+	const data = trackAsync(() => controls.rootDirect.promise);
+	<p class="root-async">{data.value}</p>
 }
 
 function OuterContent() @{
-	let &[data] = trackAsync(() => controls.outer.promise);
-	<p class="outer">{data}</p>
+	const data = trackAsync(() => controls.outer.promise);
+	<p class="outer">{data.value}</p>
 }
 
 function InnerContent() @{
-	let &[data] = trackAsync(() => controls.inner.promise);
-	<p class="inner">{data}</p>
+	const data = trackAsync(() => controls.inner.promise);
+	<p class="inner">{data.value}</p>
 }
 
 export function StreamNested() @{

@@ -2,15 +2,15 @@ import { RippleArray, flushSync, track, type Component, type Tracked } from 'rip
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
-		function Button({ count: &[count] }: { count: Tracked<number> }) @{
-			<div>{count}</div>
+		function Button({ count }: { count: Tracked<number> }) @{
+			<div>{count.value}</div>
 		}
 
 		function App() @{
-			let &[count, countTracked] = track(0);
+			const count = track(0);
 			<>
-				<button onClick={() => count++}>{'Increment'}</button>
-				<Button count={countTracked} />
+				<button onClick={() => count.value++}>{'Increment'}</button>
+				<Button count={count} />
 			</>
 		}
 
@@ -164,7 +164,7 @@ describe('composite > render', () => {
 	});
 
 	it('should not render <undefined> tag when a passed in component is undefined', () => {
-		function Child(&{
+		function Child({
 			children,
 			NonExistent,
 			...props
@@ -197,7 +197,7 @@ describe('composite > render', () => {
 
 describe('scoped styles with children', () => {
 	it('generates correct CSS hashes for wrapper and child with empty style in App', () => {
-		function Wrapper(&{ children }: { children?: Component }) @{
+		function Wrapper({ children }: { children?: Component }) @{
 			<>
 				<div class="green">
 					{'Wrapper'}

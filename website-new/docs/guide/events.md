@@ -31,12 +31,12 @@ possible, to improve runtime performance.
 import { track } from 'ripple';
 
 export function EventExample() @{
-  let &[message] = track('');
+  const message = track('');
 
   <div>
-    <button onClick={() => (message = 'Clicked!')}>Click me</button>
-    <input onInput={(e) => (message = e.target.value)} />
-    <p>{message}</p>
+    <button onClick={() => (message.value = 'Clicked!')}>Click me</button>
+    <input onInput={(e) => (message.value = e.target.value)} />
+    <p>{message.value}</p>
   </div>
 }
 ```
@@ -108,18 +108,18 @@ is useful for one-time setup or cleanup operations.
 import { track } from 'ripple';
 
 export function EventExample() @{
-  let &[count] = track(0);
+  const count = track(0);
 
   <>
     <button
       onClick={{
-        handleEvent: () => count++,
+        handleEvent: () => count.value++,
         once: true,
       }}
     >
       Click me (only works once)
     </button>
-    <p>Clicks: {count}</p>
+    <p>Clicks: {count.value}</p>
   </>
 }
 // Button only responds to the first click
@@ -202,18 +202,18 @@ inferred from the attribute.
 import { track } from 'ripple';
 
 export function EventExample() @{
-  let &[count] = track(0);
+  const count = track(0);
 
   <>
     <div
       onMyCustomEvent={{
-        handleEvent: (e) => (count += e.detail.value),
+        handleEvent: (e) => (count.value += e.detail.value),
         customName: 'MyCustomEvent',
       }}
     >
       Custom event target
     </div>
-    <p>Event count: {count}</p>
+    <p>Event count: {count.value}</p>
   </>
 }
 // The element listens for 'MyCustomEvent' instead of 'mycustomevent'

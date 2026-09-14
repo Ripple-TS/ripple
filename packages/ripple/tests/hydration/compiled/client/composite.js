@@ -3,13 +3,13 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="layout"><!></div>`, 0);
 
-function Layout_render(__anchor, __block, __props) {
+function Layout_render(__anchor, __block, { children }) {
 	var div = root();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
-		_$_.expression(expression, () => __props.children);
+		_$_.expression(expression, () => children);
 		_$_.hydrating && _$_.pop(div);
 	}
 
@@ -20,14 +20,14 @@ Layout[_$_.$r] = Layout_render;
 
 var root_1 = _$_.template(`<div class="layout">before<!>after</div>`, 0);
 
-function TextWrappedLayout_render(__anchor, __block, __props) {
+function TextWrappedLayout_render(__anchor, __block, { children }) {
 	var div_1 = root_1();
 
 	{
 		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 		var expression_1 = _$_.hydrating ? _$_.hydrate_sibling() : expression_2.nextSibling;
 
-		_$_.expression(expression_1, () => __props.children);
+		_$_.expression(expression_1, () => children);
 		_$_.hydrating && _$_.pop(div_1);
 	}
 

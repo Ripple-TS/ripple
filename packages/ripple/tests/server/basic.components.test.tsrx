@@ -186,16 +186,16 @@ describe('basic server > components & composition', () => {
 		}
 
 		function Basic() @{
-			let &[clicked] = track(false);
+			const clicked = track(false);
 			<>
 				<Card
 					title="Test Card"
 					content="This is a test card"
 					buttonText="Click me"
-					onAction={() => (clicked = true)}
+					onAction={() => (clicked.value = true)}
 				/>
 				<div class="status">
-					{clicked ? 'Clicked' : 'Not clicked'}
+					{clicked.value ? 'Clicked' : 'Not clicked'}
 				</div>
 			</>
 		}
@@ -228,14 +228,14 @@ describe('basic server > components & composition', () => {
 		}
 
 		function Basic() @{
-			let &[message, messageTracked] = track('Hello');
-			let &[number, numberTracked] = track(1);
+			const message = track('Hello');
+			const number = track(1);
 			<>
-				<ChildComponent text={messageTracked} count={numberTracked} />
+				<ChildComponent text={message} count={number} />
 				<button
 					onClick={() => {
-						message = message === 'Hello' ? 'Goodbye' : 'Hello';
-						number++;
+						message.value = message.value === 'Hello' ? 'Goodbye' : 'Hello';
+						number.value++;
 					}}
 				>{'Update Props'}</button>
 			</>

@@ -145,8 +145,11 @@ hydration tests. Tooling packages often use `.test.js` files.
 Add a changeset for user-facing package changes. Skip changesets for docs-only,
 test-only, and internal tooling updates.
 
-Only use `patch` changesets. Do not use `minor` or `major` bump types until a
-release plan explicitly changes that policy.
+Use `patch` changesets for ordinary changes. Reserve `minor` for a breaking change
+such as removed syntax or a removed public API, and never use `major` until a
+release plan explicitly changes that policy. Peer-dependency bumps only patch
+their dependents (`@changesets/cli` 3), so a `minor` on `ripple` never cascades
+into a `major`.
 
 ```bash
 pnpm changeset

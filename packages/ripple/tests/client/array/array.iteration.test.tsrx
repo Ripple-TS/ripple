@@ -4,11 +4,11 @@ describe('RippleArray > iteration', () => {
 	it('handles entries method with reactivity', () => {
 		function ArrayTest() @{
 			let items = new RippleArray('a', 'b', 'c');
-			let &[entries] = track(() => Array.from(items.entries()));
+			const entries = track(() => Array.from(items.entries()));
 			<>
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				<pre>{JSON.stringify(entries)}</pre>
+				<pre>{JSON.stringify(entries.value)}</pre>
 			</>
 		}
 
@@ -33,11 +33,11 @@ describe('RippleArray > iteration', () => {
 	it('handles keys method with reactivity', () => {
 		function ArrayTest() @{
 			let items = new RippleArray('a', 'b', 'c');
-			let &[keys] = track(() => Array.from(items.keys()));
+			const keys = track(() => Array.from(items.keys()));
 			<>
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				<pre>{JSON.stringify(keys)}</pre>
+				<pre>{JSON.stringify(keys.value)}</pre>
 			</>
 		}
 
@@ -60,11 +60,11 @@ describe('RippleArray > iteration', () => {
 	it('handles values method with reactivity', () => {
 		function ArrayTest() @{
 			let items = new RippleArray('a', 'b', 'c');
-			let &[values] = track(() => Array.from(items.values()));
+			const values = track(() => Array.from(items.values()));
 			<>
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				<pre>{JSON.stringify(values)}</pre>
+				<pre>{JSON.stringify(values.value)}</pre>
 			</>
 		}
 
@@ -87,19 +87,19 @@ describe('RippleArray > iteration', () => {
 	it('handles Symbol.iterator with reactivity', () => {
 		function ArrayTest() @{
 			let items = new RippleArray(1, 2, 3);
-			let &[sum] = track(0);
+			const sum = track(0);
 			effect(() => {
-				sum = 0;
+				sum.value = 0;
 				for (const item of items) {
 					untrack(() => {
-						sum += item;
+						sum.value += item;
 					});
 				}
 			});
 			<>
 				<button onClick={() => items.push(4)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				<pre>{sum}</pre>
+				<pre>{sum.value}</pre>
 			</>
 		}
 

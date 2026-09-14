@@ -1,7 +1,7 @@
 import { track } from 'ripple';
 
 // 100 uniquely-named components in a chain. Stateful counters at C1, C11, C21, C31, C41, C51, C61, C71, C81, C91.
-// signal-frameworks update only the {v} text expression; CN+1..C100 are untouched.
+// signal-frameworks update only the {v.value} text expression; CN+1..C100 are untouched.
 
 let _set1: any = null;
 let _set11: any = null;
@@ -97,13 +97,13 @@ function C92(props) @{
 	</div>
 }
 function C91(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set91 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		91:
-		{v}
+		{v.value}
 
 		<C92 />
 	</div>
@@ -163,13 +163,13 @@ function C82(props) @{
 	</div>
 }
 function C81(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set81 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		81:
-		{v}
+		{v.value}
 
 		<C82 />
 	</div>
@@ -229,13 +229,13 @@ function C72(props) @{
 	</div>
 }
 function C71(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set71 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		71:
-		{v}
+		{v.value}
 
 		<C72 />
 	</div>
@@ -295,13 +295,13 @@ function C62(props) @{
 	</div>
 }
 function C61(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set61 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		61:
-		{v}
+		{v.value}
 
 		<C62 />
 	</div>
@@ -361,13 +361,13 @@ function C52(props) @{
 	</div>
 }
 function C51(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set51 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		51:
-		{v}
+		{v.value}
 
 		<C52 />
 	</div>
@@ -427,13 +427,13 @@ function C42(props) @{
 	</div>
 }
 function C41(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set41 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		41:
-		{v}
+		{v.value}
 
 		<C42 />
 	</div>
@@ -493,13 +493,13 @@ function C32(props) @{
 	</div>
 }
 function C31(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set31 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		31:
-		{v}
+		{v.value}
 
 		<C32 />
 	</div>
@@ -559,13 +559,13 @@ function C22(props) @{
 	</div>
 }
 function C21(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set21 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		21:
-		{v}
+		{v.value}
 
 		<C22 />
 	</div>
@@ -625,13 +625,13 @@ function C12(props) @{
 	</div>
 }
 function C11(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set11 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		11:
-		{v}
+		{v.value}
 
 		<C12 />
 	</div>
@@ -691,13 +691,13 @@ function C2(props) @{
 	</div>
 }
 function C1(props) @{
-	let &[v] = track(0);
+	const v = track(0);
 	_set1 = () => {
-		v += 1;
+		v.value += 1;
 	};
 	<div class="c">
 		1:
-		{v}
+		{v.value}
 
 		<C2 />
 	</div>

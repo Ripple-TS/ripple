@@ -520,13 +520,13 @@ DynamicArrayFromCall[_$_.$r] = DynamicArrayFromCall_render;
 var root_39 = _$_.template(`<div class="dynamic-array-track"> </div>`, 0);
 
 function DynamicArrayFromTrack_render(__anchor, __block) {
-	let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], __block, 'b5de6402');
+	const items = _$_.track(['start:', ['one', 2], true, null, false, ':end'], __block, 'b5de6402');
 	var div_16 = root_39();
 
 	{
 		var expression_17 = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
-		_$_.expression(expression_17, () => lazy.value);
+		_$_.expression(expression_17, () => items.value);
 		_$_.hydrating && _$_.pop(div_16);
 	}
 
@@ -674,13 +674,13 @@ TsxDeclaredBeforeTopLevelTsx[_$_.$r] = TsxDeclaredBeforeTopLevelTsx_render;
 
 var root_52 = _$_.template(`<div class="text-prop"> </div>`, 0);
 
-function TextProp_render(__anchor, __block, __props) {
+function TextProp_render(__anchor, __block, { children }) {
 	var div_21 = root_52();
 
 	{
 		var expression_24 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
 
-		_$_.expression(expression_24, () => __props.children.value);
+		_$_.expression(expression_24, () => children.value);
 		_$_.hydrating && _$_.pop(div_21);
 	}
 
@@ -692,21 +692,21 @@ TextProp[_$_.$r] = TextProp_render;
 var root_53 = _$_.template(`<div class="text-prop"> </div>`, 0);
 
 function render_1(__prev) {
-	var __a = __prev.___props.children.value;
+	var __a = __prev._children.value;
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression_25, __prev.a = __a);
 	}
 }
 
-function TypedTextProp_render(__anchor, __block, __props) {
+function TypedTextProp_render(__anchor, __block, { children }) {
 	var div_22 = root_53();
 
 	{
 		var expression_25 = _$_.hydrating ? _$_.hydrate_text() : div_22.firstChild;
 	}
 
-	_$_.render(render_1, { a: ' ', ___props: __props, _expression_25: expression_25 });
+	_$_.render(render_1, { a: ' ', _children: children, _expression_25: expression_25 });
 	_$_.append(__anchor, div_22);
 }
 
@@ -716,7 +716,7 @@ var root_55 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
 var root_54 = _$_.template(`<!>`, 1, 1);
 
 function TextPropWithToggle_render(__anchor, __block) {
-	let lazy_1 = _$_.track(false, __block, '1ba81c3b');
+	const show = _$_.track(false, __block, '1ba81c3b');
 	var fragment_21 = root_54();
 	var node_14 = _$_.first_child_frag(fragment_21);
 
@@ -725,12 +725,12 @@ function TextPropWithToggle_render(__anchor, __block) {
 		var node_13 = _$_.first_child_frag(fragment_22);
 
 		_$_.render_component(TextProp, node_13, {
-			children: _$_.normalize_children(_$_.track(() => lazy_1.value ? 'hello' : '', __block, '649e2af0'))
+			children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', __block, '649e2af0'))
 		});
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : node_13.nextSibling;
 
-		button.__click = () => _$_.set(lazy_1, true);
+		button.__click = () => show.value = true;
 		_$_.append(__anchor, fragment_22);
 	}));
 
@@ -743,7 +743,7 @@ var root_57 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
 var root_56 = _$_.template(`<!>`, 1, 1);
 
 function TypedTextPropWithToggle_render(__anchor, __block) {
-	let lazy_2 = _$_.track(false, __block, 'ba719d47');
+	const show = _$_.track(false, __block, 'ba719d47');
 	var fragment_23 = root_56();
 	var node_16 = _$_.first_child_frag(fragment_23);
 
@@ -752,12 +752,12 @@ function TypedTextPropWithToggle_render(__anchor, __block) {
 		var node_15 = _$_.first_child_frag(fragment_24);
 
 		_$_.render_component(TypedTextProp, node_15, {
-			children: _$_.normalize_children(_$_.track(() => lazy_2.value ? 'hello' : '', __block, '6fb091f9'))
+			children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', __block, '6fb091f9'))
 		});
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_15.nextSibling;
 
-		button_1.__click = () => _$_.set(lazy_2, true);
+		button_1.__click = () => show.value = true;
 		_$_.append(__anchor, fragment_24);
 	}));
 
@@ -1141,7 +1141,7 @@ FragmentLeadsWithPrimitiveCall[_$_.$r] = FragmentLeadsWithPrimitiveCall_render;
 var root_83 = _$_.template(`<div class="primitive-calls"> </div><button>update</button>`, 1, 2);
 
 function render_5(__prev) {
-	var __a = "sum: " + (String(Number(__prev._lazy_3.value) + Number(__prev._lazy_3.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._lazy_3.value)) ?? '')));
+	var __a = "sum: " + (String(Number(__prev._count.value) + Number(__prev._count.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._count.value)) ?? '')));
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._text_1, __prev.a = __a);
@@ -1151,7 +1151,7 @@ function render_5(__prev) {
 var root_82 = _$_.template(`<!>`, 1, 1);
 
 function PrimitiveTextCalls_render(__anchor, __block) {
-	let lazy_3 = _$_.track(2, __block, 'eea72017');
+	const count = _$_.track(2, __block, 'eea72017');
 	var fragment_36 = root_82();
 	var node_30 = _$_.first_child_frag(fragment_36);
 
@@ -1165,8 +1165,8 @@ function PrimitiveTextCalls_render(__anchor, __block) {
 
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
 
-		button_2.__click = () => _$_.update(lazy_3);
-		_$_.render(render_5, { a: ' ', _lazy_3: lazy_3, ___block: __block, _text_1: text_1 });
+		button_2.__click = () => count.value++;
+		_$_.render(render_5, { a: ' ', _count: count, ___block: __block, _text_1: text_1 });
 		_$_.append(__anchor, fragment_37);
 	}));
 

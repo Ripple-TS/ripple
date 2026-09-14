@@ -269,7 +269,7 @@ function DocFooter() {
 	});
 }
 
-export function DocLayout(__props) {
+export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -279,55 +279,27 @@ export function DocLayout(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children);
+				_$_.render_expression(children);
 			}
 
 			__out += '</div></article><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.editPath, '')) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="edit-link"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<a');
-					_$_.output_push(_$_.attr('href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`, false));
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Edit');
-					}
-
-					_$_.output_push('</a>');
-				}
-
-				_$_.output_push('</div>');
+			if (editPath) {
+				__out += '<div class="edit-link"><a' + _$_.attr('href', `https://github.com/edit/${editPath}`, false) + '>Edit</a></div>';
 			}
 
 			__out += '<!--]--><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.nextLink, null)) {
-				_$_.output_push('<nav');
-				_$_.output_push(' class="prev-next"');
-				_$_.output_push('>');
+			if (nextLink) {
+				__out += '<nav class="prev-next"><a' + _$_.attr('href', nextLink.href, false) + '>';
 
 				{
-					_$_.output_push('<a');
-					_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
-					}
-
-					_$_.output_push('</a>');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(nextLink.text);
 				}
 
-				_$_.output_push('</nav>');
+				__out += '</a></nav>';
 			}
 
 			__out += '<!--]-->';
@@ -342,47 +314,15 @@ export function DocLayout(__props) {
 			}
 
 			__out += '</div><aside><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.toc, []).length > 0) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="toc"');
-				_$_.output_push('>');
+			if (toc.length > 0) {
+				__out += '<div class="toc"><ul><!--[-->';
 
-				{
-					_$_.output_push('<ul');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<!--[-->');
-
-						for (const item of _$_.fallback(__props.toc, [])) {
-							_$_.output_push('<li');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<a');
-								_$_.output_push(_$_.attr('href', item.href, false));
-								_$_.output_push('>');
-
-								{
-									_$_.output_push(_$_.escape(item.text));
-								}
-
-								_$_.output_push('</a>');
-							}
-
-							_$_.output_push('</li>');
-						}
-
-						_$_.output_push('<!--]-->');
-					}
-
-					_$_.output_push('</ul>');
+				for (const item of toc) {
+					__out += '<li><a' + _$_.attr('href', item.href, false) + '>' + _$_.escape(item.text) + '</a></li>';
 				}
 
-				_$_.output_push('</div>');
+				__out += '<!--]--></ul></div>';
 			}
 
 			__out += '<!--]--></aside></div>';
@@ -941,23 +881,18 @@ export function HtmlAfterComponentInChildren() {
 	});
 }
 
-function NavItem(__props) {
+function NavItem({ href, text: label, active = false }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div' + _$_.attr('class', `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`) + '><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
+			__out += '<div' + _$_.attr('class', `nav-item${active ? ' active' : ''}`) + '><!--[-->';
 
-			if (_$_.fallback(__props.active, false)) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="indicator"');
-				_$_.output_push('>');
-				_$_.output_push('</div>');
+			if (active) {
+				__out += '<div class="indicator"></div>';
 			}
 
-			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>' + _$_.escape(__props.text) + '</span></a></div>';
+			__out += '<!--]--><a' + _$_.attr('href', href, false) + '><span>' + _$_.escape(label) + '</span></a></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -965,14 +900,14 @@ function NavItem(__props) {
 
 function SidebarSection({ title, children }) {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(true, '6ac6906f');
+		const expanded = _$_.track(true, '6ac6906f');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<section class="sidebar-section"><div class="section-header"><h2>' + _$_.escape(title) + '</h2><button>Toggle</button></div><!--[-->';
 
-			if (lazy.value) {
+			if (expanded.value) {
 				__out += '<div class="section-items">';
 
 				{
@@ -1408,7 +1343,7 @@ function FooterStub() {
 	});
 }
 
-function DocsLayoutInner(__props) {
+function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -1440,55 +1375,27 @@ function DocsLayoutInner(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children);
+				_$_.render_expression(children);
 			}
 
 			__out += '</div></article><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.editPath, '')) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="edit-link"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<a');
-					_$_.output_push(' href="/edit"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Edit on GitHub');
-					}
-
-					_$_.output_push('</a>');
-				}
-
-				_$_.output_push('</div>');
+			if (editPath) {
+				__out += '<div class="edit-link"><a href="/edit">Edit on GitHub</a></div>';
 			}
 
 			__out += '<!--]--><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.nextLink, null)) {
-				_$_.output_push('<nav');
-				_$_.output_push(' class="prev-next"');
-				_$_.output_push('>');
+			if (nextLink) {
+				__out += '<nav class="prev-next"><a' + _$_.attr('href', nextLink.href, false) + '>';
 
 				{
-					_$_.output_push('<a');
-					_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
-					}
-
-					_$_.output_push('</a>');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(nextLink.text);
 				}
 
-				_$_.output_push('</nav>');
+				__out += '</a></nav>';
 			}
 
 			__out += '<!--]-->';
@@ -1564,7 +1471,15 @@ export function DocsLayoutWithoutData() {
 	});
 }
 
-function DocsLayoutExact(__props) {
+function DocsLayoutExact(
+	{
+		children,
+		editPath = '',
+		prevLink = null,
+		nextLink = null,
+		toc = []
+	}
+) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -1596,98 +1511,49 @@ function DocsLayoutExact(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children);
+				_$_.render_expression(children);
 			}
 
 			__out += '</div></article><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.editPath, '')) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="edit-link"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<a');
-					_$_.output_push(_$_.attr('href', `/edit/${_$_.fallback(__props.editPath, '')}`, false));
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Edit on GitHub');
-					}
-
-					_$_.output_push('</a>');
-				}
-
-				_$_.output_push('</div>');
+			if (editPath) {
+				__out += '<div class="edit-link"><a' + _$_.attr('href', `/edit/${editPath}`, false) + '>Edit on GitHub</a></div>';
 			}
 
 			__out += '<!--]--><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) {
-				_$_.output_push('<nav');
-				_$_.output_push(' class="prev-next"');
-				_$_.output_push('>');
+			if (prevLink || nextLink) {
+				__out += '<nav class="prev-next"><!--[-->';
 
-				{
-					_$_.output_push('<!--[-->');
+				if (prevLink) {
+					__out += '<a' + _$_.attr('href', prevLink.href, false) + ' class="pager prev"><span class="title">';
 
-					if (_$_.fallback(__props.prevLink, null)) {
-						_$_.output_push('<a');
-						_$_.output_push(_$_.attr('href', _$_.fallback(__props.prevLink, null).href, false));
-						_$_.output_push(' class="pager prev"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<span');
-							_$_.output_push(' class="title"');
-							_$_.output_push('>');
-
-							{
-								_$_.render_expression(_$_.fallback(__props.prevLink, null).text);
-							}
-
-							_$_.output_push('</span>');
-						}
-
-						_$_.output_push('</a>');
-					} else {
-						_$_.output_push('<span');
-						_$_.output_push('>');
-						_$_.output_push('</span>');
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(prevLink.text);
 					}
 
-					_$_.output_push('<!--]-->');
-					_$_.output_push('<!--[-->');
-
-					if (_$_.fallback(__props.nextLink, null)) {
-						_$_.output_push('<a');
-						_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-						_$_.output_push(' class="pager next"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<span');
-							_$_.output_push(' class="title"');
-							_$_.output_push('>');
-
-							{
-								_$_.render_expression(_$_.fallback(__props.nextLink, null).text);
-							}
-
-							_$_.output_push('</span>');
-						}
-
-						_$_.output_push('</a>');
-					}
-
-					_$_.output_push('<!--]-->');
+					__out += '</span></a>';
+				} else {
+					__out += '<span></span>';
 				}
 
-				_$_.output_push('</nav>');
+				__out += '<!--]--><!--[-->';
+
+				if (nextLink) {
+					__out += '<a' + _$_.attr('href', nextLink.href, false) + ' class="pager next"><span class="title">';
+
+					{
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_expression(nextLink.text);
+					}
+
+					__out += '</span></a>';
+				}
+
+				__out += '<!--]--></nav>';
 			}
 
 			__out += '<!--]-->';
@@ -1702,41 +1568,15 @@ function DocsLayoutExact(__props) {
 			}
 
 			__out += '</div></div><aside class="aside"><!--[-->';
-			_$_.output_push(__out);
-			__out = '';
 
-			if (_$_.fallback(__props.toc, []).length > 0) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="aside-content"');
-				_$_.output_push('>');
+			if (toc.length > 0) {
+				__out += '<div class="aside-content"><nav class="outline"><!--[-->';
 
-				{
-					_$_.output_push('<nav');
-					_$_.output_push(' class="outline"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<!--[-->');
-
-						for (const item of _$_.fallback(__props.toc, [])) {
-							_$_.output_push('<a');
-							_$_.output_push(_$_.attr('href', item.href, false));
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(item.text));
-							}
-
-							_$_.output_push('</a>');
-						}
-
-						_$_.output_push('<!--]-->');
-					}
-
-					_$_.output_push('</nav>');
+				for (const item of toc) {
+					__out += '<a' + _$_.attr('href', item.href, false) + '>' + _$_.escape(item.text) + '</a>';
 				}
 
-				_$_.output_push('</div>');
+				__out += '<!--]--></nav></div>';
 			}
 
 			__out += '<!--]--></aside></div></main></div></div>';

@@ -24,15 +24,15 @@ describe('@for selector lowering', () => {
 	it('lowers `outer === item` in a render attribute to a shared selector', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[selected] = track<number | undefined>(undefined);
-				@for (const row of items; key row.id) {
-					<tr class={selected === row.id ? 'danger' : ''}>{row.id}</tr>
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
+					<tr class={selected.value === row.id ? 'danger' : ''}>{row.id}</tr>
 				}
 			}
 		`);
 
-		expect(code).toContain('const selector = _$_.selector(() => lazy_1.value);');
+		expect(code).toContain('const selector = _$_.selector(() => selected.value);');
 		expect(code).toContain("_$_.selector_match(__prev._selector, __pattern.id) ? 'danger' : ''");
 		expect(code.indexOf('_$_.selector(')).toBeLessThan(code.indexOf('_$_.for_keyed('));
 	});
@@ -40,10 +40,10 @@ describe('@for selector lowering', () => {
 	it('lowers the reversed operand order and negates `!==`', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[selected] = track<number | undefined>(undefined);
-				@for (const row of items; key row.id) {
-					<tr class={row.id !== selected ? 'plain' : 'danger'}>{row.id}</tr>
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
+					<tr class={row.id !== selected.value ? 'plain' : 'danger'}>{row.id}</tr>
 				}
 			}
 		`);
@@ -56,15 +56,15 @@ describe('@for selector lowering', () => {
 	it('lowers text expressions and unkeyed loops', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[selected] = track<number | undefined>(undefined);
-				@for (const row of items) {
-					<tr>{selected === row.id ? 'selected' : ''}</tr>
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value) {
+					<tr>{selected.value === row.id ? 'selected' : ''}</tr>
 				}
 			}
 		`);
 
-		expect(code).toContain('_$_.selector(() => lazy_1.value)');
+		expect(code).toContain('_$_.selector(() => selected.value)');
 		expect(code).toContain('_$_.selector_match(__prev._selector, __prev._row.id)');
 	});
 
@@ -72,8 +72,8 @@ describe('@for selector lowering', () => {
 		const code = compile_client(`${ROWS}
 			const FIXED = 3;
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				@for (const row of items; key row.id) {
+				const items = track<Row[]>([]);
+				@for (const row of items.value; key row.id) {
 					<tr class={FIXED === row.id ? 'danger' : ''}>{row.id}</tr>
 				}
 			}
@@ -86,14 +86,14 @@ describe('@for selector lowering', () => {
 	it('keeps comparisons inside callbacks, handlers, and calls', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[selected] = track<number | undefined>(undefined);
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
 				const pick = (id: number) => id;
-				@for (const row of items; key row.id) {
+				@for (const row of items.value; key row.id) {
 					<tr
-						class={[row.id].some((id) => selected === id) ? 'danger' : ''}
-						title={pick(selected) === row.id ? 'picked' : ''}
-						onClick={() => console.log(selected === row.id)}
+						class={[row.id].some((id) => selected.value === id) ? 'danger' : ''}
+						title={pick(selected.value) === row.id ? 'picked' : ''}
+						onClick={() => console.log(selected.value === row.id)}
 					>{row.id}</tr>
 				}
 			}
@@ -105,11 +105,11 @@ describe('@for selector lowering', () => {
 	it('keeps comparisons that read state local to the loop body', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[selected] = track<number | undefined>(undefined);
-				@for (const row of items; key row.id) {
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
 					const offset = row.id * 2;
-					<tr class={selected === offset ? 'danger' : ''}>{row.id}</tr>
+					<tr class={selected.value === offset ? 'danger' : ''}>{row.id}</tr>
 				}
 			}
 		`);
@@ -120,11 +120,11 @@ describe('@for selector lowering', () => {
 	it('registers one selector per loop instance for nested loops', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[groups] = track<Row[][]>([]);
-				let &[selected] = track<number | undefined>(undefined);
-				@for (const group of groups; key group.length) {
+				const groups = track<Row[][]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const group of groups.value; key group.length) {
 					@for (const row of group; key row.id) {
-						<tr class={selected === row.id ? 'danger' : ''}>{row.id}</tr>
+						<tr class={selected.value === row.id ? 'danger' : ''}>{row.id}</tr>
 					}
 				}
 			}
@@ -139,10 +139,10 @@ describe('grouped render read hoisting', () => {
 	it('does not hoist an item read only on conditional paths', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[ready] = track(false);
-				@for (const row of items; key row.id) {
-					<tr title={ready ? row.label.value : 'pending'} class={ready && row.label.value}>{'x'}</tr>
+				const items = track<Row[]>([]);
+				const ready = track(false);
+				@for (const row of items.value; key row.id) {
+					<tr title={ready.value ? row.label.value : 'pending'} class={ready.value && row.label.value}>{'x'}</tr>
 				}
 			}
 		`);
@@ -156,8 +156,8 @@ describe('grouped render read hoisting', () => {
 	it('leaves reads inside nested functions alone', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				@for (const row of items; key row.id) {
+				const items = track<Row[]>([]);
+				@for (const row of items.value; key row.id) {
 					<tr title={row.label.value} class={[row.id].some((id) => row.id === id) ? 'x' : ''}>{'x'}</tr>
 				}
 			}
@@ -174,10 +174,10 @@ describe('grouped render read hoisting', () => {
 	it('reuses an unconditional read on conditional paths too', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				let &[ready] = track(false);
-				@for (const row of items; key row.id) {
-					<tr title={row.label.value} class={ready ? row.label.value : ''}>{'x'}</tr>
+				const items = track<Row[]>([]);
+				const ready = track(false);
+				@for (const row of items.value; key row.id) {
+					<tr title={row.label.value} class={ready.value ? row.label.value : ''}>{'x'}</tr>
 				}
 			}
 		`);
@@ -191,8 +191,8 @@ describe('@for item type inference', () => {
 	it('lowers typed member reads on the loop item to text updates', () => {
 		const code = compile_client(`${ROWS}
 			export default function App() @{
-				let &[items] = track<Row[]>([]);
-				@for (const row of items; key row.id) {
+				const items = track<Row[]>([]);
+				@for (const row of items.value; key row.id) {
 					<tr><td>{row.id}</td><td>{row.label.value}</td></tr>
 				}
 			}
@@ -210,10 +210,10 @@ describe('@for item type inference', () => {
 
 			type Item = { name: string; nested: { count: number } };
 			export default function App() @{
-				let &[items] = track<Array<Item>>([]);
+				const items = track<Array<Item>>([]);
 				const fixed: Item[] = [];
 				<>
-					@for (const item of items; key item.name) {
+					@for (const item of items.value; key item.name) {
 						<p>{item.nested.count}</p>
 					}
 					@for (const item of fixed; key item.name) {
@@ -233,41 +233,14 @@ describe('@for item type inference', () => {
 			import { track } from 'ripple';
 
 			export default function App() @{
-				let &[items] = track([]);
-				@for (const item of items; key item.id) {
+				const items = track([]);
+				@for (const item of items.value; key item.id) {
 					<p>{item.content}</p>
 				}
 			}
 		`);
 
 		expect(code).toContain('_$_.expression(');
-	});
-
-	it('types the bindings of a lazily destructured props pattern', () => {
-		const code = compile_client(`
-			type Item = { id: number; nested: { label: string } };
-
-			export default function Row(&{ item, extra: { count } }: { item: Item; extra: { count: number } }) @{
-				<tr><td>{item.id}</td><td>{item.nested.label}</td><td>{count}</td></tr>
-			}
-		`);
-
-		expect(code).not.toContain('_$_.expression(');
-		expect(code.match(/_\$_\.set_text\(/g)).toHaveLength(3);
-		expect(code).toContain('__props.item.id');
-		expect(code).toContain('__props.extra.count');
-	});
-
-	it('types the bindings of a lazy object pattern declaration', () => {
-		const code = compile_client(`
-			export default function Row(props: { item: { id: number } }) @{
-				const &{ item } = props;
-				<p>{item.id}</p>
-			}
-		`);
-
-		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(');
 	});
 
 	it('types the bindings of a regular destructured props pattern', () => {
@@ -300,9 +273,9 @@ describe('@for item type inference', () => {
 			import { track } from 'ripple';
 
 			export default function App() @{
-				let &[count] = track(0);
-				let &[content] = track('');
-				<><p>{count}</p><p>{content}</p></>
+				const count = track(0);
+				const content = track('');
+				<><p>{count.value}</p><p>{content.value}</p></>
 			}
 		`);
 

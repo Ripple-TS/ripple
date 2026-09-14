@@ -34,14 +34,14 @@ export function SwitchStatic() {
 
 export function SwitchReactive() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track('a', '9b34d955');
+		const status = _$_.track('a', '9b34d955');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-			switch (lazy.value) {
+			switch (status.value) {
 				case 'a':
 					__out += '<div class="case-a">Case A</div>';
 					break;
@@ -91,14 +91,14 @@ export function SwitchFallthrough() {
 
 export function SwitchNumericLevels() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(1, '7581a7ab');
+		const level = _$_.track(1, '7581a7ab');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="level-toggle">Toggle Level</button><!--[-->';
 
-			switch (lazy_1.value) {
+			switch (level.value) {
 				case 1:
 					__out += '<div class="level-1">Level 1</div>';
 					break;
@@ -120,14 +120,14 @@ export function SwitchNumericLevels() {
 
 export function SwitchBlockScoped() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track(1, 'ca9f9852');
+		const level = _$_.track(1, 'ca9f9852');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="block-toggle">Toggle</button><!--[-->';
 
-			switch (lazy_2.value) {
+			switch (level.value) {
 				case 1:
 					__out += '<div class="block-1">Block 1</div>';
 					break;
@@ -149,14 +149,14 @@ export function SwitchBlockScoped() {
 
 export function SwitchNoBreak() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track(1, '6b7cb0ea');
+		const level = _$_.track(1, '6b7cb0ea');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="nobreak-toggle">Toggle</button><!--[-->';
 
-			switch (lazy_3.value) {
+			switch (level.value) {
 				case 1:
 					__out += '<div class="nobreak-1">NoBreak 1</div>';
 					break;

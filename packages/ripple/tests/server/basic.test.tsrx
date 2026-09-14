@@ -397,10 +397,10 @@ second
 
 	it('renders tracked state updates', async () => {
 		function Counter() @{
-			let &[count] = track(0);
-			count++;
-			count = count + 5;
-			<div>{count}</div>
+			const count = track(0);
+			count.value++;
+			count.value = count.value + 5;
+			<div>{count.value}</div>
 		}
 
 		const { body } = await render(Counter);
@@ -445,10 +445,12 @@ second
 
 	it('renders spread props with tracked values', async () => {
 		function SpreadProps() @{
-			let &[id] = track('unique-id');
-			let &[isActive] = track(true);
-			let &[styles] = track({ color: 'red', fontSize: '16px' });
-			<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
+			const id = track('unique-id');
+			const isActive = track(true);
+			const styles = track({ color: 'red', fontSize: '16px' });
+			<div
+				{...{ id: id.value, class: { active: isActive.value }, style: styles.value }}
+			>{'Spread Props'}</div>
 		}
 
 		const { body } = await render(SpreadProps);
@@ -460,12 +462,12 @@ second
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
 		function Assignments() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const obj = { value: track(5) };
-			count += 10;
+			count.value += 10;
 			obj.value.value *= 2;
 			<>
-				<div>{count}</div>
+				<div>{count.value}</div>
 				<div>{obj.value.value}</div>
 			</>
 		}
@@ -477,12 +479,12 @@ second
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
 		function Derived() @{
-			let &[base] = track(5);
-			let &[multiplier] = track(3);
-			let &[derived] = track(() => base * multiplier);
-			const before = derived;
-			base += 2;
-			const after = derived;
+			const base = track(5);
+			const multiplier = track(3);
+			const derived = track(() => base.value * multiplier.value);
+			const before = derived.value;
+			base.value += 2;
+			const after = derived.value;
 			<>
 				<div>{before}</div>
 				<div>{after}</div>
@@ -496,13 +498,13 @@ second
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
 		function NestedDerived() @{
-			let &[a] = track(2);
-			let &[b] = track(3);
-			let &[sum] = track(() => a + b);
-			let &[product] = track(() => sum * 2);
-			const before = product;
-			a = 4;
-			const after = product;
+			const a = track(2);
+			const b = track(3);
+			const sum = track(() => a.value + b.value);
+			const product = track(() => sum.value * 2);
+			const before = product.value;
+			a.value = 4;
+			const after = product.value;
 			<>
 				<div>{before}</div>
 				<div>{after}</div>
@@ -516,24 +518,24 @@ second
 
 	it('handles lexical scopes correctly', async () => {
 		function LexicalScopes() @{
-			let &[x] = track(1);
+			const x = track(1);
 			let nested = '';
 			let deep = '';
 			let deeper = '';
 			{
-				let &[x] = track(10);
-				nested = String(x);
+				const x = track(10);
+				nested = String(x.value);
 			}
 			{
-				let &[x] = track(12);
-				deep = String(x);
+				const x = track(12);
+				deep = String(x.value);
 				{
-					let &[x] = track(15);
-					deeper = String(x);
+					const x = track(15);
+					deeper = String(x.value);
 				}
 			}
 			<>
-				<div>{x}</div>
+				<div>{x.value}</div>
 				<div>{nested}</div>
 				<div>
 					{deep}

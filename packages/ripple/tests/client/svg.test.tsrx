@@ -294,9 +294,9 @@ describe('SVG namespace handling', () => {
 		}
 
 		function App() @{
-			let &[dynTag] = track('polygon');
+			const dynTag = track('polygon');
 			<SVG>
-				<{dynTag} points="0,0 30,0 15,10" />
+				<{dynTag.value} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 
@@ -325,9 +325,9 @@ describe('SVG namespace handling', () => {
 		}
 
 		function App() @{
-			let &[Component] = track(() => Polygon);
+			const Component = track(() => Polygon);
 			<SVG>
-				<{Component} points="0,0 30,0 15,10" />
+				<{Component.value} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 
@@ -342,25 +342,25 @@ describe('SVG namespace handling', () => {
 
 	it('should render SVG as a dynamic top element with any dynamic children elements', () => {
 		function SVG({ children }: PropsWithChildren<{}>) @{
-			let &[tag] = track('svg');
-			<{tag}
+			const tag = track('svg');
+			<{tag.value}
 				width={100}
 				height={50}
 				fill="red"
 				viewBox="0 0 30 10"
 				preserveAspectRatio="none"
-			>{children}</{tag}>
+			>{children}</{tag.value}>
 		}
 
 		function Polygon({ points }: PropsWithExtras<{ points: string }>) @{
-			let &[dynTag] = track('polygon');
-			<{dynTag} {points} />
+			const dynTag = track('polygon');
+			<{dynTag.value} {points} />
 		}
 
 		function App() @{
-			let &[Component] = track(() => Polygon);
+			const Component = track(() => Polygon);
 			<SVG>
-				<{Component} points="0,0 30,0 15,10" />
+				<{Component.value} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 

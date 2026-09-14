@@ -51,9 +51,9 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		function App() @{
-			let &[medium] = new MediaQuery(media);
+			const medium = new MediaQuery(media);
 			<div>
-				<p>{medium}</p>
+				<p>{medium.value}</p>
 			</div>
 		}
 
@@ -85,19 +85,19 @@ describe('MediaQuery', () => {
 		const media = '(min-width: 600px)';
 
 		function App() @{
-			let &[show] = track(true);
+			const show = track(true);
 			<>
-				@if (show) {
+				@if (show.value) {
 					<Child />
 				}
-				<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+				<button onClick={() => (show.value = !show.value)}>{'Toggle Child'}</button>
 			</>
 		}
 
 		function Child() @{
-			let &[medium] = new MediaQuery(media);
+			const medium = new MediaQuery(media);
 			<div>
-				<p>{medium}</p>
+				<p>{medium.value}</p>
 			</div>
 		}
 

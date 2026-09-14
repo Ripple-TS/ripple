@@ -48,9 +48,9 @@ function Button({ label, onClick }: { label: string; onClick: () => void }) @{
 import { track } from 'ripple';
 
 function Counter() @{
-  let &[count] = track(0);
+  const count = track(0);
 
-  <button onClick={() => count++}>{count}</button>
+  <button onClick={() => count.value++}>{count.value}</button>
 }
 ```
 

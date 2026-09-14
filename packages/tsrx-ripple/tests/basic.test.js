@@ -155,26 +155,6 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		);
 	});
 
-	it('keeps the __props entry for lazy and nested lazy parameters', () => {
-		const lazy = compile(
-			`function Lazy(&{ count }) @{
-				<span>{count}</span>
-			}`,
-			'App.tsrx',
-		).code;
-		expect(lazy).toContain('function Lazy_render(__anchor, __block, __props)');
-		expect(lazy).toContain('Lazy[_$_.$r] = Lazy_render;');
-
-		const nested = compile(
-			`function Nested({ count: &[count] }) @{
-				<span>{count}</span>
-			}`,
-			'App.tsrx',
-		).code;
-		expect(nested).toContain('Nested[_$_.$r] = Nested_render;');
-		expect(nested).toContain('function Nested(__props) {');
-	});
-
 	it('hoists an @if that captures several locals, packed into one object', () => {
 		const { code } = compile(
 			`function Node({ depth, path }) @{
@@ -201,9 +181,9 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 			`import { track } from 'ripple';
 			export function App() @{
 				let div;
-				let &[show] = track(true);
+				const show = track(true);
 				let clicks = 0;
-				@if (show) {
+				@if (show.value) {
 					<div ref={div} onClick={() => clicks++}>{'x'}</div>
 				}
 			}`,
@@ -214,44 +194,44 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		// they are boxed and the branch is hoisted with the boxes as captures.
 		expect(code).toContain('let div = { v: void 0 };');
 		expect(code).toContain('let clicks = { v: 0 };');
-		expect(code).toContain('function consequent(__anchor, { lazy, div, clicks })');
+		expect(code).toContain('function consequent(__anchor, { show, div, clicks })');
 		expect(code).toContain('_$_.ref(div_1, () => div.v, (v) => div.v = v);');
 		expect(code).toContain('clicks.v++');
-		expect(code).toContain('_$_.if(__anchor, if_1, true, { lazy, div, clicks });');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, { show, div, clicks });');
 	});
 
 	it('boxes rebound parameters, nested pattern names, catch parameters and pattern targets', () => {
 		const { code } = compile(
 			`import { track, trackAsync } from 'ripple';
 			export function Panel({ mode = 'view' }) @{
-				let &[show] = track(true);
+				const show = track(true);
 				const edit = () => { mode = 'edit'; };
-				@if (show) {
+				@if (show.value) {
 					<button onClick={edit}>{mode}</button>
 				}
 			}
 			export function Names(props) @{
-				let &[count] = track(0);
+				const count = track(0);
 				let { user: { first, last = 'none' }, tags: [tag] } = props;
 				const rename = () => { first = 'renamed'; tag = 't2'; };
-				<span onClick={rename}>{first + last + tag + count}</span>
+				<span onClick={rename}>{first + last + tag + count.value}</span>
 			}
 			export function Loader() @{
-				let &[n] = track(0);
+				const n = track(0);
 				@try {
-					let &[data] = trackAsync(() => Promise.resolve('x'));
-					<p>{data}</p>
+					const data = trackAsync(() => Promise.resolve('x'));
+					<p>{data.value}</p>
 				} @catch (err) {
 					const clear = () => { err = null; };
-					<button onClick={clear}>{String(err) + n}</button>
+					<button onClick={clear}>{String(err) + n.value}</button>
 				}
 			}
 			export function Pair() @{
-				let &[tick] = track(0);
+				const tick = track(0);
 				let label = 'a';
 				let other = 'x';
 				const swap = () => { [label] = ['b']; ({ other } = { other: 'y' }); for (label of ['c']) {} };
-				<span onClick={swap}>{label + other + tick}</span>
+				<span onClick={swap}>{label + other + tick.value}</span>
 			}`,
 			'App.tsrx',
 		);
@@ -279,14 +259,14 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			export function App() @{
-				let &[n] = track(0);
+				const n = track(0);
 				function greet() { return 'hi'; }
 				const swap = () => { greet = () => 'bye'; };
-				<span onClick={swap}>{greet() + n}</span>
+				<span onClick={swap}>{greet() + n.value}</span>
 			}`,
 			'App.tsrx',
 		);
-		expect(code).toContain('greet = { v: greet };\n\n\tlet lazy');
+		expect(code).toContain('greet = { v: greet };\n\n\tconst n');
 		expect(code).toContain("greet.v = () => 'bye';");
 		expect(code).toContain('__prev._greet.v()');
 	});
@@ -295,9 +275,9 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			export function App() @{
-				let &[show] = track(true);
+				const show = track(true);
 				let label = 'x';
-				@if (show) {
+				@if (show.value) {
 					<span>{label}</span>
 				}
 			}`,
@@ -326,7 +306,7 @@ describe('@tsrx/ripple @switch client lowering', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			export function Badge(props) @{
-				let &[n] = track(0);
+				const n = track(0);
 				<>
 					@switch (props.status) {
 						@case 'busy': {
@@ -338,7 +318,7 @@ describe('@tsrx/ripple @switch client lowering', () => {
 							<p>{'idle'}</p>
 						}
 					}
-					@switch (n % 2) {
+					@switch (n.value % 2) {
 						@case 0: {
 							<span>{'even'}</span>
 						}
@@ -356,8 +336,8 @@ describe('@tsrx/ripple @switch client lowering', () => {
 		expect(code).toContain('function switch_case_0(__anchor, props)');
 		expect(code).toContain('function switch_1(props)');
 		expect(code).toContain('_$_.switch(node, switch_1, false, props);');
-		expect(code).toContain('function switch_2(lazy)');
-		expect(code).toContain('_$_.switch(node_1, switch_2, false, lazy);');
+		expect(code).toContain('function switch_2(n)');
+		expect(code).toContain('_$_.switch(node_1, switch_2, false, n);');
 		expect(code).not.toContain('result.push');
 	});
 });
@@ -515,11 +495,12 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 
 	it('lowers dynamic tags through the internal dynamic_element helper on the server', () => {
 		const { code } = compile(source, 'App.tsrx', { mode: 'server' });
-		expect(code).toContain('const comp = _$_.dynamic_element;');
-		expect(code).toContain('is: Tag');
+		// The tag and the element's own props are passed separately: the props
+		// never carry an `is` entry, and the helper resolves a null tag itself.
+		expect(code).toContain('_$_.dynamic_element(Tag, {');
+		expect(code).not.toContain('is: Tag');
 		expect(code).not.toContain('TsrxDynamic');
-		// The helper is statically known — no `if (comp)` guard.
-		expect(code).not.toContain('if (comp)');
+		expect(code).not.toContain('render_component');
 	});
 
 	it('keeps scoped type selectors and applies scope hashes for dynamic tags', () => {
@@ -1215,21 +1196,21 @@ expect(x).toBe(1);`;
 		expect(mapping).toBeDefined();
 	});
 
-	it('keeps lazy tracked values mapped to their source condition in @if output', () => {
+	it('keeps tracked value reads mapped to their source condition in @if output', () => {
 		const source = `import { track } from 'ripple';
 function App() @{
-	let &[show] = track(true);
+	const show = track(true);
 	<>
-		@if (show) {
+		@if (show.value) {
 			<Child />
 		}
-		<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+		<button onClick={() => (show.value = !show.value)}>{'Toggle Child'}</button>
 	</>
 }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
-		const generated_if_offset = result.code.indexOf('if (show)');
+		const generated_if_offset = result.code.indexOf('if (show.value)');
 		const generated_show_offset = result.code.indexOf('show', generated_if_offset);
-		const source_show_offset = source.indexOf('show) {');
+		const source_show_offset = source.indexOf('show.value) {');
 		const mapping = find_exact_mapping(
 			result.mappings,
 			source_show_offset,
@@ -1237,7 +1218,7 @@ function App() @{
 			'show'.length,
 		);
 
-		expect(result.code).toContain('if (show)');
+		expect(result.code).toContain('if (show.value)');
 		expect(result.code).not.toContain("show?.['#v']");
 		expect(mapping).toBeDefined();
 	});
@@ -1542,7 +1523,7 @@ describe('@tsrx/ripple JSX fragment Volar output', () => {
 
 	it('prints statement-container setup before returning template output', () => {
 		const source = `let logs: string[] = [];
-function Child(&{ a, b, c }: { a: number; b: number; c: number }) @{
+function Child({ a, b, c }: { a: number; b: number; c: number }) @{
 		effect(() => {
 			logs.push(\`Child effect: \${a}, \${b}, \${c}\`);
 		});
@@ -1696,80 +1677,64 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).toContain('{ prop: _$_.with_scope(__block, getValue) }');
 	});
 
-	it('reads lazy tracked identifier props in fragment shorthand values once', () => {
+	it('reads tracked value props in fragment shorthand values once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
 			function Test() @{
-				let &[count] = track(0);
-				const content = <><Some prop={count} /></>;
+				const count = track(0);
+				const content = <><Some prop={count.value} /></>;
 				<>{content}</>
 			}`,
 			'App.tsrx',
 		);
 
-		// A prop is a value: the lazy alias is read when the component is called.
-		expect(code).toContain('{ prop: lazy.value }');
+		// A prop is a value: the tracked value is read when the component is called.
+		expect(code).toContain('{ prop: count.value }');
 	});
 
-	it('reads lazy tracked identifier props in function fragment returns once', () => {
+	it('reads tracked value props in function fragment returns once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
 			function Test() {
-				let &[count] = track(0);
-				return <><Some prop={count} /></>;
+				const count = track(0);
+				return <><Some prop={count.value} /></>;
 			}`,
 			'App.tsrx',
 		);
 
-		// A prop is a value: the lazy alias is read when the component is called.
-		expect(code).toContain('{ prop: lazy.value }');
+		// A prop is a value: the tracked value is read when the component is called.
+		expect(code).toContain('{ prop: count.value }');
 	});
 
-	it('reads lazy tracked identifier props once', () => {
+	it('reads tracked expression props once', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
 			function Test() @{
-				let &[count] = track(0);
-				const content = <><Some prop={count} /></>;
+				const count = track(0);
+				const content = <><Some prop={count.value % 2 ? 'odd' : 'even'} /></>;
 				<>{content}</>
 			}`,
 			'App.tsrx',
 		);
 
-		// A prop is a value: the lazy alias is read when the component is called.
-		expect(code).toContain('{ prop: lazy.value }');
+		expect(code).toContain(`{ prop: count.value % 2 ? 'odd' : 'even' }`);
 	});
 
-	it('reads lazy tracked expression props once', () => {
+	it('passes a Tracked object as a static prop', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
 			function Test() @{
-				let &[count] = track(0);
-				const content = <><Some prop={count % 2 ? 'odd' : 'even'} /></>;
-				<>{content}</>
+				const count = track(0);
+				<Some tracked={count} />
 			}`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain(`{ prop: lazy.value % 2 ? 'odd' : 'even' }`);
-	});
-
-	it('passes a lazy pair Tracked alias as a static prop', () => {
-		const { code } = compile(
-			`import { track } from 'ripple';
-			function Some(props) { return <></>; }
-			function Test() @{
-				let &[count, countT] = track(0);
-				<Some tracked={countT} />
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('{ tracked: lazy }');
+		expect(code).toContain('{ tracked: count }');
 	});
 
 	it('leaves own-property enumeration and object spread of props alone', () => {
@@ -2151,7 +2116,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 	});
 
 	it('preserves ordinary control flow for plain functions returning templates', () => {
-		const source = `function Dashboard({ user: &[user] }) {
+		const source = `function Dashboard({ user }) {
 			if (!user) {
 				return <p>No user found</p>;
 			}
@@ -2164,11 +2129,11 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('if (!_$_.lazy_array_get(lazy, 0))');
+		expect(client.code).toContain('if (!user)');
 		expect(client.code).toContain('return _$_.tsrx_element((__anchor, __block) =>');
 		expect(client.code).not.toContain('return_guard');
 		expect(client.code).not.toContain('_$_.if(');
-		expect(server.code).toContain('if (!_$_.lazy_array_get(lazy, 0))');
+		expect(server.code).toContain('if (!user)');
 		expect(server.code).not.toContain('return_guard');
 	});
 
@@ -2390,4 +2355,22 @@ describe('@tsrx/ripple fragment children flatten', () => {
 		expect(code).toContain('_$_.head(');
 		expect(code).toContain('_$_.document.title');
 	});
+});
+
+describe('@tsrx/ripple removed syntax', () => {
+	it.each(['let &[count] = track(0);', 'const &{ count } = props;', '&[count] = track(0);'])(
+		'rejects lazy destructuring `%s` as a syntax error',
+		(statement) => {
+			expect(() =>
+				compile(
+					`import { track } from 'ripple';
+					function App(props) @{
+						${statement}
+						<span />
+					}`,
+					'App.tsrx',
+				),
+			).toThrow();
+		},
+	);
 });

@@ -34,16 +34,16 @@ export function KeyedForLoop() @{
 }
 
 export function ReactiveForLoopAdd() @{
-	let &[items] = track(['A', 'B']);
+	const items = track(['A', 'B']);
 	<>
 		<button
 			class="add"
 			onClick={() => {
-				items = [...items, 'C'];
+				items.value = [...items.value, 'C'];
 			}}
 		>{'Add'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li>{item}</li>
 			}
 		</ul>
@@ -51,16 +51,16 @@ export function ReactiveForLoopAdd() @{
 }
 
 export function ReactiveForLoopRemove() @{
-	let &[items] = track(['A', 'B', 'C']);
+	const items = track(['A', 'B', 'C']);
 	<>
 		<button
 			class="remove"
 			onClick={() => {
-				items = items.slice(0, -1);
+				items.value = items.value.slice(0, -1);
 			}}
 		>{'Remove'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li>{item}</li>
 			}
 		</ul>
@@ -68,17 +68,17 @@ export function ReactiveForLoopRemove() @{
 }
 
 export function ForLoopInteractive() @{
-	let &[counts] = track([0, 0, 0]);
+	const counts = track([0, 0, 0]);
 	<div>
-		@for (const count of counts; index i) {
+		@for (const count of counts.value; index i) {
 			<div class={`item-${i}`}>
 				<span class="value">{count}</span>
 				<button
 					class="increment"
 					onClick={() => {
-						const newCounts = [...counts];
+						const newCounts = [...counts.value];
 						newCounts[i]++;
-						counts = newCounts;
+						counts.value = newCounts;
 					}}
 				>{'+'}</button>
 			</div>
@@ -128,7 +128,7 @@ export function ForLoopComplexObjects() @{
 
 // Test reordering items in a keyed for loop
 export function KeyedForLoopReorder() @{
-	let &[items] = track([
+	const items = track([
 		{ id: 1, name: 'First' },
 		{ id: 2, name: 'Second' },
 		{ id: 3, name: 'Third' },
@@ -137,11 +137,11 @@ export function KeyedForLoopReorder() @{
 		<button
 			class="reorder"
 			onClick={() => {
-				items = [items[2], items[0], items[1]];
+				items.value = [items.value[2], items.value[0], items.value[1]];
 			}}
 		>{'Reorder'}</button>
 		<ul>
-			@for (const item of items; key item.id) {
+			@for (const item of items.value; key item.id) {
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
@@ -150,7 +150,7 @@ export function KeyedForLoopReorder() @{
 
 // Test for loop with item property updates (keyed)
 export function KeyedForLoopUpdate() @{
-	let &[items] = track([
+	const items = track([
 		{ id: 1, name: 'Item 1' },
 		{ id: 2, name: 'Item 2' },
 	]);
@@ -158,11 +158,13 @@ export function KeyedForLoopUpdate() @{
 		<button
 			class="update"
 			onClick={() => {
-				items = items.map((item) => (item.id === 1 ? { ...item, name: 'Updated' } : item));
+				items.value = items.value.map(
+					(item) => (item.id === 1 ? { ...item, name: 'Updated' } : item),
+				);
 			}}
 		>{'Update'}</button>
 		<ul>
-			@for (const item of items; key item.id) {
+			@for (const item of items.value; key item.id) {
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
@@ -171,17 +173,17 @@ export function KeyedForLoopUpdate() @{
 
 // Test for loop with combined add/remove/reorder
 export function ForLoopMixedOperations() @{
-	let &[items] = track(['A', 'B', 'C', 'D']);
+	const items = track(['A', 'B', 'C', 'D']);
 	<>
 		<button
 			class="shuffle"
 			onClick={() => {
 				// Remove B, add E, reorder to D, C, A, E
-				items = ['D', 'C', 'A', 'E'];
+				items.value = ['D', 'C', 'A', 'E'];
 			}}
 		>{'Shuffle'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -190,24 +192,24 @@ export function ForLoopMixedOperations() @{
 
 // Test for loop inside if block (combined control flow)
 export function ForLoopInsideIf() @{
-	let &[showList] = track(true);
-	let &[items] = track(['X', 'Y', 'Z']);
+	const showList = track(true);
+	const items = track(['X', 'Y', 'Z']);
 	<>
 		<button
 			class="toggle"
 			onClick={() => {
-				showList = !showList;
+				showList.value = !showList.value;
 			}}
 		>{'Toggle List'}</button>
 		<button
 			class="add"
 			onClick={() => {
-				items = [...items, 'W'];
+				items.value = [...items.value, 'W'];
 			}}
 		>{'Add Item'}</button>
-		@if (showList) {
+		@if (showList.value) {
 			<ul class="list">
-				@for (const item of items) {
+				@for (const item of items.value) {
 					<li>{item}</li>
 				}
 			</ul>
@@ -217,16 +219,16 @@ export function ForLoopInsideIf() @{
 
 // Test for loop that transitions from empty to populated
 export function ForLoopEmptyToPopulated() @{
-	let &[items] = track<string[]>([]);
+	const items = track<string[]>([]);
 	<>
 		<button
 			class="populate"
 			onClick={() => {
-				items = ['One', 'Two', 'Three'];
+				items.value = ['One', 'Two', 'Three'];
 			}}
 		>{'Populate'}</button>
 		<ul class="list">
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li>{item}</li>
 			}
 		</ul>
@@ -235,16 +237,16 @@ export function ForLoopEmptyToPopulated() @{
 
 // Test for loop that transitions from populated to empty
 export function ForLoopPopulatedToEmpty() @{
-	let &[items] = track(['One', 'Two', 'Three']);
+	const items = track(['One', 'Two', 'Three']);
 	<>
 		<button
 			class="clear"
 			onClick={() => {
-				items = [];
+				items.value = [];
 			}}
 		>{'Clear'}</button>
 		<ul class="list">
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li>{item}</li>
 			}
 		</ul>
@@ -253,7 +255,7 @@ export function ForLoopPopulatedToEmpty() @{
 
 // Test nested for loops with reactivity
 export function NestedForLoopReactive() @{
-	let &[grid] = track([
+	const grid = track([
 		[1, 2],
 		[3, 4],
 	]);
@@ -261,19 +263,19 @@ export function NestedForLoopReactive() @{
 		<button
 			class="add-row"
 			onClick={() => {
-				grid = [...grid, [5, 6]];
+				grid.value = [...grid.value, [5, 6]];
 			}}
 		>{'Add Row'}</button>
 		<button
 			class="update-cell"
 			onClick={() => {
-				const newGrid = grid.map((row) => [...row]);
+				const newGrid = grid.value.map((row) => [...row]);
 				newGrid[0][0] = 99;
-				grid = newGrid;
+				grid.value = newGrid;
 			}}
 		>{'Update Cell'}</button>
 		<div class="grid">
-			@for (const row of grid; index rowIndex) {
+			@for (const row of grid.value; index rowIndex) {
 				<div class={`row-${rowIndex}`}>
 					@for (const cell of row; index colIndex) {
 						<span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
@@ -324,16 +326,16 @@ export function ForLoopDeeplyNested() @{
 
 // Test for loop with index that gets updated
 export function ForLoopIndexUpdate() @{
-	let &[items] = track(['First', 'Second', 'Third']);
+	const items = track(['First', 'Second', 'Third']);
 	<>
 		<button
 			class="prepend"
 			onClick={() => {
-				items = ['Zeroth', ...items];
+				items.value = ['Zeroth', ...items.value];
 			}}
 		>{'Prepend'}</button>
 		<ul>
-			@for (const item of items; index i) {
+			@for (const item of items.value; index i) {
 				<li class={`item-${i}`}>{`[${i}] ${item}`}</li>
 			}
 		</ul>
@@ -342,7 +344,7 @@ export function ForLoopIndexUpdate() @{
 
 // Test keyed for loop with index
 export function KeyedForLoopWithIndex() @{
-	let &[items] = track([
+	const items = track([
 		{ id: 'a', value: 'Alpha' },
 		{ id: 'b', value: 'Beta' },
 		{ id: 'c', value: 'Gamma' },
@@ -351,11 +353,11 @@ export function KeyedForLoopWithIndex() @{
 		<button
 			class="reorder"
 			onClick={() => {
-				items = [items[1], items[2], items[0]];
+				items.value = [items.value[1], items.value[2], items.value[0]];
 			}}
 		>{'Rotate'}</button>
 		<ul>
-			@for (const item of items; index i; key item.id) {
+			@for (const item of items.value; index i; key item.id) {
 				<li class={`item-${item.id}`} data-index={i}>{`[${i}] ${item.id}: ${item.value}`}</li>
 			}
 		</ul>
@@ -364,11 +366,11 @@ export function KeyedForLoopWithIndex() @{
 
 // Test for loop with sibling elements
 export function ForLoopWithSiblings() @{
-	let &[items] = track(['A', 'B']);
+	const items = track(['A', 'B']);
 	<>
 		<div class="wrapper">
 			<header class="before">{'Before'}</header>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<div class={`item-${item}`}>{item}</div>
 			}
 			<footer class="after">{'After'}</footer>
@@ -376,7 +378,7 @@ export function ForLoopWithSiblings() @{
 		<button
 			class="add"
 			onClick={() => {
-				items = [...items, 'C'];
+				items.value = [...items.value, 'C'];
 			}}
 		>{'Add'}</button>
 	</>
@@ -397,17 +399,17 @@ export function ForLoopItemState() @{
 }
 
 function TodoItem(props: { id: number; text: string }) @{
-	let &[done] = track(false);
+	const done = track(false);
 	<div class={`todo-${props.id}`}>
 		<input
 			type="checkbox"
 			class="checkbox"
-			checked={done}
+			checked={done.value}
 			onChange={(e) => {
-				done = (e.target as HTMLInputElement).checked;
+				done.value = (e.target as HTMLInputElement).checked;
 			}}
 		/>
-		<span class={done ? 'completed' : 'pending'}>{props.text}</span>
+		<span class={done.value ? 'completed' : 'pending'}>{props.text}</span>
 	</div>
 }
 
@@ -423,16 +425,16 @@ export function ForLoopSingleItem() @{
 
 // Test for loop adding at beginning
 export function ForLoopAddAtBeginning() @{
-	let &[items] = track(['B', 'C']);
+	const items = track(['B', 'C']);
 	<>
 		<button
 			class="prepend"
 			onClick={() => {
-				items = ['A', ...items];
+				items.value = ['A', ...items.value];
 			}}
 		>{'Prepend A'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -441,18 +443,18 @@ export function ForLoopAddAtBeginning() @{
 
 // Test for loop adding in the middle
 export function ForLoopAddInMiddle() @{
-	let &[items] = track(['A', 'C']);
+	const items = track(['A', 'C']);
 	<>
 		<button
 			class="insert"
 			onClick={() => {
-				const copy = [...items];
+				const copy = [...items.value];
 				copy.splice(1, 0, 'B');
-				items = copy;
+				items.value = copy;
 			}}
 		>{'Insert B'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -461,16 +463,16 @@ export function ForLoopAddInMiddle() @{
 
 // Test for loop removing from the middle
 export function ForLoopRemoveFromMiddle() @{
-	let &[items] = track(['A', 'B', 'C']);
+	const items = track(['A', 'B', 'C']);
 	<>
 		<button
 			class="remove-middle"
 			onClick={() => {
-				items = items.filter((item) => item !== 'B');
+				items.value = items.value.filter((item) => item !== 'B');
 			}}
 		>{'Remove B'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -489,18 +491,18 @@ export function ForLoopLargeList() @{
 
 // Test for loop with swap operation
 export function ForLoopSwap() @{
-	let &[items] = track(['A', 'B', 'C', 'D']);
+	const items = track(['A', 'B', 'C', 'D']);
 	<>
 		<button
 			class="swap"
 			onClick={() => {
-				const copy = [...items];
+				const copy = [...items.value];
 				[copy[0], copy[3]] = [copy[3], copy[0]];
-				items = copy;
+				items.value = copy;
 			}}
 		>{'Swap First and Last'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -509,16 +511,16 @@ export function ForLoopSwap() @{
 
 // Test for loop with reverse operation
 export function ForLoopReverse() @{
-	let &[items] = track(['A', 'B', 'C', 'D']);
+	const items = track(['A', 'B', 'C', 'D']);
 	<>
 		<button
 			class="reverse"
 			onClick={() => {
-				items = [...items].reverse();
+				items.value = [...items.value].reverse();
 			}}
 		>{'Reverse'}</button>
 		<ul>
-			@for (const item of items) {
+			@for (const item of items.value) {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
@@ -528,18 +530,21 @@ export function ForLoopReverse() @{
 // Inserting at or moving to the end of a hydrated keyed list must land after
 // the hydrated items, before the following sibling.
 export function KeyedForLoopAppendAndRotate() @{
-	let &[items] = track([1, 2, 3]);
+	const items = track([1, 2, 3]);
 	<div class="wrapper">
 		<div class="host">
-			@for (const item of items; key item) {
+			@for (const item of items.value; key item) {
 				<span class="item">{item}</span>
 			}
 			<p class="tail">{'p'}</p>
 		</div>
-		<button class="push" onClick={() => (items = [...items, items.length + 1])}>{'Push'}</button>
+		<button
+			class="push"
+			onClick={() => (items.value = [...items.value, items.value.length + 1])}
+		>{'Push'}</button>
 		<button
 			class="rotate"
-			onClick={() => (items = [...items.slice(1), items[0]])}
+			onClick={() => (items.value = [...items.value.slice(1), items.value[0]])}
 		>{'Rotate'}</button>
 	</div>
 }
@@ -551,16 +556,19 @@ function RootKeyedList(props: { items: Tracked<number[]> }) @{
 }
 
 export function RootKeyedForLoopAppendAndRotate() @{
-	let &[items, itemsTracked] = track([1, 2, 3]);
+	const items = track([1, 2, 3]);
 	<div class="wrapper">
 		<div class="host">
-			<RootKeyedList items={itemsTracked} />
+			<RootKeyedList {items} />
 			<p class="tail">{'p'}</p>
 		</div>
-		<button class="push" onClick={() => (items = [...items, items.length + 1])}>{'Push'}</button>
+		<button
+			class="push"
+			onClick={() => (items.value = [...items.value, items.value.length + 1])}
+		>{'Push'}</button>
 		<button
 			class="rotate"
-			onClick={() => (items = [...items.slice(1), items[0]])}
+			onClick={() => (items.value = [...items.value.slice(1), items.value[0]])}
 		>{'Rotate'}</button>
 	</div>
 }

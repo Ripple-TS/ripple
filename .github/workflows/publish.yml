@@ -38,16 +38,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Disallow major and minor bumps in changesets
+      - name: Disallow major bumps in changesets
         run: pnpm changeset:check
 
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        # v2 is required with @changesets/cli 3: the CLI no longer prints the
+        # `New tag:` lines that v1 parsed, so v1 would publish to npm and then
+        # create no git tags or GitHub releases. v2 reads the CLI's NDJSON
+        # output (via CHANGESETS_OUTPUT) and pushes tags through the GitHub API
+        # with the default token.
+        uses: changesets/action@v2
         with:
-          publish: pnpm changeset:publish
+          publish-script: pnpm changeset:publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PNPM_CONFIG_PROVENANCE: true
           # keep for now just in case
           NPM_CONFIG_PROVENANCE: true

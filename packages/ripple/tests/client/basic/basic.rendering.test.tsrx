@@ -279,10 +279,10 @@ second
 
 	it('reactively clears interpolated text when a value becomes nullish', () => {
 		function Basic() @{
-			let &[name] = track<string | null>('Ada');
+			const name = track<string | null>('Ada');
 			<>
-				<div class="label">Name: {name}</div>
-				<button onClick={() => (name = name == null ? 'Ada' : null)}>toggle</button>
+				<div class="label">Name: {name.value}</div>
+				<button onClick={() => (name.value = name.value == null ? 'Ada' : null)}>toggle</button>
 			</>
 		}
 
@@ -327,14 +327,14 @@ second
 
 	it('renders dynamic text', () => {
 		function Basic() @{
-			let &[message] = track('Hello World');
+			const message = track('Hello World');
 			<>
 				<button
 					onClick={() => {
-						message = 'Hello Ripple';
+						message.value = 'Hello Ripple';
 					}}
 				>{'Change Text'}</button>
-				<div>{message}</div>
+				<div>{message.value}</div>
 			</>
 		}
 
@@ -406,21 +406,21 @@ second
 
 	it('renders with mixed static and dynamic content', () => {
 		function Basic() @{
-			let &[name] = track('World');
-			let &[count] = track(0);
+			const name = track('World');
+			const count = track(0);
 			const staticMessage = 'Welcome to Ripple!';
 			<div class="mixed-content">
 				<h1>{staticMessage}</h1>
-				<p class="greeting">{'Hello, ' + name + '!'}</p>
-				<p class="notifications">{'You have ' + count + ' notifications'}</p>
+				<p class="greeting">{'Hello, ' + name.value + '!'}</p>
+				<p class="notifications">{'You have ' + count.value + ' notifications'}</p>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Add Notification'}</button>
 				<button
 					onClick={() => {
-						name = name === 'World' ? 'User' : 'World';
+						name.value = name.value === 'World' ? 'User' : 'World';
 					}}
 				>{'Toggle Name'}</button>
 			</div>
@@ -448,14 +448,14 @@ second
 
 	it('basic operations', () => {
 		function App() @{
-			let &[count] = track(0);
-			const a = count++;
-			const b = ++count;
+			const count = track(0);
+			const a = count.value++;
+			const b = ++count.value;
 			<>
 				<div>{a}</div>
 				<div>{b}</div>
 				<div>{5}</div>
-				<div>{count}</div>
+				<div>{count.value}</div>
 			</>
 		}
 
@@ -465,22 +465,22 @@ second
 
 	it('renders with conditional rendering using if statements', () => {
 		function Basic() @{
-			let &[showContent] = track(false);
-			let &[userRole] = track('guest');
+			const showContent = track(false);
+			const userRole = track('guest');
 			<>
 				<button
 					onClick={() => {
-						showContent = !showContent;
+						showContent.value = !showContent.value;
 					}}
 				>{'Toggle Content'}</button>
 				<button
 					onClick={() => {
-						userRole = userRole === 'guest' ? 'admin' : 'guest';
+						userRole.value = userRole.value === 'guest' ? 'admin' : 'guest';
 					}}
 				>{'Toggle Role'}</button>
 				<div class="content">
-					@if (showContent) {
-						@if (userRole === 'admin') {
+					@if (showContent.value) {
+						@if (userRole.value === 'admin') {
 							<div class="admin-content">{'Admin content'}</div>
 						} @else {
 							<div class="user-content">{'User content'}</div>
@@ -620,16 +620,16 @@ second
 
 	it('updates control flow inside an element in an expression container child', () => {
 		function App() @{
-			let &[ok] = track(true);
+			const ok = track(true);
 			<>
 				<button
 					onClick={() => {
-						ok = !ok;
+						ok.value = !ok.value;
 					}}
 				>{'toggle'}</button>
 				<div>
 					{<h1>
-						@if (ok) {
+						@if (ok.value) {
 							<span>{'yes'}</span>
 						} @else {
 							<span>{'no'}</span>

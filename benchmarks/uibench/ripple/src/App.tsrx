@@ -127,22 +127,22 @@ export default function App() @{
 		return next;
 	};
 
-	let &[snapshot] = track<RippleSnapshot>(adapt(INITIAL_SNAPSHOT as Snapshot));
+	const snapshot = track<RippleSnapshot>(adapt(INITIAL_SNAPSHOT as Snapshot));
 	bindSetter((next: Snapshot) => {
-		snapshot = adapt(next);
+		snapshot.value = adapt(next);
 	});
 
 	// A prop is a value: each view gets a derived so a new snapshot of the same
 	// kind updates the rows in place instead of being read once.
-	@switch (snapshot.kind) {
+	@switch (snapshot.value.kind) {
 		@case 'table': {
-			<TableView rows={track(() => (snapshot as { rows: RippleTableRow[] }).rows)} />
+			<TableView rows={track(() => (snapshot.value as { rows: RippleTableRow[] }).rows)} />
 		}
 		@case 'anim': {
-			<AnimView boxes={track(() => (snapshot as { boxes: RippleAnimBox[] }).boxes)} />
+			<AnimView boxes={track(() => (snapshot.value as { boxes: RippleAnimBox[] }).boxes)} />
 		}
 		@case 'tree': {
-			<TreeView nodes={track(() => (snapshot as { nodes: TreeNode[] }).nodes)} />
+			<TreeView nodes={track(() => (snapshot.value as { nodes: TreeNode[] }).nodes)} />
 		}
 	}
 }

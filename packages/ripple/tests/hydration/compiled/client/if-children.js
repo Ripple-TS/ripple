@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 
-function consequent(__anchor, { lazy, children }) {
+function consequent(__anchor, { expanded, children }) {
 	var div_2 = root_1();
 
 	{
@@ -16,24 +16,24 @@ function consequent(__anchor, { lazy, children }) {
 	_$_.append(__anchor, div_2);
 }
 
-function if_1({ lazy, children }) {
-	if (lazy.value) return consequent;
+function if_1({ expanded, children }) {
+	if (expanded.value) return consequent;
 }
 
 var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 
 function IfWithChildren_render(__anchor, __block, { children }) {
-	let lazy = _$_.track(true, __block, 'c64714b1');
+	const expanded = _$_.track(true, __block, 'c64714b1');
 	var div = root();
 
 	{
 		var div_1 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
-		div_1.__click = () => _$_.set(lazy, !lazy.value);
+		div_1.__click = () => expanded.value = !expanded.value;
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : div_1.nextSibling;
 
-		_$_.if(node, if_1, false, { lazy, children });
+		_$_.if(node, if_1, false, { expanded, children });
 		_$_.hydrating && _$_.pop(div);
 	}
 
@@ -80,30 +80,30 @@ TestIfWithChildren[_$_.$r] = TestIfWithChildren_render;
 
 var root_5 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
 
-function consequent_1(__anchor, lazy_1) {
+function consequent_1(__anchor, expanded) {
 	var div_6 = root_5();
 
 	_$_.append(__anchor, div_6);
 }
 
-function if_2(lazy_1) {
-	if (lazy_1.value) return consequent_1;
+function if_2(expanded) {
+	if (expanded.value) return consequent_1;
 }
 
 var root_4 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 
 function IfWithStaticChildren_render(__anchor, __block) {
-	let lazy_1 = _$_.track(true, __block, '3bba8f77');
+	const expanded = _$_.track(true, __block, '3bba8f77');
 	var div_4 = root_4();
 
 	{
 		var div_5 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
-		div_5.__click = () => _$_.set(lazy_1, !lazy_1.value);
+		div_5.__click = () => expanded.value = !expanded.value;
 
 		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
 
-		_$_.if(node_3, if_2, false, lazy_1);
+		_$_.if(node_3, if_2, false, expanded);
 		_$_.hydrating && _$_.pop(div_4);
 	}
 
@@ -114,7 +114,7 @@ IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
 var root_7 = _$_.template(`<div class="items"><!></div>`, 0);
 
-function consequent_2(__anchor, { lazy_2, children }) {
+function consequent_2(__anchor, { expanded, children }) {
 	var div_8 = root_7();
 
 	{
@@ -127,25 +127,25 @@ function consequent_2(__anchor, { lazy_2, children }) {
 	_$_.append(__anchor, div_8);
 }
 
-function if_3({ lazy_2, children }) {
-	if (lazy_2.value) return consequent_2;
+function if_3({ expanded, children }) {
+	if (expanded.value) return consequent_2;
 }
 
 var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
 
 function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
-	let lazy_2 = _$_.track(true, __block, 'a1b8fb4c');
+	const expanded = _$_.track(true, __block, 'a1b8fb4c');
 	var section = root_6();
 
 	{
 		var div_7 = _$_.hydrating ? _$_.hydrate_child() : section.firstChild;
 
-		div_7.__click = () => _$_.set(lazy_2, !lazy_2.value);
+		div_7.__click = () => expanded.value = !expanded.value;
 		_$_.hydrating && _$_.pop(div_7);
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 
-		_$_.if(node_4, if_3, false, { lazy_2, children });
+		_$_.if(node_4, if_3, false, { expanded, children });
 		_$_.hydrating && _$_.pop(section);
 	}
 
@@ -176,21 +176,21 @@ TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
 
 var root_11 = _$_.template(`<div class="conditional">Conditional content</div>`, 0);
 
-function consequent_3(__anchor, lazy_3) {
+function consequent_3(__anchor, show) {
 	var div_11 = root_11();
 
 	_$_.append(__anchor, div_11);
 }
 
-function if_4(lazy_3) {
-	if (lazy_3.value) return consequent_3;
+function if_4(show) {
+	if (show.value) return consequent_3;
 }
 
 var root_10 = _$_.template(`<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!></div><button class="toggle">Toggle</button>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ElementWithChildrenThenIf_render(__anchor, __block) {
-	let lazy_3 = _$_.track(true, __block, '7cd4817b');
+	const show = _$_.track(true, __block, '7cd4817b');
 	var fragment_2 = root_9();
 	var node_8 = _$_.first_child_frag(fragment_2);
 
@@ -202,13 +202,13 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 			var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
-			_$_.if(node_7, if_4, false, lazy_3);
+			_$_.if(node_7, if_4, false, show);
 			_$_.hydrating && _$_.pop(div_10);
 		}
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : div_10.nextSibling;
 
-		button.__click = () => _$_.set(lazy_3, !lazy_3.value);
+		button.__click = () => show.value = !show.value;
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -219,21 +219,21 @@ ElementWithChildrenThenIf[_$_.$r] = ElementWithChildrenThenIf_render;
 
 var root_14 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 
-function consequent_4(__anchor, lazy_4) {
+function consequent_4(__anchor, visible) {
 	var footer = root_14();
 
 	_$_.append(__anchor, footer);
 }
 
-function if_5(lazy_4) {
-	if (lazy_4.value) return consequent_4;
+function if_5(visible) {
+	if (visible.value) return consequent_4;
 }
 
 var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!></section><button class="btn">Toggle</button>`, 1, 2);
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function DeepNestingThenIf_render(__anchor, __block) {
-	let lazy_4 = _$_.track(true, __block, '923116be');
+	const visible = _$_.track(true, __block, '923116be');
 	var fragment_4 = root_12();
 	var node_10 = _$_.first_child_frag(fragment_4);
 
@@ -245,13 +245,13 @@ function DeepNestingThenIf_render(__anchor, __block) {
 			var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
 			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
 
-			_$_.if(node_9, if_5, false, lazy_4);
+			_$_.if(node_9, if_5, false, visible);
 			_$_.hydrating && _$_.pop(section_1);
 		}
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : section_1.nextSibling;
 
-		button_1.__click = () => _$_.set(lazy_4, !lazy_4.value);
+		button_1.__click = () => visible.value = !visible.value;
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -263,32 +263,32 @@ DeepNestingThenIf[_$_.$r] = DeepNestingThenIf_render;
 var root_16 = _$_.template(`<pre class="code">const x = 1;</pre>`, 0);
 var root_17 = _$_.template(`<div class="preview">Preview content</div>`, 0);
 
-function consequent_5(__anchor, lazy_5) {
+function consequent_5(__anchor, activeTab) {
 	var pre = root_16();
 
 	_$_.append(__anchor, pre);
 }
 
-function alternate(__anchor, lazy_5) {
+function alternate(__anchor, activeTab) {
 	var div_15 = root_17();
 
 	_$_.append(__anchor, div_15);
 }
 
-function if_6(lazy_5) {
-	if (lazy_5.value === 'code') return consequent_5; else return alternate;
+function if_6(activeTab) {
+	if (activeTab.value === 'code') return consequent_5; else return alternate;
 }
 
 var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 0);
 
 function render(__prev) {
-	var __a = __prev._lazy_5.value === 'code' ? 'true' : 'false';
+	var __a = __prev._activeTab.value === 'code' ? 'true' : 'false';
 
 	if (__prev.a !== __a) {
 		_$_.set_attribute(__prev._button_2, 'aria-selected', __prev.a = __a);
 	}
 
-	var __b = __prev._lazy_5.value === 'preview' ? 'true' : 'false';
+	var __b = __prev._activeTab.value === 'preview' ? 'true' : 'false';
 
 	if (__prev.b !== __b) {
 		_$_.set_attribute(__prev._button_3, 'aria-selected', __prev.b = __b);
@@ -296,7 +296,7 @@ function render(__prev) {
 }
 
 function DomElementChildrenThenSibling_render(__anchor, __block) {
-	let lazy_5 = _$_.track('code', __block, '33a1e97f');
+	const activeTab = _$_.track('code', __block, '33a1e97f');
 	var div_12 = root_15();
 
 	{
@@ -305,11 +305,11 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 		{
 			var button_2 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
 
-			button_2.__click = () => _$_.set(lazy_5, 'code');
+			button_2.__click = () => activeTab.value = 'code';
 
 			var button_3 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
-			button_3.__click = () => _$_.set(lazy_5, 'preview');
+			button_3.__click = () => activeTab.value = 'preview';
 		}
 
 		_$_.hydrating && _$_.pop(div_13);
@@ -319,7 +319,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 		{
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
 
-			_$_.if(node_11, if_6, false, lazy_5);
+			_$_.if(node_11, if_6, false, activeTab);
 			_$_.hydrating && _$_.pop(div_14);
 		}
 	}
@@ -327,7 +327,7 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 	_$_.render(render, {
 		a: void 0,
 		b: void 0,
-		_lazy_5: lazy_5,
+		_activeTab: activeTab,
 		_button_2: button_2,
 		_button_3: button_3
 	});
@@ -340,7 +340,7 @@ DomElementChildrenThenSibling[_$_.$r] = DomElementChildrenThenSibling_render;
 var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
 
 function render_1(__prev) {
-	var __a = 'Item count: ' + String(__prev._lazy_6.value ?? '');
+	var __a = 'Item count: ' + String(__prev._count.value ?? '');
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression_3, __prev.a = __a);
@@ -350,7 +350,7 @@ function render_1(__prev) {
 var root_18 = _$_.template(`<!>`, 1, 1);
 
 function DomChildrenThenStaticSiblings_render(__anchor, __block) {
-	let lazy_6 = _$_.track(0, __block, '0ea64305');
+	const count = _$_.track(0, __block, '0ea64305');
 	var fragment_6 = root_18();
 	var node_12 = _$_.first_child_frag(fragment_6);
 
@@ -376,8 +376,8 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
-		button_4.__click = () => _$_.update(lazy_6);
-		_$_.render(render_1, { a: ' ', _lazy_6: lazy_6, _expression_3: expression_3 });
+		button_4.__click = () => count.value++;
+		_$_.render(render_1, { a: ' ', _count: count, _expression_3: expression_3 });
 		_$_.append(__anchor, fragment_7);
 	}));
 
@@ -464,8 +464,8 @@ TrailingChild[_$_.$r] = TrailingChild_render;
 var root_25 = _$_.template(`<div class="wrapper"><div class="host"></div><button class="toggle">Toggle</button><button class="rotate">Rotate</button></div>`, 0);
 
 function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
-	let lazy_7 = _$_.track(true, __block, 'f3e4c6ee');
-	let lazy_8 = _$_.track([1, 2, 3], __block, '2bbbeeb0');
+	const on = _$_.track(true, __block, 'f3e4c6ee');
+	const items = _$_.track([1, 2, 3], __block, '2bbbeeb0');
 	var div_18 = root_25();
 
 	{
@@ -474,19 +474,19 @@ function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
 		{
 			var append_anchor = _$_.append_into(div_19);
 
-			_$_.render_component(RootIfChild, append_anchor, { on: lazy_7 });
-			_$_.render_component(RootForChild, append_anchor, { items: lazy_8 });
+			_$_.render_component(RootIfChild, append_anchor, { on });
+			_$_.render_component(RootForChild, append_anchor, { items });
 			_$_.render_component(TrailingChild, append_anchor, {});
 			_$_.hydrating && _$_.pop(div_19);
 		}
 
 		var button_5 = _$_.hydrating ? _$_.hydrate_sibling() : div_19.nextSibling;
 
-		button_5.__click = () => _$_.set(lazy_7, !lazy_7.value);
+		button_5.__click = () => on.value = !on.value;
 
 		var button_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
 
-		button_6.__click = () => _$_.set(lazy_8, [lazy_8.value[1], lazy_8.value[2], lazy_8.value[0]]);
+		button_6.__click = () => items.value = [items.value[1], items.value[2], items.value[0]];
 	}
 
 	_$_.append(__anchor, div_18);

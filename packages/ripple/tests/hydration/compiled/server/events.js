@@ -5,12 +5,20 @@ import { track } from 'ripple/server';
 
 export function ClickCounter() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(0, 'a070e3a7');
+		const count = _$_.track(0, 'a070e3a7');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="increment">Increment</button><span class="count">' + _$_.escape(lazy.value) + '</span></div>';
+			__out += '<div><button class="increment">Increment</button><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(count.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -18,12 +26,20 @@ export function ClickCounter() {
 
 export function IncrementDecrement() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(0, '87fcabdd');
+		const count = _$_.track(0, '87fcabdd');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="decrement">-</button><span class="count">' + _$_.escape(lazy_1.value) + '</span><button class="increment">+</button></div>';
+			__out += '<div><button class="decrement">-</button><span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(count.value);
+			}
+
+			__out += '</span><button class="increment">+</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -31,13 +47,29 @@ export function IncrementDecrement() {
 
 export function MultipleEvents() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track(0, '41b9f0b0');
-		let lazy_3 = _$_.track(0, '72789f75');
+		const clicks = _$_.track(0, '41b9f0b0');
+		const hovers = _$_.track(0, '72789f75');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="target">Target</button><span class="clicks">' + _$_.escape(lazy_2.value) + '</span><span class="hovers">' + _$_.escape(lazy_3.value) + '</span></div>';
+			__out += '<div><button class="target">Target</button><span class="clicks">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(clicks.value);
+			}
+
+			__out += '</span><span class="hovers">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(hovers.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -45,23 +77,31 @@ export function MultipleEvents() {
 
 export function MultiStateUpdate() {
 	return _$_.tsrx_element(() => {
-		let lazy_4 = _$_.track(0, '5a375160');
-		let lazy_5 = _$_.track('none', '3ceeb88c');
+		const count = _$_.track(0, '5a375160');
+		const lastAction = _$_.track('none', '3ceeb88c');
 
 		const handleClick = () => {
-			_$_.update(lazy_4);
-			_$_.set(lazy_5, 'increment');
+			count.value++;
+			lastAction.value = 'increment';
 		};
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="btn">Click</button><span class="count">' + _$_.escape(lazy_4.value) + '</span><span class="action">';
+			__out += '<div><button class="btn">Click</button><span class="count">';
 
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_5.value);
+				_$_.render_expression(count.value);
+			}
+
+			__out += '</span><span class="action">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(lastAction.value);
 			}
 
 			__out += '</span></div>';
@@ -72,12 +112,12 @@ export function MultiStateUpdate() {
 
 export function ToggleButton() {
 	return _$_.tsrx_element(() => {
-		let lazy_6 = _$_.track(false, 'be823ec7');
+		const isOn = _$_.track(false, 'be823ec7');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="toggle">' + _$_.escape(lazy_6.value ? 'ON' : 'OFF') + '</button></div>';
+			__out += '<div><button class="toggle">' + _$_.escape(isOn.value ? 'ON' : 'OFF') + '</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -96,7 +136,7 @@ export function ChildButton(props) {
 
 export function ParentWithChildButton() {
 	return _$_.tsrx_element(() => {
-		let lazy_7 = _$_.track(0, 'dcc2e0f9');
+		const count = _$_.track(0, 'dcc2e0f9');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -109,7 +149,7 @@ export function ParentWithChildButton() {
 				const args = [
 					{
 						onClick: () => {
-							_$_.update(lazy_7);
+							count.value++;
 						},
 						label: "Click me"
 					}
@@ -120,7 +160,15 @@ export function ParentWithChildButton() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="count">' + _$_.escape(lazy_7.value) + '</span></div>';
+			__out += '<span class="count">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(count.value);
+			}
+
+			__out += '</span></div>';
 			_$_.output_push(__out);
 		});
 	});

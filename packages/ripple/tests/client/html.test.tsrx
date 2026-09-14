@@ -16,12 +16,14 @@ describe('Fragment innerHTML', () => {
 
 	it('renders spread innerHTML as content instead of an attribute', () => {
 		function App() @{
-			let &[attrs] = track<{ innerHTML?: string }>({
+			const attrs = track<{ innerHTML?: string }>({
 				innerHTML: '<span>Spread HTML</span>',
 			});
 			<>
-				<code {...attrs} />
-				<button onClick={() => (attrs = { innerHTML: '<em>Updated HTML</em>' })}>{'Update'}</button>
+				<code {...attrs.value} />
+				<button
+					onClick={() => (attrs.value = { innerHTML: '<em>Updated HTML</em>' })}
+				>{'Update'}</button>
 			</>
 		}
 
@@ -64,12 +66,12 @@ describe('Fragment innerHTML', () => {
 
 	it('renders dynamic innerHTML fragments', () => {
 		function App() @{
-			let &[str] = track('<div>Test</div>');
+			const str = track('<div>Test</div>');
 			<>
-				<Fragment innerHTML={str} />
+				<Fragment innerHTML={str.value} />
 				<button
 					onClick={() => {
-						str = '<div>Updated</div>';
+						str.value = '<div>Updated</div>';
 					}}
 				>{'Update'}</button>
 			</>
@@ -99,10 +101,10 @@ describe('Fragment innerHTML', () => {
 
 	it('updates dynamic Fragment innerHTML', () => {
 		function App() @{
-			let &[html] = track('<span>First</span>');
+			const html = track('<span>First</span>');
 			<>
-				<Fragment innerHTML={html} />
-				<button onClick={() => (html = '<em>Second</em>')}>{'Update'}</button>
+				<Fragment innerHTML={html.value} />
+				<button onClick={() => (html.value = '<em>Second</em>')}>{'Update'}</button>
 			</>
 		}
 

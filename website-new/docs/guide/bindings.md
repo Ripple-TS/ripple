@@ -27,16 +27,16 @@ and an input or select element's value.
 import { bindValue, track } from 'ripple';
 
 export function App() @{
-  let &[name, nameTracked] = track('');
+  const name = track('');
 
   <div>
     <input
       type="text"
-      ref={bindValue(nameTracked)}
+      ref={bindValue(name)}
       placeholder="Enter your name"
     />
-    <p>Hello, {name || 'stranger'}!</p>
-    <button onClick={() => (name = '')}>Clear</button>
+    <p>Hello, {name.value || 'stranger'}!</p>
+    <button onClick={() => (name.value = '')}>Clear</button>
   </div>
 }
 ```
@@ -51,12 +51,12 @@ export function App() @{
 import { bindValue, track } from 'ripple';
 
 export function App() @{
-  let &[age, ageTracked] = track(0);
+  const age = track(0);
 
   <div>
-    <input type="number" ref={bindValue(ageTracked)} min="0" max="120" />
-    <p>Age: {age} years old</p>
-    <button onClick={() => (age = age + 1)}>Increment</button>
+    <input type="number" ref={bindValue(age)} min="0" max="120" />
+    <p>Age: {age.value} years old</p>
+    <button onClick={() => (age.value = age.value + 1)}>Increment</button>
   </div>
 }
 ```
@@ -71,16 +71,16 @@ export function App() @{
 import { bindValue, track } from 'ripple';
 
 export function App() @{
-  let &[selectedFruit, selectedFruitTracked] = track('apple');
+  const selectedFruit = track('apple');
 
   <div>
-    <select ref={bindValue(selectedFruitTracked)}>
+    <select ref={bindValue(selectedFruit)}>
       <option value="apple">Apple</option>
       <option value="banana">Banana</option>
       <option value="cherry">Cherry</option>
       <option value="durian">Durian</option>
     </select>
-    <p>You selected: {selectedFruit}</p>
+    <p>You selected: {selectedFruit.value}</p>
   </div>
 }
 ```
@@ -95,16 +95,16 @@ export function App() @{
 import { bindValue, track } from 'ripple';
 
 export function App() @{
-  let &[selectedColors, selectedColorsTracked] = track(['red', 'blue']);
+  const selectedColors = track(['red', 'blue']);
 
   <div>
-    <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
+    <select multiple ref={bindValue(selectedColors)} style="height: 100px">
       <option value="red">Red</option>
       <option value="green">Green</option>
       <option value="blue">Blue</option>
       <option value="yellow">Yellow</option>
     </select>
-    <p>Selected colors: {selectedColors.join(', ')}</p>
+    <p>Selected colors: {selectedColors.value.join(', ')}</p>
   </div>
 }
 ```
@@ -122,15 +122,15 @@ boolean value.
 import { bindChecked, track } from 'ripple';
 
 export function App() @{
-  let &[agreed, agreedTracked] = track(false);
+  const agreed = track(false);
 
   <div>
     <label>
-      <input type="checkbox" ref={bindChecked(agreedTracked)} />
+      <input type="checkbox" ref={bindChecked(agreed)} />
        I agree to the terms and conditions
     </label>
-    <p>Status: {agreed ? 'Agreed' : 'Not agreed'}</p>
-    <button disabled={!agreed}>Submit</button>
+    <p>Status: {agreed.value ? 'Agreed' : 'Not agreed'}</p>
+    <button disabled={!agreed.value}>Submit</button>
   </div>
 }
 ```
@@ -158,24 +158,24 @@ checkboxes when only some (but not all) child items are selected.
 import { bindChecked, bindIndeterminate, track } from 'ripple';
 
 export function App() @{
-  let &[checked, checkedTracked] = track(false);
-  let &[indeterminate, indeterminateTracked] = track(true);
+  const checked = track(false);
+  const indeterminate = track(true);
 
   <div>
     <label>
       <input
         type="checkbox"
-        ref={[bindChecked(checkedTracked), bindIndeterminate(indeterminateTracked)]}
+        ref={[bindChecked(checked), bindIndeterminate(indeterminate)]}
       />
        Select All
     </label>
-    <p>Checked: {checked ? 'Yes' : 'No'}</p>
-    <p>Indeterminate: {indeterminate ? 'Yes' : 'No'}</p>
+    <p>Checked: {checked.value ? 'Yes' : 'No'}</p>
+    <p>Indeterminate: {indeterminate.value ? 'Yes' : 'No'}</p>
     <button
       onClick={() => {
-        indeterminate = !indeterminate;
-        if (indeterminate) {
-          checked = false;
+        indeterminate.value = !indeterminate.value;
+        if (indeterminate.value) {
+          checked.value = false;
         }
       }}
     >
@@ -211,27 +211,27 @@ selections or mutually exclusive choices.
 import { bindGroup, track } from 'ripple';
 
 export function App() @{
-  let &[hobbies, hobbiesTracked] = track(['reading']);
+  const hobbies = track(['reading']);
 
   <div>
     <label>
-      <input type="checkbox" value="reading" ref={bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="reading" ref={bindGroup(hobbies)} />
        Reading
     </label>
     <label>
-      <input type="checkbox" value="gaming" ref={bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="gaming" ref={bindGroup(hobbies)} />
        Gaming
     </label>
     <label>
-      <input type="checkbox" value="sports" ref={bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="sports" ref={bindGroup(hobbies)} />
        Sports
     </label>
     <label>
-      <input type="checkbox" value="cooking" ref={bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="cooking" ref={bindGroup(hobbies)} />
        Cooking
     </label>
-    <p>Selected: {hobbies.join(', ') || 'none'}</p>
-    <button onClick={() => (hobbies = ['reading'])}>Reset</button>
+    <p>Selected: {hobbies.value.join(', ') || 'none'}</p>
+    <button onClick={() => (hobbies.value = ['reading'])}>Reset</button>
   </div>
 }
 ```
@@ -246,23 +246,23 @@ export function App() @{
 import { bindGroup, track } from 'ripple';
 
 export function App() @{
-  let &[size, sizeTracked] = track('medium');
+  const size = track('medium');
 
   <div>
     <label>
-      <input type="radio" name="size" value="small" ref={bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="small" ref={bindGroup(size)} />
        Small
     </label>
     <label>
-      <input type="radio" name="size" value="medium" ref={bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="medium" ref={bindGroup(size)} />
        Medium
     </label>
     <label>
-      <input type="radio" name="size" value="large" ref={bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="large" ref={bindGroup(size)} />
        Large
     </label>
-    <p>Selected size: {size}</p>
-    <button onClick={() => size = 'medium'}>Reset to &quot;medium&quot;</button>
+    <p>Selected size: {size.value}</p>
+    <button onClick={() => size.value = 'medium'}>Reset to &quot;medium&quot;</button>
   </div>
 }
 ```
@@ -296,43 +296,43 @@ programmatically update the file input.
 import { bindFiles, bindNode, track } from 'ripple';
 
 export function App() @{
-  let &[files, filesTracked] = track();
-  let &[version] = track(0);
-  let &[input, inputTracked] = track();
+  const files = track();
+  const version = track(0);
+  const input = track();
 
   const clearFiles = () => {
-    files = new DataTransfer().files; // null or undefined does not work
-    input.value = null; // reset the input selected message
+    files.value = new DataTransfer().files; // null or undefined does not work
+    input.value.value = null; // reset the selected message on the input element
   };
 
   const createSampleFile = () => {
-    version++;
+    version.value++;
     const dt = new DataTransfer();
     const file = new File([
-      `Hello, World version: ${version}!`,
-    ], `sample_${version}.txt`, {
+      `Hello, World version: ${version.value}!`,
+    ], `sample_${version.value}.txt`, {
       type: 'text/plain',
     });
     dt.items.add(file);
-    for (const file of files ?? []) {
+    for (const file of files.value ?? []) {
       dt.items.add(file);
     }
-    files = dt.files;
+    files.value = dt.files;
   };
 
   <div>
     <input
       type="file"
-      ref={[bindFiles(filesTracked), bindNode(inputTracked)]}
+      ref={[bindFiles(files), bindNode(input)]}
       multiple
     />
 
     <div>
-      @if (files && files.length > 0) {
+      @if (files.value && files.value.length > 0) {
         <>
           <p>Selected files:</p>
           <ul>
-            @for (const file of Array.from(files)) {
+            @for (const file of Array.from(files.value)) {
               <li>{file.name} ({file.size} bytes)</li>
             }
           </ul>
@@ -358,7 +358,7 @@ export function App() @{
   ```js
   const dt = new DataTransfer();
   dt.items.add(new File(['content'], 'filename.txt'));
-  files = dt.files;
+  files.value = dt.files;
   ```
 - To clear files, set the value to `new DataTransfer().files` (setting to `null`
   or `undefined` will not work for clearing).
@@ -380,11 +380,11 @@ scrollbars).
 import { bindClientWidth, bindClientHeight, track } from 'ripple';
 
 export function App() @{
-  let &[width, widthTracked] = track(0);
-  let &[height, heightTracked] = track(0);
+  const width = track(0);
+  const height = track(0);
 
   <div
-    ref={[bindClientWidth(widthTracked), bindClientHeight(heightTracked)]}
+    ref={[bindClientWidth(width), bindClientHeight(height)]}
     style={{
       resize: 'both',
       overflow: 'auto',
@@ -395,8 +395,8 @@ export function App() @{
     }}
   >
     Resize me! (drag bottom-right corner)
-    <p>Client Width: {width}px</p>
-    <p>Client Height: {height}px</p>
+    <p>Client Width: {width.value}px</p>
+    <p>Client Height: {height.value}px</p>
   </div>
 }
 ```
@@ -413,12 +413,12 @@ These bindings track the full outer dimensions of an element (including borders)
 import { bindOffsetWidth, bindOffsetHeight, track } from 'ripple';
 
 export function App() @{
-  let &[width, widthTracked] = track(0);
-  let &[height, heightTracked] = track(0);
+  const width = track(0);
+  const height = track(0);
 
   <>
     <div
-      ref={[bindOffsetWidth(widthTracked), bindOffsetHeight(heightTracked)]}
+      ref={[bindOffsetWidth(width), bindOffsetHeight(height)]}
       style={{
         border: '10px solid green',
         padding: '20px',
@@ -428,8 +428,8 @@ export function App() @{
     >
       Box with borders
     </div>
-    <p>Offset Width: {width}px (includes borders)</p>
-    <p>Offset Height: {height}px (includes borders)</p>
+    <p>Offset Width: {width.value}px (includes borders)</p>
+    <p>Offset Height: {height.value}px (includes borders)</p>
   </>
 }
 ```
@@ -448,11 +448,11 @@ Tracks the element's content rectangle from the ResizeObserver API.
 import { bindContentRect, track } from 'ripple';
 
 export function App() @{
-  let &[rect, rectTracked] = track({ width: 0, height: 0, top: 0, left: 0 });
+  const rect = track({ width: 0, height: 0, top: 0, left: 0 });
 
   <>
     <div
-      ref={bindContentRect(rectTracked)}
+      ref={bindContentRect(rect)}
       style={{
         resize: 'both',
         overflow: 'auto',
@@ -464,7 +464,7 @@ export function App() @{
     >
       Resize me!
     </div>
-    <pre>{JSON.stringify(rect, null, 2)}</pre>
+    <pre>{JSON.stringify(rect.value, null, 2)}</pre>
   </>
 }
 ```
@@ -481,11 +481,11 @@ Tracks the content box size (without padding or borders).
 import { bindContentBoxSize, track } from 'ripple';
 
 export function App() @{
-  let &[size, sizeTracked] = track([]);
+  const size = track([]);
 
   <>
     <div
-      ref={bindContentBoxSize(sizeTracked)}
+      ref={bindContentBoxSize(size)}
       style={{
         border: '5px solid orange',
         padding: '15px',
@@ -496,9 +496,9 @@ export function App() @{
       Content box size
     </div>
     <pre>
-      Block size: {size[0]?.blockSize || 0}px
+      Block size: {size.value[0]?.blockSize || 0}px
       <br />
-      Inline size: {size[0]?.inlineSize || 0}px
+      Inline size: {size.value[0]?.inlineSize || 0}px
     </pre>
   </>
 
@@ -517,11 +517,11 @@ Tracks the border box size (including padding and borders).
 import { bindBorderBoxSize, track } from 'ripple';
 
 export function App() @{
-  let &[size, sizeTracked] = track([]);
+  const size = track([]);
 
   <>
     <div
-      ref={bindBorderBoxSize(sizeTracked)}
+      ref={bindBorderBoxSize(size)}
       style={{
         border: '5px solid teal',
         padding: '15px',
@@ -532,9 +532,9 @@ export function App() @{
       Border box size
     </div>
     <pre>
-      Block size: {size[0]?.blockSize || 0}px
+      Block size: {size.value[0]?.blockSize || 0}px
       <br />
-      Inline size: {size[0]?.inlineSize || 0}px
+      Inline size: {size.value[0]?.inlineSize || 0}px
     </pre>
   </>
 }
@@ -552,11 +552,11 @@ Tracks the content box size in device pixels (useful for high-DPI displays).
 import { bindDevicePixelContentBoxSize, track } from 'ripple';
 
 export function App() @{
-  let &[size, sizeTracked] = track([]);
+  const size = track([]);
 
   <>
     <div
-      ref={bindDevicePixelContentBoxSize(sizeTracked)}
+      ref={bindDevicePixelContentBoxSize(size)}
       style={{
         border: '3px solid crimson',
         padding: '10px',
@@ -567,9 +567,9 @@ export function App() @{
       Device pixel content box
     </div>
     <pre>
-      Block size: {size[0]?.blockSize || 0}px
+      Block size: {size.value[0]?.blockSize || 0}px
       <br />
-      Inline size: {size[0]?.inlineSize || 0}px
+      Inline size: {size.value[0]?.inlineSize || 0}px
     </pre>
   </>
 }
@@ -589,12 +589,12 @@ Binds to an element's innerHTML property, useful for rich text editors.
 import { bindInnerHTML, track } from 'ripple';
 
 export function App() @{
-  let &[content, contentTracked] = track('<strong>Bold text</strong>');
+  const content = track('<strong>Bold text</strong>');
 
   <>
     <div
       contentEditable={true}
-      ref={bindInnerHTML(contentTracked)}
+      ref={bindInnerHTML(content)}
       style={{
         border: '1px solid gray',
         padding: '10px',
@@ -602,7 +602,7 @@ export function App() @{
       }}
     />
     <p>Raw HTML:</p>
-    <pre>{content}</pre>
+    <pre>{content.value}</pre>
   </>
 
 }
@@ -620,19 +620,19 @@ Binds to an element's innerText property (text with line breaks, no HTML).
 import { bindInnerText, track } from 'ripple';
 
 export function App() @{
-  let &[text, textTracked] = track('Edit me!');
+  const text = track('Edit me!');
 
   <>
     <div
       contentEditable={true}
-      ref={bindInnerText(textTracked)}
+      ref={bindInnerText(text)}
       style={{
         border: '1px solid gray',
         padding: '10px',
         minHeight: '50px'
       }}
     />
-    <p>Text content: {text}</p>
+    <p>Text content: {text.value}</p>
   </>
 }
 ```
@@ -649,12 +649,12 @@ Binds to an element's textContent property (raw text, no formatting).
 import { bindTextContent, track } from 'ripple';
 
 export function App() @{
-  let &[text, textTracked] = track('Type here');
+  const text = track('Type here');
 
   <>
     <div
       contentEditable={true}
-      ref={bindTextContent(textTracked)}
+      ref={bindTextContent(text)}
       style={{
         border: '1px solid gray',
         padding: '10px',
@@ -662,7 +662,7 @@ export function App() @{
         whiteSpace: 'pre-wrap'
       }}
     />
-    <p>Text content: {text}</p>
+    <p>Text content: {text.value}</p>
   </>
 
 }
@@ -682,18 +682,19 @@ A convenient way to get a reference to a DOM element.
 import { bindNode, track } from 'ripple';
 
 export function App() @{
-  let &[divElement, divElementTracked] = track();
+  const divElement = track();
 
   const handleFocus = () => {
-    if (divElement) {
-      divElement.focus();
-      divElement.style.backgroundColor = 'lightblue';
+    const div = divElement.value;
+    if (div) {
+      div.focus();
+      div.style.backgroundColor = 'lightblue';
     }
   };
 
   <>
     <div
-      ref={bindNode(divElementTracked)}
+      ref={bindNode(divElement)}
       tabIndex={0}
       style={{
         border: '2px solid navy',
@@ -721,29 +722,29 @@ attribute:
 import { bindValue, bindClientWidth, bindNode, track } from 'ripple';
 
 export function App() @{
-  let &[text, textTracked] = track('');
-  let &[width, widthTracked] = track(0);
-  let &[inputElement, inputElementTracked] = track();
+  const text = track('');
+  const width = track(0);
+  const inputElement = track();
 
   const logInfo = () => {
-    console.log('Input:', inputElement);
-    console.log('Value:', text);
-    console.log('Width:', width);
+    console.log('Input:', inputElement.value);
+    console.log('Value:', text.value);
+    console.log('Width:', width.value);
   };
 
   <div>
     <input
       type="text"
       ref={[
-        bindValue(textTracked),
-        bindClientWidth(widthTracked),
-        bindNode(inputElementTracked),
+        bindValue(text),
+        bindClientWidth(width),
+        bindNode(inputElement),
       ]}
       placeholder="Type something..."
       style="width: 300px"
     />
-    <p>Text: {text}</p>
-    <p>Width: {width}px</p>
+    <p>Text: {text.value}</p>
+    <p>Width: {width.value}px</p>
     <button onClick={logInfo}>Log Info</button>
   </div>
 

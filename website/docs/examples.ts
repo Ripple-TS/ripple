@@ -37,10 +37,10 @@ export default function App() @{
 }
 
 function DynamicStyleValues() @{
-  let &[color] = track('#3e95ff');
+  const color = track('#3e95ff');
 
   <>
-		<p class="notice" style={{ '--notice-color': color }}>
+		<p class="notice" style={{ '--notice-color': color.value }}>
 			Hello Ripple!
 		</p>
 
@@ -55,11 +55,11 @@ function DynamicStyleValues() @{
 }
 
 function DynamicClasses() @{
-  let &[includeBaz] = track(true);
-	let &[count] = track(3);
+  const includeBaz = track(true);
+	const count = track(3);
 
   <>
-		<p class={{ foo: true, bar: false, baz: includeBaz }}> // becomes: class="foo baz"
+		<p class={{ foo: true, bar: false, baz: includeBaz.value }}> // becomes: class="foo baz"
 			Hello Ripple!
 		</p>
 
@@ -67,7 +67,7 @@ function DynamicClasses() @{
 			Hello Ripple!
 		</p>
 
-		<p class={['foo', {bar: count > 2}, count > 3 && 'bat']}> // becomes: class="foo bar"
+		<p class={['foo', {bar: count.value > 2}, count.value > 3 && 'bat']}> // becomes: class="foo bar"
 			Hello Ripple!
 		</p>
 	</>
@@ -174,7 +174,7 @@ function DarkCard() @{
 }
 
 export default function App() @{
-	let &[expanded] = track(false);
+	const expanded = track(false);
 
 	<>
 		<style>
@@ -198,10 +198,10 @@ export default function App() @{
 			<p class={accent.$class}>Opted in with accent.$class; apply would stamp every element.</p>
 			<p>An untouched sibling.</p>
 			<Footnote parentClass={accent.$class} />
-			<button onClick={() => (expanded = !expanded)}>
-				{expanded ? 'Collapse' : 'Expand'}
+			<button onClick={() => (expanded.value = !expanded.value)}>
+				{expanded.value ? 'Collapse' : 'Expand'}
 			</button>
-			@if (expanded) {
+			@if (expanded.value) {
 				<>
 					<style>
 						.note {
@@ -323,7 +323,7 @@ export default function App() {
 		title: 'Named Children',
 		code: `import type { Component } from 'ripple';
 
-function Composite(&{ PropComp, InlineComp }) {
+function Composite({ PropComp, InlineComp }: { PropComp: Component; InlineComp: Component }) {
   return <>
 		<PropComp />
 		<InlineComp />
@@ -347,7 +347,7 @@ export default function App() {
 		title: 'Child Composition',
 		code: `import type { Children, Component } from 'ripple';
 
-function Card(&{ children, Header, Footer }) {
+function Card({ children, Header, Footer }: { children: Children; Header?: Component; Footer?: Component }) {
   return <fieldset>
 		@if (Header) {
 			<>
@@ -425,12 +425,12 @@ export default function App() @{
 		code: `import { track } from 'ripple';
 
 export default function App() @{
-	let &[count] = track(1);
+	const count = track(1);
 
   <>
-		<button onClick={() => count++}>Increment</button>
+		<button onClick={() => count.value++}>Increment</button>
 
-		@switch (count) {
+		@switch (count.value) {
 			@case 1: {
 				<div>Count is 1</div>
 			}
@@ -501,11 +501,11 @@ export default function ErrorBoundary() @{
 		code: `import { trackAsync } from 'ripple';
 
 function AsyncComponent() {
-	let &[message] = trackAsync(() => new Promise((resolve) => {
+	const message = trackAsync(() => new Promise((resolve) => {
 		setTimeout(() => resolve('Async content loaded!'), 2000);
 	}));
 
-  return <p>{message}</p>
+  return <p>{message.value}</p>
 }
 
 export default function SuspenseBoundary() @{
@@ -535,17 +535,17 @@ export default function App() @{
 		code: `import { track } from 'ripple';
 
 export default function Counter() @{
-	let &[count] = track(0);  // Reactive variable
-	let &[double] = track(() => count * 2);  // Derived reactive value
-	let &[quadruple] = track(() => double * 2);
+	const count = track(0);  // Reactive variable
+	const double = track(() => count.value * 2);  // Derived reactive value
+	const quadruple = track(() => double.value * 2);
 
   <>
 		<div class="container">
-			<p>Count: {count}</p>
-			<p>Double: {double}</p>
-			<p>Quadruple: {quadruple}</p>
-			<button onClick={() => count++}>Increment</button>
-			<button onClick={() => count = 0}>Reset</button>
+			<p>Count: {count.value}</p>
+			<p>Double: {double.value}</p>
+			<p>Quadruple: {quadruple.value}</p>
+			<button onClick={() => count.value++}>Increment</button>
+			<button onClick={() => count.value = 0}>Reset</button>
 		</div>
 
 		<style>
@@ -566,16 +566,16 @@ export default function Counter() @{
 import confetti from 'canvas-confetti';
 
 export default function App() @{
-  let &[count] = track(0);
+  const count = track(0);
 
   effect(() => {
-    console.log(count);
-    if (count > 0) {
+    console.log(count.value);
+    if (count.value > 0) {
       confetti();
     }
   });
 
-	<button onClick={() => count++}>Increment</button>
+	<button onClick={() => count.value++}>Increment</button>
 }
 `,
 	},
@@ -584,20 +584,20 @@ export default function App() @{
 		code: `import { effect, track } from 'ripple';
 
 export default function App() @{
-	let &[first, firstTracked] = track(1);
-	let &[second, secondTracked] = track(2);
-	const arr = [firstTracked, secondTracked];
+	const first = track(1);
+	const second = track(2);
+	const arr = [first, second];
 
-	const &[total] = track(() => arr.reduce((a, item) => a + item.value, 0));
+	const total = track(() => arr.reduce((a, item) => a + item.value, 0));
 
 	effect(() => {
-		console.log(total);
+		console.log(total.value);
 	});
 
 	<div>
-		<button onClick={() => first++}>First: {first}</button>
-		<button onClick={() => second++}>Second: {second}</button>
-		<p>Total: {total}</p>
+		<button onClick={() => first.value++}>First: {first.value}</button>
+		<button onClick={() => second.value++}>Second: {second.value}</button>
+		<p>Total: {total.value}</p>
 	</div>
 }
 `,
@@ -609,10 +609,10 @@ export default function App() @{
 export default function App() @{
   // create a RippleArray using the constructor
   const arr = new RippleArray(1, 2, 3);
-	let &[sum] = track(() => arr.reduce((a, b) => a + b, 0));
-	let &[count] = track(3);
-	const inc = () => count++;
-	const dec = () => { if (count > 0) count-- };
+	const sum = track(() => arr.reduce((a, b) => a + b, 0));
+	const count = track(3);
+	const inc = () => count.value++;
+	const dec = () => { if (count.value > 0) count.value-- };
 
   // using the new constructor
   // const arr = new RippleArray(1, 2, 3);
@@ -631,10 +631,10 @@ export default function App() @{
 		<p>even: {arr.filter(x => x % 2 === 0).join(", ")}</p>
 
 			// reactive assignment
-			<p>sum: {sum}</p>
+			<p>sum: {sum.value}</p>
 
 			<button onClick={() => { dec(); arr.pop(); }}>pop</button>
-			<button onClick={() => { inc(); arr.push(count); }}>push</button>
+			<button onClick={() => { inc(); arr.push(count.value); }}>push</button>
 
 		<style>
 			button {
@@ -668,14 +668,14 @@ export default function App() @{
 
 export default function App() @{
   const set = new RippleSet([1, 2, 3]);
-	let &[has] = track(() => set.has(2));
+	const has = track(() => set.has(2));
 
   <>
 		// direct usage
 		<p>Direct usage: set contains 2: {set.has(2)}</p>
 
 		// reactive assignment
-		<p>Assigned usage: set contains 2: {has}</p>
+		<p>Assigned usage: set contains 2: {has.value}</p>
 
 		<button onClick={() => set.delete(2)}>Delete 2</button>
 		<button onClick={() => set.add(2)}>Add 2</button>
@@ -689,14 +689,14 @@ export default function App() @{
 
 export default function App() @{
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
-	let &[has] = track(() => map.has(2));
+	const has = track(() => map.has(2));
 
 	<>
 		// direct usage
 		<p>Direct usage: map has an item with key 2: {map.has(2)}</p>
 
 		// reactive assignment
-		<p>Assigned usage: map has an item with key 2: {has}</p>
+		<p>Assigned usage: map has an item with key 2: {has.value}</p>
 
 		<button onClick={() => map.delete(2)}>Delete item with key 2</button>
 		<button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
@@ -710,8 +710,8 @@ export default function App() @{
 
 export default function App() @{
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
-	let &[year] = track(() => date.getFullYear());
-	let &[month] = track(() => date.getMonth());
+	const year = track(() => date.getFullYear());
+	const month = track(() => date.getMonth());
 
   <>
 		// direct usage
@@ -719,7 +719,7 @@ export default function App() @{
 		<p>ISO String: {date.toISOString()}</p>
 
 		// reactive assignment
-		<p>Assigned usage: Year {year}, Month {month}</p>
+		<p>Assigned usage: Year {year.value}, Month {month.value}</p>
 
 		<button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
 		<button onClick={() => date.setMonth(11)}>Change to December</button>
@@ -732,7 +732,7 @@ export default function App() @{
 		code: `import { track } from 'ripple';
 
 export default function App() @{
-  let &[count] = track(0,
+  const count = track(0,
     (current) => {
       console.log(current);
       return current;
@@ -749,9 +749,9 @@ export default function App() @{
 
 	<>
 		<div class="container">
-			<p>{count}</p>
-			<button onClick={() => count++}>Increment</button>
-			<button onClick={() => count = 0}>Reset</button>
+			<p>{count.value}</p>
+			<button onClick={() => count.value++}>Increment</button>
+			<button onClick={() => count.value = 0}>Reset</button>
 		</div>
 
 		<style>
@@ -769,57 +769,57 @@ export default function App() @{
 	},
 	{
 		title: 'Transporting Reactivity',
-		code: `import { effect, track } from 'ripple';
+		code: `import { effect, track, type Tracked } from 'ripple';
 
-function createDouble(&[count]) {
-  const doubleTrack = track(() => count * 2);
+function createDouble(count: Tracked<number>) {
+  const double = track(() => count.value * 2);
 
   effect(() => {
-    console.log('Count:', count)
+    console.log('Count:', count.value)
   });
-  return doubleTrack;
+  return double;
 }
 
-function createQuad(&[count]) {
-  const quadTrack = track(() => count * 4);
+function createQuad(count: Tracked<number>) {
+  const quad = track(() => count.value * 4);
   effect(() => {
-    console.log('Count:', count)
+    console.log('Count:', count.value)
   });
-  return quadTrack;
+  return quad;
 }
 
 export default function App() @{
-  let &[count, countTrack] = track(0);
-  const &[double] = createDouble(countTrack);
-	const &[quad] = createQuad(countTrack);
+  const count = track(0);
+  const double = createDouble(count);
+	const quad = createQuad(count);
 
 	<>
-		<p>Count: {count}</p>
-		<p>Double: {double}</p>
-		<p>Quadruple: {quad}</p>
-		<button onClick={() => { count++; }}>Increment Count</button>
+		<p>Count: {count.value}</p>
+		<p>Double: {double.value}</p>
+		<p>Quadruple: {quad.value}</p>
+		<button onClick={() => { count.value++; }}>Increment Count</button>
   </>
 }
 `,
 	},
 	{
 		title: 'Dynamic Components',
-		code: `import { track } from 'ripple';
+		code: `import { track, type Component, type Derived } from 'ripple';
 
 export default function App() @{
-  let &[swapMe, swapMeTracked] = track(() => Child1);
+  const swapMe = track(() => Child1, undefined, true);
 
   <>
-		<Child swapMe={swapMeTracked} />
+		<Child {swapMe} />
 
-		<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
+		<button onClick={() => swapMe.value = swapMe.value === Child1 ? Child2 : Child1}>
 			Swap Component
 		</button>
   </>
 }
 
-function Child({ swapMe }: {swapMe: Tracked<Component>}) {
-  return <{swapMe} />
+function Child({ swapMe }: {swapMe: Derived<Component>}) {
+  return <{swapMe.value} />
 }
 
 function Child1(props) {
@@ -833,30 +833,30 @@ function Child2(props) {
 	},
 	{
 		title: 'Component Transport Pattern',
-		code: `import { track } from 'ripple';
+		code: `import { track, type Children, type Derived, type Component } from 'ripple';
 
 export default function App() @{
-  const &[tracked_basic] = track(() => basic);
+  const tracked_basic = track(() => basic);
   const obj = {
     tracked_basic,
   };
-  const &[ripple_object] = track(obj);
-  const &[Button] = track(() => SomeButton);
-  const &[AnotherButton] = track(() => SomeButton);
+  const ripple_object = track(obj);
+  const Button = track(() => SomeButton);
+  const AnotherButton = track(() => SomeButton);
 
 	<>
-		<{ripple_object.tracked_basic} />
+		<{ripple_object.value.tracked_basic.value} />
 		<Child {Button}>Child Button</Child>
 		<AnotherChild Button={AnotherButton}>Another Child Button</AnotherChild>
   </>
 }
 
-function Child({ Button, children }) {
-  return <{Button}>{children}</{Button}>
+function Child({ Button, children }: { Button: Derived<Component>; children: Children }) {
+  return <{Button.value}>{children}</{Button.value}>
 }
 
-function AnotherChild(&{ Button, children }) {
-  return <{Button}>{children}</{Button}>
+function AnotherChild({ Button, children }: { Button: Derived<Component>; children: Children }) {
+  return <{Button.value}>{children}</{Button.value}>
 }
 
 function SomeButton({ children }) {
@@ -873,20 +873,20 @@ function basic() {
 		code: `import { effect, track, untrack } from 'ripple';
 
 export default function App() @{
-  let &[count] = track(10);
-  let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 2);
+  const count = track(10);
+  const double = track(() => count.value * 2);
+  const quadruple = track(() => double.value * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
-    console.log(untrack(() => quadruple));
+    console.log(untrack(() => quadruple.value));
 	})
 
 	<>
-		<p>Count: {count}</p>
-		<p>Double: {double}</p>
-		<p>Quadruple: {quadruple}</p>
-		<button onClick={() => { count++; }}>Increment Count</button>
+		<p>Count: {count.value}</p>
+		<p>Double: {double.value}</p>
+		<p>Quadruple: {quadruple.value}</p>
+		<button onClick={() => { count.value++; }}>Increment Count</button>
   </>
 }
 `,
@@ -896,7 +896,7 @@ export default function App() @{
 		code: `import { effect, on, track } from 'ripple';
 
 export default function App() @{
-  let &[message] = track('');
+  const message = track('');
 
 	effect(() => {
     // on component mount
@@ -910,9 +910,9 @@ export default function App() @{
 
 	<div>
 		<p>Try resizing the window!</p>
-    <button onClick={() => message = 'Clicked!'}>Click me</button>
-    <input onInput={(e) => message = e.target.value} />
-    <p>{message}</p>
+    <button onClick={() => message.value = 'Clicked!'}>Click me</button>
+    <input onInput={(e) => message.value = e.target.value} />
+    <p>{message.value}</p>
   </div>
 }
 `,
@@ -922,14 +922,14 @@ export default function App() @{
 		code: `import { track } from 'ripple';
 
 export default function App() @{
-  let &[div] = track();
+  const div = track();
 
   const divRef = (node) => {
-    div = node;
+    div.value = node;
     console.log("mounted", node);
 
     return () => {
-      div = undefined;
+      div.value = undefined;
       console.log("unmounted", node);
     };
   };
@@ -943,15 +943,15 @@ export default function App() @{
 		code: `import { createRefKey, track } from 'ripple';
 
 export default function App() @{
-  let &[value] = track('');
+  const value = track('');
 
   const props = {
     id: "example",
-    value,
+    value: value.value,
     [createRefKey()]: (node) => {
       const onInput = (e) => {
-        value = e.target.value;
-        console.log(value);
+        value.value = e.target.value;
+        console.log(value.value);
       };
 
       node.addEventListener('input', onInput);
@@ -964,7 +964,7 @@ export default function App() @{
 
 	<>
 		<input type="text" {...props} />
-		<div>{value}</div>
+		<div>{value.value}</div>
   </>
 }
 `,

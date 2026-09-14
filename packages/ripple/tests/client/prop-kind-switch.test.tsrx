@@ -10,15 +10,15 @@ describe('prop kind switches at runtime', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[n] = track(0);
-			let &[attrs] = track<{ class: string | Derived<string> }>({ class: 'plain' });
+			const n = track(0);
+			const attrs = track<{ class: string | Derived<string> }>({ class: 'plain' });
 			swap = () => {
-				attrs = { class: track(() => 'live-' + n) };
+				attrs.value = { class: track(() => 'live-' + n.value) };
 			};
 			bump = () => {
-				n++;
+				n.value++;
 			};
-			<div {...attrs}>{'x'}</div>
+			<div {...attrs.value}>{'x'}</div>
 		}
 
 		render(App);
@@ -78,15 +78,15 @@ describe('prop kind switches at runtime', () => {
 
 			function App() @{
 				// A function value is a derived: hold the component in a writable one.
-				let &[Comp] = track(() => A, undefined, true);
-				let &[n] = track(0);
+				const Comp = track(() => A, undefined, true);
+				const n = track(0);
 				switchComponent = () => {
-					Comp = Comp === A ? B : A;
+					Comp.value = Comp.value === A ? B : A;
 				};
 				bump = () => {
-					n++;
+					n.value++;
 				};
-				<Comp n={n} />
+				<{Comp.value} n={n.value} />
 			}
 
 			render(App);
@@ -115,13 +115,13 @@ describe('prop kind switches at runtime', () => {
 		}
 
 		function App() @{
-			let &[n] = track(0);
+			const n = track(0);
 			const v = track<string | Derived<string>>('plain');
 			swap = () => {
-				v.value = track(() => 'live-' + n);
+				v.value = track(() => 'live-' + n.value);
 			};
 			bump = () => {
-				n++;
+				n.value++;
 			};
 			<Child {v} />
 		}

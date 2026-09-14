@@ -57,14 +57,14 @@ describe('dynamic DOM elements', () => {
 
 	it('renders reactive dynamic element', () => {
 		function App() @{
-			let &[tag] = track('div');
+			const tag = track('div');
 			<>
 				<button
 					onClick={() => {
-						tag = 'span';
+						tag.value = 'span';
 					}}
 				>{'Change Tag'}</button>
-				<{tag} id="dynamic">{'Hello World'}</{tag}>
+				<{tag.value} id="dynamic">{'Hello World'}</{tag.value}>
 			</>
 		}
 		render(App);
@@ -101,8 +101,8 @@ describe('dynamic DOM elements', () => {
 	it('handles dynamic element with attributes', () => {
 		function App() @{
 			let tag = track('div');
-			let &[className] = track('test-class');
-			<{tag} class={className} id="test" data-testid="dynamic-element">{'Content'}</{tag}>
+			const className = track('test-class');
+			<{tag} class={className.value} id="test" data-testid="dynamic-element">{'Content'}</{tag}>
 		}
 		render(App);
 
@@ -135,9 +135,9 @@ describe('dynamic DOM elements', () => {
 	it('handles dynamic element with class object', () => {
 		function App() @{
 			let tag = track('div');
-			let &[active] = track(true);
+			const active = track(true);
 			<{tag}
-				class={{ active: active, 'dynamic-element': true }}
+				class={{ active: active.value, 'dynamic-element': true }}
 			>{'Element with class object'}</{tag}>
 		}
 		render(App);
@@ -301,14 +301,14 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			let &[dynamic] = track(() => TextInput);
+			const dynamic = track(() => TextInput);
 			<>
 				<button
 					onClick={() => {
-						dynamic = dynamic === TextInput ? SearchInput : TextInput;
+						dynamic.value = dynamic.value === TextInput ? SearchInput : TextInput;
 					}}
 				>{'Change Component'}</button>
-				<{dynamic}
+				<{dynamic.value}
 					ref={[
 						(node: HTMLInputElement | null) => {
 							refAttrElement = node;
@@ -375,20 +375,20 @@ describe('dynamic DOM elements', () => {
 	it('has reactive attributes on dynamic elements', () => {
 		function App() @{
 			let tag = track('div');
-			let &[count] = track(0);
+			const count = track(0);
 			<>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 				<{tag}
-					id={count % 2 ? 'even' : 'odd'}
-					class={count % 2 ? 'even-class' : 'odd-class'}
-					data-count={count}
+					id={count.value % 2 ? 'even' : 'odd'}
+					class={count.value % 2 ? 'even-class' : 'odd-class'}
+					data-count={count.value}
 				>
 					{'Count: '}
-					{count}
+					{count.value}
 				</{tag}>
 			</>
 		}
@@ -453,17 +453,17 @@ describe('dynamic DOM elements', () => {
 	it('applies scoped CSS to dynamic elements with reactive classes', () => {
 		function App() @{
 			let tag = track('button');
-			let &[count] = track(0);
+			const count = track(0);
 			<>
 				<{tag}
-					class={count % 2 ? 'even' : 'odd'}
-					id={count % 2 ? 'even' : 'odd'}
+					class={count.value % 2 ? 'even' : 'odd'}
+					id={count.value % 2 ? 'even' : 'odd'}
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>
 					{'Count: '}
-					{count}
+					{count.value}
 				</{tag}>
 				<style>
 					.even {
@@ -521,7 +521,7 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('handles spread attributes with class and CSS scoping ', () => {
-		function DynamicButton(&{ ...rest }: PropsWithExtras<{
+		function DynamicButton({ ...rest }: PropsWithExtras<{
 			class: Derived<string>;
 			id: Derived<string>;
 			onClick: EventListener;
@@ -541,12 +541,12 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			<DynamicButton
-				class={track(() => (count % 2 ? 'even' : 'odd'))}
-				id={track(() => (count % 2 ? 'even' : 'odd'))}
+				class={track(() => (count.value % 2 ? 'even' : 'odd'))}
+				id={track(() => (count.value % 2 ? 'even' : 'odd'))}
 				onClick={() => {
-					count++;
+					count.value++;
 				}}
 			/>
 		}
@@ -724,11 +724,11 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			let &[active] = track(false);
+			const active = track(false);
 			<Button
-				data-active={track(() => String(active))}
+				data-active={track(() => String(active.value))}
 				onClick={() => {
-					active = !active;
+					active.value = !active.value;
 				}}
 				ref={(el: HTMLElement) => {
 					capturedElement = el;
@@ -764,23 +764,23 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			let &[active] = track(false);
-			let &[buttonProps] = track(
+			const active = track(false);
+			const buttonProps = track(
 				() => ({
-					'data-active': active,
+					'data-active': active.value,
 				}),
 			);
 			<Button
-				{...buttonProps}
+				{...buttonProps.value}
 				onClick={() => {
-					active = !active;
+					active.value = !active.value;
 				}}
 				ref={(el: HTMLElement) => {
 					capturedElement = el;
 				}}
 			>
 				{'content: '}
-				{active}
+				{active.value}
 			</Button>
 		}
 
@@ -809,11 +809,11 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			let &[active] = track(false);
+			const active = track(false);
 			<Button
-				data-active={track(() => String(active))}
+				data-active={track(() => String(active.value))}
 				onClick={() => {
-					active = !active;
+					active.value = !active.value;
 				}}
 				ref={(el: HTMLElement) => {
 					capturedElement = el;
@@ -843,14 +843,14 @@ describe('dynamic DOM elements', () => {
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
 		function App() @{
-			let &[b] = track(true);
+			const b = track(true);
 			<>
 				<div>
-					@if (b) {
+					@if (b.value) {
 						<>Inside if</>
 					}
 				</div>
-				<button onClick={() => (b = !b)}>{'Toggle b'}</button>
+				<button onClick={() => (b.value = !b.value)}>{'Toggle b'}</button>
 			</>
 		}
 

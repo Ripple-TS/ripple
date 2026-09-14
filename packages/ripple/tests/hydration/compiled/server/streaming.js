@@ -32,13 +32,13 @@ resetControls();
 
 function BasicContent() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track_async(() => controls.basic.promise, '703e438e');
-		let lazy_1 = _$_.track(0, '928bce39');
+		const data = _$_.track_async(() => controls.basic.promise, '703e438e');
+		const count = _$_.track(0, '928bce39');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="resolved"><span class="value">' + _$_.escape(lazy.value + ':' + lazy_1.value) + '</span><button class="inc">inc</button></div>';
+			__out += '<div class="resolved"><span class="value">' + _$_.escape(data.value + ':' + count.value) + '</span><button class="inc">inc</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -88,7 +88,7 @@ export function StreamPending() {
 
 function CatchOnlyContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track_async(() => controls.catchOnly.promise, '50f939c6');
+		const data = _$_.track_async(() => controls.catchOnly.promise, '50f939c6');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -98,7 +98,7 @@ function CatchOnlyContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_2.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -158,7 +158,7 @@ export function StreamCatchOnly() {
 
 function RejectContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track_async(() => controls.rejects.promise, '96452a54');
+		const data = _$_.track_async(() => controls.rejects.promise, '96452a54');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -168,7 +168,7 @@ function RejectContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_3.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -247,7 +247,7 @@ export function StreamRejects() {
 
 function NoCatchContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_4 = _$_.track_async(() => controls.noCatch.promise, '6baa716b');
+		const data = _$_.track_async(() => controls.noCatch.promise, '6baa716b');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -257,7 +257,7 @@ function NoCatchContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_4.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -342,27 +342,27 @@ export function RootPending() {
 
 function HeadContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_5 = _$_.track_async(() => controls.head.promise, '9cd3c3cd');
+		const data = _$_.track_async(() => controls.head.promise, '9cd3c3cd');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<!--[--><!--[-->';
 
-			if (lazy_5.value) {
+			if (data.value) {
 				__out += '<p class="head-content">';
 
 				{
 					_$_.output_push(__out);
 					__out = '';
-					_$_.render_expression(lazy_5.value);
+					_$_.render_expression(data.value);
 				}
 
 				__out += '</p>';
 				_$_.output_push(__out);
 				__out = '';
 				_$_.set_output_target('head');
-				__out += '<!--814bacd9--><title>' + _$_.escape('title:' + lazy_5.value) + '</title>';
+				__out += '<!--1ad4258e--><title>' + _$_.escape('title:' + data.value) + '</title>';
 				_$_.output_push(__out);
 				__out = '';
 				_$_.set_output_target(null);
@@ -420,7 +420,7 @@ export function StreamHead() {
 
 export function StreamRootDirect() {
 	return _$_.tsrx_element(() => {
-		let lazy_6 = _$_.track_async(() => controls.rootDirect.promise, 'bc9e61da');
+		const data = _$_.track_async(() => controls.rootDirect.promise, 'bc9e61da');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -430,7 +430,7 @@ export function StreamRootDirect() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_6.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -441,7 +441,7 @@ export function StreamRootDirect() {
 
 function OuterContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_7 = _$_.track_async(() => controls.outer.promise, '35931cce');
+		const data = _$_.track_async(() => controls.outer.promise, '35931cce');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -451,7 +451,7 @@ function OuterContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_7.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -462,7 +462,7 @@ function OuterContent() {
 
 function InnerContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_8 = _$_.track_async(() => controls.inner.promise, '6c7d38ed');
+		const data = _$_.track_async(() => controls.inner.promise, '6c7d38ed');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -472,7 +472,7 @@ function InnerContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_8.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';

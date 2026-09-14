@@ -37,33 +37,33 @@ describe('@for selector comparisons', () => {
 	function App() @{
 		const row = (id: number, group = 'a'): Row => ({ id, group, label: track(`row ${id}`) });
 
-		let &[items] = track<Row[]>([row(1), row(2), row(3)]);
-		let &[selected] = track<number | undefined>(undefined);
-		let &[group] = track<string | undefined>(undefined);
+		const items = track<Row[]>([row(1), row(2), row(3)]);
+		const selected = track<number | undefined>(undefined);
+		const group = track<string | undefined>(undefined);
 
 		actions = {
 			select: (id) => {
-				selected = id;
+				selected.value = id;
 			},
 			setItems: (specs) => {
-				items = specs.map(([id, group]) => row(id, group));
+				items.value = specs.map(([id, group]) => row(id, group));
 			},
 			setGroup: (next) => {
-				group = next;
+				group.value = next;
 			},
 			relabel: (index, label) => {
-				items[index].label.value = label;
+				items.value[index].label.value = label;
 			},
 		};
 
 		<ul>
-			@for (const item of items; key item.id) {
+			@for (const item of items.value; key item.id) {
 				<li
 					data-id={item.id}
-					class={selected === item.id ? 'selected' : ''}
-					data-group={group === item.group ? 'match' : ''}
+					class={selected.value === item.id ? 'selected' : ''}
+					data-group={group.value === item.group ? 'match' : ''}
 				>
-					{selected !== item.id ? item.label.value : 'current'}
+					{selected.value !== item.id ? item.label.value : 'current'}
 				</li>
 			}
 		</ul>
@@ -177,12 +177,12 @@ describe('keyed reconciliation with most items moving', () => {
 		let apply: (order: number[]) => void = () => {};
 
 		function App() @{
-			let &[items] = track(Array.from({ length: 300 }, (_, i) => i));
+			const items = track(Array.from({ length: 300 }, (_, i) => i));
 			apply = (order) => {
-				items = order;
+				items.value = order;
 			};
 			<ul>
-				@for (const item of items; key item) {
+				@for (const item of items.value; key item) {
 					<li data-id={item}>{item}</li>
 				}
 			</ul>

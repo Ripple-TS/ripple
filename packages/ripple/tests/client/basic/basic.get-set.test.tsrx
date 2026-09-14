@@ -15,10 +15,10 @@ describe('basic client > tracked value access', () => {
 
 	it('gets tracked value after mutation', () => {
 		function Test() @{
-			let &[count] = track(0);
+			const count = track(0);
 			<>
-				<p>{count}</p>
-				<button onClick={() => count++}>{'increment'}</button>
+				<p>{count.value}</p>
+				<button onClick={() => count.value++}>{'increment'}</button>
 			</>
 		}
 
@@ -36,14 +36,14 @@ describe('basic client > tracked value access', () => {
 
 	it('gets tracked value after multiple mutations', () => {
 		function Test() @{
-			let &[count] = track(0);
+			const count = track(0);
 			<>
-				<p>{count}</p>
+				<p>{count.value}</p>
 				<button
 					onClick={() => {
-						count++;
-						count++;
-						count++;
+						count.value++;
+						count.value++;
+						count.value++;
 					}}
 				>{'increment'}</button>
 			</>

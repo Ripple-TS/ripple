@@ -474,7 +474,7 @@ export function DynamicArrayFromCall() {
 
 export function DynamicArrayFromTrack() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
+		const items = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -484,7 +484,7 @@ export function DynamicArrayFromTrack() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy.value);
+				_$_.render_expression(items.value);
 			}
 
 			__out += '</div>';
@@ -641,7 +641,7 @@ export function TsxDeclaredBeforeTopLevelTsx() {
 	});
 }
 
-function TextProp(__props) {
+function TextProp({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -651,7 +651,7 @@ function TextProp(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children.value);
+				_$_.render_expression(children.value);
 			}
 
 			__out += '</div>';
@@ -660,12 +660,12 @@ function TextProp(__props) {
 	});
 }
 
-function TypedTextProp(__props) {
+function TypedTextProp({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="text-prop">' + _$_.escape(__props.children.value) + '</div>';
+			__out += '<div class="text-prop">' + _$_.escape(children.value) + '</div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -673,7 +673,7 @@ function TypedTextProp(__props) {
 
 export function TextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(false, '1ba81c3b');
+		const show = _$_.track(false, '1ba81c3b');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -686,7 +686,7 @@ export function TextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(_$_.track(() => lazy_1.value ? 'hello' : '', '649e2af0'))
+						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', '649e2af0'))
 					}
 				];
 
@@ -703,7 +703,7 @@ export function TextPropWithToggle() {
 
 export function TypedTextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track(false, 'ba719d47');
+		const show = _$_.track(false, 'ba719d47');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -716,7 +716,7 @@ export function TypedTextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(_$_.track(() => lazy_2.value ? 'hello' : '', '6fb091f9'))
+						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', '6fb091f9'))
 					}
 				];
 
@@ -1067,12 +1067,12 @@ export function FragmentLeadsWithPrimitiveCall() {
 
 export function PrimitiveTextCalls() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track(2, 'eea72017');
+		const count = _$_.track(2, 'eea72017');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="primitive-calls">' + _$_.escape("sum: " + (String(Number(lazy_3.value) + Number(lazy_3.value) ?? '') + ("; big: " + String(BigInt(lazy_3.value) ?? '')))) + '</div><button>update</button>';
+			__out += '<div class="primitive-calls">' + _$_.escape("sum: " + (String(Number(count.value) + Number(count.value) ?? '') + ("; big: " + String(BigInt(count.value) ?? '')))) + '</div><button>update</button>';
 			_$_.output_push(__out);
 		});
 	});

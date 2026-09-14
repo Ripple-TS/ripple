@@ -45,14 +45,14 @@ export function SimplePortal() {
 
 export function ConditionalPortal() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(true, '4f6df174');
+		const show = _$_.track(true, '4f6df174');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<div class="container"><button class="toggle">Toggle</button><!--[-->';
 
-			if (lazy.value) {
+			if (show.value) {
 				{
 					const comp = Portal;
 

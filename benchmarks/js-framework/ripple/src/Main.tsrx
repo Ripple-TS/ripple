@@ -3,8 +3,8 @@ import { track, flushSync, type Tracked } from 'ripple';
 // Keyed Ripple implementation, ported from js-framework-benchmark
 // frameworks/keyed/ripple to current ripple syntax: `function … @{}` (was
 // `component … {}`), `@for (…; key row.id)` (was a plain `for` over `items.value`),
-// `{expr}` (was `{text expr}`), and a `let &[…] = track()` reactive proxy for the
-// list/selection. Per-row `label` stays a `Tracked<string>` so the `update` op
+// `{expr}` (was `{text expr}`), and `track()` objects read through `.value` for
+// the list/selection. Per-row `label` stays a `Tracked<string>` so the `update` op
 // mutates each tenth label in place (`row.label.value += …`) — the fine-grained
 // write ripple is built for, no list reconcile.
 //
@@ -125,71 +125,71 @@ function shuffleWithSeed<T>(d: T[], seed: number): T[] {
 }
 
 export default function App() @{
-	let &[items] = track<Row[]>([]);
-	let &[selected] = track<number | undefined>(undefined);
+	const items = track<Row[]>([]);
+	const selected = track<number | undefined>(undefined);
 
 	const run = () => flushSync(() => {
-		items = buildData(1000);
-		selected = undefined;
+		items.value = buildData(1000);
+		selected.value = undefined;
 	});
 	const runLots = () => flushSync(() => {
-		items = buildData(10000);
-		selected = undefined;
+		items.value = buildData(10000);
+		selected.value = undefined;
 	});
 	const add = () => flushSync(() => {
-		items = [...items, ...buildData(1000)];
+		items.value = [...items.value, ...buildData(1000)];
 	});
 	const update = () => flushSync(() => {
-		for (let i = 0; i < items.length; i += 10) {
-			items[i].label.value += ' !!!';
+		for (let i = 0; i < items.value.length; i += 10) {
+			items.value[i].label.value += ' !!!';
 		}
 	});
 	const clear = () => flushSync(() => {
-		items = [];
-		selected = undefined;
+		items.value = [];
+		selected.value = undefined;
 	});
 	const swap = () => flushSync(() => {
-		if (items.length > 998) {
-			const clone = items.slice();
+		if (items.value.length > 998) {
+			const clone = items.value.slice();
 			const tmp = clone[1];
 			clone[1] = clone[998];
 			clone[998] = tmp;
-			items = clone;
+			items.value = clone;
 		}
 	});
 	const select = (id: number) => flushSync(() => {
-		selected = id;
+		selected.value = id;
 	});
 	const remove = (row: Row) => flushSync(() => {
-		const clone = items.slice();
+		const clone = items.value.slice();
 		clone.splice(clone.indexOf(row), 1);
-		items = clone;
+		items.value = clone;
 	});
 
 	// Keyed-reorder matrix handlers (../../run-reorder.mjs). Every button below
 	// binds an IDENTIFIER-callee arrow (`onClick={() => reverseRows()}`) —
 	// matching the octane fixtures' handler shape. All ops assign a fresh array
-	// to `items` inside a flushSync (synchronous commit); nothing mutates in
+	// to `items.value` inside a flushSync (synchronous commit); nothing mutates in
 	// place.
 	const reverseRows = () => flushSync(() => {
-		items = items.toReversed();
+		items.value = items.value.toReversed();
 	});
 	const shuffleRows = () => {
 		// Seed derived HERE (once per click), before the flush — see the
 		// shuffle-machinery comment above.
 		const seed = nextShuffleSeed();
 		flushSync(() => {
-			items = shuffleWithSeed(items, seed);
+			items.value = shuffleWithSeed(items.value, seed);
 		});
 	};
 	const rotateForward = () => flushSync(() => {
-		if (items.length > 0) {
-			items = [items[items.length - 1], ...items.slice(0, -1)];
+		if (items.value.length > 0) {
+			items.value = [items.value[items.value.length - 1], ...items.value.slice(0, -1)];
 		}
 	});
 	const rotateBackward = () => flushSync(() => {
-		if (items.length > 0) {
-			items = [...items.slice(1), items[0]];
+		if (items.value.length > 0) {
+			items.value = [...items.value.slice(1), items.value[0]];
 		}
 	});
 	const prepend100 = () => flushSync(() => {
@@ -200,24 +200,24 @@ export default function App() @{
 		// this is a genuine ripple keyed-@for reconciler bug for prepend-many-at-
 		// head — NOT octane and NOT a fixture defect. Left as the faithful op; the
 		// run-reorder identity gate correctly flags ripple/prepend100.
-		items = [...buildData(100), ...items];
+		items.value = [...buildData(100), ...items.value];
 	});
 	const append100 = () => flushSync(() => {
-		items = items.concat(buildData(100));
+		items.value = items.value.concat(buildData(100));
 	});
 	const insertMid100 = () => flushSync(() => {
-		const mid = items.length >> 1;
-		items = items.slice(0, mid).concat(buildData(100), items.slice(mid));
+		const mid = items.value.length >> 1;
+		items.value = items.value.slice(0, mid).concat(buildData(100), items.value.slice(mid));
 	});
 	const removeFirst = () => flushSync(() => {
-		items = items.slice(1);
+		items.value = items.value.slice(1);
 	});
 	const removeEvery10 = () => flushSync(() => {
-		items = items.filter((_, i) => i % 10 !== 0);
+		items.value = items.value.filter((_, i) => i % 10 !== 0);
 	});
 	// displace_k: move the FIRST k rows (as a group, order preserved) to the END.
 	const displace = (k: number) => flushSync(() => {
-		items = items.slice(k).concat(items.slice(0, k));
+		items.value = items.value.slice(k).concat(items.value.slice(0, k));
 	});
 
 	<div class="container">
@@ -396,8 +396,8 @@ export default function App() @{
 		</div>
 		<table class="table table-hover table-striped test-data">
 			<tbody>
-				@for (const row of items; key row.id) {
-					<tr class={selected === row.id ? 'danger' : ''}>
+				@for (const row of items.value; key row.id) {
+					<tr class={selected.value === row.id ? 'danger' : ''}>
 						<td class="col-md-1">{row.id}</td>
 						<td class="col-md-4">
 							<a onClick={() => select(row.id)}>{row.label.value}</a>

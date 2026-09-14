@@ -40,6 +40,31 @@ export interface CompileOptions extends CoreCompileOptions {
 export type StyleRegistration = string | AST.Expression;
 
 /**
+ * Represents the path of a destructured assignment from either a declaration
+ * or assignment expression. For example, given `const { foo: { bar: baz } } = quux`,
+ * the path of `baz` is `foo.bar`. Produced by `src/extract-paths.js`.
+ */
+export interface DestructuredAssignment {
+	/**
+	 * The node the destructuring path ends in. Can be a member expression only
+	 * for assignment expressions.
+	 */
+	node: AST.Identifier | AST.MemberExpression;
+	/** `true` if this is a `...rest` destructuring. */
+	is_rest: boolean;
+	/** `true` if this has a fallback value like `const { foo = 'bar' } = ..`. */
+	has_default_value: boolean;
+	/**
+	 * The value of the current path. Will be a call expression if a rest element
+	 * or default is involved — e.g. `const { foo: { bar: baz = 42 }, ...rest } =
+	 * quux` — since we can't represent `baz` or `rest` purely as a path.
+	 */
+	expression: (object: AST.Identifier | AST.CallExpression) => AST.Expression;
+	/** Like `expression` but without default values. */
+	update_expression: (object: AST.Identifier) => AST.Expression;
+}
+
+/**
  * Ripple's analysis result: the shared shape plus what the style pre-pass
  * (`src/style-scopes.js`) computed for the module.
  */

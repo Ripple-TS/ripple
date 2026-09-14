@@ -8,10 +8,10 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			let &[foo] = track(123);
+			const foo = track(123);
 			<>
 				<Child />
-				<Child {foo} />
+				<Child foo={foo.value} />
 			</>
 		}
 
@@ -67,10 +67,10 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			let &[foo] = track(123);
+			const foo = track(123);
 			<>
 				<Child />
-				<Child {foo} />
+				<Child foo={foo.value} />
 			</>
 		}
 
@@ -110,7 +110,7 @@ describe('composite > props', () => {
 	});
 
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
-		function Button(&{ children, ...rest }: Props) @{
+		function Button({ children, ...rest }: Props) @{
 			<>
 				<button {...rest}>{children}</button>
 				<style>
@@ -124,7 +124,7 @@ describe('composite > props', () => {
 			</>
 		}
 
-		function Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) @{
+		function Toggle({ pressed, ...rest }: { pressed: Tracked<boolean> }) @{
 			const onClick = () => (pressed.value = !pressed.value);
 			<>
 				<Button
@@ -219,16 +219,16 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			let &[ok] = track(true);
+			const ok = track(true);
 			<>
 				<button
 					onClick={() => {
-						ok = !ok;
+						ok.value = !ok.value;
 					}}
 				>{'toggle'}</button>
 				<Child
 					header={<h1>
-						@if (ok) {
+						@if (ok.value) {
 							<span>{'yes'}</span>
 						} @else {
 							<span>{'no'}</span>

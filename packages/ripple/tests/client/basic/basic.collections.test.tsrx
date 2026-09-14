@@ -15,16 +15,16 @@ describe('basic client > collections', () => {
 
 	it('renders with simple reactive objects', () => {
 		function Basic() @{
-			let &[user] = track({
+			const user = track({
 				name: 'John',
 				age: 25,
 			});
 			<>
-				<div class="name">{user.name}</div>
-				<div class="age">{user.age}</div>
+				<div class="name">{user.value.name}</div>
+				<div class="age">{user.value.age}</div>
 				<button
 					onClick={() => {
-						user = { ...user, name: 'Jane', age: 30 };
+						user.value = { ...user.value, name: 'Jane', age: 30 };
 					}}
 				>{'Update User'}</button>
 			</>
@@ -48,17 +48,17 @@ describe('basic client > collections', () => {
 
 	it('renders with nested reactive objects', () => {
 		function Basic() @{
-			let &[user] = track({
+			const user = track({
 				name: track('John'),
 				age: track(25),
 			});
 			<>
-				<div class="name">{user.name.value}</div>
-				<div class="age">{user.age.value}</div>
+				<div class="name">{user.value.name.value}</div>
+				<div class="age">{user.value.age.value}</div>
 				<button
 					onClick={() => {
-						user.name.value = 'Jane';
-						user.age.value = 30;
+						user.value.name.value = 'Jane';
+						user.value.age.value = 30;
 					}}
 				>{'Update User'}</button>
 			</>
@@ -116,11 +116,11 @@ describe('basic client > collections', () => {
 
 	it('cleans up mixed tsrx collection sentinels and trailing text on rerender', () => {
 		function App() @{
-			let &[primary] = track(true);
+			const primary = track(true);
 			<>
 				<div class="frame">
 					{<>
-						{primary
+						{primary.value
 							? [
 									'first:',
 									<strong class="middle">{'one'}</strong>,
@@ -135,7 +135,7 @@ describe('basic client > collections', () => {
 				</div>
 				<button
 					onClick={() => {
-						primary = !primary;
+						primary.value = !primary.value;
 					}}
 				>{'toggle'}</button>
 			</>

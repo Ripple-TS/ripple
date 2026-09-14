@@ -4,7 +4,7 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template(`<div class="resolved"><span class="value"> </span><button class="inc">inc</button></div>`, 0);
 
 function render(__prev) {
-	var __a = __prev._lazy.value + ':' + __prev._lazy_1.value;
+	var __a = __prev._data.value + ':' + __prev._count.value;
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression, __prev.a = __a);
@@ -12,8 +12,8 @@ function render(__prev) {
 }
 
 function BasicContent_render(__anchor, __block) {
-	let lazy = _$_.track_async(() => controls.basic.promise, __block, '703e438e');
-	let lazy_1 = _$_.track(0, __block, '928bce39');
+	const data = _$_.track_async(() => controls.basic.promise, __block, '703e438e');
+	const count = _$_.track(0, __block, '928bce39');
 	var div = root();
 
 	{
@@ -25,16 +25,10 @@ function BasicContent_render(__anchor, __block) {
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
-		button.__click = () => _$_.update(lazy_1);
+		button.__click = () => count.value++;
 	}
 
-	_$_.render(render, {
-		a: ' ',
-		_lazy: lazy,
-		_lazy_1: lazy_1,
-		_expression: expression
-	});
-
+	_$_.render(render, { a: ' ', _data: data, _count: count, _expression: expression });
 	_$_.append(__anchor, div);
 }
 
@@ -84,13 +78,13 @@ StreamPending[_$_.$r] = StreamPending_render;
 var root_5 = _$_.template(`<p class="resolved"> </p>`, 0);
 
 function CatchOnlyContent_render(__anchor, __block) {
-	let lazy_2 = _$_.track_async(() => controls.catchOnly.promise, __block, '50f939c6');
+	const data = _$_.track_async(() => controls.catchOnly.promise, __block, '50f939c6');
 	var p_1 = root_5();
 
 	{
 		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_1.firstChild;
 
-		_$_.expression(expression_1, () => lazy_2.value);
+		_$_.expression(expression_1, () => data.value);
 		_$_.hydrating && _$_.pop(p_1);
 	}
 
@@ -142,13 +136,13 @@ StreamCatchOnly[_$_.$r] = StreamCatchOnly_render;
 var root_9 = _$_.template(`<p class="resolved"> </p>`, 0);
 
 function RejectContent_render(__anchor, __block) {
-	let lazy_3 = _$_.track_async(() => controls.rejects.promise, __block, '96452a54');
+	const data = _$_.track_async(() => controls.rejects.promise, __block, '96452a54');
 	var p_2 = root_9();
 
 	{
 		var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
-		_$_.expression(expression_3, () => lazy_3.value);
+		_$_.expression(expression_3, () => data.value);
 		_$_.hydrating && _$_.pop(p_2);
 	}
 
@@ -192,13 +186,13 @@ StreamRejects[_$_.$r] = StreamRejects_render;
 var root_12 = _$_.template(`<p class="resolved"> </p>`, 0);
 
 function NoCatchContent_render(__anchor, __block) {
-	let lazy_4 = _$_.track_async(() => controls.noCatch.promise, __block, '6baa716b');
+	const data = _$_.track_async(() => controls.noCatch.promise, __block, '6baa716b');
 	var p_4 = root_12();
 
 	{
 		var expression_5 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
-		_$_.expression(expression_5, () => lazy_4.value);
+		_$_.expression(expression_5, () => data.value);
 		_$_.hydrating && _$_.pop(p_4);
 	}
 
@@ -260,7 +254,7 @@ var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function HeadContent_render(__anchor, __block) {
-	let lazy_5 = _$_.track_async(() => controls.head.promise, __block, '9cd3c3cd');
+	const data = _$_.track_async(() => controls.head.promise, __block, '9cd3c3cd');
 	var fragment_5 = root_16();
 	var node_5 = _$_.first_child_frag(fragment_5);
 
@@ -272,13 +266,13 @@ function HeadContent_render(__anchor, __block) {
 				{
 					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : p_7.firstChild;
 
-					_$_.expression(expression_7, () => lazy_5.value);
+					_$_.expression(expression_7, () => data.value);
 					_$_.hydrating && _$_.pop(p_7);
 				}
 
-				_$_.head('814bacd9', (__anchor) => {
+				_$_.head('1ad4258e', (__anchor) => {
 					_$_.render(() => {
-						_$_.document.title = 'title:' + lazy_5.value;
+						_$_.document.title = 'title:' + data.value;
 					});
 				});
 
@@ -288,7 +282,7 @@ function HeadContent_render(__anchor, __block) {
 			_$_.if(
 				__anchor,
 				() => {
-					if (lazy_5.value) return consequent;
+					if (data.value) return consequent;
 				},
 				true
 			);
@@ -323,13 +317,13 @@ StreamHead[_$_.$r] = StreamHead_render;
 var root_19 = _$_.template(`<p class="root-async"> </p>`, 0);
 
 function StreamRootDirect_render(__anchor, __block) {
-	let lazy_6 = _$_.track_async(() => controls.rootDirect.promise, __block, 'bc9e61da');
+	const data = _$_.track_async(() => controls.rootDirect.promise, __block, 'bc9e61da');
 	var p_9 = root_19();
 
 	{
 		var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
-		_$_.expression(expression_8, () => lazy_6.value);
+		_$_.expression(expression_8, () => data.value);
 		_$_.hydrating && _$_.pop(p_9);
 	}
 
@@ -341,13 +335,13 @@ StreamRootDirect[_$_.$r] = StreamRootDirect_render;
 var root_20 = _$_.template(`<p class="outer"> </p>`, 0);
 
 function OuterContent_render(__anchor, __block) {
-	let lazy_7 = _$_.track_async(() => controls.outer.promise, __block, '35931cce');
+	const data = _$_.track_async(() => controls.outer.promise, __block, '35931cce');
 	var p_10 = root_20();
 
 	{
 		var expression_9 = _$_.hydrating ? _$_.hydrate_child() : p_10.firstChild;
 
-		_$_.expression(expression_9, () => lazy_7.value);
+		_$_.expression(expression_9, () => data.value);
 		_$_.hydrating && _$_.pop(p_10);
 	}
 
@@ -359,13 +353,13 @@ OuterContent[_$_.$r] = OuterContent_render;
 var root_21 = _$_.template(`<p class="inner"> </p>`, 0);
 
 function InnerContent_render(__anchor, __block) {
-	let lazy_8 = _$_.track_async(() => controls.inner.promise, __block, '6c7d38ed');
+	const data = _$_.track_async(() => controls.inner.promise, __block, '6c7d38ed');
 	var p_11 = root_21();
 
 	{
 		var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_11.firstChild;
 
-		_$_.expression(expression_10, () => lazy_8.value);
+		_$_.expression(expression_10, () => data.value);
 		_$_.hydrating && _$_.pop(p_11);
 	}
 

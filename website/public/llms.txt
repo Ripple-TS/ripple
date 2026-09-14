@@ -92,13 +92,13 @@ element, JSX fragment, or JSX control-flow expression.
 import { track } from 'ripple';
 
 export function Counter() @{
-	let &[count] = track(0);
+	const count = track(0);
 
 	function increment() {
-		count++;
+		count.value++;
 	}
 
-	<button onClick={increment}>Count: {count}</button>
+	<button onClick={increment}>Count: {count.value}</button>
 }
 ```
 
@@ -111,32 +111,32 @@ when the component is called, and passes it as is: every prop expression is
 evaluated at that moment, and the object works everywhere a plain object does
 (`Object.keys`, spread, `JSON.stringify`, `structuredClone`, `.ts` helpers, a
 call like `{Format(props)}`). A prop only changes what the child shows when the
-value itself is live: pass a tracked object (`count={countTracked}`) for state
-the child may also write, or a derived (`title={track(() => label + count)}`)
-for a computed, read-only value. The child reads `.value`, or unwraps the value
-into a lazy binding in its parameter list:
+value itself is live: pass the tracked object (`count={count}`) for state the
+child may also write, or a derived (`title={track(() => label + count.value)}`,
+a `Derived<string>`) for a computed, read-only value. The child reads `.value`
+in both cases:
 
 ```tsrx
 import { track, type Derived, type Tracked } from 'ripple';
 
-function Card({ title, count: &[count] }: { title: Derived<string>; count: Tracked<number> }) @{
-	<p>{title.value} ({count})</p>
+function Card({ title, count }: { title: Derived<string>; count: Tracked<number> }) @{
+	<p>{title.value} ({count.value})</p>
 }
 
 export function App() @{
-	let &[count, countTracked] = track(0);
+	const count = track(0);
 	const label = 'Clicks';
 	<>
-		<Card title={track(() => label + ': ' + count)} count={countTracked} />
-		<button onClick={() => count++}>More</button>
+		<Card title={track(() => label + ': ' + count.value)} {count} />
+		<button onClick={() => count.value++}>More</button>
 	</>
 }
 ```
 
-`count={count}` on a lazy binding passes its current value, a number, and the
-child never sees later changes; the types say which it is, since `number` is a
-value and `Tracked<number>` is live. Destructuring props (`{ a, ...rest }`) and
-lazy destructuring (`&{ a, ...rest }`) both work on the plain object.
+`count={count.value}` passes the current value, a number, and the child never
+sees later changes; the types say which it is, since `number` is a value and
+`Tracked<number>` is live. Ordinary destructuring (`{ a, ...rest }`) works on
+the plain props object.
 
 ```tsrx
 export function LiteralText() {
@@ -181,25 +181,25 @@ export default defineConfig({
 
 ## Reactivity
 
-Create reactive state with `track()` and lazy destructuring. Reading a lazy
-binding subscribes to it; assigning to it updates the tracked value.
+Create reactive state with `track()`. Reading `.value` subscribes to the
+tracked object; assigning to `.value` updates it.
 
 ```tsrx
 import { effect, track, type Tracked } from 'ripple';
 
 export function Counter() @{
-	let &[count, countTracked] = track(0);
-	let &[double] = track(() => count * 2);
+	const count = track(0);
+	const double = track(() => count.value * 2);
 
 	effect(() => {
-		console.log('count changed', count);
+		console.log('count changed', count.value);
 	});
 
 	<>
-		<p>Count: {count}</p>
-		<p>Double: {double}</p>
-		<button onClick={() => count++}>Increment</button>
-		<CounterValue count={countTracked} />
+		<p>Count: {count.value}</p>
+		<p>Double: {double.value}</p>
+		<button onClick={() => count.value++}>Increment</button>
+		<CounterValue {count} />
 	</>
 }
 
@@ -213,19 +213,8 @@ write to it warns in development. Pass a setter, or `true` in the setter
 position, when the derived is meant to accept writes
 (`track(() => draft, undefined, true)` is a `WritableDerived`); a write then
 holds until the next recompute. A `Tracked` satisfies `Derived` where only reads
-are needed.
-
-You can also keep the tracked object and read or write `.value` directly.
-
-```tsrx
-import { track } from 'ripple';
-
-export function Counter() @{
-	const count = track(0);
-
-	<button onClick={() => count.value++}>{count.value}</button>
-}
-```
+are needed, so `track(() => count.value)` is the read-only way to hand tracked
+state to a child.
 
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.
@@ -286,10 +275,10 @@ Rendered control flow uses directive expressions.
 import { track } from 'ripple';
 
 export function StatusBadge() @{
-	let &[status] = track<'idle' | 'loading' | 'done'>('idle');
+	const status = track<'idle' | 'loading' | 'done'>('idle');
 
 	<>
-		@switch (status) {
+		@switch (status.value) {
 			@case 'loading': {
 				<p>Loading...</p>
 			}
@@ -300,7 +289,7 @@ export function StatusBadge() @{
 				<p>Idle</p>
 			}
 		}
-		<button onClick={() => (status = 'done')}>Finish</button>
+		<button onClick={() => (status.value = 'done')}>Finish</button>
 	</>
 }
 ```
@@ -364,7 +353,7 @@ or local variables.
 import { track } from 'ripple';
 
 export function SearchBox() @{
-	let &[query] = track('');
+	const query = track('');
 	let input: HTMLInputElement | undefined;
 
 	<>
@@ -372,9 +361,9 @@ export function SearchBox() @{
 			Search
 			<input
 				ref={input}
-				value={query}
+				value={query.value}
 				onInput={(event) => {
-					query = event.currentTarget.value;
+					query.value = event.currentTarget.value;
 				}}
 			/>
 		</label>
@@ -405,23 +394,26 @@ function Details() {
 }
 
 export function DynamicPanel() @{
-	let &[tag] = track('section' as Tag);
-	let &[Body] = track(() => Summary);
+	const tag = track<Tag>('section');
+	const Body = track(() => Summary, undefined, true);
 
 	<>
-		<{tag} class="panel">
-			<{Body} />
-		</{tag}>
+		<{tag.value} class="panel">
+			<{Body.value} />
+		</{tag.value}>
 
 		<button onClick={() => {
-			tag = tag === 'section' ? 'article' : 'section';
-			Body = Body === Summary ? Details : Summary;
+			tag.value = tag.value === 'section' ? 'article' : 'section';
+			Body.value = Body.value === Summary ? Details : Summary;
 		}}>
 			Swap
 		</button>
 	</>
 }
 ```
+
+`track(() => Summary, undefined, true)` holds a component; the third argument
+`true` makes the derived writable so `Body.value` can be switched.
 
 The tag expression must resolve to an element name: an identifier, member
 access, static string, or a runtime expression composed of those. Calls,
@@ -442,7 +434,7 @@ child components, or the page. Use CSS custom properties for runtime values.
 import { track } from 'ripple';
 
 export function Card() @{
-	let &[tone] = track('rebeccapurple');
+	const tone = track('rebeccapurple');
 
 	<>
 		<style>
@@ -451,7 +443,7 @@ export function Card() @{
 				padding: 1rem;
 			}
 		</style>
-		<section class="card" style={{ '--tone': tone }}>
+		<section class="card" style={{ '--tone': tone.value }}>
 			<h2>Card</h2>
 		</section>
 	</>
@@ -568,7 +560,8 @@ export function Panel() @{
 ## Context
 
 Use `new Context(defaultValue?)`, `set(value)`, and `get()` to share state through
-the component tree.
+the component tree. Set a tracked object so consumers see updates; set a derived
+(`track(() => theme.value)`) when consumers should only read it.
 
 ```tsrx
 import { Context, track, type Tracked } from 'ripple';
@@ -576,12 +569,12 @@ import { Context, track, type Tracked } from 'ripple';
 const ThemeContext = new Context<Tracked<string>>();
 
 export function App() @{
-	let &[theme, themeTracked] = track('light');
-	ThemeContext.set(themeTracked);
+	const theme = track('light');
+	ThemeContext.set(theme);
 
 	<>
 		<ThemeLabel />
-		<button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+		<button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
 			Toggle theme
 		</button>
 	</>
@@ -602,15 +595,15 @@ Use `Portal` to render content outside the normal DOM position.
 import { Portal, track } from 'ripple';
 
 export function ModalDemo() @{
-	let &[open] = track(false);
+	const open = track(false);
 
 	<>
-		<button onClick={() => (open = true)}>Open</button>
-		@if (open) {
+		<button onClick={() => (open.value = true)}>Open</button>
+		@if (open.value) {
 			<Portal target={document.body}>
 				<div class="modal">
 					<p>Modal content</p>
-					<button onClick={() => (open = false)}>Close</button>
+					<button onClick={() => (open.value = false)}>Close</button>
 				</div>
 			</Portal>
 		}
@@ -635,17 +628,17 @@ import { saveName } from server;
 import { track } from 'ripple';
 
 export function Form() @{
-	let &[name] = track('');
-	let &[saved] = track('');
+	const name = track('');
+	const saved = track('');
 	const submit = async () => {
-		const result = await saveName(name);
-		saved = result.name;
+		const result = await saveName(name.value);
+		saved.value = result.name;
 	};
 
 	<>
-		<input value={name} onInput={(event) => (name = event.currentTarget.value)} />
+		<input value={name.value} onInput={(event) => (name.value = event.currentTarget.value)} />
 		<button onClick={submit}>Save</button>
-		<p>Saved: {saved}</p>
+		<p>Saved: {saved.value}</p>
 	</>
 }
 ```

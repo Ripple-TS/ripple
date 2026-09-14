@@ -4,10 +4,10 @@ describe('RippleURLSearchParams > serialization', () => {
 	it('handles toString method with reactivity', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams('foo=bar');
-			let &[string] = track(() => params.toString());
+			const string = track(() => params.toString());
 			<>
 				<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
-				<pre>{string}</pre>
+				<pre>{string.value}</pre>
 			</>
 		}
 

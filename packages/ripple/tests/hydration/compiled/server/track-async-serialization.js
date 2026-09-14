@@ -39,7 +39,7 @@ const formatValue = function (...args) {
 
 function MoneyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track_async(() => doubleMoney(new Money(count.value, 'USD')), '2e21cbe9');
+		const money = _$_.track_async(() => doubleMoney(new Money(count.value, 'USD')), '2e21cbe9');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -49,7 +49,7 @@ function MoneyResult({ count }) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy.value.format());
+				_$_.render_expression(money.value.format());
 			}
 
 			__out += '</p>';
@@ -60,7 +60,7 @@ function MoneyResult({ count }) {
 
 export function AsyncCustomType() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(6, 'f0c2b41e');
+		const count = _$_.track(6, 'f0c2b41e');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -77,7 +77,7 @@ export function AsyncCustomType() {
 
 					{
 						const comp = MoneyResult;
-						const args = [{ count: lazy_1 }];
+						const args = [{ count }];
 
 						_$_.output_push(__out);
 						__out = '';
@@ -103,7 +103,7 @@ export function AsyncCustomType() {
 
 function ServerCallResult({ count }) {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track_async(() => formatValue(count.value), '4e502c38');
+		const data = _$_.track_async(() => formatValue(count.value), '4e502c38');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -113,7 +113,7 @@ function ServerCallResult({ count }) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_2.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -124,7 +124,7 @@ function ServerCallResult({ count }) {
 
 export function AsyncWithServerCall() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track(0, '14891754');
+		const count = _$_.track(0, '14891754');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -141,7 +141,7 @@ export function AsyncWithServerCall() {
 
 					{
 						const comp = ServerCallResult;
-						const args = [{ count: lazy_3 }];
+						const args = [{ count }];
 
 						_$_.output_push(__out);
 						__out = '';
@@ -173,7 +173,7 @@ export function AsyncSimpleValue() {
 
 				__out += '<!--[-->';
 
-				let lazy_4 = _$_.track_async(() => Promise.resolve('hydrated value'), 'f325448a');
+				const data = _$_.track_async(() => Promise.resolve('hydrated value'), 'f325448a');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -186,7 +186,7 @@ export function AsyncSimpleValue() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_4.value);
+						_$_.render_expression(data.value);
 					}
 
 					__out += '</p>';
@@ -226,7 +226,7 @@ export function AsyncNumericValue() {
 
 				__out += '<!--[-->';
 
-				let lazy_5 = _$_.track_async(() => Promise.resolve(42), 'ab8199a0');
+				const count = _$_.track_async(() => Promise.resolve(42), 'ab8199a0');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -239,7 +239,7 @@ export function AsyncNumericValue() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_5.value);
+						_$_.render_expression(count.value);
 					}
 
 					__out += '</span>';
@@ -279,7 +279,7 @@ export function AsyncObjectValue() {
 
 				__out += '<!--[-->';
 
-				let lazy_6 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'fb7ad40b');
+				const user = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'fb7ad40b');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -292,7 +292,7 @@ export function AsyncObjectValue() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_6.value.name);
+						_$_.render_expression(user.value.name);
 					}
 
 					__out += '</span><span class="age">';
@@ -300,7 +300,7 @@ export function AsyncObjectValue() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_6.value.age);
+						_$_.render_expression(user.value.age);
 					}
 
 					__out += '</span></div>';
@@ -340,8 +340,8 @@ export function AsyncMultipleValues() {
 
 				__out += '<!--[-->';
 
-				let lazy_7 = _$_.track_async(() => Promise.resolve('alpha'), '99982de5');
-				let lazy_8 = _$_.track_async(() => Promise.resolve('beta'), '1dea4c85');
+				const first = _$_.track_async(() => Promise.resolve('alpha'), '99982de5');
+				const second = _$_.track_async(() => Promise.resolve('beta'), '1dea4c85');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -354,7 +354,7 @@ export function AsyncMultipleValues() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_7.value);
+						_$_.render_expression(first.value);
 					}
 
 					__out += '</span><span class="second">';
@@ -362,7 +362,7 @@ export function AsyncMultipleValues() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_8.value);
+						_$_.render_expression(second.value);
 					}
 
 					__out += '</span></div>';
@@ -402,7 +402,7 @@ export function AsyncWithCatch() {
 
 				__out += '<!--[-->';
 
-				let lazy_9 = _$_.track_async(() => Promise.reject(new Error('fetch failed')), 'c9d12acf');
+				const data = _$_.track_async(() => Promise.reject(new Error('fetch failed')), 'c9d12acf');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -415,7 +415,7 @@ export function AsyncWithCatch() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_9.value);
+						_$_.render_expression(data.value);
 					}
 
 					__out += '</p>';
@@ -479,7 +479,7 @@ export function ChildWithError() {
 
 				__out += '<!--[-->';
 
-				let lazy_10 = _$_.track_async(() => Promise.reject(new Error('child error')), 'cdd1adb8');
+				const data = _$_.track_async(() => Promise.reject(new Error('child error')), 'cdd1adb8');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -492,7 +492,7 @@ export function ChildWithError() {
 					{
 						_$_.output_push(__out);
 						__out = '';
-						_$_.render_expression(lazy_10.value);
+						_$_.render_expression(data.value);
 					}
 
 					__out += '</p>';
@@ -578,7 +578,7 @@ export function ParentWithCatch() {
 
 function ReactiveDependencyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		let lazy_11 = _$_.track_async(() => Promise.resolve(`count-${count.value}`), '18c43c3a');
+		const data = _$_.track_async(() => Promise.resolve(`count-${count.value}`), '18c43c3a');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -588,7 +588,7 @@ function ReactiveDependencyResult({ count }) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_11.value);
+				_$_.render_expression(data.value);
 			}
 
 			__out += '</p>';
@@ -599,7 +599,7 @@ function ReactiveDependencyResult({ count }) {
 
 export function AsyncWithReactiveDependency() {
 	return _$_.tsrx_element(() => {
-		let lazy_12 = _$_.track(0, 'd5dcc1d3');
+		const count = _$_.track(0, 'd5dcc1d3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -616,7 +616,7 @@ export function AsyncWithReactiveDependency() {
 
 					{
 						const comp = ReactiveDependencyResult;
-						const args = [{ count: lazy_12 }];
+						const args = [{ count }];
 
 						_$_.output_push(__out);
 						__out = '';

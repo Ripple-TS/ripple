@@ -89,7 +89,7 @@ function DocFooter() @{
 	<footer class="doc-footer">{'Footer content'}</footer>
 }
 
-export function DocLayout(&{
+export function DocLayout({
 	children,
 	editPath = '',
 	nextLink = null,
@@ -274,7 +274,7 @@ export function HtmlAfterComponentInChildren() @{
 	</ContentWrapper>
 }
 
-function NavItem(&{
+function NavItem({
 	href,
 	text: label,
 	active = false,
@@ -294,13 +294,13 @@ function NavItem(&{
 }
 
 function SidebarSection({ title, children }: { title: string; children: any }) @{
-	let &[expanded] = track(true);
+	const expanded = track(true);
 	<section class="sidebar-section">
 		<div class="section-header">
 			<h2>{title}</h2>
-			<button onClick={() => (expanded = !expanded)}>{'Toggle'}</button>
+			<button onClick={() => (expanded.value = !expanded.value)}>{'Toggle'}</button>
 		</div>
-		@if (expanded) {
+		@if (expanded.value) {
 			<div class="section-items">{children}</div>
 		}
 	</section>
@@ -432,7 +432,7 @@ function FooterStub() @{
 	<footer class="footer">{'Footer'}</footer>
 }
 
-function DocsLayoutInner(&{
+function DocsLayoutInner({
 	children,
 	editPath = '',
 	nextLink = null,
@@ -485,7 +485,7 @@ export function DocsLayoutWithoutData() @{
 	</DocsLayoutInner>
 }
 
-function DocsLayoutExact(&{
+function DocsLayoutExact({
 	children,
 	editPath = '',
 	prevLink = null,

@@ -230,8 +230,8 @@ interface TrackedBase<V> {
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
-// Supports destructuring `const [one, two] = track(0);`
-export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
+// A tracked value: `track(0)`. Read and write it through `.value`.
+export type Tracked<V> = TrackedBase<V> & TrackedCallable<V>;
 
 // A computed value: `track(() => ...)`. Its `value` is read-only unless the
 // call opted into writes (see `WritableDerived`). A `Tracked` satisfies it.
@@ -239,11 +239,11 @@ interface DerivedBase<V> {
 	'#v': V;
 	readonly value: V;
 }
-export type Derived<V> = [V, Derived<V>] & DerivedBase<V> & TrackedCallable<V>;
+export type Derived<V> = DerivedBase<V> & TrackedCallable<V>;
 // A computed value created with a setter (`track(fn, get, set)`) or with
 // `true` in the setter position: writes land as a temporary value until the
 // next recompute.
-export type WritableDerived<V> = [V, WritableDerived<V>] & TrackedBase<V> & TrackedCallable<V>;
+export type WritableDerived<V> = TrackedBase<V> & TrackedCallable<V>;
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)

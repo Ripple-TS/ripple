@@ -4,10 +4,10 @@ describe('RippleDate', () => {
 	it('handles getTime() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1);
-			let &[time] = track(() => date.getTime());
+			const time = track(() => date.getTime());
 			<>
 				<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
-				<pre>{time}</pre>
+				<pre>{time.value}</pre>
 			</>
 		}
 
@@ -27,10 +27,10 @@ describe('RippleDate', () => {
 	it('handles getFullYear() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 5, 15);
-			let &[year] = track(() => date.getFullYear());
+			const year = track(() => date.getFullYear());
 			<>
 				<button onClick={() => date.setFullYear(2030)}>{'Change Year'}</button>
-				<pre>{year}</pre>
+				<pre>{year.value}</pre>
 			</>
 		}
 
@@ -49,10 +49,10 @@ describe('RippleDate', () => {
 	it('handles getMonth() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 15);
-			let &[month] = track(() => date.getMonth());
+			const month = track(() => date.getMonth());
 			<>
 				<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
-				<pre>{month}</pre>
+				<pre>{month.value}</pre>
 			</>
 		}
 
@@ -71,10 +71,10 @@ describe('RippleDate', () => {
 	it('handles getDate() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1);
-			let &[day] = track(() => date.getDate());
+			const day = track(() => date.getDate());
 			<>
 				<button onClick={() => date.setDate(15)}>{'Change Day'}</button>
-				<pre>{day}</pre>
+				<pre>{day.value}</pre>
 			</>
 		}
 
@@ -93,10 +93,10 @@ describe('RippleDate', () => {
 	it('handles getDay() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1);
-			let &[dayOfWeek] = track(() => date.getDay());
+			const dayOfWeek = track(() => date.getDay());
 			<>
 				<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
-				<pre>{dayOfWeek}</pre>
+				<pre>{dayOfWeek.value}</pre>
 			</>
 		}
 
@@ -115,10 +115,10 @@ describe('RippleDate', () => {
 	it('handles getHours() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1, 10, 30, 0);
-			let &[hours] = track(() => date.getHours());
+			const hours = track(() => date.getHours());
 			<>
 				<button onClick={() => date.setHours(15)}>{'Change to 3 PM'}</button>
-				<pre>{hours}</pre>
+				<pre>{hours.value}</pre>
 			</>
 		}
 
@@ -137,10 +137,10 @@ describe('RippleDate', () => {
 	it('handles getMinutes() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1, 10, 15, 0);
-			let &[minutes] = track(() => date.getMinutes());
+			const minutes = track(() => date.getMinutes());
 			<>
 				<button onClick={() => date.setMinutes(45)}>{'Change Minutes'}</button>
-				<pre>{minutes}</pre>
+				<pre>{minutes.value}</pre>
 			</>
 		}
 
@@ -159,10 +159,10 @@ describe('RippleDate', () => {
 	it('handles getSeconds() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1, 10, 15, 30);
-			let &[seconds] = track(() => date.getSeconds());
+			const seconds = track(() => date.getSeconds());
 			<>
 				<button onClick={() => date.setSeconds(45)}>{'Change Seconds'}</button>
-				<pre>{seconds}</pre>
+				<pre>{seconds.value}</pre>
 			</>
 		}
 
@@ -181,10 +181,10 @@ describe('RippleDate', () => {
 	it('handles toISOString() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1, 12, 0, 0);
-			let &[isoString] = track(() => date.toISOString());
+			const isoString = track(() => date.toISOString());
 			<>
 				<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
-				<pre>{isoString}</pre>
+				<pre>{isoString.value}</pre>
 			</>
 		}
 
@@ -208,10 +208,10 @@ describe('RippleDate', () => {
 	it('handles toDateString() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1);
-			let &[dateString] = track(() => date.toDateString());
+			const dateString = track(() => date.toDateString());
 			<>
 				<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
-				<pre>{dateString}</pre>
+				<pre>{dateString.value}</pre>
 			</>
 		}
 
@@ -233,10 +233,10 @@ describe('RippleDate', () => {
 	it('handles valueOf() with reactive updates', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1);
-			let &[valueOf] = track(() => date.valueOf());
+			const valueOf = track(() => date.valueOf());
 			<>
 				<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
-				<pre>{valueOf}</pre>
+				<pre>{valueOf.value}</pre>
 			</>
 		}
 
@@ -256,29 +256,29 @@ describe('RippleDate', () => {
 	it('handles multiple get methods reacting to same setTime change', () => {
 		function DateTest() @{
 			let date = new RippleDate(2025, 0, 1, 10, 30, 15);
-			let &[year] = track(() => date.getFullYear());
-			let &[month] = track(() => date.getMonth());
-			let &[day] = track(() => date.getDate());
-			let &[hours] = track(() => date.getHours());
+			const year = track(() => date.getFullYear());
+			const month = track(() => date.getMonth());
+			const day = track(() => date.getDate());
+			const hours = track(() => date.getHours());
 			<>
 				<button
 					onClick={() => date.setTime(new Date(2026, 5, 15, 14, 45, 30).getTime())}
 				>{'Change All'}</button>
 				<div>
 					{'Year: '}
-					{year}
+					{year.value}
 				</div>
 				<div>
 					{'Month: '}
-					{month}
+					{month.value}
 				</div>
 				<div>
 					{'Day: '}
-					{day}
+					{day.value}
 				</div>
 				<div>
 					{'Hours: '}
-					{hours}
+					{hours.value}
 				</div>
 			</>
 		}
@@ -308,26 +308,26 @@ describe('RippleDate', () => {
 			let dateFromString = new RippleDate('2025-01-01');
 			let dateFromNumbers = new RippleDate(2025, 0, 1);
 			let dateFromTimestamp = new RippleDate(1735689600000);
-			let &[nowYear] = track(() => dateNow.getFullYear());
-			let &[stringYear] = track(() => dateFromString.getFullYear());
-			let &[numbersYear] = track(() => dateFromNumbers.getFullYear());
-			let &[timestampYear] = track(() => dateFromTimestamp.getFullYear());
+			const nowYear = track(() => dateNow.getFullYear());
+			const stringYear = track(() => dateFromString.getFullYear());
+			const numbersYear = track(() => dateFromNumbers.getFullYear());
+			const timestampYear = track(() => dateFromTimestamp.getFullYear());
 			<>
 				<div>
 					{'Now: '}
-					{nowYear}
+					{nowYear.value}
 				</div>
 				<div>
 					{'String: '}
-					{stringYear}
+					{stringYear.value}
 				</div>
 				<div>
 					{'Numbers: '}
-					{numbersYear}
+					{numbersYear.value}
 				</div>
 				<div>
 					{'Timestamp: '}
-					{timestampYear}
+					{timestampYear.value}
 				</div>
 			</>
 		}
@@ -354,17 +354,17 @@ describe('RippleDate', () => {
 	it('handles get methods with arguments non-memoized', () => {
 		function DateTest() @{
 			let date = new RippleDate();
-			let &[localeDateString] = track(() => date.toLocaleDateString('en-US'));
-			let &[localeTimeString] = track(() => date.toLocaleTimeString('en-US'));
+			const localeDateString = track(() => date.toLocaleDateString('en-US'));
+			const localeTimeString = track(() => date.toLocaleTimeString('en-US'));
 			<>
 				<button onClick={() => date.setFullYear(date.getFullYear() + 1)}>{'Next Year'}</button>
 				<div>
 					{'Date: '}
-					{localeDateString}
+					{localeDateString.value}
 				</div>
 				<div>
 					{'Time: '}
-					{localeTimeString}
+					{localeTimeString.value}
 				</div>
 			</>
 		}

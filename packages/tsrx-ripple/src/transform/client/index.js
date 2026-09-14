@@ -25,13 +25,13 @@
 
 import { walk } from 'zimmerframe';
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
+import { extract_paths } from '../../extract-paths.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
 import {
 	builders,
 	clone_ast_node,
-	extractPaths,
 	IS_CONTROLLED,
 	IS_INDEXED,
 	ROOT_CONTROLLED,
@@ -91,19 +91,13 @@ import {
 	sole_template_if,
 	is_template_if,
 	is_ripple_portal,
-	replace_lazy_pattern,
-	has_lazy_pattern,
 	ripple_import_requires_block,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
 	visit_children_without,
 	adopt_raw_template_jsx,
-	build_index_read,
-	build_index_write,
-	build_index_update,
 	create_native_tsrx_render_function,
 	get_native_tsrx_function_body,
-	get_indexed_reactive_target,
 	is_native_tsrx_function_node,
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
@@ -112,7 +106,6 @@ import {
 	is_style_element,
 	dynamic_element_import_local,
 	lower_dynamic_element,
-	rewrite_lazy_member_base,
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
 	visit_directive_wrapping_values,
@@ -515,7 +508,7 @@ function visit_function(node, context) {
 	}
 
 	// Strip parameter type annotations via copies (the source params are never
-	// mutated) and replace lazy destructuring params with generated identifiers
+	// mutated)
 	const transformed_params = node.params.map((param) => {
 		/** @type {AST.Pattern} */
 		let param_out =
@@ -535,14 +528,6 @@ function visit_function(node, context) {
 					left: { ...param_out.left, typeAnnotation: undefined, optional: false },
 				})
 			);
-		}
-		const pattern = param_out.type === 'AssignmentPattern' ? param_out.left : param_out;
-		if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
-			const transformed_pattern = replace_lazy_pattern(pattern);
-			if (param_out.type === 'AssignmentPattern') {
-				return /** @type {AST.AssignmentPattern} */ ({ ...param_out, left: transformed_pattern });
-			}
-			return transformed_pattern;
 		}
 		return param_out;
 	});
@@ -827,14 +812,9 @@ function transform_native_tsrx_function(node, context) {
 				? /** @type {AST.Pattern} */ ({ ...props_param, typeAnnotation: undefined })
 				: props_param;
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
-			if (!props_param.lazy) {
-				const pattern = replace_lazy_pattern(
-					/** @type {AST.Pattern} */ (
-						props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
-					),
-				);
-				props = pattern;
-			}
+			props = /** @type {AST.Pattern} */ (
+				props_param.typeAnnotation ? { ...props_param, typeAnnotation: undefined } : props_param
+			);
 		} else {
 			props = props_param;
 		}
@@ -2291,7 +2271,7 @@ function create_selector_for_state(node, body_scope, state) {
 
 	if (left.type === 'VariableDeclaration') {
 		for (const declarator of left.declarations) {
-			for (const path of extractPaths(declarator.id)) {
+			for (const path of extract_paths(declarator.id)) {
 				const binding = body_scope.get(/** @type {AST.Identifier} */ (path.node).name);
 				if (binding !== null) {
 					pattern_bindings.add(binding);
@@ -2542,12 +2522,6 @@ const visitors = {
 			if (context.state.to_ts) {
 				const binding = context.state.scope.get(node.name);
 				if (node.tracked) {
-					if (
-						(binding?.kind === 'lazy' || binding?.kind === 'lazy_fallback') &&
-						binding.read_unwraps
-					) {
-						return context.next();
-					}
 					const member = b.member(
 						node,
 						b.literal('#v'),
@@ -2570,8 +2544,6 @@ const visitors = {
 						binding?.kind === 'prop' ||
 						binding?.kind === 'index' ||
 						binding?.kind === 'prop_fallback' ||
-						binding?.kind === 'lazy' ||
-						binding?.kind === 'lazy_fallback' ||
 						binding?.kind === 'for_pattern') &&
 					binding?.node !== node
 				) {
@@ -2860,16 +2832,6 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
-		if (!context.state.to_ts && !is_inside_left_side_assignment(node)) {
-			const target = get_indexed_reactive_target(node, context);
-			if (target !== null) {
-				const read = build_index_read(target.target, target.index, target.tracked);
-				if (read !== null) {
-					return read;
-				}
-			}
-		}
-
 		if (node.object.type === 'MemberExpression' && node.object.optional) {
 			const metadata = { tracking: false };
 
@@ -2932,50 +2894,15 @@ const visitors = {
 		return context.next();
 	},
 
-	ExpressionStatement(node, context) {
-		// Handle standalone lazy destructuring: &[data] = track(0); → const lazy0 = track(0);
-		if (
-			node.expression.type === 'AssignmentExpression' &&
-			(node.expression.left.type === 'ObjectPattern' ||
-				node.expression.left.type === 'ArrayPattern') &&
-			node.expression.left.lazy &&
-			node.expression.left.metadata?.lazy_id
-		) {
-			if (context.state.to_ts) {
-				// In TypeScript mode, convert to a regular assignment (drop the pattern)
-				delete node.expression.left.metadata.lazy_id;
-				const expression = {
-					...node.expression,
-					left: { ...node.expression.left, lazy: false },
-				};
-				return {
-					...node,
-					expression: /** @type {AST.Expression} */ (context.visit(expression)),
-				};
-			}
-			const right = /** @type {AST.Expression} */ (context.visit(node.expression.right));
-			return b.const(b.id(node.expression.left.metadata.lazy_id), right);
-		}
-		return context.next();
-	},
-
 	VariableDeclaration(node, context) {
-		// Rewrite declarator ids on copies (strip type annotations, replace lazy
-		// destructuring patterns) — the source declarators are never mutated.
+		// Rewrite declarator ids on copies (strip type annotations) — the source
+		// declarators are never mutated.
 		const declarations = node.declarations.map((declarator) => {
 			/** @type {AST.VariableDeclarator['id']} */
 			let id = declarator.id;
 
-			if (!context.state.to_ts) {
-				id = replace_lazy_pattern(id);
-				if (id.typeAnnotation) {
-					id = { ...id, typeAnnotation: undefined };
-				}
-			} else if ((id.type === 'ObjectPattern' || id.type === 'ArrayPattern') && id.lazy) {
-				if (id.metadata?.lazy_id) {
-					delete id.metadata.lazy_id;
-				}
-				id = { ...id, lazy: false };
+			if (!context.state.to_ts && id.typeAnnotation) {
+				id = { ...id, typeAnnotation: undefined };
 			}
 
 			if (id === declarator.id) {
@@ -3865,18 +3792,9 @@ const visitors = {
 				const target_value = /** @type {AST.Expression} */ (
 					get_attribute_value(element_attributes[0])
 				);
-				let target = /** @type {AST.Expression} */ (
+				const target = /** @type {AST.Expression} */ (
 					visit(target_value, { ...state, flush_node: null, metadata: { tracking: false } })
 				);
-				if (target.type === 'Identifier') {
-					const binding = state.scope.get(target.name);
-					if (
-						binding?.transform?.read &&
-						(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
-					) {
-						target = binding.transform.read(target);
-					}
-				}
 
 				const portal_children = lower_code_block_children(
 					/** @type {AST.Node[]} */ (node.children),
@@ -3932,16 +3850,6 @@ const visitors = {
 								: /** @type {AST.Expression} */ (
 										visit(attr_value, { ...state, flush_node: null, metadata })
 									);
-						if (property.type === 'Identifier') {
-							const binding = state.scope.get(property.name);
-							if (
-								binding?.transform?.read &&
-								(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
-							) {
-								property = binding.transform.read(property);
-							}
-						}
-
 						if (attr_name === 'class' && scope_class !== null) {
 							property =
 								property.type === 'Literal' && scope_class.type === 'Literal'
@@ -4052,16 +3960,16 @@ const visitors = {
 						: b.stmt(shared),
 				);
 			} else {
-				const shared = b.call(
-					'_$_.render_component',
-					/** @type {AST.Expression} */ (visit(element_id, state)),
-					id,
-					object_props,
-				);
+				const component = /** @type {AST.Expression} */ (visit(element_id, state));
+				const shared = b.call('_$_.render_component', component, id, object_props);
+				const render = is_with_ns
+					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(shared)))
+					: b.stmt(shared);
+				// A component received as a parameter (an optional component prop)
+				// may be undefined at render time: render nothing, as the server does.
+				const binding = element_id.type === 'Identifier' ? state.scope.get(element_id.name) : null;
 				state.init?.push(
-					is_with_ns
-						? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(shared)))
-						: b.stmt(shared),
+					binding?.declaration_kind === 'param' ? b.if(component, b.block([render])) : render,
 				);
 			}
 		}
@@ -4074,40 +3982,7 @@ const visitors = {
 
 		const left = node.left;
 
-		if (left.type === 'MemberExpression') {
-			const target = get_indexed_reactive_target(left, context);
-			if (target !== null) {
-				const right = /** @type {AST.Expression} */ (context.visit(node.right));
-				let value = right;
-				if (node.operator !== '=') {
-					const operator = /** @type {AST.BinaryOperator} */ (node.operator.slice(0, -1));
-					const current = build_index_read(target.target, target.index, target.tracked);
-					if (current !== null) {
-						value = b.binary(operator, current, right);
-					}
-				}
-				const assignment = build_index_write(target.target, target.index, value, target.tracked);
-				if (assignment !== null) {
-					return assignment;
-				}
-			}
-
-			const rewritten_left = rewrite_lazy_member_base(left, context);
-			if (rewritten_left !== left) {
-				return {
-					...node,
-					left: /** @type {AST.Pattern} */ (
-						strip_typescript_expression_wrappers(
-							/** @type {AST.Expression} */ (rewritten_left),
-							context,
-						)
-					),
-					right: /** @type {AST.Expression} */ (context.visit(node.right)),
-				};
-			}
-		}
-
-		// Handle lazy binding assignments (e.g., value = 5 where value is from let &[value] = track(0))
+		// A binding with an assignment transform (a boxed `let`) writes through it.
 		// Must come before the left.tracked check to use the binding's transform
 		if (left.type === 'Identifier') {
 			const binding = context.state.scope?.get(left.name);
@@ -4143,17 +4018,7 @@ const visitors = {
 		}
 		const argument = node.argument;
 
-		if (argument.type === 'MemberExpression') {
-			const target = get_indexed_reactive_target(argument, context);
-			if (target !== null) {
-				const update = build_index_update(target.target, target.index, target.tracked, node);
-				if (update !== null) {
-					return update;
-				}
-			}
-		}
-
-		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
+		// A binding with an update transform (a boxed `let`) updates through it
 		if (argument.type === 'Identifier') {
 			const binding = context.state.scope?.get(argument.name);
 			if (binding?.transform?.update && binding.node !== argument) {
@@ -4173,37 +4038,6 @@ const visitors = {
 		}
 
 		context.next();
-	},
-
-	ForInStatement(node, context) {
-		if (
-			!context.state.to_ts ||
-			node.left.type !== 'VariableDeclaration' ||
-			!node.left.declarations.some((declarator) => has_lazy_pattern(declarator.id))
-		) {
-			return context.next();
-		}
-
-		// TypeScript disallows destructuring in a for-in header. Keep the
-		// authored pattern in the body so its bindings still infer from the key.
-		const key = b.id(context.state.scope.generate('key'));
-		const declaration = /** @type {AST.VariableDeclaration} */ (context.visit(node.left));
-		const body = /** @type {AST.Statement} */ (context.visit(node.body));
-		return {
-			...node,
-			left: b.declaration('const', [b.declarator(key)]),
-			right: /** @type {AST.Expression} */ (context.visit(node.right)),
-			body: b.block([
-				{
-					...declaration,
-					declarations: declaration.declarations.map((declarator) => ({
-						...declarator,
-						init: key,
-					})),
-				},
-				body,
-			]),
-		};
 	},
 
 	ForOfStatement: visit_for_of_statement,

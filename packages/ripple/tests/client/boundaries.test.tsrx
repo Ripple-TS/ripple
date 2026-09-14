@@ -1,27 +1,27 @@
 import { effect, flushSync, track, type Tracked } from 'ripple';
 
 describe('passing reactivity between boundaries tests', () => {
-	it('can pass reactivity between functions with simple arrays and destructuring', () => {
+	it('can pass a tracked object to a plain function and read the derived it returns', () => {
 		let log: string[] = [];
 
-		function createDouble(&[count]: Tracked<number>) {
-			const double = track(() => count * 2);
+		function createDouble(count: Tracked<number>) {
+			const double = track(() => count.value * 2);
 
 			effect(() => {
-				log.push('Count:' + count);
+				log.push('Count:' + count.value);
 			});
 
 			return double;
 		}
 
 		function App() @{
-			let &[count, countTracked] = track(0);
-			const &[double] = createDouble(countTracked);
+			const count = track(0);
+			const double = createDouble(count);
 			<>
-				<div>{'Double: ' + double}</div>
+				<div>{'Double: ' + double.value}</div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>

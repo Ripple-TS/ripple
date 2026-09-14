@@ -70,21 +70,21 @@ IfElse[_$_.$r] = IfElse_render;
 
 var root_6 = _$_.template(`<div class="content">Content visible</div>`, 0);
 
-function consequent_3(__anchor, lazy) {
+function consequent_3(__anchor, show) {
 	var div_4 = root_6();
 
 	_$_.append(__anchor, div_4);
 }
 
-function if_4(lazy) {
-	if (lazy.value) return consequent_3;
+function if_4(show) {
+	if (show.value) return consequent_3;
 }
 
 var root_5 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIf_render(__anchor, __block) {
-	let lazy = _$_.track(true, __block, '19a16ff0');
+	const show = _$_.track(true, __block, '19a16ff0');
 	var fragment = root_4();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -93,12 +93,12 @@ function ReactiveIf_render(__anchor, __block) {
 		var button = _$_.first_child_frag(fragment_1);
 
 		button.__click = () => {
-			_$_.set(lazy, !lazy.value);
+			show.value = !show.value;
 		};
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
-		_$_.if(node, if_4, false, lazy);
+		_$_.if(node, if_4, false, show);
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -110,27 +110,27 @@ ReactiveIf[_$_.$r] = ReactiveIf_render;
 var root_9 = _$_.template(`<div class="on">ON</div>`, 0);
 var root_10 = _$_.template(`<div class="off">OFF</div>`, 0);
 
-function consequent_4(__anchor, lazy_1) {
+function consequent_4(__anchor, isOn) {
 	var div_5 = root_9();
 
 	_$_.append(__anchor, div_5);
 }
 
-function alternate_1(__anchor, lazy_1) {
+function alternate_1(__anchor, isOn) {
 	var div_6 = root_10();
 
 	_$_.append(__anchor, div_6);
 }
 
-function if_5(lazy_1) {
-	if (lazy_1.value) return consequent_4; else return alternate_1;
+function if_5(isOn) {
+	if (isOn.value) return consequent_4; else return alternate_1;
 }
 
 var root_8 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIfElse_render(__anchor, __block) {
-	let lazy_1 = _$_.track(false, __block, '41177f39');
+	const isOn = _$_.track(false, __block, '41177f39');
 	var fragment_2 = root_7();
 	var node_3 = _$_.first_child_frag(fragment_2);
 
@@ -139,12 +139,12 @@ function ReactiveIfElse_render(__anchor, __block) {
 		var button_1 = _$_.first_child_frag(fragment_3);
 
 		button_1.__click = () => {
-			_$_.set(lazy_1, !lazy_1.value);
+			isOn.value = !isOn.value;
 		};
 
 		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
-		_$_.if(node_2, if_5, false, lazy_1);
+		_$_.if(node_2, if_5, false, isOn);
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -155,42 +155,42 @@ ReactiveIfElse[_$_.$r] = ReactiveIfElse_render;
 
 var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
 
-function consequent_5(__anchor, lazy_3) {
+function consequent_5(__anchor, inner) {
 	var span = root_14();
 
 	_$_.append(__anchor, span);
 }
 
-function if_6(lazy_3) {
-	if (lazy_3.value) return consequent_5;
+function if_6(inner) {
+	if (inner.value) return consequent_5;
 }
 
 var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
 
-function consequent_6(__anchor, { lazy_2, lazy_3 }) {
+function consequent_6(__anchor, { outer, inner }) {
 	var div_7 = root_13();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
 
-		_$_.if(node_5, if_6, false, lazy_3);
+		_$_.if(node_5, if_6, false, inner);
 		_$_.hydrating && _$_.pop(div_7);
 	}
 
 	_$_.append(__anchor, div_7);
 }
 
-function if_7({ lazy_2, lazy_3 }) {
-	if (lazy_2.value) return consequent_6;
+function if_7({ outer, inner }) {
+	if (outer.value) return consequent_6;
 }
 
 var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1, 3);
 var root_11 = _$_.template(`<!>`, 1, 1);
 
 function NestedIf_render(__anchor, __block) {
-	let lazy_2 = _$_.track(true, __block, '7894e1df');
-	let lazy_3 = _$_.track(true, __block, 'f21b8c26');
+	const outer = _$_.track(true, __block, '7894e1df');
+	const inner = _$_.track(true, __block, 'f21b8c26');
 	var fragment_4 = root_11();
 	var node_6 = _$_.first_child_frag(fragment_4);
 
@@ -199,18 +199,18 @@ function NestedIf_render(__anchor, __block) {
 		var button_2 = _$_.first_child_frag(fragment_5);
 
 		button_2.__click = () => {
-			_$_.set(lazy_2, !lazy_2.value);
+			outer.value = !outer.value;
 		};
 
 		var button_3 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
 		button_3.__click = () => {
-			_$_.set(lazy_3, !lazy_3.value);
+			inner.value = !inner.value;
 		};
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
-		_$_.if(node_4, if_7, false, { lazy_2, lazy_3 });
+		_$_.if(node_4, if_7, false, { outer, inner });
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -223,56 +223,56 @@ var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_17 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_18 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 
-function consequent_7(__anchor, lazy_4) {
+function consequent_7(__anchor, status) {
 	var div_9 = root_16();
 
 	_$_.append(__anchor, div_9);
 }
 
-function consequent_8(__anchor, lazy_4) {
+function consequent_8(__anchor, status) {
 	var div_10 = root_17();
 
 	_$_.append(__anchor, div_10);
 }
 
-function alternate_2(__anchor, lazy_4) {
+function alternate_2(__anchor, status) {
 	var div_11 = root_18();
 
 	_$_.append(__anchor, div_11);
 }
 
-function if_8(lazy_4) {
-	if (lazy_4.value === 'loading') return consequent_7; else if (lazy_4.value === 'success') return consequent_8; else return alternate_2;
+function if_8(status) {
+	if (status.value === 'loading') return consequent_7; else if (status.value === 'success') return consequent_8; else return alternate_2;
 }
 
 var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
 
 function IfElseIfChain_render(__anchor, __block) {
-	let lazy_4 = _$_.track('loading', __block, '4c69c94a');
+	const status = _$_.track('loading', __block, '4c69c94a');
 	var div_8 = root_15();
 
 	{
 		var button_4 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
 		button_4.__click = () => {
-			_$_.set(lazy_4, 'success');
+			status.value = 'success';
 		};
 
 		var button_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
 
 		button_5.__click = () => {
-			_$_.set(lazy_4, 'error');
+			status.value = 'error';
 		};
 
 		var button_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_5.nextSibling;
 
 		button_6.__click = () => {
-			_$_.set(lazy_4, 'loading');
+			status.value = 'loading';
 		};
 
 		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
 
-		_$_.if(node_7, if_8, false, lazy_4);
+		_$_.if(node_7, if_8, false, status);
 		_$_.hydrating && _$_.pop(div_8);
 	}
 

@@ -13,12 +13,12 @@ export function App() @{
 				<p class="subtitle">The elegant TypeScript UI framework.</p>
 
 				<div class="counter">@{
-					let &[count] = track(0);
+					const count = track(0);
 
 					<>
-						<button onClick={() => count--}>-</button>
-						<span class="count">{count}</span>
-						<button onClick={() => count++}>+</button>
+						<button onClick={() => count.value--}>-</button>
+						<span class="count">{count.value}</span>
+						<button onClick={() => count.value++}>+</button>
 					</>
 				}</div>
 

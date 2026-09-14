@@ -82,31 +82,31 @@ function Wall({
 		setTheme: (v: string) => void;
 	}) => void;
 }) @{
-	let &[items] = track<Item[]>(initialItems);
-	let &[tick] = track(0);
-	let &[theme] = track('t0');
+	const items = track<Item[]>(initialItems);
+	const tick = track(0);
+	const theme = track('t0');
 	bind({
 		setItems: (v: Item[]) => {
-			items = v;
+			items.value = v;
 		},
 		setTick: (v: number) => {
-			tick = v;
+			tick.value = v;
 		},
 		setTheme: (v: string) => {
-			theme = v;
+			theme.value = v;
 		},
 	});
 	// A stable accessor over the tracked theme: leaf text expressions calling
 	// it subscribe individually (the context VALUE never changes identity).
-	((wall === 'A' ? ThemeA : ThemeB)).set(() => theme);
+	((wall === 'A' ? ThemeA : ThemeB)).set(() => theme.value);
 
 	<section class="wall" id={'wall-' + wall.toLowerCase()}>
 		<h2>
 			{title}
-			<span class="tick">{tick}</span>
+			<span class="tick">{tick.value}</span>
 		</h2>
 		<div class="rows">
-			@for (const it of items; key it) {
+			@for (const it of items.value; key it) {
 				<Row id={it.id} label={it.label} value={it.value} wall={wall} onSelect={selectRow} />
 			}
 		</div>

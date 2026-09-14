@@ -9,10 +9,10 @@ describe('scoped flush', () => {
 		let bump = null;
 
 		function Producer() @{
-			let &[v, vT] = track(0);
-			shared = vT;
+			const v = track(0);
+			shared = v;
 			bump = () => {
-				v += 1;
+				v.value += 1;
 			};
 			<div class="producer">{'producer'}</div>
 		}
@@ -59,10 +59,10 @@ describe('scoped flush', () => {
 		}
 
 		function Branch(props) @{
-			let &[local, localT] = track(0);
+			const local = track(0);
 			if (props.side === 'L') {
 				bumpLeftLocal = () => {
-					local += 1;
+					local.value += 1;
 				};
 			}
 			<div class={'branch-' + props.side}>
@@ -72,10 +72,10 @@ describe('scoped flush', () => {
 		}
 
 		function App() @{
-			let &[root, rootT] = track(0);
-			Ctx.set(rootT);
+			const root = track(0);
+			Ctx.set(root);
 			bumpRoot = () => {
-				root += 1;
+				root.value += 1;
 			};
 			<div>
 				<Branch side="L" />

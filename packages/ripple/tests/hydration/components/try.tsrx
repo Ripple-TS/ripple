@@ -17,13 +17,13 @@ export function RootThrows() @{
 }
 
 export function RootAsyncDirect() @{
-	let &[value] = trackAsync(() => Promise.resolve('root async value'));
-	<p class="root-async-value">{value}</p>
+	const value = trackAsync(() => Promise.resolve('root async value'));
+	<p class="root-async-value">{value.value}</p>
 }
 
 export function RootAsyncRejects() @{
-	let &[value] = trackAsync(() => Promise.reject(new Error('root async failed')));
-	<p class="root-async-value">{value}</p>
+	const value = trackAsync(() => Promise.reject(new Error('root async failed')));
+	<p class="root-async-value">{value.value}</p>
 }
 
 export function AsyncListInTryPending() @{
@@ -35,9 +35,9 @@ export function AsyncListInTryPending() @{
 }
 
 function AsyncList() @{
-	let &[items] = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
+	const items = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
 	<ul class="items">
-		@for (let item of items) {
+		@for (let item of items.value) {
 			<li>{item}</li>
 		}
 	</ul>
@@ -55,6 +55,6 @@ export function AsyncTryWithLeadingSibling() @{
 }
 
 function AsyncContent() @{
-	let &[value] = trackAsync(() => Promise.resolve('ready'));
-	<div class="resolved">{value}</div>
+	const value = trackAsync(() => Promise.resolve('ready'));
+	<div class="resolved">{value.value}</div>
 }

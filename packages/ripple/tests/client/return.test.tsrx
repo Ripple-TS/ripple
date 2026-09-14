@@ -225,10 +225,10 @@ describe('function returns in client components', () => {
 		}
 
 		function App() {
-			let &[user, userTracked] = track<string | null>(null);
+			const user = track<string | null>(null);
 			return <>
-				<Dashboard user={userTracked} />
-				<button onClick={() => (user = user === 'Adam' ? null : 'Adam')}>Toggle</button>
+				<Dashboard {user} />
+				<button onClick={() => (user.value = user.value === 'Adam' ? null : 'Adam')}>Toggle</button>
 			</>;
 		}
 

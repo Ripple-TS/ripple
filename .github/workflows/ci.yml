@@ -131,7 +131,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Disallow major and minor bumps in changesets
+      - name: Disallow major bumps in changesets
         run: node scripts/check-changesets.js
 
   typecheck:

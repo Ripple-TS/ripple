@@ -163,18 +163,18 @@ assembled programmatically.
 import { createRefKey, track } from 'ripple';
 
 export function App() @{
-  let &[value] = track('');
+  const value = track('');
   let input: HTMLInputElement | undefined;
 
   const props = {
     id: 'example',
-    value,
+    value: value.value,
     [createRefKey()]: (node: HTMLInputElement) => {
       input = node;
 
       const onInput = () => {
-        value = node.value;
-        console.log(value);
+        value.value = node.value;
+        console.log(value.value);
       };
 
       node.addEventListener('input', onInput);

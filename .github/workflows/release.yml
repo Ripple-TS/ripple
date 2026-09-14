@@ -37,16 +37,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Disallow major and minor bumps in changesets
+      - name: Disallow major bumps in changesets
         run: pnpm changeset:check
 
       - name: Create or update release pull request
         id: changesets
-        uses: changesets/action@v1
+        # v2 pairs with @changesets/cli 3 (see publish.yml); the v1 inputs
+        # `version`, `commit`, and `title` were renamed.
+        uses: changesets/action@v2
         with:
           github-token: ${{ github.token }}
-          version: pnpm changeset:version
-          commit: Version Packages
-          title: Version Packages
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          version-script: pnpm changeset:version
+          commit-message: Version Packages
+          pr-title: Version Packages

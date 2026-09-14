@@ -78,22 +78,22 @@ export function MixedControlFlowStatic() {
 
 export function MixedControlFlowReactive() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(true, '5ae53d26');
-		let lazy_1 = _$_.track('a', '5b53eda2');
-		let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], '7890dad6');
+		const show = _$_.track(true, '5ae53d26');
+		const mode = _$_.track('a', '5b53eda2');
+		const items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], '7890dad6');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!--[-->';
 
-			if (lazy.value) {
+			if (show.value) {
 				__out += '<div class="mixed-reactive-list"><!--[-->';
 
-				for (const item of lazy_2.value) {
+				for (const item of items.value) {
 					__out += '<!--[-->';
 
-					switch (lazy_1.value) {
+					switch (mode.value) {
 						case 'a':
 							_$_.output_push(__out);
 							__out = '';
@@ -214,7 +214,7 @@ export function MixedControlFlowAsyncPending() {
 
 function AsyncRow({ label }) {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track_async(() => Promise.resolve(label), '10cc79a0');
+		const value = _$_.track_async(() => Promise.resolve(label), '10cc79a0');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -224,7 +224,7 @@ function AsyncRow({ label }) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_3.value);
+				_$_.render_expression(value.value);
 			}
 
 			__out += '</div>';

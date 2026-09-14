@@ -48,17 +48,17 @@ Examples:
 import { track } from 'ripple';
 
 function App() @{
-  let &[includeBaz] = track(true);
-  let &[count] = track(3);
+  const includeBaz = track(true);
+  const count = track(3);
 
   <>
-    <div class={{ foo: true, bar: false, baz: includeBaz }} />
+    <div class={{ foo: true, bar: false, baz: includeBaz.value }} />
     // becomes: class="foo baz"
 
     <div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
     // becomes: class="foo bat"
 
-    <div class={['foo', { bar: count > 2 }, count > 3 && 'bat']} />
+    <div class={['foo', { bar: count.value > 2 }, count.value > 3 && 'bat']} />
     // becomes: class="foo bar"
   </>
 }
@@ -74,13 +74,13 @@ runtime, put that value in a CSS custom property on the element and read it with
 import { track } from 'ripple';
 
 function App() @{
-  let &[color] = track('red');
+  const color = track('red');
 
   <>
-    <div class="notice" style={{ '--notice-color': color }}>
+    <div class="notice" style={{ '--notice-color': color.value }}>
       Styled text
     </div>
-    <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
+    <button onClick={() => (color.value = color.value === 'red' ? 'blue' : 'red')}>
       Toggle Color
     </button>
 
@@ -276,8 +276,8 @@ function Parent() @{
     }
   </style>;
 
-  let &[Current] = track(() => Child);
-  <{Current} cls={styles.text} />
+  const Current = track(() => Child);
+  <{Current.value} cls={styles.text} />
 }
 ```
 

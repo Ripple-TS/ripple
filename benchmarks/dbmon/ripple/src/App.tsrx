@@ -1,20 +1,20 @@
 import { track } from 'ripple';
 import { bindSetData, initialData } from './ops.js';
 
-// dbmon table authored in ripple. `let &[items] = track(...)` is the reactive
-// array; the ops driver reassigns it (`items = nextData`) each tick, exactly the
+// dbmon table authored in ripple. `const items = track(...)` is the reactive
+// array; the ops driver reassigns it (`items.value = nextData`) each tick, exactly the
 // immutable-newArray + keyed `@for` model the octane/react apps use — so it's a
 // like-for-like comparison on the keyed-reconcile + cell-diff update path.
 
 export default function App() @{
-	let &[items] = track(initialData());
+	const items = track(initialData());
 	bindSetData((d) => {
-		items = d;
+		items.value = d;
 	});
 
 	<table class="dbmon">
 		<tbody>
-			@for (const db of items; key db.id) {
+			@for (const db of items.value; key db.id) {
 				<tr>
 					<td class="dbname">{db.name}</td>
 					<td class={db.countClass}>{db.count}</td>

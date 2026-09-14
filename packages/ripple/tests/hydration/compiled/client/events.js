@@ -3,33 +3,27 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"> </span></div>`, 0);
 
-function render(__prev) {
-	var __a = __prev._lazy.value;
-
-	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
-	}
-}
-
 function ClickCounter_render(__anchor, __block) {
-	let lazy = _$_.track(0, __block, 'a070e3a7');
+	const count = _$_.track(0, __block, 'a070e3a7');
 	var div = root();
 
 	{
 		var button = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
 		button.__click = () => {
-			_$_.update(lazy);
+			count.value++;
 		};
 
 		var span = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 		{
-			var expression = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
+			var expression = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
+
+			_$_.expression(expression, () => count.value);
+			_$_.hydrating && _$_.pop(span);
 		}
 	}
 
-	_$_.render(render, { a: ' ', _lazy: lazy, _expression: expression });
 	_$_.append(__anchor, div);
 }
 
@@ -37,39 +31,33 @@ ClickCounter[_$_.$r] = ClickCounter_render;
 
 var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`, 0);
 
-function render_1(__prev) {
-	var __a = __prev._lazy_1.value;
-
-	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_1, __prev.a = __a);
-	}
-}
-
 function IncrementDecrement_render(__anchor, __block) {
-	let lazy_1 = _$_.track(0, __block, '87fcabdd');
+	const count = _$_.track(0, __block, '87fcabdd');
 	var div_1 = root_1();
 
 	{
 		var button_1 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
 		button_1.__click = () => {
-			_$_.update(lazy_1, -1);
+			count.value--;
 		};
 
 		var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_text() : span_1.firstChild;
+			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
+
+			_$_.expression(expression_1, () => count.value);
+			_$_.hydrating && _$_.pop(span_1);
 		}
 
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
 
 		button_2.__click = () => {
-			_$_.update(lazy_1);
+			count.value++;
 		};
 	}
 
-	_$_.render(render_1, { a: ' ', _lazy_1: lazy_1, _expression_1: expression_1 });
 	_$_.append(__anchor, div_1);
 }
 
@@ -77,57 +65,40 @@ IncrementDecrement[_$_.$r] = IncrementDecrement_render;
 
 var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`, 0);
 
-function render_2(__prev) {
-	var __a = __prev._lazy_2.value;
-
-	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_2, __prev.a = __a);
-	}
-
-	var __b = __prev._lazy_3.value;
-
-	if (__prev.b !== __b) {
-		_$_.set_text(__prev._expression_3, __prev.b = __b);
-	}
-}
-
 function MultipleEvents_render(__anchor, __block) {
-	let lazy_2 = _$_.track(0, __block, '41b9f0b0');
-	let lazy_3 = _$_.track(0, __block, '72789f75');
+	const clicks = _$_.track(0, __block, '41b9f0b0');
+	const hovers = _$_.track(0, __block, '72789f75');
 	var div_2 = root_2();
 
 	{
 		var button_3 = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
 		button_3.__click = () => {
-			_$_.update(lazy_2);
+			clicks.value++;
 		};
 
 		_$_.event('MouseEnter', button_3, () => {
-			_$_.update(lazy_3);
+			hovers.value++;
 		});
 
 		var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
 		{
-			var expression_2 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
+			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
+
+			_$_.expression(expression_2, () => clicks.value);
+			_$_.hydrating && _$_.pop(span_2);
 		}
 
 		var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 		{
-			var expression_3 = _$_.hydrating ? _$_.hydrate_text() : span_3.firstChild;
+			var expression_3 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
+
+			_$_.expression(expression_3, () => hovers.value);
+			_$_.hydrating && _$_.pop(span_3);
 		}
 	}
-
-	_$_.render(render_2, {
-		a: ' ',
-		b: ' ',
-		_lazy_2: lazy_2,
-		_expression_2: expression_2,
-		_lazy_3: lazy_3,
-		_expression_3: expression_3
-	});
 
 	_$_.append(__anchor, div_2);
 }
@@ -136,21 +107,13 @@ MultipleEvents[_$_.$r] = MultipleEvents_render;
 
 var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`, 0);
 
-function render_3(__prev) {
-	var __a = __prev._lazy_4.value;
-
-	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_4, __prev.a = __a);
-	}
-}
-
 function MultiStateUpdate_render(__anchor, __block) {
-	let lazy_4 = _$_.track(0, __block, '5a375160');
-	let lazy_5 = _$_.track('none', __block, '3ceeb88c');
+	const count = _$_.track(0, __block, '5a375160');
+	const lastAction = _$_.track('none', __block, '3ceeb88c');
 
 	const handleClick = () => {
-		_$_.update(lazy_4);
-		_$_.set(lazy_5, 'increment');
+		count.value++;
+		lastAction.value = 'increment';
 	};
 
 	var div_3 = root_3();
@@ -163,7 +126,10 @@ function MultiStateUpdate_render(__anchor, __block) {
 		var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
 
 		{
-			var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_4.firstChild;
+			var expression_4 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
+
+			_$_.expression(expression_4, () => count.value);
+			_$_.hydrating && _$_.pop(span_4);
 		}
 
 		var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
@@ -171,12 +137,11 @@ function MultiStateUpdate_render(__anchor, __block) {
 		{
 			var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
-			_$_.expression(expression_5, () => lazy_5.value);
+			_$_.expression(expression_5, () => lastAction.value);
 			_$_.hydrating && _$_.pop(span_5);
 		}
 	}
 
-	_$_.render(render_3, { a: ' ', _lazy_4: lazy_4, _expression_4: expression_4 });
 	_$_.append(__anchor, div_3);
 }
 
@@ -184,8 +149,8 @@ MultiStateUpdate[_$_.$r] = MultiStateUpdate_render;
 
 var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
 
-function render_4(__prev) {
-	var __a = __prev._lazy_6.value ? 'ON' : 'OFF';
+function render(__prev) {
+	var __a = __prev._isOn.value ? 'ON' : 'OFF';
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression_6, __prev.a = __a);
@@ -193,14 +158,14 @@ function render_4(__prev) {
 }
 
 function ToggleButton_render(__anchor, __block) {
-	let lazy_6 = _$_.track(false, __block, 'be823ec7');
+	const isOn = _$_.track(false, __block, 'be823ec7');
 	var div_4 = root_4();
 
 	{
 		var button_5 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
 		button_5.__click = () => {
-			_$_.set(lazy_6, !lazy_6.value);
+			isOn.value = !isOn.value;
 		};
 
 		{
@@ -208,7 +173,7 @@ function ToggleButton_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(render_4, { a: ' ', _lazy_6: lazy_6, _expression_6: expression_6 });
+	_$_.render(render, { a: ' ', _isOn: isOn, _expression_6: expression_6 });
 	_$_.append(__anchor, div_4);
 }
 
@@ -216,7 +181,7 @@ ToggleButton[_$_.$r] = ToggleButton_render;
 
 var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
 
-function render_5(__prev) {
+function render_1(__prev) {
 	var __a = __prev._props.label;
 
 	if (__prev.a !== __a) {
@@ -233,7 +198,7 @@ function ChildButton_render(__anchor, __block, props) {
 		var expression_7 = _$_.hydrating ? _$_.hydrate_text() : button_6.firstChild;
 	}
 
-	_$_.render(render_5, { a: ' ', _props: props, _expression_7: expression_7 });
+	_$_.render(render_1, { a: ' ', _props: props, _expression_7: expression_7 });
 	_$_.append(__anchor, button_6);
 }
 
@@ -241,16 +206,8 @@ ChildButton[_$_.$r] = ChildButton_render;
 
 var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
 
-function render_6(__prev) {
-	var __a = __prev._lazy_7.value;
-
-	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_8, __prev.a = __a);
-	}
-}
-
 function ParentWithChildButton_render(__anchor, __block) {
-	let lazy_7 = _$_.track(0, __block, 'dcc2e0f9');
+	const count = _$_.track(0, __block, 'dcc2e0f9');
 	var div_5 = root_6();
 
 	{
@@ -258,7 +215,7 @@ function ParentWithChildButton_render(__anchor, __block) {
 
 		_$_.render_component(ChildButton, node, {
 			onClick: () => {
-				_$_.update(lazy_7);
+				count.value++;
 			},
 			label: "Click me"
 		});
@@ -266,13 +223,15 @@ function ParentWithChildButton_render(__anchor, __block) {
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
 		{
-			var expression_8 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
+			var expression_8 = _$_.hydrating ? _$_.hydrate_child() : span_6.firstChild;
+
+			_$_.expression(expression_8, () => count.value);
+			_$_.hydrating && _$_.pop(span_6);
 		}
 
 		_$_.hydrating && _$_.pop(div_5);
 	}
 
-	_$_.render(render_6, { a: ' ', _lazy_7: lazy_7, _expression_8: expression_8 });
 	_$_.append(__anchor, div_5);
 }
 

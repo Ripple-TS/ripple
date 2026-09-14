@@ -244,19 +244,19 @@ const defaultContent = `
 import { track } from 'ripple';
 
 export default function Counter() @{
-  let &[count] = track(0);
-  let &[double] = track(() => count * 2);
+  const count = track(0);
+  const double = track(() => count.value * 2);
   <>
     <div class="container">
       <h2>"Counter"</h2>
-      <p>"Count: "{count}</p>
-      <p>"Double: "{double}</p>
+      <p>"Count: "{count.value}</p>
+      <p>"Double: "{double.value}</p>
 
-      <button onClick={() => count--}>"-"</button>
-      <button onClick={() => count++}>"+"</button>
-      @if (count !== 0) {
+      <button onClick={() => count.value--}>"-"</button>
+      <button onClick={() => count.value++}>"+"</button>
+      @if (count.value !== 0) {
         <div>
-          <button onClick={() => count = 0}>"Reset"</button>
+          <button onClick={() => count.value = 0}>"Reset"</button>
         </div>
       }
     </div>

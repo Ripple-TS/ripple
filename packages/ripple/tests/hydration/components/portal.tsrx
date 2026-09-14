@@ -13,10 +13,10 @@ export function SimplePortal() @{
 
 // Portal with conditional rendering
 export function ConditionalPortal() @{
-	let &[show] = track(true);
+	const show = track(true);
 	<div class="container">
-		<button class="toggle" onClick={() => (show = !show)}>{'Toggle'}</button>
-		@if (show) {
+		<button class="toggle" onClick={() => (show.value = !show.value)}>{'Toggle'}</button>
+		@if (show.value) {
 			<Portal target={typeof document !== 'undefined' ? document.body : null}>
 				<div class="portal-content">{'Portal is visible'}</div>
 			</Portal>

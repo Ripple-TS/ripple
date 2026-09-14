@@ -36,23 +36,23 @@ export function App() @{
   // get reference to the object
   const obj = context.get();
   // set your reactive value
-  let &[count, countTracked] = track(0);
-  obj.count = countTracked;
+  const count = track(0);
+  obj.count = count;
 
   // create another tracked variable
-  let &[count2, count2Tracked] = track(0);
+  const count2 = track(0);
   // context2 now contains a tracked variable
-  context2.set(count2Tracked);
+  context2.set(count2);
 
   <>
     <button onClick={() => {
-      count++;
-      count2++;
+      count.value++;
+      count2.value++;
     }}>Click Me</button>
 
     // context's reactive property count gets updated
-    <pre>Context: {count}</pre>
-    <pre>Context2: {count2}</pre>
+    <pre>Context: {count.value}</pre>
+    <pre>Context2: {count2.value}</pre>
   </>
 }
 ```

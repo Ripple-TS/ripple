@@ -7,8 +7,8 @@ describe('trackAsync hydration from serialized data (client)', () => {
 
 		function App() @{
 			@try {
-				let &[data] = trackAsync(() => Promise.resolve('fallback'));
-				<p class="result">{data}</p>
+				const data = trackAsync(() => Promise.resolve('fallback'));
+				<p class="result">{data.value}</p>
 			} @pending {
 				<p class="loading">{'loading...'}</p>
 			}
@@ -31,8 +31,8 @@ describe('trackAsync hydration from serialized data (client)', () => {
 
 		function App() @{
 			@try {
-				let &[value] = trackAsync(() => promise);
-				<span class="value">{value}</span>
+				const value = trackAsync(() => promise);
+				<span class="value">{value.value}</span>
 			} @pending {
 				<span class="pending">{'waiting'}</span>
 			}

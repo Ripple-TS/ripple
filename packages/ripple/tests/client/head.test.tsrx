@@ -31,18 +31,18 @@ describe('head elements', () => {
 
 	it('renders reactive title element', () => {
 		function App() @{
-			let &[title] = track('Initial Title');
+			const title = track('Initial Title');
 			<>
 				<head>
-					<title>{title}</title>
+					<title>{title.value}</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
-							title = 'Updated Title';
+							title.value = 'Updated Title';
 						}}
 					>{'Update Title'}</button>
-					<span>{title}</span>
+					<span>{title.value}</span>
 				</div>
 			</>
 		}
@@ -62,15 +62,15 @@ describe('head elements', () => {
 
 	it('renders title with template literal', () => {
 		function App() @{
-			let &[name] = track('World');
+			const name = track('World');
 			<>
 				<head>
-					<title>{`Hello ${name}!`}</title>
+					<title>{`Hello ${name.value}!`}</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
-							name = 'Ripple';
+							name.value = 'Ripple';
 						}}
 					>{'Change Name'}</button>
 				</div>
@@ -90,19 +90,19 @@ describe('head elements', () => {
 
 	it('renders title with computed value', () => {
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let prefix = 'Count: ';
 			<>
 				<head>
-					<title>{prefix + count}</title>
+					<title>{prefix + count.value}</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
-							count++;
+							count.value++;
 						}}
 					>{'Increment'}</button>
-					<span>{count}</span>
+					<span>{count.value}</span>
 				</div>
 			</>
 		}
@@ -121,15 +121,15 @@ describe('head elements', () => {
 
 	it('handles multiple title updates', () => {
 		function App() @{
-			let &[step] = track(1);
+			const step = track(1);
 			<>
 				<head>
-					<title>{`Step ${step} of 3`}</title>
+					<title>{`Step ${step.value} of 3`}</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
-							step = step % 3 + 1;
+							step.value = step.value % 3 + 1;
 						}}
 					>{'Next Step'}</button>
 				</div>
@@ -244,23 +244,23 @@ describe('head elements', () => {
 
 	it('renders title with conditional content', () => {
 		function App() @{
-			let &[showPrefix] = track(true);
-			let &[title] = track('Main Page');
+			const showPrefix = track(true);
+			const title = track('Main Page');
 			<>
 				<head>
 					<title>
-						{showPrefix ? 'App - ' + title : title}
+						{showPrefix.value ? 'App - ' + title.value : title.value}
 					</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
-							showPrefix = !showPrefix;
+							showPrefix.value = !showPrefix.value;
 						}}
 					>{'Toggle Prefix'}</button>
 					<button
 						onClick={() => {
-							title = title === 'Main Page' ? 'Settings' : 'Main Page';
+							title.value = title.value === 'Main Page' ? 'Settings' : 'Main Page';
 						}}
 					>{'Change Page'}</button>
 				</div>

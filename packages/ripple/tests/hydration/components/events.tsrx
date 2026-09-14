@@ -3,79 +3,79 @@ import { track } from 'ripple';
 // Event handling components for hydration testing
 
 export function ClickCounter() @{
-	let &[count] = track(0);
+	const count = track(0);
 	<div>
 		<button
 			class="increment"
 			onClick={() => {
-				count++;
+				count.value++;
 			}}
 		>{'Increment'}</button>
-		<span class="count">{count}</span>
+		<span class="count">{count.value}</span>
 	</div>
 }
 
 export function IncrementDecrement() @{
-	let &[count] = track(0);
+	const count = track(0);
 	<div>
 		<button
 			class="decrement"
 			onClick={() => {
-				count--;
+				count.value--;
 			}}
 		>{'-'}</button>
-		<span class="count">{count}</span>
+		<span class="count">{count.value}</span>
 		<button
 			class="increment"
 			onClick={() => {
-				count++;
+				count.value++;
 			}}
 		>{'+'}</button>
 	</div>
 }
 
 export function MultipleEvents() @{
-	let &[clicks] = track(0);
-	let &[hovers] = track(0);
+	const clicks = track(0);
+	const hovers = track(0);
 	<div>
 		<button
 			class="target"
 			onClick={() => {
-				clicks++;
+				clicks.value++;
 			}}
 			onMouseEnter={() => {
-				hovers++;
+				hovers.value++;
 			}}
 		>{'Target'}</button>
-		<span class="clicks">{clicks}</span>
-		<span class="hovers">{hovers}</span>
+		<span class="clicks">{clicks.value}</span>
+		<span class="hovers">{hovers.value}</span>
 	</div>
 }
 
 export function MultiStateUpdate() @{
-	let &[count] = track(0);
-	let &[lastAction] = track('none');
+	const count = track(0);
+	const lastAction = track('none');
 	const handleClick = () => {
-		count++;
-		lastAction = 'increment';
+		count.value++;
+		lastAction.value = 'increment';
 	};
 	<div>
 		<button class="btn" onClick={handleClick}>{'Click'}</button>
-		<span class="count">{count}</span>
-		<span class="action">{lastAction}</span>
+		<span class="count">{count.value}</span>
+		<span class="action">{lastAction.value}</span>
 	</div>
 }
 
 export function ToggleButton() @{
-	let &[isOn] = track(false);
+	const isOn = track(false);
 	<div>
 		<button
 			class="toggle"
 			onClick={() => {
-				isOn = !isOn;
+				isOn.value = !isOn.value;
 			}}
 		>
-			{isOn ? 'ON' : 'OFF'}
+			{isOn.value ? 'ON' : 'OFF'}
 		</button>
 	</div>
 }
@@ -85,14 +85,14 @@ export function ChildButton(props: { onClick: () => void; label: string }) @{
 }
 
 export function ParentWithChildButton() @{
-	let &[count] = track(0);
+	const count = track(0);
 	<div>
 		<ChildButton
 			onClick={() => {
-				count++;
+				count.value++;
 			}}
 			label="Click me"
 		/>
-		<span class="count">{count}</span>
+		<span class="count">{count.value}</span>
 	</div>
 }

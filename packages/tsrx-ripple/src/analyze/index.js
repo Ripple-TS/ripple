@@ -23,7 +23,7 @@ import {
 	createScopes,
 	ScopeRoot,
 	isVoidElement,
-	extractPaths,
+	extractIdentifiers,
 	error,
 	getReturnKeywordNode,
 	isEventAttribute,
@@ -52,10 +52,6 @@ import {
 	is_binding_function,
 	strong_hash,
 	tracked_get,
-	build_lazy_array_get,
-	build_lazy_array_rest,
-	build_lazy_array_set,
-	build_lazy_array_update,
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
@@ -65,7 +61,6 @@ import {
 	get_directive_value_wrapper,
 	analyze_directive_wrapping_values,
 	is_tsrx_component_function,
-	has_lazy_pattern,
 	register_type_declarations,
 	record_text_intrinsic_write,
 	get_expression_type_annotation,
@@ -89,13 +84,9 @@ import {
 } from '../template-ast.js';
 import is_reference from 'is-reference';
 import { prepare_style_scopes } from '../style-scopes.js';
+import { extract_paths } from '../extract-paths.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
-
-const TRACKED_INDEX_VALUE_ERROR =
-	'Do not access tracked values with [0]. Use .value or &[] lazy destructuring instead. Numeric tracked access leads to degraded performance.';
-const TRACKED_INDEX_REFERENCE_ERROR =
-	'Do not access tracked values with [1]. Use the tracked value directly instead. Numeric tracked access leads to degraded performance.';
 
 const mutating_method_names = new Set([
 	'add',
@@ -428,434 +419,6 @@ function mark_control_flow_has_continue(path) {
 }
 
 /**
- * Set up lazy destructuring transforms for bindings extracted from a lazy pattern.
- * Converts each destructured identifier into a binding that lazily accesses properties
- * on the source identifier (e.g., `a` → `source.a` for object, `a` → `source[0]` for array).
- * @param {AST.ObjectPattern | AST.ArrayPattern} pattern - The destructuring pattern with lazy: true
- * @param {AST.Identifier} source_id - The identifier to access properties on
- * @param {AnalysisState} state - The analysis state
- * @param {boolean} writable - Whether assignments/updates should be supported (let vs const)
- * @param {boolean} is_track_call - Whether the RHS is a Ripple track() call
- */
-function setup_lazy_transforms(pattern, source_id, state, writable, is_track_call) {
-	// For ArrayPattern from track() calls, use direct get/set calls as a fast path
-	// instead of going through prototype getters source[0]/source[1]
-	if (pattern.type === 'ArrayPattern' && is_track_call) {
-		setup_tracked_lazy_array_transforms(pattern, source_id, state, writable);
-		return;
-	}
-
-	if (pattern.type === 'ArrayPattern') {
-		setup_lazy_array_transforms(pattern, source_id, state, writable);
-		return;
-	}
-
-	const paths = extractPaths(pattern);
-
-	for (const path of paths) {
-		const name = /** @type {AST.Identifier} */ (path.node).name;
-		const binding = state.scope.get(name);
-
-		if (binding !== null) {
-			const has_fallback = path.has_default_value;
-			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
-
-			binding.transform = {
-				read: (_) => {
-					return path.expression(source_id);
-				},
-			};
-
-			if (writable) {
-				binding.transform.assign = (node, value) => {
-					return b.assignment(
-						'=',
-						/** @type {AST.MemberExpression} */ (path.update_expression(source_id)),
-						value,
-					);
-				};
-
-				if (has_fallback) {
-					// For bindings with default values, generate proper fallback-aware update
-					// e.g., count++ with default 0 becomes:
-					// (() => { var _v = _$_.fallback(obj.count, 0); obj.count = _v + 1; return _v; })() for postfix
-					// (obj.count = _$_.fallback(obj.count, 0) + 1) for prefix
-					binding.transform.update = (node) => {
-						const member = path.update_expression(source_id);
-						const fallback_read = path.expression(source_id);
-						const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
-
-						if (node.prefix) {
-							// ++count: return new value
-							return b.assignment(
-								'=',
-								/** @type {AST.Pattern} */ (member),
-								b.binary('+', fallback_read, delta),
-							);
-						} else {
-							// count++: return old value, write new value
-							// Use IIFE to declare temp variable
-							const temp = b.id('_v');
-							return b.call(
-								b.arrow(
-									[],
-									b.block([
-										b.var(temp, fallback_read),
-										b.stmt(
-											b.assignment(
-												'=',
-												/** @type {AST.Pattern} */ (member),
-												b.binary('+', temp, delta),
-											),
-										),
-										b.return(temp),
-									]),
-								),
-							);
-						}
-					};
-				} else {
-					binding.transform.update = (node) =>
-						b.update(node.operator, path.update_expression(source_id), node.prefix);
-				}
-			}
-		}
-	}
-}
-
-/**
- * @param {AST.RestElement} element
- * @param {AST.Identifier} source_id
- * @param {number} index
- * @param {AnalysisState} state
- */
-function setup_lazy_array_rest_transform(element, source_id, index, state) {
-	const rest_source = build_lazy_array_rest(source_id, index);
-
-	if (element.argument.type === 'Identifier') {
-		const binding = state.scope.get(element.argument.name);
-		if (binding !== null) {
-			binding.kind = 'lazy';
-			binding.metadata = {
-				...binding.metadata,
-				lazy_array_rest: true,
-			};
-			binding.transform = {
-				read: (_) => rest_source,
-			};
-		}
-		return;
-	}
-
-	const rest_paths = extractPaths(element.argument);
-	for (const path of rest_paths) {
-		const name = /** @type {AST.Identifier} */ (path.node).name;
-		const binding = state.scope.get(name);
-		if (binding !== null) {
-			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
-			binding.transform = {
-				read: (_) => path.expression(/** @type {AST.CallExpression} */ (rest_source)),
-			};
-		}
-	}
-}
-
-/**
- * Set up fast-path transforms for lazy array destructuring of tracked values.
- * For index 0 (the value): uses direct tracked get/set/update helpers instead of source[0] getters.
- * For index 1 (the tracked ref): returns source directly instead of source[1].
- * @param {AST.ArrayPattern} pattern - The array destructuring pattern
- * @param {AST.Identifier} source_id - The identifier for the tracked value
- * @param {AnalysisState} state - The analysis state
- * @param {boolean} writable - Whether assignments/updates should be supported
- */
-function setup_tracked_lazy_array_transforms(pattern, source_id, state, writable) {
-	for (let i = 0; i < pattern.elements.length; i++) {
-		const element = pattern.elements[i];
-		if (!element) continue;
-
-		if (element.type === 'RestElement') {
-			setup_lazy_array_rest_transform(element, source_id, i, state);
-			continue;
-		}
-
-		const actual = element.type === 'AssignmentPattern' ? element.left : element;
-		const has_fallback = element.type === 'AssignmentPattern';
-		/** @type {AST.Expression | null}	 */
-		const fallback_value = has_fallback
-			? /** @type {AST.AssignmentPattern} */ (element).right
-			: null;
-
-		if (actual.type === 'Identifier' && i <= 1) {
-			const name = actual.name;
-			const binding = state.scope.get(name);
-			if (binding === null) continue;
-
-			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
-			binding.metadata = {
-				...binding.metadata,
-				lazy_array_source: source_id.name,
-				lazy_array_index: i,
-				lazy_array_source_tracked: true,
-			};
-
-			if (i === 0) {
-				// Fast path for index 0: use source.value instead of source[0]
-				const read_expr = has_fallback
-					? () =>
-							b.call(
-								'_$_.fallback',
-								tracked_get(source_id),
-								/** @type {AST.Expression} */ (fallback_value),
-							)
-					: () => tracked_get(source_id);
-
-				// Signal that read already produces an unwrapped value.
-				binding.read_unwraps = true;
-
-				binding.transform = {
-					read: (_) => read_expr(),
-				};
-
-				if (writable) {
-					binding.transform.assign = (_, value) => {
-						return b.call('_$_.set', source_id, value);
-					};
-
-					if (has_fallback) {
-						binding.transform.update = (node) => {
-							const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
-							const temp = b.id('_v');
-
-							if (node.prefix) {
-								// ++count: compute new value and set it, return new value
-								return b.call(
-									b.arrow(
-										[],
-										b.block([
-											b.var(temp, b.binary('+', read_expr(), delta)),
-											b.stmt(b.call('_$_.set', source_id, temp)),
-											b.return(temp),
-										]),
-									),
-								);
-							} else {
-								// count++: read old value, set new value, return old value
-								return b.call(
-									b.arrow(
-										[],
-										b.block([
-											b.var(temp, read_expr()),
-											b.stmt(b.call('_$_.set', source_id, b.binary('+', temp, delta))),
-											b.return(temp),
-										]),
-									),
-								);
-							}
-						};
-					} else {
-						binding.transform.update = (node) => {
-							const fn_name = node.prefix ? '_$_.update_pre' : '_$_.update';
-							/** @type {AST.Expression[]} */
-							const args = [source_id];
-							if (node.operator === '--') {
-								args.push(b.literal(-1));
-							}
-							return b.call(fn_name, ...args);
-						};
-					}
-				}
-			} else {
-				// Fast path for index 1: source itself is the tracked ref
-				binding.transform = {
-					read: (_) => source_id,
-				};
-			}
-		} else {
-			// Nested patterns or indices > 1: fall back to generic source[i] access via extract_paths
-			/** @type {(object: AST.Expression) => AST.Expression} */
-			const base_expression =
-				i === 0
-					? (object) => tracked_get(object)
-					: i === 1
-						? (object) => object
-						: (object) => b.member(object, b.literal(i), true);
-
-			const inner_paths = extractPaths(element);
-			for (const path of inner_paths) {
-				const name = /** @type {AST.Identifier} */ (path.node).name;
-				const binding = state.scope.get(name);
-				if (binding === null) continue;
-
-				binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
-
-				binding.transform = {
-					read: (_) =>
-						path.expression(
-							/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
-						),
-				};
-
-				if (writable) {
-					binding.transform.assign = (node, value) => {
-						return b.assignment(
-							'=',
-							/** @type {AST.MemberExpression} */ (
-								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id)))
-							),
-							value,
-						);
-					};
-
-					if (path.has_default_value) {
-						binding.transform.update = (node) => {
-							const member = path.update_expression(
-								/** @type {AST.Identifier} */ (base_expression(source_id)),
-							);
-							const fallback_read = path.expression(
-								/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
-							);
-							const delta = node.operator === '++' ? b.literal(1) : b.literal(-1);
-
-							if (node.prefix) {
-								return b.assignment(
-									'=',
-									/** @type {AST.Pattern} */ (member),
-									b.binary('+', fallback_read, delta),
-								);
-							} else {
-								const temp = b.id('_v');
-								return b.call(
-									b.arrow(
-										[],
-										b.block([
-											b.var(temp, fallback_read),
-											b.stmt(
-												b.assignment(
-													'=',
-													/** @type {AST.Pattern} */ (member),
-													b.binary('+', temp, delta),
-												),
-											),
-											b.return(temp),
-										]),
-									),
-								);
-							}
-						};
-					} else {
-						binding.transform.update = (node) =>
-							b.update(
-								node.operator,
-								path.update_expression(/** @type {AST.Identifier} */ (base_expression(source_id))),
-								node.prefix,
-							);
-					}
-				}
-			}
-		}
-	}
-}
-
-/**
- * Set up lazy array destructuring transforms when the source may be either a
- * plain lazy array or a tracked value.
- * @param {AST.ArrayPattern} pattern
- * @param {AST.Identifier} source_id
- * @param {AnalysisState} state
- * @param {boolean} writable
- */
-function setup_lazy_array_transforms(pattern, source_id, state, writable) {
-	for (let i = 0; i < pattern.elements.length; i++) {
-		const element = pattern.elements[i];
-		if (!element) continue;
-
-		if (element.type === 'RestElement') {
-			setup_lazy_array_rest_transform(element, source_id, i, state);
-			continue;
-		}
-
-		const actual = element.type === 'AssignmentPattern' ? element.left : element;
-		const has_fallback = element.type === 'AssignmentPattern';
-		/** @type {AST.Expression | null} */
-		const fallback_value = has_fallback
-			? /** @type {AST.AssignmentPattern} */ (element).right
-			: null;
-
-		if (actual.type === 'Identifier') {
-			const binding = state.scope.get(actual.name);
-			if (binding === null) continue;
-
-			const read_expr = has_fallback
-				? () =>
-						b.call(
-							'_$_.fallback',
-							build_lazy_array_get(source_id, i),
-							/** @type {AST.Expression} */ (fallback_value),
-						)
-				: () => build_lazy_array_get(source_id, i);
-
-			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
-			binding.read_unwraps = true;
-			binding.metadata = {
-				...binding.metadata,
-				lazy_array_source: source_id.name,
-				lazy_array_index: i,
-				lazy_array_source_tracked: false,
-			};
-			binding.transform = {
-				read: (_) => read_expr(),
-			};
-
-			if (writable) {
-				binding.transform.assign = (_, value) => build_lazy_array_set(source_id, value, i);
-				binding.transform.update = (node) =>
-					build_lazy_array_update(source_id, i, node.prefix, node.operator === '--' ? -1 : 1);
-			}
-			continue;
-		}
-
-		const base_expression = /** @type {(object: AST.Expression) => AST.Expression} */ (
-			(object) => build_lazy_array_get(object, i)
-		);
-		const inner_paths = extractPaths(element);
-		for (const path of inner_paths) {
-			const name = /** @type {AST.Identifier} */ (path.node).name;
-			const binding = state.scope.get(name);
-			if (binding === null) continue;
-
-			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
-			binding.transform = {
-				read: (_) =>
-					path.expression(
-						/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
-					),
-			};
-		}
-	}
-}
-
-/**
- * @param {AST.MemberExpression} node
- * @returns {0 | 1 | null}
- */
-function get_tracked_numeric_index(node) {
-	return node.computed &&
-		node.property.type === 'Literal' &&
-		(node.property.value === 0 || node.property.value === 1)
-		? /** @type {0 | 1} */ (node.property.value)
-		: null;
-}
-
-/**
- * @param {0 | 1} index
- * @returns {string}
- */
-function get_tracked_numeric_index_error(index) {
-	return index === 0 ? TRACKED_INDEX_VALUE_ERROR : TRACKED_INDEX_REFERENCE_ERROR;
-}
-
-/**
  * @param {Binding | null} binding
  * @param {AnalysisContext} context
  * @returns {boolean}
@@ -863,23 +426,8 @@ function get_tracked_numeric_index_error(index) {
 function is_known_tracked_binding(binding, context) {
 	return (
 		binding !== null &&
-		binding.kind !== 'lazy' &&
-		binding.kind !== 'lazy_fallback' &&
 		binding.initial?.type === 'CallExpression' &&
 		is_ripple_track_call(binding.initial.callee, context) !== null
-	);
-}
-
-/**
- * @param {Binding | null} binding
- * @returns {boolean}
- */
-function is_known_tracked_lazy_ref_binding(binding) {
-	return (
-		binding !== null &&
-		(binding.kind === 'lazy' || binding.kind === 'lazy_fallback') &&
-		binding.metadata?.lazy_array_source_tracked === true &&
-		binding.metadata.lazy_array_index === 1
 	);
 }
 
@@ -1055,65 +603,6 @@ function get_array_element_type_annotation(type_annotation, index, is_rest) {
 }
 
 /**
- * Checks if a parameter source has a Tracked<T> type annotation imported from ripple.
- * This is used to determine if lazy array destructuring should use the track tuple fast path.
- * @param {AST.TypeNode | undefined} type_annotation - The source type annotation
- * @param {AnalysisContext} context - The analysis context
- * @returns {boolean}
- */
-function is_param_tracked_type(type_annotation, context) {
-	const annotation = unwrap_type_annotation(type_annotation);
-
-	if (
-		annotation?.type === 'TSTypeReference' &&
-		annotation.typeName?.type === 'Identifier' &&
-		annotation.typeName.name === 'Tracked'
-	) {
-		const binding = context.state.scope.get('Tracked');
-
-		return (
-			binding?.declaration_kind === 'import' &&
-			binding.initial !== null &&
-			binding.initial.type === 'ImportDeclaration' &&
-			binding.initial.source.type === 'Literal' &&
-			binding.initial.source.value === 'ripple'
-		);
-	}
-
-	return false;
-}
-
-/**
- * The tuple type of a `track(...)` result as seen by lazy `&[value, tracked]`
- * destructuring: `[T]` when the call names `T` explicitly or its initial value
- * is a number or boolean literal, which cannot later hold rendered content.
- * @param {AST.CallExpression} call
- * @returns {AST.TypeNode | undefined}
- */
-function get_track_call_type_annotation(call) {
-	/** @type {AST.TypeNode | undefined} */
-	let value_type =
-		call.typeArguments?.params.length === 1 ? call.typeArguments.params[0] : undefined;
-
-	if (value_type === undefined) {
-		const initial = call.arguments[0];
-		if (initial?.type === 'Literal') {
-			if (typeof initial.value === 'number') {
-				value_type = /** @type {AST.TypeNode} */ ({ type: 'TSNumberKeyword' });
-			} else if (typeof initial.value === 'boolean') {
-				value_type = /** @type {AST.TypeNode} */ ({ type: 'TSBooleanKeyword' });
-			}
-		}
-	}
-
-	if (value_type === undefined) {
-		return undefined;
-	}
-
-	return /** @type {AST.TypeNode} */ ({ type: 'TSTupleType', elementTypes: [value_type] });
-}
-
-/**
  * Give a `@for` loop variable the element type of the iterated expression, so
  * member reads on it can be lowered to typed text updates.
  * @param {AST.JSXForOfExpression} node
@@ -1142,10 +631,9 @@ function infer_for_item_type_annotation(node, context) {
 }
 
 /**
- * Records the type of each binding in a lazy pattern. Nested patterns inside a
- * lazy pattern are lazy as well and already read through the outer source, so
- * this only attaches type metadata and never touches the transforms; the types
- * let typed property reads lower to direct text and attribute writes.
+ * Records the type of each binding a declaration or parameter pattern
+ * introduces, from the pattern's own annotation or the type of its source; the
+ * types let typed property reads lower to direct text and attribute writes.
  * @param {AST.Pattern} pattern
  * @param {AnalysisContext} context
  * @param {AST.TypeNode | undefined} type_annotation
@@ -1200,130 +688,6 @@ function assign_pattern_types(pattern, context, type_annotation) {
 }
 
 /**
- * Sets up lazy transforms for declarations and function or component parameters.
- * @param {AST.Pattern} pattern
- * @param {AnalysisContext} context
- * @param {AST.TypeNode | undefined} [type_annotation]
- * @param {boolean} [writable]
- * @param {boolean} [is_track_call]
- */
-function setup_lazy_pattern_transforms(
-	pattern,
-	context,
-	type_annotation = undefined,
-	writable = true,
-	is_track_call = false,
-) {
-	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
-
-	switch (pattern.type) {
-		case 'Identifier': {
-			if (pattern_type_annotation) {
-				const binding = context.state.scope.get(pattern.name);
-				if (binding?.node === pattern) {
-					binding.metadata = {
-						...(binding.metadata ?? {}),
-						typeAnnotation: pattern_type_annotation,
-					};
-				}
-			}
-			return;
-		}
-
-		case 'AssignmentPattern':
-			setup_lazy_pattern_transforms(pattern.left, context, pattern_type_annotation, writable);
-			return;
-
-		case 'RestElement':
-			setup_lazy_pattern_transforms(pattern.argument, context, pattern_type_annotation, writable);
-			return;
-
-		case 'ObjectPattern':
-		case 'ArrayPattern': {
-			if (pattern.lazy) {
-				const param_id = b.id(context.state.scope.generate('lazy'));
-				const is_tracked_type =
-					pattern.type === 'ArrayPattern' &&
-					is_param_tracked_type(pattern_type_annotation, context);
-
-				setup_lazy_transforms(
-					pattern,
-					param_id,
-					context.state,
-					writable,
-					is_track_call || is_tracked_type,
-				);
-				pattern.metadata = { ...pattern.metadata, lazy_id: param_id.name };
-
-				if (pattern.type === 'ObjectPattern') {
-					assign_pattern_types(pattern, context, pattern_type_annotation);
-				} else if (pattern_type_annotation !== undefined) {
-					for (let i = 0; i < pattern.elements.length; i += 1) {
-						const element = pattern.elements[i];
-						if (element?.type !== 'Identifier') continue;
-						const element_type = get_array_element_type_annotation(
-							pattern_type_annotation,
-							i,
-							false,
-						);
-						const binding = context.state.scope.get(element.name);
-						if (element_type !== undefined && binding?.node === element) {
-							binding.metadata = {
-								...(binding.metadata ?? {}),
-								typeAnnotation: element_type,
-							};
-						}
-					}
-				}
-				return;
-			}
-
-			if (pattern.type === 'ObjectPattern') {
-				for (const property of pattern.properties) {
-					const property_type_annotation = get_object_property_type_annotation(
-						pattern_type_annotation,
-						property,
-					);
-					if (property.type === 'RestElement') {
-						setup_lazy_pattern_transforms(
-							property.argument,
-							context,
-							property_type_annotation,
-							writable,
-						);
-					} else {
-						setup_lazy_pattern_transforms(
-							property.value,
-							context,
-							property_type_annotation,
-							writable,
-						);
-					}
-				}
-			} else {
-				for (let i = 0; i < pattern.elements.length; i += 1) {
-					const element = pattern.elements[i];
-					if (element !== null) {
-						setup_lazy_pattern_transforms(
-							element,
-							context,
-							get_array_element_type_annotation(
-								pattern_type_annotation,
-								i,
-								element.type === 'RestElement',
-							),
-							writable,
-						);
-					}
-				}
-			}
-
-			return;
-		}
-	}
-}
-
-/**
  * @param {AST.Function} node
  * @param {AnalysisContext} context
  */
@@ -1354,12 +718,7 @@ function visit_function(node, context) {
 			const props = node.params[0];
 
 			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
-				if (props.lazy) {
-					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
-					assign_pattern_types(props, context, get_pattern_type_annotation(props));
-				} else {
-					setup_lazy_pattern_transforms(props, context, get_pattern_type_annotation(props));
-				}
+				assign_pattern_types(props, context, get_pattern_type_annotation(props));
 			} else if (props.type === 'AssignmentPattern') {
 				error(
 					'Props are always an object, use destructured props with default values instead',
@@ -1395,7 +754,7 @@ function visit_function(node, context) {
 		return;
 	}
 
-	// Set up lazy transforms for any lazy destructured parameters
+	// Type the bindings of destructured parameters
 	for (let i = 0; i < node.params.length; i++) {
 		const param_node = node.params[i];
 		const param = param_node.type === 'AssignmentPattern' ? param_node.left : param_node;
@@ -1403,7 +762,7 @@ function visit_function(node, context) {
 			get_pattern_type_annotation(param) ?? param_node.typeAnnotation?.typeAnnotation;
 
 		if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
-			setup_lazy_pattern_transforms(param, context, param_type_annotation);
+			assign_pattern_types(param, context, param_type_annotation);
 		}
 	}
 
@@ -1835,7 +1194,7 @@ function box_declarator(declarator, scope) {
 		return;
 	}
 
-	if ((id.type !== 'ObjectPattern' && id.type !== 'ArrayPattern') || id.lazy) {
+	if (id.type !== 'ObjectPattern' && id.type !== 'ArrayPattern') {
 		return;
 	}
 
@@ -1996,8 +1355,6 @@ const visitors = {
 			if (
 				binding.kind === 'prop' ||
 				binding.kind === 'prop_fallback' ||
-				binding.kind === 'lazy' ||
-				binding.kind === 'lazy_fallback' ||
 				binding.kind === 'for_pattern' ||
 				(is_reference(node, /** @type {AST.Node} */ (parent)) &&
 					node.tracked &&
@@ -2007,21 +1364,6 @@ const visitors = {
 				if (context.state.metadata?.tracking === false) {
 					context.state.metadata.tracking = true;
 				}
-			}
-		}
-
-		// Lazy bindings from track() calls (read_unwraps) are inherently reactive —
-		// propagate tracking so that control flow (if/for/switch)
-		// and template control flow can create reactive blocks
-		if (
-			!node.tracked &&
-			binding?.read_unwraps &&
-			is_reference(node, /** @type {AST.Node} */ (parent)) &&
-			binding.node !== node
-		) {
-			mark_as_tracked(context.path);
-			if (context.state.metadata?.tracking === false) {
-				context.state.metadata.tracking = true;
 			}
 		}
 
@@ -2044,7 +1386,6 @@ const visitors = {
 
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
 			const binding = context.state.scope.get(node.object.name);
-			const tracked_numeric_index = get_tracked_numeric_index(node);
 
 			if (binding && binding.metadata?.is_tsrx_object) {
 				const internalProperties = new Set(['__v', 'a', 'b', 'c', 'f']);
@@ -2058,7 +1399,7 @@ const visitors = {
 
 				if (propertyName && internalProperties.has(propertyName)) {
 					error(
-						`Directly accessing internal property "${propertyName}" of a tracked object is not allowed. Use \`${node.object.name}.value\` or \`&[]\` lazy destructuring instead.`,
+						`Directly accessing internal property "${propertyName}" of a tracked object is not allowed. Use \`${node.object.name}.value\` instead.`,
 						context.state.analysis.module.filename,
 						node.property,
 						context.state.collect ? context.state.analysis.errors : undefined,
@@ -2068,18 +1409,6 @@ const visitors = {
 			}
 
 			if (is_known_tracked_binding(binding, context)) {
-				if (tracked_numeric_index !== null) {
-					error(
-						get_tracked_numeric_index_error(tracked_numeric_index),
-						context.state.analysis.module.filename,
-						node.property,
-						context.state.collect ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-					context.next();
-					return;
-				}
-
 				const is_allowed_tracked_access =
 					!node.computed &&
 					node.property.type === 'Identifier' &&
@@ -2089,23 +1418,13 @@ const visitors = {
 					// pass through
 				} else {
 					error(
-						`Accessing a tracked object directly is not allowed, use \`.value\` or \`&[]\` lazy destructuring to read the value inside a tracked object - for example \`${node.object.name}.value\``,
+						`Accessing a tracked object directly is not allowed, use \`.value\` to read the value inside a tracked object - for example \`${node.object.name}.value\``,
 						context.state.analysis.module.filename,
 						node.object,
 						context.state.collect ? context.state.analysis.errors : undefined,
 						context.state.analysis.comments,
 					);
 				}
-			}
-
-			if (is_known_tracked_lazy_ref_binding(binding) && tracked_numeric_index !== null) {
-				error(
-					get_tracked_numeric_index_error(tracked_numeric_index),
-					context.state.analysis.module.filename,
-					node.property,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
 			}
 		}
 
@@ -2199,19 +1518,12 @@ const visitors = {
 				}
 				visit(declarator, state);
 			} else {
-				const call_name =
-					declarator.init?.type === 'CallExpression' &&
-					is_ripple_track_call(declarator.init.callee, context);
-				setup_lazy_pattern_transforms(
+				assign_pattern_types(
 					declarator.id,
 					context,
-					call_name === 'track'
-						? get_track_call_type_annotation(/** @type {AST.CallExpression} */ (declarator.init))
-						: !call_name && declarator.init != null
-							? get_expression_type_annotation(declarator.init, context.state)
-							: undefined,
-					node.kind !== 'const',
-					call_name === 'track' || call_name === 'trackAsync',
+					declarator.init != null
+						? get_expression_type_annotation(declarator.init, context.state)
+						: undefined,
 				);
 
 				visit(declarator, state);
@@ -2234,30 +1546,6 @@ const visitors = {
 				});
 			}
 		}
-	},
-
-	ExpressionStatement(node, context) {
-		const { state, visit } = context;
-
-		// Handle standalone lazy destructuring assignment: &[data] = track(0);
-		if (
-			node.expression.type === 'AssignmentExpression' &&
-			node.expression.operator === '=' &&
-			(node.expression.left.type === 'ObjectPattern' ||
-				node.expression.left.type === 'ArrayPattern') &&
-			node.expression.left.lazy
-		) {
-			const pattern = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (node.expression.left);
-			const lazy_id = b.id(state.scope.generate('lazy'));
-			const init = /** @type {AST.Expression} */ (node.expression.right);
-			const init_is_track =
-				init?.type === 'CallExpression' && is_ripple_track_call(init.callee, context) === 'track';
-			setup_lazy_transforms(pattern, lazy_id, state, true, !!init_is_track);
-			// Store the generated identifier name on the pattern for the transform phase
-			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_id.name };
-		}
-
-		context.next();
 	},
 
 	ImportDeclaration(node, context) {
@@ -2406,7 +1694,7 @@ const visitors = {
 		if (node.key) {
 			const state = context.state;
 			const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
-			const paths = extractPaths(pattern);
+			const paths = extract_paths(pattern);
 			const scope = /** @type {ScopeInterface} */ (state.scopes.get(node));
 			/** @type {AST.Identifier | AST.Pattern} */
 			let pattern_id;
@@ -2492,12 +1780,11 @@ const visitors = {
 							continue;
 						}
 					} else if (decl.id.type === 'ObjectPattern' || decl.id.type === 'ArrayPattern') {
-						const paths = extractPaths(decl.id);
-						for (const path of paths) {
+						for (const id of extractIdentifiers(decl.id)) {
 							error(
 								'Not implemented: Exported object or array patterns are not supported in server modules.',
 								context.state.analysis.module.filename,
-								path.node,
+								id,
 								context.state.collect ? context.state.analysis.errors : undefined,
 								context.state.analysis.comments,
 							);
@@ -3160,26 +2447,6 @@ export function analyze(ast, filename, options = {}) {
 	const errors = options.errors ?? [];
 	const comments = options.comments ?? [];
 	const collect = !!(options.collect || options.loose);
-
-	// Bare lazy loop targets introduce per-iteration bindings. Give them a
-	// declaration before scope creation so references and shadowing are analyzed
-	// exactly like the explicit declaration form.
-	/** @type {Visitor<AST.ForOfStatement | AST.ForInStatement, null, AST.Node>} */
-	const normalize_loop = (node, context) => {
-		if (node.left.type === 'VariableDeclaration' || !has_lazy_pattern(node.left)) {
-			return context.next();
-		}
-		return context.visit({
-			...node,
-			left: b.declaration('const', [b.declarator(/** @type {AST.Pattern} */ (node.left))]),
-		});
-	};
-	ast = /** @type {AST.Program} */ (
-		walk(ast, null, {
-			ForOfStatement: normalize_loop,
-			ForInStatement: normalize_loop,
-		})
-	);
 
 	const { scope, scopes } = createScopes(ast, scope_root, null, {
 		collect,

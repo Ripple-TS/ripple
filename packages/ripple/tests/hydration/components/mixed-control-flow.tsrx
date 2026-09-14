@@ -31,9 +31,9 @@ export function MixedControlFlowStatic() @{
 }
 
 export function MixedControlFlowReactive() @{
-	let &[show] = track(true);
-	let &[mode] = track<'a' | 'b'>('a');
-	let &[items] = track([
+	const show = track(true);
+	const mode = track<'a' | 'b'>('a');
+	const items = track([
 		{ id: 1, label: 'One' },
 		{ id: 2, label: 'Two' },
 	]);
@@ -41,25 +41,25 @@ export function MixedControlFlowReactive() @{
 		<button
 			class="toggle-show"
 			onClick={() => {
-				show = !show;
+				show.value = !show.value;
 			}}
 		>{'Toggle Show'}</button>
 		<button
 			class="toggle-mode"
 			onClick={() => {
-				mode = mode === 'a' ? 'b' : 'a';
+				mode.value = mode.value === 'a' ? 'b' : 'a';
 			}}
 		>{'Toggle Mode'}</button>
 		<button
 			class="add-item"
 			onClick={() => {
-				items = [...items, { id: 3, label: 'Three' }];
+				items.value = [...items.value, { id: 3, label: 'Three' }];
 			}}
 		>{'Add Item'}</button>
-		@if (show) {
+		@if (show.value) {
 			<div class="mixed-reactive-list">
-				@for (const item of items; key item.id) {
-					@switch (mode) {
+				@for (const item of items.value; key item.id) {
+					@switch (mode.value) {
 						@case 'a': {
 							@try {
 								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
@@ -106,6 +106,6 @@ export function MixedControlFlowAsyncPending() @{
 }
 
 function AsyncRow({ label }: { label: string }) @{
-	let &[value] = trackAsync(() => Promise.resolve(label));
-	<div class="resolved-row">{value}</div>
+	const value = trackAsync(() => Promise.resolve(label));
+	<div class="resolved-row">{value.value}</div>
 }

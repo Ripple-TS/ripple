@@ -48,7 +48,7 @@ export function RootThrows() {
 
 export function RootAsyncDirect() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track_async(() => Promise.resolve('root async value'), 'd6bf9e33');
+		const value = _$_.track_async(() => Promise.resolve('root async value'), 'd6bf9e33');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -58,7 +58,7 @@ export function RootAsyncDirect() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy.value);
+				_$_.render_expression(value.value);
 			}
 
 			__out += '</p>';
@@ -69,7 +69,7 @@ export function RootAsyncDirect() {
 
 export function RootAsyncRejects() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track_async(() => Promise.reject(new Error('root async failed')), 'd2fe7b64');
+		const value = _$_.track_async(() => Promise.reject(new Error('root async failed')), 'd2fe7b64');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -79,7 +79,7 @@ export function RootAsyncRejects() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_1.value);
+				_$_.render_expression(value.value);
 			}
 
 			__out += '</p>';
@@ -134,14 +134,14 @@ export function AsyncListInTryPending() {
 
 function AsyncList() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b3d31627');
+		const items = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b3d31627');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<ul class="items"><!--[-->';
 
-			for (let item of lazy_2.value) {
+			for (let item of items.value) {
 				__out += '<li>';
 
 				{
@@ -202,7 +202,7 @@ export function AsyncTryWithLeadingSibling() {
 
 function AsyncContent() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track_async(() => Promise.resolve('ready'), '15ea8758');
+		const value = _$_.track_async(() => Promise.resolve('ready'), '15ea8758');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -212,7 +212,7 @@ function AsyncContent() {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(lazy_3.value);
+				_$_.render_expression(value.value);
 			}
 
 			__out += '</div>';

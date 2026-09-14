@@ -98,11 +98,11 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 			}
 		}
 		function App() @{
-			let &[loaded, loadedT] = track(true);
+			const loaded = track(true);
 			const muzes = new RippleArray({ muzeId: 'b' }, { muzeId: 'c' });
 			<>
 				<button onClick={() => muzes.unshift({ muzeId: 'a' })}>{'add'}</button>
-				@if (loaded) {
+				@if (loaded.value) {
 					<>
 						@for (const muze of muzes; key muze.muzeId) {
 							<MuzeCard {muze} />
@@ -133,7 +133,7 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 
 		it('keeps no anchor nodes until a branch swaps, then removes the anchor with the item', () => {
 			function App() @{
-				let &[items] = track([
+				const items = track([
 					{ id: 1, code: false },
 					{ id: 2, code: true },
 					{ id: 3, code: false },
@@ -142,23 +142,23 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 					<button
 						class="swap"
 						onClick={() => {
-							items = items.map((i) => (i.id === 2 ? { ...i, code: false } : i));
+							items.value = items.value.map((i) => (i.id === 2 ? { ...i, code: false } : i));
 						}}
 					>{'swap'}</button>
 					<button
 						class="remove"
 						onClick={() => {
-							items = items.filter((i) => i.id !== 2);
+							items.value = items.value.filter((i) => i.id !== 2);
 						}}
 					>{'remove'}</button>
 					<button
 						class="clear"
 						onClick={() => {
-							items = [];
+							items.value = [];
 						}}
 					>{'clear'}</button>
 					<ul>
-						@for (const item of items; key item.id) {
+						@for (const item of items.value; key item.id) {
 							@if (item.code) {
 								<li class="code">{item.id}</li>
 							} @else {
@@ -192,7 +192,7 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 
 		it('moves a materialized anchor with its item and removes it on unmount', () => {
 			function App() @{
-				let &[items] = track([
+				const items = track([
 					{ id: 1, show: false },
 					{ id: 2, show: true },
 				]);
@@ -200,17 +200,17 @@ describe('keyed for with single-root item bodies (#1307 regression)', () => {
 					<button
 						class="show"
 						onClick={() => {
-							items = items.map((i) => (i.id === 1 ? { ...i, show: true } : i));
+							items.value = items.value.map((i) => (i.id === 1 ? { ...i, show: true } : i));
 						}}
 					>{'show'}</button>
 					<button
 						class="reverse"
 						onClick={() => {
-							items = [...items].reverse();
+							items.value = [...items.value].reverse();
 						}}
 					>{'reverse'}</button>
 					<ul>
-						@for (const item of items; key item.id) {
+						@for (const item of items.value; key item.id) {
 							@if (item.show) {
 								<li>{item.id}</li>
 							}

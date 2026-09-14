@@ -105,10 +105,10 @@ describe('compiler > assignments', () => {
 	it('compiles tracked values in effect with assignment expression', () => {
 		const source = `import { track, effect } from 'ripple';
 function App() @{
-	let &[count] = track(0);
+	const count = track(0);
 
 	effect(() => {
-		state.count = count;
+		state.count = count.value;
 	});
 	<></>
 }`;
@@ -120,14 +120,14 @@ function App() @{
 	it('compiles tracked values in effect with update expressions', () => {
 		const source = `import { track, effect, untrack } from 'ripple';
 function App() @{
-	let &[count] = track(5);
+	const count = track(5);
 
 	effect(() => {
 		untrack(() => {
-			state.preIncrement = ++count;
-			state.postIncrement = count++;
-			state.preDecrement = --count;
-			state.postDecrement = count--;
+			state.preIncrement = ++count.value;
+			state.postIncrement = count.value++;
+			state.preDecrement = --count.value;
+			state.postDecrement = count.value--;
 		});
 	});
 	<></>
@@ -135,70 +135,6 @@ function App() @{
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
-	});
-
-	it('compiles unknown lazy array destructuring through lazy array helpers', () => {
-		const source = `import { track } from 'ripple';
-function Child({ tr: &[count, tr] }) @{
-	count++;
-	tr[0]++;
-	<div>{count}</div>
-}
-function App() @{
-	let tracked = track(0);
-	<Child tr={tracked} />
-}`;
-		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
-
-		expect(code).toContain('_$_.lazy_array_get(lazy, 0)');
-		expect(code).toContain('_$_.lazy_array_update(lazy, 0)');
-		expect(code).toContain('_$_.lazy_array_get(lazy, 1)');
-		expect(code).toContain('_$_.lazy_array_update(_$_.lazy_array_get(lazy, 1), 0)');
-		expect(code).not.toContain('lazy[0]');
-		expect(code).not.toContain('lazy[1][0]');
-	});
-
-	it('compiles writes to unknown lazy array index 1 through lazy array helpers', () => {
-		const source = `function Child({ pair: &[first, second] }) @{
-	second = 10;
-	<div>{first}</div>
-		}
-function App() @{
-	<Child pair={[0, 1]} />
-}`;
-		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
-
-		expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
-		expect(code).not.toContain('lazy[1] =');
-	});
-
-	it('does not double-wrap member access on lazy array value bindings', () => {
-		const source = `function Child({ pair: &[first] }) @{
-	let value = first[0];
-	<div>{value}</div>
-		}
-function App() @{
-	<Child pair={[{ 0: 'x' }]} />
-}`;
-		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
-
-		expect(code).toContain('let value = _$_.lazy_array_get(lazy, 0)[0];');
-		expect(code).not.toContain('_$_.lazy_array_get(_$_.lazy_array_get(lazy, 0), 0)');
-	});
-
-	it('throws on indexed access through known tracked lazy destructures', () => {
-		const source = `import { track } from 'ripple';
-function App() @{
-	let &[value, tracked_ref] = track({ 0: 'x' });
-	let nested = value[0];
-	tracked_ref[0] = { 0: 'y' };
-	let next = value[0];
-	<div>{nested}{next}</div>
-}`;
-
-		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
-			/Use \.value or &\[\] lazy destructuring/,
-		);
 	});
 
 	it('throws on known tracked indexed access', () => {
@@ -213,7 +149,7 @@ function App() @{
 }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
-			/Use \.value or &\[\] lazy destructuring/,
+			/Accessing a tracked object directly is not allowed/,
 		);
 	});
 });

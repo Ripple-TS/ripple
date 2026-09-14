@@ -8,23 +8,23 @@ describe('basic client > reactivity', () => {
 			const seen: number[] = [];
 
 			function App() @{
-				let &[count] = track(0);
+				const count = track(0);
 
 				// Runs first in the flush; the nested sync flush must not release the
 				// previous values the later teardown reads.
 				effect(() => {
-					count;
+					count.value;
 					flushSync();
 				});
 
 				effect(() => {
-					count;
+					count.value;
 					return () => {
-						seen.push(count);
+						seen.push(count.value);
 					};
 				});
 
-				<button onClick={() => (count += 1)}>{count}</button>
+				<button onClick={() => (count.value += 1)}>{count.value}</button>
 			}
 
 			render(App);
@@ -124,16 +124,16 @@ describe('basic client > reactivity', () => {
 
 	it('renders with computed reactive state', () => {
 		function Basic() @{
-			let &[count] = track(5);
+			const count = track(5);
 			<>
-				<div class="count">{count}</div>
-				<div class="doubled">{count * 2}</div>
+				<div class="count">{count.value}</div>
+				<div class="doubled">{count.value * 2}</div>
 				<div class="is-even">
-					{count % 2 === 0 ? 'Even' : 'Odd'}
+					{count.value % 2 === 0 ? 'Even' : 'Odd'}
 				</div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>
@@ -235,12 +235,12 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where both mutate value', () => {
 		function App() @{
-			let &[count] = track(0, (v) => v + 1, (v) => v * 2);
+			const count = track(0, (v) => v + 1, (v) => v * 2);
 			<>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>
@@ -260,12 +260,12 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where set only mutates value', () => {
 		function App() @{
-			let &[count] = track(1, (v) => v, (v) => v * 2);
+			const count = track(1, (v) => v, (v) => v * 2);
 			<>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>
@@ -285,12 +285,12 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where get only mutates value', () => {
 		function App() @{
-			let &[count] = track(0, (v) => v + 1, (v) => v);
+			const count = track(0, (v) => v + 1, (v) => v);
 			<>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>
@@ -312,14 +312,14 @@ describe('basic client > reactivity', () => {
 		let logs: number[] = [];
 
 		function App() @{
-			let &[count] = track(0, (v) => v, (next, prev) => {
+			const count = track(0, (v) => v, (next, prev) => {
 				logs.push(prev, next);
 				return next;
 			});
 			<>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>{'Increment'}</button>
 			</>
@@ -336,12 +336,12 @@ describe('basic client > reactivity', () => {
 
 	it('doesn\'t error on mutating a tracked variable in track() setter', () => {
 		function Basic() @{
-			let &[count] = track(0);
-			const &[doubled] = track(0, undefined, (value) => {
-				count += value;
+			const count = track(0);
+			const doubled = track(0, undefined, (value) => {
+				count.value += value;
 				return value;
 			});
-			<p>{doubled}</p>
+			<p>{doubled.value}</p>
 		}
 
 		render(Basic);
@@ -353,9 +353,9 @@ describe('basic client > reactivity', () => {
 		let state: { count?: number } = {};
 
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			effect(() => {
-				state.count = count;
+				state.count = count.value;
 			});
 			<></>
 		}
@@ -377,15 +377,15 @@ describe('basic client > reactivity', () => {
 		} = {};
 
 		function Basic() @{
-			let &[count] = track(5);
+			const count = track(5);
 			effect(() => {
 				untrack(() => {
-					state.initialValue = count;
-					state.preIncrement = ++count;
-					state.postIncrement = count++;
-					state.preDecrement = --count;
-					state.postDecrement = count--;
-					state.finalValue = count;
+					state.initialValue = count.value;
+					state.preIncrement = ++count.value;
+					state.postIncrement = count.value++;
+					state.preDecrement = --count.value;
+					state.postDecrement = count.value--;
+					state.finalValue = count.value;
 				});
 			});
 			<></>
@@ -404,21 +404,21 @@ describe('basic client > reactivity', () => {
 
 	it('keeps other subscribers after a destroyed block writes shared state in its cleanup', () => {
 		function App() @{
-			let &[count] = track(0);
-			let &[show] = track(true);
+			const count = track(0);
+			const show = track(true);
 			<>
-				@if (show) {
+				@if (show.value) {
 					effect(() => {
-						count;
+						count.value;
 						return () => {
-							count = count + 1;
+							count.value = count.value + 1;
 						};
 					});
-					<span class="inner">{count}</span>
+					<span class="inner">{count.value}</span>
 				}
-				<span class="outer">{count}</span>
-				<button class="hide" onClick={() => (show = false)}>{'hide'}</button>
-				<button class="inc" onClick={() => (count = count + 1)}>{'inc'}</button>
+				<span class="outer">{count.value}</span>
+				<button class="hide" onClick={() => (show.value = false)}>{'hide'}</button>
+				<button class="inc" onClick={() => (count.value = count.value + 1)}>{'inc'}</button>
 			</>
 		}
 

@@ -4,15 +4,15 @@ describe('RippleMap', () => {
 	it('handles set with update and delete operations with a reactive size var', () => {
 		function MapTest() @{
 			let map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
-			let &[value] = track(() => map.get('a'));
-			let &[size] = track(() => map.size);
+			const value = track(() => map.get('a'));
+			const size = track(() => map.size);
 			<>
 				<button onClick={() => map.set('d', 4)}>{'set'}</button>
 				<button onClick={() => map.delete('b')}>{'delete'}</button>
 				<button onClick={() => map.set('a', 5)}>{'update'}</button>
 				<pre>{map.get('d')}</pre>
-				<pre>{size}</pre>
-				<pre>{value}</pre>
+				<pre>{size.value}</pre>
+				<pre>{value.value}</pre>
 			</>
 		}
 
@@ -62,10 +62,10 @@ describe('RippleMap', () => {
 	it('handles has operation and tracks reactive $has', () => {
 		function MapTest() @{
 			let map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
-			let &[has] = track(() => map.has('b'));
+			const has = track(() => map.has('b'));
 			<>
 				<button onClick={() => map.delete('b')}>{'delete'}</button>
-				<pre>{has}</pre>
+				<pre>{has.value}</pre>
 			</>
 		}
 
@@ -83,14 +83,14 @@ describe('RippleMap', () => {
 	it('handles reactivity of keys, values, and entries', () => {
 		function MapTest() @{
 			let map = new RippleMap([['x', 10], ['y', 20]]);
-			let &[keys] = track(() => Array.from(map.keys()));
-			let &[values] = track(() => Array.from(map.values()));
-			let &[entries] = track(() => Array.from(map.entries()));
+			const keys = track(() => Array.from(map.keys()));
+			const values = track(() => Array.from(map.values()));
+			const entries = track(() => Array.from(map.entries()));
 			<>
 				<button onClick={() => map.delete('x')}>{'delete'}</button>
-				<pre>{JSON.stringify(keys)}</pre>
-				<pre>{JSON.stringify(values)}</pre>
-				<pre>{JSON.stringify(entries)}</pre>
+				<pre>{JSON.stringify(keys.value)}</pre>
+				<pre>{JSON.stringify(values.value)}</pre>
+				<pre>{JSON.stringify(entries.value)}</pre>
 			</>
 		}
 
@@ -144,11 +144,11 @@ describe('RippleMap', () => {
 	it('creates RippleMap with initial entries using RippleMap() shorthand syntax', () => {
 		function MapTest() @{
 			let map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
-			let &[value] = track(() => map.get('b'));
+			const value = track(() => map.get('b'));
 			<>
 				<button onClick={() => map.set('b', 10)}>{'update'}</button>
 				<pre>{map.size}</pre>
-				<pre>{value}</pre>
+				<pre>{value.value}</pre>
 			</>
 		}
 
@@ -167,12 +167,12 @@ describe('RippleMap', () => {
 	it('handles all operations with RippleMap() shorthand syntax', () => {
 		function MapTest() @{
 			let map = new RippleMap([['x', 100], ['y', 200]]);
-			let &[keys] = track(() => Array.from(map.keys()));
+			const keys = track(() => Array.from(map.keys()));
 			<>
 				<button onClick={() => map.set('z', 300)}>{'add'}</button>
 				<button onClick={() => map.delete('x')}>{'delete'}</button>
 				<button onClick={() => map.clear()}>{'clear'}</button>
-				<pre>{JSON.stringify(keys)}</pre>
+				<pre>{JSON.stringify(keys.value)}</pre>
 				<pre>{map.size}</pre>
 			</>
 		}

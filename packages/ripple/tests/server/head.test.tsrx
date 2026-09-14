@@ -20,13 +20,13 @@ describe('head elements', () => {
 
 	it('renders reactive title element', async () => {
 		function App() @{
-			let &[title] = track('Initial Title');
+			const title = track('Initial Title');
 			<>
 				<head>
-					<title>{title}</title>
+					<title>{title.value}</title>
 				</head>
 				<div>
-					<span>{title}</span>
+					<span>{title.value}</span>
 				</div>
 			</>
 		}
@@ -40,9 +40,9 @@ describe('head elements', () => {
 
 	it('renders title with template literal', async () => {
 		function App() @{
-			let &[name] = track('World');
+			const name = track('World');
 			<head>
-				<title>{`Hello ${name}!`}</title>
+				<title>{`Hello ${name.value}!`}</title>
 			</head>
 		}
 
@@ -54,14 +54,14 @@ describe('head elements', () => {
 
 	it('renders title with computed value', async () => {
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let prefix = 'Count: ';
 			<>
 				<head>
-					<title>{prefix + count}</title>
+					<title>{prefix + count.value}</title>
 				</head>
 				<div>
-					<span>{count}</span>
+					<span>{count.value}</span>
 				</div>
 			</>
 		}
@@ -130,11 +130,11 @@ describe('head elements', () => {
 
 	it('renders title with conditional content', async () => {
 		function App() @{
-			let &[showPrefix] = track(true);
-			let &[title] = track('Main Page');
+			const showPrefix = track(true);
+			const title = track('Main Page');
 			<head>
 				<title>
-					{showPrefix ? 'App - ' + title : title}
+					{showPrefix.value ? 'App - ' + title.value : title.value}
 				</title>
 			</head>
 		}

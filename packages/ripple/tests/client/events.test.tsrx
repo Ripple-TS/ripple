@@ -4,17 +4,17 @@ import { effect, flushSync, mount, on, Portal, track } from 'ripple';
 describe('on() event handler', () => {
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
 		function Basic() @{
-			let &[count1] = track(0);
-			let &[count2] = track(0);
+			const count1 = track(0);
+			const count2 = track(0);
 			<>
 				<button
 					onClick={() => {
-						count1++;
-						count2++;
+						count1.value++;
+						count2.value++;
 					}}
 				>{'Click me'}</button>
-				<div class="count1">{count1}</div>
-				<div class="count2">{count2}</div>
+				<div class="count1">{count1.value}</div>
+				<div class="count2">{count2.value}</div>
 			</>
 		}
 
@@ -67,16 +67,16 @@ describe('on() event handler', () => {
 
 	it('should attach and remove a single event handler', () => {
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const setupListener = (node: HTMLButtonElement) => {
 				const remove = on(node, 'click', () => {
-					count++;
+					count.value++;
 				});
 				return remove;
 			};
 			<>
 				<button ref={setupListener}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 			</>
 		}
 
@@ -99,14 +99,14 @@ describe('on() event handler', () => {
 
 	it('should handle multiple different event types on same element', () => {
 		function Basic() @{
-			let &[clickCount] = track(0);
-			let &[mousedownCount] = track(0);
+			const clickCount = track(0);
+			const mousedownCount = track(0);
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
-					clickCount++;
+					clickCount.value++;
 				});
 				const remove2 = on(node, 'mousedown', () => {
-					mousedownCount++;
+					mousedownCount.value++;
 				});
 				return () => {
 					remove1();
@@ -115,8 +115,8 @@ describe('on() event handler', () => {
 			};
 			<>
 				<button ref={setupListeners}>{'Test'}</button>
-				<div class="click-count">{clickCount}</div>
-				<div class="mousedown-count">{mousedownCount}</div>
+				<div class="click-count">{clickCount.value}</div>
+				<div class="mousedown-count">{mousedownCount.value}</div>
 			</>
 		}
 
@@ -149,16 +149,16 @@ describe('on() event handler', () => {
 
 	it('should handle multiple handlers for same event type on same element', () => {
 		function Basic() @{
-			let &[callOrder] = track<number[]>([]);
+			const callOrder = track<number[]>([]);
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
-					callOrder = [...callOrder, 1];
+					callOrder.value = [...callOrder.value, 1];
 				});
 				const remove2 = on(node, 'click', () => {
-					callOrder = [...callOrder, 2];
+					callOrder.value = [...callOrder.value, 2];
 				});
 				const remove3 = on(node, 'click', () => {
-					callOrder = [...callOrder, 3];
+					callOrder.value = [...callOrder.value, 3];
 				});
 				return () => {
 					remove1();
@@ -168,7 +168,7 @@ describe('on() event handler', () => {
 			};
 			<>
 				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="order">{callOrder.join(',')}</div>
+				<div class="order">{callOrder.value.join(',')}</div>
 			</>
 		}
 
@@ -192,19 +192,19 @@ describe('on() event handler', () => {
 
 	it('should remove specific handler without affecting others', () => {
 		function Basic() @{
-			let &[handler1Called] = track(0);
-			let &[handler2Called] = track(0);
-			let &[handler3Called] = track(0);
+			const handler1Called = track(0);
+			const handler2Called = track(0);
+			const handler3Called = track(0);
 			let removeHandler2: OnEventListenerRemover | undefined;
 			const setupListeners = (node: HTMLButtonElement) => {
 				const remove1 = on(node, 'click', () => {
-					handler1Called++;
+					handler1Called.value++;
 				});
 				removeHandler2 = on(node, 'click', () => {
-					handler2Called++;
+					handler2Called.value++;
 				});
 				const remove3 = on(node, 'click', () => {
-					handler3Called++;
+					handler3Called.value++;
 				});
 				return () => {
 					remove1();
@@ -221,9 +221,9 @@ describe('on() event handler', () => {
 						removeHandler2 = undefined;
 					}}
 				>{'Remove handler 2'}</button>
-				<div class="h1">{handler1Called}</div>
-				<div class="h2">{handler2Called}</div>
-				<div class="h3">{handler3Called}</div>
+				<div class="h1">{handler1Called.value}</div>
+				<div class="h2">{handler2Called.value}</div>
+				<div class="h3">{handler3Called.value}</div>
 			</div>
 		}
 
@@ -266,17 +266,17 @@ describe('on() event handler', () => {
 		'should handle change event with multiple handlers (like bindChecked and bindIndeterminate)',
 		() => {
 			function Basic() @{
-				let &[checked] = track(false);
-				let &[indeterminate] = track(true);
+				const checked = track(false);
+				const indeterminate = track(true);
 				const setupListeners = (node: HTMLInputElement) => {
-					node.indeterminate = indeterminate;
-					node.checked = checked;
+					node.indeterminate = indeterminate.value;
+					node.checked = checked.value;
 
 					const remove1 = on(node, 'change', () => {
-						checked = node.checked;
+						checked.value = node.checked;
 					});
 					const remove2 = on(node, 'change', () => {
-						indeterminate = node.indeterminate;
+						indeterminate.value = node.indeterminate;
 					});
 					return () => {
 						remove1();
@@ -286,10 +286,10 @@ describe('on() event handler', () => {
 				<div>
 					<input type="checkbox" ref={setupListeners} />
 					<div class="checked">
-						{checked ? 'true' : 'false'}
+						{checked.value ? 'true' : 'false'}
 					</div>
 					<div class="indeterminate">
-						{indeterminate ? 'true' : 'false'}
+						{indeterminate.value ? 'true' : 'false'}
 					</div>
 				</div>
 			}
@@ -317,16 +317,16 @@ describe('on() event handler', () => {
 
 	it('should support non-delegated events', () => {
 		function Basic() @{
-			let &[focusCount] = track(0);
+			const focusCount = track(0);
 			const setupListener = (node: HTMLInputElement) => {
 				const remove = on(node, 'focus', () => {
-					focusCount++;
+					focusCount.value++;
 				});
 				return remove;
 			};
 			<>
 				<input ref={setupListener} />
-				<div class="focus-count">{focusCount}</div>
+				<div class="focus-count">{focusCount.value}</div>
 			</>
 		}
 
@@ -349,19 +349,19 @@ describe('on() event handler', () => {
 
 	it('should handle removal of all handlers for same event type', () => {
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let remove1: OnEventListenerRemover | undefined;
 			let remove2: OnEventListenerRemover | undefined;
 			let remove3: OnEventListenerRemover | undefined;
 			const setupListeners = (node: HTMLButtonElement) => {
 				remove1 = on(node, 'click', () => {
-					count++;
+					count.value++;
 				});
 				remove2 = on(node, 'click', () => {
-					count += 10;
+					count.value += 10;
 				});
 				remove3 = on(node, 'click', () => {
-					count += 100;
+					count.value += 100;
 				});
 				return () => {
 					remove1?.();
@@ -380,7 +380,7 @@ describe('on() event handler', () => {
 						remove1 = remove2 = remove3 = undefined;
 					}}
 				>{'Remove all'}</button>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 			</div>
 		}
 
@@ -410,9 +410,9 @@ describe('on() event handler', () => {
 
 	it('should not add duplicate handlers when same handler is attached multiple times', () => {
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const sharedHandler = () => {
-				count++;
+				count.value++;
 			};
 			const setupListeners = (node: HTMLButtonElement) => {
 				// Attach the same handler multiple times
@@ -428,7 +428,7 @@ describe('on() event handler', () => {
 			};
 			<>
 				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 			</>
 		}
 
@@ -452,9 +452,9 @@ describe('on() event handler', () => {
 
 	it('should allow duplicate handlers when delegated is false (no deduplication)', () => {
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const sharedHandler = () => {
-				count++;
+				count.value++;
 			};
 			const setupListeners = (node: HTMLButtonElement) => {
 				// Attach the same handler multiple times with delegated: false
@@ -470,7 +470,7 @@ describe('on() event handler', () => {
 			};
 			<>
 				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<div class="count">{count.value}</div>
 			</>
 		}
 
@@ -495,12 +495,12 @@ describe('on() event handler', () => {
 
 	it('should fire capture event on parent before bubbling event on child', () => {
 		function Basic() @{
-			let &[callOrder] = track<string[]>([]);
+			const callOrder = track<string[]>([]);
 			const parentCaptureHandler = () => {
-				callOrder = [...callOrder, 'parent-capture'];
+				callOrder.value = [...callOrder.value, 'parent-capture'];
 			};
 			const childBubbleHandler = () => {
-				callOrder = [...callOrder, 'child-bubble'];
+				callOrder.value = [...callOrder.value, 'child-bubble'];
 			};
 			const setupParent = (node: HTMLDivElement) => {
 				return on(node, 'clickCapture', parentCaptureHandler);
@@ -512,7 +512,7 @@ describe('on() event handler', () => {
 				<div ref={setupParent} class="parent">
 					<button ref={setupChild} class="child">{'Click me'}</button>
 				</div>
-				<div class="order">{callOrder.join(',')}</div>
+				<div class="order">{callOrder.value.join(',')}</div>
 			</>
 		}
 
@@ -537,15 +537,15 @@ describe('on() event handler', () => {
 
 	it('should fire handler only once when once option is true', () => {
 		function Basic() @{
-			let &[count] = track(0);
-			let &[permanentCount] = track(0);
+			const count = track(0);
+			const permanentCount = track(0);
 			const setupListeners = (node: HTMLButtonElement) => {
 				const onceHandler = on(node, 'click', () => {
-					count++;
+					count.value++;
 				}, { once: true });
 
 				const permanentHandler = on(node, 'click', () => {
-					permanentCount++;
+					permanentCount.value++;
 				});
 
 				return () => {
@@ -555,8 +555,8 @@ describe('on() event handler', () => {
 			};
 			<>
 				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="once-count">{count}</div>
-				<div class="permanent-count">{permanentCount}</div>
+				<div class="once-count">{count.value}</div>
+				<div class="permanent-count">{permanentCount.value}</div>
 			</>
 		}
 
@@ -591,16 +591,16 @@ describe('on() event handler', () => {
 
 	it('should handle click events on window', () => {
 		function Basic() @{
-			let &[windowClickCount] = track(0);
+			const windowClickCount = track(0);
 			effect(() => {
 				const removeWindowListener = on(window, 'click', () => {
-					windowClickCount++;
+					windowClickCount.value++;
 				});
 				return removeWindowListener;
 			});
 			<div>
 				<button class="test-btn">{'Click me'}</button>
-				<div class="window-count">{windowClickCount}</div>
+				<div class="window-count">{windowClickCount.value}</div>
 			</div>
 		}
 
@@ -625,16 +625,16 @@ describe('on() event handler', () => {
 
 	it('should handle click events on document', () => {
 		function Basic() @{
-			let &[documentClickCount] = track(0);
+			const documentClickCount = track(0);
 			effect(() => {
 				const removeDocumentListener = on(document, 'click', () => {
-					documentClickCount++;
+					documentClickCount.value++;
 				});
 				return removeDocumentListener;
 			});
 			<div>
 				<button class="test-btn">{'Click me'}</button>
-				<div class="document-count">{documentClickCount}</div>
+				<div class="document-count">{documentClickCount.value}</div>
 			</div>
 		}
 
@@ -659,16 +659,16 @@ describe('on() event handler', () => {
 
 	it('should handle click events on body', () => {
 		function Basic() @{
-			let &[bodyClickCount] = track(0);
+			const bodyClickCount = track(0);
 			effect(() => {
 				const removeBodyListener = on(document.body, 'click', () => {
-					bodyClickCount++;
+					bodyClickCount.value++;
 				});
 				return removeBodyListener;
 			});
 			<div>
 				<button class="test-btn">{'Click me'}</button>
-				<div class="body-count">{bodyClickCount}</div>
+				<div class="body-count">{bodyClickCount.value}</div>
 			</div>
 		}
 
@@ -700,8 +700,8 @@ describe('root event delegation lifecycle', () => {
 		const target = document.createElement('div');
 
 		function Counter() @{
-			let &[count] = track(0);
-			<button onClick={() => count++}>{count}</button>
+			const count = track(0);
+			<button onClick={() => count.value++}>{count.value}</button>
 		}
 
 		const unmount_first = mount(Counter, { target });

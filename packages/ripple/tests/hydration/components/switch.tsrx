@@ -16,17 +16,17 @@ export function SwitchStatic() @{
 }
 
 export function SwitchReactive() @{
-	let &[status] = track<'a' | 'b' | 'c'>('a');
+	const status = track<'a' | 'b' | 'c'>('a');
 	<>
 		<button
 			class="toggle"
 			onClick={() => {
-				if (status === 'a') status = 'b';
-				else if (status === 'b') status = 'c';
-				else status = 'a';
+				if (status.value === 'a') status.value = 'b';
+				else if (status.value === 'b') status.value = 'c';
+				else status.value = 'a';
 			}}
 		>{'Toggle'}</button>
-		@switch (status) {
+		@switch (status.value) {
 			@case 'a': {
 				<div class="case-a">Case A</div>
 			}
@@ -55,17 +55,17 @@ export function SwitchFallthrough() @{
 }
 
 export function SwitchNumericLevels() @{
-	let &[level] = track<1 | 2 | 3>(1);
+	const level = track<1 | 2 | 3>(1);
 	<>
 		<button
 			class="level-toggle"
 			onClick={() => {
-				if (level === 1) level = 2;
-				else if (level === 2) level = 3;
-				else level = 1;
+				if (level.value === 1) level.value = 2;
+				else if (level.value === 2) level.value = 3;
+				else level.value = 1;
 			}}
 		>{'Toggle Level'}</button>
-		@switch (level) {
+		@switch (level.value) {
 			@case 1: {
 				<div class="level-1">{'Level 1'}</div>
 			}
@@ -80,17 +80,17 @@ export function SwitchNumericLevels() @{
 }
 
 export function SwitchBlockScoped() @{
-	let &[level] = track<1 | 2 | 3>(1);
+	const level = track<1 | 2 | 3>(1);
 	<>
 		<button
 			class="block-toggle"
 			onClick={() => {
-				if (level === 1) level = 2;
-				else if (level === 2) level = 3;
-				else level = 1;
+				if (level.value === 1) level.value = 2;
+				else if (level.value === 2) level.value = 3;
+				else level.value = 1;
 			}}
 		>{'Toggle'}</button>
-		@switch (level) {
+		@switch (level.value) {
 			@case 1: {
 				<div class="block-1">{'Block 1'}</div>
 			}
@@ -105,17 +105,17 @@ export function SwitchBlockScoped() @{
 }
 
 export function SwitchNoBreak() @{
-	let &[level] = track<1 | 2 | 3>(1);
+	const level = track<1 | 2 | 3>(1);
 	<>
 		<button
 			class="nobreak-toggle"
 			onClick={() => {
-				if (level === 1) level = 2;
-				else if (level === 2) level = 3;
-				else level = 1;
+				if (level.value === 1) level.value = 2;
+				else if (level.value === 2) level.value = 3;
+				else level.value = 1;
 			}}
 		>{'Toggle'}</button>
-		@switch (level) {
+		@switch (level.value) {
 			@case 1: {
 				<div class="nobreak-1">{'NoBreak 1'}</div>
 			}

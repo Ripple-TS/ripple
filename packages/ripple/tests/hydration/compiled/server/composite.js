@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-export function Layout(__props) {
+export function Layout({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -11,7 +11,7 @@ export function Layout(__props) {
 			{
 				_$_.output_push(__out);
 				__out = '';
-				_$_.render_expression(__props.children);
+				_$_.render_expression(children);
 			}
 
 			__out += '</div>';
@@ -20,7 +20,7 @@ export function Layout(__props) {
 	});
 }
 
-export function TextWrappedLayout(__props) {
+export function TextWrappedLayout({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			let __out = '';
@@ -28,7 +28,7 @@ export function TextWrappedLayout(__props) {
 			__out += '<div class="layout">before';
 			_$_.output_push(__out);
 			__out = '';
-			_$_.render_expression(__props.children);
+			_$_.render_expression(children);
 			__out += 'after</div>';
 			_$_.output_push(__out);
 		});
@@ -190,26 +190,17 @@ export function DynamicTagElement() {
 		const Tag = 'section';
 
 		_$_.regular_block(() => {
-			{
-				const comp = _$_.dynamic_element;
+			_$_.dynamic_element(Tag, {
+				class: "host",
+				children: _$_.tsrx_element(() => {
+					return _$_.tsrx_element(() => {
+						let __out = '';
 
-				const args = [
-					{
-						is: Tag,
-						class: "host",
-						children: _$_.tsrx_element(() => {
-							return _$_.tsrx_element(() => {
-								let __out = '';
-
-								__out += 'hello';
-								_$_.output_push(__out);
-							});
-						})
-					}
-				];
-
-				_$_.render_component(comp, ...args);
-			}
+						__out += 'hello';
+						_$_.output_push(__out);
+					});
+				})
+			});
 		});
 	});
 }
@@ -226,12 +217,7 @@ export function DynamicTagComponent() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								{
-									const comp = _$_.dynamic_element;
-									const args = [{ is: Comp }];
-
-									_$_.render_component(comp, ...args);
-								}
+								_$_.dynamic_element(Comp, {});
 							});
 						})
 					}

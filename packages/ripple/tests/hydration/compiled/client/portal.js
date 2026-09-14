@@ -27,7 +27,7 @@ SimplePortal[_$_.$r] = SimplePortal_render;
 
 var root_3 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
 
-function consequent(__anchor, lazy) {
+function consequent(__anchor, show) {
 	_$_.portal(__anchor, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
 		var div_3 = root_3();
 
@@ -35,24 +35,24 @@ function consequent(__anchor, lazy) {
 	});
 }
 
-function if_1(lazy) {
-	if (lazy.value) return consequent;
+function if_1(show) {
+	if (show.value) return consequent;
 }
 
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
 
 function ConditionalPortal_render(__anchor, __block) {
-	let lazy = _$_.track(true, __block, '4f6df174');
+	const show = _$_.track(true, __block, '4f6df174');
 	var div_2 = root_2();
 
 	{
 		var button = _$_.hydrating ? _$_.hydrate_child() : div_2.firstChild;
 
-		button.__click = () => _$_.set(lazy, !lazy.value);
+		button.__click = () => show.value = !show.value;
 
 		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
-		_$_.if(node_1, if_1, false, lazy);
+		_$_.if(node_1, if_1, false, show);
 		_$_.hydrating && _$_.pop(div_2);
 	}
 

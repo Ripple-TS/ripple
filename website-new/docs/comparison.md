@@ -7,7 +7,7 @@ title: Comparison to other frameworks
 ## vs React
 
 - No wrapper components for control flow - returned templates support inline `@if`, `@for`, `@switch`, and `@try`
-- Built-in reactivity with `track()` and `&[]` lazy destructuring instead of useState/useEffect
+- Built-in reactivity with `track()` and `.value` instead of useState/useEffect
 - Scoped CSS without CSS-in-JS libraries
 - No virtual DOM - fine-grained reactivity
 

@@ -3,14 +3,14 @@ import { track } from 'ripple';
 // Reactive components for hydration testing
 
 export function TrackedState() @{
-	let &[count] = track(0);
-	<div class="count">{count}</div>
+	const count = track(0);
+	<div class="count">{count.value}</div>
 }
 
 export function CounterWithInitial(props: { initial: number }) @{
-	let &[count] = track(props.initial);
+	const count = track(props.initial);
 	<div>
-		<span class="count">{count}</span>
+		<span class="count">{count.value}</span>
 	</div>
 }
 
@@ -19,26 +19,26 @@ export function CounterWrapper() @{
 }
 
 export function ComputedValues() @{
-	let &[a] = track(2);
-	let &[b] = track(3);
-	const sum = () => a + b;
+	const a = track(2);
+	const b = track(3);
+	const sum = () => a.value + b.value;
 	<div class="sum">{sum()}</div>
 }
 
 export function MultipleTracked() @{
-	let &[x] = track(10);
-	let &[y] = track(20);
-	let &[z] = track(30);
+	const x = track(10);
+	const y = track(20);
+	const z = track(30);
 	<div class="multiple-tracked">
-		<div class="x">{x}</div>
-		<div class="y">{y}</div>
-		<div class="z">{z}</div>
+		<div class="x">{x.value}</div>
+		<div class="y">{y.value}</div>
+		<div class="z">{z.value}</div>
 	</div>
 }
 
 export function DerivedState() @{
-	let &[firstName] = track('John');
-	let &[lastName] = track('Doe');
-	const fullName = () => `${firstName} ${lastName}`;
+	const firstName = track('John');
+	const lastName = track('Doe');
+	const fullName = () => `${firstName.value} ${lastName.value}`;
 	<div class="name">{fullName()}</div>
 }

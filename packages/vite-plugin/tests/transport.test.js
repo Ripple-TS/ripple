@@ -79,11 +79,11 @@ module server {
 }
 import { doubleMoney } from server;
 export function App() @{
-  let &[count] = track(6);
-  let &[money] = trackAsync(() => doubleMoney(new Money(count, 'USD')));
+  const count = track(6);
+  const money = trackAsync(() => doubleMoney(new Money(count.value, 'USD')));
   <>
-    <p class="result">{money.format()}</p>
-    <button onClick={() => { count++; }}>increment</button>
+    <p class="result">{money.value.format()}</p>
+    <button onClick={() => { count.value++; }}>increment</button>
   </>
 }`,
 	);

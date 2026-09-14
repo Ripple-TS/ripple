@@ -581,23 +581,6 @@ function App() @{
 		expect(result).toMatch(/value:\s*value\.value/);
 	});
 
-	it('keeps lazy destructuring as plain destructuring in to_ts output', () => {
-		const track_source = `
-import { track } from 'ripple';
-function App() @{
-	let &[value, ...rest] = track(0);
-	const x = value;
-}
-`;
-		const track_result = compile_to_volar_mappings(track_source, 'test.tsrx').code;
-		expect(track_result).toContain('let [value, ...rest] = track(0);');
-		expect(track_result).toContain('const x = value;');
-		expect(track_result).not.toContain('let lazy = track(0)');
-		expect(track_result).not.toContain('.slice(');
-		expect(track_result).not.toContain('_$_.get(');
-		expect(track_result).not.toContain('lazy0');
-	});
-
 	it('lowers native expression values in to_ts output', () => {
 		const source = `
 function App() @{
@@ -829,37 +812,6 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 		expect_identifier_mapping('declMaybe', 'declMaybe?: string');
 	});
 
-	it('uses tracked fast path for nested lazy params typed as Tracked', () => {
-		const source = `
-import type { Tracked } from 'ripple';
-function use_nested({ value: &[count, tracked] }: { value: Tracked<number> }) {
-	count++;
-	return tracked;
-}
-`;
-		const { code } = compile(source, 'tracked-nested-lazy.tsrx', { mode: 'client' });
-
-		// Nested lazy array should still use tracked tuple fast path from outer annotation.
-		expect(code).toContain('_$_.update(');
-		expect(code).not.toContain('[0]');
-		expect(code).not.toContain('[1]');
-	});
-
-	it('uses tracked fast path for nested lazy params at tuple rest positions', () => {
-		const source = `
-import type { Tracked } from 'ripple';
-function use_tuple_rest({ value: [head, &[count, tracked]] }: { value: [number, ...Tracked<number>[]] }) {
-	count++;
-	return tracked;
-}
-`;
-		const { code } = compile(source, 'tracked-nested-lazy-tuple-rest.tsrx', { mode: 'client' });
-
-		// Tuple rest element access should resolve to Tracked<number>, not Tracked<number>[].
-		expect(code).toContain('_$_.update(');
-		expect(code).not.toContain('[1]');
-	});
-
 	it('preserves generic type args in interface extends for Volar mappings', () => {
 		const source = `
 interface PolymorphicProps<T extends keyof HTMLElementTagNameMap> {
@@ -884,13 +836,13 @@ export function App(props: Props) @{
 		const source = `
 import { track } from 'ripple';
 export function App() @{
-	let &[level] = track(1);
+	const level = track(1);
 
 	<button
 		onClick={() => {
-			if (level === 1) level = 2;
-			else if (level === 2) level = 3;
-			else level = 1;
+			if (level.value === 1) level.value = 2;
+			else if (level.value === 2) level.value = 3;
+			else level.value = 1;
 		}}
 	>
 		{'Toggle'}
@@ -1079,10 +1031,10 @@ export function App() @{
 import { track, effect, untrack } from 'ripple';
 
 function App() @{
-	let &[count] = track(0);
+	const count = track(0);
 
 	effect(() => {
-		const snapshot = untrack(() => count);
+		const snapshot = untrack(() => count.value);
 		console.log(snapshot);
 	});
 }

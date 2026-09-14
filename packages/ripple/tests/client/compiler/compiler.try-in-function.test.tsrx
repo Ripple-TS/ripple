@@ -74,7 +74,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 		const source = `import { trackAsync } from 'ripple';
 export function App() @{
 	try {
-		let &[data] = trackAsync(() => fetch('/api'));
+		const data = trackAsync(() => fetch('/api'));
 	} catch (e) {}
 	<div>{"hi"}</div>
 }`;
@@ -88,7 +88,7 @@ export function App() @{
 		const source = `import { trackAsync } from 'ripple';
 export function App() @{
 	try {
-		let &[data] = trackAsync(() => fetch('/init'));
+		const data = trackAsync(() => fetch('/init'));
 	} catch (e) {}
 
 	async function refresh() {

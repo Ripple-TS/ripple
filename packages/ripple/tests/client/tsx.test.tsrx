@@ -162,13 +162,13 @@ describe('tsx expression', () => {
 
 	it('renders a tsx element with reactive expressions', () => {
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const el = <>
-				<div>{'count: ' + count}</div>
+				<div>{'count: ' + count.value}</div>
 			</>;
 			<>
 				{el}
-				<button onClick={() => count++}>{'increment'}</button>
+				<button onClick={() => count.value++}>{'increment'}</button>
 			</>
 		}
 		render(App);
@@ -181,15 +181,15 @@ describe('tsx expression', () => {
 
 	it('conditionally renders tsx elements', () => {
 		function App() @{
-			let &[show] = track(true);
+			const show = track(true);
 			const el = <div class="tsx-content">{'content'}</div>;
 			<>
-				@if (show) {
+				@if (show.value) {
 					<>
 						{el}
 					</>
 				}
-				<button onClick={() => (show = !show)}>{'toggle'}</button>
+				<button onClick={() => (show.value = !show.value)}>{'toggle'}</button>
 			</>
 		}
 		render(App);
@@ -205,7 +205,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx element passed as children prop', () => {
-		function Child(&{ children }) @{
+		function Child({ children }) @{
 			<div class="wrapper">{children}</div>
 		}
 
@@ -252,11 +252,11 @@ describe('tsx expression', () => {
 
 	it('renders tsx element with dynamic attribute values', () => {
 		function App() @{
-			let &[name] = track('initial');
-			const el = <div id={name} class={'cls-' + name}>{'content'}</div>;
+			const name = track('initial');
+			const el = <div id={name.value} class={'cls-' + name.value}>{'content'}</div>;
 			<>
 				{el}
-				<button onClick={() => (name = 'updated')}>{'update'}</button>
+				<button onClick={() => (name.value = 'updated')}>{'update'}</button>
 			</>
 		}
 
@@ -273,12 +273,12 @@ describe('tsx expression', () => {
 
 	it('renders tsx element with event handlers', () => {
 		function App() @{
-			let &[clicked] = track(false);
-			const el = <button onClick={() => (clicked = true)}>{'click'}</button>;
+			const clicked = track(false);
+			const el = <button onClick={() => (clicked.value = true)}>{'click'}</button>;
 			<>
 				{el}
 				<div class="status">
-					{clicked ? 'clicked' : 'not clicked'}
+					{clicked.value ? 'clicked' : 'not clicked'}
 				</div>
 			</>
 		}
@@ -293,11 +293,14 @@ describe('tsx expression', () => {
 
 	it('renders tsx element with boolean attributes', () => {
 		function App() @{
-			let &[isDisabled] = track(true);
-			const el = <button disabled={isDisabled}>{'submit'}</button>;
+			const isDisabled = track(true);
+			const el = <button disabled={isDisabled.value}>{'submit'}</button>;
 			<>
 				{el}
-				<button class="toggle" onClick={() => (isDisabled = !isDisabled)}>{'toggle'}</button>
+				<button
+					class="toggle"
+					onClick={() => (isDisabled.value = !isDisabled.value)}
+				>{'toggle'}</button>
 			</>
 		}
 
@@ -311,11 +314,11 @@ describe('tsx expression', () => {
 
 	it('renders tsx element with style attribute', () => {
 		function App() @{
-			let &[color] = track('red');
-			const el = <div style={{ color }}>{'content'}</div>;
+			const color = track('red');
+			const el = <div style={{ color: color.value }}>{'content'}</div>;
 			<>
 				{el}
-				<button onClick={() => (color = 'blue')}>{'change color'}</button>
+				<button onClick={() => (color.value = 'blue')}>{'change color'}</button>
 			</>
 		}
 
@@ -329,18 +332,18 @@ describe('tsx expression', () => {
 
 	it('renders tsx element with multiple dynamic attributes', () => {
 		function App() @{
-			let &[index] = track(0);
+			const index = track(0);
 			const el = <div
-				id={'item-' + index}
-				class={'item pos-' + index}
-				data-index={index}
-				title={'Item ' + index}
+				id={'item-' + index.value}
+				class={'item pos-' + index.value}
+				data-index={index.value}
+				title={'Item ' + index.value}
 			>
-				{'Item ' + index}
+				{'Item ' + index.value}
 			</div>;
 			<>
 				{el}
-				<button onClick={() => index++}>{'next'}</button>
+				<button onClick={() => index.value++}>{'next'}</button>
 			</>
 		}
 
@@ -360,7 +363,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders fragment shorthand passed directly as component prop', () => {
-		function Wrapper(&{ content }) @{
+		function Wrapper({ content }) @{
 			<div class="wrapper">{content}</div>
 		}
 
@@ -376,7 +379,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders fragment shorthand passed directly as children prop', () => {
-		function Card(&{ title, children }) @{
+		function Card({ title, children }) @{
 			<div class="card">
 				<h2 class="card-title">{title}</h2>
 				<div class="card-body">{children}</div>
@@ -435,7 +438,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx from factory function passed to component', () => {
-		function List(&{ renderItem, items }) @{
+		function List({ renderItem, items }) @{
 			<ul class="list">
 				@for (const item of items) {
 					<>
@@ -472,11 +475,11 @@ describe('tsx expression', () => {
 		}
 
 		function App() @{
-			let &[count] = track(0);
-			const counterElement = createCounter('Count:', () => count);
+			const count = track(0);
+			const counterElement = createCounter('Count:', () => count.value);
 			<>
 				{counterElement}
-				<button onClick={() => count++}>{'increment'}</button>
+				<button onClick={() => count.value++}>{'increment'}</button>
 			</>
 		}
 
@@ -617,7 +620,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx as prop with fallback in component', () => {
-		function Alert(&{ icon, message }) @{
+		function Alert({ icon, message }) @{
 			<div class="alert">
 				{icon}
 				<span class="message">{message}</span>
@@ -677,11 +680,11 @@ describe('tsx expression', () => {
 		}
 
 		function App() @{
-			let &[status] = track('default');
+			const status = track('default');
 			<>
-				{createContent(status)}
-				<button class="set-success" onClick={() => (status = 'success')}>{'Success'}</button>
-				<button class="set-error" onClick={() => (status = 'error')}>{'Error'}</button>
+				{createContent(status.value)}
+				<button class="set-success" onClick={() => (status.value = 'success')}>{'Success'}</button>
+				<button class="set-error" onClick={() => (status.value = 'error')}>{'Error'}</button>
 			</>
 		}
 
@@ -736,13 +739,13 @@ describe('tsrx expression', () => {
 
 	it('updates reactive expressions inside native fragments', () => {
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const el = <>
-				<div>{'count: ' + count}</div>
+				<div>{'count: ' + count.value}</div>
 			</>;
 			<>
 				{el}
-				<button onClick={() => count++}>{'increment'}</button>
+				<button onClick={() => count.value++}>{'increment'}</button>
 			</>
 		}
 

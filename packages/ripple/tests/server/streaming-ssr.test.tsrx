@@ -171,8 +171,8 @@ describe('streaming try/pending boundaries', () => {
 		const d = deferred<string>();
 
 		function Content() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{data.value}</p>
 		}
 
 		function App() @{
@@ -229,8 +229,8 @@ describe('streaming try/pending boundaries', () => {
 		const d = deferred<string>();
 
 		function Content() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{data.value}</p>
 		}
 
 		function App() @{
@@ -261,8 +261,8 @@ describe('streaming try/pending boundaries', () => {
 		const d = deferred<string>();
 
 		function Content() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{data.value}</p>
 		}
 
 		function App() @{
@@ -297,8 +297,8 @@ describe('streaming try/pending boundaries', () => {
 		const d = deferred<string>();
 
 		function Content() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{data.value}</p>
 		}
 
 		function App() @{
@@ -340,13 +340,13 @@ describe('streaming try/pending boundaries', () => {
 describe('streaming nested and sibling boundaries', () => {
 	function makeNestedApp(d_outer: Deferred<string>, d_inner: Deferred<string>) {
 		function OuterData() @{
-			let &[data] = trackAsync(() => d_outer.promise);
-			<p class="outer">{data}</p>
+			const data = trackAsync(() => d_outer.promise);
+			<p class="outer">{data.value}</p>
 		}
 
 		function InnerData() @{
-			let &[data] = trackAsync(() => d_inner.promise);
-			<p class="inner">{data}</p>
+			const data = trackAsync(() => d_inner.promise);
+			<p class="inner">{data.value}</p>
 		}
 
 		function App() @{
@@ -429,13 +429,13 @@ describe('streaming nested and sibling boundaries', () => {
 		const d_second = deferred<string>();
 
 		function First() @{
-			let &[data] = trackAsync(() => d_first.promise);
-			<p>{'first: ' + data}</p>
+			const data = trackAsync(() => d_first.promise);
+			<p>{'first: ' + data.value}</p>
 		}
 
 		function Second() @{
-			let &[data] = trackAsync(() => d_second.promise);
-			<p>{'second: ' + data}</p>
+			const data = trackAsync(() => d_second.promise);
+			<p>{'second: ' + data.value}</p>
 		}
 
 		function App() @{
@@ -475,16 +475,16 @@ describe('streaming nested and sibling boundaries', () => {
 		async () => {
 			function makeApp(ds: Deferred<string>[]) {
 				function A() @{
-					let &[data] = trackAsync(() => ds[0].promise);
-					<p>{'A:' + data}</p>
+					const data = trackAsync(() => ds[0].promise);
+					<p>{'A:' + data.value}</p>
 				}
 				function B() @{
-					let &[data] = trackAsync(() => ds[1].promise);
-					<p>{'B:' + data}</p>
+					const data = trackAsync(() => ds[1].promise);
+					<p>{'B:' + data.value}</p>
 				}
 				function C() @{
-					let &[data] = trackAsync(() => ds[2].promise);
-					<p>{'C:' + data}</p>
+					const data = trackAsync(() => ds[2].promise);
+					<p>{'C:' + data.value}</p>
 				}
 
 				function App() @{
@@ -547,8 +547,8 @@ describe('streaming root boundary', () => {
 		const d = deferred<string>();
 
 		function App() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{'app: ' + data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{'app: ' + data.value}</p>
 		}
 
 		function RootPending() @{
@@ -575,8 +575,8 @@ describe('streaming with a document template', () => {
 		const d = deferred<string>();
 
 		function Content() @{
-			let &[data] = trackAsync(() => d.promise);
-			<p>{data}</p>
+			const data = trackAsync(() => d.promise);
+			<p>{data.value}</p>
 		}
 
 		function App() @{
@@ -619,14 +619,14 @@ describe('streaming head content', () => {
 		const d = deferred<string>();
 
 		function LateHead() @{
-			let &[data] = trackAsync(() => d.promise);
+			const data = trackAsync(() => d.promise);
 			<>
-				@if (data) {
+				@if (data.value) {
 					<>
 						<head>
-							<title>{'title:' + data}</title>
+							<title>{'title:' + data.value}</title>
 						</head>
-						<p class="has-head">{data}</p>
+						<p class="has-head">{data.value}</p>
 					</>
 				}
 			</>
@@ -677,18 +677,18 @@ describe('streaming CSS', () => {
 		}
 
 		function GateOne() @{
-			let &[ready] = trackAsync(() => d_gate.promise);
+			const ready = trackAsync(() => d_gate.promise);
 			<>
-				@if (ready) {
+				@if (ready.value) {
 					<LateStyled />
 				}
 			</>
 		}
 
 		function GateTwo() @{
-			let &[ready] = trackAsync(() => d_gate2.promise);
+			const ready = trackAsync(() => d_gate2.promise);
 			<>
-				@if (ready) {
+				@if (ready.value) {
 					<LateStyled />
 				}
 			</>

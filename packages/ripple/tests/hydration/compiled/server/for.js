@@ -91,14 +91,14 @@ export function KeyedForLoop() {
 
 export function ReactiveForLoopAdd() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(['A', 'B'], 'e145678a');
+		const items = _$_.track(['A', 'B'], 'e145678a');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="add">Add</button><ul><!--[-->';
 
-			for (const item of lazy.value) {
+			for (const item of items.value) {
 				__out += '<li>';
 
 				{
@@ -118,14 +118,14 @@ export function ReactiveForLoopAdd() {
 
 export function ReactiveForLoopRemove() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
+		const items = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="remove">Remove</button><ul><!--[-->';
 
-			for (const item of lazy_1.value) {
+			for (const item of items.value) {
 				__out += '<li>';
 
 				{
@@ -145,7 +145,7 @@ export function ReactiveForLoopRemove() {
 
 export function ForLoopInteractive() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track([0, 0, 0], '36f563df');
+		const counts = _$_.track([0, 0, 0], '36f563df');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -157,7 +157,7 @@ export function ForLoopInteractive() {
 
 				var i = 0;
 
-				for (const count of lazy_2.value) {
+				for (const count of counts.value) {
 					__out += '<div' + _$_.attr('class', `item-${i}`) + '><span class="value">';
 
 					{
@@ -289,7 +289,7 @@ export function ForLoopComplexObjects() {
 
 export function KeyedForLoopReorder() {
 	return _$_.tsrx_element(() => {
-		let lazy_3 = _$_.track(
+		const items = _$_.track(
 			[
 				{ id: 1, name: 'First' },
 				{ id: 2, name: 'Second' },
@@ -303,7 +303,7 @@ export function KeyedForLoopReorder() {
 
 			__out += '<button class="reorder">Reorder</button><ul><!--[-->';
 
-			for (const item of lazy_3.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>';
 
 				{
@@ -323,14 +323,14 @@ export function KeyedForLoopReorder() {
 
 export function KeyedForLoopUpdate() {
 	return _$_.tsrx_element(() => {
-		let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
+		const items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="update">Update</button><ul><!--[-->';
 
-			for (const item of lazy_4.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>';
 
 				{
@@ -350,14 +350,14 @@ export function KeyedForLoopUpdate() {
 
 export function ForLoopMixedOperations() {
 	return _$_.tsrx_element(() => {
-		let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
+		const items = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="shuffle">Shuffle</button><ul><!--[-->';
 
-			for (const item of lazy_5.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -377,18 +377,18 @@ export function ForLoopMixedOperations() {
 
 export function ForLoopInsideIf() {
 	return _$_.tsrx_element(() => {
-		let lazy_6 = _$_.track(true, '0528df30');
-		let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
+		const showList = _$_.track(true, '0528df30');
+		const items = _$_.track(['X', 'Y', 'Z'], 'bf375103');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="toggle">Toggle List</button><button class="add">Add Item</button><!--[-->';
 
-			if (lazy_6.value) {
+			if (showList.value) {
 				__out += '<ul class="list"><!--[-->';
 
-				for (const item of lazy_7.value) {
+				for (const item of items.value) {
 					__out += '<li>';
 
 					{
@@ -411,15 +411,23 @@ export function ForLoopInsideIf() {
 
 export function ForLoopEmptyToPopulated() {
 	return _$_.tsrx_element(() => {
-		let lazy_8 = _$_.track([], '525c5dbc');
+		const items = _$_.track([], '525c5dbc');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="populate">Populate</button><ul class="list"><!--[-->';
 
-			for (const item of lazy_8.value) {
-				__out += '<li>' + _$_.escape(item) + '</li>';
+			for (const item of items.value) {
+				__out += '<li>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</li>';
 			}
 
 			__out += '<!--]--></ul>';
@@ -430,14 +438,14 @@ export function ForLoopEmptyToPopulated() {
 
 export function ForLoopPopulatedToEmpty() {
 	return _$_.tsrx_element(() => {
-		let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
+		const items = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="clear">Clear</button><ul class="list"><!--[-->';
 
-			for (const item of lazy_9.value) {
+			for (const item of items.value) {
 				__out += '<li>';
 
 				{
@@ -457,7 +465,7 @@ export function ForLoopPopulatedToEmpty() {
 
 export function NestedForLoopReactive() {
 	return _$_.tsrx_element(() => {
-		let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
+		const grid = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -469,7 +477,7 @@ export function NestedForLoopReactive() {
 
 				var rowIndex = 0;
 
-				for (const row of lazy_10.value) {
+				for (const row of grid.value) {
 					__out += '<div' + _$_.attr('class', `row-${rowIndex}`) + '>';
 
 					{
@@ -578,7 +586,7 @@ export function ForLoopDeeplyNested() {
 
 export function ForLoopIndexUpdate() {
 	return _$_.tsrx_element(() => {
-		let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
+		const items = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -590,7 +598,7 @@ export function ForLoopIndexUpdate() {
 
 				var i = 0;
 
-				for (const item of lazy_11.value) {
+				for (const item of items.value) {
 					__out += '<li' + _$_.attr('class', `item-${i}`) + '>' + _$_.escape(`[${i}] ${item}`) + '</li>';
 					i++;
 				}
@@ -606,7 +614,7 @@ export function ForLoopIndexUpdate() {
 
 export function KeyedForLoopWithIndex() {
 	return _$_.tsrx_element(() => {
-		let lazy_12 = _$_.track(
+		const items = _$_.track(
 			[
 				{ id: 'a', value: 'Alpha' },
 				{ id: 'b', value: 'Beta' },
@@ -625,7 +633,7 @@ export function KeyedForLoopWithIndex() {
 
 				var i = 0;
 
-				for (const item of lazy_12.value) {
+				for (const item of items.value) {
 					__out += '<li' + _$_.attr('data-index', i, false) + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(`[${i}] ${item.id}: ${item.value}`) + '</li>';
 					i++;
 				}
@@ -641,14 +649,14 @@ export function KeyedForLoopWithIndex() {
 
 export function ForLoopWithSiblings() {
 	return _$_.tsrx_element(() => {
-		let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
+		const items = _$_.track(['A', 'B'], '3c7e8152');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<div class="wrapper"><header class="before">Before</header><!--[-->';
 
-			for (const item of lazy_13.value) {
+			for (const item of items.value) {
 				__out += '<div' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -698,12 +706,12 @@ export function ForLoopItemState() {
 
 function TodoItem(props) {
 	return _$_.tsrx_element(() => {
-		let lazy_14 = _$_.track(false, '4f2402a4');
+		const done = _$_.track(false, '4f2402a4');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div' + _$_.attr('class', `todo-${props.id}`) + '><input type="checkbox"' + _$_.attr('checked', lazy_14.value, true) + ' class="checkbox" /><span' + _$_.attr('class', lazy_14.value ? 'completed' : 'pending') + '>' + _$_.escape(props.text) + '</span></div>';
+			__out += '<div' + _$_.attr('class', `todo-${props.id}`) + '><input type="checkbox"' + _$_.attr('checked', done.value, true) + ' class="checkbox" /><span' + _$_.attr('class', done.value ? 'completed' : 'pending') + '>' + _$_.escape(props.text) + '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -738,14 +746,14 @@ export function ForLoopSingleItem() {
 
 export function ForLoopAddAtBeginning() {
 	return _$_.tsrx_element(() => {
-		let lazy_15 = _$_.track(['B', 'C'], '1561403a');
+		const items = _$_.track(['B', 'C'], '1561403a');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="prepend">Prepend A</button><ul><!--[-->';
 
-			for (const item of lazy_15.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -765,14 +773,14 @@ export function ForLoopAddAtBeginning() {
 
 export function ForLoopAddInMiddle() {
 	return _$_.tsrx_element(() => {
-		let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
+		const items = _$_.track(['A', 'C'], '1bc60b46');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="insert">Insert B</button><ul><!--[-->';
 
-			for (const item of lazy_16.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -792,14 +800,14 @@ export function ForLoopAddInMiddle() {
 
 export function ForLoopRemoveFromMiddle() {
 	return _$_.tsrx_element(() => {
-		let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
+		const items = _$_.track(['A', 'B', 'C'], '1c87f95f');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="remove-middle">Remove B</button><ul><!--[-->';
 
-			for (const item of lazy_17.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -855,14 +863,14 @@ export function ForLoopLargeList() {
 
 export function ForLoopSwap() {
 	return _$_.tsrx_element(() => {
-		let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
+		const items = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="swap">Swap First and Last</button><ul><!--[-->';
 
-			for (const item of lazy_18.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -882,14 +890,14 @@ export function ForLoopSwap() {
 
 export function ForLoopReverse() {
 	return _$_.tsrx_element(() => {
-		let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
+		const items = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="reverse">Reverse</button><ul><!--[-->';
 
-			for (const item of lazy_19.value) {
+			for (const item of items.value) {
 				__out += '<li' + _$_.attr('class', `item-${item}`) + '>';
 
 				{
@@ -909,14 +917,14 @@ export function ForLoopReverse() {
 
 export function KeyedForLoopAppendAndRotate() {
 	return _$_.tsrx_element(() => {
-		let lazy_20 = _$_.track([1, 2, 3], 'a8b41504');
+		const items = _$_.track([1, 2, 3], 'a8b41504');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<div class="wrapper"><div class="host"><!--[-->';
 
-			for (const item of lazy_20.value) {
+			for (const item of items.value) {
 				__out += '<span class="item">';
 
 				{
@@ -953,7 +961,7 @@ function RootKeyedList(props) {
 
 export function RootKeyedForLoopAppendAndRotate() {
 	return _$_.tsrx_element(() => {
-		let lazy_21 = _$_.track([1, 2, 3], '50a91d60');
+		const items = _$_.track([1, 2, 3], '50a91d60');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -962,7 +970,7 @@ export function RootKeyedForLoopAppendAndRotate() {
 
 			{
 				const comp = RootKeyedList;
-				const args = [{ items: lazy_21 }];
+				const args = [{ items }];
 
 				_$_.output_push(__out);
 				__out = '';

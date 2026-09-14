@@ -7,15 +7,15 @@ import { fetchData, LEVELS } from './data.js';
 // never waits on data), so all 10 fetches start in parallel — no waterfall by
 // model — and updates are fine-grained writes with no re-render cascade.
 export function Level({ level, version }: { level: number; version: Tracked<number> }) @{
-	let &[data] = track('…');
+	const data = track('…');
 	effect(() => {
 		const v = version.value;
 		fetchData(level, v).then((value) => {
-			data = value;
+			data.value = value;
 		});
 	});
 	<div class="level" data-level={level}>
-		<span class="val">{data}</span>
+		<span class="val">{data.value}</span>
 		@if (level < LEVELS - 1) {
 			<Level level={level + 1} version={version} />
 		}

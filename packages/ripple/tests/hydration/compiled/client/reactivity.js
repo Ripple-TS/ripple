@@ -4,7 +4,7 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template(`<div class="count"> </div>`, 0);
 
 function render(__prev) {
-	var __a = __prev._lazy.value;
+	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression, __prev.a = __a);
@@ -12,14 +12,14 @@ function render(__prev) {
 }
 
 function TrackedState_render(__anchor, __block) {
-	let lazy = _$_.track(0, __block, 'c1818584');
+	const count = _$_.track(0, __block, 'c1818584');
 	var div = root();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
 	}
 
-	_$_.render(render, { a: ' ', _lazy: lazy, _expression: expression });
+	_$_.render(render, { a: ' ', _count: count, _expression: expression });
 	_$_.append(__anchor, div);
 }
 
@@ -28,7 +28,7 @@ TrackedState[_$_.$r] = TrackedState_render;
 var root_1 = _$_.template(`<div><span class="count"> </span></div>`, 0);
 
 function CounterWithInitial_render(__anchor, __block, props) {
-	let lazy_1 = _$_.track(props.initial, __block, '03ea4348');
+	const count = _$_.track(props.initial, __block, '03ea4348');
 	var div_1 = root_1();
 
 	{
@@ -37,7 +37,7 @@ function CounterWithInitial_render(__anchor, __block, props) {
 		{
 			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
-			_$_.expression(expression_1, () => lazy_1.value);
+			_$_.expression(expression_1, () => count.value);
 			_$_.hydrating && _$_.pop(span);
 		}
 	}
@@ -56,9 +56,9 @@ CounterWrapper[_$_.$r] = CounterWrapper_render;
 var root_2 = _$_.template(`<div class="sum"> </div>`, 0);
 
 function ComputedValues_render(__anchor, __block) {
-	let lazy_2 = _$_.track(2, __block, 'b78281db');
-	let lazy_3 = _$_.track(3, __block, 'a0cf6c6d');
-	const sum = () => lazy_2.value + lazy_3.value;
+	const a = _$_.track(2, __block, 'b78281db');
+	const b = _$_.track(3, __block, 'a0cf6c6d');
+	const sum = () => a.value + b.value;
 	var div_2 = root_2();
 
 	{
@@ -76,19 +76,19 @@ ComputedValues[_$_.$r] = ComputedValues_render;
 var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
 
 function render_1(__prev) {
-	var __a = __prev._lazy_4.value;
+	var __a = __prev._x.value;
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._expression_3, __prev.a = __a);
 	}
 
-	var __b = __prev._lazy_5.value;
+	var __b = __prev._y.value;
 
 	if (__prev.b !== __b) {
 		_$_.set_text(__prev._expression_4, __prev.b = __b);
 	}
 
-	var __c = __prev._lazy_6.value;
+	var __c = __prev._z.value;
 
 	if (__prev.c !== __c) {
 		_$_.set_text(__prev._expression_5, __prev.c = __c);
@@ -96,9 +96,9 @@ function render_1(__prev) {
 }
 
 function MultipleTracked_render(__anchor, __block) {
-	let lazy_4 = _$_.track(10, __block, '843522de');
-	let lazy_5 = _$_.track(20, __block, '1308996d');
-	let lazy_6 = _$_.track(30, __block, '048c3fd0');
+	const x = _$_.track(10, __block, '843522de');
+	const y = _$_.track(20, __block, '1308996d');
+	const z = _$_.track(30, __block, '048c3fd0');
 	var div_3 = root_3();
 
 	{
@@ -125,11 +125,11 @@ function MultipleTracked_render(__anchor, __block) {
 		a: ' ',
 		b: ' ',
 		c: ' ',
-		_lazy_4: lazy_4,
+		_x: x,
 		_expression_3: expression_3,
-		_lazy_5: lazy_5,
+		_y: y,
 		_expression_4: expression_4,
-		_lazy_6: lazy_6,
+		_z: z,
 		_expression_5: expression_5
 	});
 
@@ -141,9 +141,9 @@ MultipleTracked[_$_.$r] = MultipleTracked_render;
 var root_4 = _$_.template(`<div class="name"> </div>`, 0);
 
 function DerivedState_render(__anchor, __block) {
-	let lazy_7 = _$_.track('John', __block, '6015eeca');
-	let lazy_8 = _$_.track('Doe', __block, '4fa9a20e');
-	const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
+	const firstName = _$_.track('John', __block, '6015eeca');
+	const lastName = _$_.track('Doe', __block, '4fa9a20e');
+	const fullName = () => `${firstName.value} ${lastName.value}`;
 	var div_7 = root_4();
 
 	{

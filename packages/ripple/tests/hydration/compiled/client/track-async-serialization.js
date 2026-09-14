@@ -4,13 +4,13 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template(`<p class="result"> </p>`, 0);
 
 function MoneyResult_render(__anchor, __block, { count }) {
-	let lazy = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, '2e21cbe9');
+	const money = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, '2e21cbe9');
 	var p = root();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
-		_$_.expression(expression, () => _$_.with_scope(__block, () => lazy.value.format()));
+		_$_.expression(expression, () => _$_.with_scope(__block, () => money.value.format()));
 		_$_.hydrating && _$_.pop(p);
 	}
 
@@ -24,7 +24,7 @@ var root_2 = _$_.template(`<button class="increment">increment</button><!>`, 1, 
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function AsyncCustomType_render(__anchor, __block) {
-	let lazy_1 = _$_.track(6, __block, 'f0c2b41e');
+	const count = _$_.track(6, __block, 'f0c2b41e');
 	var fragment = root_1();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -33,7 +33,7 @@ function AsyncCustomType_render(__anchor, __block) {
 		var button = _$_.first_child_frag(fragment_1);
 
 		button.__click = () => {
-			_$_.update(lazy_1);
+			count.value++;
 		};
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
@@ -41,7 +41,7 @@ function AsyncCustomType_render(__anchor, __block) {
 		_$_.try(
 			node,
 			(__anchor) => {
-				_$_.render_component(MoneyResult, __anchor, { count: lazy_1 });
+				_$_.render_component(MoneyResult, __anchor, { count });
 			},
 			null,
 			(__anchor) => {
@@ -62,13 +62,13 @@ AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 var root_4 = _$_.template(`<p class="result"> </p>`, 0);
 
 function ServerCallResult_render(__anchor, __block, { count }) {
-	let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '4e502c38');
+	const data = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '4e502c38');
 	var p_2 = root_4();
 
 	{
 		var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
-		_$_.expression(expression_1, () => lazy_2.value);
+		_$_.expression(expression_1, () => data.value);
 		_$_.hydrating && _$_.pop(p_2);
 	}
 
@@ -82,7 +82,7 @@ var root_6 = _$_.template(`<button class="increment">increment</button><!>`, 1, 
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function AsyncWithServerCall_render(__anchor, __block) {
-	let lazy_3 = _$_.track(0, __block, '14891754');
+	const count = _$_.track(0, __block, '14891754');
 	var fragment_2 = root_5();
 	var node_3 = _$_.first_child_frag(fragment_2);
 
@@ -91,7 +91,7 @@ function AsyncWithServerCall_render(__anchor, __block) {
 		var button_1 = _$_.first_child_frag(fragment_3);
 
 		button_1.__click = () => {
-			_$_.update(lazy_3);
+			count.value++;
 		};
 
 		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
@@ -99,7 +99,7 @@ function AsyncWithServerCall_render(__anchor, __block) {
 		_$_.try(
 			node_2,
 			(__anchor) => {
-				_$_.render_component(ServerCallResult, __anchor, { count: lazy_3 });
+				_$_.render_component(ServerCallResult, __anchor, { count });
 			},
 			null,
 			(__anchor) => {
@@ -124,13 +124,13 @@ function AsyncSimpleValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_4 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('hydrated value')), __block, 'f325448a');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('hydrated value')), __block, 'f325448a');
 			var p_4 = root_8();
 
 			{
 				var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p_4.firstChild;
 
-				_$_.expression(expression_2, () => lazy_4.value);
+				_$_.expression(expression_2, () => data.value);
 				_$_.hydrating && _$_.pop(p_4);
 			}
 
@@ -155,13 +155,13 @@ function AsyncNumericValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_5 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(42)), __block, 'ab8199a0');
+			const count = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(42)), __block, 'ab8199a0');
 			var span = root_10();
 
 			{
 				var expression_3 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
 
-				_$_.expression(expression_3, () => lazy_5.value);
+				_$_.expression(expression_3, () => count.value);
 				_$_.hydrating && _$_.pop(span);
 			}
 
@@ -186,7 +186,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_6 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, 'fb7ad40b');
+			const user = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, 'fb7ad40b');
 			var div = root_12();
 
 			{
@@ -195,7 +195,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 				{
 					var expression_4 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
 
-					_$_.expression(expression_4, () => lazy_6.value.name);
+					_$_.expression(expression_4, () => user.value.name);
 					_$_.hydrating && _$_.pop(span_2);
 				}
 
@@ -204,7 +204,7 @@ function AsyncObjectValue_render(__anchor, __block) {
 				{
 					var expression_5 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
 
-					_$_.expression(expression_5, () => lazy_6.value.age);
+					_$_.expression(expression_5, () => user.value.age);
 					_$_.hydrating && _$_.pop(span_3);
 				}
 			}
@@ -230,8 +230,8 @@ function AsyncMultipleValues_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_7 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('alpha')), __block, '99982de5');
-			let lazy_8 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('beta')), __block, '1dea4c85');
+			const first = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('alpha')), __block, '99982de5');
+			const second = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('beta')), __block, '1dea4c85');
 			var div_2 = root_14();
 
 			{
@@ -240,7 +240,7 @@ function AsyncMultipleValues_render(__anchor, __block) {
 				{
 					var expression_6 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
 
-					_$_.expression(expression_6, () => lazy_7.value);
+					_$_.expression(expression_6, () => first.value);
 					_$_.hydrating && _$_.pop(span_4);
 				}
 
@@ -249,7 +249,7 @@ function AsyncMultipleValues_render(__anchor, __block) {
 				{
 					var expression_7 = _$_.hydrating ? _$_.hydrate_child() : span_5.firstChild;
 
-					_$_.expression(expression_7, () => lazy_8.value);
+					_$_.expression(expression_7, () => second.value);
 					_$_.hydrating && _$_.pop(span_5);
 				}
 			}
@@ -276,13 +276,13 @@ function AsyncWithCatch_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_9 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('fetch failed'))), __block, 'c9d12acf');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('fetch failed'))), __block, 'c9d12acf');
 			var p_6 = root_16();
 
 			{
 				var expression_8 = _$_.hydrating ? _$_.hydrate_child() : p_6.firstChild;
 
-				_$_.expression(expression_8, () => lazy_9.value);
+				_$_.expression(expression_8, () => data.value);
 				_$_.hydrating && _$_.pop(p_6);
 			}
 
@@ -318,13 +318,13 @@ function ChildWithError_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			let lazy_10 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('child error'))), __block, 'cdd1adb8');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('child error'))), __block, 'cdd1adb8');
 			var p_9 = root_19();
 
 			{
 				var expression_10 = _$_.hydrating ? _$_.hydrate_child() : p_9.firstChild;
 
-				_$_.expression(expression_10, () => lazy_10.value);
+				_$_.expression(expression_10, () => data.value);
 				_$_.hydrating && _$_.pop(p_9);
 			}
 
@@ -372,13 +372,13 @@ ParentWithCatch[_$_.$r] = ParentWithCatch_render;
 var root_22 = _$_.template(`<p class="result"> </p>`, 0);
 
 function ReactiveDependencyResult_render(__anchor, __block, { count }) {
-	let lazy_11 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '18c43c3a');
+	const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '18c43c3a');
 	var p_12 = root_22();
 
 	{
 		var expression_12 = _$_.hydrating ? _$_.hydrate_child() : p_12.firstChild;
 
-		_$_.expression(expression_12, () => lazy_11.value);
+		_$_.expression(expression_12, () => data.value);
 		_$_.hydrating && _$_.pop(p_12);
 	}
 
@@ -392,7 +392,7 @@ var root_24 = _$_.template(`<button class="increment">increment</button><!>`, 1,
 var root_23 = _$_.template(`<!>`, 1, 1);
 
 function AsyncWithReactiveDependency_render(__anchor, __block) {
-	let lazy_12 = _$_.track(0, __block, 'd5dcc1d3');
+	const count = _$_.track(0, __block, 'd5dcc1d3');
 	var fragment_4 = root_23();
 	var node_5 = _$_.first_child_frag(fragment_4);
 
@@ -401,7 +401,7 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 		var button_2 = _$_.first_child_frag(fragment_5);
 
 		button_2.__click = () => {
-			_$_.update(lazy_12);
+			count.value++;
 		};
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
@@ -409,7 +409,7 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 		_$_.try(
 			node_4,
 			(__anchor) => {
-				_$_.render_component(ReactiveDependencyResult, __anchor, { count: lazy_12 });
+				_$_.render_component(ReactiveDependencyResult, __anchor, { count });
 			},
 			null,
 			(__anchor) => {

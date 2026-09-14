@@ -144,7 +144,7 @@ describe('sibling-scoped style blocks (server)', () => {
 	});
 
 	it('merges the scope classes into a spread', async () => {
-		function Button(&{ ...rest }: { id: string; class?: string }) @{
+		function Button({ ...rest }: { id: string; class?: string }) @{
 			<>
 				<style>
 					button {
@@ -177,7 +177,7 @@ describe('sibling-scoped style blocks (server)', () => {
 
 describe('spreads with an imported theme (server)', () => {
 	it('merges the scope classes of a static class into the spread once', async () => {
-		function Card(&{ ...rest }: { class?: string }) @{
+		function Card({ ...rest }: { class?: string }) @{
 			<>
 				<style apply={importedTheme}>
 					.box {

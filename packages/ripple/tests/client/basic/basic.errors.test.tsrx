@@ -4,20 +4,20 @@ import { compile } from '@tsrx/ripple';
 describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {
 		function Basic() @{
-			let &[hasError] = track(false);
-			let &[errorMessage] = track('');
+			const hasError = track(false);
+			const errorMessage = track('');
 			const triggerError = () => {
 				try {
 					throw new Error('Test error');
 				} catch (e) {
-					hasError = true;
-					errorMessage = (e as Error).message;
+					hasError.value = true;
+					errorMessage.value = (e as Error).message;
 				}
 			};
 			<div>
 				<button onClick={triggerError}>{'Trigger Error'}</button>
-				@if (hasError) {
-					<div class="error">{'Error caught: ' + errorMessage}</div>
+				@if (hasError.value) {
+					<div class="error">{'Error caught: ' + errorMessage.value}</div>
 				} @else {
 					<div class="success">{'No error'}</div>
 				}
@@ -113,15 +113,15 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		function Basic() @{
-			let &[count] = track(0);
-			const &[doubled] = track(() => {
+			const count = track(0);
+			const doubled = track(() => {
 				try {
-					count *= 2;
+					count.value *= 2;
 				} catch (e) {
 					error = (e as Error).message;
 				}
 			});
-			<p>{doubled}</p>
+			<p>{doubled.value}</p>
 		}
 
 		render(Basic);
@@ -133,17 +133,17 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating tracked value inside untrack() in computed track() evaluation', () => {
 		function Basic() @{
-			let &[count] = track(0);
-			const &[doubled] = track(() => {
+			const count = track(0);
+			const doubled = track(() => {
 				try {
 					untrack(() => {
-						count *= 2;
+						count.value *= 2;
 					});
 				} catch (e) {
 					error = (e as Error).message;
 				}
 			});
-			<p>{doubled}</p>
+			<p>{doubled.value}</p>
 		}
 
 		render(Basic);
@@ -155,16 +155,16 @@ describe('basic client > errors', () => {
 
 	it('errors on mutating a tracked variable in track() getter', () => {
 		function Basic() @{
-			let &[count] = track(0);
-			const &[doubled] = track(0, (value) => {
+			const count = track(0);
+			const doubled = track(0, (value) => {
 				try {
-					count += 1;
+					count.value += 1;
 				} catch (e) {
 					error = (e as Error).message;
 				}
 				return value;
 			});
-			<p>{doubled}</p>
+			<p>{doubled.value}</p>
 		}
 
 		render(Basic);

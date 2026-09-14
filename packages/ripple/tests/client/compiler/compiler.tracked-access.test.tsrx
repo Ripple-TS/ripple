@@ -1,7 +1,6 @@
 import { compile } from '@tsrx/ripple';
 
-const value_message = /Use \.value or &\[\] lazy destructuring/;
-const reference_message = /Use the tracked value directly instead/;
+const value_message = /Accessing a tracked object directly is not allowed, use `\.value`/;
 
 describe('Compiler: Tracked Object Direct Access Checks', () => {
 	it('should error on direct access to __v of a tracked object', () => {
@@ -74,18 +73,6 @@ import { track } from 'ripple';
 		);
 	});
 
-	it('should compile successfully with correct @ syntax access', () => {
-		const code = `
-import { track } from 'ripple';
-            export default function App() @{
-                let &[count] = track(0);
-                console.log(count);
-                <></>
-            }
-        `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
-	});
-
 	it('should compile successfully with correct value access', () => {
 		const code = `
 import { track } from 'ripple';
@@ -156,7 +143,7 @@ import { track } from 'ripple';
                 <></>
             }
         `;
-		expect(() => compile(code, 'test.tsrx')).toThrow(reference_message);
+		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
 	});
 
 	it('should error on indexed [0] write on a tracked object', () => {
@@ -183,36 +170,10 @@ import { track } from 'ripple';
         `;
 		const result = compile(code, 'test.tsrx', { loose: true });
 
-		expect(result.errors.map((error) => error.message)).toEqual(
-			expect.arrayContaining([
-				expect.stringMatching(value_message),
-				expect.stringMatching(reference_message),
-			]),
-		);
-	});
-
-	it('should error on indexed access through a known tracked lazy ref binding', () => {
-		const code = `
-import { track } from 'ripple';
-            export default function App() @{
-                let &[value, tracked_ref] = track(0);
-                tracked_ref[0]++;
-                <></>
-            }
-        `;
-		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
-	});
-
-	it('should allow lazy destructuring a tracked value', () => {
-		const code = `
-import { track } from 'ripple';
-            export default function App() @{
-                let &[value, tracked_ref] = track(0);
-                console.log(value, tracked_ref.value);
-                <></>
-            }
-        `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+		expect(result.errors.map((error) => error.message)).toEqual([
+			expect.stringMatching(value_message),
+			expect.stringMatching(value_message),
+		]);
 	});
 
 	it('should allow .value read access on a tracked object', () => {

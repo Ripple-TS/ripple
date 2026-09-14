@@ -315,7 +315,7 @@ function classify(name, scope) {
 			// A written binding the analyzer boxed is captured as its box.
 			return binding.reassigned && !is_boxed(binding) ? 'bail' : 'capture';
 		}
-		// A name the transform generated (`lazy`, `consequent`, template ids) is
+		// A name the transform generated (`consequent`, template ids) is
 		// registered as a reference without any referencing node.
 		const references = current.references.get(name);
 		if (references !== undefined && references.length === 0) {

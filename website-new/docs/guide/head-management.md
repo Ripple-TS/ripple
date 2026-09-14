@@ -11,16 +11,16 @@ directly within the component. It works with both static and reactive data.
 import { track } from 'ripple';
 
 export function App() @{
-  let &[curr_step] = track(0);
+  const curr_step = track(0);
 
   <>
     <head>
-      <title>Step {curr_step}</title>
+      <title>Step {curr_step.value}</title>
     </head>
 
     <button
       onClick={() => {
-        curr_step++;
+        curr_step.value++;
       }}
     >
       Next Step

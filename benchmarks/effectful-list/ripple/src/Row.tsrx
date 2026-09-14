@@ -9,8 +9,8 @@ import { fx, rowRef } from './fx.js';
 //     destroyed — the useEffect-[item.id] equivalent (keyed rows never change
 //     id in place, so id-keyed deps === row lifetime).
 //   * useLayoutEffect-[item.value] equivalent: the second effect reads
-//     `item`, unwrapped from the derived the parent passes over its keyed
-//     `@for` binding, so it re-runs when update_deps replaces the item object
+//     `item.value`, the derived the parent passes over its keyed `@for`
+//     binding, so it re-runs when update_deps replaces the item object
 //     (ids stable, value bumped). Ripple has no deps arrays — the dependency is
 //     the item reference, which the ops driver only replaces when value
 //     actually changes. `cell` is tracked so the first
@@ -21,11 +21,11 @@ import { fx, rowRef } from './fx.js';
 //     row destruction).
 
 export default function Row({
-	item: &[item],
+	item,
 }: {
 	item: Derived<{ id: number; label: string; value: number; probe: boolean }>;
 }) @{
-	let &[cell] = track(null);
+	const cell = track<HTMLElement | null>(null);
 
 	effect(() => {
 		fx.mounts++;
@@ -35,8 +35,8 @@ export default function Row({
 	});
 
 	effect(() => {
-		const el = cell;
-		if (el !== null && item.probe) {
+		const el = cell.value;
+		if (el !== null && item.value.probe) {
 			fx.h += el.offsetHeight;
 			fx.layouts++;
 		}
@@ -46,10 +46,10 @@ export default function Row({
 		<td
 			class="col-id"
 			ref={(el) => {
-				cell = el;
+				cell.value = el;
 			}}
-		>{item.id}</td>
-		<td class="col-label">{item.label}</td>
-		<td class="col-value">{item.value}</td>
+		>{item.value.id}</td>
+		<td class="col-label">{item.value.label}</td>
+		<td class="col-value">{item.value.value}</td>
 	</tr>
 }

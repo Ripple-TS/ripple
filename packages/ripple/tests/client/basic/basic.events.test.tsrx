@@ -4,19 +4,19 @@ import { flushSync, track } from 'ripple';
 describe('basic client > events', () => {
 	it('renders with different event types', () => {
 		function Basic() @{
-			let &[focusCount] = track(0);
-			let &[clickCount] = track(0);
+			const focusCount = track(0);
+			const clickCount = track(0);
 			<>
 				<button
 					onFocus={() => {
-						focusCount++;
+						focusCount.value++;
 					}}
 					onClick={() => {
-						clickCount++;
+						clickCount.value++;
 					}}
 				>{'Test Button'}</button>
-				<div class="focus-count">{focusCount}</div>
-				<div class="click-count">{clickCount}</div>
+				<div class="focus-count">{focusCount.value}</div>
+				<div class="click-count">{clickCount.value}</div>
 			</>
 		}
 
@@ -37,24 +37,24 @@ describe('basic client > events', () => {
 
 	it('renders with capture events', () => {
 		function Basic() @{
-			let &[captureClicks] = track(0);
-			let &[bubbleClicks] = track(0);
+			const captureClicks = track(0);
+			const bubbleClicks = track(0);
 			<>
 				<div
 					onClick={{
 						handleEvent: () => {
-							captureClicks++;
+							captureClicks.value++;
 						},
 						capture: true,
 					}}
 				>
 					<button
 						onClick={() => {
-							bubbleClicks++;
+							bubbleClicks.value++;
 						}}
 					>{'Click me'}</button>
-					<div class="capture-count">{captureClicks}</div>
-					<div class="bubble-count">{bubbleClicks}</div>
+					<div class="capture-count">{captureClicks.value}</div>
+					<div class="bubble-count">{bubbleClicks.value}</div>
 				</div>
 			</>
 		}
@@ -74,20 +74,20 @@ describe('basic client > events', () => {
 
 	it('renders with event listeners in spread props', () => {
 		function Basic() @{
-			let &[count] = track(0);
+			const count = track(0);
 			const minus = {
 				onClick() {
-					count--;
+					count.value--;
 				},
 			};
 			const plus = {
 				onClick() {
-					count++;
+					count.value++;
 				},
 			};
 			<div>
 				<button {...minus} class="minus">{'-'}</button>
-				<span class="count">{count}</span>
+				<span class="count">{count.value}</span>
 				<button {...plus} class="plus">{'+'}</button>
 			</div>
 		}
@@ -120,15 +120,15 @@ describe('basic client > events', () => {
 
 	it('removes event listeners from spread props when they are replaced by another prop', () => {
 		function Basic() @{
-			let &[enabled] = track(true);
-			let &[count] = track(0);
+			const enabled = track(true);
+			const count = track(0);
 			<>
 				<button
 					class="target"
-					{...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}
+					{...(enabled.value ? { onClick: () => count.value++ } : { title: 'disabled' })}
 				>{'target'}</button>
-				<button class="toggle" onClick={() => (enabled = false)}>{'toggle'}</button>
-				<span class="count">{count}</span>
+				<button class="toggle" onClick={() => (enabled.value = false)}>{'toggle'}</button>
+				<span class="count">{count.value}</span>
 			</>
 		}
 
@@ -152,22 +152,22 @@ describe('basic client > events', () => {
 
 	it('handles both delegated and non-delegated events in spread props', () => {
 		function Basic() @{
-			let &[clickCount] = track(0);
-			let &[focusCount] = track(0);
+			const clickCount = track(0);
+			const focusCount = track(0);
 			const mixedHandler = {
 				onClick() {
 					// Delegated event
-					clickCount++;
+					clickCount.value++;
 				},
 				onFocus() {
 					// Non-delegated event
-					focusCount++;
+					focusCount.value++;
 				},
 			};
 			<div>
 				<button {...mixedHandler} class="mixed-button">{'Test'}</button>
-				<span class="click-count">{clickCount}</span>
-				<span class="focus-count">{focusCount}</span>
+				<span class="click-count">{clickCount.value}</span>
+				<span class="focus-count">{focusCount.value}</span>
 			</div>
 		}
 
@@ -193,30 +193,30 @@ describe('basic client > events', () => {
 
 	it('renders with complex event handling and state updates', () => {
 		function Basic() @{
-			let &[counter] = track(0);
-			let &[history] = track<string[]>([]);
-			let &[isEven] = track(true);
+			const counter = track(0);
+			const history = track<string[]>([]);
+			const isEven = track(true);
 			const handleIncrement = () => {
-				counter++;
-				history = [...history, `Inc to ${counter}`];
-				isEven = counter % 2 === 0;
+				counter.value++;
+				history.value = [...history.value, `Inc to ${counter.value}`];
+				isEven.value = counter.value % 2 === 0;
 			};
 			const handleDecrement = () => {
-				counter--;
-				history = [...history, `Dec to ${counter}`];
-				isEven = counter % 2 === 0;
+				counter.value--;
+				history.value = [...history.value, `Dec to ${counter.value}`];
+				isEven.value = counter.value % 2 === 0;
 			};
 			const handleReset = () => {
-				counter = 0;
-				history = [...history, 'Reset'];
-				isEven = true;
+				counter.value = 0;
+				history.value = [...history.value, 'Reset'];
+				isEven.value = true;
 			};
 			<>
-				<div class="counter">{counter}</div>
+				<div class="counter">{counter.value}</div>
 				<div class="parity">
-					{isEven ? 'Even' : 'Odd'}
+					{isEven.value ? 'Even' : 'Odd'}
 				</div>
-				<div class="history-count">{history.length}</div>
+				<div class="history-count">{history.value.length}</div>
 				<button class="inc-btn" onClick={handleIncrement}>{'+'}</button>
 				<button class="dec-btn" onClick={handleDecrement}>{'-'}</button>
 				<button class="reset-btn" onClick={handleReset}>{'Reset'}</button>

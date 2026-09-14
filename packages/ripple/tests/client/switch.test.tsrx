@@ -3,11 +3,11 @@ import { flushSync, track } from 'ripple';
 describe('switch statements', () => {
 	it('renders simple switch with literal cases', () => {
 		function App() @{
-			let &[value] = track('b');
+			const value = track('b');
 			<>
-				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
-				@switch (value) {
+				<button onClick={() => (value.value = 'c')}>{'Change to C'}</button>
+				<button onClick={() => (value.value = 'a')}>{'Change to A'}</button>
+				@switch (value.value) {
 					@case 'a': {
 						<div>Case A</div>
 					}
@@ -39,10 +39,10 @@ describe('switch statements', () => {
 
 	it('renders switch with reactive discriminant', () => {
 		function App() @{
-			let &[count] = track(1);
+			const count = track(1);
 			<>
-				<button onClick={() => count++}>{'Increment'}</button>
-				@switch (count) {
+				<button onClick={() => count.value++}>{'Increment'}</button>
+				@switch (count.value) {
 					@case 1: {
 						<div>{'Count is 1'}</div>
 					}
@@ -72,12 +72,12 @@ describe('switch statements', () => {
 
 	it('renders switch with default clause only', () => {
 		function App() @{
-			let &[value] = track('x');
+			const value = track('x');
 			<>
-				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
-				@switch (value) {
+				<button onClick={() => (value.value = 'y')}>{'Change Value'}</button>
+				@switch (value.value) {
 					@default: {
-						<div>{'Default for ' + value}</div>
+						<div>{'Default for ' + value.value}</div>
 					}
 				}
 			</>
@@ -94,11 +94,11 @@ describe('switch statements', () => {
 
 	it('renders switch with isolated empty cases', () => {
 		function App() @{
-			let &[value] = track('a');
+			const value = track('a');
 			<>
-				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
-				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				@switch (value) {
+				<button onClick={() => (value.value = 'b')}>{'Change to B'}</button>
+				<button onClick={() => (value.value = 'c')}>{'Change to C'}</button>
+				@switch (value.value) {
 					@case 'a': {
 						<div>Case A</div>
 					}
@@ -138,28 +138,28 @@ describe('switch statements', () => {
 
 	it('renders switch with template content and reacts to tracked changes', () => {
 		function App() @{
-			let &[status] = track('active');
-			let &[message] = track('');
+			const status = track('active');
+			const message = track('');
 			<>
-				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
-				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
-				<button onClick={() => (status = 'error')}>{'Error'}</button>
-				@switch (status) {
+				<button onClick={() => (status.value = 'pending')}>{'Pending'}</button>
+				<button onClick={() => (status.value = 'completed')}>{'Completed'}</button>
+				<button onClick={() => (status.value = 'error')}>{'Error'}</button>
+				@switch (status.value) {
 					@case 'active': {
-						message = 'Currently active.';
-						<div>{'Status: ' + message}</div>
+						message.value = 'Currently active.';
+						<div>{'Status: ' + message.value}</div>
 					}
 					@case 'pending': {
-						message = 'Waiting for completion.';
-						<div>{'Status: ' + message}</div>
+						message.value = 'Waiting for completion.';
+						<div>{'Status: ' + message.value}</div>
 					}
 					@case 'completed': {
-						message = 'Task finished!';
-						<div class="success">{'Status: ' + message}</div>
+						message.value = 'Task finished!';
+						<div class="success">{'Status: ' + message.value}</div>
 					}
 					@default: {
-						message = 'An error occurred.';
-						<div class="error">{'Status: ' + message}</div>
+						message.value = 'An error occurred.';
+						<div class="error">{'Status: ' + message.value}</div>
 					}
 				}
 			</>
@@ -191,10 +191,10 @@ describe('switch statements', () => {
 		'renders switch with isolated cases and reacts to tracked changes without recreating DOM unnecessarily',
 		() => {
 			function App() @{
-				let &[status] = track(0);
+				const status = track(0);
 				<>
 					<div>
-						@switch (status) {
+						@switch (status.value) {
 							@case -1: {
 							}
 							@case 0: {
@@ -223,7 +223,7 @@ describe('switch statements', () => {
 					</div>
 					<button
 						onClick={() => {
-							status = (status + 1) % 5;
+							status.value = (status.value + 1) % 5;
 						}}
 					>{'Next Status'}</button>
 				</>
@@ -263,19 +263,19 @@ describe('switch statements', () => {
 
 	it('renders a middle switch case without falling through to later cases', () => {
 		function App() @{
-			let &[value] = track('x');
+			const value = track('x');
 			<>
-				<button onClick={() => (value = 'a')}>{'Set A'}</button>
-				<button onClick={() => (value = 'b')}>{'Set B'}</button>
-				<button onClick={() => (value = 'c')}>{'Set C'}</button>
-				<button onClick={() => (value = 'x')}>{'Set X'}</button>
+				<button onClick={() => (value.value = 'a')}>{'Set A'}</button>
+				<button onClick={() => (value.value = 'b')}>{'Set B'}</button>
+				<button onClick={() => (value.value = 'c')}>{'Set C'}</button>
+				<button onClick={() => (value.value = 'x')}>{'Set X'}</button>
 				<div>
-					@switch (value) {
+					@switch (value.value) {
 						@case 'a': {
 							<div>{' Case A'}</div>
 						}
 						@case 'x': {
-							<div>{' Default Case for ' + value}</div>
+							<div>{' Default Case for ' + value.value}</div>
 						}
 						@case 'b': {
 							<div>{' Case B'}</div>
@@ -363,16 +363,16 @@ describe('switch statements', () => {
 
 	it('renders switch with isolated block-scoped cases', () => {
 		function App() @{
-			let &[level] = track(1);
+			const level = track(1);
 			<>
 				<button
 					onClick={() => {
-						if (level === 1) level = 2;
-						else if (level === 2) level = 3;
-						else level = 1;
+						if (level.value === 1) level.value = 2;
+						else if (level.value === 2) level.value = 3;
+						else level.value = 1;
 					}}
 				>{'Toggle'}</button>
-				@switch (level) {
+				@switch (level.value) {
 					@case 1: {
 						<div class="level">{'Level 1'}</div>
 					}

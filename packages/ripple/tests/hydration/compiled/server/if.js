@@ -64,14 +64,14 @@ export function IfElse() {
 
 export function ReactiveIf() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(true, '19a16ff0');
+		const show = _$_.track(true, '19a16ff0');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-			if (lazy.value) {
+			if (show.value) {
 				__out += '<div class="content">Content visible</div>';
 			}
 
@@ -83,14 +83,14 @@ export function ReactiveIf() {
 
 export function ReactiveIfElse() {
 	return _$_.tsrx_element(() => {
-		let lazy_1 = _$_.track(false, '41177f39');
+		const isOn = _$_.track(false, '41177f39');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-			if (lazy_1.value) {
+			if (isOn.value) {
 				__out += '<div class="on">ON</div>';
 			} else {
 				__out += '<div class="off">OFF</div>';
@@ -104,18 +104,18 @@ export function ReactiveIfElse() {
 
 export function NestedIf() {
 	return _$_.tsrx_element(() => {
-		let lazy_2 = _$_.track(true, '7894e1df');
-		let lazy_3 = _$_.track(true, 'f21b8c26');
+		const outer = _$_.track(true, '7894e1df');
+		const inner = _$_.track(true, 'f21b8c26');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!--[-->';
 
-			if (lazy_2.value) {
+			if (outer.value) {
 				__out += '<div class="outer-content">Outer<!--[-->';
 
-				if (lazy_3.value) {
+				if (inner.value) {
 					__out += '<span class="inner-content">Inner</span>';
 				}
 
@@ -130,17 +130,17 @@ export function NestedIf() {
 
 export function IfElseIfChain() {
 	return _$_.tsrx_element(() => {
-		let lazy_4 = _$_.track('loading', '4c69c94a');
+		const status = _$_.track('loading', '4c69c94a');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!--[-->';
 
-			if (lazy_4.value === 'loading') {
+			if (status.value === 'loading') {
 				__out += '<div class="state">Loading...</div>';
 			} else {
-				if (lazy_4.value === 'success') {
+				if (status.value === 'success') {
 					__out += '<div class="state">Success!</div>';
 				} else {
 					__out += '<div class="state">Error occurred</div>';

@@ -119,7 +119,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		function App() @{
-			let &[value] = track('test');
+			const value = 'test';
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
 			}
@@ -219,12 +219,12 @@ describe('refs', () => {
 		let div: HTMLDivElement | null | undefined;
 
 		function App() @{
-			let &[show] = track(true);
+			const show = track(true);
 			<>
-				@if (show) {
+				@if (show.value) {
 					<div ref={div}>{'Hello cleanup'}</div>
 				}
-				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+				<button class="toggle" onClick={() => (show.value = false)}>{'hide'}</button>
 			</>
 		}
 
@@ -262,12 +262,12 @@ describe('refs', () => {
 		}
 
 		function App() @{
-			let &[show] = track(true);
+			const show = track(true);
 			<>
-				@if (show) {
+				@if (show.value) {
 					<Child ref={input} />
 				}
-				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+				<button class="toggle" onClick={() => (show.value = false)}>{'hide'}</button>
 			</>
 		}
 
@@ -352,9 +352,9 @@ describe('refs', () => {
 			}
 
 			function App() @{
-				let &[show] = track(true);
+				const show = track(true);
 				<>
-					@if (show) {
+					@if (show.value) {
 						<Child
 							ref={(node: HTMLInputElement | null) => {
 								input = node;
@@ -364,7 +364,7 @@ describe('refs', () => {
 							}}
 						/>
 					}
-					<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
+					<button class="toggle" onClick={() => (show.value = false)}>{'hide'}</button>
 				</>
 			}
 
@@ -386,14 +386,14 @@ describe('refs', () => {
 		let previous: HTMLInputElement | undefined;
 
 		function Child(props: PropsWithExtras<{ ref: RefValue<HTMLInputElement> }>) @{
-			let &[as_ref] = track(true);
+			const as_ref = track(true);
 			<>
 				<input
 					type="text"
 					value="keep"
-					{...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })}
+					{...(as_ref.value ? { ref: props.ref } : { input_ref: 'regular prop' })}
 				/>
-				<button class="toggle" onClick={() => (as_ref = false)}>{'toggle'}</button>
+				<button class="toggle" onClick={() => (as_ref.value = false)}>{'toggle'}</button>
 			</>
 		}
 
@@ -427,14 +427,14 @@ describe('refs', () => {
 		let previous: HTMLInputElement | undefined;
 
 		function Child(props: PropsWithExtras<{ ref: RefValue<HTMLInputElement> }>) @{
-			let &[as_ref] = track(false);
+			const as_ref = track(false);
 			<>
 				<input
 					type="text"
 					value="keep"
-					{...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })}
+					{...(as_ref.value ? { ref: props.ref } : { input_ref: 'regular prop' })}
 				/>
-				<button class="toggle" onClick={() => (as_ref = true)}>{'toggle'}</button>
+				<button class="toggle" onClick={() => (as_ref.value = true)}>{'toggle'}</button>
 			</>
 		}
 
@@ -490,7 +490,7 @@ describe('refs', () => {
 		let logs: string[] = [];
 
 		function App() @{
-			let &[value] = track('test');
+			const value = 'test';
 			function inputRef(node: HTMLInputElement) {
 				logs.push('ref called');
 			}

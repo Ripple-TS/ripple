@@ -215,15 +215,20 @@ function SidebarGroup({
 	children: any;
 	hasActive?: boolean;
 }) @{
-	let &[expanded] = track(true);
+	const expanded = track(true);
 
 	<>
 		<section
 			class={`SidebarItem level-0 collapsible ${hasActive ? 'has-active' : ''} ${
-				expanded ? '' : 'collapsed'
+				expanded.value ? '' : 'collapsed'
 			}`}
 		>
-			<div class="item" role="button" tabindex="0" onClick={() => (expanded = !expanded)}>
+			<div
+				class="item"
+				role="button"
+				tabindex="0"
+				onClick={() => (expanded.value = !expanded.value)}
+			>
 				<div class="indicator" />
 				<h2 class="text">{title}</h2>
 				<div
@@ -233,7 +238,7 @@ function SidebarGroup({
 					tabindex="0"
 					onClick={(e: Event) => {
 						e.stopPropagation();
-						expanded = !expanded;
+						expanded.value = !expanded.value;
 					}}
 				>
 					<svg
@@ -252,7 +257,7 @@ function SidebarGroup({
 					</svg>
 				</div>
 			</div>
-			@if (expanded) {
+			@if (expanded.value) {
 				<div class="items">{children}</div>
 			}
 		</section>

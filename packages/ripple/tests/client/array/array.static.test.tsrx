@@ -47,14 +47,14 @@ describe('RippleArray > static', () => {
 			}
 
 			function ArrayTest() @{
-				let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
+				const items = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
 				<>
 					<button
 						onClick={() => {
-							items.push(4);
+							items.value.push(4);
 						}}
 					>{'add item'}</button>
-					<pre>{JSON.stringify(items)}</pre>
+					<pre>{JSON.stringify(items.value)}</pre>
 				</>
 			}
 
@@ -84,14 +84,14 @@ describe('RippleArray > static', () => {
 			}
 
 			function ArrayTest() @{
-				let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
+				const items = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
 				<>
 					<button
 						onClick={() => {
-							items.push(8);
+							items.value.push(8);
 						}}
 					>{'add item'}</button>
-					<pre>{JSON.stringify(items)}</pre>
+					<pre>{JSON.stringify(items.value)}</pre>
 				</>
 			}
 
@@ -127,10 +127,10 @@ describe('RippleArray > static', () => {
 						throw new Error('Async error');
 					}
 					@try {
-						let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
+						const items = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
 						<ul>
-							@for (const item of items) {
+							@for (const item of items.value) {
 								<li>{item}</li>
 							}
 						</ul>
@@ -231,10 +231,10 @@ describe('RippleArray > static', () => {
 				}
 
 				function ArrayTest() @{
-					let &[items] = trackAsync(() => RippleArray.fromAsync([6]));
+					const items = trackAsync(() => RippleArray.fromAsync([6]));
 					<>
-						<pre>{JSON.stringify(items)}</pre>
-						<pre>{items.length}</pre>
+						<pre>{JSON.stringify(items.value)}</pre>
+						<pre>{items.value.length}</pre>
 					</>
 				}
 

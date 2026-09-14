@@ -3,8 +3,8 @@ import type { CardData, CardSlot } from './data';
 
 // Streaming product page — Ripple target. Same DOM shape + data schedule as
 // the octane fixture; `@try`/`@pending` lowers to Ripple's try_block, and the
-// async read follows Ripple's model: `trackAsync(() => promise)` whose lazy
-// reads (`&[data]`) suspend the enclosing block until the promise resolves.
+// async read follows Ripple's model: `trackAsync(() => promise)` whose `.value`
+// reads suspend the enclosing block until the promise resolves.
 // Ripple prohibits pending reads directly inside a try/component body, so the
 // suspending reads live in a CHILD component of the boundary (whose template
 // block is the legal read site) — structurally the same child-component
@@ -18,12 +18,12 @@ export function setCards(cards: CardSlot[]) {
 }
 
 function CardBody(props: { promise: Promise<CardData> }) @{
-	let &[data] = trackAsync(() => props.promise);
+	const data = trackAsync(() => props.promise);
 	<article class="card">
-		<h3 class="title">{data.title}</h3>
-		<p class="sub">{data.subtitle}</p>
+		<h3 class="title">{data.value.title}</h3>
+		<p class="sub">{data.value.subtitle}</p>
 		<ul class="specs">
-			@for (const it of data.items; key it.label) {
+			@for (const it of data.value.items; key it.label) {
 				<li class="spec">
 					<span class="label">{it.label}</span>
 					<span class="value">{it.value}</span>
@@ -31,8 +31,8 @@ function CardBody(props: { promise: Promise<CardData> }) @{
 			}
 		</ul>
 		<div class="meta">
-			<span class="tag">{data.tag}</span>
-			<span class="note">{data.note}</span>
+			<span class="tag">{data.value.tag}</span>
+			<span class="note">{data.value.note}</span>
 		</div>
 	</article>
 }

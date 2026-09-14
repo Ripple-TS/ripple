@@ -7,9 +7,9 @@ import { Context, track, type Tracked } from 'ripple';
 //   __updatePartial() — mutates state on a single mid-node at depth M=5; only
 //                       leaves in that subtree (2^(D-M) = 32) re-read.
 //
-// Each provider creates `let &[v, vT] = track(0)` — `v` is the reactive proxy
-// (writable from closures), `vT` is the underlying Tracked object placed into
-// Context so descendants can subscribe via `vT.value`.
+// Each provider creates a Tracked with `track(0)` — written from closures via
+// `.value` and placed into Context so descendants can subscribe by reading
+// `.value`.
 
 const D = 10;
 const M = 5;

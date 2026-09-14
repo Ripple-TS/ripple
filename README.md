@@ -32,7 +32,7 @@ Created by [@trueadm](https://github.com/trueadm), who has contributed to
 
 ## Features
 
-- Fine-grained reactivity with `track()` and lazy destructuring.
+- Fine-grained reactivity with `track()` and `.value`.
 - Reactive `RippleArray`, `RippleObject`, `RippleMap`, and `RippleSet`.
 - Template-native `@if`, `@for`, `@switch`, and `@try`.
 - Local TypeScript setup with JSX statement containers (`@{...}`).
@@ -123,10 +123,10 @@ inside a statement container.
 import { track } from 'ripple';
 
 export function Counter() @{
-  let &[count] = track(0);
-  const increment = () => count++;
+  const count = track(0);
+  const increment = () => count.value++;
 
-  <button onClick={increment}>Count:{count}</button>
+  <button onClick={increment}>Count:{count.value}</button>
 }
 ```
 
@@ -177,8 +177,8 @@ export function TodoList() @{
     id: 2,
     name: 'Ship the work',
   });
-  let &[showDone] = track(true);
-  const visibleItems = () => items.filter((item) => showDone || !item.done);
+  const showDone = track(true);
+  const visibleItems = () => items.filter((item) => showDone.value || !item.done);
 
   <ul>
     @for (const item of visibleItems(); index i; key item.id) {
@@ -230,24 +230,25 @@ export function ProfilePanel() @{
 
 ### Reactivity
 
-Create state with `track()` and lazy destructuring. Reads of lazy bindings stay
-reactive, and assignments write back to the tracked value.
+Create state with `track()` and read or write it through `.value`. Reads in
+templates and effects stay reactive, and writes update everything that depends on
+them.
 
 ```tsx
 import { effect, track, type Tracked } from 'ripple';
 
 export function Counter() @{
-  let &[count, trackedCount] = track(0);
-  let &[double] = track(() => count * 2);
+  const count = track(0);
+  const double = track(() => count.value * 2);
   effect(() => {
-    console.log('Count changed:', count);
+    console.log('Count changed:', count.value);
   });
 
   <>
-    <p>Count:{count}</p>
-    <p>Double:{double}</p>
-    <button onClick={() => count++}>Increment</button>
-    <CounterValue count={trackedCount} />
+    <p>Count:{count.value}</p>
+    <p>Double:{double.value}</p>
+    <button onClick={() => count.value++}>Increment</button>
+    <CounterValue {count} />
   </>
 }
 
@@ -256,8 +257,9 @@ function CounterValue({ count }: { count: Tracked<number> }) {
 }
 ```
 
-`Tracked<T>` objects can also be read and written through `.value`, which is
-useful when passing reactive values through data structures or props.
+`Tracked<T>` objects can be passed through data structures and props: pass the
+tracked object itself when the child may write it, or `track(() => count.value)`
+(a read-only `Derived<T>`) when it should only read it.
 
 ### Reactive Collections
 
@@ -295,7 +297,7 @@ DOM refs use `ref`, and events use JSX-style event props.
 import { track } from 'ripple';
 
 export function SearchBox() @{
-  let &[value] = track('');
+  const query = track('');
   let input: HTMLInputElement | undefined;
 
   <>
@@ -303,9 +305,9 @@ export function SearchBox() @{
       Search
       <input
         ref={input}
-        value={value}
+        value={query.value}
         onInput={(event) => {
-          value = event.currentTarget.value;
+          query.value = event.currentTarget.value;
         }}
       />
     </label>
@@ -324,12 +326,12 @@ Use CSS custom properties for runtime values.
 import { track } from 'ripple';
 
 export function Notice() @{
-  let &[tone] = track('rebeccapurple');
+  const tone = track('rebeccapurple');
 
   <>
-    <p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
+    <p class="notice" style={{ '--notice-color': tone.value }}>Scoped text</p>
     <button
-      onClick={() => (tone = tone === 'rebeccapurple'
+      onClick={() => (tone.value = tone.value === 'rebeccapurple'
         ? 'tomato'
         : 'rebeccapurple')}
     >Toggle tone</button>
@@ -384,12 +386,12 @@ import { Context, Portal, track, type Tracked } from 'ripple';
 const ThemeContext = new Context<Tracked<string>>();
 
 export function App() @{
-  let &[theme, themeTracked] = track('light');
-  ThemeContext.set(themeTracked);
+  const theme = track('light');
+  ThemeContext.set(theme);
 
   <>
     <ThemeLabel />
-    <button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+    <button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
       Toggle theme
     </button>
     <Portal target={document.body}>
@@ -421,14 +423,14 @@ import { loadMessage } from server;
 import { effect, track } from 'ripple';
 
 export function Page() @{
-  let &[message] = track('Loading...');
+  const message = track('Loading...');
   effect(() => {
     loadMessage().then((next) => {
-      message = next;
+      message.value = next;
     });
   });
 
-  <p>{message}</p>
+  <p>{message.value}</p>
 }
 ```
 

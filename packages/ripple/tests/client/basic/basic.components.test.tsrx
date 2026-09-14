@@ -75,11 +75,11 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-			let &[test] = track(false);
+			const test = track(false);
 			<>
 				<Card test={TestSlot} />
 				<div>
-					{test ? 'yes' : 'no'}
+					{test.value ? 'yes' : 'no'}
 				</div>
 			</>
 		}
@@ -211,16 +211,16 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-			let &[clicked] = track(false);
+			const clicked = track(false);
 			<>
 				<Card
 					title="Test Card"
 					content="This is a test card"
 					buttonText="Click me"
-					onAction={() => (clicked = true)}
+					onAction={() => (clicked.value = true)}
 				/>
 				<div class="status">
-					{clicked ? 'Clicked' : 'Not clicked'}
+					{clicked.value ? 'Clicked' : 'Not clicked'}
 				</div>
 			</>
 		}
@@ -257,14 +257,14 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-			let &[message, messageTracked] = track('Hello');
-			let &[number, numberTracked] = track(1);
+			const message = track('Hello');
+			const number = track(1);
 			<>
-				<ChildComponent text={messageTracked} count={numberTracked} />
+				<ChildComponent text={message} count={number} />
 				<button
 					onClick={() => {
-						message = message === 'Hello' ? 'Goodbye' : 'Hello';
-						number++;
+						message.value = message.value === 'Hello' ? 'Goodbye' : 'Hello';
+						number.value++;
 					}}
 				>{'Update Props'}</button>
 			</>
@@ -293,15 +293,15 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('updates explicit text children props reactively', () => {
-		function TextProp(&{ children }: { children: Derived<string> }) @{
+		function TextProp({ children }: { children: Derived<string> }) @{
 			<div class="text-prop">{children.value}</div>
 		}
 
 		function Basic() @{
-			let &[show] = track(false);
+			const show = track(false);
 			<>
-				<TextProp children={track(() => (show ? 'hello' : ''))} />
-				<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+				<TextProp children={track(() => (show.value ? 'hello' : ''))} />
+				<button class="show-text" onClick={() => (show.value = true)}>{'Show'}</button>
 			</>
 		}
 
@@ -318,7 +318,7 @@ describe('basic client > components & composition', () => {
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
 		function App() @{
 			const SYMBOL_PROP = Symbol();
-			let &[hasError] = track(false);
+			const hasError = track(false);
 			const obj: {
 				count: Tracked<number>;
 				increment: () => void;
@@ -338,28 +338,28 @@ describe('basic client > components & composition', () => {
 			const obj2 = null;
 
 			function trigger_nonexistent() {
-				hasError = did_error(() => {
+				hasError.value = did_error(() => {
 					// @ts-ignore
 					obj['nonexistent']();
 				});
 			}
 
 			function trigger_nonexistent_chaining() {
-				hasError = did_error(() => {
+				hasError.value = did_error(() => {
 					// @ts-ignore
 					obj['nonexistent']?.();
 				});
 			}
 
 			function trigger_object_null() {
-				hasError = did_error(() => {
+				hasError.value = did_error(() => {
 					// @ts-ignore
 					obj2['nonexistent']();
 				});
 			}
 
 			function trigger_object_null_chained() {
-				hasError = did_error(() => {
+				hasError.value = did_error(() => {
 					// @ts-ignore
 					obj2?.['nonexistent']?.();
 				});
@@ -374,7 +374,7 @@ describe('basic client > components & composition', () => {
 				<button onClick={trigger_object_null_chained}>{'Object null chained'}</button>
 				<button onClick={() => obj.arr[obj.arr.length - 1]()}>{'BinaryExpression prop'}</button>
 				<span>{obj.count.value}</span>
-				<span>{hasError}</span>
+				<span>{hasError.value}</span>
 			</>
 		}
 
@@ -502,10 +502,10 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-			let &[Content] = track(() => Noop);
+			const Content = track(() => Noop, undefined, true);
 			<>
-				<{Content} />
-				<button onClick={() => (Content = Op)}>{'Show Op'}</button>
+				<{Content.value} />
+				<button onClick={() => (Content.value = Op)}>{'Show Op'}</button>
 			</>
 		}
 
@@ -649,7 +649,7 @@ describe('basic client > components & composition', () => {
 			<div class="z">{'I am Z'}</div>
 		}
 
-		function Child(&{ Z }: { Z: Component }) @{
+		function Child({ Z }: { Z: Component }) @{
 			<div class="child">
 				{'Child Component: '}
 				<Z />
@@ -686,13 +686,13 @@ describe('all-component children', () => {
 		}
 
 		function App() @{
-			let &[on, onTracked] = track(true);
+			const on = track(true);
 			<>
 				<div class="host">
-					<Toggle on={onTracked} />
+					<Toggle on={on} />
 					<Trailing />
 				</div>
-				<button onClick={() => (on = !on)}>{'Toggle'}</button>
+				<button onClick={() => (on.value = !on.value)}>{'Toggle'}</button>
 			</>
 		}
 
@@ -718,13 +718,15 @@ describe('all-component children', () => {
 		}
 
 		function App() @{
-			let &[items, itemsTracked] = track([1, 2, 3]);
+			const items = track([1, 2, 3]);
 			<>
 				<div class="host">
-					<List items={itemsTracked} />
+					<List items={items} />
 					<Trailing />
 				</div>
-				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+				<button
+					onClick={() => (items.value = [items.value[1], items.value[2], items.value[0]])}
+				>{'Rotate'}</button>
 			</>
 		}
 

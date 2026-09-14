@@ -180,8 +180,8 @@ export function DynamicArrayFromCall() @{
 }
 
 export function DynamicArrayFromTrack() @{
-	let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
-	<div class="dynamic-array-track">{items}</div>
+	const items = track(['start:', ['one', 2], true, null, false, ':end']);
+	<div class="dynamic-array-track">{items.value}</div>
 }
 
 export function DynamicArrayFromConditional() @{
@@ -230,27 +230,27 @@ export function TsxDeclaredBeforeTopLevelTsx() @{
 
 // Untyped children render through the generic expression path (hydration
 // markers); typed string children hydrate a text node directly.
-function TextProp(&{ children }: { children: Derived<unknown> }) @{
+function TextProp({ children }: { children: Derived<unknown> }) @{
 	<div class="text-prop">{children.value}</div>
 }
 
-function TypedTextProp(&{ children }: { children: Derived<string> }) @{
+function TypedTextProp({ children }: { children: Derived<string> }) @{
 	<div class="text-prop">{children.value}</div>
 }
 
 export function TextPropWithToggle() @{
-	let &[show] = track(false);
+	const show = track(false);
 	<>
-		<TextProp children={track(() => (show ? 'hello' : ''))} />
-		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+		<TextProp children={track(() => (show.value ? 'hello' : ''))} />
+		<button class="show-text" onClick={() => (show.value = true)}>{'Show'}</button>
 	</>
 }
 
 export function TypedTextPropWithToggle() @{
-	let &[show] = track(false);
+	const show = track(false);
 	<>
-		<TypedTextProp children={track(() => (show ? 'hello' : ''))} />
-		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+		<TypedTextProp children={track(() => (show.value ? 'hello' : ''))} />
+		<button class="show-text" onClick={() => (show.value = true)}>{'Show'}</button>
 	</>
 }
 
@@ -385,10 +385,11 @@ export function FragmentLeadsWithPrimitiveCall() @{
 }
 
 export function PrimitiveTextCalls() @{
-	let &[count] = track(2);
+	const count = track(2);
 	<>
-		<div class="primitive-calls">sum: {Number(count) + Number(count)}; big: {BigInt(count)}</div>
-		<button onClick={() => count++}>update</button>
+		// prettier-ignore
+		<div class="primitive-calls">sum: {Number(count.value) + Number(count.value)}; big: {BigInt(count.value)}</div>
+		<button onClick={() => count.value++}>update</button>
 	</>
 }
 

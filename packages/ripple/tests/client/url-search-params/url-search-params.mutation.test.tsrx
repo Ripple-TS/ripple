@@ -30,11 +30,11 @@ describe('RippleURLSearchParams > mutation', () => {
 	it('handles append with multiple values for same key', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams('foo=bar');
-			let &[allFoo] = track(() => params.getAll('foo'));
+			const allFoo = track(() => params.getAll('foo'));
 			<>
 				<button onClick={() => params.append('foo', 'baz')}>{'append foo'}</button>
 				<pre>{params.toString()}</pre>
-				<pre>{JSON.stringify(allFoo)}</pre>
+				<pre>{JSON.stringify(allFoo.value)}</pre>
 			</>
 		}
 
@@ -112,11 +112,11 @@ describe('RippleURLSearchParams > mutation', () => {
 	it('handles delete when key does not exist', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams('foo=bar');
-			let &[reactiveSize] = track(() => params.size);
+			const reactiveSize = track(() => params.size);
 			<>
 				<button onClick={() => params.delete('nonexistent')}>{'delete nonexistent'}</button>
 				<pre>{params.toString()}</pre>
-				<pre>{reactiveSize}</pre>
+				<pre>{reactiveSize.value}</pre>
 			</>
 		}
 
@@ -174,11 +174,11 @@ describe('RippleURLSearchParams > mutation', () => {
 	it('handles set with multiple existing values', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
-			let &[allFoo] = track(() => params.getAll('foo'));
+			const allFoo = track(() => params.getAll('foo'));
 			<>
 				<button onClick={() => params.set('foo', 'single')}>{'set foo'}</button>
 				<pre>{params.toString()}</pre>
-				<pre>{JSON.stringify(allFoo)}</pre>
+				<pre>{JSON.stringify(allFoo.value)}</pre>
 			</>
 		}
 
@@ -201,10 +201,10 @@ describe('RippleURLSearchParams > mutation', () => {
 	it('handles set when value is the same', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams('foo=bar');
-			let &[reactiveString] = track(() => params.toString());
+			const reactiveString = track(() => params.toString());
 			<>
 				<button onClick={() => params.set('foo', 'bar')}>{'set same value'}</button>
-				<pre>{reactiveString}</pre>
+				<pre>{reactiveString.value}</pre>
 				<pre>{params.size}</pre>
 			</>
 		}
@@ -319,12 +319,12 @@ describe('RippleURLSearchParams > mutation', () => {
 	it('handles duplicate keys with different values', () => {
 		function URLTest() @{
 			const params = RippleURLSearchParams();
-			let &[tags] = track(() => params.getAll('tag'));
+			const tags = track(() => params.getAll('tag'));
 			<>
 				<button onClick={() => params.append('tag', 'javascript')}>{'add js'}</button>
 				<button onClick={() => params.append('tag', 'typescript')}>{'add ts'}</button>
 				<button onClick={() => params.append('tag', 'ripple')}>{'add ripple'}</button>
-				<pre>{JSON.stringify(tags)}</pre>
+				<pre>{JSON.stringify(tags.value)}</pre>
 				<pre>{params.size}</pre>
 			</>
 		}

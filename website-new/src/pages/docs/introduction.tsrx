@@ -12,16 +12,16 @@ const example_code = `
 import { track } from 'ripple';
 
 export function App() @{
-  let &[count] = track(0);
+  const count = track(0);
 
   <>
     <div class="container">
       <h1>Welcome to Ripple!</h1>
 
       <div>
-        <button onClick={() => count--}>-</button>
-        <span class="count">{count}</span>
-        <button onClick={() => count++}>+</button>
+        <button onClick={() => count.value--}>-</button>
+        <span class="count">{count.value}</span>
+        <button onClick={() => count.value++}>+</button>
       </div>
     </div>
 
@@ -105,9 +105,8 @@ export function IntroductionPage() {
 					<strong>Reactive Primitives</strong>
 					{': Built-in reactivity with '}
 					<code>track</code>
-					{' and lazy destructuring '}
-					<code>{'&[]'}</code>
-					{' syntax on primitives'}
+					{' and '}
+					<code>.value</code>
 				</li>
 				<li>
 					<strong>Reactive Objects</strong>

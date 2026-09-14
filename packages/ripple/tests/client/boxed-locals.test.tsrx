@@ -15,15 +15,15 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let enabled = true;
 			disable = () => {
 				enabled = false;
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			@if (enabled && count > 0) {
+			@if (enabled && count.value > 0) {
 				<span>on</span>
 			} @else {
 				<span>off</span>
@@ -49,15 +49,15 @@ describe('boxed locals', () => {
 		let toggle: () => void = () => {};
 
 		function App() @{
-			let &[show] = track(false);
+			const show = track(false);
 			let title = 'first';
 			rename = () => {
 				title = 'second';
 			};
 			toggle = () => {
-				show = !show;
+				show.value = !show.value;
 			};
-			@if (show) {
+			@if (show.value) {
 				<p>{title}</p>
 			}
 		}
@@ -76,15 +76,15 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let unit = 'ms';
 			rename = () => {
 				unit = 's';
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			<p>{count + unit}</p>
+			<p>{count.value + unit}</p>
 		}
 
 		render(App);
@@ -103,12 +103,12 @@ describe('boxed locals', () => {
 			let read: () => number = () => -1;
 
 			function App() @{
-				let &[show] = track(true);
-				let &[tick] = track(0);
+				const show = track(true);
+				const tick = track(0);
 				let clicks = 0;
 				read = () => clicks;
-				@if (show) {
-					<button onClick={() => clicks++}>{'hit ' + tick}</button>
+				@if (show.value) {
+					<button onClick={() => clicks++}>{'hit ' + tick.value}</button>
 				}
 			}
 
@@ -126,13 +126,13 @@ describe('boxed locals', () => {
 		let hide: () => void = () => {};
 
 		function App() @{
-			let &[show] = track(true);
-			let &[label] = track('a');
+			const show = track(true);
+			const label = track('a');
 			hide = () => {
-				show = false;
+				show.value = false;
 			};
-			@if (show) {
-				<div ref={div}>{label}</div>
+			@if (show.value) {
+				<div ref={div}>{label.value}</div>
 			}
 		}
 
@@ -150,7 +150,7 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let base = 10;
 			step = () => {
 				base += 5;
@@ -158,9 +158,9 @@ describe('boxed locals', () => {
 				base = base * 2;
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			<span>{base + count}</span>
+			<span>{base + count.value}</span>
 		}
 
 		render(App);
@@ -178,15 +178,15 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Names(props: { user: { first: string; last?: string } }) @{
-			let &[count] = track(0);
+			const count = track(0);
 			let { first, last = 'none' } = props.user;
 			rename = () => {
 				first = 'renamed';
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			<span>{first + ' ' + last + ' ' + count}</span>
+			<span>{first + ' ' + last + ' ' + count.value}</span>
 		}
 
 		function App() @{
@@ -208,15 +208,15 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Panel({ mode = 'view' }: { mode?: string }) @{
-			let &[count] = track(0);
+			const count = track(0);
 			edit = () => {
 				mode = 'edit';
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			@if (count >= 0) {
-				<button>{mode + count}</button>
+			@if (count.value >= 0) {
+				<button>{mode + count.value}</button>
 			}
 		}
 
@@ -234,12 +234,12 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Child(props: { label: string }) @{
-			let &[count] = track(0);
+			const count = track(0);
 			bump = () => {
-				count++;
+				count.value++;
 			};
 			props = { ...props, label: props.label + '!' };
-			<span>{props.label + count}</span>
+			<span>{props.label + count.value}</span>
 		}
 
 		function App() @{
@@ -260,16 +260,16 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Names(props: { user: { first: string; last?: string }; tags: string[] }) @{
-			let &[count] = track(0);
+			const count = track(0);
 			let { user: { first, last = 'none' }, tags: [tag] } = props;
 			rename = () => {
 				first = 'renamed';
 				tag = 't2';
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			<span>{first + ' ' + last + ' ' + tag + count}</span>
+			<span>{first + ' ' + last + ' ' + tag + count.value}</span>
 		}
 
 		function App() @{
@@ -291,18 +291,18 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Loader() @{
-			let &[n] = track(0);
+			const n = track(0);
 			bump = () => {
-				n++;
+				n.value++;
 			};
 			@try {
-				let &[data] = trackAsync(() => Promise.reject(new Error('boom')));
-				<p>{data}</p>
+				const data = trackAsync(() => Promise.reject(new Error('boom')));
+				<p>{data.value}</p>
 			} @catch (err) {
 				clear = () => {
 					err = null;
 				};
-				<button>{String(err instanceof Error ? err.message : err) + n}</button>
+				<button>{String(err instanceof Error ? err.message : err) + n.value}</button>
 			}
 		}
 
@@ -323,7 +323,7 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function Pair() @{
-			let &[tick] = track(0);
+			const tick = track(0);
 			let label = 'a';
 			let other = 'x';
 			let last = '';
@@ -335,9 +335,9 @@ describe('boxed locals', () => {
 				}
 			};
 			bump = () => {
-				tick++;
+				tick.value++;
 			};
-			<span>{label + other + last + tick}</span>
+			<span>{label + other + last + tick.value}</span>
 		}
 
 		render(Pair);
@@ -355,7 +355,7 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[n] = track(0);
+			const n = track(0);
 			function greet() {
 				return 'hi';
 			}
@@ -363,9 +363,9 @@ describe('boxed locals', () => {
 				greet = () => 'bye';
 			};
 			bump = () => {
-				n++;
+				n.value++;
 			};
-			<span>{greet() + n}</span>
+			<span>{greet() + n.value}</span>
 		}
 
 		render(App);
@@ -383,15 +383,15 @@ describe('boxed locals', () => {
 		let bump: () => void = () => {};
 
 		function App() @{
-			let &[count] = track(0);
+			const count = track(0);
 			let later: string | undefined;
 			assign = () => {
 				later = 'set';
 			};
 			bump = () => {
-				count++;
+				count.value++;
 			};
-			<span>{String(later) + '/' + count}</span>
+			<span>{String(later) + '/' + count.value}</span>
 		}
 
 		render(App);

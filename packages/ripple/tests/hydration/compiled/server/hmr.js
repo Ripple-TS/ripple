@@ -24,14 +24,14 @@ export function Layout({ children }) {
 
 export function Content() {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(true, '0bdb1500');
+		const visible = _$_.track(true, '0bdb1500');
 
 		_$_.regular_block(() => {
 			let __out = '';
 
 			__out += '<div class="content"><!--[-->';
 
-			if (lazy.value) {
+			if (visible.value) {
 				__out += '<p class="text">Hello world</p>';
 			}
 

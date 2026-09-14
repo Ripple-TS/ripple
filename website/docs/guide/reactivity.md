@@ -7,109 +7,79 @@ title: Reactivity in Ripple
 ## Reactive Variables
 
 You use `track` to create a single tracked value. The `track` function will create
-a `Tracked<T>` object, and with `&[]` lazy destructuring you get a variable that
-reads and writes to the tracked value directly. You can pass the `Tracked<T>`
-object between components, functions and context to read and write to the value in
-different parts of your codebase.
+a `Tracked<T>` object; you read and write the current value through its `.value`
+property. Reading `.value` subscribes to the tracked value, and writing to it
+triggers updates. You can pass the `Tracked<T>` object between components,
+functions and context to read and write to the value in different parts of your
+codebase.
 
 ```ts
 import { track } from 'ripple';
 
-let &[name] = track('World');
-let &[count] = track(0);
-
-// Updates automatically trigger re-renders
-count++;
-```
-
-Objects can also contain tracked values:
-
-```ts
-import { track } from 'ripple';
-
-let &[current] = track(0);
-let counter = { current };
-
-// Updates automatically trigger re-renders
-current++;
-```
-
-### Accessing Tracked Values with `.value`
-
-As an alternative to lazy destructuring, you can read and write a tracked value
-directly using the `.value` property on the `Tracked<V>` object:
-
-```ts
-import { track } from 'ripple';
-
+const name = track('World');
 const count = track(0);
 
 // Read the current value
 console.log(count.value); // 0
 
-// Write a new value
+// Updates automatically trigger re-renders
 count.value++;
 console.log(count.value); // 1
 ```
 
-Using `&[...]` lazy destructuring is typically preferred in most cases because it produces
-cleaner, more readable code. However, `.value` is useful when you need top performance,
-especially in hot paths, or to keep the `Tracked<V>` object around — for example,
-when storing tracked values in data structures, passing them as props typed as `Tracked<T>`,
-or when you need both the tracked object and its value in different contexts.
+Objects and arrays can also contain tracked values:
 
 ```ts
 import { track } from 'ripple';
 
-// Storing tracked values in an array — use .value to read/write
-const items = [track(1), track(2), track(3)];
-items[0].value++;  // reactively updates
+const current = track(0);
+const counter = { current };
 
-// Using &[value, trackedValue] gives you both:
-let &[count, countTracked] = track(0);
-count++;                    // convenient direct access via lazy destructuring
-console.log(countTracked.value);  // equivalent: read via .value on the tracked object
+// Updates automatically trigger re-renders
+counter.current.value++;
+
+const items = [track(1), track(2), track(3)];
+items[0].value++;
 ```
 
-::: info When to use `.value` Use `.value` when you need top performance or
-to work with the `Tracked<V>` object directly, such as storing tracked values
-in arrays or objects, or passing them to functions and components that expect
-`Tracked<T>`. Use `&[...]` lazy destructuring for everyday reactive variables
-where you want clean, direct access.
-:::
-
-Tracked derived values are also `Tracked<T>` objects, except that you pass a
-function to `track` rather than a value:
+Derived values are `Derived<T>` objects: you pass a function to `track` rather
+than a value, and their `.value` is read-only:
 
 ```ts
 import { track } from 'ripple';
 
 export function App() @{
-  let &[count] = track(10);
-  let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 2);
+  const count = track(10);
+  const double = track(() => count.value * 2);
+  const quadruple = track(() => double.value * 2);
 
   <>
-    <p>Count: {count}</p>
-    <p>Double: {double}</p>
-    <p>Quadruple: {quadruple}</p>
-    <button onClick={() => count++}>Increment Count</button>
+    <p>Count: {count.value}</p>
+    <p>Double: {double.value}</p>
+    <p>Quadruple: {quadruple.value}</p>
+    <button onClick={() => count.value++}>Increment Count</button>
   </>
 }
 ```
 
-Derived tracked values can also be written to for **optimistic state**. The
-written value is exposed immediately, and when the next computation settles it
-takes precedence and overrides it:
+`track(() => count.value)` is also how you hand a tracked value to a component,
+function, or context that should only read it: the receiver types it
+`Derived<T>` and follows every change, while a `Tracked<T>` lets the receiver
+write `.value` too.
+
+A derived created with `true` in the setter position is a `WritableDerived<T>`
+and can be written to for **optimistic state**. The written value is exposed
+immediately, and when the next computation settles it takes precedence and
+overrides it:
 
 ```ts
 import { track } from 'ripple';
 
-let &[count] = track(0);
-let &[double] = track(() => count * 2);
+const count = track(0);
+const double = track(() => count.value * 2, undefined, true);
 
 // Write optimistically — shows 99 immediately
-double = 99;
+double.value = 99;
 
 // When count next changes, double reverts to count * 2
 ```
@@ -120,13 +90,13 @@ but you don't want that value to be a tracked dependency, you can use `untrack`:
 ```ts
 import { track, effect, untrack } from 'ripple';
 
-let &[count] = track(0);
-let &[double] = track(() => count * 2);
-let &[quadruple] = track(() => double * 2);
+const count = track(0);
+const double = track(() => count.value * 2);
+const quadruple = track(() => double.value * 2);
 
 effect(() => {
   // This effect will never fire again, as we've untracked the only dependency it has
-  console.log(untrack(() => quadruple));
+  console.log(untrack(() => quadruple.value));
 })
 ```
 
@@ -139,7 +109,7 @@ have to be created on access from an active component context.
 The optional get and set parameters of the `track` function let you customize how
 a tracked value is read or written, similar to property accessors but expressed as
 pure functions. The get function receives the current stored value and its return
-value is exposed when the tracked value is read via `&[]` lazy destructuring. The
+value is exposed when `.value` is read. The
 set function should return the value that will actually be stored and receives two
 parameters: the first is the one being assigned and the second is the previous
 value. The get and set functions may be useful for tasks such as logging,
@@ -149,7 +119,7 @@ validating, or transforming values before they are exposed or stored.
 import { track } from 'ripple';
 
 export function App() @{
-  let &[count] = track(
+  const count = track(
     0,
     (current) => {
       console.log(current);
@@ -164,7 +134,7 @@ export function App() @{
     },
   );
 
-  <button onClick={()=>count++}>{count}</button>
+  <button onClick={()=>count.value++}>{count.value}</button>
 }
 ```
 
@@ -173,90 +143,35 @@ either exposed (for get) or stored (for set). Also, if only supplying the `set`,
 the `get` parameter must be set to `undefined`.
 :::
 
-#### Lazy Destructuring (`&{...}` / `&[...]`)
-
-Lazy destructuring uses the `&` prefix directly before `{` or `[` in a
-destructuring pattern. Instead of eagerly pulling values out of the source object,
-lazy destructuring compiles each variable access to a deferred property/index
-lookup on the source. This preserves reactivity for reactive props and other
-tracked objects.
-
-```tsrx
-// Lazy object destructuring — a and b are accessed lazily from props
-const &{ a, b } = props;
-
-// Lazy array destructuring
-const &[first, second] = items;
-
-// With default values
-const &{ x = 10 } = props;
-
-// With rest patterns
-const &{ a, ...rest } = props;
-```
-
-**Component props** — use `&{...}` to lazily destructure props, preserving
-reactivity:
-
-```tsrx
-function Child(&{ count, className, children }: Props) {
-  return <>
-    // count, className, children are lazily read from the props object
-    <button class={className}>{children}</button>
-    <pre>Count is: {count}</pre>
-  </>;
-}
-```
-
-**Function parameters** — works in regular functions too:
-
-```tsrx
-function process(&{ x, y }: Point) {
-  return x + y; // lazily reads from the parameter object
-}
-```
-
-**Variable declarations** — works with `const`, `let`, and `var`:
-
-```tsrx
-const &{ a, b } = someObject; // read-only lazy access
-let &{ x, y } = mutableObject; // supports assignment: x = 5 writes back
-```
-
-::: info When to use lazy destructuring Use `&{...}` whenever you destructure
-reactive props or tracked objects and need the variables to remain reactive.
-Regular destructuring (`{ a, b } = obj`) eagerly copies values and loses
-reactivity.
-:::
-
 ## Transporting Reactivity
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can
-simply be passed by reference between boundaries:
+simply be passed by reference between boundaries. Pass a derived,
+`track(() => count.value)`, instead when the receiver should only read it:
 
 <Code console>
 
 ```tsrx
-import { track, effect } from 'ripple';
+import { track, effect, type Tracked } from 'ripple';
 
-function createDouble(&[count]) {
-  const double = track(() => count * 2);
+function createDouble(count: Tracked<number>) {
+  const double = track(() => count.value * 2);
 
   effect(() => {
-    console.log('Count:', count);
+    console.log('Count:', count.value);
   });
 
   return double;
 }
 
 export function App() @{
-  let &[count, countTracked] = track(0);
-  const &[double] = createDouble(countTracked);
+  const count = track(0);
+  const double = createDouble(count);
 
   <>
-    <p>Count: {count}</p>
-    <p>Double: {double}</p>
-    <button onClick={() => count++}>Increment Count</button>
+    <p>Count: {count.value}</p>
+    <p>Double: {double.value}</p>
+    <button onClick={() => count.value++}>Increment Count</button>
   </>
 }
 ```
@@ -267,32 +182,33 @@ export function App() @{
 
 Ripple has built-in support for dynamic components, a way to render different
 components based on reactive state. Instead of hardcoding which component to show,
-you can store a component in a `Tracked` via `track()`, and update it at runtime.
+you can store a component in a writable derived, `track(() => Child1, undefined, true)`
+(the third argument `true` makes it writable), and update it at runtime.
 When the tracked value changes, Ripple automatically unmounts the previous
 component and mounts the new one. Dynamic components are rendered with the
-`<{expression}>` tag syntax; the runtime handles unwrapping the value internally.
-This makes it straightforward to pass components as props or swap them directly
-within a component, enabling flexible, state-driven UIs with minimal boilerplate.
+`<{expression}>` tag syntax. This makes it straightforward to pass components as
+props or swap them directly within a component, enabling flexible, state-driven
+UIs with minimal boilerplate.
 
 <Code>
 
 ```tsrx
-import { track } from 'ripple';
+import { track, type Component, type Derived } from 'ripple';
 
 export function App() @{
-  let &[swapMe, swapMeTracked] = track(() => Child1);
+  const swapMe = track(() => Child1, undefined, true);
 
   <>
-    <Child swapMe={swapMeTracked} />
+    <Child {swapMe} />
 
-    <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
+    <button onClick={() => (swapMe.value = swapMe.value === Child1 ? Child2 : Child1)}>
       Swap Component
     </button>
   </>
 }
 
-function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
-  return <{swapMe} />
+function Child({ swapMe }: { swapMe: Derived<Component> }) {
+  return <{swapMe.value} />
 }
 
 function Child1(props) {
@@ -317,12 +233,12 @@ based on changes that happen upon updates. To do this, you can use `effect`:
 import { track, effect } from 'ripple';
 
 export function App() @{
-  let &[count] = track(0);
+  const count = track(0);
   effect(() => {
-    console.log(count);
+    console.log(count.value);
   });
 
-  <button onClick={() => count++}>Increment</button>
+  <button onClick={() => count.value++}>Increment</button>
 }
 ```
 
@@ -341,12 +257,12 @@ DOM changes are complete before executing subsequent code, similar to Vue's
 import { tick, track, effect } from 'ripple';
 
 export function App() @{
-  let &[count] = track(0);
+  const count = track(0);
 
   effect(() => {
-    count;
+    count.value;
 
-    if (count === 0) {
+    if (count.value === 0) {
       console.log('initial run, skipping');
       return;
     }
@@ -356,7 +272,7 @@ export function App() @{
     });
   });
 
-  <button onClick={() => count++}>Increment</button>
+  <button onClick={() => count.value++}>Increment</button>
 }
 ```
 
@@ -370,20 +286,20 @@ export function App() @{
 import { track, effect, untrack } from 'ripple';
 
 export function App() @{
-  let &[count] = track(10);
-  let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 2);
+  const count = track(10);
+  const double = track(() => count.value * 2);
+  const quadruple = track(() => double.value * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
-    console.log(untrack(() => quadruple));
+    console.log(untrack(() => quadruple.value));
   });
 
   <>
-    <p>Count: {count}</p>
-    <p>Double: {double}</p>
-    <p>Quadruple: {quadruple}</p>
-    <button onClick={() => count++}>Increment Count</button>
+    <p>Count: {count.value}</p>
+    <p>Double: {double.value}</p>
+    <p>Quadruple: {quadruple.value}</p>
+    <button onClick={() => count.value++}>Increment Count</button>
   </>
 }
 ```
@@ -438,20 +354,20 @@ object, like arrays:
 import { track, effect } from 'ripple';
 
 export function App() @{
-  let &[first, firstTracked] = track(1);
-  let &[second, secondTracked] = track(2);
-  const arr = [firstTracked, secondTracked];
+  const first = track(1);
+  const second = track(2);
+  const arr = [first, second];
 
-  const &[total] = track(() => arr.reduce((a, b) => a.value + b.value));
+  const total = track(() => arr.reduce((a, item) => a + item.value, 0));
 
   effect(() => {
-    console.log(total);
+    console.log(total.value);
   });
 
   <>
-    <p>First :{first}, Second: {second}, Total: {total}</p>
-    <button onClick={()=>first++}>Increment First</button>
-    <button onClick={()=>second++}>Increment Second</button>
+    <p>First :{first.value}, Second: {second.value}, Total: {total.value}</p>
+    <button onClick={()=>first.value++}>Increment First</button>
+    <button onClick={()=>second.value++}>Increment Second</button>
   </>
 }
 ```
@@ -564,14 +480,14 @@ import { RippleSet, track } from 'ripple';
 
 export function App() @{
   const set = new RippleSet([1, 2, 3]);
-  let &[has] = track(() => set.has(2));
+  const has = track(() => set.has(2));
 
   <>
     // direct usage
     <p>Direct usage: set contains 2: {set.has(2)}</p>
 
     // reactive assignment
-    <p>Assigned usage: set contains 2: {has}</p>
+    <p>Assigned usage: set contains 2: {has.value}</p>
 
     <button onClick={() => set.delete(2)}>Delete 2</button>
     <button onClick={() => set.add(2)}>Add 2</button>
@@ -602,14 +518,14 @@ import { RippleMap, track } from 'ripple';
 
 export function App() @{
   const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
-  let &[has] = track(() => map.has(2));
+  const has = track(() => map.has(2));
 
   <>
     // direct usage
     <p>Direct usage: map has an item with key 2: {map.has(2)}</p>
 
     // reactive assignment
-    <p>Assigned usage: map has an item with key 2: {has}</p>
+    <p>Assigned usage: map has an item with key 2: {has.value}</p>
 
     <button onClick={() => map.delete(2)}>Delete item with key 2</button>
     <button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
@@ -642,8 +558,8 @@ import { RippleDate, track } from 'ripple';
 
 export function App() @{
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
-  let &[year] = track(() => date.getFullYear());
-  let &[month] = track(() => date.getMonth());
+  const year = track(() => date.getFullYear());
+  const month = track(() => date.getMonth());
 
   <>
     // direct usage
@@ -651,7 +567,7 @@ export function App() @{
     <p>ISO String: {date.toISOString()}</p>
 
     // reactive assignment
-    <p>Assigned usage: Year {year}, Month {month}</p>
+    <p>Assigned usage: Year {year.value}, Month {month.value}</p>
 
     <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
     <button onClick={() => date.setMonth(11)}>Change to December</button>

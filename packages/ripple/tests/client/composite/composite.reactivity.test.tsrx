@@ -78,27 +78,27 @@ describe('composite > reactivity', () => {
 
 	it('parents and children have isolated state', () => {
 		function Button(props: { count: Tracked<number> }) @{
-			let &[count] = track(() => props.count.value);
+			const count = track(() => props.count.value, undefined, true);
 			<button
 				onClick={() => {
-					count++;
+					count.value++;
 				}}
 			>
-				{'child: ' + count}
+				{'child: ' + count.value}
 			</button>
 		}
 
 		function App() @{
-			let &[count, countTracked] = track(0);
+			const count = track(0);
 			<div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>
-					{'parent: ' + count}
+					{'parent: ' + count.value}
 				</button>
-				<Button count={countTracked} />
+				<Button count={count} />
 			</div>
 		}
 
@@ -123,28 +123,28 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated connected state (destructured props)', () => {
-		function Button({ count: &[count] }: { count: Tracked<number> }) @{
-			let &[local_count] = track(() => count);
+		function Button({ count }: { count: Tracked<number> }) @{
+			const local_count = track(() => count.value, undefined, true);
 			<button
 				onClick={() => {
-					local_count++;
+					local_count.value++;
 				}}
 			>
-				{'child: ' + local_count}
+				{'child: ' + local_count.value}
 			</button>
 		}
 
 		function App() @{
-			let &[count, countTracked] = track(0);
+			const count = track(0);
 			<div>
 				<button
 					onClick={() => {
-						count++;
+						count.value++;
 					}}
 				>
-					{'parent: ' + count}
+					{'parent: ' + count.value}
 				</button>
-				<Button count={countTracked} />
+				<Button count={count} />
 			</div>
 		}
 
@@ -188,19 +188,11 @@ describe('composite > reactivity', () => {
 			</>
 		}
 
-		function Child({
-			a: &[a],
-			b: &[b],
-			c: &[c],
-		}: {
-			a: Tracked<number>;
-			b: Tracked<number>;
-			c: Tracked<number>;
-		}) @{
+		function Child({ a, b, c }: { a: Tracked<number>; b: Tracked<number>; c: Tracked<number> }) @{
 			effect(() => {
-				logs.push(`Child effect: ${a}, ${b}, ${c}`);
+				logs.push(`Child effect: ${a.value}, ${b.value}, ${c.value}`);
 			});
-			<div>{a + ' ' + b + ' ' + c}</div>
+			<div>{a.value + ' ' + b.value + ' ' + c.value}</div>
 		}
 
 		render(App);
@@ -217,10 +209,10 @@ describe('composite > reactivity', () => {
 		expect(logs).toEqual(['Child effect: 1, 2, 3', 'Child effect: 2, 3, 4']);
 	});
 
-	it('keeps reactivity for spread props via intermediate components and lazy destructuring', () => {
+	it('keeps reactivity for spread props via intermediate components and destructured props', () => {
 		function App() @{
-			let &[count, countTracked] = track(0);
-			<CounterWrapper count={countTracked} up={() => count++} down={() => count--} />
+			const count = track(0);
+			<CounterWrapper count={count} up={() => count.value++} down={() => count.value--} />
 		}
 
 		function CounterWrapper(props: Props) @{
@@ -229,11 +221,11 @@ describe('composite > reactivity', () => {
 			</div>
 		}
 
-		function Counter({ count: &[count], up, down, ...rest }: Props) @{
+		function Counter({ count, up, down, ...rest }: Props) @{
 			<>
 				<button onClick={() => up()}>{'UP'}</button>
 				<button onClick={() => down()}>{'DOWN'}</button>
-				<span {...rest}>{`Counter: ${count}`}</span>
+				<span {...rest}>{`Counter: ${count.value}`}</span>
 			</>
 		}
 
@@ -258,8 +250,8 @@ describe('composite > reactivity', () => {
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
 		function App() @{
-			let &[count, countTracked] = track(0);
-			<CounterWrapper count={countTracked} up={() => count++} />
+			const count = track(0);
+			<CounterWrapper count={count} up={() => count.value++} />
 		}
 
 		function CounterWrapper(props: { count: Tracked<number>; up: () => void }) @{
@@ -291,7 +283,7 @@ describe('composite > reactivity', () => {
 		}
 
 		function Counter({
-			count: &[count],
+			count,
 			up,
 			...rest
 		}: {
@@ -302,7 +294,7 @@ describe('composite > reactivity', () => {
 			extra: number;
 		}) @{
 			<>
-				<div {...rest}>{`Counter: ${count} Double: ${rest.double.value}`}</div>
+				<div {...rest}>{`Counter: ${count.value} Double: ${rest.double.value}`}</div>
 				<button onClick={() => up()}>{'UP'}</button>
 			</>
 		}

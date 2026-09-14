@@ -25,26 +25,26 @@ Layout[_$_.$r] = Layout_render;
 
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
 
-function consequent(__anchor, lazy) {
+function consequent(__anchor, visible) {
 	var p = root_2();
 
 	_$_.append(__anchor, p);
 }
 
-function if_1(lazy) {
-	if (lazy.value) return consequent;
+function if_1(visible) {
+	if (visible.value) return consequent;
 }
 
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
 
 function Content_render(__anchor, __block) {
-	let lazy = _$_.track(true, __block, '0bdb1500');
+	const visible = _$_.track(true, __block, '0bdb1500');
 	var div_1 = root_1();
 
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
-		_$_.if(node, if_1, false, lazy);
+		_$_.if(node, if_1, false, visible);
 		_$_.hydrating && _$_.pop(div_1);
 	}
 

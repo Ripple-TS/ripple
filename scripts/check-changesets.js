@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const CHANGESET_DIR = path.resolve('.changeset');
-const DISALLOWED_BUMPS = new Set(['major', 'minor']);
+const DISALLOWED_BUMPS = new Set(['major']);
 
 function parse_frontmatter(content) {
 	const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -44,8 +44,8 @@ for (const entry of entries) {
 }
 
 if (offenders.length > 0) {
-	console.error('Changeset bump types "major" and "minor" are not allowed in this repo.');
-	console.error('Use "patch" for release changesets.');
+	console.error('Changeset bump type "major" is not allowed in this repo.');
+	console.error('Use "patch" for release changesets, or "minor" for a breaking change.');
 	console.error('');
 	for (const offender of offenders) {
 		console.error(`- ${offender.file}:${offender.line} ${offender.package_name}: ${offender.bump}`);

@@ -39,9 +39,9 @@ render nothing or return another value.
 import { track } from 'ripple';
 
 export function AuthGate() @{
-  let &[is_logged_in] = track(false);
+  const is_logged_in = track(false);
 
-  if (!is_logged_in) {
+  if (!is_logged_in.value) {
     return <p>Please sign in.</p>;
   }
 
@@ -100,14 +100,14 @@ You can also use reactive values with switch statements.
 import { track } from 'ripple';
 
 export function InteractiveStatus() @{
-  let &[status] = track('loading');
+  const status = track('loading');
 
   <>
-    <button onClick={() => (status = 'success')}>Success</button>
-    <button onClick={() => (status = 'error')}>Error</button>
+    <button onClick={() => (status.value = 'success')}>Success</button>
+    <button onClick={() => (status.value = 'error')}>Error</button>
 
     <div>
-      @switch (status) {
+      @switch (status.value) {
         @case 'init': {
           <p>Init</p>
         }
@@ -292,11 +292,11 @@ string, a component, or a tracked variable holding either:
 import { track } from 'ripple';
 
 export function App() @{
-  let &[tag] = track('div');
+  const tag = track('div');
 
   <>
-    <{tag} class="dynamic">Hello World</{tag}>
-    <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
+    <{tag.value} class="dynamic">Hello World</{tag.value}>
+    <button onClick={() => (tag.value = tag.value === 'div' ? 'span' : 'div')}>
       Toggle Element
     </button>
   </>
@@ -349,12 +349,12 @@ nearest `@try/pending` boundary.
 import { track } from 'ripple';
 
 export function CitySearch() @{
-  let &[query] = track('');
-  const city = await track(() => fetchCity(query));
+  const query = track('');
+  const city = await track(() => fetchCity(query.value));
 
   <>
-    <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
-    <p>Showing: {query}</p>
+    <input type="text" value={query.value} onInput={(e) => (query.value = e.target.value)} />
+    <p>Showing: {query.value}</p>
     <CityCard {city} />
   </>
 }

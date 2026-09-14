@@ -40,29 +40,29 @@ function Section({
 	prefix: string;
 	bind: (setOpen: (v: boolean) => void, setTick: (v: number) => void, setDistinct: (v: boolean) => void) => void;
 }) @{
-	let &[open] = track(false);
-	let &[tick] = track(0);
-	let &[distinct] = track(false);
+	const open = track(false);
+	const tick = track(0);
+	const distinct = track(false);
 	bind(
 		(v: boolean) => {
-			open = v;
+			open.value = v;
 		},
 		(v: number) => {
-			tick = v;
+			tick.value = v;
 		},
 		(v: boolean) => {
-			distinct = v;
+			distinct.value = v;
 		},
 	);
 
 	<section class={secClass}>
-		<h3 class="tick">{prefix + tick}</h3>
+		<h3 class="tick">{prefix + tick.value}</h3>
 		<ul class="list">
 			@for (const item of ITEMS as Item[]; key item.id) {
 				<li class="item">
 					<span class="label">{item.label}</span>
-					@if (open) {
-						<Portal target={distinct ? targetFor(item.id) : sharedTarget()}>
+					@if (open.value) {
+						<Portal target={distinct.value ? targetFor(item.id) : sharedTarget()}>
 							<Tip item={item} cls={tipClass} />
 						</Portal>
 					}

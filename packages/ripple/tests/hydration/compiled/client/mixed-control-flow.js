@@ -202,7 +202,7 @@ function render_5(__prev) {
 
 var root_11 = _$_.template(`<p class="pending">pending b</p>`, 0);
 
-function switch_case_0_1(__anchor, { lazy_1, pattern_1 }) {
+function switch_case_0_1(__anchor, { mode, pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -232,7 +232,7 @@ function switch_case_0_1(__anchor, { lazy_1, pattern_1 }) {
 	);
 }
 
-function switch_case_default_1(__anchor, { lazy_1, pattern_1 }) {
+function switch_case_default_1(__anchor, { mode, pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -262,8 +262,8 @@ function switch_case_default_1(__anchor, { lazy_1, pattern_1 }) {
 	);
 }
 
-function switch_2({ lazy_1, pattern_1 }) {
-	switch (lazy_1.value) {
+function switch_2({ mode, pattern_1 }) {
+	switch (mode.value) {
 		case 'a':
 			return switch_case_0_1;
 
@@ -274,15 +274,15 @@ function switch_2({ lazy_1, pattern_1 }) {
 
 var root_7 = _$_.template(`<div class="mixed-reactive-list"></div>`, 0);
 
-function consequent_1(__anchor, { lazy, lazy_2, lazy_1 }) {
+function consequent_1(__anchor, { show, items, mode }) {
 	var div_4 = root_7();
 
 	{
 		_$_.for_keyed(
 			div_4,
-			() => lazy_2.value,
+			() => items.value,
 			(__anchor, pattern_1) => {
-				_$_.switch(__anchor, switch_2, true, { lazy_1, pattern_1 });
+				_$_.switch(__anchor, switch_2, true, { mode, pattern_1 });
 			},
 			4,
 			(pattern_1) => _$_.get(pattern_1).id
@@ -294,17 +294,17 @@ function consequent_1(__anchor, { lazy, lazy_2, lazy_1 }) {
 	_$_.append(__anchor, div_4);
 }
 
-function if_2({ lazy, lazy_2, lazy_1 }) {
-	if (lazy.value) return consequent_1;
+function if_2({ show, items, mode }) {
+	if (show.value) return consequent_1;
 }
 
 var root_6 = _$_.template(`<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!>`, 1, 4);
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function MixedControlFlowReactive_render(__anchor, __block) {
-	let lazy = _$_.track(true, __block, '5ae53d26');
-	let lazy_1 = _$_.track('a', __block, '5b53eda2');
-	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], __block, '7890dad6');
+	const show = _$_.track(true, __block, '5ae53d26');
+	const mode = _$_.track('a', __block, '5b53eda2');
+	const items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], __block, '7890dad6');
 	var fragment = root_5();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -313,24 +313,24 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 		var button = _$_.first_child_frag(fragment_1);
 
 		button.__click = () => {
-			_$_.set(lazy, !lazy.value);
+			show.value = !show.value;
 		};
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 		button_1.__click = () => {
-			_$_.set(lazy_1, lazy_1.value === 'a' ? 'b' : 'a');
+			mode.value = mode.value === 'a' ? 'b' : 'a';
 		};
 
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
 
 		button_2.__click = () => {
-			_$_.set(lazy_2, [...lazy_2.value, { id: 3, label: 'Three' }]);
+			items.value = [...items.value, { id: 3, label: 'Three' }];
 		};
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
-		_$_.if(node, if_2, false, { lazy, lazy_2, lazy_1 });
+		_$_.if(node, if_2, false, { show, items, mode });
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -424,13 +424,13 @@ MixedControlFlowAsyncPending[_$_.$r] = MixedControlFlowAsyncPending_render;
 var root_16 = _$_.template(`<div class="resolved-row"> </div>`, 0);
 
 function AsyncRow_render(__anchor, __block, { label }) {
-	let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');
 	var div_8 = root_16();
 
 	{
 		var expression_5 = _$_.hydrating ? _$_.hydrate_child() : div_8.firstChild;
 
-		_$_.expression(expression_5, () => lazy_3.value);
+		_$_.expression(expression_5, () => value.value);
 		_$_.hydrating && _$_.pop(div_8);
 	}
 

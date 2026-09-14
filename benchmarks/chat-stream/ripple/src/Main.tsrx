@@ -27,59 +27,61 @@ interface Conversation {
 }
 
 export default function ChatApp() @{
-	let &[convs] = track<Conversation[]>(initialConversations());
-	let &[active] = track(0);
-	let &[draft] = track('');
-	let &[streamingId] = track<number | null>(null);
+	const convs = track<Conversation[]>(initialConversations());
+	const active = track(0);
+	const draft = track('');
+	const streamingId = track<number | null>(null);
 
 	const send = () => {
-		const text = draft.trim();
+		const text = draft.value.trim();
 		if (text === '') return;
 		const reply = nextReply();
 		flushSync(() => {
-			convs = convs.map(
-				(c, i) => i === active ? { ...c, messages: [...c.messages, userMessage(text), reply] } : c,
+			convs.value = convs.value.map(
+				(c, i) => i === active.value
+					? { ...c, messages: [...c.messages, userMessage(text), reply] }
+					: c,
 			);
-			streamingId = reply.id;
-			draft = '';
+			streamingId.value = reply.id;
+			draft.value = '';
 		});
 	};
 
 	(window as any).__pump = (k: number) => {
-		const sid = streamingId;
+		const sid = streamingId.value;
 		if (sid === null) return 0;
-		const msg = convs[active].messages.find((m) => m.id === sid);
+		const msg = convs.value[active.value].messages.find((m) => m.id === sid);
 		if (msg === undefined) return 0;
 		const done = Math.min(msg.total, msg.done + k);
 		flushSync(() => {
-			convs = convs.map(
-				(c, i) => i === active
+			convs.value = convs.value.map(
+				(c, i) => i === active.value
 					? { ...c, messages: c.messages.map((m) => (m.id === sid ? { ...m, done } : m)) }
 					: c,
 			);
-			if (done === msg.total) streamingId = null;
+			if (done === msg.total) streamingId.value = null;
 		});
 		return msg.total - done;
 	};
 	(window as any).__reset = () => flushSync(() => {
-		convs = initialConversations();
-		active = 0;
-		draft = '';
-		streamingId = null;
+		convs.value = initialConversations();
+		active.value = 0;
+		draft.value = '';
+		streamingId.value = null;
 	});
 
-	const conv = () => convs[active];
+	const conv = () => convs.value[active.value];
 
 	<div class="chatapp">
 		<header class="topbar">
 			<h1>{'chat'}</h1>
 			<nav class="tabs">
-				@for (const c of convs; key c.id) {
+				@for (const c of convs.value; key c.id) {
 					<button
-						class={c.id === active ? 'conv-tab active' : 'conv-tab'}
+						class={c.id === active.value ? 'conv-tab active' : 'conv-tab'}
 						data-conv={'' + c.id}
 						onClick={() => flushSync(() => {
-							active = c.id;
+							active.value = c.id;
 						})}
 					>{c.title}</button>
 				}
@@ -87,7 +89,7 @@ export default function ChatApp() @{
 		</header>
 		<main class="messages">
 			@for (const m of conv().messages; key m.id) {
-				<div class={'message ' + m.role + (m.id === streamingId ? ' streaming' : '')}>
+				<div class={'message ' + m.role + (m.id === streamingId.value ? ' streaming' : '')}>
 					<div class="bubble">
 						@for (const s of m.segments; key s.id) {
 							@if (s.type === 'code') {
@@ -106,9 +108,9 @@ export default function ChatApp() @{
 			<input
 				class="prompt"
 				placeholder="Message…"
-				value={draft}
+				value={draft.value}
 				onInput={(e: Event) => flushSync(() => {
-					draft = (e.target as HTMLInputElement).value;
+					draft.value = (e.target as HTMLInputElement).value;
 				})}
 				onKeyDown={(e: KeyboardEvent) => {
 					if (e.key === 'Enter') send();

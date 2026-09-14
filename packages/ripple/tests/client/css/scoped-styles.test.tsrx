@@ -51,9 +51,9 @@ const bundle = <style apply={[two, accent]} />;
 describe('sibling-scoped style blocks', () => {
 	it('styles the items beside a block and everything below them, never the container', () => {
 		function Status() @{
-			let &[ready] = track(false);
+			const ready = track(false);
 			<>
-				<button onClick={() => (ready = !ready)}>{'toggle'}</button>
+				<button onClick={() => (ready.value = !ready.value)}>{'toggle'}</button>
 				<style>
 					.status {
 						padding: 0.5rem;
@@ -69,7 +69,7 @@ describe('sibling-scoped style blocks', () => {
 						}
 					</style>
 					<h2 id="title" class="title">{'Status'}</h2>
-					@if (ready) {
+					@if (ready.value) {
 						<>
 							<style>
 								.ok {
@@ -325,7 +325,7 @@ export function Status({ ready }: { ready: boolean }) @{
 	);
 
 	it('adds the scope classes of an element that spreads its props, one token per scope', () => {
-		function Button(&{ ...rest }: { id: string; class?: string }) @{
+		function Button({ ...rest }: { id: string; class?: string }) @{
 			<>
 				<style>
 					button {
@@ -356,7 +356,7 @@ export function Status({ ready }: { ready: boolean }) @{
 	});
 
 	it('keeps the scope classes of a static class when a spread brings its own class', () => {
-		function Card(&{ ...rest }: { class?: string }) @{
+		function Card({ ...rest }: { class?: string }) @{
 			<>
 				<style apply={importedTheme}>
 					.box {
@@ -387,15 +387,15 @@ export function Status({ ready }: { ready: boolean }) @{
 
 	it('keeps the scope classes while a dynamic class value changes', () => {
 		function App() @{
-			let &[active] = track(false);
+			const active = track(false);
 			<>
 				<style>
 					.on {
 						color: green;
 					}
 				</style>
-				<button id="toggle" onClick={() => (active = !active)}>{'toggle'}</button>
-				<p id="p" class={active ? 'on' : 'off'}>{'p'}</p>
+				<button id="toggle" onClick={() => (active.value = !active.value)}>{'toggle'}</button>
+				<p id="p" class={active.value ? 'on' : 'off'}>{'p'}</p>
 			</>
 		}
 

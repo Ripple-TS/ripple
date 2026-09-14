@@ -28,14 +28,14 @@ it('renders shadowed intrinsic calls as elements beside text', () => {
 it('keeps numeric addition, bigint conversion, and sequence effects during updates', () => {
 	let calls = 0;
 	function App() @{
-		let &[count] = track(2);
+		const count = track(2);
 		<>
-			<p>sum: {Number(count) + Number(count)}</p>
+			<p>sum: {Number(count.value) + Number(count.value)}</p>
 			<div>
 				{'big: '}
-				{(calls++, BigInt(count) satisfies bigint)}
+				{(calls++, BigInt(count.value) satisfies bigint)}
 			</div>
-			<button onClick={() => count++}>update</button>
+			<button onClick={() => count.value++}>update</button>
 		</>
 	}
 	render(App);

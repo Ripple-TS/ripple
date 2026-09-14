@@ -1,10 +1,10 @@
 import type { Children } from 'ripple';
 
-export function Layout(&{ children }: { children?: Children }) @{
+export function Layout({ children }: { children?: Children }) @{
 	<div class="layout">{children}</div>
 }
 
-export function TextWrappedLayout(&{ children }: { children?: Children }) @{
+export function TextWrappedLayout({ children }: { children?: Children }) @{
 	<div class="layout">
 		{'before'}
 		{children}

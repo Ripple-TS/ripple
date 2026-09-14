@@ -46,14 +46,14 @@ describe('Portal', () => {
 
 	it('cleans up portal content when destroyed via conditional rendering', () => {
 		function TestPortal() @{
-			let &[open] = track(true);
+			const open = track(true);
 			<>
-				@if (open) {
+				@if (open.value) {
 					<Portal target={document.body}>
 						<div class="test-portal">{'Conditional content'}</div>
 					</Portal>
 				}
-				<button onClick={() => (open = false)}>{'Close'}</button>
+				<button onClick={() => (open.value = false)}>{'Close'}</button>
 			</>
 		}
 
@@ -72,18 +72,18 @@ describe('Portal', () => {
 
 	it('opens and closes portal via conditional rendering', () => {
 		function TestPortal() @{
-			let &[open] = track(false);
+			const open = track(false);
 			<>
-				@if (open) {
+				@if (open.value) {
 					<Portal target={document.body}>
 						<div class="test-portal">
 							{'Content'}
-							<button onClick={() => (open = false)}>{'Close'}</button>
+							<button onClick={() => (open.value = false)}>{'Close'}</button>
 						</div>
 					</Portal>
 				}
-				@if (!open) {
-					<button onClick={() => (open = true)}>{'Open'}</button>
+				@if (!open.value) {
+					<button onClick={() => (open.value = true)}>{'Open'}</button>
 				}
 			</>
 		}
@@ -146,28 +146,28 @@ describe('Portal', () => {
 			// down the shared delegated event listeners for *all* portals on that
 			// target, silently breaking clicks inside any portal still open.
 			function TestSharedTargetPortals() @{
-				let &[modalOpen] = track(true);
-				let &[sheetOpen] = track(true);
-				let &[sheetClicks] = track(0);
+				const modalOpen = track(true);
+				const sheetOpen = track(true);
+				const sheetClicks = track(0);
 				<>
-					@if (modalOpen) {
+					@if (modalOpen.value) {
 						<Portal target={document.body}>
 							<div class="test-portal test-modal">
 								<button
 									class="close-modal"
-									onClick={() => (modalOpen = false)}
+									onClick={() => (modalOpen.value = false)}
 								>{'Close modal'}</button>
 							</div>
 						</Portal>
 					}
-					@if (sheetOpen) {
+					@if (sheetOpen.value) {
 						<Portal target={document.body}>
 							<div class="test-portal test-sheet">
-								<span class="sheet-clicks">{String(sheetClicks)}</span>
+								<span class="sheet-clicks">{String(sheetClicks.value)}</span>
 								<button
 									class="sheet-btn"
 									onClick={() => {
-										sheetClicks++;
+										sheetClicks.value++;
 									}}
 								>{'Sheet button'}</button>
 							</div>
@@ -209,14 +209,14 @@ describe('Portal', () => {
 		document.body.appendChild(target2);
 
 		function TestRetargetPortal() @{
-			let &[useSecond] = track(false);
-			let &[clicks] = track(0);
+			const useSecond = track(false);
+			const clicks = track(0);
 			<>
-				<button class="swap" onClick={() => (useSecond = true)}>{'Swap'}</button>
-				<Portal target={useSecond ? target2 : target1}>
+				<button class="swap" onClick={() => (useSecond.value = true)}>{'Swap'}</button>
+				<Portal target={useSecond.value ? target2 : target1}>
 					<div class="test-portal">
-						<span class="clicks">{String(clicks)}</span>
-						<button class="portal-btn" onClick={() => clicks++}>{'Click'}</button>
+						<span class="clicks">{String(clicks.value)}</span>
+						<button class="portal-btn" onClick={() => clicks.value++}>{'Click'}</button>
 					</div>
 				</Portal>
 			</>
@@ -246,12 +246,12 @@ describe('Portal', () => {
 
 	it('handles portal with reactive content', () => {
 		function TestReactivePortal() @{
-			let &[count] = track(0);
+			const count = track(0);
 			<Portal target={document.body}>
 				<div class="test-portal">
 					{'Count: '}
-					{String(count)}
-					<button onClick={() => count++}>{'Increment'}</button>
+					{String(count.value)}
+					<button onClick={() => count.value++}>{'Increment'}</button>
 				</div>
 			</Portal>
 		}
@@ -285,11 +285,11 @@ describe('Portal', () => {
 		}
 
 		function TestPortalOrder() @{
-			let &[on, onTracked] = track(true);
+			const on = track(true);
 			<>
-				<button onClick={() => (on = !on)}>{'Toggle'}</button>
+				<button onClick={() => (on.value = !on.value)}>{'Toggle'}</button>
 				<Portal {target}>
-					<Toggle on={onTracked} />
+					<Toggle {on} />
 				</Portal>
 				<Portal {target}>
 					<span class="test-portal">{'B'}</span>
@@ -323,11 +323,13 @@ describe('Portal', () => {
 		}
 
 		function TestPortalList() @{
-			let &[items, itemsTracked] = track([1, 2, 3]);
+			const items = track([1, 2, 3]);
 			<>
-				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+				<button
+					onClick={() => (items.value = [items.value[1], items.value[2], items.value[0]])}
+				>{'Rotate'}</button>
 				<Portal {target}>
-					<List items={itemsTracked} />
+					<List {items} />
 				</Portal>
 			</>
 		}
@@ -349,11 +351,13 @@ describe('Portal', () => {
 		document.body.appendChild(target);
 
 		function TestPortalFor() @{
-			let &[items] = track([1, 2, 3]);
+			const items = track([1, 2, 3]);
 			<>
-				<button onClick={() => (items = [items[1], items[2], items[0]])}>{'Rotate'}</button>
+				<button
+					onClick={() => (items.value = [items.value[1], items.value[2], items.value[0]])}
+				>{'Rotate'}</button>
 				<Portal {target}>
-					@for (const item of items; key item) {
+					@for (const item of items.value; key item) {
 						<span class="test-portal">{item}</span>
 					}
 				</Portal>
@@ -376,10 +380,10 @@ describe('Portal', () => {
 		// tells its subtree not to remove DOM; the portal content lives in the
 		// target, outside that range, and must still go.
 		function TestPortalInFragment() @{
-			let &[open] = track(true);
+			const open = track(true);
 			<>
-				<button onClick={() => (open = false)}>{'Close'}</button>
-				@if (open) {
+				<button onClick={() => (open.value = false)}>{'Close'}</button>
+				@if (open.value) {
 					<>
 						<Portal target={document.body}>
 							<div class="test-portal">{'Content'}</div>
@@ -427,17 +431,17 @@ describe('Portal', () => {
 			}
 
 			function TestPortalCleanup() @{
-				let &[open] = track(true);
-				let &[useSecond] = track(false);
+				const open = track(true);
+				const useSecond = track(false);
 				<>
-					<button class="close" onClick={() => (open = false)}>{'Close'}</button>
-					<button class="swap" onClick={() => (useSecond = true)}>{'Swap'}</button>
-					@if (open) {
+					<button class="close" onClick={() => (open.value = false)}>{'Close'}</button>
+					<button class="swap" onClick={() => (useSecond.value = true)}>{'Swap'}</button>
+					@if (open.value) {
 						<>
-							<Portal target={useSecond ? target2 : target1}>
+							<Portal target={useSecond.value ? target2 : target1}>
 								<Toggle on={true} />
 							</Portal>
-							<Portal target={useSecond ? target2 : target1}>
+							<Portal target={useSecond.value ? target2 : target1}>
 								<List items={[1, 2]} />
 							</Portal>
 						</>
