@@ -4,14 +4,7 @@ import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { hydrate_node, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
 import { first_child } from './operations.js';
-import {
-	active_block,
-	active_namespace,
-	exclude_from_object,
-	get,
-	untrack,
-	with_ns,
-} from './runtime.js';
+import { active_block, active_namespace, get, untrack, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
@@ -23,10 +16,9 @@ import { render_component } from './component.js';
  * @param {() => Record<string, any>} get_props the props literal of the call
  *   site: read once per rendered component (props are plain values), and
  *   re-read as element attributes when the target is a tag
- * @param {string} [exclude_key]
  * @returns {void}
  */
-export function composite(get_component, node, get_props, exclude_key) {
+export function composite(get_component, node, get_props) {
 	if (hydrating) {
 		// During hydration, `node` may already point at the first real SSR node
 		// (e.g. layout children). Only skip forward when we are on an empty
@@ -54,11 +46,7 @@ export function composite(get_component, node, get_props, exclude_key) {
 				// Handle as regular component
 				b = branch(() => {
 					var props = untrack(get_props);
-					render_component(
-						component,
-						anchor,
-						exclude_key ? exclude_from_object(props, [exclude_key]) : props,
-					);
+					render_component(component, anchor, props);
 				});
 			} else if (is_tsrx_element(component)) {
 				throw new TypeError('Invalid component type: received a TSRXElement value.');
@@ -92,7 +80,7 @@ export function composite(get_component, node, get_props, exclude_key) {
 						};
 					}
 
-					render_spread(element, get_props, 0, exclude_key);
+					render_spread(element, get_props, 0);
 
 					var props = untrack(get_props);
 					if (is_tsrx_element(props.children)) {

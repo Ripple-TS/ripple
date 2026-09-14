@@ -8,6 +8,26 @@ import type {
 } from 'ripple';
 
 describe('basic server > components & composition', () => {
+	it('renders rest and default pattern names in a keyed loop', async () => {
+		function App() @{
+			const rows = [
+				{ id: 1, name: 'one', tags: ['a', 'b'] },
+			];
+			<ul>
+				@for (const { id, ...rest } of rows; key id) {
+					<li>{rest.name}</li>
+				}
+				@for (const [head, second = 'none', ...others] of rows.map((row) => row.tags); key head) {
+					<li>{head + ':' + second + ':' + others.length}</li>
+				}
+			</ul>
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toBeHtml('<ul><li>one</li><li>a:b:0</li></ul>');
+	});
+
 	it('renders nothing for a component prop that is undefined', async () => {
 		function Child({ Comp }: { Comp?: Component }) @{
 			<div>

@@ -262,10 +262,9 @@ export function set_selected(element, selected) {
 /**
  * @param {Element} element
  * @param {() => Record<string | symbol, any>} fn
- * @param {string} [exclude_prop]
  * @returns {() => void}
  */
-export function apply_element_spread(element, fn, exclude_prop) {
+export function apply_element_spread(element, fn) {
 	/** @type {Record<string | symbol, any>} */
 	var prev = {};
 	/** @type {Record<string | symbol, Block | undefined>} */
@@ -315,8 +314,6 @@ export function apply_element_spread(element, fn, exclude_prop) {
 		var keys = spread_keys(next);
 
 		for (const key of keys) {
-			if (key === exclude_prop) continue;
-
 			const ref_fn = next[key];
 			if (!is_ref_prop(ref_fn)) {
 				continue;
@@ -365,7 +362,7 @@ export function apply_element_spread(element, fn, exclude_prop) {
 		/** @type {typeof prev} */
 		const current = {};
 		for (const key of keys) {
-			if (key === 'children' || key === exclude_prop) continue;
+			if (key === 'children') continue;
 
 			let value = next[key];
 			if (is_ref_prop(value)) {

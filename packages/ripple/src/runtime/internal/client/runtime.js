@@ -57,7 +57,6 @@ import { throw_invalid_component_type } from './component.js';
 import {
 	define_property,
 	get_descriptor,
-	get_own_property_symbols,
 	is_array,
 	object_keys,
 } from '@tsrx/core/runtime/language-helpers';
@@ -1936,40 +1935,4 @@ export function ref_prop() {
  */
 export function create_ref_prop(get_ref_value, set_ref_value) {
 	return create_core_ref_prop(() => untrack(get_ref_value), set_ref_value);
-}
-
-/**
- * @template T
- * @param {T | undefined} value
- * @param {T} fallback
- * @returns {T}
- */
-export function fallback(value, fallback) {
-	return value === undefined ? fallback : value;
-}
-
-/**
- * @param {Record<string | symbol, unknown>} obj
- * @param {string[]} exclude_keys
- * @returns {Record<string | symbol, unknown>}
- */
-export function exclude_from_object(obj, exclude_keys) {
-	/** @type {Record<string | symbol, unknown>} */
-	var new_obj = {};
-
-	for (const key in obj) {
-		if (!exclude_keys.includes(key)) {
-			new_obj[key] = obj[key];
-		}
-	}
-
-	for (const symbol of get_own_property_symbols(obj)) {
-		var ref_fn = obj[symbol];
-
-		if (symbol.description === REF_PROP) {
-			new_obj[symbol] = ref_fn;
-		}
-	}
-
-	return new_obj;
 }

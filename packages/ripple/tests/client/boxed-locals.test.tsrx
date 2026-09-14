@@ -350,6 +350,37 @@ describe('boxed locals', () => {
 		expect(text()).toBe('byd1');
 	});
 
+	it('boxes lets written through rest and default destructuring targets', () => {
+		let swap: () => void = () => {};
+		let bump: () => void = () => {};
+
+		function App() @{
+			const tick = track(0);
+			let a = 0;
+			let rest: Record<string, number> = {};
+			let tail: number[] = [];
+			swap = () => {
+				({ a = 5, ...rest } = { rest_x: 7 } as { a?: number; rest_x: number });
+				[a, ...tail] = new Set([1, 2, 3]);
+			};
+			bump = () => {
+				tick.value++;
+			};
+			<span>{a + ':' + (rest.rest_x ?? '-') + ':' + tail.join(',') + ':' + tick.value}</span>
+		}
+
+		render(App);
+		const text = () => container.querySelector('span')?.textContent;
+		expect(text()).toBe('0:-::0');
+
+		swap();
+		bump();
+		flushSync();
+		// The object default applied, the rest collected, and the array rest
+		// consumed the Set through the iterator protocol.
+		expect(text()).toBe('1:7:2,3:1');
+	});
+
 	it('boxes a reassigned function declaration', () => {
 		let swap: () => void = () => {};
 		let bump: () => void = () => {};

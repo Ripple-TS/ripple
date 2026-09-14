@@ -250,8 +250,8 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).toContain('err.v = null;');
 		// A destructuring assignment target writes the box.
 		expect(code).toContain("let label = { v: 'a' };");
-		expect(code).toContain('label.v = $$value[0]');
-		expect(code).toContain('other.v = $$value.other');
+		expect(code).toContain("[label.v] = ['b'];");
+		expect(code).toContain("({ other: other.v } = { other: 'y' });");
 		expect(code).toContain("for (label.v of ['c'])");
 	});
 
@@ -287,6 +287,28 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).not.toContain('{ v:');
 	});
 
+	it('writes rest and default destructuring targets through their boxes natively', () => {
+		const { code } = compile(
+			`export function App(props) @{
+				let a = 1;
+				let rest = {};
+				let tail = [];
+				const update = () => {
+					({ a = 2, ...rest } = props.obj);
+					[a, ...tail] = props.arr;
+				};
+				<button onClick={update}>{a}{rest.x}{tail.length}</button>
+			}`,
+			'App.tsrx',
+		);
+
+		// Member expressions are valid destructuring targets, rest included, so
+		// the pattern keeps JavaScript's own rest and default semantics.
+		expect(code).toContain('({ a: a.v = 2, ...rest.v } = props.obj);');
+		expect(code).toContain('[a.v, ...tail.v] = props.arr;');
+		expect(code).not.toContain('$$value');
+	});
+
 	it('passes a single captured local bare', () => {
 		const { code } = compile(
 			`function Node(props) @{
@@ -298,6 +320,49 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		);
 		expect(code).toContain('function if_1(props)');
 		expect(code).toContain('_$_.if(__anchor, if_1, true, props);');
+	});
+});
+
+describe('@tsrx/ripple keyed @for pattern reads', () => {
+	it('reads plain property and index chains off the per-key tracked item', () => {
+		const { code } = compile(
+			`export function App({ items }) @{
+				@for (const { id, nested: { label }, tags: [first] } of items; key id) {
+					<p>{label}{first}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// The render lowering reads the tracked item once per run (`__pattern`);
+		// each name is then a plain member chain on it.
+		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
+		expect(code).toContain('__pattern.nested.label');
+		expect(code).toContain('__pattern.tags[0]');
+		expect(code).toContain('(pattern) => _$_.get(pattern).id');
+	});
+
+	it('reads names behind a rest element or a default by destructuring the item', () => {
+		const { code } = compile(
+			`export function App({ items, pairs }) @{
+				<>
+					@for (const { id, ...rest } of items; key id) {
+						<p>{rest.name}</p>
+					}
+					@for (const [first, second = 'x', ...others] of pairs; key first) {
+						<p>{second}{others.length}</p>
+					}
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('(({ id, ...rest }) => rest)(_$_.get(pattern)).name');
+		expect(code).toContain("(([first, second = 'x', ...others]) => second)(__pattern_1)");
+		expect(code).toContain("(([first, second = 'x', ...others]) => others)(__pattern_1).length");
+		expect(code).not.toContain('exclude_from_object');
+		expect(code).not.toContain('array_slice');
+		expect(code).not.toContain('_$_.fallback');
 	});
 });
 

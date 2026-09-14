@@ -591,4 +591,39 @@ describe('for statements', () => {
 		expect(texts('.returned')).toEqual(['0: a', '1: b']);
 		expect(texts('.held')).toEqual(['0: a', '1: b']);
 	});
+
+	it('reads rest and default pattern names off the per-key item as it changes', () => {
+		type Row = { id: number; name: string; tags?: string[] };
+		let replace: (rows: Row[]) => void = () => {};
+
+		function App() @{
+			const rows = track<Row[]>([
+				{ id: 1, name: 'one', tags: ['a', 'b'] },
+			]);
+			replace = (next) => {
+				rows.value = next;
+			};
+			<ul>
+				@for (const { id, ...rest } of rows.value; key id) {
+					<li>{rest.name}</li>
+				}
+				@for (const [head, second = 'none', ...others] of rows.value.map(
+					(row) => row.tags ?? [],
+				); key head) {
+					<li>{head + ':' + second + ':' + others.length}</li>
+				}
+			</ul>
+		}
+
+		render(App);
+		const items = () => [...container.querySelectorAll('li')].map((li) => li.textContent);
+		expect(items()).toEqual(['one', 'a:b:0']);
+
+		// A new object under the same key updates the existing block in place.
+		replace([
+			{ id: 1, name: 'uno', tags: ['a'] },
+		]);
+		flushSync();
+		expect(items()).toEqual(['uno', 'a:none:0']);
+	});
 });

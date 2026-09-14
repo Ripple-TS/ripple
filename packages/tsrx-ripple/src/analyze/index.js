@@ -20,6 +20,7 @@
 
 import {
 	builders,
+	clone_ast_node,
 	createScopes,
 	ScopeRoot,
 	isVoidElement,
@@ -84,7 +85,6 @@ import {
 } from '../template-ast.js';
 import is_reference from 'is-reference';
 import { prepare_style_scopes } from '../style-scopes.js';
-import { extract_paths } from '../extract-paths.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
@@ -600,6 +600,77 @@ function get_array_element_type_annotation(type_annotation, index, is_rest) {
 	}
 
 	return undefined;
+}
+
+/**
+ * How each name a keyed `@for` pattern declares is read off the loop's per-key
+ * tracked item. A name reached through properties and indices alone reads as
+ * that member chain; a name behind a rest element or a default reads by
+ * destructuring the item with the authored pattern, so rest, default,
+ * computed-key, and iterable semantics stay JavaScript's own.
+ * @param {AST.Pattern} pattern
+ * @returns {{ node: AST.Identifier; read: (source: AST.Expression) => AST.Expression }[]}
+ */
+function pattern_reads(pattern) {
+	/** @type {{ node: AST.Identifier; read: (source: AST.Expression) => AST.Expression }[]} */
+	const reads = [];
+	const clone_param = () =>
+		/** @type {AST.Pattern} */ (
+			/** @type {unknown} */ ({ ...clone_ast_node(pattern), typeAnnotation: undefined })
+		);
+
+	/**
+	 * @param {AST.Pattern} node
+	 * @param {((source: AST.Expression) => AST.Expression) | null} chain
+	 */
+	const walk = (node, chain) => {
+		switch (node.type) {
+			case 'Identifier':
+				reads.push({
+					node,
+					read: chain ?? ((source) => b.call(b.arrow([clone_param()], b.id(node.name)), source)),
+				});
+				return;
+			case 'ObjectPattern':
+				for (const property of node.properties) {
+					if (property.type === 'RestElement') {
+						walk(property.argument, null);
+					} else {
+						walk(
+							property.value,
+							chain &&
+								((source) =>
+									b.member(
+										chain(source),
+										property.key,
+										property.computed || property.key.type !== 'Identifier',
+									)),
+						);
+					}
+				}
+				return;
+			case 'ArrayPattern':
+				for (let i = 0; i < node.elements.length; i += 1) {
+					const element = node.elements[i];
+					if (element === null) continue;
+					if (element.type === 'RestElement') {
+						walk(element.argument, null);
+					} else {
+						walk(element, chain && ((source) => b.member(chain(source), b.literal(i), true)));
+					}
+				}
+				return;
+			case 'AssignmentPattern':
+				walk(node.left, null);
+				return;
+			case 'RestElement':
+				walk(node.argument, null);
+				return;
+		}
+	};
+
+	walk(pattern, (source) => source);
+	return reads;
 }
 
 /**
@@ -1694,7 +1765,7 @@ const visitors = {
 		if (node.key) {
 			const state = context.state;
 			const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
-			const paths = extract_paths(pattern);
+			const reads = pattern_reads(pattern);
 			const scope = /** @type {ScopeInterface} */ (state.scopes.get(node));
 			/** @type {AST.Identifier | AST.Pattern} */
 			let pattern_id;
@@ -1708,9 +1779,8 @@ const visitors = {
 				node.metadata.tsrx_for_pattern_id = pattern_id;
 			}
 
-			for (const path of paths) {
-				const name = /** @type {AST.Identifier} */ (path.node).name;
-				const binding = context.state.scope.get(name);
+			for (const { node: id, read } of reads) {
+				const binding = context.state.scope.get(id.name);
 
 				if (binding !== null) {
 					binding.kind = 'for_pattern';
@@ -1721,9 +1791,7 @@ const visitors = {
 					}
 
 					binding.transform = {
-						read: () => {
-							return path.expression(b.call('_$_.get', /** @type {AST.Identifier} */ (pattern_id)));
-						},
+						read: () => read(b.call('_$_.get', /** @type {AST.Identifier} */ (pattern_id))),
 					};
 				}
 			}

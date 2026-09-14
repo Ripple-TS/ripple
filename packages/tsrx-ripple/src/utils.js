@@ -24,7 +24,6 @@ import {
 	strongHash,
 } from '@tsrx/core';
 import { has_text_type_fact } from './text-type-facts.js';
-import { extract_paths } from './extract-paths.js';
 import {
 	get_element_id,
 	get_element_identifier,
@@ -1690,49 +1689,74 @@ export function visit_assignment_expression(node, context, build_assignment) {
 		node.left.type === 'ObjectPattern' ||
 		node.left.type === 'RestElement'
 	) {
-		const value = /** @type {AST.Expression} */ (context.visit(node.right));
-		const should_cache = value.type !== 'Identifier';
-		const rhs = should_cache ? b.id('$$value') : value;
-
+		// A boxed `let` is written through its box. A member expression is a
+		// valid destructuring target, including for rest elements, so the
+		// pattern keeps its own rest, default, and iterable semantics.
 		let changed = false;
 
-		const assignments = extract_paths(node.left).map((path) => {
-			const value = path.expression?.(rhs);
+		/**
+		 * @param {AST.Pattern} target
+		 * @returns {AST.Pattern}
+		 */
+		const rewrite = (target) => {
+			switch (target.type) {
+				case 'Identifier': {
+					const binding = context.state.scope.get(target.name);
+					if (binding !== null && is_boxed(binding)) {
+						changed = true;
+						return b.member(target, b.id('v'));
+					}
+					return /** @type {AST.Pattern} */ (context.visit(target));
+				}
+				case 'ObjectPattern':
+					return {
+						...target,
+						properties: target.properties.map((property) => {
+							if (property.type === 'RestElement') {
+								return { ...property, argument: rewrite(property.argument) };
+							}
+							const value = rewrite(/** @type {AST.Pattern} */ (property.value));
+							return {
+								...property,
+								key: property.computed
+									? /** @type {AST.Expression} */ (context.visit(property.key))
+									: property.key,
+								value,
+								shorthand: property.shorthand && value === property.value,
+							};
+						}),
+					};
+				case 'ArrayPattern':
+					return {
+						...target,
+						elements: target.elements.map((element) =>
+							element === null ? null : rewrite(element),
+						),
+					};
+				case 'AssignmentPattern':
+					return {
+						...target,
+						left: rewrite(target.left),
+						right: /** @type {AST.Expression} */ (context.visit(target.right)),
+					};
+				case 'RestElement':
+					return { ...target, argument: rewrite(target.argument) };
+				default:
+					return /** @type {AST.Pattern} */ (context.visit(target));
+			}
+		};
 
-			let assignment = build_assignment('=', path.node, value, context);
-			if (assignment !== null) changed = true;
-
-			return (
-				assignment ??
-				b.assignment(
-					'=',
-					/** @type {AST.Pattern} */ (context.visit(path.node)),
-					/** @type {AST.Expression} */ (context.visit(value)),
-				)
-			);
-		});
-
+		const left = rewrite(node.left);
 		if (!changed) {
-			// No change to output -> nothing to transform -> we can keep the original assignment
+			// Nothing boxed: the assignment stays as written.
 			return null;
 		}
 
-		const is_standalone = context.path.at(-1)?.type.endsWith('Statement');
-		const sequence = b.sequence(assignments);
-
-		if (!is_standalone) {
-			// this is part of an expression, we need the sequence to end with the value
-			sequence.expressions.push(rhs);
-		}
-
-		if (should_cache) {
-			// the right hand side is a complex expression, wrap in an IIFE to cache it
-			const iife = b.arrow([rhs], sequence);
-
-			return b.call(iife, value);
-		}
-
-		return sequence;
+		return {
+			...node,
+			left,
+			right: /** @type {AST.Expression} */ (context.visit(node.right)),
+		};
 	}
 
 	if (node.left.type !== 'Identifier' && node.left.type !== 'MemberExpression') {

@@ -25,13 +25,13 @@
 
 import { walk } from 'zimmerframe';
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
-import { extract_paths } from '../../extract-paths.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
 import {
 	builders,
 	clone_ast_node,
+	extractIdentifiers,
 	IS_CONTROLLED,
 	IS_INDEXED,
 	ROOT_CONTROLLED,
@@ -2271,8 +2271,8 @@ function create_selector_for_state(node, body_scope, state) {
 
 	if (left.type === 'VariableDeclaration') {
 		for (const declarator of left.declarations) {
-			for (const path of extract_paths(declarator.id)) {
-				const binding = body_scope.get(/** @type {AST.Identifier} */ (path.node).name);
+			for (const id of extractIdentifiers(declarator.id)) {
+				const binding = body_scope.get(id.name);
 				if (binding !== null) {
 					pattern_bindings.add(binding);
 				}

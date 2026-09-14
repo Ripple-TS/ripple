@@ -71,8 +71,6 @@ export {
 	untrack,
 	ref_prop,
 	create_ref_prop,
-	fallback,
-	exclude_from_object,
 	derived,
 	tick,
 	with_block,
@@ -97,8 +95,6 @@ export { try_block as try, get_pending_boundary } from './try.js';
 export { if_block as switch } from './if.js';
 
 export { template, append, text } from './template.js';
-
-export { array_slice } from '@tsrx/core/runtime/language-helpers';
 
 export { ripple_array } from '../../array.js';
 

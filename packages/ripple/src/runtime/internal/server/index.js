@@ -53,7 +53,7 @@ import {
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
 import { is_ripple_object } from '../client/utils.js';
-import { array_slice, is_array } from '@tsrx/core/runtime/language-helpers';
+import { is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	escape as escape_html,
 	escape_script,
@@ -94,7 +94,6 @@ export { register_component_css as register_css } from './css-registry.js';
 export { simple_hash, strong_hash } from '@tsrx/core/runtime/hash';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
-export { array_slice };
 export { is_tsrx_element, tsrx_element, normalize_children };
 export { create_ref_prop };
 
@@ -1768,24 +1767,6 @@ function tracked(v, hash, get, set) {
 }
 
 /**
- * @param {Record<string, unknown>} obj
- * @param {string[]} exclude_keys
- * @returns {Record<string, unknown>}
- */
-export function exclude_from_object(obj, exclude_keys) {
-	/** @type {Record<string, unknown>} */
-	var new_obj = {};
-
-	for (const key of Object.keys(obj)) {
-		if (!exclude_keys.includes(key)) {
-			new_obj[key] = obj[key];
-		}
-	}
-
-	return new_obj;
-}
-
-/**
  * @param {any} v
  * @param {string} hash
  * @param {(value: any) => any} [get]
@@ -2564,17 +2545,6 @@ export function ripple_object(obj) {
  */
 export function ripple_map(iterable) {
 	return new Map(iterable);
-}
-
-/**
- * Returns the fallback value if the given value is undefined.
- * @template T
- * @param {T | undefined} value
- * @param {T} fallback
- * @returns {T}
- */
-export function fallback(value, fallback) {
-	return value === undefined ? fallback : value;
 }
 
 export { dynamic_element } from './dynamic.js';
