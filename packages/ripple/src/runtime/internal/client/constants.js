@@ -27,6 +27,8 @@ export var SCHEDULED = 1 << 22;
 export var SELECTOR = 1 << 23;
 // A selector key whose last subscriber left; kept for reuse until a sweep.
 export var RELEASED = 1 << 24;
+/** A block whose latest run created deriveds that are recorded for release (see `release_deriveds`). */
+export var CREATES_DERIVEDS = 1 << 25;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

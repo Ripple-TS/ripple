@@ -38,6 +38,7 @@ import {
 	IF_BLOCK,
 	RELEASED,
 	RENDER_ENTRY,
+	CREATES_DERIVEDS,
 } from './constants.js';
 import {
 	begin_boundary_request,
@@ -392,7 +393,7 @@ function prepare_rerun(block) {
 		destroy_non_branch_children(block);
 	}
 	run_teardown(block);
-	return has_created_deriveds ? take_created_deriveds(block) : null;
+	return (block.f & CREATES_DERIVEDS) !== 0 ? take_created_deriveds(block) : null;
 }
 
 /**
@@ -632,7 +633,7 @@ export function derived(fn, block, hash, get, set) {
 		var created = created_deriveds.get(creator);
 		if (created === undefined) {
 			created_deriveds.set(creator, [d]);
-			has_created_deriveds = true;
+			creator.f |= CREATES_DERIVEDS;
 		} else {
 			created.push(d);
 		}
@@ -646,13 +647,12 @@ export function derived(fn, block, hash, get, set) {
 /**
  * The deriveds each block's latest run created, keyed by the block. A side
  * table rather than a block field: most blocks never create a derived, and
- * block creation is the hot path, so blocks keep their shape and pay nothing
- * while the table is empty.
+ * block creation is the hot path, so blocks keep their shape. A block with an
+ * entry carries `CREATES_DERIVEDS` in its flags, so a rerun or destroy of any
+ * other block never looks here.
  * @type {Map<Block, Derived[]>}
  */
 var created_deriveds = new Map();
-/** Whether the table holds anything; read on every block destroy, so a flag. */
-export let has_created_deriveds = false;
 
 /**
  * Removes and returns the deriveds `block`'s latest run created, or null.
@@ -661,13 +661,11 @@ export let has_created_deriveds = false;
  */
 export function take_created_deriveds(block) {
 	var deriveds = created_deriveds.get(block);
+	block.f &= ~CREATES_DERIVEDS;
 	if (deriveds === undefined) {
 		return null;
 	}
 	created_deriveds.delete(block);
-	if (created_deriveds.size === 0) {
-		has_created_deriveds = false;
-	}
 	return deriveds;
 }
 
@@ -731,7 +729,7 @@ function keep_deriveds(block, kept) {
 		}
 	}
 	created_deriveds.set(block, kept);
-	has_created_deriveds = true;
+	block.f |= CREATES_DERIVEDS;
 }
 
 /**

@@ -14,6 +14,7 @@ import {
 	DETACHED_BLOCK,
 	HEAD_BLOCK,
 	IF_BLOCK,
+	CREATES_DERIVEDS,
 } from './constants.js';
 import { hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
@@ -23,7 +24,6 @@ import {
 	active_block,
 	active_component,
 	active_reaction,
-	has_created_deriveds,
 	is_block_dirty,
 	release_deriveds,
 	take_created_deriveds,
@@ -578,7 +578,7 @@ export function destroy_block(block, remove_dom = true) {
 	if (block.d !== null) {
 		remove_dependencies(block);
 	}
-	if (has_created_deriveds) {
+	if ((f & CREATES_DERIVEDS) !== 0) {
 		var deriveds = take_created_deriveds(block);
 		if (deriveds !== null) {
 			release_deriveds(deriveds);
