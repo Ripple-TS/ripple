@@ -220,8 +220,8 @@ export const TRACKED_UPDATED: unique symbol;
 export const SUSPENSE_PENDING: unique symbol;
 export const SUSPENSE_REJECTED: unique symbol;
 
-// Base Tracked interface - all tracked values have a '#v' property containing the actual value
-interface TrackedBase<V> {
+// A tracked value: `track(0)`. Read and write it through `.value`.
+export interface Tracked<V> extends TrackedCallable<V> {
 	'#v': V;
 	value: V;
 	/**
@@ -236,22 +236,20 @@ interface TrackedBase<V> {
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
-// A tracked value: `track(0)`. Read and write it through `.value`.
-export type Tracked<V> = TrackedBase<V> & TrackedCallable<V>;
-
 // A computed value: `track(() => ...)`. Its `value` is read-only unless the
 // call opted into writes (see `WritableDerived`). A `Tracked` satisfies it.
-interface DerivedBase<V> {
+export interface Derived<V> extends TrackedCallable<V> {
 	'#v': V;
 	readonly value: V;
 	/** A derived is already read-only: returns itself. */
 	readOnly(): Derived<V>;
 }
-export type Derived<V> = DerivedBase<V> & TrackedCallable<V>;
 // A computed value created with a setter (`track(fn, get, set)`) or with
 // `true` in the setter position: writes land as a temporary value until the
 // next recompute.
-export type WritableDerived<V> = TrackedBase<V> & TrackedCallable<V>;
+export interface WritableDerived<V> extends Tracked<V> {
+	value: V;
+}
 
 // Helper type to infer component type from a function that returns a component
 // If T is a function returning a Component, extract the Component type itself, not the return type (void)
