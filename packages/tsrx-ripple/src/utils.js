@@ -1277,6 +1277,69 @@ export function tracked_get(tracked) {
 }
 
 /**
+ * The names a keyed `@for` pattern declares, each with the member chain that
+ * reads it off the loop item when it sits behind properties and indices
+ * alone. A name behind a rest element or a default has no chain: the pattern
+ * must then be destructured as a whole (see `tsrx_for_pattern_fields`).
+ * @param {AST.Pattern} pattern
+ * @returns {{ node: AST.Identifier; chain: ((source: AST.Expression) => AST.Expression) | null }[]}
+ */
+export function pattern_reads(pattern) {
+	/** @type {{ node: AST.Identifier; chain: ((source: AST.Expression) => AST.Expression) | null }[]} */
+	const reads = [];
+
+	/**
+	 * @param {AST.Pattern} node
+	 * @param {((source: AST.Expression) => AST.Expression) | null} chain
+	 */
+	const walk = (node, chain) => {
+		switch (node.type) {
+			case 'Identifier':
+				reads.push({ node, chain });
+				return;
+			case 'ObjectPattern':
+				for (const property of node.properties) {
+					if (property.type === 'RestElement') {
+						walk(property.argument, null);
+					} else {
+						walk(
+							property.value,
+							chain &&
+								((source) =>
+									b.member(
+										chain(source),
+										property.key,
+										property.computed || property.key.type !== 'Identifier',
+									)),
+						);
+					}
+				}
+				return;
+			case 'ArrayPattern':
+				for (let i = 0; i < node.elements.length; i += 1) {
+					const element = node.elements[i];
+					if (element === null) continue;
+					if (element.type === 'RestElement') {
+						walk(element.argument, null);
+					} else {
+						walk(element, chain && ((source) => b.member(chain(source), b.literal(i), true)));
+					}
+				}
+				return;
+			case 'AssignmentPattern':
+				walk(node.left, null);
+				return;
+			case 'RestElement':
+				walk(node.argument, null);
+				return;
+		}
+	};
+
+	walk(pattern, (source) => source);
+	return reads;
+}
+
+/**
  * Strips TypeScript-only expression wrappers from expression positions that the
  * generic visitor does not reliably walk, such as assignment/update targets.
  * @param {AST.Expression | AST.Pattern} node

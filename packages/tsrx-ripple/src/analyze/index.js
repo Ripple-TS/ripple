@@ -20,7 +20,6 @@
 
 import {
 	builders,
-	clone_ast_node,
 	createScopes,
 	ScopeRoot,
 	isVoidElement,
@@ -62,6 +61,7 @@ import {
 	get_directive_value_wrapper,
 	analyze_directive_wrapping_values,
 	is_tsrx_component_function,
+	pattern_reads,
 	register_type_declarations,
 	record_text_intrinsic_write,
 	get_expression_type_annotation,
@@ -600,77 +600,6 @@ function get_array_element_type_annotation(type_annotation, index, is_rest) {
 	}
 
 	return undefined;
-}
-
-/**
- * How each name a keyed `@for` pattern declares is read off the loop's per-key
- * tracked item. A name reached through properties and indices alone reads as
- * that member chain; a name behind a rest element or a default reads by
- * destructuring the item with the authored pattern, so rest, default,
- * computed-key, and iterable semantics stay JavaScript's own.
- * @param {AST.Pattern} pattern
- * @returns {{ node: AST.Identifier; read: (source: AST.Expression) => AST.Expression }[]}
- */
-function pattern_reads(pattern) {
-	/** @type {{ node: AST.Identifier; read: (source: AST.Expression) => AST.Expression }[]} */
-	const reads = [];
-	const clone_param = () =>
-		/** @type {AST.Pattern} */ (
-			/** @type {unknown} */ ({ ...clone_ast_node(pattern), typeAnnotation: undefined })
-		);
-
-	/**
-	 * @param {AST.Pattern} node
-	 * @param {((source: AST.Expression) => AST.Expression) | null} chain
-	 */
-	const walk = (node, chain) => {
-		switch (node.type) {
-			case 'Identifier':
-				reads.push({
-					node,
-					read: chain ?? ((source) => b.call(b.arrow([clone_param()], b.id(node.name)), source)),
-				});
-				return;
-			case 'ObjectPattern':
-				for (const property of node.properties) {
-					if (property.type === 'RestElement') {
-						walk(property.argument, null);
-					} else {
-						walk(
-							property.value,
-							chain &&
-								((source) =>
-									b.member(
-										chain(source),
-										property.key,
-										property.computed || property.key.type !== 'Identifier',
-									)),
-						);
-					}
-				}
-				return;
-			case 'ArrayPattern':
-				for (let i = 0; i < node.elements.length; i += 1) {
-					const element = node.elements[i];
-					if (element === null) continue;
-					if (element.type === 'RestElement') {
-						walk(element.argument, null);
-					} else {
-						walk(element, chain && ((source) => b.member(chain(source), b.literal(i), true)));
-					}
-				}
-				return;
-			case 'AssignmentPattern':
-				walk(node.left, null);
-				return;
-			case 'RestElement':
-				walk(node.argument, null);
-				return;
-		}
-	};
-
-	walk(pattern, (source) => source);
-	return reads;
 }
 
 /**
@@ -1779,7 +1708,23 @@ const visitors = {
 				node.metadata.tsrx_for_pattern_id = pattern_id;
 			}
 
-			for (const { node: id, read } of reads) {
+			// A pattern with a rest element or a default is destructured once per
+			// item, natively, into an object of its names (`fields`), so defaults
+			// and iterators run exactly as in `const { ... } = item`. The transform
+			// declares it in the loop body (see `tsrx_for_pattern_fields`); a name
+			// then reads as a member of it. Without rest or defaults each name is a
+			// member chain on the item.
+			/** @type {AST.Identifier | null} */
+			let fields_id = null;
+			if (pattern_id !== pattern && reads.some((read) => read.chain === null)) {
+				fields_id = b.id(scope.generate('fields'));
+				node.metadata.tsrx_for_pattern_fields = {
+					id: fields_id,
+					names: reads.map((read) => read.node.name),
+				};
+			}
+
+			for (const { node: id, chain } of reads) {
 				const binding = context.state.scope.get(id.name);
 
 				if (binding !== null) {
@@ -1790,8 +1735,16 @@ const visitors = {
 						};
 					}
 
+					const item = () => b.call('_$_.get', /** @type {AST.Identifier} */ (pattern_id));
 					binding.transform = {
-						read: () => read(b.call('_$_.get', /** @type {AST.Identifier} */ (pattern_id))),
+						read:
+							fields_id !== null
+								? () =>
+										b.member(
+											b.call('_$_.get', /** @type {AST.Identifier} */ (fields_id)),
+											b.id(id.name),
+										)
+								: () => /** @type {NonNullable<typeof chain>} */ (chain)(item()),
 					};
 				}
 			}

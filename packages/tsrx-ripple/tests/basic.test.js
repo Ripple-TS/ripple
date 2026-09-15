@@ -357,12 +357,39 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('(({ id, ...rest }) => rest)(_$_.get(pattern)).name');
-		expect(code).toContain("(([first, second = 'x', ...others]) => second)(__pattern_1)");
-		expect(code).toContain("(([first, second = 'x', ...others]) => others)(__pattern_1).length");
+		// One native destructure per item change, in a derived the body reads
+		// through; the key callback runs outside the block and destructures inline.
+		expect(code).toContain(
+			'var fields = _$_.derived(() => (({ id, ...rest }) => ({ id, rest }))(_$_.get(pattern)));',
+		);
+		expect(code).toContain('_$_.get(fields).rest.name');
+		// The key reads `id` through its member chain, as before.
+		expect(code).toContain('(pattern) => _$_.get(pattern).id');
+		expect(code).toContain(
+			"var fields_1 = _$_.derived(() => (([first, second = 'x', ...others]) => ({ first, second, others }))(_$_.get(pattern_1)));",
+		);
+		expect(code).toContain('__fields_1.second');
+		expect(code).toContain('__fields_1.others.length');
 		expect(code).not.toContain('exclude_from_object');
 		expect(code).not.toContain('array_slice');
 		expect(code).not.toContain('_$_.fallback');
+	});
+});
+
+describe('@tsrx/ripple keyed @for key callbacks', () => {
+	it('destructures inline only when the key reads a rest or default name', () => {
+		const { code } = compile(
+			`export function App({ items }) @{
+				@for (const { id, ...rest } of items; key rest.key) {
+					<p>{id}</p>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			'(pattern) => (({ id, ...rest }) => ({ id, rest }))(_$_.get(pattern)).rest.key',
+		);
 	});
 });
 

@@ -104,6 +104,7 @@ import {
 	is_code_block_function_body,
 	is_tsrx_component_function,
 	is_style_element,
+	pattern_reads,
 	dynamic_element_import_local,
 	lower_dynamic_element,
 	strip_tsrx_style_elements,
@@ -2119,6 +2120,20 @@ const visit_for_of_statement = (node, context) => {
 				flush_node: null,
 			},
 		});
+		const fields = node.metadata?.tsrx_for_pattern_fields;
+		if (fields) {
+			// A plain loop: the names are destructured once per iteration.
+			body.unshift(
+				b.var(
+					fields.id,
+					destructure_pattern_fields(
+						node,
+						fields,
+						b.call('_$_.get', /** @type {AST.Identifier} */ (pattern)),
+					),
+				),
+			);
+		}
 
 		if (index) {
 			body.push(b.stmt(b.update('++', index)));
@@ -2168,6 +2183,26 @@ const visit_for_of_statement = (node, context) => {
 			selector_for,
 		},
 	});
+	const fields = node.metadata?.tsrx_for_pattern_fields;
+	if (fields) {
+		// The per-key item is destructured once per change into a derived; the
+		// body's reads of the pattern names go through it.
+		body.unshift(
+			b.var(
+				fields.id,
+				b.call(
+					'_$_.derived',
+					b.thunk(
+						destructure_pattern_fields(
+							node,
+							fields,
+							b.call('_$_.get', /** @type {AST.Identifier} */ (pattern)),
+						),
+					),
+				),
+			),
+		);
+	}
 
 	// Selectors are created once per loop, ahead of the loop itself.
 	for (const { id: selector_id, source } of selector_for.selectors) {
@@ -2211,12 +2246,41 @@ const visit_for_of_statement = (node, context) => {
 				for_args.push(b.void0);
 			}
 		} else {
-			for_args.push(
-				b.arrow(
-					index ? [pattern, index] : [pattern],
-					/** @type {AST.Expression} */ (context.visit(key)),
-				),
-			);
+			let key_expression = /** @type {AST.Expression} */ (context.visit(key));
+			if (fields) {
+				// The key runs outside the item's block, where the derived does not
+				// exist. A name with a member chain reads that chain off the item;
+				// a name behind a rest or default destructures the item inline.
+				const chains = new Map(
+					pattern_reads(/** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id).map(
+						(read) => [read.node.name, read.chain],
+					),
+				);
+				const item = () => b.call('_$_.get', /** @type {AST.Identifier} */ (pattern));
+				key_expression = /** @type {AST.Expression} */ (
+					walk(/** @type {AST.Node} */ (key_expression), null, {
+						MemberExpression(member, { next }) {
+							const object = member.object;
+							if (
+								object.type === 'CallExpression' &&
+								object.callee.type === 'Identifier' &&
+								object.callee.name === '_$_.get' &&
+								object.arguments[0]?.type === 'Identifier' &&
+								object.arguments[0].name === fields.id.name &&
+								!member.computed &&
+								member.property.type === 'Identifier'
+							) {
+								const chain = chains.get(member.property.name);
+								return chain
+									? chain(item())
+									: b.member(destructure_pattern_fields(node, fields, item()), member.property);
+							}
+							next();
+						},
+					})
+				);
+			}
+			for_args.push(b.arrow(index ? [pattern, index] : [pattern], key_expression));
 		}
 	}
 	if (empty_renderer) {
@@ -2232,6 +2296,30 @@ const visit_for_of_statement = (node, context) => {
 		),
 	);
 };
+
+/**
+ * Destructures a keyed loop item with the authored pattern into an object of
+ * the pattern's names: `(({ id, ...rest }) => ({ id, rest }))(item)`. Rest,
+ * default, computed-key, and iterable semantics are JavaScript's own, and
+ * each runs once per call.
+ * @param {AST.ForOfStatement | AST.JSXForOfExpression} node
+ * @param {{ id: AST.Identifier; names: string[] }} fields
+ * @param {AST.Expression} item
+ * @returns {AST.CallExpression}
+ */
+function destructure_pattern_fields(node, fields, item) {
+	const source = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+	const param = /** @type {AST.Pattern} */ (
+		/** @type {unknown} */ ({ ...clone_ast_node(source), typeAnnotation: undefined })
+	);
+	return b.call(
+		b.arrow(
+			[param],
+			b.object(fields.names.map((name) => b.prop('init', b.id(name), b.id(name), false, true))),
+		),
+		item,
+	);
+}
 
 /**
  * Whether a keyed loop's key is the loop item itself (`key item` over a plain

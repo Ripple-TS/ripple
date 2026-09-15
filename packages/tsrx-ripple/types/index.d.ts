@@ -17,6 +17,18 @@ import type {
 
 export type * from '@tsrx/core/types';
 
+declare module '@tsrx/core/types' {
+	interface BaseNodeMetaData {
+		/**
+		 * A keyed `@for` whose pattern has a rest element or a default: the
+		 * client destructures the per-key item once per change into an object
+		 * of the pattern's names, declared under `id` in the loop body, and the
+		 * names read as members of it.
+		 */
+		tsrx_for_pattern_fields?: { id: AST.Identifier; names: string[] };
+	}
+}
+
 /** Source-bound text proofs produced by `@tsrx/ripple/typescript`. */
 export interface TextTypeFacts {
 	version: 1;

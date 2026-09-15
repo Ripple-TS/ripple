@@ -626,4 +626,85 @@ describe('for statements', () => {
 		flushSync();
 		expect(items()).toEqual(['uno', 'a:none:0']);
 	});
+
+	it('destructures a keyed item once per change, so defaults run once', () => {
+		type Row = { id: number; label?: string };
+		let replace: (rows: Row[]) => void = () => {};
+		let defaults = 0;
+		const next = () => `default ${++defaults}`;
+
+		function App() @{
+			const rows = track<Row[]>([{ id: 1 }]);
+			replace = (next) => {
+				rows.value = next;
+			};
+			<ul>
+				@for (const { id, label = next() } of rows.value; key id) {
+					<li>{label + '/' + label + '/' + id}</li>
+				}
+			</ul>
+		}
+
+		render(App);
+		const items = () => [...container.querySelectorAll('li')].map((li) => li.textContent);
+		// Two reads of `label`, one evaluation of its default.
+		expect(items()).toEqual(['default 1/default 1/1']);
+		expect(defaults).toBe(1);
+
+		replace([{ id: 1 }]);
+		flushSync();
+		expect(items()).toEqual(['default 2/default 2/1']);
+		expect(defaults).toBe(2);
+
+		replace([
+			{ id: 1, label: 'given' },
+		]);
+		flushSync();
+		expect(items()).toEqual(['given/given/1']);
+		expect(defaults).toBe(2);
+	});
+
+	it('reads rest pattern names inside a hoisted branch of a keyed loop', () => {
+		type Row = { id: number; name: string };
+		let replace: (rows: Row[]) => void = () => {};
+		let toggle: () => void = () => {};
+
+		function App() @{
+			const rows = track<Row[]>([
+				{ id: 1, name: 'one' },
+			]);
+			const show = track(true);
+			replace = (next) => {
+				rows.value = next;
+			};
+			toggle = () => {
+				show.value = !show.value;
+			};
+			<ul>
+				@for (const { id, ...rest } of rows.value; key id) {
+					@if (show.value) {
+						<li>{rest.name}</li>
+					}
+				}
+			</ul>
+		}
+
+		render(App);
+		const items = () => [...container.querySelectorAll('li')].map((li) => li.textContent);
+		expect(items()).toEqual(['one']);
+
+		replace([
+			{ id: 1, name: 'uno' },
+		]);
+		flushSync();
+		expect(items()).toEqual(['uno']);
+
+		toggle();
+		flushSync();
+		expect(items()).toEqual([]);
+
+		toggle();
+		flushSync();
+		expect(items()).toEqual(['uno']);
+	});
 });
