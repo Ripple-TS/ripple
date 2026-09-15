@@ -434,6 +434,8 @@ The `style` attribute accepts a CSS string or an object with camelCase or
 kebab-case keys. Ripple never adds units: write `style={{ width: '24rem',
 margin: 0, lineHeight: 1.5, '--accent': 'rebeccapurple' }}`. Nonzero lengths need
 explicit units; numbers are accepted for unitless properties and zero lengths.
+An `undefined` property value omits the declaration and removes it on client
+updates, allowing conditional styles such as `width: expanded ? '24rem' : undefined`.
 HTML and SVG style objects use property-specific CSS types. Import
 `CSSProperties` from `ripple/jsx-runtime` to type reusable style objects.
 CSS strings and custom property values are not validated as CSS syntax.

@@ -64,6 +64,7 @@ describe('Ripple JSX types', () => {
 			const css_text = <div style="width: 400px; opacity: 0.5" />;
 			const absent = <div style={null} />;
 			const omitted = <svg style={undefined} />;
+			const conditional = <div style={{ width: Math.random() ? '400px' : undefined, '--scale': undefined }} />;
 
 			// @ts-expect-error Lengths require explicit units unless the value is zero.
 			const bad_width = <div style={{ width: 400 }} />;

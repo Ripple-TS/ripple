@@ -55,7 +55,7 @@ export function Fragment(props: FragmentProps): TSRXElement;
 declare namespace Ripple {
 	type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
 
-	/** Inline CSS styles. Ripple passes values through without adding units. */
+	/** Inline CSS styles. Values keep their units; undefined removes a property. */
 	interface CSSProperties extends CSS.Properties, CSS.PropertiesHyphen {
 		[property: `--${string}`]: string | number | undefined;
 	}

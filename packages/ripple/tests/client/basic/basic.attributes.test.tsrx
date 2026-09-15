@@ -244,6 +244,39 @@ describe('basic client > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
+	it('omits undefined styles and removes and restores conditional values', () => {
+		function Basic() @{
+			const active = track(false);
+			<>
+				<button onClick={() => (active.value = !active.value)}>Toggle</button>
+				<div
+					style={{
+						width: active.value ? '400px' : undefined,
+						'--scale': active.value ? 2 : undefined,
+						margin: 0,
+						opacity: 0,
+						'--literal': 'undefined',
+					}}
+				/>
+			</>
+		}
+
+		render(Basic);
+
+		const button = container.querySelector('button');
+		const div = container.querySelector('div');
+
+		for (const active of [false, true, false, true]) {
+			expect(div.style.width).toBe(active ? '400px' : '');
+			expect(div.style.getPropertyValue('--scale')).toBe(active ? '2' : '');
+			expect(div.style.margin).toBe('0px');
+			expect(div.style.opacity).toBe('0');
+			expect(div.style.getPropertyValue('--literal')).toBe('undefined');
+			button.click();
+			flushSync();
+		}
+	});
+
 	it('render tracked variable as style attribute', () => {
 		function Basic() @{
 			const style = track({ color: 'red', fontWeight: 'bold' });

@@ -235,6 +235,29 @@ describe('basic server > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
+	it('omits undefined style values from HTML and SVG attributes', async () => {
+		function Basic() @{
+			const styles = {
+				width: undefined,
+				'--scale': undefined,
+				margin: 0,
+				opacity: 0,
+				'--literal': 'undefined',
+			};
+			<>
+				<div style={styles} />
+				<svg {...{ style: styles }} />
+			</>
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+
+		for (const element of document.querySelectorAll('div, svg')) {
+			expect(element.getAttribute('style')).toBe('margin: 0; opacity: 0; --literal: undefined;');
+		}
+	});
+
 	it('render tracked variable as style attribute', async () => {
 		function Basic() @{
 			const style = track({ color: 'red', fontWeight: 'bold' });

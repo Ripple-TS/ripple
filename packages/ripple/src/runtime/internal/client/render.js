@@ -68,7 +68,7 @@ function get_setters(element) {
 /**
  * @param {Element} element
  * @param {any} value
- * @param {Record<string, string> | undefined} prev
+ * @param {Record<string, string | number | undefined> | undefined} prev
  * @returns {void}
  */
 export function set_style(element, value, prev = {}) {
@@ -100,8 +100,8 @@ export function set_attribute(element, attribute, value) {
 
 /**
  * @param {HTMLElement} element
- * @param {Record<string, string | number>} new_styles
- * @param {Record<string, string>} prev
+ * @param {Record<string, string | number | undefined>} new_styles
+ * @param {Record<string, string | number | undefined>} prev
  */
 function apply_styles(element, new_styles, prev) {
 	const style = element.style;
@@ -109,7 +109,12 @@ function apply_styles(element, new_styles, prev) {
 	// Apply new styles
 	for (const key in new_styles) {
 		const css_prop = normalize_css_property_name(key);
-		const value = String(new_styles[key]);
+		const raw_value = new_styles[key];
+		if (raw_value === undefined) {
+			style.removeProperty(css_prop);
+			continue;
+		}
+		const value = String(raw_value);
 
 		if (!(key in prev) || prev[key] !== value) {
 			style.setProperty(css_prop, value);
