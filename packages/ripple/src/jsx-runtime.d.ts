@@ -7,6 +7,7 @@ import type {
 	TSRXElement,
 } from '#public';
 import type { Nullable } from '@tsrx/core/types/helpers';
+import type * as CSS from 'csstype';
 export type { RefValue } from '#public';
 
 /**
@@ -53,6 +54,11 @@ export function Fragment(props: FragmentProps): TSRXElement;
 /** JSX attributes live under Ripple so editor hovers identify their framework. */
 declare namespace Ripple {
 	type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
+
+	/** Inline CSS styles. Ripple passes values through without adding units. */
+	interface CSSProperties extends CSS.Properties, CSS.PropertiesHyphen {
+		[property: `--${string}`]: string | number | undefined;
+	}
 
 	type Event<
 		Target extends globalThis.EventTarget,
@@ -493,7 +499,7 @@ declare namespace Ripple {
 		class?: ClassValue | undefined | null;
 		className?: Nullable<string>;
 		id?: Nullable<string>;
-		style?: Nullable<string> | Record<string, string | number>;
+		style?: Nullable<string> | CSSProperties;
 		title?: Nullable<string>;
 		lang?: Nullable<string>;
 		dir?: 'ltr' | 'rtl' | 'auto';
@@ -627,7 +633,7 @@ declare namespace Ripple {
 		// Styling
 		class?: ClassValue | undefined | null;
 		className?: Nullable<string>;
-		style?: Nullable<string> | Record<string, string | number>;
+		style?: Nullable<string> | CSSProperties;
 
 		// Presentation attributes
 		alignmentBaseline?:
@@ -1405,6 +1411,7 @@ declare namespace Ripple {
 }
 
 export import ClassValue = Ripple.ClassValue;
+export import CSSProperties = Ripple.CSSProperties;
 export import JSX = Ripple.JSX;
 export { Ripple };
 

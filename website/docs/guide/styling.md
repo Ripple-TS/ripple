@@ -109,6 +109,34 @@ export function App() @{
 
 A scoped block accepts only two attributes, `ref` and `apply`.
 
+## Inline styles
+
+The `style` attribute accepts a CSS string or a style object. Object keys can use
+camelCase or kebab-case, including CSS custom properties such as `--accent`.
+Ripple passes values through without adding units: use `'400px'` or `'24rem'`
+for a width, not `400`. Numbers work where CSS accepts unitless values, such as
+`opacity` and `line-height`, and zero can be used for lengths.
+
+```tsrx
+import type { CSSProperties } from 'ripple/jsx-runtime';
+
+const panelStyle = {
+  width: '24rem',
+  padding: '1rem',
+  margin: 0,
+  lineHeight: 1.5,
+  '--accent': 'rebeccapurple',
+} satisfies CSSProperties;
+
+export function Panel() @{
+  <section style={panelStyle}>Content</section>
+}
+```
+
+HTML and SVG style objects use property-specific CSS types. Use `CSSProperties`
+to check a reusable style object. CSS strings and custom property values are not
+validated as CSS syntax by TypeScript.
+
 ## Dynamic Classes
 
 The `class` attribute accepts more than a string: objects and arrays work too.
