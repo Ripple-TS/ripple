@@ -244,18 +244,21 @@ describe('basic client > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
-	it('omits undefined styles and removes and restores conditional values', () => {
+	it.each([undefined, null])('omits %s styles and removes and restores conditional values', (
+		empty,
+	) => {
 		function Basic() @{
 			const active = track(false);
 			<>
 				<button onClick={() => (active.value = !active.value)}>Toggle</button>
 				<div
 					style={{
-						width: active.value ? '400px' : undefined,
-						'--scale': active.value ? 2 : undefined,
+						width: active.value ? '400px' : empty,
+						'--scale': active.value ? 2 : empty,
 						margin: 0,
 						opacity: 0,
 						'--literal': 'undefined',
+						'--literal-null': 'null',
 					}}
 				/>
 			</>
@@ -272,6 +275,7 @@ describe('basic client > attribute rendering', () => {
 			expect(div.style.margin).toBe('0px');
 			expect(div.style.opacity).toBe('0');
 			expect(div.style.getPropertyValue('--literal')).toBe('undefined');
+			expect(div.style.getPropertyValue('--literal-null')).toBe('null');
 			button.click();
 			flushSync();
 		}

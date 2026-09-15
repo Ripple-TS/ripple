@@ -67,6 +67,12 @@ describe('Ripple JSX types', () => {
 			const absent = <div style={null} />;
 			const omitted = <svg style={undefined} />;
 			const conditional = <div style={{ width: Math.random() ? '400px' : undefined, '--scale': undefined }} />;
+			const nullable = {
+				width: null, 'font-size': null, opacity: null, WebkitLineClamp: null,
+				'-webkit-line-clamp': null, '--scale': null,
+			} satisfies CSSProperties;
+			const nullable_html = <div style={nullable} />;
+			const nullable_svg = <svg style={nullable} />;
 
 			// @ts-expect-error Lengths require explicit units unless the value is zero.
 			const bad_styles = { width: 400 } satisfies CSSProperties;

@@ -235,14 +235,17 @@ describe('basic server > attribute rendering', () => {
 		expect(div.style.fontWeight).toBe('bold');
 	});
 
-	it('omits undefined style values from HTML and SVG attributes', async () => {
+	it.each([undefined, null])('omits %s style values from HTML and SVG attributes', async (
+		empty,
+	) => {
 		function Basic() @{
 			const styles = {
-				width: undefined,
-				'--scale': undefined,
+				width: empty,
+				'--scale': empty,
 				margin: 0,
 				opacity: 0,
 				'--literal': 'undefined',
+				'--literal-null': 'null',
 			};
 			<>
 				<div style={styles} />
@@ -254,7 +257,9 @@ describe('basic server > attribute rendering', () => {
 		const { document } = parseHtml(body);
 
 		for (const element of document.querySelectorAll('div, svg')) {
-			expect(element.getAttribute('style')).toBe('margin: 0; opacity: 0; --literal: undefined;');
+			expect(element.getAttribute('style')).toBe(
+				'margin: 0; opacity: 0; --literal: undefined; --literal-null: null;',
+			);
 		}
 	});
 

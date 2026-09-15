@@ -1610,14 +1610,14 @@ export function attr(name, value, is_boolean = false) {
 }
 
 /**
- * @param {Record<string, string | number | undefined>} styles
+ * @param {Record<string, string | number | null | undefined>} styles
  * @returns {string}
  */
 function get_styles(styles) {
 	var result = '';
 	for (const key in styles) {
 		const raw_value = styles[key];
-		if (raw_value === undefined) continue;
+		if (raw_value == null) continue;
 		const css_prop = normalize_css_property_name(key);
 		const value = String(raw_value).trim();
 		result += `${css_prop}: ${value}; `;

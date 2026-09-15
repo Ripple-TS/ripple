@@ -51,13 +51,16 @@ export function jsxs(
  */
 export function Fragment(props: FragmentProps): TSRXElement;
 
+type NullableStyleProperties<T> = { [Property in keyof T]: T[Property] | null };
+
 /** JSX attributes live under Ripple so editor hovers identify their framework. */
 declare namespace Ripple {
 	type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
 
-	/** Inline CSS styles. Values keep their units; undefined removes a property. */
-	interface CSSProperties extends CSS.Properties, CSS.PropertiesHyphen {
-		[property: `--${string}`]: string | number | undefined;
+	/** Inline CSS styles. Values keep their units; null and undefined remove a property. */
+	interface CSSProperties
+		extends NullableStyleProperties<CSS.Properties>, NullableStyleProperties<CSS.PropertiesHyphen> {
+		[property: `--${string}`]: string | number | null | undefined;
 	}
 
 	type Event<

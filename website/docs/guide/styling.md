@@ -116,8 +116,8 @@ camelCase or kebab-case, including CSS custom properties such as `--accent`.
 Ripple passes values through without adding units: use `'400px'` or `'24rem'`
 for a width, not `400`. Numbers work where CSS accepts unitless values, such as
 `opacity` and `line-height`, and zero can be used for lengths.
-An `undefined` property value omits the declaration and removes it on client
-updates, so conditional styles can use `width: expanded ? '24rem' : undefined`.
+A `null` or `undefined` property value omits the declaration and removes it on
+client updates, so conditional styles can use `width: expanded ? '24rem' : null`.
 
 ```tsrx
 import type { CSSProperties } from 'ripple';
