@@ -189,8 +189,9 @@ function) in a plain `Tracked` instead, create the tracked empty and assign it:
 `const swapMe = track<Component>(); swapMe.value = Child1;`.
 When the tracked value changes, Ripple automatically unmounts the previous
 component and mounts the new one. Dynamic components are rendered with the
-`<{expression}>` tag syntax. This makes it straightforward to pass components as
-props or swap them directly within a component, enabling flexible, state-driven
+`<{expression}>` tag syntax. Read the component from its tracked object explicitly,
+for example `<{swapMe.value} />`. This makes it straightforward to pass components
+as props or swap them directly within a component, enabling flexible, state-driven
 UIs with minimal boilerplate.
 
 <Code>

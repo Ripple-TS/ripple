@@ -66,8 +66,8 @@ const items = [track(1), track(2), track(3)];
 items[0].value++; // reactively updates
 ```
 
-Tracked derived values are also `Tracked<T>` objects, except that you pass a
-function to `track` rather than a value:
+Derived values are `Derived<T>` objects: you pass a function to `track` rather
+than a value, and their `.value` is read-only:
 
 ```ts
 import { track } from 'ripple';
@@ -86,9 +86,10 @@ export function App() @{
 }
 ```
 
-A derived's `value` is read-only. Pass `true` in the setter position to opt into
-writes for **optimistic state**: the written value is exposed immediately, and
-when the next computation settles it takes precedence and overrides it:
+A derived created with `true` in the setter position is a `WritableDerived<T>`
+and can be written to for **optimistic state**. The written value is exposed
+immediately, and when the next computation settles it takes precedence and
+overrides it:
 
 ```ts
 import { track } from 'ripple';
@@ -228,14 +229,15 @@ function) in a plain `Tracked` instead, create the tracked empty and assign it:
 `const swapMe = track<Component>(); swapMe.value = Child1;`.
 When the tracked value changes, Ripple automatically unmounts the previous
 component and mounts the new one. Dynamic components are rendered with the
-`<{expression}>` tag syntax; the runtime handles unwrapping the value internally.
-This makes it straightforward to pass components as props or swap them directly
-within a component, enabling flexible, state-driven UIs with minimal boilerplate.
+`<{expression}>` tag syntax. Read the component from its tracked object explicitly,
+for example `<{swapMe.value} />`. This makes it straightforward to pass components
+as props or swap them directly within a component, enabling flexible, state-driven
+UIs with minimal boilerplate.
 
 <Code>
 
 ```tsrx
-import { track, type Component, type Tracked } from 'ripple';
+import { track, type Component, type Derived } from 'ripple';
 
 export function App() @{
   const swapMe = track(() => Child1, undefined, true);
@@ -253,7 +255,7 @@ export function App() @{
   </>
 }
 
-function Child({ swapMe }: { swapMe: Tracked<Component> }) {
+function Child({ swapMe }: { swapMe: Derived<Component> }) {
   return <{swapMe.value} />
 }
 

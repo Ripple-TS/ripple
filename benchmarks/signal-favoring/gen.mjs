@@ -101,7 +101,7 @@ function genOctaneJsx() {
 function genRipple() {
 	let out = `import { track } from 'ripple';\n\n`;
 	out += `// 100 uniquely-named components in a chain. Stateful counters at C${STATEFUL_INDICES.join(', C')}.\n`;
-	out += `// signal-frameworks update only the {v} text expression; CN+1..C100 are untouched.\n\n`;
+	out += `// signal-frameworks update only the {v.value} text expression; CN+1..C100 are untouched.\n\n`;
 	// Setter closures captured during render — each stateful body assigns its
 	// _setN on render. Bodies run once, setters stay valid for the lifetime.
 	for (const i of STATEFUL_INDICES) out += `let _set${i}: any = null;\n`;
@@ -115,9 +115,9 @@ function genRipple() {
 			out += `function C${i}(props) @{ <span class='leaf'>${i}</span> }\n`;
 		} else if (isStateful(i)) {
 			out += `function C${i}(props) @{\n`;
-			out += `  let &[v] = track(0);\n`;
-			out += `  _set${i} = () => { v += 1; };\n`;
-			out += `  <div class='c'>${i}:{v} <C${i + 1} /></div>\n`;
+			out += `  const v = track(0);\n`;
+			out += `  _set${i} = () => { v.value += 1; };\n`;
+			out += `  <div class='c'>${i}:{v.value} <C${i + 1} /></div>\n`;
 			out += `}\n`;
 		} else {
 			out += `function C${i}(props) @{ <div class='c'>${i} <C${i + 1} /></div> }\n`;
