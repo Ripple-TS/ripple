@@ -1,5 +1,32 @@
 # ripple
 
+## 0.4.1
+
+### Patch Changes
+
+- [#1477](https://github.com/Ripple-TS/ripple/pull/1477)
+  [`670d669`](https://github.com/Ripple-TS/ripple/commit/670d66916a0b2d58254adb3248abc9d3e816fd8d)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Use property-specific CSS
+  types for HTML and SVG style objects and export `CSSProperties` from `ripple`
+  and `ripple/jsx-runtime`. Numeric lengths such as `width: 400` now produce a
+  type error; specify units with `width: '400px'` or `width: '24rem'`. Unitless
+  CSS properties, zero lengths, camelCase and kebab-case names, and CSS custom
+  properties remain supported.
+
+  Style properties set to `null` or `undefined` are omitted during server
+  rendering and removed on the client, matching the nullable and optional property
+  types and supporting conditional style values. Ripple does not infer or add CSS
+  units.
+
+  Re-export the `JSX` and `Ripple` namespaces as types from `ripple` so element
+  prop and event types can be imported from the main package. The
+  `ripple/jsx-runtime` exports remain available.
+
+- [#1475](https://github.com/Ripple-TS/ripple/pull/1475)
+  [`e008b3f`](https://github.com/Ripple-TS/ripple/commit/e008b3f933a5a5b54ca8b74ae80aa98b6ddfb82f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Show public Tracked, Derived,
+  and WritableDerived type names in value property hovers.
+
 ## 0.4.0
 
 ### Minor Changes
