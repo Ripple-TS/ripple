@@ -145,6 +145,23 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.result')?.textContent).toBe('count-1');
 	});
 
+	it('reruns trackAsync when a dependency read through readOnly() changes after hydration', async () => {
+		await hydrateComponent(
+			ServerComponents.AsyncWithReadOnlyDependency,
+			ClientComponents.AsyncWithReadOnlyDependency,
+		);
+
+		expect(container.querySelector('.result')?.textContent).toBe('count-0');
+
+		/** @type {any} */ (container.querySelector('.increment'))?.click();
+		flushSync();
+		await Promise.resolve();
+		await Promise.resolve();
+		flushSync();
+
+		expect(container.querySelector('.result')?.textContent).toBe('count-1');
+	});
+
 	it('reruns trackAsync via module server RPC call when a dependency changes', async () => {
 		const originalFetch = globalThis.fetch;
 		const fetchMock = vi.fn(async (_url, init) => {

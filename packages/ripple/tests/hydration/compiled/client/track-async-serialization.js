@@ -427,6 +427,46 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 
 AsyncWithReactiveDependency[_$_.$r] = AsyncWithReactiveDependency_render;
 
+var root_28 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_27 = _$_.template(`<button class="increment">increment</button><!>`, 1, 2);
+var root_26 = _$_.template(`<!>`, 1, 1);
+
+function AsyncWithReadOnlyDependency_render(__anchor, __block) {
+	const count = _$_.track(0, __block, '75a97b64');
+	var fragment_6 = root_26();
+	var node_7 = _$_.first_child_frag(fragment_6);
+
+	_$_.expression(node_7, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_7 = root_27();
+		var button_3 = _$_.first_child_frag(fragment_7);
+
+		button_3.__click = () => {
+			count.value++;
+		};
+
+		var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
+
+		_$_.try(
+			node_6,
+			(__anchor) => {
+				_$_.render_component(ReactiveDependencyResult, __anchor, { count: _$_.with_scope(__block, () => count.readOnly()) });
+			},
+			null,
+			(__anchor) => {
+				var p_14 = root_28();
+
+				_$_.append(__anchor, p_14);
+			}
+		);
+
+		_$_.append(__anchor, fragment_7);
+	}));
+
+	_$_.append(__anchor, fragment_6);
+}
+
+AsyncWithReadOnlyDependency[_$_.$r] = AsyncWithReadOnlyDependency_render;
+
 import { track, trackAsync } from 'ripple';
 import { Money } from '../fixtures/money.js';
 
@@ -495,6 +535,10 @@ function ReactiveDependencyResult(__props) {
 
 export function AsyncWithReactiveDependency() {
 	return _$_.tsrx_element(AsyncWithReactiveDependency_render);
+}
+
+export function AsyncWithReadOnlyDependency() {
+	return _$_.tsrx_element(AsyncWithReadOnlyDependency_render);
 }
 
 _$_.delegate(['click']);

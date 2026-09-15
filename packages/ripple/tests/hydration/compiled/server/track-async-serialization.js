@@ -639,3 +639,46 @@ export function AsyncWithReactiveDependency() {
 		});
 	});
 }
+
+export function AsyncWithReadOnlyDependency() {
+	return _$_.tsrx_element(() => {
+		const count = _$_.track(0, '75a97b64');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button class="increment">increment</button>';
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.try_block(
+				() => {
+					let __out = '';
+
+					__out += '<!--[-->';
+
+					{
+						const comp = ReactiveDependencyResult;
+						const args = [{ count: count.readOnly() }];
+
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
+					}
+
+					__out += '<!--]-->';
+					_$_.output_push(__out);
+				},
+				null,
+				() => {
+					let __out = '';
+
+					__out += '<!--[--><p class="loading">loading...</p><!--]-->';
+					_$_.output_push(__out);
+				}
+			);
+
+			_$_.output_push(__out);
+		});
+	});
+}

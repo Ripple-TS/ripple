@@ -159,3 +159,20 @@ export function AsyncWithReactiveDependency() @{
 		}
 	</>
 }
+
+export function AsyncWithReadOnlyDependency() @{
+	const count = track(0);
+	<>
+		<button
+			class="increment"
+			onClick={() => {
+				count.value++;
+			}}
+		>{'increment'}</button>
+		@try {
+			<ReactiveDependencyResult count={count.readOnly()} />
+		} @pending {
+			<p class="loading">{'loading...'}</p>
+		}
+	</>
+}

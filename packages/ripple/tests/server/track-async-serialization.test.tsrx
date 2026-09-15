@@ -1,5 +1,5 @@
 import { DEV } from 'esm-env';
-import { setTransport, trackAsync } from 'ripple';
+import { setTransport, track, trackAsync } from 'ripple';
 import * as devalue from 'devalue';
 
 const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
@@ -140,6 +140,41 @@ describe('trackAsync serialization (server)', () => {
 		expect(body).toContain('"ok":false');
 		expect(body).toContain(`"message":"${public_message}"`);
 		expect(body).not.toContain('Error thrown during trackAsync execution');
+	});
+
+	describe('hydration envelope dependencies', () => {
+		/** @param {'direct' | 'view'} read */
+		async function deps_for(read: 'direct' | 'view') {
+			function App() @{
+				const count = track(3);
+				const view = count.readOnly();
+				@try {
+					const data = trackAsync(
+						() => Promise.resolve(`count-${read === 'view' ? view.value : count.value}`),
+					);
+					<p>{data.value}</p>
+				} @pending {
+					<p>{'...'}</p>
+				}
+			}
+
+			const { body } = await render(App);
+			const match = body.match(
+				/<script id="__ripple_ta_[a-f0-9]+" type="application\/json">(.*?)<\/script>/s,
+			);
+			expect(match).not.toBeNull();
+			return JSON.parse(/** @type {RegExpMatchArray} */ (match)[1]).deps;
+		}
+
+		it('records the tracked a trackAsync read directly', async () => {
+			expect(await deps_for('direct')).toHaveLength(1);
+		});
+
+		it('records the tracked behind a readOnly() view a trackAsync read', async () => {
+			// The view itself has no hash; the client must still re-subscribe to
+			// the source after hydration, so its hash is what gets recorded.
+			expect(await deps_for('view')).toEqual(await deps_for('direct'));
+		});
 	});
 
 	describe('hydration envelope encoding', () => {

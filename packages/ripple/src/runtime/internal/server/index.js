@@ -2271,20 +2271,25 @@ function run_track_async(t, fn, block, dr, dj) {
 }
 
 /**
- * Walks a dependency chain and collects the hashes of dependencies that have
- * one (i.e. were created from a compile-time track/trackAsync call).
+ * The hashes of the compile-time tracked values a trackAsync read, recorded
+ * in its hydration envelope so the client re-subscribes to them. A dependency
+ * without a hash that is itself a derived (a `readOnly()` view, a derived made
+ * outside a compiled call) stands for what it read: its own dependencies are
+ * recorded in its place.
  * @param {Dependency | null} head
+ * @param {string[] | null} [hashes]
  * @returns {string[] | null}
  */
-function collect_dep_hashes(head) {
-	/** @type {string[] | null} */
-	var hashes = null;
+function collect_dep_hashes(head, hashes = null) {
 	var dep = head;
 	while (dep !== null) {
-		var h = /** @type {{ h?: string }} */ (dep.t).h;
+		var t = /** @type {{ h?: string; f: number; d?: Dependency | null }} */ (dep.t);
+		var h = t.h;
 		if (h !== undefined) {
 			if (hashes === null) hashes = [];
-			hashes.push(h);
+			if (!hashes.includes(h)) hashes.push(h);
+		} else if ((t.f & DERIVED) !== 0) {
+			hashes = collect_dep_hashes(t.d ?? null, hashes);
 		}
 		dep = dep.n;
 	}
