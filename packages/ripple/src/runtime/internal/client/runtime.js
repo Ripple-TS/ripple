@@ -421,13 +421,17 @@ export function run_block(block, first_run = false) {
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_component = active_component;
+	/** @type {Derived[] | null} */
+	var previous_deriveds = null;
 
 	try {
 		active_block = block;
 		active_reaction = block;
 		active_component = block.co;
 
-		var previous_deriveds = first_run ? null : prepare_rerun(block);
+		if (!first_run) {
+			previous_deriveds = prepare_rerun(block);
+		}
 
 		tracking = (block.f & (ROOT_BLOCK | BRANCH_BLOCK)) === 0;
 		active_dependency = null;
@@ -435,10 +439,6 @@ export function run_block(block, first_run = false) {
 
 		if (typeof res === 'function') {
 			register_teardown(block, res);
-		}
-
-		if (previous_deriveds !== null) {
-			release_deriveds(previous_deriveds);
 		}
 
 		if (block.d === null) {
@@ -457,6 +457,15 @@ export function run_block(block, first_run = false) {
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
 		active_component = previous_component;
+
+		// The previous run's deriveds, whether this run finished or threw, and
+		// after this run's dependencies replaced the old ones (so a derived the
+		// old run read is not kept alive by that stale link). Those still read
+		// stay recorded under the block for its next rerun or destruction: a
+		// rerun that keeps the same branch must not lose them.
+		if (previous_deriveds !== null) {
+			keep_deriveds(block, release_deriveds(previous_deriveds));
+		}
 	}
 }
 
@@ -665,13 +674,16 @@ export function take_created_deriveds(block) {
 /**
  * Releases the deriveds a block run created, once that run's readers are
  * gone: the block reran (its previous run's readers were destroyed by the
- * rerun) or was destroyed. A derived that a live reader still holds (it was
- * handed to a longer-lived scope) is kept; `mark_subscribers` prunes it
- * later. Released in reverse creation order so a derived read by a later one
- * of the same run sees that reader unlinked first.
+ * rerun) or was destroyed. A derived that a live reader still holds (the
+ * branch is still showing, or it was handed to a longer-lived scope) is kept
+ * and returned. Released in reverse creation order so a derived read by a
+ * later one of the same run sees that reader unlinked first.
  * @param {Derived[]} deriveds
+ * @returns {Derived[] | null} the deriveds kept, if any
  */
 export function release_deriveds(deriveds) {
+	/** @type {Derived[] | null} */
+	var kept = null;
 	for (var i = deriveds.length - 1; i >= 0; i--) {
 		var derived = deriveds[i];
 		var alive = false;
@@ -681,9 +693,33 @@ export function release_deriveds(deriveds) {
 				break;
 			}
 		}
-		if (!alive) {
+		if (alive) {
+			(kept ??= []).push(derived);
+		} else {
 			finish_dependencies(derived, null);
 			destroy_computed_children(derived);
+		}
+	}
+	return kept;
+}
+
+/**
+ * Records deriveds under `block` again after a rerun kept them, alongside
+ * whatever the new run created.
+ * @param {Block} block
+ * @param {Derived[] | null} kept
+ */
+function keep_deriveds(block, kept) {
+	if (kept === null) {
+		return;
+	}
+	var created = created_deriveds.get(block);
+	if (created === undefined) {
+		created_deriveds.set(block, kept);
+		has_created_deriveds = true;
+	} else {
+		for (var i = 0; i < kept.length; i++) {
+			created.push(kept[i]);
 		}
 	}
 }
