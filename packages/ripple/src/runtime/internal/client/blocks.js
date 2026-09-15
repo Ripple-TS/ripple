@@ -23,7 +23,10 @@ import {
 	active_block,
 	active_component,
 	active_reaction,
+	has_created_deriveds,
 	is_block_dirty,
+	release_deriveds,
+	take_created_deriveds,
 	remove_dependencies,
 	run_block,
 	run_teardown,
@@ -574,6 +577,12 @@ export function destroy_block(block, remove_dom = true) {
 
 	if (block.d !== null) {
 		remove_dependencies(block);
+	}
+	if (has_created_deriveds) {
+		var deriveds = take_created_deriveds(block);
+		if (deriveds !== null) {
+			release_deriveds(deriveds);
+		}
 	}
 
 	var parent = block.p;

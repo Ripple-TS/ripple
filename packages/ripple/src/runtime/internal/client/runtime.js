@@ -381,14 +381,18 @@ function handle_run_error(error, block) {
  * Clears what a block's previous run left behind before it runs again. A
  * list's children are all item branches, so there is nothing to sweep; an if
  * block's children are its branch, which it replaces itself only when the
- * condition changes.
+ * condition changes. Returns the deriveds the previous run created, to be
+ * released once the new run has destroyed whatever read them (an if block
+ * swaps its branch inside its own run).
  * @param {Block} block
+ * @returns {Derived[] | null}
  */
 function prepare_rerun(block) {
 	if ((block.f & (FOR_BLOCK | IF_BLOCK)) === 0) {
 		destroy_non_branch_children(block);
 	}
 	run_teardown(block);
+	return has_created_deriveds ? take_created_deriveds(block) : null;
 }
 
 /**
@@ -423,9 +427,7 @@ export function run_block(block, first_run = false) {
 		active_reaction = block;
 		active_component = block.co;
 
-		if (!first_run) {
-			prepare_rerun(block);
-		}
+		var previous_deriveds = first_run ? null : prepare_rerun(block);
 
 		tracking = (block.f & (ROOT_BLOCK | BRANCH_BLOCK)) === 0;
 		active_dependency = null;
@@ -433,6 +435,10 @@ export function run_block(block, first_run = false) {
 
 		if (typeof res === 'function') {
 			register_teardown(block, res);
+		}
+
+		if (previous_deriveds !== null) {
+			release_deriveds(previous_deriveds);
 		}
 
 		if (block.d === null) {
@@ -609,10 +615,77 @@ export function derived(fn, block, hash, get, set) {
 	var d = /** @type {Derived} */ (
 		new DerivedValue(fn, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
+	// The run that creates a derived owns its release: when that block reruns
+	// or is destroyed, the derived is unsubscribed from its sources unless a
+	// reader that is still alive holds it (see `release_deriveds`).
+	var creator = active_block;
+	if (creator !== null) {
+		var created = created_deriveds.get(creator);
+		if (created === undefined) {
+			created_deriveds.set(creator, [d]);
+			has_created_deriveds = true;
+		} else {
+			created.push(d);
+		}
+	}
 	if (hydrating && hash !== undefined) {
 		track_hash_reference.set(hash, d);
 	}
 	return d;
+}
+
+/**
+ * The deriveds each block's latest run created, keyed by the block. A side
+ * table rather than a block field: most blocks never create a derived, and
+ * block creation is the hot path, so blocks keep their shape and pay nothing
+ * while the table is empty.
+ * @type {Map<Block, Derived[]>}
+ */
+var created_deriveds = new Map();
+/** Whether the table holds anything; read on every block destroy, so a flag. */
+export let has_created_deriveds = false;
+
+/**
+ * Removes and returns the deriveds `block`'s latest run created, or null.
+ * @param {Block} block
+ * @returns {Derived[] | null}
+ */
+export function take_created_deriveds(block) {
+	var deriveds = created_deriveds.get(block);
+	if (deriveds === undefined) {
+		return null;
+	}
+	created_deriveds.delete(block);
+	if (created_deriveds.size === 0) {
+		has_created_deriveds = false;
+	}
+	return deriveds;
+}
+
+/**
+ * Releases the deriveds a block run created, once that run's readers are
+ * gone: the block reran (its previous run's readers were destroyed by the
+ * rerun) or was destroyed. A derived that a live reader still holds (it was
+ * handed to a longer-lived scope) is kept; `mark_subscribers` prunes it
+ * later. Released in reverse creation order so a derived read by a later one
+ * of the same run sees that reader unlinked first.
+ * @param {Derived[]} deriveds
+ */
+export function release_deriveds(deriveds) {
+	for (var i = deriveds.length - 1; i >= 0; i--) {
+		var derived = deriveds[i];
+		var alive = false;
+		for (var sub = derived.sb; sub !== null; sub = sub.sn) {
+			if ((sub.r.f & DESTROYED) === 0) {
+				alive = true;
+				break;
+			}
+		}
+		if (!alive) {
+			finish_dependencies(derived, null);
+			destroy_computed_children(derived);
+		}
+	}
 }
 
 /**
