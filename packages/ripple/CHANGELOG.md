@@ -1,5 +1,272 @@
 # ripple
 
+## 0.4.0
+
+### Minor Changes
+
+- [#1472](https://github.com/Ripple-TS/ripple/pull/1472)
+  [`5d3e60d`](https://github.com/Ripple-TS/ripple/commit/5d3e60d86129ac20d23c86a923914ee44efea9d1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lazy destructuring is removed
+  from the language (tsrx RFC
+  [#106](https://github.com/Ripple-TS/ripple/issues/106)). `&[ ... ]` and
+  `&{ ... }` are syntax errors now; a tracked value is read and written through
+  `.value`, and a `Tracked`, `Derived`, or `WritableDerived` object is passed to a
+  child as it is (`<Child {count} />`, or `count={track(() => count.value)}` for a
+  read-only view).
+
+  | Before                                                           | After                                                                    |
+  | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+  | `let &[count] = track(0); count++; {count}`                      | `const count = track(0); count.value++; {count.value}`                   |
+  | `let &[count, countT] = track(0); <Child count={countT} />`      | `const count = track(0); <Child {count} />`                              |
+  | `let &[double] = track(() => count * 2)`                         | `const double = track(() => count.value * 2)`                            |
+  | `function Card({ count: &[count] }: { count: Tracked<number> })` | `function Card({ count }: { count: Tracked<number> })` and `count.value` |
+
+  `Tracked<V>`, `Derived<V>`, and `WritableDerived<V>` are plain `{ value: V }`
+  shapes; the `[V, Tracked<V>]` tuple member, the runtime `[0]`/`[1]` accessors,
+  and the `lazy_array_*` helpers are gone, and `count[0]` reports the ordinary
+  "use `.value`" error. Rest and default patterns lower to native destructuring: a
+  keyed `@for` pattern with a rest element or a default is destructured once per
+  item change, and a destructuring assignment onto boxed `let`s writes the boxes
+  in place; the `fallback`, `exclude_from_object`, and `array_slice` runtime
+  helpers are gone. On the server a dynamic tag `<{tag} />` is lowered to
+  `_$_.dynamic_element(tag, props)`, with the tag and the element's own props
+  passed separately, so the props never carry an `is` entry.
+
+### Patch Changes
+
+- [#1458](https://github.com/Ripple-TS/ripple/pull/1458)
+  [`bbc1445`](https://github.com/Ripple-TS/ripple/commit/bbc14455485e054c145ebc78f08a771d41ea16f1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lighter list, `@if`, and
+  mount output on the client. A controlled `@for` (the sole content of its
+  element) appends its items into the parent instead of inserting before an empty
+  text anchor, and an `@if` at the root of such an item creates an anchor only
+  once it needs a position of its own (a branch swap, or a branch that renders
+  nothing), so a keyed list of `@if` items keeps no anchor nodes in the DOM;
+  `mount()` likewise renders into the target without an anchor node. An `@if`
+  block now renders its branch directly and owns the branch's DOM range, and a
+  list keeps its inputs in block state, so every `@if` and `@for` allocates one
+  block less and no closures. Text and class updates compare against the last
+  value in the render block's state instead of a cache on the DOM node; the
+  compiler emits that compared form for single updates as well.
+
+  A selector key whose subscribers all left stays in the selector's map for reuse
+  when the key comes back, and is swept once more than 1024 released keys pile up.
+
+- [#1469](https://github.com/Ripple-TS/ripple/pull/1469)
+  [`b3a38ce`](https://github.com/Ripple-TS/ripple/commit/b3a38ce0aae66a9dcac0b663c30161eed0d7547a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add custom serialization for
+  trackAsync hydration and RPC arguments/results using `transport` handlers in
+  ripple.config.ts. Register matching encoders and decoders automatically in
+  development and production, and expose `setTransport` for custom integrations.
+  Apps without a transport retain the plain JSON hydration fast path. Provide a
+  browser entry for config helpers so importing defineConfig does not load the
+  Vite plugin's Node.js dependencies during hydration. A configured hydration
+  payload embeds devalue's flattened form directly, so the client revives it
+  without a second string encoding.
+
+- [#1460](https://github.com/Ripple-TS/ripple/pull/1460)
+  [`2ef5da5`](https://github.com/Ripple-TS/ripple/commit/2ef5da52b26fc13e11537dd28df0e2b376ca0f52)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Cheaper element refs,
+  effects, and component templates on the client. A `ref` is one effect block
+  keyed on its state instead of a render block that re-evaluates the thunk and
+  creates a branch and an effect for it, since the ref value is read untracked and
+  fixed for the life of the enclosing block. Effects deferred until a component
+  has rendered are recorded as flat entries, and an effect's first run skips the
+  child and teardown sweep. A tracked value written during a flush keeps its
+  previous value for teardowns on itself instead of in a map, and `flushSync`
+  releases those values when it finishes (they were only released by the microtask
+  flush before).
+
+  The compiler types the bindings of a destructured pattern
+  (`{ item }: { item: Item }` as component props, or `const { item } = props` from
+  a typed initializer), so their property reads lower to direct text and attribute
+  writes. A component whose body has setup statements beside a single root element
+  clones that element instead of a fragment.
+
+- [#1470](https://github.com/Ripple-TS/ripple/pull/1470)
+  [`0321791`](https://github.com/Ripple-TS/ripple/commit/03217912651e0a49edb8060a92602fd0e0abe193)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Component props are plain
+  objects, evaluated once. A call site such as `<Child a={x} b="y" />` compiles to
+  the object literal `{ a: x, b: 'y' }` and passes it to the component as is: no
+  getters, no props class, no Proxy for spreads, no `Props` helpers, and no
+  `Object.keys`/spread lowering, so props behave like any other object in `.tsrx`
+  and `.ts` code alike. A prop expression is evaluated when the component is
+  called, so a child that must follow a change now receives a live value
+  explicitly: a tracked object (`count={count}`) or a derived
+  (`title={track(() => label + count.value)}`), read through `.value`.
+  `count={count.value}` passes the current number. `track(fn)` is typed
+  `Derived<V>` with a read-only `value`; `track(fn, get, set)` or
+  `track(fn, undefined, true)` is a `WritableDerived<V>`, and a write to a
+  read-only derived warns in development. A dynamic element
+  (`<{tag} class={x} />`) still updates its attributes reactively. `Props.keys`,
+  `Props.values`, `Props.entries`, `Props.has`, `Props.spread`, `Props.rest`,
+  `Props.ownSymbolKeys` and `Props.ownAllKeys` are removed, as they are plain
+  `Object` operations now.
+
+- [#1457](https://github.com/Ripple-TS/ripple/pull/1457)
+  [`020d269`](https://github.com/Ripple-TS/ripple/commit/020d2699f8e1333367ac9f7abe9247bab55e272d)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix hydration when a fragment
+  root or a slot is followed by siblings. The compiler's closing `next(n)` for a
+  fragment root now counts from wherever the cursor was last positioned, so a
+  trailing element navigated to for an event or attribute, tracked text, a
+  control-flow block, a component, or a `{expression}` no longer makes the cursor
+  overshoot or fall short of the fragment's last node; a trailing element that was
+  descended into is popped back to. Control-flow bodies nested inside an element
+  now emit that `next(n)` too. At runtime, a `{expression}` leaves the cursor on
+  its own end marker like every other block, and a multi-node branch or `@for`
+  item steps to its block's end marker after appending, so the next sibling, item,
+  or component adopts the right node.
+
+- [#1462](https://github.com/Ripple-TS/ripple/pull/1462)
+  [`453bf4b`](https://github.com/Ripple-TS/ripple/commit/453bf4ba8b1b31963df26696545e446ab4b1658e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster keyed lists and
+  lighter component output on the client. A `@for` keyed by the item itself
+  (`key item`) keys by identity with no key callback, so a re-run compares the
+  item arrays directly and skips the per-item value update; a same-length keyed
+  re-run rewrites the list's block array in place instead of allocating a new one,
+  with the unchanged prefix and suffix skipped by plain compares. Static child
+  components that follow their template siblings append into the parent element
+  instead of inserting before a `<!>` placeholder, so a component with trailing
+  child components clones fewer nodes and leaves no comment anchors in the DOM.
+  The compiler also infers a primitive text type through a call whose callee is
+  declared to return one (a binding typed as a function type, an `as` assertion, a
+  function with a declared return type, or a method or function-typed property of
+  an annotated object), so such text lowers to `set_text` instead of a generic
+  expression block.
+
+- [#1463](https://github.com/Ripple-TS/ripple/pull/1463)
+  [`411809f`](https://github.com/Ripple-TS/ripple/commit/411809fb38f25b259a1078a901839318e4207871)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster cold hydration and
+  server rendering. `hydrate()` accepts `rootBoundary: false` like `mount()`,
+  stepping over the server's root marker itself instead of rendering under a `try`
+  block (a streamed shell whose root suspended still hydrates under the default
+  boundary, which alone can adopt and activate its slot). The client runtime
+  compiles less on a cold page: the hydration cursor steps live in one module and
+  assign the cursor directly, a list's first render never compiles the diff, a
+  template's clone path stays out of its hydrating closure, `run_block` keeps
+  re-run and teardown handling in separate functions, and the compiler adopts an
+  element's lone text child in place (`hydrate_text`) with no `pop()`. A `@for`
+  whose `index` nothing reads allocates no tracked index per item. Removing the
+  server's inline styles now starts from an animation frame rather than inside
+  `mount()`/`hydrate()`.
+
+  On the server, `render()` joins its buffer tree with a plain walk instead of
+  `flat(Infinity).join('')`, `escape()` returns strings without `&`, `<` or `"`
+  after a single regex test, and an `Output` allocates its stream, css and
+  async-operation collections only for the root or on first use.
+
+- [#1453](https://github.com/Ripple-TS/ripple/pull/1453)
+  [`82bc9ee`](https://github.com/Ripple-TS/ripple/commit/82bc9ee585c6b273bf69890bc2f230aba922bf19)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Speed up portals and root
+  event delegation. `<Portal>` now lowers to a dedicated `portal()` runtime call,
+  portal content appends straight into its target without a placeholder node,
+  delegated root listeners are shared per target instead of per portal, event
+  registration no longer scans every root target, and `@if` blocks and compiled
+  `event()` calls allocate fewer closures. `mount()` accepts `rootBoundary: false`
+  to render without the default root try/pending boundary. Cold code paths
+  (keyed-list diff, block error handling, effect-phase flushing, hydration
+  branches) live in their own functions so a first mount compiles less. A
+  component whose root is `@if`, `@for`, `@switch`, or `@try` now re-renders at
+  its own position when it is portal content or one of an element's all-component
+  children, instead of at the end of the parent; `mount()`/`hydrate()` disposers
+  are safe to call more than once.
+
+- [#1470](https://github.com/Ripple-TS/ripple/pull/1470)
+  [`0321791`](https://github.com/Ripple-TS/ripple/commit/03217912651e0a49edb8060a92602fd0e0abe193)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Cheaper component
+  instantiation and `@if` chains on the client. An `@else if`, and a branch whose
+  only statement is another `@if`, fold into the enclosing `@if` block on both the
+  client and the server, so a chain costs one block and one hydration boundary. An
+  `@if` whose condition reads no tracked state renders its branch directly under
+  the enclosing block with no block of its own (a block without dependencies is
+  never scheduled, so nothing is lost); a dynamic condition keeps its block and
+  adopts the dependencies recorded while it was evaluated. A module-level
+  component also carries a direct render entry so `render_component` skips the
+  element it would otherwise return. An `@if` condition and its branches compile
+  to module-level functions when they capture at most one local (passed through
+  the if runtime), a condition returns the branch function to render instead of
+  calling a selection callback, and a render block's function is module-level with
+  its captured locals carried on the block state, so a component instantiation
+  creates no closures for its ifs or its reactive text and attribute updates.
+  `Context.get()` walks a chain of the context entries that were set rather than
+  every ancestor component. A module-level component's render body is a
+  module-level function that receives the props from the element instead of a
+  closure created per instantiation, `Context.get()`/`set()` calls on a
+  `new Context()` binding skip the `with_scope` wrapper, and `mount()` only
+  schedules the SSR style removal when the page has server-rendered inline styles.
+  A `@switch` now lowers onto the same runtime as `@if`: its selector returns the
+  case to render, so a `@switch` over a value that reads no tracked state renders
+  its case with no block, its cases are module-level functions when they capture
+  at most one local, and the separate switch runtime is gone. The probe that
+  decides whether an `@if` needs a block now renders a static branch itself, one
+  runtime call instead of four. A module-level component with a destructuring
+  parameter gets the direct render entry as well, and an `@if` or `@switch` is
+  hoisted whatever number of locals it captures: several travel as one object
+  literal destructured in the hoisted signatures. A binding that hoisted template
+  code writes (a `ref={name}` setter, a handler that assigns it) or that is
+  reassigned after template code reads it is compiled to a `{ v }` box, so the
+  hoisted functions share the variable with the component exactly as a closure
+  would: a plain `let`, a name inside a destructuring pattern of any shape, a
+  function or catch parameter (reboxed first thing in the body), and a `let`
+  written through a destructuring or `for...of` assignment target.
+
+- [#1473](https://github.com/Ripple-TS/ripple/pull/1473)
+  [`eb638ea`](https://github.com/Ripple-TS/ripple/commit/eb638ea4a3c73b7ecb98ccedfffc576661dc67b3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - A derived created during a
+  block's run (a `track(() => ...)` or `tracked.readOnly()` in an `@if` branch, a
+  keyed `@for` item, a render expression, or component setup) is now unsubscribed
+  from its sources when that block reruns or is destroyed, unless a reader that is
+  still alive holds it. Before, such deriveds stayed subscribed until the block
+  that owned them was destroyed, so a branch that toggled repeatedly accumulated
+  one stale derived per toggle, each walked on every write to the source. The
+  bookkeeping lives in a side table keyed by the creating block, so blocks that
+  create no deriveds pay nothing.
+
+- [#1466](https://github.com/Ripple-TS/ripple/pull/1466)
+  [`2631804`](https://github.com/Ripple-TS/ripple/commit/2631804cd28980b213643ac4ef5e5bcb814eae57)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster streaming SSR. A
+  resolved `trackAsync` value made of plain data (strings, finite numbers,
+  booleans, `null`, arrays and plain objects, each reachable once) now travels in
+  its hydration script as raw JSON that `JSON.parse` of the envelope yields
+  directly, instead of a devalue-encoded string; values JSON cannot represent
+  (`undefined`, `NaN`, `-0`, bigints, Dates, Maps, Sets, shared references,
+  cycles) keep the devalue encoding, and the client reads either form. Boundaries
+  that settle in the same task (data arriving together, a batch of promises
+  resolved by one timer or I/O callback) stream as one chunk, flushed once the
+  task's microtasks have drained; closing the stream flushes whatever is still
+  queued first. `devalue` is updated to 5.9.2, with the stringify performance
+  patch proposed upstream in sveltejs/devalue#190 applied through pnpm's
+  `patchedDependencies` until it is released.
+
+- [#1472](https://github.com/Ripple-TS/ripple/pull/1472)
+  [`5d3e60d`](https://github.com/Ripple-TS/ripple/commit/5d3e60d86129ac20d23c86a923914ee44efea9d1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - `tracked.readOnly()` returns
+  a read-only view of a `Tracked` or `WritableDerived`: a `Derived<V>` that
+  follows the value and rejects writes, for a child, function, or context that
+  should only read it. It is equivalent to `track(() => tracked.value)`. On a
+  derived that is already read-only, `readOnly()` returns the derived itself.
+
+- [#1465](https://github.com/Ripple-TS/ripple/pull/1465)
+  [`8ace206`](https://github.com/Ripple-TS/ripple/commit/8ace206bfed2cd80b758e6e72f94084d2ffe1455)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - `@try` blocks and the root
+  boundary keep their state in one explicit `TryState` object, and the pending,
+  catch, request and streaming helpers are module functions that take it. A
+  boundary allocates its state and one branch closure instead of a closure per
+  helper.
+- Updated dependencies
+  [[`bbc1445`](https://github.com/Ripple-TS/ripple/commit/bbc14455485e054c145ebc78f08a771d41ea16f1),
+  [`0321791`](https://github.com/Ripple-TS/ripple/commit/03217912651e0a49edb8060a92602fd0e0abe193),
+  [`2ef5da5`](https://github.com/Ripple-TS/ripple/commit/2ef5da52b26fc13e11537dd28df0e2b376ca0f52),
+  [`0321791`](https://github.com/Ripple-TS/ripple/commit/03217912651e0a49edb8060a92602fd0e0abe193),
+  [`020d269`](https://github.com/Ripple-TS/ripple/commit/020d2699f8e1333367ac9f7abe9247bab55e272d),
+  [`453bf4b`](https://github.com/Ripple-TS/ripple/commit/453bf4ba8b1b31963df26696545e446ab4b1658e),
+  [`411809f`](https://github.com/Ripple-TS/ripple/commit/411809fb38f25b259a1078a901839318e4207871),
+  [`82bc9ee`](https://github.com/Ripple-TS/ripple/commit/82bc9ee585c6b273bf69890bc2f230aba922bf19),
+  [`69d50d9`](https://github.com/Ripple-TS/ripple/commit/69d50d9849d8484a88d39b2908bb682d27ec7bc9),
+  [`0321791`](https://github.com/Ripple-TS/ripple/commit/03217912651e0a49edb8060a92602fd0e0abe193),
+  [`5d3e60d`](https://github.com/Ripple-TS/ripple/commit/5d3e60d86129ac20d23c86a923914ee44efea9d1)]:
+  - @tsrx/ripple@0.2.0
+
 ## 0.3.128
 
 ### Patch Changes
