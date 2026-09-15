@@ -700,12 +700,17 @@ export function release_deriveds(deriveds) {
 			destroy_computed_children(derived);
 		}
 	}
+	// Back to creation order, so the next pass again visits readers first.
+	if (kept !== null) {
+		kept.reverse();
+	}
 	return kept;
 }
 
 /**
- * Records deriveds under `block` again after a rerun kept them, alongside
- * whatever the new run created.
+ * Records deriveds under `block` again after a rerun kept them, ahead of
+ * whatever the new run created: the kept ones are older, and the release
+ * order (newest first) relies on the list being in creation order.
  * @param {Block} block
  * @param {Derived[] | null} kept
  */
@@ -718,9 +723,7 @@ function keep_deriveds(block, kept) {
 		created_deriveds.set(block, kept);
 		has_created_deriveds = true;
 	} else {
-		for (var i = 0; i < kept.length; i++) {
-			created.push(kept[i]);
-		}
+		created_deriveds.set(block, kept.concat(created));
 	}
 }
 

@@ -240,6 +240,51 @@ describe('derived release across reruns', () => {
 		}
 	});
 
+	it('releases a chain of deriveds after reruns that kept them, whatever their count', () => {
+		let bump: () => void = () => {};
+		let reset: () => void = () => {};
+		let source: Tracked<number> | undefined;
+
+		function App() @{
+			const count = track(1);
+			source = count;
+			bump = () => {
+				count.value++;
+			};
+			reset = () => {
+				count.value = 0;
+			};
+			<>
+				@if (count.value > 0) {
+					// `second` reads `first`; a release must visit `second` before
+					// `first`, in every pass, or `first` looks alive and survives.
+					const first = track(() => count.value * 2);
+					const second = track(() => first.value + 1);
+					<p class="second">{second.value}</p>
+				}
+			</>
+		}
+
+		render(App);
+		flushSync();
+		const before = subscribers(source!) - 1;
+
+		for (const same_branch_reruns of [1, 3, 2]) {
+			for (let i = 0; i < same_branch_reruns; i++) {
+				bump();
+				flushSync();
+			}
+			expect(subscribers(source!)).toBe(before + 1);
+			reset();
+			flushSync();
+			expect(container.querySelector('.second')).toBeNull();
+			expect(subscribers(source!)).toBe(before);
+			bump();
+			flushSync();
+			expect(container.querySelector('.second')!.textContent).toBe('3');
+		}
+	});
+
 	it('releases a derived an effect created and read on its previous run', () => {
 		let bump: () => void = () => {};
 		let source: Tracked<number> | undefined;
