@@ -1716,11 +1716,12 @@ class TrackedValue {
 	}
 	/**
 	 * A read-only view: a derived over this value, for a receiver that should
-	 * read but not write it. Equivalent to `track(() => tracked.value)`.
+	 * read but not write it. Equivalent to `track(() => tracked.value)`. The
+	 * view has no hash of its own: it is not a serialized value.
 	 * @returns {Derived}
 	 */
 	readOnly() {
-		return derived(() => get_tracked(/** @type {Tracked} */ (this)), this.h);
+		return derived(() => get_tracked(/** @type {Tracked} */ (this)));
 	}
 }
 
@@ -1728,7 +1729,7 @@ class DerivedValue {
 	/**
 	 * @param {Function} fn
 	 * @param {{ get?: Function; set?: Function | true }} a
-	 * @param {string} hash
+	 * @param {string} [hash]
 	 */
 	constructor(fn, a, hash) {
 		/** @type {{ get?: Function; set?: Function | true }} */
@@ -1746,7 +1747,7 @@ class DerivedValue {
 		this.f = DERIVED;
 		/** @type {Function} */
 		this.fn = fn;
-		/** @type {string} */
+		/** @type {string | undefined} */
 		this.h = hash;
 		/** @type {any} */
 		this.v = UNINITIALIZED;
@@ -1768,7 +1769,7 @@ class DerivedValue {
 	readOnly() {
 		return this.a.set === undefined
 			? /** @type {Derived} */ (this)
-			: derived(() => get_derived(/** @type {Derived} */ (this)), this.h);
+			: derived(() => get_derived(/** @type {Derived} */ (this)));
 	}
 }
 
@@ -1787,7 +1788,7 @@ function tracked(v, hash, get, set) {
 
 /**
  * @param {any} v
- * @param {string} hash
+ * @param {string} [hash]
  * @param {(value: any) => any} [get]
  * @param {((next: any, prev: any) => any) | true} [set]
  * @returns {Derived}

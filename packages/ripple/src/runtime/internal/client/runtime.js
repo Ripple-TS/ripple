@@ -507,13 +507,15 @@ class TrackedValue {
 		set(this, v);
 	}
 	/**
-	 * A read-only view: a derived over this value, owned by the same block, for
-	 * a receiver that should read but not write it. Equivalent to
-	 * `track(() => tracked.value)`.
+	 * A read-only view: a derived over this value, for a receiver that should
+	 * read but not write it. Equivalent to `track(() => tracked.value)`. The
+	 * view is owned by the block that creates it, not by this value's block, so
+	 * a view made in a component is released with that component even when the
+	 * value outlives it.
 	 * @returns {Derived}
 	 */
 	readOnly() {
-		return derived(() => get_tracked(this), this.b);
+		return derived(() => get_tracked(this), /** @type {Block} */ (active_block));
 	}
 }
 
@@ -565,7 +567,9 @@ class DerivedValue {
 	 * @returns {Derived}
 	 */
 	readOnly() {
-		return this.a.set === undefined ? this : derived(() => get_derived(this), this.b);
+		return this.a.set === undefined
+			? this
+			: derived(() => get_derived(this), /** @type {Block} */ (active_block));
 	}
 }
 
@@ -1082,13 +1086,14 @@ function mark_subscribers(tracked) {
 		var flags = reaction.f;
 		if ((flags & DERIVED) !== 0) {
 			var derived = /** @type {Derived} */ (reaction);
+			// Marking the derived's own subscribers first prunes its destroyed
+			// readers, so a derived whose owner is gone and that nothing reads any
+			// more is dropped on this write; one still read elsewhere keeps
+			// forwarding notifications.
+			mark_subscribers(derived);
 			var derived_owner = derived.b;
-			// A derived whose owner is gone and that nothing reads any more is
-			// pruned; one still read elsewhere keeps forwarding notifications.
 			if (derived_owner !== null && (derived_owner.f & DESTROYED) !== 0 && derived.sb === null) {
 				unlink_subscriber(dependency);
-			} else {
-				mark_subscribers(derived);
 			}
 		} else if ((flags & DESTROYED) !== 0) {
 			unlink_subscriber(dependency);

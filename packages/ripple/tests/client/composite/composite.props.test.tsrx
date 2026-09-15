@@ -51,6 +51,61 @@ describe('composite > props', () => {
 		expect(container.querySelector('.view').textContent).toBe('42');
 	});
 
+	it('releases a readOnly() view with the block that created it', () => {
+		let set_rows: (rows: number[]) => void = () => {};
+		let bump: () => void = () => {};
+		let source: Tracked<number> | undefined;
+
+		function Child({ count }: { count: Derived<number> }) @{
+			<span class="child">{count.value}</span>
+		}
+
+		function App() @{
+			const count = track(0);
+			const rows = track<number[]>([]);
+			source = count;
+			set_rows = (next) => {
+				rows.value = next;
+			};
+			bump = () => {
+				count.value++;
+			};
+			<ul>
+				@for (const row of rows.value; key row) {
+					<li>
+						<Child count={count.readOnly()} />
+					</li>
+				}
+			</ul>
+		}
+
+		// Each view is a derived subscribed to the source; the subscriber list is
+		// the runtime's own (`sb` / `sn`).
+		const subscribers = () => {
+			let n = 0;
+			for (let d = (source as any).sb; d !== null; d = d.sn) n++;
+			return n;
+		};
+
+		render(App);
+		flushSync();
+		expect(subscribers()).toBe(0);
+
+		set_rows([1, 2, 3]);
+		flushSync();
+		expect(container.querySelectorAll('.child').length).toBe(3);
+		expect(subscribers()).toBe(3);
+
+		// Removing the items destroys the blocks that created the views, so the
+		// next write to the source prunes them instead of keeping them alive.
+		set_rows([]);
+		flushSync();
+		bump();
+		flushSync();
+		expect(container.querySelectorAll('.child').length).toBe(0);
+		expect(subscribers()).toBe(0);
+	});
+
 	it('keeps a readOnly() view from writing through to its source', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {
