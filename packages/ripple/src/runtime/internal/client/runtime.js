@@ -675,16 +675,18 @@ export function take_created_deriveds(block) {
  * Releases the deriveds a block run created, once that run's readers are
  * gone: the block reran (its previous run's readers were destroyed by the
  * rerun) or was destroyed. A derived that a live reader still holds (the
- * branch is still showing, or it was handed to a longer-lived scope) is kept
- * and returned. Released in reverse creation order so a derived read by a
- * later one of the same run sees that reader unlinked first.
- * @param {Derived[]} deriveds
- * @returns {Derived[] | null} the deriveds kept, if any
+ * branch is still showing, or it was handed to a longer-lived scope) is
+ * kept. Walked newest first, so a derived read by a later one of the same
+ * run sees that reader unlinked before it is examined; the survivors are
+ * packed into the tail of the same array as they are met, which leaves them
+ * in creation order for the next pass, and slid to the front at the end.
+ * @param {Derived[]} deriveds in creation order; reused for the result
+ * @returns {Derived[] | null} the deriveds kept, in creation order, if any
  */
 export function release_deriveds(deriveds) {
-	/** @type {Derived[] | null} */
-	var kept = null;
-	for (var i = deriveds.length - 1; i >= 0; i--) {
+	var length = deriveds.length;
+	var kept = length;
+	for (var i = length - 1; i >= 0; i--) {
 		var derived = deriveds[i];
 		var alive = false;
 		for (var sub = derived.sb; sub !== null; sub = sub.sn) {
@@ -694,17 +696,21 @@ export function release_deriveds(deriveds) {
 			}
 		}
 		if (alive) {
-			(kept ??= []).push(derived);
+			// `kept` never drops below `i`, so this only overwrites visited slots.
+			deriveds[--kept] = derived;
 		} else {
 			finish_dependencies(derived, null);
 			destroy_computed_children(derived);
 		}
 	}
-	// Back to creation order, so the next pass again visits readers first.
-	if (kept !== null) {
-		kept.reverse();
+	if (kept === length) {
+		return null;
 	}
-	return kept;
+	if (kept !== 0) {
+		deriveds.copyWithin(0, kept);
+		deriveds.length = length - kept;
+	}
+	return deriveds;
 }
 
 /**
@@ -719,12 +725,13 @@ function keep_deriveds(block, kept) {
 		return;
 	}
 	var created = created_deriveds.get(block);
-	if (created === undefined) {
-		created_deriveds.set(block, kept);
-		has_created_deriveds = true;
-	} else {
-		created_deriveds.set(block, kept.concat(created));
+	if (created !== undefined) {
+		for (var i = 0; i < created.length; i++) {
+			kept.push(created[i]);
+		}
 	}
+	created_deriveds.set(block, kept);
+	has_created_deriveds = true;
 }
 
 /**
