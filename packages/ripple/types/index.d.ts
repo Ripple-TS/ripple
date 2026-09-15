@@ -1,4 +1,5 @@
 import type { ExtendedEventOptions } from '@tsrx/core/types';
+export type { CSSProperties, JSX, Ripple } from '../src/jsx-runtime.js';
 export { setTransport } from './transport.js';
 export type { Transport, Transporter } from './transport.js';
 export type { RefValue } from '@tsrx/core/runtime/ref';

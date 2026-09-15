@@ -45,7 +45,8 @@ function create_service(source, automatic) {
 describe('Ripple JSX types', () => {
 	it.each([true, false])('checks CSS property values (automatic runtime: %s)', (automatic) => {
 		const source = `
-			import type { CSSProperties, Ripple } from 'ripple/jsx-runtime';
+			import type { CSSProperties, Ripple } from 'ripple';
+			import type { CSSProperties as RuntimeCSSProperties } from 'ripple/jsx-runtime';
 
 			const styles = {
 				width: '24rem', height: '50%', margin: 0, padding: '1em',
@@ -58,6 +59,7 @@ describe('Ripple JSX types', () => {
 				'--space': '1rem', '--scale': 2,
 			} satisfies CSSProperties;
 			const namespaced: Ripple.CSSProperties = styles;
+			const runtime_styles: RuntimeCSSProperties = styles;
 			const html = <div style={namespaced} />;
 			const svg = <svg style={styles}><circle style={{ strokeWidth: 2, 'fill-opacity': 0.5 }} /></svg>;
 			const zero = <div style={{ width: 0 }} />;
@@ -66,6 +68,8 @@ describe('Ripple JSX types', () => {
 			const omitted = <svg style={undefined} />;
 			const conditional = <div style={{ width: Math.random() ? '400px' : undefined, '--scale': undefined }} />;
 
+			// @ts-expect-error Lengths require explicit units unless the value is zero.
+			const bad_styles = { width: 400 } satisfies CSSProperties;
 			// @ts-expect-error Lengths require explicit units unless the value is zero.
 			const bad_width = <div style={{ width: 400 }} />;
 			// @ts-expect-error Kebab-case lengths use the same rules.
@@ -120,7 +124,8 @@ describe('Ripple JSX types', () => {
 
 	it('preserves JSX imports, global types, native events, and DOM refs', () => {
 		const source = `
-			import type { ClassValue, JSX as RuntimeJSX, Ripple } from 'ripple/jsx-runtime';
+			import type { ClassValue, JSX as RuntimeJSX, Ripple as RuntimeRipple } from 'ripple/jsx-runtime';
+			import type { JSX as PublicJSX, Ripple } from 'ripple';
 			import { createRefKey, type RefKey } from 'ripple';
 
 			const ref_key: RefKey = createRefKey();
@@ -133,8 +138,10 @@ describe('Ripple JSX types', () => {
 			};
 			const global_props: JSX.IntrinsicElements['input'] = props;
 			const runtime_props: RuntimeJSX.IntrinsicElements['input'] = global_props;
+			const public_props: PublicJSX.IntrinsicElements['input'] = runtime_props;
+			const runtime_namespace_props: RuntimeRipple.InputHTMLAttributes<HTMLInputElement> = public_props;
 			const classes: ClassValue = ['one', { two: true }];
-			const input = <input {...runtime_props} class={classes} />;
+			const input = <input {...public_props} class={classes} />;
 			const svg = <svg><circle cx={10} ref={(node) => { const circle: SVGCircleElement = node; }} /></svg>;
 			// @ts-expect-error Input values do not accept objects.
 			const bad_value = <input value={{}} />;

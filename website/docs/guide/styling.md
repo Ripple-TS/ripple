@@ -120,7 +120,7 @@ An `undefined` property value omits the declaration and removes it on client
 updates, so conditional styles can use `width: expanded ? '24rem' : undefined`.
 
 ```tsrx
-import type { CSSProperties } from 'ripple/jsx-runtime';
+import type { CSSProperties } from 'ripple';
 
 const panelStyle = {
   width: '24rem',

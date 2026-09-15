@@ -349,6 +349,11 @@ export function ProfileBoundary() @{
 Events use JSX-style handler props. DOM refs can be callback refs, tracked refs,
 or local variables.
 
+Import `JSX` and `Ripple` with `import type { JSX, Ripple } from 'ripple'` for
+element prop and event types, such as `JSX.IntrinsicElements['input']` and
+`Ripple.EventHandler<HTMLInputElement, InputEvent>`. These are type namespaces,
+not runtime objects.
+
 ```tsrx
 import { track } from 'ripple';
 
@@ -437,7 +442,7 @@ explicit units; numbers are accepted for unitless properties and zero lengths.
 An `undefined` property value omits the declaration and removes it on client
 updates, allowing conditional styles such as `width: expanded ? '24rem' : undefined`.
 HTML and SVG style objects use property-specific CSS types. Import
-`CSSProperties` from `ripple/jsx-runtime` to type reusable style objects.
+`CSSProperties` from `ripple` to type reusable style objects.
 CSS strings and custom property values are not validated as CSS syntax.
 
 A `<style>` block is static CSS scoped to its siblings: it styles the items
