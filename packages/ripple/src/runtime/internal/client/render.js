@@ -110,11 +110,7 @@ function apply_styles(element, new_styles, prev) {
 	for (const key in new_styles) {
 		const css_prop = normalize_css_property_name(key);
 		const raw_value = new_styles[key];
-		if (raw_value === undefined) {
-			style.removeProperty(css_prop);
-			continue;
-		}
-		const value = String(raw_value);
+		const value = raw_value === undefined ? null : String(raw_value);
 
 		if (!(key in prev) || prev[key] !== value) {
 			style.setProperty(css_prop, value);
