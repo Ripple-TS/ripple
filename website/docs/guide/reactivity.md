@@ -62,10 +62,10 @@ export function App() @{
 }
 ```
 
-`track(() => count.value)` is also how you hand a tracked value to a component,
-function, or context that should only read it: the receiver types it
-`Derived<T>` and follows every change, while a `Tracked<T>` lets the receiver
-write `.value` too.
+`count.readOnly()`, equivalent to `track(() => count.value)`, is how you hand a
+tracked value to a component, function, or context that should only read it:
+the receiver types it `Derived<T>` and follows every change, while a
+`Tracked<T>` lets the receiver write `.value` too.
 
 A derived created with `true` in the setter position is a `WritableDerived<T>`
 and can be written to for **optimistic state**. The written value is exposed
@@ -146,8 +146,8 @@ the `get` parameter must be set to `undefined`.
 ## Transporting Reactivity
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can
-simply be passed by reference between boundaries. Pass a derived,
-`track(() => count.value)`, instead when the receiver should only read it:
+simply be passed by reference between boundaries. Pass a read-only view,
+`count.readOnly()`, instead when the receiver should only read it:
 
 <Code console>
 

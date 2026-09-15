@@ -213,8 +213,8 @@ write to it warns in development. Pass a setter, or `true` in the setter
 position, when the derived is meant to accept writes
 (`track(() => draft, undefined, true)` is a `WritableDerived`); a write then
 holds until the next recompute. A `Tracked` satisfies `Derived` where only reads
-are needed, so `track(() => count.value)` is the read-only way to hand tracked
-state to a child.
+are needed, so `count.readOnly()` (equivalent to `track(() => count.value)`) is
+the read-only way to hand tracked state to a child.
 
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.

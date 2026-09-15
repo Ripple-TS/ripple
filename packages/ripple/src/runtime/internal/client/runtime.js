@@ -27,7 +27,6 @@ import {
 	TRACKED,
 	UNINITIALIZED,
 	REF_PROP,
-	TRACKED_OBJECT,
 	DEFAULT_NAMESPACE,
 	TRACKED_UPDATED,
 	SUSPENSE_PENDING,
@@ -507,6 +506,15 @@ class TrackedValue {
 	set value(v) {
 		set(this, v);
 	}
+	/**
+	 * A read-only view: a derived over this value, owned by the same block, for
+	 * a receiver that should read but not write it. Equivalent to
+	 * `track(() => tracked.value)`.
+	 * @returns {Derived}
+	 */
+	readOnly() {
+		return derived(() => get_tracked(this), this.b);
+	}
 }
 
 class DerivedValue {
@@ -549,6 +557,15 @@ class DerivedValue {
 	/** @param {any} v */
 	set value(v) {
 		set(this, v);
+	}
+	/**
+	 * A read-only view (see `TrackedValue#readOnly`). A derived without a
+	 * setter is already read-only and is returned as is; a writable one is
+	 * wrapped in a derived that follows it.
+	 * @returns {Derived}
+	 */
+	readOnly() {
+		return this.a.set === undefined ? this : derived(() => get_derived(this), this.b);
 	}
 }
 

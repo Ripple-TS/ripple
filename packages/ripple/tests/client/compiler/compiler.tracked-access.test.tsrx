@@ -200,7 +200,19 @@ import { track } from 'ripple';
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should allow .length read access on a tracked object', () => {
+	it('should allow .readOnly() on a tracked object', () => {
+		const code = `
+import { track } from 'ripple';
+            export default function App() @{
+                let count = track(0);
+                const view = count.readOnly();
+                <>{view.value}</>
+            }
+        `;
+		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+	});
+
+	it('should error on .length access on a tracked object', () => {
 		const code = `
 import { track } from 'ripple';
             export default function App() @{
@@ -209,6 +221,8 @@ import { track } from 'ripple';
                 <></>
             }
         `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+		expect(() => compile(code, 'test.tsrx')).toThrow(
+			'Accessing a tracked object directly is not allowed',
+		);
 	});
 });

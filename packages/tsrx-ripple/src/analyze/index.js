@@ -1412,7 +1412,7 @@ const visitors = {
 				const is_allowed_tracked_access =
 					!node.computed &&
 					node.property.type === 'Identifier' &&
-					(node.property.name === 'value' || node.property.name === 'length');
+					(node.property.name === 'value' || node.property.name === 'readOnly');
 
 				if (is_allowed_tracked_access) {
 					// pass through

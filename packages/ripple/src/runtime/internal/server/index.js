@@ -1714,6 +1714,14 @@ class TrackedValue {
 	set value(v) {
 		set(/** @type {Tracked} */ (this), v);
 	}
+	/**
+	 * A read-only view: a derived over this value, for a receiver that should
+	 * read but not write it. Equivalent to `track(() => tracked.value)`.
+	 * @returns {Derived}
+	 */
+	readOnly() {
+		return derived(() => get_tracked(/** @type {Tracked} */ (this)), this.h);
+	}
 }
 
 class DerivedValue {
@@ -1750,6 +1758,17 @@ class DerivedValue {
 	/** @param {any} v */
 	set value(v) {
 		set(/** @type {Derived} */ (this), v);
+	}
+	/**
+	 * A read-only view (see `TrackedValue#readOnly`). A derived without a
+	 * setter is already read-only and is returned as is; a writable one is
+	 * wrapped in a derived that follows it.
+	 * @returns {Derived}
+	 */
+	readOnly() {
+		return this.a.set === undefined
+			? /** @type {Derived} */ (this)
+			: derived(() => get_derived(/** @type {Derived} */ (this)), this.h);
 	}
 }
 

@@ -195,9 +195,10 @@ export function App() @{
 </Code>
 
 Passing the `Tracked<T>` object lets the receiver write to it as well as read it.
-To share a value read-only, pass a derived instead: `track(() => count.value)`
-produces a `Derived<T>` whose `value` can be read but not written (a write warns
-in development). The same applies to component props:
+To share a value read-only, pass `count.readOnly()` instead: it produces a
+`Derived<T>` whose `value` can be read but not written (a write warns in
+development), the same as `track(() => count.value)`. The same applies to
+component props:
 
 ```tsrx
 import { track, type Derived } from 'ripple';
@@ -210,7 +211,7 @@ export function App() @{
   const count = track(0);
 
   <>
-    <Child count={track(() => count.value)} />
+    <Child count={count.readOnly()} />
     <button onClick={() => count.value++}>Increment Count</button>
   </>
 }

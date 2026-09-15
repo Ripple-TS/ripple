@@ -224,6 +224,12 @@ export const SUSPENSE_REJECTED: unique symbol;
 interface TrackedBase<V> {
 	'#v': V;
 	value: V;
+	/**
+	 * A read-only view of this value: a `Derived<V>` that follows it, for a
+	 * receiver that should read but not write it. Equivalent to
+	 * `track(() => tracked.value)`.
+	 */
+	readOnly(): Derived<V>;
 }
 // Augment Tracked to be callable when V is a Component.
 // This allows tracked component values to continue flowing through JSX checks.
@@ -238,6 +244,8 @@ export type Tracked<V> = TrackedBase<V> & TrackedCallable<V>;
 interface DerivedBase<V> {
 	'#v': V;
 	readonly value: V;
+	/** A derived is already read-only: returns itself. */
+	readOnly(): Derived<V>;
 }
 export type Derived<V> = DerivedBase<V> & TrackedCallable<V>;
 // A computed value created with a setter (`track(fn, get, set)`) or with

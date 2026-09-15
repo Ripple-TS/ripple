@@ -1,5 +1,6 @@
 import { track } from 'ripple';
 import type {
+	Derived,
 	Tracked,
 	PropsWithChildren,
 	PropsWithExtras,
@@ -8,6 +9,23 @@ import type {
 } from 'ripple';
 
 describe('basic server > components & composition', () => {
+	it('renders a read-only view passed through readOnly()', async () => {
+		function Child({ count }: { count: Derived<number> }) @{
+			<span>{count.value}</span>
+		}
+
+		function App() @{
+			const count = track(5);
+			<div>
+				<Child count={count.readOnly()} />
+			</div>
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toBeHtml('<div><span>5</span></div>');
+	});
+
 	it('renders rest and default pattern names in a keyed loop', async () => {
 		function App() @{
 			const rows = [

@@ -163,7 +163,7 @@ export function Counter() @{
 		<p>Double: {double.value}</p>
 		<button onClick={() => count.value++}>Increment</button>
 		<CounterValue {count} />
-		<CounterLabel count={track(() => count.value)} />
+		<CounterLabel count={count.readOnly()} />
 	</>
 }
 
@@ -178,8 +178,8 @@ function CounterLabel({ count }: { count: Derived<number> }) {
 
 Props are plain objects evaluated once, and ordinary destructuring works on them.
 Pass the tracked object itself (`Tracked<T>`) when a child should read and write
-it, and pass `track(() => tracked.value)` — a `Derived<T>` whose `.value` is
-read-only — when a child should only read it. `track(() => ...)` derived values
+it, and pass `tracked.readOnly()` — a `Derived<T>` whose `.value` is read-only,
+equivalent to `track(() => tracked.value)` — when a child should only read it. `track(() => ...)` derived values
 are read-only; pass `true` as the third argument to allow optimistic writes that
 last until the next recompute.
 

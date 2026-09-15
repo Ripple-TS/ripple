@@ -1,7 +1,85 @@
-import type { Tracked, Props } from 'ripple';
+import type { Derived, Tracked, Props } from 'ripple';
 import { effect, flushSync, track } from 'ripple';
 
 describe('composite > props', () => {
+	it('hands a child a read-only view through readOnly()', () => {
+		function Child({ count }: { count: Derived<number> }) @{
+			<span class="child">{count.value}</span>
+		}
+
+		function App() @{
+			const count = track(0);
+			<>
+				<Child count={count.readOnly()} />
+				<button onClick={() => count.value++}>{'inc'}</button>
+			</>
+		}
+
+		render(App);
+		flushSync();
+		expect(container.querySelector('.child').textContent).toBe('0');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.child').textContent).toBe('1');
+	});
+
+	it('returns a read-only derived from readOnly() as is and wraps a writable one', () => {
+		function App() @{
+			const count = track(1);
+			const double = track(() => count.value * 2);
+			const draft = track(() => count.value, undefined, true);
+			const double_view = double.readOnly();
+			const draft_view = draft.readOnly();
+			expect(double_view).toBe(double);
+			expect(draft_view).not.toBe(draft);
+			<>
+				<span class="draft">{draft.value}</span>
+				<span class="view">{draft_view.value}</span>
+				<button onClick={() => (draft.value = 42)}>{'write'}</button>
+			</>
+		}
+
+		render(App);
+		flushSync();
+		expect(container.querySelector('.view').textContent).toBe('1');
+
+		// A write to the writable derived is visible through its view.
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.draft').textContent).toBe('42');
+		expect(container.querySelector('.view').textContent).toBe('42');
+	});
+
+	it('keeps a readOnly() view from writing through to its source', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		try {
+			function App() @{
+				const count = track(1);
+				const view = count.readOnly();
+				const write = () => {
+					view.value = 99;
+				};
+				<>
+					<span class="source">{count.value}</span>
+					<span class="view">{view.value}</span>
+					<button onClick={write}>{'write'}</button>
+				</>
+			}
+
+			render(App);
+			flushSync();
+			container.querySelector('button').click();
+			flushSync();
+
+			// The write warned in development and never reached the source.
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining('read-only derived'));
+			expect(container.querySelector('.source').textContent).toBe('1');
+		} finally {
+			warn.mockRestore();
+		}
+	});
+
 	it('correctly handles default prop values', () => {
 		function Child({ foo = 456 }) @{
 			<div>{foo}</div>
