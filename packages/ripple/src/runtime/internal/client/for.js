@@ -26,17 +26,22 @@ import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {boolean} is_indexed
  * @param {boolean} is_keyed
+ * @param {((item: V) => any) | undefined} [map_item] a keyed loop's destructuring of the item (see `for_block_keyed`)
  * @returns {Block}
  */
-function create_item(anchor, value, index, render_fn, is_indexed, is_keyed) {
+function create_item(anchor, value, index, render_fn, is_indexed, is_keyed, map_item) {
 	var block = /** @type {Block} */ (active_block);
 	var tracked_index = is_indexed ? tracked(index, block) : undefined;
-	var tracked_value = is_keyed ? tracked(value, block) : value;
+	var tracked_value = is_keyed
+		? tracked(map_item === undefined ? value : map_item(value), block)
+		: value;
 	var state = {
 		start: null,
 		end: null,
 		i: tracked_index,
 		v: tracked_value,
+		// The item as the collection holds it; a keyed diff compares against it.
+		r: value,
 	};
 
 	// Passed through module state rather than a per-item closure; run_item
@@ -231,8 +236,18 @@ class ListState {
 	 * @param {boolean} is_indexed
 	 * @param {((item: any) => any) | undefined} get_key
 	 * @param {((anchor: Node) => void) | undefined} render_empty
+	 * @param {((item: any) => any) | undefined} [map_item]
 	 */
-	constructor(anchor, get_collection, render_fn, is_controlled, is_indexed, get_key, render_empty) {
+	constructor(
+		anchor,
+		get_collection,
+		render_fn,
+		is_controlled,
+		is_indexed,
+		get_key,
+		render_empty,
+		map_item,
+	) {
 		this.a = anchor;
 		this.g = get_collection;
 		this.r = render_fn;
@@ -240,6 +255,7 @@ class ListState {
 		this.x = is_indexed;
 		this.k = get_key;
 		this.e = render_empty;
+		this.m = map_item;
 	}
 }
 
@@ -271,7 +287,7 @@ function run_for_keyed(state) {
 	var array = collection_to_array(state.g());
 
 	set_tracking(false);
-	reconcile_by_key(state.a, block, array, state.r, state.c, state.x, state.k, state.e);
+	reconcile_by_key(state.a, block, array, state.r, state.c, state.x, state.k, state.e, state.m);
 	set_tracking(true);
 
 	if (hydrating) {
@@ -346,9 +362,20 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
  * @param {number} flags
  * @param {(item: V) => K} [get_key] omitted for identity keys (`key item`)
  * @param {(anchor: Node) => void} [render_empty]
+ * @param {(item: V) => any} [map_item] for a destructuring pattern with a rest
+ *   element or a default: destructures the item once, natively, into an object
+ *   of the pattern's names, which is what the item's tracked then holds
  * @returns {void}
  */
-export function for_block_keyed(node, get_collection, render_fn, flags, get_key, render_empty) {
+export function for_block_keyed(
+	node,
+	get_collection,
+	render_fn,
+	flags,
+	get_key,
+	render_empty,
+	map_item,
+) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
@@ -384,6 +411,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 			is_indexed,
 			get_key,
 			render_empty,
+			map_item,
 		),
 		FOR_BLOCK,
 	);
@@ -430,12 +458,14 @@ function update_index(block, index) {
 /**
  * @param {Block} block
  * @param {any} value
+ * @param {((item: any) => any) | undefined} map_item
  * @returns {void}
  */
-function update_value(block, value) {
-	var tracked_value = block.s.v;
-	if (tracked_value.__v !== value) {
-		set(tracked_value, value);
+function update_value(block, value, map_item) {
+	var state = block.s;
+	if (state.r !== value) {
+		state.r = value;
+		set(state.v, map_item === undefined ? value : map_item(value));
 	}
 }
 
@@ -449,7 +479,8 @@ function update_value(block, value) {
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
  * @param {((item: V) => K) | undefined} get_key identity keys when omitted
- * @param {(anchor: Node) => void} [render_empty]
+ * @param {((anchor: Node) => void) | undefined} render_empty
+ * @param {((item: V) => any) | undefined} map_item
  * @returns {void}
  *
  * The first run only creates items, so it lives in this small function and
@@ -464,6 +495,7 @@ function reconcile_by_key(
 	is_indexed,
 	get_key,
 	render_empty,
+	map_item,
 ) {
 	var b_length = b.length;
 	var state = /** @type {ListState} */ (block.s);
@@ -480,7 +512,7 @@ function reconcile_by_key(
 			if (get_key !== undefined) {
 				b_keys[j] = get_key(value);
 			}
-			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, true);
+			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, true, map_item);
 		}
 
 		state.array = b;
@@ -498,6 +530,7 @@ function reconcile_by_key(
 		is_indexed,
 		get_key,
 		render_empty,
+		map_item,
 	);
 }
 
@@ -512,7 +545,8 @@ function reconcile_by_key(
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
  * @param {((item: V) => K) | undefined} get_key
- * @param {(anchor: Node) => void} [render_empty]
+ * @param {((anchor: Node) => void) | undefined} render_empty
+ * @param {((item: V) => any) | undefined} map_item
  * @returns {void}
  */
 function reconcile_by_key_diff(
@@ -524,6 +558,7 @@ function reconcile_by_key_diff(
 	is_indexed,
 	get_key,
 	render_empty,
+	map_item,
 ) {
 	var state = /** @type {ListState} */ (block.s);
 
@@ -592,7 +627,7 @@ function reconcile_by_key_diff(
 	// Fast-path for create
 	if (a_length === 0) {
 		for (; j < b_length; j++) {
-			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, true);
+			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, true, map_item);
 		}
 		state.array = b;
 		state.blocks = b_blocks;
@@ -640,7 +675,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_start);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val);
+				update_value(b_block, b_val, map_item);
 			}
 			a_start++;
 			b_start++;
@@ -653,7 +688,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_end);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val);
+				update_value(b_block, b_val, map_item);
 			}
 			a_end--;
 			b_end--;
@@ -675,7 +710,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_start);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val);
+				update_value(b_block, b_val, map_item);
 			}
 			move(b_block, /** @type {ChildNode} */ (a_blocks[a_start].s.start));
 			a_end--;
@@ -690,7 +725,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_end);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val);
+				update_value(b_block, b_val, map_item);
 			}
 			move(b_block, block_start(b_blocks, b_end + 1, b_length, anchor));
 			a_start++;
@@ -713,6 +748,7 @@ function reconcile_by_key_diff(
 					render_fn,
 					is_indexed,
 					true,
+					map_item,
 				);
 				b_start++;
 			}
@@ -760,7 +796,7 @@ function reconcile_by_key_diff(
 								update_index(b_block, j);
 							}
 							if (get_key !== undefined) {
-								update_value(b_block, b_val);
+								update_value(b_block, b_val, map_item);
 							}
 							++patched;
 							break;
@@ -803,7 +839,7 @@ function reconcile_by_key_diff(
 							update_index(b_block, j);
 						}
 						if (get_key !== undefined) {
-							update_value(b_block, b_val);
+							update_value(b_block, b_val, map_item);
 						}
 						++patched;
 					} else if (!fast_path_removal) {
@@ -818,7 +854,17 @@ function reconcile_by_key_diff(
 
 	if (fast_path_removal) {
 		reconcile_fast_clear(anchor, block, []);
-		reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed, get_key);
+		reconcile_by_key(
+			anchor,
+			block,
+			b,
+			render_fn,
+			is_controlled,
+			is_indexed,
+			get_key,
+			render_empty,
+			map_item,
+		);
 		return;
 	} else if (moved) {
 		var next_pos = 0;
@@ -833,7 +879,15 @@ function reconcile_by_key_diff(
 			for (i = 0; i < b_left; i++) {
 				pos = i + b_start;
 				if (sources[i] === 0) {
-					b_blocks[pos] = create_item(relay_target, b[pos], pos, render_fn, is_indexed, true);
+					b_blocks[pos] = create_item(
+						relay_target,
+						b[pos],
+						pos,
+						render_fn,
+						is_indexed,
+						true,
+						map_item,
+					);
 				} else {
 					move(b_blocks[pos], relay_target);
 				}
@@ -851,7 +905,7 @@ function reconcile_by_key_diff(
 				next_pos = pos + 1;
 
 				var target = block_start(b_blocks, next_pos, b_length, anchor);
-				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true);
+				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true, map_item);
 			} else if (j < 0 || i !== seq[j]) {
 				pos = i + b_start;
 				next_pos = pos + 1;
@@ -870,7 +924,7 @@ function reconcile_by_key_diff(
 				next_pos = pos + 1;
 
 				var target = block_start(b_blocks, next_pos, b_length, anchor);
-				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true);
+				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true, map_item);
 			}
 		}
 	}

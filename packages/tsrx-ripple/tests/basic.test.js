@@ -357,19 +357,17 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 			'App.tsrx',
 		);
 
-		// One native destructure per item change, in a derived the body reads
-		// through; the key callback runs outside the block and destructures inline.
-		expect(code).toContain(
-			'var fields = _$_.derived(() => (({ id, ...rest }) => ({ id, rest }))(_$_.get(pattern)));',
-		);
-		expect(code).toContain('_$_.get(fields).rest.name');
-		// The key reads `id` through its member chain, as before.
+		// The loop runtime destructures each item once per change with the
+		// authored pattern (the trailing `for_keyed` argument); the item's tracked
+		// then holds the object of names, and the body reads members of it. The
+		// key callback receives the raw item and reads its member chain.
+		expect(code).toContain('({ id, ...rest }) => ({ id, rest })');
+		expect(code).toContain('_$_.get(pattern).rest.name');
 		expect(code).toContain('(pattern) => _$_.get(pattern).id');
-		expect(code).toContain(
-			"var fields_1 = _$_.derived(() => (([first, second = 'x', ...others]) => ({ first, second, others }))(_$_.get(pattern_1)));",
-		);
-		expect(code).toContain('__fields_1.second');
-		expect(code).toContain('__fields_1.others.length');
+		expect(code).toContain("([first, second = 'x', ...others]) => ({ first, second, others })");
+		expect(code).toContain('__pattern_1.second');
+		expect(code).toContain('__pattern_1.others.length');
+		expect(code).not.toContain('_$_.derived');
 		expect(code).not.toContain('exclude_from_object');
 		expect(code).not.toContain('array_slice');
 		expect(code).not.toContain('_$_.fallback');

@@ -1709,19 +1709,13 @@ const visitors = {
 			}
 
 			// A pattern with a rest element or a default is destructured once per
-			// item, natively, into an object of its names (`fields`), so defaults
-			// and iterators run exactly as in `const { ... } = item`. The transform
-			// declares it in the loop body (see `tsrx_for_pattern_fields`); a name
-			// then reads as a member of it. Without rest or defaults each name is a
-			// member chain on the item.
-			/** @type {AST.Identifier | null} */
-			let fields_id = null;
-			if (pattern_id !== pattern && reads.some((read) => read.chain === null)) {
-				fields_id = b.id(scope.generate('fields'));
-				node.metadata.tsrx_for_pattern_fields = {
-					id: fields_id,
-					names: reads.map((read) => read.node.name),
-				};
+			// item change, natively, by the loop runtime (see `map_item` in
+			// `for_block_keyed`): the item's tracked then holds an object of the
+			// pattern's names, and each name reads as a member of it. Without rest
+			// or defaults each name is a member chain on the item itself.
+			const fields = pattern_id !== pattern && reads.some((read) => read.chain === null);
+			if (fields) {
+				node.metadata.tsrx_for_pattern_fields = reads.map((read) => read.node.name);
 			}
 
 			for (const { node: id, chain } of reads) {
@@ -1737,14 +1731,9 @@ const visitors = {
 
 					const item = () => b.call('_$_.get', /** @type {AST.Identifier} */ (pattern_id));
 					binding.transform = {
-						read:
-							fields_id !== null
-								? () =>
-										b.member(
-											b.call('_$_.get', /** @type {AST.Identifier} */ (fields_id)),
-											b.id(id.name),
-										)
-								: () => /** @type {NonNullable<typeof chain>} */ (chain)(item()),
+						read: fields
+							? () => b.member(item(), b.id(id.name))
+							: () => /** @type {NonNullable<typeof chain>} */ (chain)(item()),
 					};
 				}
 			}

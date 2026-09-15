@@ -2122,14 +2122,14 @@ const visit_for_of_statement = (node, context) => {
 		});
 		const fields = node.metadata?.tsrx_for_pattern_fields;
 		if (fields) {
-			// A plain loop: the names are destructured once per iteration.
+			// A plain loop: the item is destructured once per iteration into the
+			// object of names the body reads (`_$_.get` passes a plain object through).
 			body.unshift(
-				b.var(
-					fields.id,
-					destructure_pattern_fields(
-						node,
-						fields,
-						b.call('_$_.get', /** @type {AST.Identifier} */ (pattern)),
+				b.stmt(
+					b.assignment(
+						'=',
+						/** @type {AST.Identifier} */ (pattern),
+						b.call(pattern_fields_arrow(node, fields), /** @type {AST.Identifier} */ (pattern)),
 					),
 				),
 			);
@@ -2150,6 +2150,8 @@ const visit_for_of_statement = (node, context) => {
 				node.metadata?.tsrx_for_pattern_id
 					? {
 							...left,
+							// Reassigned to the destructured names when the pattern has a rest or default.
+							kind: fields ? 'let' : left.kind,
 							declarations: [{ ...left.declarations[0], id: node.metadata.tsrx_for_pattern_id }],
 						}
 					: left,
@@ -2184,25 +2186,6 @@ const visit_for_of_statement = (node, context) => {
 		},
 	});
 	const fields = node.metadata?.tsrx_for_pattern_fields;
-	if (fields) {
-		// The per-key item is destructured once per change into a derived; the
-		// body's reads of the pattern names go through it.
-		body.unshift(
-			b.var(
-				fields.id,
-				b.call(
-					'_$_.derived',
-					b.thunk(
-						destructure_pattern_fields(
-							node,
-							fields,
-							b.call('_$_.get', /** @type {AST.Identifier} */ (pattern)),
-						),
-					),
-				),
-			),
-		);
-	}
 
 	// Selectors are created once per loop, ahead of the loop itself.
 	for (const { id: selector_id, source } of selector_for.selectors) {
@@ -2248,9 +2231,10 @@ const visit_for_of_statement = (node, context) => {
 		} else {
 			let key_expression = /** @type {AST.Expression} */ (context.visit(key));
 			if (fields) {
-				// The key runs outside the item's block, where the derived does not
-				// exist. A name with a member chain reads that chain off the item;
-				// a name behind a rest or default destructures the item inline.
+				// The key receives the item as the collection holds it, before the
+				// runtime destructures it. A name with a member chain reads that
+				// chain off the item; a name behind a rest or default destructures
+				// the item inline.
 				const chains = new Map(
 					pattern_reads(/** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id).map(
 						(read) => [read.node.name, read.chain],
@@ -2266,14 +2250,15 @@ const visit_for_of_statement = (node, context) => {
 								object.callee.type === 'Identifier' &&
 								object.callee.name === '_$_.get' &&
 								object.arguments[0]?.type === 'Identifier' &&
-								object.arguments[0].name === fields.id.name &&
+								object.arguments[0].name === /** @type {AST.Identifier} */ (pattern).name &&
 								!member.computed &&
-								member.property.type === 'Identifier'
+								member.property.type === 'Identifier' &&
+								chains.has(member.property.name)
 							) {
 								const chain = chains.get(member.property.name);
 								return chain
 									? chain(item())
-									: b.member(destructure_pattern_fields(node, fields, item()), member.property);
+									: b.member(b.call(pattern_fields_arrow(node, fields), item()), member.property);
 							}
 							next();
 						},
@@ -2285,6 +2270,14 @@ const visit_for_of_statement = (node, context) => {
 	}
 	if (empty_renderer) {
 		for_args.push(empty_renderer);
+	}
+	if (fields) {
+		// The runtime destructures each item once per change with the authored
+		// pattern; the item's tracked then holds the object of names.
+		if (!empty_renderer) {
+			for_args.push(b.void0);
+		}
+		for_args.push(pattern_fields_arrow(node, fields));
 	}
 
 	context.state.init?.push(
@@ -2298,26 +2291,22 @@ const visit_for_of_statement = (node, context) => {
 };
 
 /**
- * Destructures a keyed loop item with the authored pattern into an object of
- * the pattern's names: `(({ id, ...rest }) => ({ id, rest }))(item)`. Rest,
- * default, computed-key, and iterable semantics are JavaScript's own, and
- * each runs once per call.
+ * The function that destructures a keyed loop item with the authored pattern
+ * into an object of the pattern's names: `({ id, ...rest }) => ({ id, rest })`.
+ * Rest, default, computed-key, and iterable semantics are JavaScript's own,
+ * and each runs once per call.
  * @param {AST.ForOfStatement | AST.JSXForOfExpression} node
- * @param {{ id: AST.Identifier; names: string[] }} fields
- * @param {AST.Expression} item
- * @returns {AST.CallExpression}
+ * @param {string[]} names
+ * @returns {AST.ArrowFunctionExpression}
  */
-function destructure_pattern_fields(node, fields, item) {
+function pattern_fields_arrow(node, names) {
 	const source = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 	const param = /** @type {AST.Pattern} */ (
 		/** @type {unknown} */ ({ ...clone_ast_node(source), typeAnnotation: undefined })
 	);
-	return b.call(
-		b.arrow(
-			[param],
-			b.object(fields.names.map((name) => b.prop('init', b.id(name), b.id(name), false, true))),
-		),
-		item,
+	return b.arrow(
+		[param],
+		b.object(names.map((name) => b.prop('init', b.id(name), b.id(name), false, true))),
 	);
 }
 
