@@ -13,6 +13,29 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>Hello World</div>');
 	});
 
+	it('keeps static text above U+00FF as character references', async () => {
+		function Basic() @{
+			const text = 'plain';
+			<>
+				<p title="a — b">
+					The Times — …
+					<b>»</b>
+				</p>
+				<span>{text}</span>
+			</>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml(
+			'<p title="a &#8212; b">The Times &#8212; &#8230;<b>»</b></p><span>plain</span>',
+		);
+		// A static em dash would otherwise widen the whole response to two bytes
+		// per character; the reference keeps it Latin-1.
+		expect(Buffer.byteLength(body, 'latin1')).toBe(body.length);
+		expect(Buffer.byteLength(body)).toBe(body.length + 1);
+	});
+
 	it('renders string interpolation as escaped text', async () => {
 		function Basic() @{
 			let markup = '<span>Not HTML</span>';

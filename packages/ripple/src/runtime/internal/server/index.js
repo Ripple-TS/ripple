@@ -1258,7 +1258,6 @@ export async function render(component, options = {}) {
 	}
 }
 
-var CONTENT_SPECIAL = /[&<]/;
 var ATTR_SPECIAL = /[&"<]/;
 var SCRIPT_SPECIAL = /[<>]/;
 
@@ -1275,15 +1274,19 @@ function escape_inline_script(str) {
 
 /**
  * Escapes text or attribute content. Strings without a character to escape
- * (the common case) return as they are after a single regex test; anything
- * else goes through the general escaper.
+ * (the common case) return as they are; anything else goes through the general
+ * escaper. Text content is checked with two single-character searches: on the
+ * short strings a page is made of they beat one character-class regex test.
  * @param {unknown} value
  * @param {boolean} [is_attr]
  * @returns {string}
  */
 export function escape(value, is_attr) {
 	var str = typeof value === 'string' ? value : value == null ? '' : String(value);
-	return (is_attr ? ATTR_SPECIAL : CONTENT_SPECIAL).test(str) ? escape_html(str, is_attr) : str;
+	if (is_attr) {
+		return ATTR_SPECIAL.test(str) ? escape_html(str, true) : str;
+	}
+	return str.includes('&') || str.includes('<') ? escape_html(str, false) : str;
 }
 
 /**

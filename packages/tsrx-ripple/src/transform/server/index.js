@@ -40,6 +40,7 @@ import { get_style_registrations } from '../../style-scopes.js';
 import {
 	determine_namespace_for_children,
 	escape_html,
+	to_latin1_html,
 	is_boolean_attribute,
 	is_element_dom_element,
 	is_void_element,
@@ -2271,7 +2272,7 @@ const visitors = {
 					const attr_str = ` ${name}${
 						is_boolean_attribute(name) && value === true
 							? ''
-							: `="${value === true ? '' : escape_html(value, true)}"`
+							: `="${value === true ? '' : to_latin1_html(escape_html(value, true))}"`
 					}`;
 
 					state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(attr_str))));
@@ -2826,7 +2827,9 @@ const visitors = {
 
 			if (expression.type === 'Literal') {
 				state.init?.push(
-					b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
+					b.stmt(
+						b.call(b.id('_$_.output_push'), b.literal(static_text(expression.value, context))),
+					),
 				);
 			} else {
 				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));
@@ -2861,7 +2864,7 @@ const visitors = {
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
-				b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
+				b.stmt(b.call(b.id('_$_.output_push'), b.literal(static_text(expression.value, context)))),
 			);
 		} else if (is_static_native_tsrx_call) {
 			state.init?.push(b.stmt(b.call('_$_.render_tsrx_element', expression)));
@@ -2879,7 +2882,7 @@ const visitors = {
 		}
 	},
 
-	JSXText(node, { state }) {
+	JSXText(node, context) {
 		const value = get_template_text_value(node, false);
 
 		// Insignificant whitespace collapses to nothing.
@@ -2887,7 +2890,9 @@ const visitors = {
 			return;
 		}
 
-		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(value)))));
+		context.state.init?.push(
+			b.stmt(b.call(b.id('_$_.output_push'), b.literal(static_text(value, context)))),
+		);
 	},
 
 	TSModuleBlock(node, context) {
@@ -3043,6 +3048,37 @@ function is_string_literal(arg) {
  */
 function contains_output_push(body) {
 	return body.some((stmt) => output_push_arg(stmt) !== null);
+}
+
+// Elements whose body the HTML tokenizer reads as raw text: a character
+// reference in them would reach the page literally.
+const RAW_TEXT_ELEMENTS = new Set([
+	'script',
+	'style',
+	'xmp',
+	'iframe',
+	'noembed',
+	'noframes',
+	'plaintext',
+]);
+
+/**
+ * The escaped markup for a static text child, kept Latin-1 (see
+ * {@link to_latin1_html}) unless the enclosing element takes raw text.
+ * @param {string | number | bigint | boolean | RegExp | null | undefined} value
+ * @param {TransformServerContext} context
+ * @returns {string}
+ */
+function static_text(value, context) {
+	const escaped = escape(value);
+	const parent = context.path.at(-1);
+	if (
+		is_template_element(parent) &&
+		RAW_TEXT_ELEMENTS.has(get_element_identifier(parent)?.name ?? '')
+	) {
+		return escaped;
+	}
+	return to_latin1_html(escaped);
 }
 
 /**

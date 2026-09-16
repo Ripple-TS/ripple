@@ -1903,6 +1903,31 @@ export function escape_html(value, is_attr = false) {
 	return escaped + str.substring(last);
 }
 
+const NON_LATIN1 = /[^\u0000-\u00ff]/;
+
+/**
+ * Rewrites the characters above U+00FF in static server markup as numeric
+ * character references. Text, RCDATA and attribute values decode them to the
+ * same characters, so the document is unchanged, but the rendered string stays
+ * a one-byte (Latin-1) V8 string whenever the dynamic data is Latin-1 too: half
+ * the memory, and a faster flatten, UTF-8 encode and byte-length sizing of the
+ * response. A single em dash or curly quote in a static footer would otherwise
+ * widen the entire response to two bytes per character.
+ * @param {string} str
+ * @returns {string}
+ */
+export function to_latin1_html(str) {
+	if (!NON_LATIN1.test(str)) {
+		return str;
+	}
+	let out = '';
+	for (const ch of str) {
+		const code = /** @type {number} */ (ch.codePointAt(0));
+		out += code > 0xff ? `&#${code};` : ch;
+	}
+	return out;
+}
+
 /**
  * Returns true if node is a DOM element (not a component)
  * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
