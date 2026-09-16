@@ -10,6 +10,7 @@ import {
 	TEXT_NODE,
 } from '../../../constants.js';
 import { is_destroyed } from './blocks.js';
+import { hydration_mismatch } from './errors.js';
 import { clear_expression_range } from './expression.js';
 import {
 	hydrate_next,
@@ -261,7 +262,7 @@ function expression_end(anchor) {
 		current = get_next_sibling(current);
 	}
 
-	throw new Error('Hydration mismatch: expected end marker for expression block');
+	hydration_mismatch('expression');
 }
 
 /**

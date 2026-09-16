@@ -1,19 +1,19 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div><button class=increment>Increment</button><span class=count>`, 0);
+var root = _$_.template(`<div><button class=increment>Increment</button><span class=count>`);
 
 function render(__prev) {
-	var __a = __prev._count.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function ClickCounter_render(__anchor, __block) {
-	const count = _$_.track(0, __block, 'a070e3a7');
+	const count = _$_.track(0, __block, '18illt3');
 	var div = root();
 
 	{
@@ -26,25 +26,25 @@ function ClickCounter_render(__anchor, __block) {
 		var span = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 	}
 
-	_$_.render(render, { a: '', _count: count, _span: span });
+	_$_.render(render, { a: '', _a: count, _b: span });
 	_$_.append(__anchor, div);
 }
 
 ClickCounter[_$_.$r] = ClickCounter_render;
 
-var root_1 = _$_.template(`<div><button class=decrement>-</button><span class=count></span><button class=increment>+`, 0);
+var root_1 = _$_.template(`<div><button class=decrement>-</button><span class=count></span><button class=increment>+`);
 
 function render_1(__prev) {
-	var __a = __prev._count.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_1, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function IncrementDecrement_render(__anchor, __block) {
-	const count = _$_.track(0, __block, '87fcabdd');
+	const count = _$_.track(0, __block, '11qc3q5');
 	var div_1 = root_1();
 
 	{
@@ -62,33 +62,33 @@ function IncrementDecrement_render(__anchor, __block) {
 		};
 	}
 
-	_$_.render(render_1, { a: '', _count: count, _span_1: span_1 });
+	_$_.render(render_1, { a: '', _a: count, _b: span_1 });
 	_$_.append(__anchor, div_1);
 }
 
 IncrementDecrement[_$_.$r] = IncrementDecrement_render;
 
-var root_2 = _$_.template(`<div><button class=target>Target</button><span class=clicks></span><span class=hovers>`, 0);
+var root_2 = _$_.template(`<div><button class=target>Target</button><span class=clicks></span><span class=hovers>`);
 
 function render_2(__prev) {
-	var __a = __prev._clicks.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_2, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 
-	var __b = __prev._hovers.value;
+	var __b = __prev._c.value;
 
 	if (__prev.b !== __b) {
-		_$_.set_text_content(__prev._span_3, __b, __prev.b);
+		_$_.set_text_content(__prev._d, __b, __prev.b);
 		__prev.b = __b;
 	}
 }
 
 function MultipleEvents_render(__anchor, __block) {
-	const clicks = _$_.track(0, __block, '41b9f0b0');
-	const hovers = _$_.track(0, __block, '72789f75');
+	const clicks = _$_.track(0, __block, 'i8ishc');
+	const hovers = _$_.track(0, __block, 'vrf59x');
 	var div_2 = root_2();
 
 	{
@@ -106,34 +106,26 @@ function MultipleEvents_render(__anchor, __block) {
 		var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 	}
 
-	_$_.render(render_2, {
-		a: '',
-		b: '',
-		_clicks: clicks,
-		_span_2: span_2,
-		_hovers: hovers,
-		_span_3: span_3
-	});
-
+	_$_.render(render_2, { a: '', b: '', _a: clicks, _b: span_2, _c: hovers, _d: span_3 });
 	_$_.append(__anchor, div_2);
 }
 
 MultipleEvents[_$_.$r] = MultipleEvents_render;
 
-var root_3 = _$_.template(`<div><button class=btn>Click</button><span class=count></span><span class=action> `, 0);
+var root_3 = _$_.template(`<div><button class=btn>Click</button><span class=count></span><span class=action> `);
 
 function render_3(__prev) {
-	var __a = __prev._count.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_4, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function MultiStateUpdate_render(__anchor, __block) {
-	const count = _$_.track(0, __block, '5a375160');
-	const lastAction = _$_.track('none', __block, '3ceeb88c');
+	const count = _$_.track(0, __block, 'p155r4');
+	const lastAction = _$_.track('none', __block, 'gwmyks');
 
 	const handleClick = () => {
 		count.value++;
@@ -158,25 +150,25 @@ function MultiStateUpdate_render(__anchor, __block) {
 		}
 	}
 
-	_$_.render(render_3, { a: '', _count: count, _span_4: span_4 });
+	_$_.render(render_3, { a: '', _a: count, _b: span_4 });
 	_$_.append(__anchor, div_3);
 }
 
 MultiStateUpdate[_$_.$r] = MultiStateUpdate_render;
 
-var root_4 = _$_.template(`<div><button class=toggle>`, 0);
+var root_4 = _$_.template(`<div><button class=toggle>`);
 
 function render_4(__prev) {
-	var __a = __prev._isOn.value ? 'ON' : 'OFF';
+	var __a = __prev._a.value ? 'ON' : 'OFF';
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._button_5, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function ToggleButton_render(__anchor, __block) {
-	const isOn = _$_.track(false, __block, 'be823ec7');
+	const isOn = _$_.track(false, __block, '1guxsxz');
 	var div_4 = root_4();
 
 	{
@@ -187,19 +179,19 @@ function ToggleButton_render(__anchor, __block) {
 		};
 	}
 
-	_$_.render(render_4, { a: '', _isOn: isOn, _button_5: button_5 });
+	_$_.render(render_4, { a: '', _a: isOn, _b: button_5 });
 	_$_.append(__anchor, div_4);
 }
 
 ToggleButton[_$_.$r] = ToggleButton_render;
 
-var root_5 = _$_.template(`<button class=child-btn>`, 0);
+var root_5 = _$_.template(`<button class=child-btn>`);
 
 function render_5(__prev) {
-	var __a = __prev._props.label;
+	var __a = __prev._a.label;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._button_6, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -208,25 +200,25 @@ function ChildButton_render(__anchor, __block, props) {
 	var button_6 = root_5();
 
 	_$_.render_event('Click', button_6, () => props.onClick);
-	_$_.render(render_5, { a: '', _props: props, _button_6: button_6 });
+	_$_.render(render_5, { a: '', _a: props, _b: button_6 });
 	_$_.append(__anchor, button_6);
 }
 
 ChildButton[_$_.$r] = ChildButton_render;
 
-var root_6 = _$_.template(`<div><span class=count>`, 0);
+var root_6 = _$_.template(`<div><span class=count>`);
 
 function render_6(__prev) {
-	var __a = __prev._count.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_6, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function ParentWithChildButton_render(__anchor, __block) {
-	const count = _$_.track(0, __block, 'dcc2e0f9');
+	const count = _$_.track(0, __block, '1p94et5');
 	var div_5 = root_6();
 
 	{
@@ -244,7 +236,7 @@ function ParentWithChildButton_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_5);
 	}
 
-	_$_.render(render_6, { a: '', _count: count, _span_6: span_6 });
+	_$_.render(render_6, { a: '', _a: count, _b: span_6 });
 	_$_.append(__anchor, div_5);
 }
 

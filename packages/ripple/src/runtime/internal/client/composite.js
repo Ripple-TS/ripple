@@ -1,4 +1,5 @@
 /** @import { Block } from '#client' */
+import { component_invalid } from './errors.js';
 
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
@@ -49,7 +50,7 @@ export function composite(get_component, node, get_props) {
 					render_component(component, anchor, props);
 				});
 			} else if (is_tsrx_element(component)) {
-				throw new TypeError('Invalid component type: received a TSRXElement value.');
+				component_invalid(true);
 			} else if (component != null) {
 				// Custom element - only create if component is not null/undefined
 				const ns = top_element_to_ns(component, active_namespace);

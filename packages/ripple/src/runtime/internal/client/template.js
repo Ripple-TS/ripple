@@ -112,7 +112,7 @@ function clone_template(t) {
  * @param {number} [count] - Pre-calculated count of top-level nodes (for fragments). When provided, avoids runtime parsing.
  * @returns {() => Node}
  */
-export function template(content, flags, count = 1) {
+export function template(content, flags = 0, count = 1) {
 	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
 	/** @type {TemplateState} */
 	var t = { c: content, f: flags, n: undefined, ns: undefined };

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<p class=root-pending>root loading...`, 0);
+var root = _$_.template(`<p class=root-pending>root loading...`);
 
 function RootPending_render(__anchor, __block) {
 	var p = root();
@@ -11,7 +11,7 @@ function RootPending_render(__anchor, __block) {
 
 RootPending[_$_.$r] = RootPending_render;
 
-var root_1 = _$_.template(`<section class=root-catch><p class=root-error> </p><button class=root-reset>retry`, 0);
+var root_1 = _$_.template(`<section class=root-catch><p class=root-error> </p><button class=root-reset>retry`);
 
 function RootCatch_render(__anchor, __block, { error, reset }) {
 	var section = root_1();
@@ -36,7 +36,7 @@ function RootCatch_render(__anchor, __block, { error, reset }) {
 
 RootCatch[_$_.$r] = RootCatch_render;
 
-var root_2 = _$_.template(`<p>should not render`, 0);
+var root_2 = _$_.template(`<p>should not render`);
 
 function RootThrows_render(__anchor, __block) {
 	throw _$_.with_scope(__block, () => new Error('root exploded'));
@@ -48,10 +48,10 @@ function RootThrows_render(__anchor, __block) {
 
 RootThrows[_$_.$r] = RootThrows_render;
 
-var root_3 = _$_.template(`<p class=root-async-value> `, 0);
+var root_3 = _$_.template(`<p class=root-async-value> `);
 
 function RootAsyncDirect_render(__anchor, __block) {
-	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, 'd6bf9e33');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, '1nl29mb');
 	var p_3 = root_3();
 
 	{
@@ -66,10 +66,10 @@ function RootAsyncDirect_render(__anchor, __block) {
 
 RootAsyncDirect[_$_.$r] = RootAsyncDirect_render;
 
-var root_4 = _$_.template(`<p class=root-async-value> `, 0);
+var root_4 = _$_.template(`<p class=root-async-value> `);
 
 function RootAsyncRejects_render(__anchor, __block) {
-	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, 'd2fe7b64');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, '1mjk6zo');
 	var p_4 = root_4();
 
 	{
@@ -84,7 +84,7 @@ function RootAsyncRejects_render(__anchor, __block) {
 
 RootAsyncRejects[_$_.$r] = RootAsyncRejects_render;
 
-var root_5 = _$_.template(`<p class=loading>loading...`, 0);
+var root_5 = _$_.template(`<p class=loading>loading...`);
 
 function AsyncListInTryPending_render(__anchor, __block) {
 	_$_.try(
@@ -104,11 +104,11 @@ function AsyncListInTryPending_render(__anchor, __block) {
 
 AsyncListInTryPending[_$_.$r] = AsyncListInTryPending_render;
 
-var root_7 = _$_.template(`<li> `, 0);
-var root_6 = _$_.template(`<ul class=items>`, 0);
+var root_7 = _$_.template(`<li> `);
+var root_6 = _$_.template(`<ul class=items>`);
 
 function AsyncList_render(__anchor, __block) {
-	const items = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b3d31627');
+	const items = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, '1dw7tpj');
 	var ul = root_6();
 
 	{
@@ -138,7 +138,7 @@ function AsyncList_render(__anchor, __block) {
 
 AsyncList[_$_.$r] = AsyncList_render;
 
-var root_10 = _$_.template(`<div class=loading>loading async content`, 0);
+var root_10 = _$_.template(`<div class=loading>loading async content`);
 var root_9 = _$_.template(`<div class=before>before</div><!>`, 1, 2);
 var root_8 = _$_.template(`<!>`, 1, 1);
 
@@ -172,10 +172,10 @@ function AsyncTryWithLeadingSibling_render(__anchor, __block) {
 
 AsyncTryWithLeadingSibling[_$_.$r] = AsyncTryWithLeadingSibling_render;
 
-var root_11 = _$_.template(`<div class=resolved> `, 0);
+var root_11 = _$_.template(`<div class=resolved> `);
 
 function AsyncContent_render(__anchor, __block) {
-	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
+	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '62wwns');
 	var div_2 = root_11();
 
 	{

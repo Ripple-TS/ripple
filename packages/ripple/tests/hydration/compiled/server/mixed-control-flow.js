@@ -78,9 +78,9 @@ export function MixedControlFlowStatic() {
 
 export function MixedControlFlowReactive() {
 	return _$_.tsrx_element(() => {
-		const show = _$_.track(true, '5ae53d26');
-		const mode = _$_.track('a', '5b53eda2');
-		const items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], '7890dad6');
+		const show = _$_.track(true, 'p7xgkm');
+		const mode = _$_.track('a', 'pc8xwi');
+		const items = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], 'xgaqxi');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -214,7 +214,7 @@ export function MixedControlFlowAsyncPending() {
 
 function AsyncRow({ label }) {
 	return _$_.tsrx_element(() => {
-		const value = _$_.track_async(() => Promise.resolve(label), '10cc79a0');
+		const value = _$_.track_async(() => Promise.resolve(label), '4nsq00');
 
 		_$_.regular_block(() => {
 			let __out = '';

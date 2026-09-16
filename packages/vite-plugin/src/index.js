@@ -415,6 +415,16 @@ export function ripple(inlineOptions = {}) {
 				isBuild = command === 'build';
 				isSSRBuild = !!userConfig.build?.ssr;
 
+				// Vite's modulepreload polyfill only serves browsers without
+				// `<link rel="modulepreload">` support when a dynamic import has
+				// preloadable dependencies; every current browser has it, so the
+				// polyfill is left out of the entry chunk unless the user asks.
+				/** @type {import('vite').UserConfig['build']} */
+				const build_defaults =
+					userConfig.build?.modulePreload === undefined
+						? { modulePreload: { polyfill: false } }
+						: {};
+
 				// In build mode (client build, not the SSR sub-build), configure for production
 				if (isBuild && !isSSRBuild) {
 					const projectRoot = userConfig.root || process.cwd();
@@ -423,7 +433,7 @@ export function ripple(inlineOptions = {}) {
 						loadedRippleConfig = await loadRippleConfig(projectRoot);
 
 						if (!has_route_config(loadedRippleConfig)) {
-							return null;
+							return { build: build_defaults };
 						}
 
 						const htmlInput = path.join(projectRoot, 'index.html');
@@ -471,6 +481,7 @@ export function ripple(inlineOptions = {}) {
 
 						/** @type {import('vite').UserConfig['build']} */
 						const buildConfig = {
+							...build_defaults,
 							outDir: `${outDir}/client`,
 							emptyOutDir: true,
 							manifest: true,
@@ -496,6 +507,7 @@ export function ripple(inlineOptions = {}) {
 					/** @type {string[]} */
 					const excluded = userConfig.optimizeDeps?.exclude || [];
 					return {
+						build: build_defaults,
 						optimizeDeps: {
 							...dep_scan_config,
 							exclude: excluded,
@@ -530,6 +542,7 @@ export function ripple(inlineOptions = {}) {
 
 				// Return a config hook that will merge with user's config
 				return {
+					build: build_defaults,
 					optimizeDeps: {
 						...dep_scan_config,
 						exclude: allExclude,

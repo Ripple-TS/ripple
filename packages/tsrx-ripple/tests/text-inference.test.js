@@ -129,8 +129,8 @@ describe('primitive text inference', () => {
 		for (const code of [client, server]) {
 			expect(code).not.toContain('satisfies');
 			// The client reads props through the hoisted render block's state.
-			expect(code).toMatch(/(?:__prev\._)?props\.call\(\)/);
-			expect(code).toMatch(/BigInt\((?:__prev\._)?props\.value\)/);
+			expect(code).toMatch(/(?:__prev\._[a-z]+|props)\.call\(\)/);
+			expect(code).toMatch(/BigInt\((?:__prev\._[a-z]+|props)\.value\)/);
 		}
 	});
 });

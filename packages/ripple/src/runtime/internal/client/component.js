@@ -3,6 +3,7 @@
 import { is_tsrx_element } from '../../element.js';
 import { render_value } from './expression.js';
 import { active_block } from './runtime.js';
+import { component_invalid } from './errors.js';
 
 export { render_component } from './runtime.js';
 
@@ -21,9 +22,5 @@ export function render_tsrx_element(value, anchor, block = active_block) {
  * @returns {never}
  */
 export function throw_invalid_component_type(value) {
-	if (is_tsrx_element(value)) {
-		throw new TypeError('Invalid component type: received a TSRXElement value.');
-	}
-
-	throw new TypeError('Invalid component type: expected a component function.');
+	component_invalid(is_tsrx_element(value));
 }

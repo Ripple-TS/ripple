@@ -1,4 +1,5 @@
 /** @import { Component, ContextEntry } from '#client' */
+import { context_orphan } from './errors.js';
 
 import { active_component } from './runtime.js';
 
@@ -18,7 +19,7 @@ export class Context {
 		const component = active_component;
 
 		if (component === null) {
-			throw new Error('No active component found, cannot get context');
+			context_orphan(false);
 		}
 
 		// A component inherits its parent's chain of set entries when it is
@@ -45,7 +46,7 @@ export class Context {
 		const component = active_component;
 
 		if (component === null) {
-			throw new Error('No active component found, cannot set context');
+			context_orphan(true);
 		}
 
 		component.c = { k: this, v: value, n: component.c };

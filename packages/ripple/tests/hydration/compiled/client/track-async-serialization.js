@@ -1,10 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<p class=result> `, 0);
+var root = _$_.template(`<p class=result> `);
 
 function MoneyResult_render(__anchor, __block, { count }) {
-	const money = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, '2e21cbe9');
+	const money = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, 'csssmh');
 	var p = root();
 
 	{
@@ -19,12 +19,12 @@ function MoneyResult_render(__anchor, __block, { count }) {
 
 MoneyResult[_$_.$r] = MoneyResult_render;
 
-var root_3 = _$_.template(`<p class=loading>loading...`, 0);
+var root_3 = _$_.template(`<p class=loading>loading...`);
 var root_2 = _$_.template(`<button class=increment>increment</button><!>`, 1, 2);
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function AsyncCustomType_render(__anchor, __block) {
-	const count = _$_.track(6, __block, 'f0c2b41e');
+	const count = _$_.track(6, __block, '1usw1lq');
 	var fragment = root_1();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -59,10 +59,10 @@ function AsyncCustomType_render(__anchor, __block) {
 
 AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 
-var root_4 = _$_.template(`<p class=result> `, 0);
+var root_4 = _$_.template(`<p class=result> `);
 
 function ServerCallResult_render(__anchor, __block, { count }) {
-	const data = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, '4e502c38');
+	const data = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, 'lq8y0o');
 	var p_2 = root_4();
 
 	{
@@ -77,12 +77,12 @@ function ServerCallResult_render(__anchor, __block, { count }) {
 
 ServerCallResult[_$_.$r] = ServerCallResult_render;
 
-var root_7 = _$_.template(`<p class=loading>loading...`, 0);
+var root_7 = _$_.template(`<p class=loading>loading...`);
 var root_6 = _$_.template(`<button class=increment>increment</button><!>`, 1, 2);
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function AsyncWithServerCall_render(__anchor, __block) {
-	const count = _$_.track(0, __block, '14891754');
+	const count = _$_.track(0, __block, '5p4g2c');
 	var fragment_2 = root_5();
 	var node_3 = _$_.first_child_frag(fragment_2);
 
@@ -117,14 +117,14 @@ function AsyncWithServerCall_render(__anchor, __block) {
 
 AsyncWithServerCall[_$_.$r] = AsyncWithServerCall_render;
 
-var root_8 = _$_.template(`<p class=result> `, 0);
-var root_9 = _$_.template(`<p class=loading>loading...`, 0);
+var root_8 = _$_.template(`<p class=result> `);
+var root_9 = _$_.template(`<p class=loading>loading...`);
 
 function AsyncSimpleValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('hydrated value')), __block, 'f325448a');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('hydrated value')), __block, '1vgpoju');
 			var p_4 = root_8();
 
 			{
@@ -148,14 +148,14 @@ function AsyncSimpleValue_render(__anchor, __block) {
 
 AsyncSimpleValue[_$_.$r] = AsyncSimpleValue_render;
 
-var root_10 = _$_.template(`<span class=count> `, 0);
-var root_11 = _$_.template(`<span class=pending>...`, 0);
+var root_10 = _$_.template(`<span class=count> `);
+var root_11 = _$_.template(`<span class=pending>...`);
 
 function AsyncNumericValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const count = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(42)), __block, 'ab8199a0');
+			const count = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(42)), __block, '1bl4m1s');
 			var span = root_10();
 
 			{
@@ -179,14 +179,14 @@ function AsyncNumericValue_render(__anchor, __block) {
 
 AsyncNumericValue[_$_.$r] = AsyncNumericValue_render;
 
-var root_12 = _$_.template(`<div class=user><span class=name> </span><span class=age> `, 0);
-var root_13 = _$_.template(`<div class=loading>loading user...`, 0);
+var root_12 = _$_.template(`<div class=user><span class=name> </span><span class=age> `);
+var root_13 = _$_.template(`<div class=loading>loading user...`);
 
 function AsyncObjectValue_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const user = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, 'fb7ad40b');
+			const user = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, '1xrym8b');
 			var div = root_12();
 
 			{
@@ -223,15 +223,15 @@ function AsyncObjectValue_render(__anchor, __block) {
 
 AsyncObjectValue[_$_.$r] = AsyncObjectValue_render;
 
-var root_14 = _$_.template(`<div class=multi><span class=first> </span><span class=second> `, 0);
-var root_15 = _$_.template(`<div class=loading>loading...`, 0);
+var root_14 = _$_.template(`<div class=multi><span class=first> </span><span class=second> `);
+var root_15 = _$_.template(`<div class=loading>loading...`);
 
 function AsyncMultipleValues_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const first = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('alpha')), __block, '99982de5');
-			const second = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('beta')), __block, '1dea4c85');
+			const first = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('alpha')), __block, '16m7mxx');
+			const second = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('beta')), __block, '8atc3p');
 			var div_2 = root_14();
 
 			{
@@ -268,15 +268,15 @@ function AsyncMultipleValues_render(__anchor, __block) {
 
 AsyncMultipleValues[_$_.$r] = AsyncMultipleValues_render;
 
-var root_16 = _$_.template(`<p class=result> `, 0);
-var root_17 = _$_.template(`<p class=error> `, 0);
-var root_18 = _$_.template(`<p class=loading>loading...`, 0);
+var root_16 = _$_.template(`<p class=result> `);
+var root_17 = _$_.template(`<p class=error> `);
+var root_18 = _$_.template(`<p class=loading>loading...`);
 
 function AsyncWithCatch_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('fetch failed'))), __block, 'c9d12acf');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('fetch failed'))), __block, '1jzw72n');
 			var p_6 = root_16();
 
 			{
@@ -311,14 +311,14 @@ function AsyncWithCatch_render(__anchor, __block) {
 
 AsyncWithCatch[_$_.$r] = AsyncWithCatch_render;
 
-var root_19 = _$_.template(`<p class=result> `, 0);
-var root_20 = _$_.template(`<p class=pending>loading...`, 0);
+var root_19 = _$_.template(`<p class=result> `);
+var root_20 = _$_.template(`<p class=pending>loading...`);
 
 function ChildWithError_render(__anchor, __block) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
-			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('child error'))), __block, 'cdd1adb8');
+			const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('child error'))), __block, '1l3vago');
 			var p_9 = root_19();
 
 			{
@@ -342,7 +342,7 @@ function ChildWithError_render(__anchor, __block) {
 
 ChildWithError[_$_.$r] = ChildWithError_render;
 
-var root_21 = _$_.template(`<p class=parent-error> `, 0);
+var root_21 = _$_.template(`<p class=parent-error> `);
 
 function ParentWithCatch_render(__anchor, __block) {
 	_$_.try(
@@ -369,10 +369,10 @@ function ParentWithCatch_render(__anchor, __block) {
 
 ParentWithCatch[_$_.$r] = ParentWithCatch_render;
 
-var root_22 = _$_.template(`<p class=result> `, 0);
+var root_22 = _$_.template(`<p class=result> `);
 
 function ReactiveDependencyResult_render(__anchor, __block, { count }) {
-	const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '18c43c3a');
+	const data = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${count.value}`)), __block, '6vdwe2');
 	var p_12 = root_22();
 
 	{
@@ -387,12 +387,12 @@ function ReactiveDependencyResult_render(__anchor, __block, { count }) {
 
 ReactiveDependencyResult[_$_.$r] = ReactiveDependencyResult_render;
 
-var root_25 = _$_.template(`<p class=loading>loading...`, 0);
+var root_25 = _$_.template(`<p class=loading>loading...`);
 var root_24 = _$_.template(`<button class=increment>increment</button><!>`, 1, 2);
 var root_23 = _$_.template(`<!>`, 1, 1);
 
 function AsyncWithReactiveDependency_render(__anchor, __block) {
-	const count = _$_.track(0, __block, 'd5dcc1d3');
+	const count = _$_.track(0, __block, '1nc7lqr');
 	var fragment_4 = root_23();
 	var node_5 = _$_.first_child_frag(fragment_4);
 
@@ -427,12 +427,12 @@ function AsyncWithReactiveDependency_render(__anchor, __block) {
 
 AsyncWithReactiveDependency[_$_.$r] = AsyncWithReactiveDependency_render;
 
-var root_28 = _$_.template(`<p class=loading>loading...`, 0);
+var root_28 = _$_.template(`<p class=loading>loading...`);
 var root_27 = _$_.template(`<button class=increment>increment</button><!>`, 1, 2);
 var root_26 = _$_.template(`<!>`, 1, 1);
 
 function AsyncWithReadOnlyDependency_render(__anchor, __block) {
-	const count = _$_.track(0, __block, '75a97b64');
+	const count = _$_.track(0, __block, 'wnak4k');
 	var fragment_6 = root_26();
 	var node_7 = _$_.first_child_frag(fragment_6);
 

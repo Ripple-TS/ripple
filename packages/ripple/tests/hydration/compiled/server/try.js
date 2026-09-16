@@ -48,7 +48,7 @@ export function RootThrows() {
 
 export function RootAsyncDirect() {
 	return _$_.tsrx_element(() => {
-		const value = _$_.track_async(() => Promise.resolve('root async value'), 'd6bf9e33');
+		const value = _$_.track_async(() => Promise.resolve('root async value'), '1nl29mb');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -69,7 +69,7 @@ export function RootAsyncDirect() {
 
 export function RootAsyncRejects() {
 	return _$_.tsrx_element(() => {
-		const value = _$_.track_async(() => Promise.reject(new Error('root async failed')), 'd2fe7b64');
+		const value = _$_.track_async(() => Promise.reject(new Error('root async failed')), '1mjk6zo');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -134,7 +134,7 @@ export function AsyncListInTryPending() {
 
 function AsyncList() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b3d31627');
+		const items = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), '1dw7tpj');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -202,7 +202,7 @@ export function AsyncTryWithLeadingSibling() {
 
 function AsyncContent() {
 	return _$_.tsrx_element(() => {
-		const value = _$_.track_async(() => Promise.resolve('ready'), '15ea8758');
+		const value = _$_.track_async(() => Promise.resolve('ready'), '62wwns');
 
 		_$_.regular_block(() => {
 			let __out = '';

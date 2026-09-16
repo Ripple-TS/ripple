@@ -1,4 +1,5 @@
 /** @import { Block } from '#client' */
+import { hydration_mismatch } from './errors.js';
 
 import { remove_block_dom, render } from './blocks.js';
 import { get_first_child, get_next_sibling } from './operations.js';
@@ -75,7 +76,7 @@ export function html(node, get_html, svg = false, mathml = false) {
 			}
 
 			if (next === null) {
-				throw new Error('Hydration mismatch: expected end marker for HTML block');
+				hydration_mismatch('HTML');
 			}
 
 			// Include the hash comment and end marker in the assigned nodes

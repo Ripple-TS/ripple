@@ -4,16 +4,16 @@ import * as _$_ from 'ripple/internal/client';
 var root_1 = _$_.template(`<div class=typed-run> <span>tail</span></div><p class=typed-number></p><button>update`, 1, 3);
 
 function render(__prev) {
-	var __a = 'value: ' + (__prev._row.value.label + String(__prev._row.value.count ?? ''));
+	var __a = 'value: ' + (__prev._a.value.label + String(__prev._a.value.count ?? ''));
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
+		_$_.set_text(__prev._b, __prev.a = __a);
 	}
 
-	var __b = (0, __prev._row.value.count);
+	var __b = (0, __prev._a.value.count);
 
 	if (__prev.b !== __b) {
-		_$_.set_text_content(__prev._p, __b, __prev.b);
+		_$_.set_text_content(__prev._c, __b, __prev.b);
 		__prev.b = __b;
 	}
 }
@@ -21,7 +21,7 @@ function render(__prev) {
 var root = _$_.template(`<!>`, 1, 1);
 
 function TypedText_render(__anchor, __block) {
-	const row = _$_.track({ label: '<first>', count: 2 }, __block, '9bf2304a');
+	const row = _$_.track({ label: '<first>', count: 2 }, __block, '179p9ai');
 	var fragment = root();
 	var node = _$_.first_child_frag(fragment);
 
@@ -42,7 +42,7 @@ function TypedText_render(__anchor, __block) {
 			row.value = { label: '&next', count: 3n };
 		};
 
-		_$_.render(render, { a: ' ', b: '', _row: row, _expression: expression, _p: p });
+		_$_.render(render, { a: ' ', b: '', _a: row, _b: expression, _c: p });
 		_$_.append(__anchor, fragment_1);
 	}));
 

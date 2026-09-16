@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<template id=data1>`, 0);
+var root = _$_.template(`<template id=data1>`);
 
 function SimpleTemplateHtml_render(__anchor, __block) {
 	const data = 'test data';
@@ -13,7 +13,7 @@ function SimpleTemplateHtml_render(__anchor, __block) {
 
 SimpleTemplateHtml[_$_.$r] = SimpleTemplateHtml_render;
 
-var root_1 = _$_.template(`<template id=data2>`, 0);
+var root_1 = _$_.template(`<template id=data2>`);
 
 function TemplateWithJSON_render(__anchor, __block) {
 	const jsonData = _$_.with_scope(__block, () => JSON.stringify({ message: 'hello', count: 42 }));
@@ -25,7 +25,7 @@ function TemplateWithJSON_render(__anchor, __block) {
 
 TemplateWithJSON[_$_.$r] = TemplateWithJSON_render;
 
-var root_3 = _$_.template(`<span class=inside>inside`, 0);
+var root_3 = _$_.template(`<span class=inside>inside`);
 
 function consequent(__anchor, show) {
 	var span = root_3();
@@ -37,7 +37,7 @@ function if_1(show) {
 	if (show) return consequent;
 }
 
-var root_2 = _$_.template(`<div><template id=before></template><template id=after>`, 0);
+var root_2 = _$_.template(`<div><template id=before></template><template id=after>`);
 
 function TemplateAroundIfBlock_render(__anchor, __block) {
 	const show = true;

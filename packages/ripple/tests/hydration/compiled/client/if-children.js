@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class=content><!>`, 0);
+var root_1 = _$_.template(`<div class=content><!>`);
 
 function consequent(__anchor, { a: expanded, b: children }) {
 	var div_2 = root_1();
@@ -20,10 +20,10 @@ function if_1({ a: expanded, b: children }) {
 	if (expanded.value) return consequent;
 }
 
-var root = _$_.template(`<div class=container><div role=button class=header>Toggle`, 0);
+var root = _$_.template(`<div class=container><div role=button class=header>Toggle`);
 
 function IfWithChildren_render(__anchor, __block, { children }) {
-	const expanded = _$_.track(true, __block, 'c64714b1');
+	const expanded = _$_.track(true, __block, '1j0jg6p');
 	var div = root();
 
 	{
@@ -42,7 +42,7 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 
 IfWithChildren[_$_.$r] = IfWithChildren_render;
 
-var root_2 = _$_.template(`<div class=item>`, 0);
+var root_2 = _$_.template(`<div class=item>`);
 
 function ChildItem_render(__anchor, __block, { text: label }) {
 	var div_3 = root_2();
@@ -76,7 +76,7 @@ function TestIfWithChildren_render(__anchor, __block) {
 
 TestIfWithChildren[_$_.$r] = TestIfWithChildren_render;
 
-var root_5 = _$_.template(`<div class=content><span>Static child 1</span><span>Static child 2`, 0);
+var root_5 = _$_.template(`<div class=content><span>Static child 1</span><span>Static child 2`);
 
 function consequent_1(__anchor, expanded) {
 	var div_6 = root_5();
@@ -88,10 +88,10 @@ function if_2(expanded) {
 	if (expanded.value) return consequent_1;
 }
 
-var root_4 = _$_.template(`<div class=container><div role=button class=header>Toggle`, 0);
+var root_4 = _$_.template(`<div class=container><div role=button class=header>Toggle`);
 
 function IfWithStaticChildren_render(__anchor, __block) {
-	const expanded = _$_.track(true, __block, '3bba8f77');
+	const expanded = _$_.track(true, __block, 'gkm3jr');
 	var div_4 = root_4();
 
 	{
@@ -110,7 +110,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
-var root_7 = _$_.template(`<div class=items><!>`, 0);
+var root_7 = _$_.template(`<div class=items><!>`);
 
 function consequent_2(__anchor, { a: expanded, b: children }) {
 	var div_8 = root_7();
@@ -129,10 +129,10 @@ function if_3({ a: expanded, b: children }) {
 	if (expanded.value) return consequent_2;
 }
 
-var root_6 = _$_.template(`<section class=group><div role=button class=item><div class=indicator></div><h2 class=text>Title</h2><div class=caret><svg xmlns=http://www.w3.org/2000/svg width=18 height=18 viewBox="0 0 24 24"><path d="m9 18 6-6-6-6">`, 0);
+var root_6 = _$_.template(`<section class=group><div role=button class=item><div class=indicator></div><h2 class=text>Title</h2><div class=caret><svg xmlns=http://www.w3.org/2000/svg width=18 height=18 viewBox="0 0 24 24"><path d="m9 18 6-6-6-6">`);
 
 function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
-	const expanded = _$_.track(true, __block, 'a1b8fb4c');
+	const expanded = _$_.track(true, __block, '18vegr0');
 	var section = root_6();
 
 	{
@@ -174,7 +174,7 @@ function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
 
 TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
 
-var root_11 = _$_.template(`<div class=conditional>Conditional content`, 0);
+var root_11 = _$_.template(`<div class=conditional>Conditional content`);
 
 function consequent_3(__anchor, show) {
 	var div_11 = root_11();
@@ -190,7 +190,7 @@ var root_10 = _$_.template(`<div class=wrapper><div class=nested-parent><div cla
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ElementWithChildrenThenIf_render(__anchor, __block) {
-	const show = _$_.track(true, __block, '7cd4817b');
+	const show = _$_.track(true, __block, 'ymw5ff');
 	var fragment_2 = root_9();
 	var node_8 = _$_.first_child_frag(fragment_2);
 
@@ -217,7 +217,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 
 ElementWithChildrenThenIf[_$_.$r] = ElementWithChildrenThenIf_render;
 
-var root_14 = _$_.template(`<footer class=footer>Footer`, 0);
+var root_14 = _$_.template(`<footer class=footer>Footer`);
 
 function consequent_4(__anchor, visible) {
 	var footer = root_14();
@@ -233,7 +233,7 @@ var root_13 = _$_.template(`<section class=outer><article class=middle><div clas
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function DeepNestingThenIf_render(__anchor, __block) {
-	const visible = _$_.track(true, __block, '923116be');
+	const visible = _$_.track(true, __block, '14k9o72');
 	var fragment_4 = root_12();
 	var node_10 = _$_.first_child_frag(fragment_4);
 
@@ -263,8 +263,8 @@ function DeepNestingThenIf_render(__anchor, __block) {
 
 DeepNestingThenIf[_$_.$r] = DeepNestingThenIf_render;
 
-var root_16 = _$_.template(`<pre class=code>const x = 1;`, 0);
-var root_17 = _$_.template(`<div class=preview>Preview content`, 0);
+var root_16 = _$_.template(`<pre class=code>const x = 1;`);
+var root_17 = _$_.template(`<div class=preview>Preview content`);
 
 function consequent_5(__anchor, activeTab) {
 	var pre = root_16();
@@ -282,24 +282,24 @@ function if_6(activeTab) {
 	if (activeTab.value === 'code') return consequent_5; else return alternate;
 }
 
-var root_15 = _$_.template(`<div class=tabs><div class=tab-list><button class=tab>Code</button><button class=tab>Preview</button></div><div class=panel><!>`, 0);
+var root_15 = _$_.template(`<div class=tabs><div class=tab-list><button class=tab>Code</button><button class=tab>Preview</button></div><div class=panel><!>`);
 
 function render(__prev) {
-	var __a = __prev._activeTab.value === 'code' ? 'true' : 'false';
+	var __a = __prev._a.value === 'code' ? 'true' : 'false';
 
 	if (__prev.a !== __a) {
-		_$_.set_attribute(__prev._button_2, 'aria-selected', __prev.a = __a);
+		_$_.set_attribute(__prev._b, 'aria-selected', __prev.a = __a);
 	}
 
-	var __b = __prev._activeTab.value === 'preview' ? 'true' : 'false';
+	var __b = __prev._a.value === 'preview' ? 'true' : 'false';
 
 	if (__prev.b !== __b) {
-		_$_.set_attribute(__prev._button_3, 'aria-selected', __prev.b = __b);
+		_$_.set_attribute(__prev._c, 'aria-selected', __prev.b = __b);
 	}
 }
 
 function DomElementChildrenThenSibling_render(__anchor, __block) {
-	const activeTab = _$_.track('code', __block, '33a1e97f');
+	const activeTab = _$_.track('code', __block, 'ebqq2n');
 	var div_12 = root_15();
 
 	{
@@ -330,9 +330,9 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 	_$_.render(render, {
 		a: void 0,
 		b: void 0,
-		_activeTab: activeTab,
-		_button_2: button_2,
-		_button_3: button_3
+		_a: activeTab,
+		_b: button_2,
+		_c: button_3
 	});
 
 	_$_.append(__anchor, div_12);
@@ -343,10 +343,10 @@ DomElementChildrenThenSibling[_$_.$r] = DomElementChildrenThenSibling_render;
 var root_19 = _$_.template(`<div class=container><ul class=list><li class=item></li><li class=item>Another item</li></ul><h2 class=heading>Static Heading</h2><p class=para>Static paragraph</p></div><button class=inc>Increment`, 1, 2);
 
 function render_1(__prev) {
-	var __a = 'Item count: ' + String(__prev._count.value ?? '');
+	var __a = 'Item count: ' + String(__prev._a.value ?? '');
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -354,7 +354,7 @@ function render_1(__prev) {
 var root_18 = _$_.template(`<!>`, 1, 1);
 
 function DomChildrenThenStaticSiblings_render(__anchor, __block) {
-	const count = _$_.track(0, __block, '0ea64305');
+	const count = _$_.track(0, __block, '42buv9');
 	var fragment_6 = root_18();
 	var node_12 = _$_.first_child_frag(fragment_6);
 
@@ -377,7 +377,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 		button_4.__click = () => count.value++;
-		_$_.render(render_1, { a: '', _count: count, _li: li });
+		_$_.render(render_1, { a: '', _a: count, _b: li });
 		_$_.append(__anchor, fragment_7);
 	}));
 
@@ -386,7 +386,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 
 DomChildrenThenStaticSiblings[_$_.$r] = DomChildrenThenStaticSiblings_render;
 
-var root_20 = _$_.template(`<div class=wrapper><ul class=features><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class=section-heading>Section Heading</h2><p class=section-content>Static paragraph with <a href=/link>a link</a> and more text.`, 0);
+var root_20 = _$_.template(`<div class=wrapper><ul class=features><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class=section-heading>Section Heading</h2><p class=section-content>Static paragraph with <a href=/link>a link</a> and more text.`);
 
 function StaticListThenStaticSiblings_render(__anchor, __block) {
 	var div_17 = root_20();
@@ -396,8 +396,8 @@ function StaticListThenStaticSiblings_render(__anchor, __block) {
 
 StaticListThenStaticSiblings[_$_.$r] = StaticListThenStaticSiblings_render;
 
-var root_21 = _$_.template(`<span class=root-if>on`, 0);
-var root_22 = _$_.template(`<span class=root-if>off`, 0);
+var root_21 = _$_.template(`<span class=root-if>on`);
+var root_22 = _$_.template(`<span class=root-if>off`);
 
 function consequent_6(__anchor, props) {
 	var span = root_21();
@@ -421,13 +421,13 @@ function RootIfChild_render(__anchor, __block, props) {
 
 RootIfChild[_$_.$r] = RootIfChild_render;
 
-var root_23 = _$_.template(`<span class=root-for>`, 0);
+var root_23 = _$_.template(`<span class=root-for>`);
 
 function render_2(__prev) {
 	var __a = __prev.$item;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_2, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -439,7 +439,7 @@ function RootForChild_render(__anchor, __block, props) {
 		(__anchor, pattern) => {
 			var span_2 = root_23();
 
-			_$_.item({ a: '', $item: pattern, _span_2: span_2 });
+			_$_.item({ a: '', $item: pattern, _b: span_2 });
 			_$_.append(__anchor, span_2);
 		},
 		144,
@@ -452,7 +452,7 @@ function RootForChild_render(__anchor, __block, props) {
 
 RootForChild[_$_.$r] = RootForChild_render;
 
-var root_24 = _$_.template(`<span class=trailing>end`, 0);
+var root_24 = _$_.template(`<span class=trailing>end`);
 
 function TrailingChild_render(__anchor, __block) {
 	var span_3 = root_24();
@@ -462,11 +462,11 @@ function TrailingChild_render(__anchor, __block) {
 
 TrailingChild[_$_.$r] = TrailingChild_render;
 
-var root_25 = _$_.template(`<div class=wrapper><div class=host></div><button class=toggle>Toggle</button><button class=rotate>Rotate`, 0);
+var root_25 = _$_.template(`<div class=wrapper><div class=host></div><button class=toggle>Toggle</button><button class=rotate>Rotate`);
 
 function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
-	const on = _$_.track(true, __block, 'f3e4c6ee');
-	const items = _$_.track([1, 2, 3], __block, '2bbbeeb0');
+	const on = _$_.track(true, __block, '1vo6ory');
+	const items = _$_.track([1, 2, 3], __block, 'c4uisw');
 	var div_18 = root_25();
 
 	{

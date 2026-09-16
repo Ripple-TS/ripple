@@ -8,13 +8,13 @@ import {
 	get_descriptors,
 	get_own_property_symbols,
 	get_prototype_of,
+	is_array,
 } from '@tsrx/core/runtime/language-helpers';
 import { event_listener } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { hydrating } from './hydration.js';
 import { TEXT_NODE } from '../../../constants.js';
-import { clsx } from 'clsx';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 
 /**
@@ -207,15 +207,17 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
  * @returns {void}
  */
 export function set_class(dom, value, hash, is_html = true) {
-	var class_value =
-		value == null
-			? hash === undefined
-				? null
-				: hash
-			: // Fast-path for string values
-				typeof value === 'string'
-				? value + (hash ? ' ' + hash : '')
-				: clsx([value, hash]);
+	/** @type {string | null} */
+	var class_value;
+	if (value == null) {
+		class_value = hash === undefined ? null : hash;
+	} else {
+		// Fast-path for string values
+		class_value = typeof value === 'string' ? value : class_name(value);
+		if (hash) {
+			class_value = class_value === '' ? hash : class_value + ' ' + hash;
+		}
+	}
 
 	// The compiled render block compares against the class it last applied,
 	// so nothing is cached on the element. Removing the attribute when the
@@ -232,6 +234,34 @@ export function set_class(dom, value, hash, is_html = true) {
 	} else if (class_value !== '' || dom.getAttribute('class')) {
 		dom.setAttribute('class', class_value);
 	}
+}
+
+/**
+ * clsx-style class composition: a string as it is, a truthy number, the
+ * truthy items of an array, the keys of an object with truthy values, nested
+ * arrays flattened, everything else dropped.
+ * @param {any} value
+ * @returns {string}
+ */
+export function class_name(value) {
+	if (typeof value === 'string') {
+		return value;
+	}
+	if (typeof value !== 'object' || value === null) {
+		return typeof value === 'number' && value ? '' + value : '';
+	}
+	var str = '';
+	if (is_array(value)) {
+		for (var i = 0; i < value.length; i++) {
+			var item = value[i] && class_name(value[i]);
+			if (item) str = str ? str + ' ' + item : item;
+		}
+	} else {
+		for (var key in value) {
+			if (value[key]) str = str ? str + ' ' + key : key;
+		}
+	}
+	return str;
 }
 
 /**

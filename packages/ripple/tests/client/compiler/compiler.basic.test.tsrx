@@ -213,8 +213,8 @@ export function App() @{
 
 		// Already a string: no String(… ?? '') double wrap around it, and the
 		// scope wrapper sits on the user call, not on the coercion.
-		expect(code).toContain('String(_$_.with_scope(__prev.___block, fetchLabel))');
-		expect(code).not.toContain('_$_.with_scope(__prev.___block, () => String(');
+		expect(code).toMatch(/String\(_\$_\.with_scope\(__prev\._[a-z]+, fetchLabel\)\)/);
+		expect(code).not.toMatch(/_\$_\.with_scope\(__prev\._[a-z]+, \(\) => String\(/);
 		expect(code).not.toContain('String(String(');
 		expect(code).not.toContain('?? \'\'');
 	});

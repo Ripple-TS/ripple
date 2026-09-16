@@ -64,7 +64,7 @@ export function IfElse() {
 
 export function ReactiveIf() {
 	return _$_.tsrx_element(() => {
-		const show = _$_.track(true, '19a16ff0');
+		const show = _$_.track(true, '740m40');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -83,7 +83,7 @@ export function ReactiveIf() {
 
 export function ReactiveIfElse() {
 	return _$_.tsrx_element(() => {
-		const isOn = _$_.track(false, '41177f39');
+		const isOn = _$_.track(false, 'i26m2h');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -104,8 +104,8 @@ export function ReactiveIfElse() {
 
 export function NestedIf() {
 	return _$_.tsrx_element(() => {
-		const outer = _$_.track(true, '7894e1df');
-		const inner = _$_.track(true, 'f21b8c26');
+		const outer = _$_.track(true, 'xggelb');
+		const inner = _$_.track(true, '1v6cfmu');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -130,7 +130,7 @@ export function NestedIf() {
 
 export function IfElseIfChain() {
 	return _$_.tsrx_element(() => {
-		const status = _$_.track('loading', '4c69c94a');
+		const status = _$_.track('loading', 'l79qh6');
 
 		_$_.regular_block(() => {
 			let __out = '';

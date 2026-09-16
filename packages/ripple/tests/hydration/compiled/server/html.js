@@ -900,7 +900,7 @@ function NavItem({ href, text: label, active = false }) {
 
 function SidebarSection({ title, children }) {
 	return _$_.tsrx_element(() => {
-		const expanded = _$_.track(true, '6ac6906f');
+		const expanded = _$_.track(true, 'tmjvjj');
 
 		_$_.regular_block(() => {
 			let __out = '';

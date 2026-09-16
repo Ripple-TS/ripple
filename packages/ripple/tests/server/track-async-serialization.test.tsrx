@@ -160,7 +160,7 @@ describe('trackAsync serialization (server)', () => {
 
 			const { body } = await render(App);
 			const match = body.match(
-				/<script id="__ripple_ta_[a-f0-9]+" type="application\/json">(.*?)<\/script>/s,
+				/<script id="__ripple_ta_[a-z0-9]+" type="application\/json">(.*?)<\/script>/s,
 			);
 			expect(match).not.toBeNull();
 			return JSON.parse(/** @type {RegExpMatchArray} */ (match)[1]).deps;
@@ -190,7 +190,7 @@ describe('trackAsync serialization (server)', () => {
 
 			const { body } = await render(App);
 			const match = body.match(
-				/<script id="__ripple_ta_[a-f0-9]+" type="application\/json">(.*?)<\/script>/s,
+				/<script id="__ripple_ta_[a-z0-9]+" type="application\/json">(.*?)<\/script>/s,
 			);
 			expect(match).not.toBeNull();
 			const text = /** @type {RegExpMatchArray} */ (match)[1];
@@ -362,7 +362,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		// Find all script tag IDs
-		const matches = [...body.matchAll(/id="(__ripple_ta_[a-f0-9]+)"/g)];
+		const matches = [...body.matchAll(/id="(__ripple_ta_[a-z0-9]+)"/g)];
 		expect(matches.length).toBe(2);
 		// Hashes should be different
 		expect(matches[0][1]).not.toBe(matches[1][1]);

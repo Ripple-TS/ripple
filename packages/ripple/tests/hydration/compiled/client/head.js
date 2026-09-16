@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div>Content`, 0);
+var root_1 = _$_.template(`<div>Content`);
 var root = _$_.template(`<!>`, 1, 1);
 
 function StaticTitle_render(__anchor, __block) {
@@ -23,11 +23,11 @@ function StaticTitle_render(__anchor, __block) {
 
 StaticTitle[_$_.$r] = StaticTitle_render;
 
-var root_3 = _$_.template(`<div><span> `, 0);
+var root_3 = _$_.template(`<div><span> `);
 var root_2 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveTitle_render(__anchor, __block) {
-	const title = _$_.track('Initial Title', __block, 'cbca63e3');
+	const title = _$_.track('Initial Title', __block, '1kjlv4z');
 	var fragment_1 = root_2();
 	var node_1 = _$_.first_child_frag(fragment_1);
 
@@ -60,7 +60,7 @@ function ReactiveTitle_render(__anchor, __block) {
 ReactiveTitle[_$_.$r] = ReactiveTitle_render;
 
 var root_6 = _$_.template(`<meta name=description content="Page description"><link rel=stylesheet href=/styles.css>`, 1, 2);
-var root_5 = _$_.template(`<div>Page content`, 0);
+var root_5 = _$_.template(`<div>Page content`);
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function MultipleHeadElements_render(__anchor, __block) {
@@ -86,12 +86,12 @@ function MultipleHeadElements_render(__anchor, __block) {
 
 MultipleHeadElements[_$_.$r] = MultipleHeadElements_render;
 
-var root_9 = _$_.template(`<meta name=description>`, 0);
-var root_8 = _$_.template(`<div> `, 0);
+var root_9 = _$_.template(`<meta name=description>`);
+var root_8 = _$_.template(`<div> `);
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveMetaTags_render(__anchor, __block) {
-	const description = _$_.track('Initial description', __block, '38bfa3b2');
+	const description = _$_.track('Initial description', __block, 'fqug8i');
 	var fragment_4 = root_7();
 	var node_3 = _$_.first_child_frag(fragment_4);
 
@@ -121,11 +121,11 @@ function ReactiveMetaTags_render(__anchor, __block) {
 
 ReactiveMetaTags[_$_.$r] = ReactiveMetaTags_render;
 
-var root_11 = _$_.template(`<div> `, 0);
+var root_11 = _$_.template(`<div> `);
 var root_10 = _$_.template(`<!>`, 1, 1);
 
 function TitleWithTemplate_render(__anchor, __block) {
-	const name = _$_.track('World', __block, 'f3925cd5');
+	const name = _$_.track('World', __block, '1vkyx91');
 	var fragment_5 = root_10();
 	var node_4 = _$_.first_child_frag(fragment_5);
 
@@ -153,7 +153,7 @@ function TitleWithTemplate_render(__anchor, __block) {
 
 TitleWithTemplate[_$_.$r] = TitleWithTemplate_render;
 
-var root_13 = _$_.template(`<div>Empty title test`, 0);
+var root_13 = _$_.template(`<div>Empty title test`);
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function EmptyTitle_render(__anchor, __block) {
@@ -175,12 +175,12 @@ function EmptyTitle_render(__anchor, __block) {
 
 EmptyTitle[_$_.$r] = EmptyTitle_render;
 
-var root_15 = _$_.template(`<div> `, 0);
+var root_15 = _$_.template(`<div> `);
 var root_14 = _$_.template(`<!>`, 1, 1);
 
 function ConditionalTitle_render(__anchor, __block) {
-	const showPrefix = _$_.track(true, __block, 'ff71bf1f');
-	const title = _$_.track('Main Page', __block, '7cd7d671');
+	const showPrefix = _$_.track(true, __block, '1yvk8in');
+	const title = _$_.track('Main Page', __block, 'yn0twx');
 	var fragment_7 = root_14();
 	var node_6 = _$_.first_child_frag(fragment_7);
 
@@ -208,13 +208,13 @@ function ConditionalTitle_render(__anchor, __block) {
 
 ConditionalTitle[_$_.$r] = ConditionalTitle_render;
 
-var root_17 = _$_.template(`<div><span>`, 0);
+var root_17 = _$_.template(`<div><span>`);
 
 function render(__prev) {
-	var __a = __prev._count.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_1, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -222,7 +222,7 @@ function render(__prev) {
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function ComputedTitle_render(__anchor, __block) {
-	const count = _$_.track(0, __block, 'b6a48610');
+	const count = _$_.track(0, __block, '1eod79s');
 	let prefix = 'Count: ';
 	var fragment_8 = root_16();
 	var node_7 = _$_.first_child_frag(fragment_8);
@@ -240,7 +240,7 @@ function ComputedTitle_render(__anchor, __block) {
 			});
 		});
 
-		_$_.render(render, { a: '', _count: count, _span_1: span_1 });
+		_$_.render(render, { a: '', _a: count, _b: span_1 });
 		_$_.append(__anchor, div_7);
 	}));
 
@@ -249,8 +249,8 @@ function ComputedTitle_render(__anchor, __block) {
 
 ComputedTitle[_$_.$r] = ComputedTitle_render;
 
-var root_20 = _$_.template(`<meta name=author content="Test Author">`, 0);
-var root_19 = _$_.template(`<div>Content`, 0);
+var root_20 = _$_.template(`<meta name=author content="Test Author">`);
+var root_19 = _$_.template(`<div>Content`);
 var root_18 = _$_.template(`<!>`, 1, 1);
 
 function MultipleHeadBlocks_render(__anchor, __block) {
@@ -278,7 +278,7 @@ function MultipleHeadBlocks_render(__anchor, __block) {
 
 MultipleHeadBlocks[_$_.$r] = MultipleHeadBlocks_render;
 
-var root_22 = _$_.template(`<div>Styled content`, 0);
+var root_22 = _$_.template(`<div>Styled content`);
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function HeadWithStyle_render(__anchor, __block) {

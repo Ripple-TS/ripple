@@ -177,7 +177,7 @@ describe('local keyed items', () => {
 		// IS_CONTROLLED | LOCAL_ITEMS, and the state holds the item itself
 		expect(code).toMatch(/\n\s*132,\n\s*\(pattern\) => pattern\.id,/);
 		expect(code).toContain('var __pattern = __prev.$item;');
-		expect(code).not.toContain('_$_.get(__prev._pattern)');
+		expect(code).not.toMatch(/_\$_\.get\(__prev\._[a-z]+\)/);
 	});
 
 	it('keeps a tracked item when the body reads it outside the update function', () => {
@@ -196,7 +196,7 @@ describe('local keyed items', () => {
 		`);
 
 		expect(code).toMatch(/\n\s*4,\n\s*\(pattern\) => pattern\.id,/);
-		expect(code).toContain('_$_.get(__prev._pattern)');
+		expect(code).toMatch(/_\$_\.get\(__prev\._[a-z]+\)/);
 	});
 
 	it('keeps a tracked item for an indexed loop', () => {

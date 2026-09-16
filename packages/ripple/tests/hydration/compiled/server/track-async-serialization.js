@@ -39,7 +39,7 @@ const formatValue = function (...args) {
 
 function MoneyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		const money = _$_.track_async(() => doubleMoney(new Money(count.value, 'USD')), '2e21cbe9');
+		const money = _$_.track_async(() => doubleMoney(new Money(count.value, 'USD')), 'csssmh');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -60,7 +60,7 @@ function MoneyResult({ count }) {
 
 export function AsyncCustomType() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(6, 'f0c2b41e');
+		const count = _$_.track(6, '1usw1lq');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -103,7 +103,7 @@ export function AsyncCustomType() {
 
 function ServerCallResult({ count }) {
 	return _$_.tsrx_element(() => {
-		const data = _$_.track_async(() => formatValue(count.value), '4e502c38');
+		const data = _$_.track_async(() => formatValue(count.value), 'lq8y0o');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -124,7 +124,7 @@ function ServerCallResult({ count }) {
 
 export function AsyncWithServerCall() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, '14891754');
+		const count = _$_.track(0, '5p4g2c');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -173,7 +173,7 @@ export function AsyncSimpleValue() {
 
 				__out += '<!--[-->';
 
-				const data = _$_.track_async(() => Promise.resolve('hydrated value'), 'f325448a');
+				const data = _$_.track_async(() => Promise.resolve('hydrated value'), '1vgpoju');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -226,7 +226,7 @@ export function AsyncNumericValue() {
 
 				__out += '<!--[-->';
 
-				const count = _$_.track_async(() => Promise.resolve(42), 'ab8199a0');
+				const count = _$_.track_async(() => Promise.resolve(42), '1bl4m1s');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -279,7 +279,7 @@ export function AsyncObjectValue() {
 
 				__out += '<!--[-->';
 
-				const user = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'fb7ad40b');
+				const user = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), '1xrym8b');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -340,8 +340,8 @@ export function AsyncMultipleValues() {
 
 				__out += '<!--[-->';
 
-				const first = _$_.track_async(() => Promise.resolve('alpha'), '99982de5');
-				const second = _$_.track_async(() => Promise.resolve('beta'), '1dea4c85');
+				const first = _$_.track_async(() => Promise.resolve('alpha'), '16m7mxx');
+				const second = _$_.track_async(() => Promise.resolve('beta'), '8atc3p');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -402,7 +402,7 @@ export function AsyncWithCatch() {
 
 				__out += '<!--[-->';
 
-				const data = _$_.track_async(() => Promise.reject(new Error('fetch failed')), 'c9d12acf');
+				const data = _$_.track_async(() => Promise.reject(new Error('fetch failed')), '1jzw72n');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -479,7 +479,7 @@ export function ChildWithError() {
 
 				__out += '<!--[-->';
 
-				const data = _$_.track_async(() => Promise.reject(new Error('child error')), 'cdd1adb8');
+				const data = _$_.track_async(() => Promise.reject(new Error('child error')), '1l3vago');
 
 				_$_.output_push(__out);
 				__out = '';
@@ -578,7 +578,7 @@ export function ParentWithCatch() {
 
 function ReactiveDependencyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		const data = _$_.track_async(() => Promise.resolve(`count-${count.value}`), '18c43c3a');
+		const data = _$_.track_async(() => Promise.resolve(`count-${count.value}`), '6vdwe2');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -599,7 +599,7 @@ function ReactiveDependencyResult({ count }) {
 
 export function AsyncWithReactiveDependency() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, 'd5dcc1d3');
+		const count = _$_.track(0, '1nc7lqr');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -642,7 +642,7 @@ export function AsyncWithReactiveDependency() {
 
 export function AsyncWithReadOnlyDependency() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, '75a97b64');
+		const count = _$_.track(0, 'wnak4k');
 
 		_$_.regular_block(() => {
 			let __out = '';

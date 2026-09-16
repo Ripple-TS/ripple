@@ -91,7 +91,7 @@ export function KeyedForLoop() {
 
 export function ReactiveForLoopAdd() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B'], 'e145678a');
+		const items = _$_.track(['A', 'B'], '1qi64qy');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -118,7 +118,7 @@ export function ReactiveForLoopAdd() {
 
 export function ReactiveForLoopRemove() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
+		const items = _$_.track(['A', 'B', 'C'], '1e738lw');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -145,7 +145,7 @@ export function ReactiveForLoopRemove() {
 
 export function ForLoopInteractive() {
 	return _$_.tsrx_element(() => {
-		const counts = _$_.track([0, 0, 0], '36f563df');
+		const counts = _$_.track([0, 0, 0], 'f8yrj3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -295,7 +295,7 @@ export function KeyedForLoopReorder() {
 				{ id: 2, name: 'Second' },
 				{ id: 3, name: 'Third' }
 			],
-			'e7abc6a3'
+			'1sa3hr7'
 		);
 
 		_$_.regular_block(() => {
@@ -323,7 +323,7 @@ export function KeyedForLoopReorder() {
 
 export function KeyedForLoopUpdate() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
+		const items = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], 'xwci56');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -350,7 +350,7 @@ export function KeyedForLoopUpdate() {
 
 export function ForLoopMixedOperations() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
+		const items = _$_.track(['A', 'B', 'C', 'D'], 'h5qbw6');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -377,8 +377,8 @@ export function ForLoopMixedOperations() {
 
 export function ForLoopInsideIf() {
 	return _$_.tsrx_element(() => {
-		const showList = _$_.track(true, '0528df30');
-		const items = _$_.track(['X', 'Y', 'Z'], 'bf375103');
+		const showList = _$_.track(true, '1fjdps');
+		const items = _$_.track(['X', 'Y', 'Z'], '1h205c3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -411,7 +411,7 @@ export function ForLoopInsideIf() {
 
 export function ForLoopEmptyToPopulated() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track([], '525c5dbc');
+		const items = _$_.track([], 'muog58');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -430,7 +430,7 @@ export function ForLoopEmptyToPopulated() {
 
 export function ForLoopPopulatedToEmpty() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
+		const items = _$_.track(['One', 'Two', 'Three'], '1u44ewo');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -457,7 +457,7 @@ export function ForLoopPopulatedToEmpty() {
 
 export function NestedForLoopReactive() {
 	return _$_.tsrx_element(() => {
-		const grid = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
+		const grid = _$_.track([[1, 2], [3, 4]], '197p4tv');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -578,7 +578,7 @@ export function ForLoopDeeplyNested() {
 
 export function ForLoopIndexUpdate() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
+		const items = _$_.track(['First', 'Second', 'Third'], '1waej1i');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -612,7 +612,7 @@ export function KeyedForLoopWithIndex() {
 				{ id: 'b', value: 'Beta' },
 				{ id: 'c', value: 'Gamma' }
 			],
-			'3467975a'
+			'ejgeai'
 		);
 
 		_$_.regular_block(() => {
@@ -641,7 +641,7 @@ export function KeyedForLoopWithIndex() {
 
 export function ForLoopWithSiblings() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B'], '3c7e8152');
+		const items = _$_.track(['A', 'B'], 'gs9c2a');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -698,7 +698,7 @@ export function ForLoopItemState() {
 
 function TodoItem(props) {
 	return _$_.tsrx_element(() => {
-		const done = _$_.track(false, '4f2402a4');
+		const done = _$_.track(false, 'lyii78');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -738,7 +738,7 @@ export function ForLoopSingleItem() {
 
 export function ForLoopAddAtBeginning() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['B', 'C'], '1561403a');
+		const items = _$_.track(['B', 'C'], '5xk2t6');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -765,7 +765,7 @@ export function ForLoopAddAtBeginning() {
 
 export function ForLoopAddInMiddle() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'C'], '1bc60b46');
+		const items = _$_.track(['A', 'C'], '7pf806');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -792,7 +792,7 @@ export function ForLoopAddInMiddle() {
 
 export function ForLoopRemoveFromMiddle() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B', 'C'], '1c87f95f');
+		const items = _$_.track(['A', 'B', 'C'], '7wzmn3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -855,7 +855,7 @@ export function ForLoopLargeList() {
 
 export function ForLoopSwap() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
+		const items = _$_.track(['A', 'B', 'C', 'D'], 'qiflm7');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -882,7 +882,7 @@ export function ForLoopSwap() {
 
 export function ForLoopReverse() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
+		const items = _$_.track(['A', 'B', 'C', 'D'], 'a3chgk');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -909,7 +909,7 @@ export function ForLoopReverse() {
 
 export function KeyedForLoopAppendAndRotate() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track([1, 2, 3], 'a8b41504');
+		const items = _$_.track([1, 2, 3], '1at4qo4');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -953,7 +953,7 @@ function RootKeyedList(props) {
 
 export function RootKeyedForLoopAppendAndRotate() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track([1, 2, 3], '50a91d60');
+		const items = _$_.track([1, 2, 3], 'mdp2e8');
 
 		_$_.regular_block(() => {
 			let __out = '';

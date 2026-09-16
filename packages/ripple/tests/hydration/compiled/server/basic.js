@@ -474,7 +474,7 @@ export function DynamicArrayFromCall() {
 
 export function DynamicArrayFromTrack() {
 	return _$_.tsrx_element(() => {
-		const items = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
+		const items = _$_.track(['start:', ['one', 2], true, null, false, ':end'], '1egmw3m');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -673,7 +673,7 @@ function TypedTextProp({ children }) {
 
 export function TextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		const show = _$_.track(false, '1ba81c3b');
+		const show = _$_.track(false, '7o96bf');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -686,7 +686,7 @@ export function TextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', '649e2af0'))
+						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', 'rx1khc'))
 					}
 				];
 
@@ -703,7 +703,7 @@ export function TextPropWithToggle() {
 
 export function TypedTextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		const show = _$_.track(false, 'ba719d47');
+		const show = _$_.track(false, '1fqc2fb');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -716,7 +716,7 @@ export function TypedTextPropWithToggle() {
 
 				const args = [
 					{
-						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', '6fb091f9'))
+						children: _$_.normalize_children(_$_.track(() => show.value ? 'hello' : '', 'uzmy9l'))
 					}
 				];
 
@@ -1067,7 +1067,7 @@ export function FragmentLeadsWithPrimitiveCall() {
 
 export function PrimitiveTextCalls() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(2, 'eea72017');
+		const count = _$_.track(2, '1u7u49j');
 
 		_$_.regular_block(() => {
 			let __out = '';

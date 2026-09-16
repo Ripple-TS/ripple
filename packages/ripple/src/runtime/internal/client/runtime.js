@@ -33,6 +33,7 @@ import {
 	CREATES_DERIVEDS,
 } from './constants.js';
 import { is_ripple_object } from './utils.js';
+import { scope_orphan, set_in_derived, track_orphan, update_depth_exceeded } from './errors.js';
 import { render_value } from './expression.js';
 import { throw_invalid_component_type } from './component.js';
 
@@ -748,7 +749,7 @@ export function track(v, b, hash, get, set) {
 		return v;
 	}
 	if (b === null) {
-		throw new TypeError('track() requires a valid component context');
+		track_orphan();
 	}
 
 	if (typeof v === 'function') {
@@ -1187,9 +1188,7 @@ function flush_microtasks() {
 
 	flush_count++;
 	if (flush_count > 1001) {
-		throw new Error(
-			'Maximum update depth exceeded. This typically indicates that an effect reads and writes the same piece of state.',
-		);
+		update_depth_exceeded();
 	}
 	var pending = queue;
 	queue = create_queue();
@@ -1351,9 +1350,7 @@ export function get_tracked(tracked) {
  */
 export function set(tracked, value) {
 	if (!is_mutating_allowed) {
-		throw new Error(
-			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
-		);
+		set_in_derived();
 	}
 
 	var old_value = tracked.__v;
@@ -1618,9 +1615,9 @@ export function scope() {
  * @param {string} [err]
  * @returns {Block | never}
  */
-export function safe_scope(err = 'Cannot access outside of a component context') {
+export function safe_scope(err) {
 	if (active_scope === null) {
-		throw new Error(err);
+		scope_orphan(err);
 	}
 
 	return /** @type {Block} */ (active_scope);

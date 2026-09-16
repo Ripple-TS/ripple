@@ -126,7 +126,7 @@ describe('basic client > errors', () => {
 
 		render(Basic);
 
-		expect(error).toBe(
+		expect(error).toContain(
 			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	});
@@ -148,7 +148,7 @@ describe('basic client > errors', () => {
 
 		render(Basic);
 
-		expect(error).toBe(
+		expect(error).toContain(
 			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	});
@@ -169,7 +169,7 @@ describe('basic client > errors', () => {
 
 		render(Basic);
 
-		expect(error).toBe(
+		expect(error).toContain(
 			'Assignments or updates to tracked values are not allowed during computed "track(() => ...)" evaluation',
 		);
 	});

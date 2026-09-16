@@ -1461,9 +1461,14 @@ const visitors = {
 		if (track_call_name !== null) {
 			const id = ++context.state.module.track_id;
 			const padded_id = String(id).padStart(6, '0');
+			// The hash's 32 bits in base 36: the same collision space as the hex
+			// form in up to seven characters instead of eight.
 			node.metadata = {
 				...node.metadata,
-				hash: strong_hash(context.state.analysis.module.filename + '__' + padded_id),
+				hash: parseInt(
+					strong_hash(context.state.analysis.module.filename + '__' + padded_id),
+					16,
+				).toString(36),
 			};
 		}
 

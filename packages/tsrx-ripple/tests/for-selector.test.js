@@ -37,7 +37,9 @@ describe('@for selector lowering', () => {
 		// through the render function's key parameter: the render block then
 		// depends on the selector alone.
 		expect(code).toContain('(__anchor, pattern, index, key) => {');
-		expect(code).toContain("_$_.selector_match(__prev._selector, __prev._key) ? 'danger' : ''");
+		expect(code).toMatch(
+			/_\$_\.selector_match\(__prev\._[a-z]+, __prev\._[a-z]+\) \? 'danger' : ''/,
+		);
 		expect(code.indexOf('_$_.selector(')).toBeLessThan(code.indexOf('_$_.for_keyed('));
 	});
 
@@ -52,8 +54,8 @@ describe('@for selector lowering', () => {
 			}
 		`);
 
-		expect(code).toContain(
-			"!_$_.selector_match(__prev._selector, __prev._key) ? 'plain' : 'danger'",
+		expect(code).toMatch(
+			/!_\$_\.selector_match\(__prev\._[a-z]+, __prev\._[a-z]+\) \? 'plain' : 'danger'/,
 		);
 	});
 
@@ -69,7 +71,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain('_$_.selector(() => selected.value)');
-		expect(code).toContain('_$_.selector_match(__prev._selector, __prev._row.id)');
+		expect(code).toMatch(/_\$_\.selector_match\(__prev\._[a-z]+, __prev\._[a-z]+\.id\)/);
 	});
 
 	it('lowers an @if condition in the loop body, reading the item key as the block key', () => {
@@ -112,7 +114,9 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code.match(/_\$_\.selector\(/g)).toHaveLength(1);
-		expect(code).toContain("_$_.selector_match(__prev._selector, __prev._key) ? 'danger' : ''");
+		expect(code).toMatch(
+			/_\$_\.selector_match\(__prev\._[a-z]+, __prev\._[a-z]+\) \? 'danger' : ''/,
+		);
 		expect(code).toContain('if (_$_.selector_match(selector, key)) return consequent;');
 	});
 
@@ -325,7 +329,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text_content(__prev._td, __a, __prev.a)');
+		expect(code).toMatch(/_\$_\.set_text_content\(__prev\._[a-z]+, __a, __prev\.a\)/);
 		expect(code).toContain('td_1.textContent = count');
 	});
 
@@ -338,7 +342,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text_content(__prev._td, __a, __prev.a)');
+		expect(code).toMatch(/_\$_\.set_text_content\(__prev\._[a-z]+, __a, __prev\.a\)/);
 		expect(code).toContain('td_1.textContent = count');
 	});
 

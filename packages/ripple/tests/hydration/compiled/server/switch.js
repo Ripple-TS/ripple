@@ -34,7 +34,7 @@ export function SwitchStatic() {
 
 export function SwitchReactive() {
 	return _$_.tsrx_element(() => {
-		const status = _$_.track('a', '9b34d955');
+		const status = _$_.track('a', '172bas5');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -91,7 +91,7 @@ export function SwitchFallthrough() {
 
 export function SwitchNumericLevels() {
 	return _$_.tsrx_element(() => {
-		const level = _$_.track(1, '7581a7ab');
+		const level = _$_.track(1, 'wlqm5n');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -120,7 +120,7 @@ export function SwitchNumericLevels() {
 
 export function SwitchBlockScoped() {
 	return _$_.tsrx_element(() => {
-		const level = _$_.track(1, 'ca9f9852');
+		const level = _$_.track(1, '1k7y5oy');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -149,7 +149,7 @@ export function SwitchBlockScoped() {
 
 export function SwitchNoBreak() {
 	return _$_.tsrx_element(() => {
-		const level = _$_.track(1, '6b7cb0ea');
+		const level = _$_.track(1, 'ttnpbe');
 
 		_$_.regular_block(() => {
 			let __out = '';

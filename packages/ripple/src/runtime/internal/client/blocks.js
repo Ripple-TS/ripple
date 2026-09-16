@@ -34,15 +34,14 @@ import {
 	untrack,
 } from './runtime.js';
 import { is_ripple_object } from './utils.js';
+import { effect_orphan } from './errors.js';
 
 /**
  * @param {Function} fn
  */
 export function user_effect(fn) {
 	if (active_block === null) {
-		throw new Error(
-			'effect() must be called within an active context, such as a component or effect',
-		);
+		effect_orphan();
 	}
 
 	var component = active_component;

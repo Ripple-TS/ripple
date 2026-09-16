@@ -1,9 +1,9 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=status-success>Success`, 0);
-var root_1 = _$_.template(`<div class=status-error>Error`, 0);
-var root_2 = _$_.template(`<div class=status-unknown>Unknown`, 0);
+var root = _$_.template(`<div class=status-success>Success`);
+var root_1 = _$_.template(`<div class=status-error>Error`);
+var root_2 = _$_.template(`<div class=status-unknown>Unknown`);
 
 function switch_case_0(__anchor, status) {
 	var div = root();
@@ -44,9 +44,9 @@ function SwitchStatic_render(__anchor, __block) {
 
 SwitchStatic[_$_.$r] = SwitchStatic_render;
 
-var root_5 = _$_.template(`<div class=case-a>Case A`, 0);
-var root_6 = _$_.template(`<div class=case-b>Case B`, 0);
-var root_7 = _$_.template(`<div class=case-c>Case C`, 0);
+var root_5 = _$_.template(`<div class=case-a>Case A`);
+var root_6 = _$_.template(`<div class=case-b>Case B`);
+var root_7 = _$_.template(`<div class=case-c>Case C`);
 
 function switch_case_0_1(__anchor, status) {
 	var div_3 = root_5();
@@ -83,7 +83,7 @@ var root_4 = _$_.template(`<button class=toggle>Toggle</button><!>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
 function SwitchReactive_render(__anchor, __block) {
-	const status = _$_.track('a', __block, '9b34d955');
+	const status = _$_.track('a', __block, '172bas5');
 	var fragment = root_3();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -106,8 +106,8 @@ function SwitchReactive_render(__anchor, __block) {
 
 SwitchReactive[_$_.$r] = SwitchReactive_render;
 
-var root_8 = _$_.template(`<div class=case-1-2>1 or 2`, 0);
-var root_9 = _$_.template(`<div class=case-other>Other`, 0);
+var root_8 = _$_.template(`<div class=case-1-2>1 or 2`);
+var root_9 = _$_.template(`<div class=case-other>Other`);
 
 function switch_case_0_2(__anchor, val) {
 	var div_6 = root_8();
@@ -142,9 +142,9 @@ function SwitchFallthrough_render(__anchor, __block) {
 
 SwitchFallthrough[_$_.$r] = SwitchFallthrough_render;
 
-var root_12 = _$_.template(`<div class=level-1>Level 1`, 0);
-var root_13 = _$_.template(`<div class=level-2>Level 2`, 0);
-var root_14 = _$_.template(`<div class=level-3>Level 3`, 0);
+var root_12 = _$_.template(`<div class=level-1>Level 1`);
+var root_13 = _$_.template(`<div class=level-2>Level 2`);
+var root_14 = _$_.template(`<div class=level-3>Level 3`);
 
 function switch_case_0_3(__anchor, level) {
 	var div_8 = root_12();
@@ -181,7 +181,7 @@ var root_11 = _$_.template(`<button class=level-toggle>Toggle Level</button><!>`
 var root_10 = _$_.template(`<!>`, 1, 1);
 
 function SwitchNumericLevels_render(__anchor, __block) {
-	const level = _$_.track(1, __block, '7581a7ab');
+	const level = _$_.track(1, __block, 'wlqm5n');
 	var fragment_2 = root_10();
 	var node_3 = _$_.first_child_frag(fragment_2);
 
@@ -204,9 +204,9 @@ function SwitchNumericLevels_render(__anchor, __block) {
 
 SwitchNumericLevels[_$_.$r] = SwitchNumericLevels_render;
 
-var root_17 = _$_.template(`<div class=block-1>Block 1`, 0);
-var root_18 = _$_.template(`<div class=block-2>Block 2`, 0);
-var root_19 = _$_.template(`<div class=block-3>Block 3`, 0);
+var root_17 = _$_.template(`<div class=block-1>Block 1`);
+var root_18 = _$_.template(`<div class=block-2>Block 2`);
+var root_19 = _$_.template(`<div class=block-3>Block 3`);
 
 function switch_case_0_4(__anchor, level) {
 	var div_11 = root_17();
@@ -243,7 +243,7 @@ var root_16 = _$_.template(`<button class=block-toggle>Toggle</button><!>`, 1, 2
 var root_15 = _$_.template(`<!>`, 1, 1);
 
 function SwitchBlockScoped_render(__anchor, __block) {
-	const level = _$_.track(1, __block, 'ca9f9852');
+	const level = _$_.track(1, __block, '1k7y5oy');
 	var fragment_4 = root_15();
 	var node_5 = _$_.first_child_frag(fragment_4);
 
@@ -266,9 +266,9 @@ function SwitchBlockScoped_render(__anchor, __block) {
 
 SwitchBlockScoped[_$_.$r] = SwitchBlockScoped_render;
 
-var root_22 = _$_.template(`<div class=nobreak-1>NoBreak 1`, 0);
-var root_23 = _$_.template(`<div class=nobreak-2>NoBreak 2`, 0);
-var root_24 = _$_.template(`<div class=nobreak-3>NoBreak 3`, 0);
+var root_22 = _$_.template(`<div class=nobreak-1>NoBreak 1`);
+var root_23 = _$_.template(`<div class=nobreak-2>NoBreak 2`);
+var root_24 = _$_.template(`<div class=nobreak-3>NoBreak 3`);
 
 function switch_case_0_5(__anchor, level) {
 	var div_14 = root_22();
@@ -305,7 +305,7 @@ var root_21 = _$_.template(`<button class=nobreak-toggle>Toggle</button><!>`, 1,
 var root_20 = _$_.template(`<!>`, 1, 1);
 
 function SwitchNoBreak_render(__anchor, __block) {
-	const level = _$_.track(1, __block, '6b7cb0ea');
+	const level = _$_.track(1, __block, 'ttnpbe');
 	var fragment_6 = root_20();
 	var node_7 = _$_.first_child_frag(fragment_6);
 

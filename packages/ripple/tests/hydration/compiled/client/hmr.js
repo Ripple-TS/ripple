@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=layout><nav class=nav>Navigation</nav><main class=main><!>`, 0);
+var root = _$_.template(`<div class=layout><nav class=nav>Navigation</nav><main class=main><!>`);
 
 function Layout_render(__anchor, __block, { children }) {
 	var div = root();
@@ -23,7 +23,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_2 = _$_.template(`<p class=text>Hello world`, 0);
+var root_2 = _$_.template(`<p class=text>Hello world`);
 
 function consequent(__anchor, visible) {
 	var p = root_2();
@@ -35,10 +35,10 @@ function if_1(visible) {
 	if (visible.value) return consequent;
 }
 
-var root_1 = _$_.template(`<div class=content><!>`, 0);
+var root_1 = _$_.template(`<div class=content><!>`);
 
 function Content_render(__anchor, __block) {
-	const visible = _$_.track(true, __block, '0bdb1500');
+	const visible = _$_.track(true, __block, '3af9q8');
 	var div_1 = root_1();
 
 	{

@@ -38,6 +38,12 @@ import {
 import { get_async_track_result } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import { revive } from './transport.js';
+import {
+	pending_read_direct,
+	track_async_argument,
+	track_async_boundary,
+	track_async_orphan,
+} from './errors.js';
 
 /**
  * `trackAsync()` and everything a pending async read sets in motion: boundary
@@ -76,9 +82,7 @@ function handle_pending_read(block) {
 		block.p !== null && (block.p.f & TRY_BLOCK) !== 0 && (block.f & DIRECT_CHILD_BLOCK) !== 0;
 
 	if (is_component_direct || is_try_fn_block) {
-		throw new Error(
-			`Reads on pending tracked values directly inside ${is_component_direct ? 'component' : 'try/pending/catch'} body are prohibited. Use trackPending() test or peek() for safe access or create another derived instead.`,
-		);
+		pending_read_direct(is_component_direct);
 	}
 
 	var boundary = get_pending_boundary(block);
@@ -128,13 +132,11 @@ export function track_async(fn, b, hash) {
 
 	var target_block = b || active_block;
 	if (target_block === null) {
-		throw new TypeError('trackAsync() requires a valid component context');
+		track_async_orphan();
 	}
 
 	if (typeof fn !== 'function') {
-		throw new TypeError(
-			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
-		);
+		track_async_argument();
 	}
 
 	// During hydration, attempt to read serialized data from SSR
@@ -187,7 +189,7 @@ export function track_async(fn, b, hash) {
 	// Find boundary from the call-site block.
 	boundary = get_pending_boundary(active_block);
 	if (boundary === null) {
-		throw new Error('Missing parent `try { ... } pending { ... }` statement');
+		track_async_boundary();
 	}
 
 	// If we hydrated with resolved data, the SSR already completed this request.

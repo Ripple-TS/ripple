@@ -8,6 +8,13 @@ export default {
 };
 ```
 
+## Module preload polyfill
+
+Production builds leave Vite's `modulepreload` polyfill out: every current
+browser supports `<link rel="modulepreload">`, and the polyfill only matters
+for dynamic imports with preloadable dependencies. Set `build.modulePreload`
+in your Vite config to keep it.
+
 ## Optional TypeScript text inference
 
 To use the TypeScript checker to recognize primitive DOM children from imported

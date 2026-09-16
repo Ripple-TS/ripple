@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<i class=leaf>leaf`, 0);
+var root = _$_.template(`<i class=leaf>leaf`);
 
 function Leaf_render(__anchor, __block) {
 	var i = root();
@@ -14,10 +14,10 @@ Leaf[_$_.$r] = Leaf_render;
 var root_2 = _$_.template(`<div class=count></div><button class=inc>inc</button><button class=dec>dec`, 1, 3);
 
 function render(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -25,7 +25,7 @@ function render(__prev) {
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNavigatedElements_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'a695c021');
+	const n = _$_.track(0, __block, '1a7yy3l');
 	var fragment = root_1();
 	var node = _$_.first_child_frag(fragment);
 
@@ -39,7 +39,7 @@ function TrailingNavigatedElements_render(__anchor, __block) {
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
 
 		button_1.__click = () => n.value--;
-		_$_.render(render, { a: '', _n: n, _div: div });
+		_$_.render(render, { a: '', _a: n, _b: div });
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -52,7 +52,7 @@ var root_4 = _$_.template(`<div class=host>static</div><button class=inc>inc</bu
 var root_3 = _$_.template(`<!>`, 1, 1);
 
 function TrailingStaticNavigatedElements_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '0afd9398');
+	const n = _$_.track(0, __block, '31s4ns');
 	var fragment_2 = root_3();
 	var node_1 = _$_.first_child_frag(fragment_2);
 
@@ -78,7 +78,7 @@ var root_6 = _$_.template(`<div class=host>static</div><button class=inc>inc</bu
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function NavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '3cea07db');
+	const n = _$_.track(0, __block, 'gwgdej');
 	var fragment_4 = root_5();
 	var node_2 = _$_.first_child_frag(fragment_4);
 
@@ -101,7 +101,7 @@ var root_8 = _$_.template(`<button class=inc>inc</button><div class=a>a</div><di
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function LeadingNavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '8ca89613');
+	const n = _$_.track(0, __block, '130zymr');
 	var fragment_6 = root_7();
 	var node_3 = _$_.first_child_frag(fragment_6);
 
@@ -123,7 +123,7 @@ var root_10 = _$_.template(`<div class=host>static</div><div class=wrap><button 
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNestedNavigated_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'f0f5a337');
+	const n = _$_.track(0, __block, '1uuvl87');
 	var fragment_8 = root_9();
 	var node_4 = _$_.first_child_frag(fragment_8);
 
@@ -151,7 +151,7 @@ var root_12 = _$_.template(`<div class=wrap><button class=inc>inc</button></div>
 var root_11 = _$_.template(`<!>`, 1, 1);
 
 function NestedNavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '2a6293f9');
+	const n = _$_.track(0, __block, 'brdeyh');
 	var fragment_10 = root_11();
 	var node_5 = _$_.first_child_frag(fragment_10);
 
@@ -178,17 +178,17 @@ NestedNavigatedThenStatic[_$_.$r] = NestedNavigatedThenStatic_render;
 var root_14 = _$_.template(` <div class=a>a</div><div class=b>b`, 1, 3);
 
 function render_1(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_1, __prev.a = __a);
+		_$_.set_text(__prev._b, __prev.a = __a);
 	}
 }
 
 var root_13 = _$_.template(`<!>`, 1, 1);
 
 function TrackedTextThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'db93f6f0');
+	const n = _$_.track(0, __block, '1oxax2o');
 	var fragment_12 = root_13();
 	var node_6 = _$_.first_child_frag(fragment_12);
 
@@ -197,7 +197,7 @@ function TrackedTextThenStatic_render(__anchor, __block) {
 		var expression_1 = _$_.first_child_frag(fragment_13, true);
 
 		_$_.next(2);
-		_$_.render(render_1, { a: ' ', _n: n, _expression_1: expression_1 });
+		_$_.render(render_1, { a: ' ', _a: n, _b: expression_1 });
 		_$_.append(__anchor, fragment_13);
 	}));
 
@@ -209,17 +209,17 @@ TrackedTextThenStatic[_$_.$r] = TrackedTextThenStatic_render;
 var root_16 = _$_.template(`<div class=a>a</div><div class=b>b</div> `, 1, 3);
 
 function render_2(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_2, __prev.a = __a);
+		_$_.set_text(__prev._b, __prev.a = __a);
 	}
 }
 
 var root_15 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenTrackedText_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '84cf2507');
+	const n = _$_.track(0, __block, '10ulddz');
 	var fragment_14 = root_15();
 	var node_7 = _$_.first_child_frag(fragment_14);
 
@@ -229,7 +229,7 @@ function StaticThenTrackedText_render(__anchor, __block) {
 		var div_6 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
 		var expression_2 = _$_.hydrating ? _$_.hydrate_sibling(true) : div_6.nextSibling;
 
-		_$_.render(render_2, { a: ' ', _n: n, _expression_2: expression_2 });
+		_$_.render(render_2, { a: ' ', _a: n, _b: expression_2 });
 		_$_.append(__anchor, fragment_15);
 	}));
 
@@ -279,10 +279,10 @@ AllStatic[_$_.$r] = AllStatic_render;
 var root_22 = _$_.template(`<div class=a>a</div><div class=count>`, 1, 2);
 
 function render_3(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_8, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -290,7 +290,7 @@ function render_3(__prev) {
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function TrailingDynamicChild_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '9be343a7');
+	const n = _$_.track(0, __block, '1794alj');
 	var fragment_20 = root_21();
 	var node_10 = _$_.first_child_frag(fragment_20);
 
@@ -299,7 +299,7 @@ function TrailingDynamicChild_render(__anchor, __block) {
 		var div_9 = _$_.first_child_frag(fragment_21);
 		var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
-		_$_.render(render_3, { a: '', _n: n, _div_8: div_8 });
+		_$_.render(render_3, { a: '', _a: n, _b: div_8 });
 		_$_.append(__anchor, fragment_21);
 	}));
 
@@ -311,10 +311,10 @@ TrailingDynamicChild[_$_.$r] = TrailingDynamicChild_render;
 var root_24 = _$_.template(`<div class=count></div><div class=a>a</div><div class=b>b`, 1, 3);
 
 function render_4(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_10, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -322,7 +322,7 @@ function render_4(__prev) {
 var root_23 = _$_.template(`<!>`, 1, 1);
 
 function DynamicChildThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c76dd5a9');
+	const n = _$_.track(0, __block, '1jc1h9l');
 	var fragment_22 = root_23();
 	var node_11 = _$_.first_child_frag(fragment_22);
 
@@ -331,7 +331,7 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 		var div_10 = _$_.first_child_frag(fragment_23);
 
 		_$_.next(2);
-		_$_.render(render_4, { a: '', _n: n, _div_10: div_10 });
+		_$_.render(render_4, { a: '', _a: n, _b: div_10 });
 		_$_.append(__anchor, fragment_23);
 	}));
 
@@ -340,7 +340,7 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 
 DynamicChildThenStatic[_$_.$r] = DynamicChildThenStatic_render;
 
-var root_27 = _$_.template(`<b class=if>x`, 0);
+var root_27 = _$_.template(`<b class=if>x`);
 
 function consequent(__anchor, n) {
 	var b = root_27();
@@ -356,7 +356,7 @@ var root_26 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_25 = _$_.template(`<!>`, 1, 1);
 
 function IfThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'fb175ecd');
+	const n = _$_.track(0, __block, '1xo2wul');
 	var fragment_24 = root_25();
 	var node_13 = _$_.first_child_frag(fragment_24);
 
@@ -374,7 +374,7 @@ function IfThenStatic_render(__anchor, __block) {
 
 IfThenStatic[_$_.$r] = IfThenStatic_render;
 
-var root_30 = _$_.template(`<b class=if>x`, 0);
+var root_30 = _$_.template(`<b class=if>x`);
 
 function consequent_1(__anchor, n) {
 	var b_1 = root_30();
@@ -390,7 +390,7 @@ var root_29 = _$_.template(`<div class=a>a</div><div class=b>b</div><!>`, 1, 3);
 var root_28 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenIf_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c8563a58');
+	const n = _$_.track(0, __block, '1jl3wwo');
 	var fragment_26 = root_28();
 	var node_15 = _$_.first_child_frag(fragment_26);
 
@@ -476,19 +476,19 @@ function SiblingComps_render(__anchor, __block) {
 
 SiblingComps[_$_.$r] = SiblingComps_render;
 
-var root_37 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_37 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_5(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrailingNavigatedElements_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '1032dbec');
+	const n = _$_.track(0, __block, '4hsxyk');
 	var div_15 = root_37();
 
 	{
@@ -503,25 +503,25 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_15);
 	}
 
-	_$_.render(render_5, { a: '', _n: n, _span: span });
+	_$_.render(render_5, { a: '', _a: n, _b: span });
 	_$_.append(__anchor, div_15);
 }
 
 WrapTrailingNavigatedElements[_$_.$r] = WrapTrailingNavigatedElements_render;
 
-var root_38 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_38 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_6(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_1, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c2e2a938');
+	const n = _$_.track(0, __block, '1i2nm0o');
 	var div_16 = root_38();
 
 	{
@@ -536,25 +536,25 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_16);
 	}
 
-	_$_.render(render_6, { a: '', _n: n, _span_1: span_1 });
+	_$_.render(render_6, { a: '', _a: n, _b: span_1 });
 	_$_.append(__anchor, div_16);
 }
 
 WrapTrailingStaticNavigatedElements[_$_.$r] = WrapTrailingStaticNavigatedElements_render;
 
-var root_39 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_39 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_7(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_2, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapNavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'b4046e87');
+	const n = _$_.track(0, __block, '1dy54zr');
 	var div_17 = root_39();
 
 	{
@@ -569,25 +569,25 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_17);
 	}
 
-	_$_.render(render_7, { a: '', _n: n, _span_2: span_2 });
+	_$_.render(render_7, { a: '', _a: n, _b: span_2 });
 	_$_.append(__anchor, div_17);
 }
 
 WrapNavigatedThenStatic[_$_.$r] = WrapNavigatedThenStatic_render;
 
-var root_40 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_40 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_8(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_3, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'bed7f7ef');
+	const n = _$_.track(0, __block, '1gya7sf');
 	var div_18 = root_40();
 
 	{
@@ -602,25 +602,25 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_18);
 	}
 
-	_$_.render(render_8, { a: '', _n: n, _span_3: span_3 });
+	_$_.render(render_8, { a: '', _a: n, _b: span_3 });
 	_$_.append(__anchor, div_18);
 }
 
 WrapLeadingNavigatedThenStatic[_$_.$r] = WrapLeadingNavigatedThenStatic_render;
 
-var root_41 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_41 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_9(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_4, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrailingNestedNavigated_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'eddbe7bc');
+	const n = _$_.track(0, __block, '1tzwnuk');
 	var div_19 = root_41();
 
 	{
@@ -635,25 +635,25 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_19);
 	}
 
-	_$_.render(render_9, { a: '', _n: n, _span_4: span_4 });
+	_$_.render(render_9, { a: '', _a: n, _b: span_4 });
 	_$_.append(__anchor, div_19);
 }
 
 WrapTrailingNestedNavigated[_$_.$r] = WrapTrailingNestedNavigated_render;
 
-var root_42 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_42 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_10(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_5, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '1bdc4523');
+	const n = _$_.track(0, __block, '7qafxf');
 	var div_20 = root_42();
 
 	{
@@ -668,25 +668,25 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_20);
 	}
 
-	_$_.render(render_10, { a: '', _n: n, _span_5: span_5 });
+	_$_.render(render_10, { a: '', _a: n, _b: span_5 });
 	_$_.append(__anchor, div_20);
 }
 
 WrapNestedNavigatedThenStatic[_$_.$r] = WrapNestedNavigatedThenStatic_render;
 
-var root_43 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_43 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_11(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_6, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrackedTextThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '97e02c24');
+	const n = _$_.track(0, __block, '1651kpw');
 	var div_21 = root_43();
 
 	{
@@ -701,25 +701,25 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_21);
 	}
 
-	_$_.render(render_11, { a: '', _n: n, _span_6: span_6 });
+	_$_.render(render_11, { a: '', _a: n, _b: span_6 });
 	_$_.append(__anchor, div_21);
 }
 
 WrapTrackedTextThenStatic[_$_.$r] = WrapTrackedTextThenStatic_render;
 
-var root_44 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_44 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_12(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_7, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticThenTrackedText_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'd5526861');
+	const n = _$_.track(0, __block, '1n6t9pd');
 	var div_22 = root_44();
 
 	{
@@ -734,25 +734,25 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_22);
 	}
 
-	_$_.render(render_12, { a: '', _n: n, _span_7: span_7 });
+	_$_.render(render_12, { a: '', _a: n, _b: span_7 });
 	_$_.append(__anchor, div_22);
 }
 
 WrapStaticThenTrackedText[_$_.$r] = WrapStaticThenTrackedText_render;
 
-var root_45 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_45 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_13(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_8, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticNestedThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '7e2d3fad');
+	const n = _$_.track(0, __block, 'z0cect');
 	var div_23 = root_45();
 
 	{
@@ -767,25 +767,25 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_23);
 	}
 
-	_$_.render(render_13, { a: '', _n: n, _span_8: span_8 });
+	_$_.render(render_13, { a: '', _a: n, _b: span_8 });
 	_$_.append(__anchor, div_23);
 }
 
 WrapStaticNestedThenStatic[_$_.$r] = WrapStaticNestedThenStatic_render;
 
-var root_46 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_46 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_14(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_9, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapAllStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'b894f45a');
+	const n = _$_.track(0, __block, '1f7qiqi');
 	var div_24 = root_46();
 
 	{
@@ -800,25 +800,25 @@ function WrapAllStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_24);
 	}
 
-	_$_.render(render_14, { a: '', _n: n, _span_9: span_9 });
+	_$_.render(render_14, { a: '', _a: n, _b: span_9 });
 	_$_.append(__anchor, div_24);
 }
 
 WrapAllStatic[_$_.$r] = WrapAllStatic_render;
 
-var root_47 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_47 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_15(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_10, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrailingDynamicChild_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '038446ca');
+	const n = _$_.track(0, __block, 'z4l3e');
 	var div_25 = root_47();
 
 	{
@@ -833,25 +833,25 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_25);
 	}
 
-	_$_.render(render_15, { a: '', _n: n, _span_10: span_10 });
+	_$_.render(render_15, { a: '', _a: n, _b: span_10 });
 	_$_.append(__anchor, div_25);
 }
 
 WrapTrailingDynamicChild[_$_.$r] = WrapTrailingDynamicChild_render;
 
-var root_48 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_48 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_16(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_11, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapDynamicChildThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '3ec460c3');
+	const n = _$_.track(0, __block, 'heyo5f');
 	var div_26 = root_48();
 
 	{
@@ -866,25 +866,25 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_26);
 	}
 
-	_$_.render(render_16, { a: '', _n: n, _span_11: span_11 });
+	_$_.render(render_16, { a: '', _a: n, _b: span_11 });
 	_$_.append(__anchor, div_26);
 }
 
 WrapDynamicChildThenStatic[_$_.$r] = WrapDynamicChildThenStatic_render;
 
-var root_49 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_49 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_17(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_12, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapIfThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '95b417dd');
+	const n = _$_.track(0, __block, '15jcgyl');
 	var div_27 = root_49();
 
 	{
@@ -899,25 +899,25 @@ function WrapIfThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_27);
 	}
 
-	_$_.render(render_17, { a: '', _n: n, _span_12: span_12 });
+	_$_.render(render_17, { a: '', _a: n, _b: span_12 });
 	_$_.append(__anchor, div_27);
 }
 
 WrapIfThenStatic[_$_.$r] = WrapIfThenStatic_render;
 
-var root_50 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_50 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_18(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_13, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticThenIf_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '1f01fa6f');
+	const n = _$_.track(0, __block, '8lq6wf');
 	var div_28 = root_50();
 
 	{
@@ -932,25 +932,25 @@ function WrapStaticThenIf_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_28);
 	}
 
-	_$_.render(render_18, { a: '', _n: n, _span_13: span_13 });
+	_$_.render(render_18, { a: '', _a: n, _b: span_13 });
 	_$_.append(__anchor, div_28);
 }
 
 WrapStaticThenIf[_$_.$r] = WrapStaticThenIf_render;
 
-var root_51 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_51 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_19(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_14, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapCompThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'e6bdb91d');
+	const n = _$_.track(0, __block, '1s0t3x9');
 	var div_29 = root_51();
 
 	{
@@ -965,25 +965,25 @@ function WrapCompThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_29);
 	}
 
-	_$_.render(render_19, { a: '', _n: n, _span_14: span_14 });
+	_$_.render(render_19, { a: '', _a: n, _b: span_14 });
 	_$_.append(__anchor, div_29);
 }
 
 WrapCompThenStatic[_$_.$r] = WrapCompThenStatic_render;
 
-var root_52 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_52 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_20(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_15, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticThenComp_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '89d5704c');
+	const n = _$_.track(0, __block, '128s6ks');
 	var div_30 = root_52();
 
 	{
@@ -998,25 +998,25 @@ function WrapStaticThenComp_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_30);
 	}
 
-	_$_.render(render_20, { a: '', _n: n, _span_15: span_15 });
+	_$_.render(render_20, { a: '', _a: n, _b: span_15 });
 	_$_.append(__anchor, div_30);
 }
 
 WrapStaticThenComp[_$_.$r] = WrapStaticThenComp_render;
 
-var root_53 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_53 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_21(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_16, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapSiblingComps_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c5c51af6');
+	const n = _$_.track(0, __block, '1ivgvli');
 	var div_31 = root_53();
 
 	{
@@ -1031,7 +1031,7 @@ function WrapSiblingComps_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_31);
 	}
 
-	_$_.render(render_21, { a: '', _n: n, _span_16: span_16 });
+	_$_.render(render_21, { a: '', _a: n, _b: span_16 });
 	_$_.append(__anchor, div_31);
 }
 
@@ -1092,10 +1092,10 @@ var root_61 = _$_.template(`<span class=x>x</span><button class=inc>inc`, 1, 2);
 var root_60 = _$_.template(`<div class=count></div><!>`, 1, 2);
 
 function render_22(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_33, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
@@ -1103,7 +1103,7 @@ function render_22(__prev) {
 var root_59 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNestedFragment_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '82cbc65f');
+	const n = _$_.track(0, __block, '10ahg7z');
 	var fragment_39 = root_59();
 	var node_44 = _$_.first_child_frag(fragment_39);
 
@@ -1121,7 +1121,7 @@ function TrailingNestedFragment_render(__anchor, __block) {
 			_$_.append(__anchor, fragment_41);
 		}));
 
-		_$_.render(render_22, { a: '', _n: n, _div_33: div_33 });
+		_$_.render(render_22, { a: '', _a: n, _b: div_33 });
 		_$_.append(__anchor, fragment_40);
 	}));
 
@@ -1130,7 +1130,7 @@ function TrailingNestedFragment_render(__anchor, __block) {
 
 TrailingNestedFragment[_$_.$r] = TrailingNestedFragment_render;
 
-var root_64 = _$_.template(`<b class=item> `, 0);
+var root_64 = _$_.template(`<b class=item> `);
 var root_63 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_62 = _$_.template(`<!>`, 1, 1);
 
@@ -1170,8 +1170,8 @@ function ForThenStatic_render(__anchor, __block) {
 
 ForThenStatic[_$_.$r] = ForThenStatic_render;
 
-var root_67 = _$_.template(`<b class=zero>zero`, 0);
-var root_68 = _$_.template(`<b class=other>other`, 0);
+var root_67 = _$_.template(`<b class=zero>zero`);
+var root_68 = _$_.template(`<b class=other>other`);
 
 function switch_case_0(__anchor, n) {
 	var b_3 = root_67();
@@ -1199,7 +1199,7 @@ var root_66 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_65 = _$_.template(`<!>`, 1, 1);
 
 function SwitchThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '800f9ff3');
+	const n = _$_.track(0, __block, 'zj5z3n');
 	var fragment_44 = root_65();
 	var node_48 = _$_.first_child_frag(fragment_44);
 
@@ -1217,8 +1217,8 @@ function SwitchThenStatic_render(__anchor, __block) {
 
 SwitchThenStatic[_$_.$r] = SwitchThenStatic_render;
 
-var root_71 = _$_.template(`<b class=try>try`, 0);
-var root_72 = _$_.template(`<b class=catch>catch`, 0);
+var root_71 = _$_.template(`<b class=try>try`);
+var root_72 = _$_.template(`<b class=catch>catch`);
 var root_70 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_69 = _$_.template(`<!>`, 1, 1);
 
@@ -1277,7 +1277,7 @@ function StyleThenStatic_render(__anchor, __block) {
 
 StyleThenStatic[_$_.$r] = StyleThenStatic_render;
 
-var root_76 = _$_.template(`<b class=item> `, 0);
+var root_76 = _$_.template(`<b class=item> `);
 var root_77 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_75 = _$_.template(`<!>`, 1, 1);
 
@@ -1312,7 +1312,7 @@ function CollectionThenStatic_render(__anchor, __block) {
 
 CollectionThenStatic[_$_.$r] = CollectionThenStatic_render;
 
-var root_79 = _$_.template(`<b class=inline>inline`, 0);
+var root_79 = _$_.template(`<b class=inline>inline`);
 var root_80 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_78 = _$_.template(`<!>`, 1, 1);
 
@@ -1339,19 +1339,19 @@ function InlineElementThenStatic_render(__anchor, __block) {
 
 InlineElementThenStatic[_$_.$r] = InlineElementThenStatic_render;
 
-var root_81 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_81 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_23(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_18, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapUntrackedTextThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '3a78abea');
+	const n = _$_.track(0, __block, 'g81yay');
 	var div_34 = root_81();
 
 	{
@@ -1366,25 +1366,25 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_34);
 	}
 
-	_$_.render(render_23, { a: '', _n: n, _span_18: span_18 });
+	_$_.render(render_23, { a: '', _a: n, _b: span_18 });
 	_$_.append(__anchor, div_34);
 }
 
 WrapUntrackedTextThenStatic[_$_.$r] = WrapUntrackedTextThenStatic_render;
 
-var root_82 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_82 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_24(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_19, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapNestedFragmentThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'db289d00');
+	const n = _$_.track(0, __block, '1ot44jk');
 	var div_35 = root_82();
 
 	{
@@ -1399,25 +1399,25 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_35);
 	}
 
-	_$_.render(render_24, { a: '', _n: n, _span_19: span_19 });
+	_$_.render(render_24, { a: '', _a: n, _b: span_19 });
 	_$_.append(__anchor, div_35);
 }
 
 WrapNestedFragmentThenStatic[_$_.$r] = WrapNestedFragmentThenStatic_render;
 
-var root_83 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_83 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_25(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_20, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTrailingNestedFragment_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'bb509235');
+	const n = _$_.track(0, __block, '1fz18vp');
 	var div_36 = root_83();
 
 	{
@@ -1432,25 +1432,25 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_36);
 	}
 
-	_$_.render(render_25, { a: '', _n: n, _span_20: span_20 });
+	_$_.render(render_25, { a: '', _a: n, _b: span_20 });
 	_$_.append(__anchor, div_36);
 }
 
 WrapTrailingNestedFragment[_$_.$r] = WrapTrailingNestedFragment_render;
 
-var root_84 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_84 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_26(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_21, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapForThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'a715e40a');
+	const n = _$_.track(0, __block, '1acyxvu');
 	var div_37 = root_84();
 
 	{
@@ -1465,25 +1465,25 @@ function WrapForThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_37);
 	}
 
-	_$_.render(render_26, { a: '', _n: n, _span_21: span_21 });
+	_$_.render(render_26, { a: '', _a: n, _b: span_21 });
 	_$_.append(__anchor, div_37);
 }
 
 WrapForThenStatic[_$_.$r] = WrapForThenStatic_render;
 
-var root_85 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_85 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_27(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_22, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapSwitchThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'a598ad9f');
+	const n = _$_.track(0, __block, '19y3grj');
 	var div_38 = root_85();
 
 	{
@@ -1498,25 +1498,25 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_38);
 	}
 
-	_$_.render(render_27, { a: '', _n: n, _span_22: span_22 });
+	_$_.render(render_27, { a: '', _a: n, _b: span_22 });
 	_$_.append(__anchor, div_38);
 }
 
 WrapSwitchThenStatic[_$_.$r] = WrapSwitchThenStatic_render;
 
-var root_86 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_86 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_28(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_23, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapTryThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '1030b116');
+	const n = _$_.track(0, __block, '4hpwd2');
 	var div_39 = root_86();
 
 	{
@@ -1531,25 +1531,25 @@ function WrapTryThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_39);
 	}
 
-	_$_.render(render_28, { a: '', _n: n, _span_23: span_23 });
+	_$_.render(render_28, { a: '', _a: n, _b: span_23 });
 	_$_.append(__anchor, div_39);
 }
 
 WrapTryThenStatic[_$_.$r] = WrapTryThenStatic_render;
 
-var root_87 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_87 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_29(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_24, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStyleThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'f35d8716');
+	const n = _$_.track(0, __block, '1viwphy');
 	var div_40 = root_87();
 
 	{
@@ -1564,25 +1564,25 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_40);
 	}
 
-	_$_.render(render_29, { a: '', _n: n, _span_24: span_24 });
+	_$_.render(render_29, { a: '', _a: n, _b: span_24 });
 	_$_.append(__anchor, div_40);
 }
 
 WrapStyleThenStatic[_$_.$r] = WrapStyleThenStatic_render;
 
-var root_88 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_88 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_30(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_25, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapCollectionThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'b1e7a298');
+	const n = _$_.track(0, __block, '1dd1i1k');
 	var div_41 = root_88();
 
 	{
@@ -1597,25 +1597,25 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_41);
 	}
 
-	_$_.render(render_30, { a: '', _n: n, _span_25: span_25 });
+	_$_.render(render_30, { a: '', _a: n, _b: span_25 });
 	_$_.append(__anchor, div_41);
 }
 
 WrapCollectionThenStatic[_$_.$r] = WrapCollectionThenStatic_render;
 
-var root_89 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_89 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_31(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_26, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapInlineElementThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'df10dc38');
+	const n = _$_.track(0, __block, '1pw54xk');
 	var div_42 = root_89();
 
 	{
@@ -1630,13 +1630,13 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_42);
 	}
 
-	_$_.render(render_31, { a: '', _n: n, _span_26: span_26 });
+	_$_.render(render_31, { a: '', _a: n, _b: span_26 });
 	_$_.append(__anchor, div_42);
 }
 
 WrapInlineElementThenStatic[_$_.$r] = WrapInlineElementThenStatic_render;
 
-var root_91 = _$_.template(`<b class=if>x`, 0);
+var root_91 = _$_.template(`<b class=if>x`);
 
 function consequent_2(__anchor, n) {
 	var b_9 = root_91();
@@ -1651,7 +1651,7 @@ function if_3(n) {
 var root_90 = _$_.template(`<!>`, 1, 1);
 
 function IfOnly_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c6afe814');
+	const n = _$_.track(0, __block, '1j4mp04');
 	var fragment_54 = root_90();
 	var node_63 = _$_.first_child_frag(fragment_54);
 
@@ -1664,7 +1664,7 @@ function IfOnly_render(__anchor, __block) {
 
 IfOnly[_$_.$r] = IfOnly_render;
 
-var root_94 = _$_.template(`<b class=if>x`, 0);
+var root_94 = _$_.template(`<b class=if>x`);
 
 function consequent_3(__anchor, n) {
 	var b_10 = root_94();
@@ -1680,7 +1680,7 @@ var root_93 = _$_.template(`<!><div class=a>a`, 1, 2);
 var root_92 = _$_.template(`<!>`, 1, 1);
 
 function IfThenOne_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c3b63525');
+	const n = _$_.track(0, __block, '1iawrhh');
 	var fragment_55 = root_92();
 	var node_65 = _$_.first_child_frag(fragment_55);
 
@@ -1698,7 +1698,7 @@ function IfThenOne_render(__anchor, __block) {
 
 IfThenOne[_$_.$r] = IfThenOne_render;
 
-var root_96 = _$_.template(`<b class=if>x`, 0);
+var root_96 = _$_.template(`<b class=if>x`);
 
 function consequent_4(__anchor, n) {
 	var b_11 = root_96();
@@ -1710,10 +1710,10 @@ function if_5(n) {
 	if (n.value >= 0) return consequent_4;
 }
 
-var root_95 = _$_.template(`<div class=root><!>`, 0);
+var root_95 = _$_.template(`<div class=root><!>`);
 
 function SingleRootWithIf_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '63d962e3');
+	const n = _$_.track(0, __block, 'rpd5nn');
 	var div_43 = root_95();
 
 	{
@@ -1728,19 +1728,19 @@ function SingleRootWithIf_render(__anchor, __block) {
 
 SingleRootWithIf[_$_.$r] = SingleRootWithIf_render;
 
-var root_97 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_97 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_32(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_27, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapIfOnly_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '83c8f19d');
+	const n = _$_.track(0, __block, '10kd2fx');
 	var div_44 = root_97();
 
 	{
@@ -1755,25 +1755,25 @@ function WrapIfOnly_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_44);
 	}
 
-	_$_.render(render_32, { a: '', _n: n, _span_27: span_27 });
+	_$_.render(render_32, { a: '', _a: n, _b: span_27 });
 	_$_.append(__anchor, div_44);
 }
 
 WrapIfOnly[_$_.$r] = WrapIfOnly_render;
 
-var root_98 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_98 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_33(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_28, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapIfThenOne_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '2cee9a57');
+	const n = _$_.track(0, __block, 'cgtahj');
 	var div_45 = root_98();
 
 	{
@@ -1788,25 +1788,25 @@ function WrapIfThenOne_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_45);
 	}
 
-	_$_.render(render_33, { a: '', _n: n, _span_28: span_28 });
+	_$_.render(render_33, { a: '', _a: n, _b: span_28 });
 	_$_.append(__anchor, div_45);
 }
 
 WrapIfThenOne[_$_.$r] = WrapIfThenOne_render;
 
-var root_99 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_99 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_34(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_29, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapSingleRootWithIf_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'c179a57b');
+	const n = _$_.track(0, __block, '1hoki9n');
 	var div_46 = root_99();
 
 	{
@@ -1821,25 +1821,25 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_46);
 	}
 
-	_$_.render(render_34, { a: '', _n: n, _span_29: span_29 });
+	_$_.render(render_34, { a: '', _a: n, _b: span_29 });
 	_$_.append(__anchor, div_46);
 }
 
 WrapSingleRootWithIf[_$_.$r] = WrapSingleRootWithIf_render;
 
-var root_100 = _$_.template(`<div class=outer><!><span class=after></span><button class=outer-inc>outer`, 0);
+var root_100 = _$_.template(`<div class=outer><!><span class=after></span><button class=outer-inc>outer`);
 
 function render_35(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_30, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function ExprThenSiblingInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'db1d59ee');
+	const n = _$_.track(0, __block, '1osob1q');
 	const label = 'label';
 	var div_47 = root_100();
 
@@ -1855,7 +1855,7 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_47);
 	}
 
-	_$_.render(render_35, { a: '', _n: n, _span_30: span_30 });
+	_$_.render(render_35, { a: '', _a: n, _b: span_30 });
 	_$_.append(__anchor, div_47);
 }
 
@@ -1878,7 +1878,7 @@ var root_102 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_101 = _$_.template(`<!>`, 1, 1);
 
 function IfTwoThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'd8310b12');
+	const n = _$_.track(0, __block, '1nzh6oi');
 	var fragment_57 = root_101();
 	var node_71 = _$_.first_child_frag(fragment_57);
 
@@ -1909,19 +1909,19 @@ function if_7(n) {
 	if (n.value >= 0) return consequent_6;
 }
 
-var root_104 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_104 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_36(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_31, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function IfTwoInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '0c602c2f');
+	const n = _$_.track(0, __block, '3fm7u7');
 	var div_48 = root_104();
 
 	{
@@ -1936,25 +1936,25 @@ function IfTwoInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_48);
 	}
 
-	_$_.render(render_36, { a: '', _n: n, _span_31: span_31 });
+	_$_.render(render_36, { a: '', _a: n, _b: span_31 });
 	_$_.append(__anchor, div_48);
 }
 
 IfTwoInDiv[_$_.$r] = IfTwoInDiv_render;
 
-var root_106 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_106 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_37(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_32, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapIfTwoThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'cd8f8438');
+	const n = _$_.track(0, __block, '1l1acs8');
 	var div_49 = root_106();
 
 	{
@@ -1969,14 +1969,14 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_49);
 	}
 
-	_$_.render(render_37, { a: '', _n: n, _span_32: span_32 });
+	_$_.render(render_37, { a: '', _a: n, _b: span_32 });
 	_$_.append(__anchor, div_49);
 }
 
 WrapIfTwoThenStatic[_$_.$r] = WrapIfTwoThenStatic_render;
 
 var root_108 = _$_.template(`<b class=item> </b><i class=sep>|`, 1, 2);
-var root_107 = _$_.template(`<div class=outer><span class=after>after`, 0);
+var root_107 = _$_.template(`<div class=outer><span class=after>after`);
 
 function ForTwoNodeItems_render(__anchor, __block) {
 	const items = [1, 2];
@@ -2013,7 +2013,7 @@ function ForTwoNodeItems_render(__anchor, __block) {
 
 ForTwoNodeItems[_$_.$r] = ForTwoNodeItems_render;
 
-var root_109 = _$_.template(`<b class=made>made`, 0);
+var root_109 = _$_.template(`<b class=made>made`);
 var root_111 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_110 = _$_.template(`<!>`, 1, 1);
 
@@ -2066,19 +2066,19 @@ function StaticThenStyleThenStatic_render(__anchor, __block) {
 
 StaticThenStyleThenStatic[_$_.$r] = StaticThenStyleThenStatic_render;
 
-var root_114 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_114 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_38(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_33, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticCallThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '4513c76f');
+	const n = _$_.track(0, __block, 'j5zrlb');
 	var div_52 = root_114();
 
 	{
@@ -2093,25 +2093,25 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_52);
 	}
 
-	_$_.render(render_38, { a: '', _n: n, _span_33: span_33 });
+	_$_.render(render_38, { a: '', _a: n, _b: span_33 });
 	_$_.append(__anchor, div_52);
 }
 
 WrapStaticCallThenStatic[_$_.$r] = WrapStaticCallThenStatic_render;
 
-var root_115 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_115 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_39(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_34, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '5d5162df');
+	const n = _$_.track(0, __block, 'pw4k4f');
 	var div_53 = root_115();
 
 	{
@@ -2126,25 +2126,25 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_53);
 	}
 
-	_$_.render(render_39, { a: '', _n: n, _span_34: span_34 });
+	_$_.render(render_39, { a: '', _a: n, _b: span_34 });
 	_$_.append(__anchor, div_53);
 }
 
 WrapStaticThenStyleThenStatic[_$_.$r] = WrapStaticThenStyleThenStatic_render;
 
-var root_116 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_116 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_40(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_35, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function CompThenStaticInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'e3817aa5');
+	const n = _$_.track(0, __block, '1r4hpd1');
 	var div_54 = root_116();
 
 	{
@@ -2159,25 +2159,25 @@ function CompThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_54);
 	}
 
-	_$_.render(render_40, { a: '', _n: n, _span_35: span_35 });
+	_$_.render(render_40, { a: '', _a: n, _b: span_35 });
 	_$_.append(__anchor, div_54);
 }
 
 CompThenStaticInDiv[_$_.$r] = CompThenStaticInDiv_render;
 
-var root_117 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_117 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_41(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_36, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function SiblingCompsInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '5eb8c601');
+	const n = _$_.track(0, __block, 'qa5dkx');
 	var div_55 = root_117();
 
 	{
@@ -2196,14 +2196,14 @@ function SiblingCompsInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_55);
 	}
 
-	_$_.render(render_41, { a: '', _n: n, _span_36: span_36 });
+	_$_.render(render_41, { a: '', _a: n, _b: span_36 });
 	_$_.append(__anchor, div_55);
 }
 
 SiblingCompsInDiv[_$_.$r] = SiblingCompsInDiv_render;
 
-var root_119 = _$_.template(`<b class=even>even`, 0);
-var root_120 = _$_.template(`<i class=odd>odd`, 0);
+var root_119 = _$_.template(`<b class=even>even`);
+var root_120 = _$_.template(`<i class=odd>odd`);
 
 function consequent_7(__anchor, n) {
 	var b_14 = root_119();
@@ -2221,19 +2221,19 @@ function if_8(n) {
 	if (n.value % 2 === 0) return consequent_7; else return alternate;
 }
 
-var root_118 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_118 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_42(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_37, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function IfSwapThenStaticInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '945438a7');
+	const n = _$_.track(0, __block, '155m7jb');
 	var div_56 = root_118();
 
 	{
@@ -2248,26 +2248,26 @@ function IfSwapThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_56);
 	}
 
-	_$_.render(render_42, { a: '', _n: n, _span_37: span_37 });
+	_$_.render(render_42, { a: '', _a: n, _b: span_37 });
 	_$_.append(__anchor, div_56);
 }
 
 IfSwapThenStaticInDiv[_$_.$r] = IfSwapThenStaticInDiv_render;
 
-var root_122 = _$_.template(`<b class=item> `, 0);
-var root_121 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_122 = _$_.template(`<b class=item> `);
+var root_121 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_43(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_38, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function ForThenStaticInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, 'f2e068ec');
+	const n = _$_.track(0, __block, '1ve0yjw');
 	const items = [1, 2];
 	var div_57 = root_121();
 
@@ -2299,25 +2299,25 @@ function ForThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_57);
 	}
 
-	_$_.render(render_43, { a: '', _n: n, _span_38: span_38 });
+	_$_.render(render_43, { a: '', _a: n, _b: span_38 });
 	_$_.append(__anchor, div_57);
 }
 
 ForThenStaticInDiv[_$_.$r] = ForThenStaticInDiv_render;
 
-var root_123 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`, 0);
+var root_123 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_44(__prev) {
-	var __a = __prev._n.value;
+	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_39, __a, __prev.a);
+		_$_.set_text_content(__prev._b, __a, __prev.a);
 		__prev.a = __a;
 	}
 }
 
 function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
-	const n = _$_.track(0, __block, '9bd400c7');
+	const n = _$_.track(0, __block, '178iuvb');
 	var div_58 = root_123();
 
 	{
@@ -2338,7 +2338,7 @@ function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_58);
 	}
 
-	_$_.render(render_44, { a: '', _n: n, _span_39: span_39 });
+	_$_.render(render_44, { a: '', _a: n, _b: span_39 });
 	_$_.append(__anchor, div_58);
 }
 

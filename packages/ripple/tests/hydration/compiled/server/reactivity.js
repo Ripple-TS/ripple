@@ -5,7 +5,7 @@ import { track } from 'ripple/server';
 
 export function TrackedState() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, 'c1818584');
+		const count = _$_.track(0, '1hovkhw');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -18,7 +18,7 @@ export function TrackedState() {
 
 export function CounterWithInitial(props) {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(props.initial, '03ea4348');
+		const count = _$_.track(props.initial, '133ubs');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -52,8 +52,8 @@ export function CounterWrapper() {
 
 export function ComputedValues() {
 	return _$_.tsrx_element(() => {
-		const a = _$_.track(2, 'b78281db');
-		const b = _$_.track(3, 'a0cf6c6d');
+		const a = _$_.track(2, '1ex10ij');
+		const b = _$_.track(3, '18mae7h');
 		const sum = () => a.value + b.value;
 
 		_$_.regular_block(() => {
@@ -75,9 +75,9 @@ export function ComputedValues() {
 
 export function MultipleTracked() {
 	return _$_.tsrx_element(() => {
-		const x = _$_.track(10, '843522de');
-		const y = _$_.track(20, '1308996d');
-		const z = _$_.track(30, '048c3fd0');
+		const x = _$_.track(10, '10ol1i6');
+		const y = _$_.track(20, '5a4d4d');
+		const z = _$_.track(30, '19fdn4');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -90,8 +90,8 @@ export function MultipleTracked() {
 
 export function DerivedState() {
 	return _$_.tsrx_element(() => {
-		const firstName = _$_.track('John', '6015eeca');
-		const lastName = _$_.track('Doe', '4fa9a20e');
+		const firstName = _$_.track('John', 'qnrtu2');
+		const lastName = _$_.track('Doe', 'm3q77y');
 		const fullName = () => `${firstName.value} ${lastName.value}`;
 
 		_$_.regular_block(() => {

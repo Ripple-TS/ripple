@@ -1079,10 +1079,16 @@ function emit_render_block(init, body, initial, state) {
 
 	const hoisted = state.hoisted;
 	const id = b.id(state.scope.generate('render'));
-	const captured = new Set(captures);
+	// Captured locals ride on the state under positional keys (`_a`, `_b`,
+	// …): the `_` keeps them apart from the value keys, and the key of each
+	// name is remembered on its property for the item-slot rename.
+	const captured = new Map(captures.map((name, index) => [name, '_' + capture_key(index)]));
 	const hoisted_fn = rewrite(
 		fn,
-		(name) => (captured.has(name) ? b.member(b.id('__prev'), b.id('_' + name)) : null),
+		(name) => {
+			const key = captured.get(name);
+			return key === undefined ? null : b.member(b.id('__prev'), b.id(key));
+		},
 		new Set(),
 	);
 	hoisted.push(
@@ -1095,7 +1101,11 @@ function emit_render_block(init, body, initial, state) {
 	register_hoisted(hoisted, id.name);
 	const properties = [
 		...initial,
-		...captures.map((name) => b.prop('init', b.id('_' + name), b.id(name))),
+		...captures.map((name) => {
+			const property = b.prop('init', b.id(/** @type {string} */ (captured.get(name))), b.id(name));
+			/** @type {any} */ (property).metadata = { capture: name };
+			return property;
+		}),
 	];
 	init.push(
 		b.stmt(b.call('_$_.render', id, ...(properties.length === 0 ? [] : [b.object(properties)]))),
@@ -2328,8 +2338,10 @@ const visit_for_of_statement = (node, context) => {
 			(statement) => statement.type === 'FunctionDeclaration' && statement.id?.name === local.name,
 		);
 		if (declaration !== undefined) {
-			read_item_from_state(/** @type {AST.FunctionDeclaration} */ (declaration), pattern.name);
-			rename_item_slot(find_render_calls(body)[0], pattern.name);
+			const slot = rename_item_slot(find_render_calls(body)[0], pattern.name);
+			if (slot !== null) {
+				read_item_from_state(/** @type {AST.FunctionDeclaration} */ (declaration), slot);
+			}
 		}
 	}
 
@@ -2502,28 +2514,28 @@ function reads_outside_item_state(body, name) {
 const ITEM_SLOT = '$item';
 
 /**
- * Whether a node is the member expression `__prev._<name>`.
+ * Whether a node is the member expression `__prev.<key>`.
  * @param {AST.Node} node
- * @param {string} name
+ * @param {string} key
  */
-function is_item_read(node, name) {
+function is_item_read(node, key) {
 	return (
 		node.type === 'MemberExpression' &&
 		node.object.type === 'Identifier' &&
 		node.object.name === '__prev' &&
 		node.property.type === 'Identifier' &&
-		node.property.name === '_' + name
+		node.property.name === key
 	);
 }
 
 /**
  * Rewrites an update function's reads of a local item (see `LOCAL_ITEMS`),
- * `_$_.get(__prev._item)` or `__prev._item`, to `__prev.$item`: the state
+ * `_$_.get(__prev.<key>)` or `__prev.<key>`, to `__prev.$item`: the state
  * holds the item itself, in the slot the runtime refreshes.
  * @param {AST.FunctionDeclaration} declaration
- * @param {string} name
+ * @param {string} key the state key the item was captured under
  */
-function read_item_from_state(declaration, name) {
+function read_item_from_state(declaration, key) {
 	const slot = () => b.member(b.id('__prev'), b.id(ITEM_SLOT));
 	declaration.body = /** @type {AST.BlockStatement} */ (
 		walk(/** @type {AST.Node} */ (declaration.body), null, {
@@ -2532,14 +2544,14 @@ function read_item_from_state(declaration, name) {
 					node.callee.type === 'Identifier' &&
 					node.callee.name === '_$_.get' &&
 					node.arguments.length === 1 &&
-					is_item_read(node.arguments[0], name)
+					is_item_read(node.arguments[0], key)
 				) {
 					return slot();
 				}
 				next();
 			},
 			MemberExpression(node, { next }) {
-				if (is_item_read(node, name)) {
+				if (is_item_read(node, key)) {
 					return slot();
 				}
 				next();
@@ -2549,10 +2561,11 @@ function read_item_from_state(declaration, name) {
 }
 
 /**
- * Renames the `_item` property of an item body's `_$_.item({ … })` state to
- * the local item slot (see `read_item_from_state`).
+ * Renames the property holding the captured item of an item body's
+ * `_$_.item({ … })` state to the local item slot (see `read_item_from_state`).
  * @param {{ statements: AST.Statement[]; index: number }} call
- * @param {string} name
+ * @param {string} name the item's name
+ * @returns {string | null} the key the item was captured under, if any
  */
 function rename_item_slot(call, name) {
 	const state = /** @type {AST.ObjectExpression} */ (
@@ -2564,12 +2577,15 @@ function rename_item_slot(call, name) {
 		if (
 			property.type === 'Property' &&
 			property.key.type === 'Identifier' &&
-			property.key.name === '_' + name
+			/** @type {any} */ (property).metadata?.capture === name
 		) {
+			const key = property.key.name;
 			property.key = b.id(ITEM_SLOT);
 			property.shorthand = false;
+			return key;
 		}
 	}
+	return null;
 }
 
 /**
@@ -7326,12 +7342,16 @@ function transform_children(children, context) {
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			state.template
 		);
+		/** @type {AST.Expression[]} */
 		const template_args = [
 			join_template(
 				template_namespace === 'html' ? strip_trailing_end_tags(template_array) : template_array,
 			),
-			b.literal(flags),
 		];
+		// The runtime defaults the flags to 0.
+		if (flags !== 0) {
+			template_args.push(b.literal(flags));
+		}
 
 		// For fragments, add the pre-calculated hop count as a third argument.
 		// This count reflects emitted top-level positions.
@@ -7369,9 +7389,7 @@ function create_continue_skip_statements(state, source_node) {
 		/** @type {AST.NodeWithLocation} */ (source_node),
 	);
 
-	state.hoisted.push(
-		b.var(template_id, b.call('_$_.template', join_template(['<!>']), b.literal(0))),
-	);
+	state.hoisted.push(b.var(template_id, b.call('_$_.template', join_template(['<!>']))));
 	register_hoisted(state.hoisted, template_id);
 
 	return [

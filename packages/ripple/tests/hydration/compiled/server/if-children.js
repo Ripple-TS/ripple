@@ -5,7 +5,7 @@ import { track } from 'ripple/server';
 
 export function IfWithChildren({ children }) {
 	return _$_.tsrx_element(() => {
-		const expanded = _$_.track(true, 'c64714b1');
+		const expanded = _$_.track(true, '1j0jg6p');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -77,7 +77,7 @@ export function TestIfWithChildren() {
 
 export function IfWithStaticChildren() {
 	return _$_.tsrx_element(() => {
-		const expanded = _$_.track(true, '3bba8f77');
+		const expanded = _$_.track(true, 'gkm3jr');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -96,7 +96,7 @@ export function IfWithStaticChildren() {
 
 export function IfWithSiblingsAndChildren({ children }) {
 	return _$_.tsrx_element(() => {
-		const expanded = _$_.track(true, 'a1b8fb4c');
+		const expanded = _$_.track(true, '18vegr0');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -157,7 +157,7 @@ export function TestIfWithSiblingsAndChildren() {
 
 export function ElementWithChildrenThenIf() {
 	return _$_.tsrx_element(() => {
-		const show = _$_.track(true, '7cd4817b');
+		const show = _$_.track(true, 'ymw5ff');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -176,7 +176,7 @@ export function ElementWithChildrenThenIf() {
 
 export function DeepNestingThenIf() {
 	return _$_.tsrx_element(() => {
-		const visible = _$_.track(true, '923116be');
+		const visible = _$_.track(true, '14k9o72');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -195,7 +195,7 @@ export function DeepNestingThenIf() {
 
 export function DomElementChildrenThenSibling() {
 	return _$_.tsrx_element(() => {
-		const activeTab = _$_.track('code', '33a1e97f');
+		const activeTab = _$_.track('code', 'ebqq2n');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -216,7 +216,7 @@ export function DomElementChildrenThenSibling() {
 
 export function DomChildrenThenStaticSiblings() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, '0ea64305');
+		const count = _$_.track(0, '42buv9');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -287,8 +287,8 @@ function TrailingChild() {
 
 export function ComponentChildrenWithControlFlowRoots() {
 	return _$_.tsrx_element(() => {
-		const on = _$_.track(true, 'f3e4c6ee');
-		const items = _$_.track([1, 2, 3], '2bbbeeb0');
+		const on = _$_.track(true, '1vo6ory');
+		const items = _$_.track([1, 2, 3], 'c4uisw');
 
 		_$_.regular_block(() => {
 			let __out = '';

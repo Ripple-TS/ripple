@@ -103,7 +103,7 @@ describe('TypeScript text project', () => {
 				expect(code).not.toContain('_$_.render_expression(');
 				expect(code).not.toContain('_$_.expression_children(');
 				if (child.includes('props.effect()')) {
-					expect(code).toContain('props.effect()');
+					expect(code).toMatch(/(?:__prev\._[a-z]+|props)\.effect\(\)/);
 					// A proof for only the last operand is not a proof for the child.
 					const start = source.lastIndexOf('props.value');
 					expect(() =>

@@ -5,7 +5,7 @@ import { track } from 'ripple/server';
 
 export function ClickCounter() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, 'a070e3a7');
+		const count = _$_.track(0, '18illt3');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -18,7 +18,7 @@ export function ClickCounter() {
 
 export function IncrementDecrement() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, '87fcabdd');
+		const count = _$_.track(0, '11qc3q5');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -31,8 +31,8 @@ export function IncrementDecrement() {
 
 export function MultipleEvents() {
 	return _$_.tsrx_element(() => {
-		const clicks = _$_.track(0, '41b9f0b0');
-		const hovers = _$_.track(0, '72789f75');
+		const clicks = _$_.track(0, 'i8ishc');
+		const hovers = _$_.track(0, 'vrf59x');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -45,8 +45,8 @@ export function MultipleEvents() {
 
 export function MultiStateUpdate() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, '5a375160');
-		const lastAction = _$_.track('none', '3ceeb88c');
+		const count = _$_.track(0, 'p155r4');
+		const lastAction = _$_.track('none', 'gwmyks');
 
 		const handleClick = () => {
 			count.value++;
@@ -72,7 +72,7 @@ export function MultiStateUpdate() {
 
 export function ToggleButton() {
 	return _$_.tsrx_element(() => {
-		const isOn = _$_.track(false, 'be823ec7');
+		const isOn = _$_.track(false, '1guxsxz');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -96,7 +96,7 @@ export function ChildButton(props) {
 
 export function ParentWithChildButton() {
 	return _$_.tsrx_element(() => {
-		const count = _$_.track(0, 'dcc2e0f9');
+		const count = _$_.track(0, '1p94et5');
 
 		_$_.regular_block(() => {
 			let __out = '';
