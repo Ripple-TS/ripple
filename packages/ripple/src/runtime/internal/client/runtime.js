@@ -415,6 +415,45 @@ function register_teardown(block, teardown) {
 }
 
 /**
+ * Runs the body of a branch block that was just created, in place of a first
+ * `run_block`: a branch renders untracked and never re-runs, so the only
+ * bookkeeping its first run needs is the globals the body reads and the
+ * dependencies a nested `item` records on it. Errors are handled as
+ * `run_block` handles them.
+ * @param {Block} block
+ * @param {(anchor: any, value: any) => void} fn
+ * @param {any} anchor
+ * @param {any} value
+ */
+export function run_branch(block, fn, anchor, value) {
+	var previous_block = active_block;
+	var previous_reaction = active_reaction;
+	var previous_tracking = tracking;
+	var previous_dependency = active_dependency;
+	var previous_component = active_component;
+
+	try {
+		active_block = block;
+		active_reaction = block;
+		active_component = block.co;
+		tracking = false;
+		active_dependency = null;
+		fn(anchor, value);
+		if (active_dependency !== null) {
+			block.d = active_dependency;
+		}
+	} catch (error) {
+		handle_run_error(error, block);
+	} finally {
+		active_block = previous_block;
+		active_reaction = previous_reaction;
+		tracking = previous_tracking;
+		active_dependency = previous_dependency;
+		active_component = previous_component;
+	}
+}
+
+/**
  * @param {Block} block
  * @param {boolean} [first_run] true when the block has no children, teardown,
  * or dependencies yet, so that cleanup can be skipped

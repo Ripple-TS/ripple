@@ -3,6 +3,7 @@
 import { IS_CONTROLLED, IS_INDEXED, LOCAL_ITEMS, ROOT_CONTROLLED } from '../../../constants.js';
 import {
 	block as create_block,
+	create_block as allocate_block,
 	branch,
 	destroy_block,
 	destroy_block_children,
@@ -11,11 +12,18 @@ import {
 	own_anchor,
 	render,
 } from './blocks.js';
-import { BRANCH_BLOCK, DESTROYED, FOR_BLOCK, ITEM_BLOCK, TRACKED_ARRAY } from './constants.js';
+import {
+	BLOCK_HAS_RUN,
+	BRANCH_BLOCK,
+	DESTROYED,
+	FOR_BLOCK,
+	ITEM_BLOCK,
+	TRACKED_ARRAY,
+} from './constants.js';
 import { hydrate_first_child, hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { get_last_child, next_sibling, resolve_anchor } from './operations.js';
 import { append } from './template.js';
-import { active_block, run_block, set, set_tracking, tracked } from './runtime.js';
+import { active_block, run_block, run_branch, set, set_tracking, tracked } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
 
 /**
@@ -46,6 +54,16 @@ function create_item(anchor, value, index, render_fn, is_indexed, is_keyed, map_
 		// block itself (see `item`), or null.
 		p: null,
 	};
+
+	// An item without a tracked of its own (a plain list's, or a local one)
+	// renders in place: allocated, linked and run through `run_branch`, with
+	// none of the first-run bookkeeping a block that may re-run needs.
+	if (tracked_value === value && tracked_index === undefined) {
+		var lean = allocate_block(BRANCH_BLOCK, run_item, state);
+		run_branch(lean, render_fn, anchor, value);
+		lean.f ^= BLOCK_HAS_RUN;
+		return lean;
+	}
 
 	// Passed through module state rather than a per-item closure; run_item
 	// reads them before rendering, so nested loops cannot observe a stale pair.
