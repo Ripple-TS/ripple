@@ -801,7 +801,7 @@ function if_5(active) {
 	if (active) return consequent_4;
 }
 
-var root_38 = _$_.template(`<div><!><a><span></span></a></div>`, 0);
+var root_38 = _$_.template(`<div><a><span></span></a></div>`, 0);
 
 function NavItem_render(__anchor, __block, { href, text: label, active = false }) {
 	var div_27 = root_38();
@@ -813,7 +813,7 @@ function NavItem_render(__anchor, __block, { href, text: label, active = false }
 
 		_$_.if(node_19, if_5, false, active);
 
-		var a_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_19.nextSibling;
+		var a_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_19;
 
 		_$_.set_attribute(a_3, 'href', href);
 
@@ -992,7 +992,7 @@ function if_7() {
 	if (true) return consequent_6;
 }
 
-var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div></main></div></div>`, 0);
+var root_46 = _$_.template(`<div class="layout"><div class="content-wrapper"><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div></main></div></div>`, 0);
 
 function LayoutWithSidebarAndMain_render(__anchor, __block) {
 	var div_33 = root_46();
@@ -1002,14 +1002,14 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 
 		_$_.render_component(PageHeader, node_25, {});
 
-		var div_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_25.nextSibling;
+		var div_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_25;
 
 		{
 			var node_26 = _$_.hydrating ? _$_.hydrate_child() : div_34.firstChild;
 
 			_$_.render_component(SideNav, node_26, { currentPath: "/intro" });
 
-			var main = _$_.hydrating ? _$_.hydrate_sibling() : node_26.nextSibling;
+			var main = _$_.hydrating ? _$_.hydrate_sibling() : node_26;
 
 			{
 				var div_35 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
@@ -1311,7 +1311,7 @@ function if_13(nextLink) {
 	if (nextLink) return consequent_12;
 }
 
-var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div></div></main></div></div>`, 0);
+var root_63 = _$_.template(`<div class="layout"><div class="docs-wrapper"><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div></div></main></div></div>`, 0);
 
 function DocsLayoutInner_render(
 	__anchor,
@@ -1325,14 +1325,14 @@ function DocsLayoutInner_render(
 
 		_$_.render_component(HeaderStub, node_38, {});
 
-		var div_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_38.nextSibling;
+		var div_48 = _$_.hydrating ? _$_.hydrate_sibling() : node_38;
 
 		{
 			var node_39 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
 
 			_$_.render_component(SidebarStub, node_39, {});
 
-			var main_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_39.nextSibling;
+			var main_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_39;
 
 			{
 				var div_51 = _$_.hydrating ? _$_.hydrate_child() : main_1.firstChild;
@@ -1587,7 +1587,7 @@ function if_18(toc) {
 	if (toc.length > 0) return consequent_17;
 }
 
-var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
+var root_68 = _$_.template(`<div class="layout"><div class="docs-wrapper"><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 
 function DocsLayoutExact_render(
 	__anchor,
@@ -1607,14 +1607,14 @@ function DocsLayoutExact_render(
 
 		_$_.render_component(HeaderStub, node_43, {});
 
-		var div_57 = _$_.hydrating ? _$_.hydrate_sibling() : node_43.nextSibling;
+		var div_57 = _$_.hydrating ? _$_.hydrate_sibling() : node_43;
 
 		{
 			var node_44 = _$_.hydrating ? _$_.hydrate_child() : div_57.firstChild;
 
 			_$_.render_component(SidebarStub, node_44, {});
 
-			var main_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_44.nextSibling;
+			var main_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_44;
 
 			{
 				var div_60 = _$_.hydrating ? _$_.hydrate_child() : main_2.firstChild;

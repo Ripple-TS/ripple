@@ -214,7 +214,7 @@ function ChildButton_render(__anchor, __block, props) {
 
 ChildButton[_$_.$r] = ChildButton_render;
 
-var root_6 = _$_.template(`<div><!><span class="count"></span></div>`, 0);
+var root_6 = _$_.template(`<div><span class="count"></span></div>`, 0);
 
 function render_6(__prev) {
 	var __a = __prev._count.value;
@@ -239,7 +239,7 @@ function ParentWithChildButton_render(__anchor, __block) {
 			label: "Click me"
 		});
 
-		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
+		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node;
 
 		_$_.hydrating && _$_.pop(div_5);
 	}

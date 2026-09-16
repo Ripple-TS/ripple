@@ -1185,7 +1185,7 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 KeyedForLoopWithIndex[_$_.$r] = KeyedForLoopWithIndex_render;
 
 var root_55 = _$_.template(`<div> </div>`, 0);
-var root_54 = _$_.template(`<div class="wrapper"><header class="before">Before</header><!><footer class="after">After</footer></div><button class="add">Add</button>`, 1, 2);
+var root_54 = _$_.template(`<div class="wrapper"><header class="before">Before</header><footer class="after">After</footer></div><button class="add">Add</button>`, 1, 2);
 var root_53 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopWithSiblings_render(__anchor, __block) {
@@ -1670,7 +1670,7 @@ function ForLoopReverse_render(__anchor, __block) {
 ForLoopReverse[_$_.$r] = ForLoopReverse_render;
 
 var root_78 = _$_.template(`<span class="item"> </span>`, 0);
-var root_77 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
+var root_77 = _$_.template(`<div class="wrapper"><div class="host"><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, 'a8b41504');
@@ -1751,7 +1751,7 @@ function RootKeyedList_render(__anchor, __block, props) {
 
 RootKeyedList[_$_.$r] = RootKeyedList_render;
 
-var root_80 = _$_.template(`<div class="wrapper"><div class="host"><!><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
+var root_80 = _$_.template(`<div class="wrapper"><div class="host"><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
 
 function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, '50a91d60');

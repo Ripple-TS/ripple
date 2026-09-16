@@ -648,3 +648,50 @@ export function WrapStaticThenStyleThenStatic() @{
 		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
 	</div>
 }
+
+// A component, `@if`, or `@for` before a static element sibling inside an
+// element inserts before that element (no placeholder of its own); the
+// hydration cursor still steps from the node to the element.
+export function CompThenStaticInDiv() @{
+	const n = track(0);
+	<div class="outer">
+		<Leaf />
+		<span class="after">{n.value}</span>
+		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
+	</div>
+}
+
+export function SiblingCompsInDiv() @{
+	const n = track(0);
+	<div class="outer">
+		<Leaf />
+		<Leaf />
+		<span class="after">{n.value}</span>
+		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
+	</div>
+}
+
+export function IfSwapThenStaticInDiv() @{
+	const n = track(0);
+	<div class="outer">
+		@if (n.value % 2 === 0) {
+			<b class="even">{'even'}</b>
+		} @else {
+			<i class="odd">{'odd'}</i>
+		}
+		<span class="after">{n.value}</span>
+		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
+	</div>
+}
+
+export function ForThenStaticInDiv() @{
+	const n = track(0);
+	const items = [1, 2];
+	<div class="outer">
+		@for (const item of items) {
+			<b class="item">{item}</b>
+		}
+		<span class="after">{n.value}</span>
+		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
+	</div>
+}

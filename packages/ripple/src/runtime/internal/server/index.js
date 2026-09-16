@@ -2530,35 +2530,38 @@ export function ripple_array(...elements) {
 }
 
 /**
+ * `RippleArray.from(...)`
  * @template T
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [map_fn]
  * @param {any} [thisArg]
  * @returns {T[]}
  */
-ripple_array.from = function (arrayLike, map_fn, thisArg) {
+export function ripple_array_from(arrayLike, map_fn, thisArg) {
 	return map_fn ? Array.from(arrayLike, map_fn, thisArg) : Array.from(arrayLike);
-};
+}
 
 /**
+ * `RippleArray.of(...)`
  * @template T
  * @param  {...T} items
  * @returns {T[]}
  */
-ripple_array.of = function (...items) {
+export function ripple_array_of(...items) {
 	return Array.of(...items);
-};
+}
 
 /**
+ * `RippleArray.fromAsync(...)`
  * @template T
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
  * @param {(v: T, k: number) => any | undefined} [map_fn]
  * @param {any} [thisArg]
  * @returns {Promise<T[]>}
  */
-ripple_array.from_async = async function (arrayLike, map_fn, thisArg) {
+export async function ripple_array_from_async(arrayLike, map_fn, thisArg) {
 	return map_fn ? Array.fromAsync(arrayLike, map_fn, thisArg) : Array.fromAsync(arrayLike);
-};
+}
 
 /**
  * @param {object} obj

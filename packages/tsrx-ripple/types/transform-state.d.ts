@@ -36,6 +36,18 @@ declare module '@tsrx/core/types' {
 		 * sentinel is the parent's tail, so it never needs an anchor node.
 		 */
 		append_tail?: boolean;
+		/**
+		 * A static component, template `@if`, or template `@for` followed by a
+		 * static DOM element sibling inserts before that element instead of a
+		 * `<!>` placeholder of its own (set by transform_children).
+		 */
+		append_before?: boolean;
+		/**
+		 * The previous sibling has `append_before`, so in the client this node's
+		 * variable is the previous node's variable (the element the sibling
+		 * inserts before); only hydration steps to it.
+		 */
+		alias_prev?: boolean;
 	}
 
 	interface TransformClientState {

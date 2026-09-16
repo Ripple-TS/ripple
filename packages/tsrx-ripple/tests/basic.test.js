@@ -1019,15 +1019,100 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		);
 	});
 
-	it('keeps the placeholder for a component followed by a template sibling', () => {
+	it('inserts a component before its static element sibling without a placeholder', () => {
 		const { code } = compile(
 			`function Item() @{ <b>item</b> }
-			function App() @{ <div><Item /><span>{'a'}</span></div> }`,
+			function App({ label }) @{ <div><Item /><span>{label}</span></div> }`,
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><!><span>a</span></div>`');
+		expect(code).toContain('_$_.template(`<div><span> </span></div>`');
 		expect(code).not.toContain('_$_.append_into(');
+		// The client's `node` is the span itself; only hydration steps to it.
+		expect(code).toMatch(
+			/var node = _\$_\.hydrating \? _\$_\.hydrate_child\(\) : div\.firstChild;/,
+		);
+		expect(code).toContain('_$_.render_component(Item, node, {});');
+		expect(code).toMatch(/var span = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node;/);
+	});
+
+	it('chains sibling components onto the static element that follows them', () => {
+		const { code } = compile(
+			`function Item() @{ <b>item</b> }
+			function App({ label }) @{ <div><i>{label}</i><Item /><Item /><span>{label}</span></div> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.template(`<div><i> </i><span> </span></div>`');
+		expect(code).toMatch(
+			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : i\.nextSibling;/,
+		);
+		expect(code).toMatch(/var node_1 = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node;/);
+		expect(code).toMatch(/var span = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node_1;/);
+	});
+
+	it('inserts a template @if and @for before their static element sibling', () => {
+		const { code } = compile(
+			`function App({ show, items, label }) @{
+				<div>
+					@if (show) { <b>{'b'}</b> }
+					<span>{label}</span>
+					@for (const item of items) { <i>{item}</i> }
+					<em>{label}</em>
+				</div>
+			}`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.template(`<div><span> </span><em> </em></div>`');
+		expect(code).toContain('_$_.if(node, if_1, false, show);');
+		expect(code).toMatch(/_\$_\.for\(\s*node_1,/);
+		expect(code).toMatch(
+			/var node = _\$_\.hydrating \? _\$_\.hydrate_child\(\) : div\.firstChild;/,
+		);
+		expect(code).toMatch(/var span = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node;/);
+		expect(code).toMatch(
+			/var node_1 = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : span\.nextSibling;/,
+		);
+		expect(code).toMatch(/var em = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node_1;/);
+	});
+
+	it('lowers RippleArray statics to standalone runtime functions', () => {
+		const source = `import { RippleArray } from 'ripple';
+			function App() @{
+				const a = new RippleArray(1, 2);
+				const b = RippleArray.from([1]);
+				const c = RippleArray.of(1);
+				const d = RippleArray.fromAsync([1]);
+				<div>{a.length + b.length + c.length}</div>
+			}`;
+		const client = compile(source, 'App.tsrx', { mode: 'client' }).code;
+		expect(client).toContain('_$_.ripple_array(__block, 1, 2)');
+		expect(client).toContain('_$_.ripple_array_from(__block, [1])');
+		expect(client).toContain('_$_.ripple_array_of(__block, 1)');
+		expect(client).toContain('_$_.ripple_array_from_async(__block, [1])');
+		const server = compile(source, 'App.tsrx', { mode: 'server' }).code;
+		expect(server).toContain('_$_.ripple_array(1, 2)');
+		expect(server).toContain('_$_.ripple_array_from([1])');
+		expect(server).toContain('_$_.ripple_array_of(1)');
+		expect(server).toContain('_$_.ripple_array_from_async([1])');
+	});
+
+	it('keeps the placeholder for a component followed by text or a dynamic element', () => {
+		const text = compile(
+			`function Item() @{ <b>item</b> }
+			function App() @{ <div><Item />{'a'}</div> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		).code;
+		expect(text).toContain('_$_.template(`<div><!>a</div>`');
+		const dynamic = compile(
+			`function Item() @{ <b>item</b> }
+			function App({ tag }) @{ <div><Item /><{tag}>{'a'}</{tag}></div> }`,
+			'App.tsrx',
+			{ mode: 'client' },
+		).code;
+		expect(dynamic).toContain('<!>');
 	});
 
 	it('@for keyed by the item itself passes no key callback', () => {

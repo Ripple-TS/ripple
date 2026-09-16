@@ -24,7 +24,7 @@ export class RippleArray {
 	 * @returns {RippleArray<U>}
 	 */
 	static from(arrayLike, mapFn, thisArg) {
-		return ripple_array.from(safe_scope(), arrayLike, mapFn, thisArg);
+		return ripple_array_from(safe_scope(), arrayLike, mapFn, thisArg);
 	}
 
 	/**
@@ -33,7 +33,7 @@ export class RippleArray {
 	 * @returns {RippleArray<U>}
 	 */
 	static of(...items) {
-		return ripple_array.of(safe_scope(), ...items);
+		return ripple_array_of(safe_scope(), ...items);
 	}
 
 	/**
@@ -44,11 +44,14 @@ export class RippleArray {
 	 * @returns {Promise<RippleArray<U>>}
 	 */
 	static async fromAsync(arrayLike, mapFn, thisArg) {
-		return ripple_array.fromAsync(safe_scope(), arrayLike, mapFn, thisArg);
+		return ripple_array_from_async(safe_scope(), arrayLike, mapFn, thisArg);
 	}
 }
 
 /**
+ * The compiled form of `new RippleArray(...)`. Each static below is its own
+ * function so a bundle that never uses one drops it (and the proxy it would
+ * create) instead of keeping a function that carries them all.
  * @template T
  * @param {Block} block
  * @param {...T} elements
@@ -59,6 +62,7 @@ export function ripple_array(block, ...elements) {
 }
 
 /**
+ * `RippleArray.from(...)`
  * @template T
  * @param {Block} block
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
@@ -66,23 +70,25 @@ export function ripple_array(block, ...elements) {
  * @param {*} [thisArg]
  * @returns {RippleArray<T>}
  */
-ripple_array.from = function (block, arrayLike, mapFn, thisArg) {
+export function ripple_array_from(block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn ? Array.from(arrayLike, mapFn, thisArg) : Array.from(arrayLike);
 	return array_proxy({ elements, block, from_static: true });
-};
+}
 
 /**
+ * `RippleArray.of(...)`
  * @template T
  * @param {Block} block
  * @param {...T} items
  * @returns {RippleArray<T>}
  */
-ripple_array.of = function (block, ...items) {
+export function ripple_array_of(block, ...items) {
 	var elements = Array.of(...items);
 	return array_proxy({ elements, block, from_static: true });
-};
+}
 
 /**
+ * `RippleArray.fromAsync(...)`
  * @template T
  * @param {Block} block
  * @param {ArrayLike<T> | Iterable<T>} arrayLike
@@ -90,9 +96,9 @@ ripple_array.of = function (block, ...items) {
  * @param {any} [thisArg]
  * @returns {Promise<RippleArray<T>>}
  */
-ripple_array.fromAsync = async function (block, arrayLike, mapFn, thisArg) {
+export async function ripple_array_from_async(block, arrayLike, mapFn, thisArg) {
 	var elements = mapFn
 		? await Array.fromAsync(arrayLike, mapFn, thisArg)
 		: await Array.fromAsync(arrayLike);
 	return array_proxy({ elements, block, from_static: true });
-};
+}

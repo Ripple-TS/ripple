@@ -62,7 +62,7 @@ function ConditionalPortal_render(__anchor, __block) {
 ConditionalPortal[_$_.$r] = ConditionalPortal_render;
 
 var root_5 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
-var root_4 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
+var root_4 = _$_.template(`<div><div class="main-content">Main page content</div><div class="footer">Footer</div></div>`, 0);
 
 function PortalWithMainContent_render(__anchor, __block) {
 	var div_4 = root_4();

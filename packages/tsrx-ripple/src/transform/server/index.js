@@ -61,6 +61,7 @@ import {
 	strong_hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	get_ripple_namespace_static_call_name,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
 	adopt_raw_template_jsx,
@@ -1757,18 +1758,12 @@ const visitors = {
 		) {
 			const object = callee.object;
 			const property = callee.property;
-			const method_name = get_ripple_namespace_call_name(object.name);
+			const method_name = get_ripple_namespace_static_call_name(object.name, property.name);
 			if (method_name !== null) {
-				return b.member(
-					b.id('_$_'),
-					b.member(
-						b.id(method_name),
-						b.call(
-							b.id(property.name),
-							.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-								node.arguments.map((arg) => context.visit(arg))
-							),
-						),
+				return b.call(
+					b.member(b.id('_$_'), b.id(method_name)),
+					.../** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+						node.arguments.map((arg) => context.visit(arg))
 					),
 				);
 			}

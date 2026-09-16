@@ -45,7 +45,15 @@ const shapes = [
 ];
 
 // Single-root shapes whose children end on a slot the cursor must step past.
-const rootShapes = ['ExprThenSiblingInDiv', 'IfTwoInDiv', 'ForTwoNodeItems'];
+const rootShapes = [
+	'ExprThenSiblingInDiv',
+	'IfTwoInDiv',
+	'ForTwoNodeItems',
+	'CompThenStaticInDiv',
+	'SiblingCompsInDiv',
+	'IfSwapThenStaticInDiv',
+	'ForThenStaticInDiv',
+];
 
 /**
  * Server renders and hydrates a component, asserting the hydrated DOM matches
@@ -88,8 +96,32 @@ describe('hydration > fragment cursor', () => {
 			it(`hydrates ${name}`, async () => {
 				await hydrateShape(name);
 				clickInner();
+
+				const after = container.querySelector('.after');
+				const inc = container.querySelector('.outer-inc');
+				if (after && inc) {
+					expect(after.textContent).toBe('0');
+					inc.click();
+					flushSync();
+					expect(after.textContent).toBe('1');
+				}
 			});
 		}
+	});
+
+	it('swaps an @if branch before its static element sibling after hydration', async () => {
+		await hydrateShape('IfSwapThenStaticInDiv');
+		const outer = container.querySelector('.outer');
+		expect(outer?.querySelector('.even')).not.toBeNull();
+		container.querySelector('.outer-inc')?.click();
+		flushSync();
+		expect(outer?.querySelector('.even')).toBeNull();
+		expect(outer?.children[0]?.className).toBe('odd');
+		expect(outer?.children[1]?.className).toBe('after');
+		container.querySelector('.outer-inc')?.click();
+		flushSync();
+		expect(outer?.children[0]?.className).toBe('even');
+		expect(outer?.children[1]?.textContent).toBe('2');
 	});
 
 	describe('fragment as a child with trailing siblings', () => {

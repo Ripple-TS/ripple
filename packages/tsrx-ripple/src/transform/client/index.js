@@ -92,6 +92,7 @@ import {
 	strong_hash,
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
+	get_ripple_namespace_static_call_name,
 	is_ripple_import,
 	is_context_method_call,
 	is_boxed,
@@ -1862,9 +1863,14 @@ const visit_if_statement = (node, context) => {
 	}
 
 	const root_controlled = node.metadata?.root_controlled === true;
-	// A trailing if appends into the parent (`append_after`, see
-	// transform_children) and needs no placeholder either.
-	if (!root_controlled && node.metadata?.append_after === undefined) {
+	// A trailing if appends into the parent (`append_after`) and one before a
+	// static element sibling inserts before that element (`append_before`,
+	// both see transform_children): neither needs a placeholder.
+	if (
+		!root_controlled &&
+		node.metadata?.append_after === undefined &&
+		node.metadata?.append_before !== true
+	) {
 		context.state.template?.push('<!>');
 	}
 
@@ -2178,7 +2184,12 @@ const visit_for_of_statement = (node, context) => {
 	// A controlled list appends into its parent, a root-controlled one renders
 	// before the component's anchor, and a trailing one appends into the parent
 	// (`append_after`, see transform_children): none needs a placeholder.
-	if (!is_controlled && !root_controlled && node.metadata?.append_after === undefined) {
+	if (
+		!is_controlled &&
+		!root_controlled &&
+		node.metadata?.append_after === undefined &&
+		node.metadata?.append_before !== true
+	) {
 		context.state.template?.push('<!>');
 	}
 
@@ -3060,22 +3071,16 @@ const visitors = {
 		) {
 			const object = callee.object;
 			const property = callee.property;
-			const method_name = get_ripple_namespace_call_name(object.name);
+			const method_name = get_ripple_namespace_static_call_name(object.name, property.name);
 
 			if (!context.state.to_ts && method_name !== null) {
 				const requires_block = ripple_namespace_requires_block(object.name);
-				return b.member(
-					b.id('_$_'),
-					b.member(
-						b.id(method_name),
-						b.call(
-							b.id(property.name),
-							.../** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
-								...(requires_block ? [b.id('__block')] : []),
-								...node.arguments.map((arg) => context.visit(arg)),
-							]),
-						),
-					),
+				return b.call(
+					b.member(b.id('_$_'), b.id(method_name)),
+					.../** @type {(AST.Expression | AST.SpreadElement)[]} */ ([
+						...(requires_block ? [b.id('__block')] : []),
+						...node.arguments.map((arg) => context.visit(arg)),
+					]),
 				);
 			}
 		}
@@ -4154,7 +4159,12 @@ const visitors = {
 					? append_into
 					: state.flush_node?.();
 
-			if (!root_controlled && !append_into && node.metadata?.append_after === undefined) {
+			if (
+				!root_controlled &&
+				!append_into &&
+				node.metadata?.append_after === undefined &&
+				node.metadata?.append_before !== true
+			) {
 				state.template?.push('<!>');
 			}
 
@@ -6503,6 +6513,16 @@ function transform_children(children, context) {
 		);
 	};
 	/**
+	 * A static DOM element in the template: the anchor a preceding component
+	 * or control-flow sibling can insert before (see `append_before`).
+	 * @param {AST.Node} n
+	 */
+	const is_static_dom_element_child = (n) =>
+		is_template_element(n) &&
+		!is_dynamic_element(n) &&
+		is_element_dom_element(n) &&
+		get_element_id(n).type === 'Identifier';
+	/**
 	 * A template `@if`: one that renders (a plain `if` around setup code
 	 * lowers to JavaScript and holds no template position).
 	 * @param {AST.Node} n
@@ -6571,6 +6591,40 @@ function transform_children(children, context) {
 			const last = normalized[normalized.length - 1];
 			if (is_template_if_child(last)) {
 				last.metadata = { ...last.metadata, append_tail: true };
+			}
+		}
+	}
+
+	if (!root && !root_controlled && state.flush_node != null) {
+		// A static component, template `@if`, or template `@for` followed by a
+		// static DOM element sibling inserts before that element instead of
+		// before a `<!>` placeholder of its own (`append_before`): the element
+		// is part of the template and never moves, so it anchors the node for
+		// the node's whole life, and the template holds no comment for it. In
+		// the client the node's variable is that element, so each rendered
+		// node after it up to and including the element reuses the variable
+		// (`alias_prev`) instead of stepping to a sibling. Hydration keeps the
+		// sibling cursor: the placeholder never existed in the server output.
+		let anchor_ahead = false;
+		for (let i = normalized.length - 1; i >= 0; i--) {
+			const child = normalized[i];
+			if (!is_template_or_control_flow(child)) {
+				continue;
+			}
+			if (is_static_dom_element_child(child)) {
+				anchor_ahead = true;
+			} else if (
+				anchor_ahead &&
+				child.metadata?.append_into === undefined &&
+				child.metadata?.append_after === undefined &&
+				(is_static_component_child(child) ||
+					is_template_if_child(child) ||
+					is_template_for_child(child))
+			) {
+				child.metadata = { ...child.metadata, append_before: true };
+				normalized[i + 1].metadata = { ...normalized[i + 1].metadata, alias_prev: true };
+			} else {
+				anchor_ahead = false;
 			}
 		}
 	}
@@ -6701,7 +6755,21 @@ function transform_children(children, context) {
 				} else if (current_prev !== null) {
 					const id = get_id(node);
 					const append_after = node.metadata?.append_after;
-					if (append_after !== undefined) {
+					if (node.metadata?.alias_prev === true) {
+						// The previous sibling inserts before this node's element
+						// (`append_before`), so in the client its variable already
+						// is that element; only hydration steps to the sibling.
+						state.init?.push(
+							b.var(
+								id,
+								b.conditional(
+									b.member(b.id('_$_'), b.id('hydrating')),
+									b.call('_$_.hydrate_sibling', is_text && b.true),
+									current_prev(),
+								),
+							),
+						);
+					} else if (append_after !== undefined) {
 						// The earlier siblings are navigated for the hydration cursor;
 						// the client appends into the parent instead of inserting
 						// before a placeholder.

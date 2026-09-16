@@ -372,7 +372,7 @@ function IfElseFragment_render(__anchor, __block) {
 IfElseFragment[_$_.$r] = IfElseFragment_render;
 
 var root_25 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_24 = _$_.template(`<section><!><span class="after">after</span></section>`, 0);
+var root_24 = _$_.template(`<section><span class="after">after</span></section>`, 0);
 
 function consequent_7(__anchor, { hasLoaded, muzes }) {
 	var section = root_24();

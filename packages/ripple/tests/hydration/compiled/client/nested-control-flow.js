@@ -246,7 +246,7 @@ function if_3({ show, kind }) {
 	if (show) return consequent_2;
 }
 
-var root_8 = _$_.template(`<div class="if-switch-hidden"><!><p class="after">after</p></div>`, 0);
+var root_8 = _$_.template(`<div class="if-switch-hidden"><p class="after">after</p></div>`, 0);
 
 function IfSwitchHidden_render(__anchor, __block) {
 	const show = false;

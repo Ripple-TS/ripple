@@ -2676,6 +2676,21 @@ export function get_ripple_namespace_call_name(name) {
 }
 
 /**
+ * The runtime function a static method of a `ripple` import lowers to:
+ * `RippleArray.fromAsync(…)` calls `ripple_array_from_async(…)`. Each static
+ * is its own export so a bundle that never calls one drops it.
+ * @param {string} name the import's name
+ * @param {string} method the static method's name
+ * @returns {string | null}
+ */
+export function get_ripple_namespace_static_call_name(name, method) {
+	const call_name = get_ripple_namespace_call_name(name);
+	return call_name === null
+		? null
+		: `${call_name}_${method.replace(/[A-Z]/g, (letter) => '_' + letter.toLowerCase())}`;
+}
+
+/**
  * Returns true if the given import name requires a __block parameter
  * @param {string} name
  * @returns {boolean}

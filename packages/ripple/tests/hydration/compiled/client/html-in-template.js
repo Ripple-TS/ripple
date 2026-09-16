@@ -37,7 +37,7 @@ function if_1(show) {
 	if (show) return consequent;
 }
 
-var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 0);
+var root_2 = _$_.template(`<div><template id="before"></template><template id="after"></template></div>`, 0);
 
 function TemplateAroundIfBlock_render(__anchor, __block) {
 	const show = true;
@@ -52,7 +52,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 
 		_$_.if(node, if_1, false, show);
 
-		var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
+		var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node;
 
 		template_3.innerHTML = "after" ?? template_3.innerHTML;
 		_$_.hydrating && _$_.pop(div);

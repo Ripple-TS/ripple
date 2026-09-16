@@ -1397,3 +1397,109 @@ export function WrapStaticThenStyleThenStatic() {
 		});
 	});
 }
+
+export function CompThenStaticInDiv() {
+	return _$_.tsrx_element(() => {
+		const n = _$_.track(0, 'e3817aa5');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="outer">';
+
+			{
+				const comp = Leaf;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function SiblingCompsInDiv() {
+	return _$_.tsrx_element(() => {
+		const n = _$_.track(0, '5eb8c601');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="outer">';
+
+			{
+				const comp = Leaf;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			{
+				const comp = Leaf;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function IfSwapThenStaticInDiv() {
+	return _$_.tsrx_element(() => {
+		const n = _$_.track(0, '945438a7');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="outer"><!--[-->';
+
+			if (n.value % 2 === 0) {
+				__out += '<b class="even">even</b>';
+			} else {
+				__out += '<i class="odd">odd</i>';
+			}
+
+			__out += '<!--]--><span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function ForThenStaticInDiv() {
+	return _$_.tsrx_element(() => {
+		const n = _$_.track(0, 'f2e068ec');
+		const items = [1, 2];
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="outer"><!--[-->';
+
+			for (const item of items) {
+				__out += '<b class="item">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(item);
+				}
+
+				__out += '</b>';
+			}
+
+			__out += '<!--]--><span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}
