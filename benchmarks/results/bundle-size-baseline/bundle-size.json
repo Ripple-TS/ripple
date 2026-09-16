@@ -1863,289 +1863,289 @@
       "name": "ripple",
       "ops": {
         "js_raw": {
-          "score": 30995,
-          "median": 30995,
-          "min": 30995,
+          "score": 29171,
+          "median": 29171,
+          "min": 29171,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "js_gzip": {
-          "score": 11792,
-          "median": 11792,
-          "min": 11792,
+          "score": 11188,
+          "median": 11188,
+          "min": 11188,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "js_brotli": {
-          "score": 10590,
-          "median": 10590,
-          "min": 10590,
+          "score": 10066,
+          "median": 10066,
+          "min": 10066,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "app_raw": {
-          "score": 8154,
-          "median": 8154,
-          "min": 8154,
+          "score": 7522,
+          "median": 7522,
+          "min": 7522,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "app_gzip": {
-          "score": 2495,
-          "median": 2495,
-          "min": 2495,
+          "score": 2295,
+          "median": 2295,
+          "min": 2295,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "app_brotli": {
-          "score": 2152,
-          "median": 2152,
-          "min": 2152,
+          "score": 2029,
+          "median": 2029,
+          "min": 2029,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "fw_raw": {
-          "score": 22841,
-          "median": 22841,
-          "min": 22841,
+          "score": 21649,
+          "median": 21649,
+          "min": 21649,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "fw_gzip": {
-          "score": 9297,
-          "median": 9297,
-          "min": 9297,
+          "score": 8893,
+          "median": 8893,
+          "min": 8893,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "fw_brotli": {
-          "score": 8438,
-          "median": 8438,
-          "min": 8438,
+          "score": 8037,
+          "median": 8037,
+          "min": 8037,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_js_raw": {
-          "score": 29782,
-          "median": 29782,
-          "min": 29782,
+          "score": 28242,
+          "median": 28242,
+          "min": 28242,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_js_gzip": {
-          "score": 12105,
-          "median": 12105,
-          "min": 12105,
+          "score": 11506,
+          "median": 11506,
+          "min": 11506,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_js_brotli": {
-          "score": 10849,
-          "median": 10849,
-          "min": 10849,
+          "score": 10323,
+          "median": 10323,
+          "min": 10323,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_app_raw": {
-          "score": 4648,
-          "median": 4648,
-          "min": 4648,
+          "score": 4293,
+          "median": 4293,
+          "min": 4293,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_app_gzip": {
-          "score": 1989,
-          "median": 1989,
-          "min": 1989,
+          "score": 1838,
+          "median": 1838,
+          "min": 1838,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_app_brotli": {
-          "score": 1703,
-          "median": 1703,
-          "min": 1703,
+          "score": 1581,
+          "median": 1581,
+          "min": 1581,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_fw_raw": {
-          "score": 25134,
-          "median": 25134,
-          "min": 25134,
+          "score": 23949,
+          "median": 23949,
+          "min": 23949,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_fw_gzip": {
-          "score": 10116,
-          "median": 10116,
-          "min": 10116,
+          "score": 9668,
+          "median": 9668,
+          "min": 9668,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "todo_fw_brotli": {
-          "score": 9146,
-          "median": 9146,
-          "min": 9146,
+          "score": 8742,
+          "median": 8742,
+          "min": 8742,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_js_raw": {
-          "score": 30350,
-          "median": 30350,
-          "min": 30350,
+          "score": 28989,
+          "median": 28989,
+          "min": 28989,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_js_gzip": {
-          "score": 12562,
-          "median": 12562,
-          "min": 12562,
+          "score": 12045,
+          "median": 12045,
+          "min": 12045,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_js_brotli": {
-          "score": 11329,
-          "median": 11329,
-          "min": 11329,
+          "score": 10880,
+          "median": 10880,
+          "min": 10880,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_app_raw": {
-          "score": 5473,
-          "median": 5473,
-          "min": 5473,
+          "score": 5311,
+          "median": 5311,
+          "min": 5311,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_app_gzip": {
-          "score": 2519,
-          "median": 2519,
-          "min": 2519,
+          "score": 2428,
+          "median": 2428,
+          "min": 2428,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_app_brotli": {
-          "score": 2242,
-          "median": 2242,
-          "min": 2242,
+          "score": 2165,
+          "median": 2165,
+          "min": 2165,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_fw_raw": {
-          "score": 24877,
-          "median": 24877,
-          "min": 24877,
+          "score": 23678,
+          "median": 23678,
+          "min": 23678,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_fw_gzip": {
-          "score": 10043,
-          "median": 10043,
-          "min": 10043,
+          "score": 9617,
+          "median": 9617,
+          "min": 9617,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "chat_fw_brotli": {
-          "score": 9087,
-          "median": 9087,
-          "min": 9087,
+          "score": 8715,
+          "median": 8715,
+          "min": 8715,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_js_raw": {
-          "score": 45430,
-          "median": 45430,
-          "min": 45430,
+          "score": 43196,
+          "median": 43196,
+          "min": 43196,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_js_gzip": {
-          "score": 16884,
-          "median": 16884,
-          "min": 16884,
+          "score": 16039,
+          "median": 16039,
+          "min": 16039,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_js_brotli": {
-          "score": 14959,
-          "median": 14959,
-          "min": 14959,
+          "score": 14261,
+          "median": 14261,
+          "min": 14261,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_app_raw": {
-          "score": 20087,
-          "median": 20087,
-          "min": 20087,
+          "score": 19087,
+          "median": 19087,
+          "min": 19087,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_app_gzip": {
-          "score": 6738,
-          "median": 6738,
-          "min": 6738,
+          "score": 6365,
+          "median": 6365,
+          "min": 6365,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_app_brotli": {
-          "score": 5769,
-          "median": 5769,
-          "min": 5769,
+          "score": 5482,
+          "median": 5482,
+          "min": 5482,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_fw_raw": {
-          "score": 25343,
-          "median": 25343,
-          "min": 25343,
+          "score": 24109,
+          "median": 24109,
+          "min": 24109,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_fw_gzip": {
-          "score": 10146,
-          "median": 10146,
-          "min": 10146,
+          "score": 9674,
+          "median": 9674,
+          "min": 9674,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
         },
         "weather_fw_brotli": {
-          "score": 9190,
-          "median": 9190,
-          "min": 9190,
+          "score": 8779,
+          "median": 8779,
+          "min": 8779,
           "samples": 1,
           "unit": "bytes",
           "direction": "lower"
@@ -2154,51 +2154,51 @@
       "meta": {
         "files": [
           {
-            "file": "assets/framework-LbcAwMeG.js",
+            "file": "assets/framework-BMpx9NtC.js",
             "bucket": "fw",
-            "bytes": 22841,
+            "bytes": 21649,
             "set": "js"
           },
           {
-            "file": "assets/index-DOr10kgW.js",
+            "file": "assets/index-00PJGVjM.js",
             "bucket": "app",
-            "bytes": 8154,
+            "bytes": 7522,
             "set": "js"
           },
           {
-            "file": "assets/framework-BxLcK-rr.js",
+            "file": "assets/framework-D5v-qbcU.js",
             "bucket": "fw",
-            "bytes": 25134,
+            "bytes": 23949,
             "set": "todo_"
           },
           {
-            "file": "assets/index-Cz2YNVlW.js",
+            "file": "assets/index-B933_C0Z.js",
             "bucket": "app",
-            "bytes": 4648,
+            "bytes": 4293,
             "set": "todo_"
           },
           {
-            "file": "assets/framework-DARLeNyc.js",
+            "file": "assets/framework-wW1lRBWo.js",
             "bucket": "fw",
-            "bytes": 24877,
+            "bytes": 23678,
             "set": "chat_"
           },
           {
-            "file": "assets/index-CudD4iz6.js",
+            "file": "assets/index-De5t7Eo2.js",
             "bucket": "app",
-            "bytes": 5473,
+            "bytes": 5311,
             "set": "chat_"
           },
           {
-            "file": "assets/framework-C4GhAVHA.js",
+            "file": "assets/framework-C_vQUkvj.js",
             "bucket": "fw",
-            "bytes": 25343,
+            "bytes": 24109,
             "set": "weather_"
           },
           {
-            "file": "assets/index-B2p7piFT.js",
+            "file": "assets/index-CC8cSG46.js",
             "bucket": "app",
-            "bytes": 20087,
+            "bytes": 19087,
             "set": "weather_"
           }
         ],
@@ -2925,7 +2925,7 @@
     }
   ],
   "meta": {
-    "startedAt": "2026-09-16T22:40:30.263Z",
+    "startedAt": "2026-09-16T23:16:52.521Z",
     "packageVersions": {
       "ripple": "0.4.2",
       "@ripple-ts/vite-plugin": "0.4.2",
@@ -2944,7 +2944,7 @@
       "vite": "8.1.5",
       "babel-plugin-react-compiler": "1.0.0"
     },
-    "revision": "4c5f3539429241abca31cb4cbb4b65f2a1670c37",
+    "revision": "2d9bfdb74b53eef429bf3cd55cf43eabce69d687",
     "dirty": false,
     "node": "v24.18.0",
     "pnpm": "11.15.1",
@@ -2953,10 +2953,10 @@
     "arch": "x64",
     "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
     "lockfileSha256": "d8a6f54b31db111b3205572f828294eefbafded36d68caa8f044387a8421b29c",
-    "workloadSha256": "ce784106b1a720260e72303f5ab33f72bf82e42261dc89f13c1d99ae32e3959e",
+    "workloadSha256": "278a9cbbb954dbd1adfb60cc5319e6fb445cb3b51e5a4c2f1ca3360bae9dca51",
     "runnerSha256": "5ec47ed499889193f25a9f92a75f0d2c08591c9a936c9e57a3b1d451591f27e9",
     "metadataVersion": 2,
-    "rippleSourceSha256": "2c803fd6cc2e2a3f0426456f740cdf2d18869e7339bc2d5986f2b18d369ed977",
+    "rippleSourceSha256": "ba6ea3d9c4f9cba6cf6636d174d7e52ff39d1ecf36e32c07ff81730bb539dacc",
     "quick": false,
     "cpuThrottle": 1,
     "buildMode": "normalized-esbuild",

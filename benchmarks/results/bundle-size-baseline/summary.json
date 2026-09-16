@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "startedAt": "2026-09-16T22:40:30.263Z",
+    "startedAt": "2026-09-16T23:16:52.521Z",
     "packageVersions": {
       "ripple": "0.4.2",
       "@ripple-ts/vite-plugin": "0.4.2",
@@ -19,7 +19,7 @@
       "vite": "8.1.5",
       "babel-plugin-react-compiler": "1.0.0"
     },
-    "revision": "4c5f3539429241abca31cb4cbb4b65f2a1670c37",
+    "revision": "2d9bfdb74b53eef429bf3cd55cf43eabce69d687",
     "dirty": false,
     "node": "v24.18.0",
     "pnpm": "11.15.1",
@@ -28,10 +28,10 @@
     "arch": "x64",
     "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
     "lockfileSha256": "d8a6f54b31db111b3205572f828294eefbafded36d68caa8f044387a8421b29c",
-    "workloadSha256": "ce784106b1a720260e72303f5ab33f72bf82e42261dc89f13c1d99ae32e3959e",
+    "workloadSha256": "278a9cbbb954dbd1adfb60cc5319e6fb445cb3b51e5a4c2f1ca3360bae9dca51",
     "runnerSha256": "5ec47ed499889193f25a9f92a75f0d2c08591c9a936c9e57a3b1d451591f27e9",
     "metadataVersion": 2,
-    "rippleSourceSha256": "2c803fd6cc2e2a3f0426456f740cdf2d18869e7339bc2d5986f2b18d369ed977",
+    "rippleSourceSha256": "ba6ea3d9c4f9cba6cf6636d174d7e52ff39d1ecf36e32c07ff81730bb539dacc",
     "quick": false,
     "cpuThrottle": 1,
     "buildMode": "upstream-production",

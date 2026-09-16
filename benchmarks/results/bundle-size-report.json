@@ -1,0 +1,3232 @@
+{
+  "metadata": {
+    "startedAt": "2026-09-16T23:16:52.521Z",
+    "packageVersions": {
+      "ripple": "0.4.2",
+      "@ripple-ts/vite-plugin": "0.4.2",
+      "@tsrx/ripple": "0.2.1",
+      "octane": "0.2.6",
+      "solid-js": "2.0.0-rc.7",
+      "@solidjs/web": "2.0.0-rc.7",
+      "vite-plugin-solid": "3.0.0-next.26",
+      "vue": "3.6.0-rc.1",
+      "@vue/runtime-vapor": "3.6.0-rc.1",
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "preact": "10.29.8",
+      "svelte": "5.56.7",
+      "inferno": "9.1.0",
+      "vite": "8.1.5",
+      "babel-plugin-react-compiler": "1.0.0"
+    },
+    "revision": "2d9bfdb74b53eef429bf3cd55cf43eabce69d687",
+    "dirty": false,
+    "node": "v24.18.0",
+    "pnpm": "11.15.1",
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+    "lockfileSha256": "d8a6f54b31db111b3205572f828294eefbafded36d68caa8f044387a8421b29c",
+    "workloadSha256": "278a9cbbb954dbd1adfb60cc5319e6fb445cb3b51e5a4c2f1ca3360bae9dca51",
+    "runnerSha256": "5ec47ed499889193f25a9f92a75f0d2c08591c9a936c9e57a3b1d451591f27e9",
+    "metadataVersion": 2,
+    "rippleSourceSha256": "ba6ea3d9c4f9cba6cf6636d174d7e52ff39d1ecf36e32c07ff81730bb539dacc",
+    "quick": false,
+    "cpuThrottle": 1,
+    "buildMode": "upstream-production",
+    "playwright": "1.63.0",
+    "chromium": {
+      "name": "chromium",
+      "revision": "1243",
+      "installByDefault": true,
+      "browserVersion": "153.0.8010.12",
+      "title": "Chrome for Testing"
+    },
+    "browserExecutable": "/Users/leonid/Library/Caches/ms-playwright/chromium-1243/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  },
+  "directories": [
+    "benchmarks/results/bundle-size-baseline",
+    "benchmarks/results/bundle-size-baseline",
+    "benchmarks/results/bundle-size-baseline"
+  ],
+  "rows": [
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "js_raw",
+      "unit": "bytes",
+      "score": 29171,
+      "minScore": 29171,
+      "maxScore": 29171,
+      "p95": 29171,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 25247,
+          "scores": [
+            25247,
+            25247,
+            25247
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 28120,
+          "scores": [
+            28120,
+            28120,
+            28120
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 41686,
+          "scores": [
+            41686,
+            41686,
+            41686
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 46458,
+          "scores": [
+            46458,
+            46458,
+            46458
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 64225,
+          "scores": [
+            64225,
+            64225,
+            64225
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 89600,
+          "scores": [
+            89600,
+            89600,
+            89600
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 177089,
+          "scores": [
+            177089,
+            177089,
+            177089
+          ]
+        },
+        {
+          "name": "react",
+          "score": 200184,
+          "scores": [
+            200184,
+            200184,
+            200184
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 25247,
+        "scores": [
+          25247,
+          25247,
+          25247
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "js_gzip",
+      "unit": "bytes",
+      "score": 11188,
+      "minScore": 11188,
+      "maxScore": 11188,
+      "p95": 11188,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 9990,
+          "scores": [
+            9990,
+            9990,
+            9990
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 10507,
+          "scores": [
+            10507,
+            10507,
+            10507
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 15683,
+          "scores": [
+            15683,
+            15683,
+            15683
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 18325,
+          "scores": [
+            18325,
+            18325,
+            18325
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 24059,
+          "scores": [
+            24059,
+            24059,
+            24059
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 30145,
+          "scores": [
+            30145,
+            30145,
+            30145
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 56973,
+          "scores": [
+            56973,
+            56973,
+            56973
+          ]
+        },
+        {
+          "name": "react",
+          "score": 63308,
+          "scores": [
+            63308,
+            63308,
+            63308
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 9990,
+        "scores": [
+          9990,
+          9990,
+          9990
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "js_brotli",
+      "unit": "bytes",
+      "score": 10066,
+      "minScore": 10066,
+      "maxScore": 10066,
+      "p95": 10066,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 9056,
+          "scores": [
+            9056,
+            9056,
+            9056
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 9537,
+          "scores": [
+            9537,
+            9537,
+            9537
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 14184,
+          "scores": [
+            14184,
+            14184,
+            14184
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 16611,
+          "scores": [
+            16611,
+            16611,
+            16611
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 21825,
+          "scores": [
+            21825,
+            21825,
+            21825
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 26898,
+          "scores": [
+            26898,
+            26898,
+            26898
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 49772,
+          "scores": [
+            49772,
+            49772,
+            49772
+          ]
+        },
+        {
+          "name": "react",
+          "score": 54477,
+          "scores": [
+            54477,
+            54477,
+            54477
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 9056,
+        "scores": [
+          9056,
+          9056,
+          9056
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "app_raw",
+      "unit": "bytes",
+      "score": 7522,
+      "minScore": 7522,
+      "maxScore": 7522,
+      "p95": 7522,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "svelte",
+          "score": 5149,
+          "scores": [
+            5149,
+            5149,
+            5149
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 5282,
+          "scores": [
+            5282,
+            5282,
+            5282
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 5307,
+          "scores": [
+            5307,
+            5307,
+            5307
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 6375,
+          "scores": [
+            6375,
+            6375,
+            6375
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 6573,
+          "scores": [
+            6573,
+            6573,
+            6573
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 7114,
+          "scores": [
+            7114,
+            7114,
+            7114
+          ]
+        },
+        {
+          "name": "react",
+          "score": 8372,
+          "scores": [
+            8372,
+            8372,
+            8372
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 8454,
+          "scores": [
+            8454,
+            8454,
+            8454
+          ]
+        }
+      ],
+      "best": {
+        "name": "svelte",
+        "score": 5149,
+        "scores": [
+          5149,
+          5149,
+          5149
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "app_gzip",
+      "unit": "bytes",
+      "score": 2295,
+      "minScore": 2295,
+      "maxScore": 2295,
+      "p95": 2295,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "solid",
+          "score": 1990,
+          "scores": [
+            1990,
+            1990,
+            1990
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 2005,
+          "scores": [
+            2005,
+            2005,
+            2005
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 2049,
+          "scores": [
+            2049,
+            2049,
+            2049
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 2088,
+          "scores": [
+            2088,
+            2088,
+            2088
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 2300,
+          "scores": [
+            2300,
+            2300,
+            2300
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 2410,
+          "scores": [
+            2410,
+            2410,
+            2410
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 2960,
+          "scores": [
+            2960,
+            2960,
+            2960
+          ]
+        },
+        {
+          "name": "react",
+          "score": 3214,
+          "scores": [
+            3214,
+            3214,
+            3214
+          ]
+        }
+      ],
+      "best": {
+        "name": "solid",
+        "score": 1990,
+        "scores": [
+          1990,
+          1990,
+          1990
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "app_brotli",
+      "unit": "bytes",
+      "score": 2029,
+      "minScore": 2029,
+      "maxScore": 2029,
+      "p95": 2029,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "solid",
+          "score": 1763,
+          "scores": [
+            1763,
+            1763,
+            1763
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 1783,
+          "scores": [
+            1783,
+            1783,
+            1783
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 1843,
+          "scores": [
+            1843,
+            1843,
+            1843
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 1876,
+          "scores": [
+            1876,
+            1876,
+            1876
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 1987,
+          "scores": [
+            1987,
+            1987,
+            1987
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 2121,
+          "scores": [
+            2121,
+            2121,
+            2121
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 2518,
+          "scores": [
+            2518,
+            2518,
+            2518
+          ]
+        },
+        {
+          "name": "react",
+          "score": 2723,
+          "scores": [
+            2723,
+            2723,
+            2723
+          ]
+        }
+      ],
+      "best": {
+        "name": "solid",
+        "score": 1763,
+        "scores": [
+          1763,
+          1763,
+          1763
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "fw_raw",
+      "unit": "bytes",
+      "score": 21649,
+      "minScore": 21649,
+      "maxScore": 21649,
+      "p95": 21649,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 19940,
+          "scores": [
+            19940,
+            19940,
+            19940
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 22838,
+          "scores": [
+            22838,
+            22838,
+            22838
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 35311,
+          "scores": [
+            35311,
+            35311,
+            35311
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 41309,
+          "scores": [
+            41309,
+            41309,
+            41309
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 57652,
+          "scores": [
+            57652,
+            57652,
+            57652
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 82486,
+          "scores": [
+            82486,
+            82486,
+            82486
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 168635,
+          "scores": [
+            168635,
+            168635,
+            168635
+          ]
+        },
+        {
+          "name": "react",
+          "score": 191812,
+          "scores": [
+            191812,
+            191812,
+            191812
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 19940,
+        "scores": [
+          19940,
+          19940,
+          19940
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "fw_gzip",
+      "unit": "bytes",
+      "score": 8893,
+      "minScore": 8893,
+      "maxScore": 8893,
+      "p95": 8893,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 7985,
+          "scores": [
+            7985,
+            7985,
+            7985
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 8458,
+          "scores": [
+            8458,
+            8458,
+            8458
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 13693,
+          "scores": [
+            13693,
+            13693,
+            13693
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 16025,
+          "scores": [
+            16025,
+            16025,
+            16025
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 21971,
+          "scores": [
+            21971,
+            21971,
+            21971
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 27735,
+          "scores": [
+            27735,
+            27735,
+            27735
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 54013,
+          "scores": [
+            54013,
+            54013,
+            54013
+          ]
+        },
+        {
+          "name": "react",
+          "score": 60094,
+          "scores": [
+            60094,
+            60094,
+            60094
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 7985,
+        "scores": [
+          7985,
+          7985,
+          7985
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "fw_brotli",
+      "unit": "bytes",
+      "score": 8037,
+      "minScore": 8037,
+      "maxScore": 8037,
+      "p95": 8037,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 7273,
+          "scores": [
+            7273,
+            7273,
+            7273
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 7694,
+          "scores": [
+            7694,
+            7694,
+            7694
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 12421,
+          "scores": [
+            12421,
+            12421,
+            12421
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 14624,
+          "scores": [
+            14624,
+            14624,
+            14624
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 19949,
+          "scores": [
+            19949,
+            19949,
+            19949
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 24777,
+          "scores": [
+            24777,
+            24777,
+            24777
+          ]
+        },
+        {
+          "name": "octane-jsx",
+          "score": 47254,
+          "scores": [
+            47254,
+            47254,
+            47254
+          ]
+        },
+        {
+          "name": "react",
+          "score": 51754,
+          "scores": [
+            51754,
+            51754,
+            51754
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 7273,
+        "scores": [
+          7273,
+          7273,
+          7273
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_js_raw",
+      "unit": "bytes",
+      "score": 28242,
+      "minScore": 28242,
+      "maxScore": 28242,
+      "p95": 28242,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 16244,
+          "scores": [
+            16244,
+            16244,
+            16244
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 25593,
+          "scores": [
+            25593,
+            25593,
+            25593
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 38656,
+          "scores": [
+            38656,
+            38656,
+            38656
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 47580,
+          "scores": [
+            47580,
+            47580,
+            47580
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 63831,
+          "scores": [
+            63831,
+            63831,
+            63831
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 95412,
+          "scores": [
+            95412,
+            95412,
+            95412
+          ]
+        },
+        {
+          "name": "react",
+          "score": 196040,
+          "scores": [
+            196040,
+            196040,
+            196040
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 16244,
+        "scores": [
+          16244,
+          16244,
+          16244
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_js_gzip",
+      "unit": "bytes",
+      "score": 11506,
+      "minScore": 11506,
+      "maxScore": 11506,
+      "p95": 11506,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 6841,
+          "scores": [
+            6841,
+            6841,
+            6841
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 9567,
+          "scores": [
+            9567,
+            9567,
+            9567
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 15141,
+          "scores": [
+            15141,
+            15141,
+            15141
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 18530,
+          "scores": [
+            18530,
+            18530,
+            18530
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 24408,
+          "scores": [
+            24408,
+            24408,
+            24408
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 32413,
+          "scores": [
+            32413,
+            32413,
+            32413
+          ]
+        },
+        {
+          "name": "react",
+          "score": 61662,
+          "scores": [
+            61662,
+            61662,
+            61662
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 6841,
+        "scores": [
+          6841,
+          6841,
+          6841
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_js_brotli",
+      "unit": "bytes",
+      "score": 10323,
+      "minScore": 10323,
+      "maxScore": 10323,
+      "p95": 10323,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 6180,
+          "scores": [
+            6180,
+            6180,
+            6180
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 8689,
+          "scores": [
+            8689,
+            8689,
+            8689
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 13668,
+          "scores": [
+            13668,
+            13668,
+            13668
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 16790,
+          "scores": [
+            16790,
+            16790,
+            16790
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 22089,
+          "scores": [
+            22089,
+            22089,
+            22089
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 28791,
+          "scores": [
+            28791,
+            28791,
+            28791
+          ]
+        },
+        {
+          "name": "react",
+          "score": 53170,
+          "scores": [
+            53170,
+            53170,
+            53170
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 6180,
+        "scores": [
+          6180,
+          6180,
+          6180
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_app_raw",
+      "unit": "bytes",
+      "score": 4293,
+      "minScore": 4293,
+      "maxScore": 4293,
+      "p95": 4293,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 2156,
+          "scores": [
+            2156,
+            2156,
+            2156
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 2747,
+          "scores": [
+            2747,
+            2747,
+            2747
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 2969,
+          "scores": [
+            2969,
+            2969,
+            2969
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 3088,
+          "scores": [
+            3088,
+            3088,
+            3088
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 3330,
+          "scores": [
+            3330,
+            3330,
+            3330
+          ]
+        },
+        {
+          "name": "react",
+          "score": 4173,
+          "scores": [
+            4173,
+            4173,
+            4173
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 4666,
+          "scores": [
+            4666,
+            4666,
+            4666
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 2156,
+        "scores": [
+          2156,
+          2156,
+          2156
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_app_gzip",
+      "unit": "bytes",
+      "score": 1838,
+      "minScore": 1838,
+      "maxScore": 1838,
+      "p95": 1838,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 991,
+          "scores": [
+            991,
+            991,
+            991
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 1104,
+          "scores": [
+            1104,
+            1104,
+            1104
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 1295,
+          "scores": [
+            1295,
+            1295,
+            1295
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 1355,
+          "scores": [
+            1355,
+            1355,
+            1355
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 1511,
+          "scores": [
+            1511,
+            1511,
+            1511
+          ]
+        },
+        {
+          "name": "react",
+          "score": 1555,
+          "scores": [
+            1555,
+            1555,
+            1555
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 2251,
+          "scores": [
+            2251,
+            2251,
+            2251
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 991,
+        "scores": [
+          991,
+          991,
+          991
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_app_brotli",
+      "unit": "bytes",
+      "score": 1581,
+      "minScore": 1581,
+      "maxScore": 1581,
+      "p95": 1581,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 868,
+          "scores": [
+            868,
+            868,
+            868
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 969,
+          "scores": [
+            969,
+            969,
+            969
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 1117,
+          "scores": [
+            1117,
+            1117,
+            1117
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 1197,
+          "scores": [
+            1197,
+            1197,
+            1197
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 1289,
+          "scores": [
+            1289,
+            1289,
+            1289
+          ]
+        },
+        {
+          "name": "react",
+          "score": 1355,
+          "scores": [
+            1355,
+            1355,
+            1355
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 1956,
+          "scores": [
+            1956,
+            1956,
+            1956
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 868,
+        "scores": [
+          868,
+          868,
+          868
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_fw_raw",
+      "unit": "bytes",
+      "score": 23949,
+      "minScore": 23949,
+      "maxScore": 23949,
+      "p95": 23949,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 14088,
+          "scores": [
+            14088,
+            14088,
+            14088
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 22846,
+          "scores": [
+            22846,
+            22846,
+            22846
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 35687,
+          "scores": [
+            35687,
+            35687,
+            35687
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 44250,
+          "scores": [
+            44250,
+            44250,
+            44250
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 60743,
+          "scores": [
+            60743,
+            60743,
+            60743
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 90746,
+          "scores": [
+            90746,
+            90746,
+            90746
+          ]
+        },
+        {
+          "name": "react",
+          "score": 191867,
+          "scores": [
+            191867,
+            191867,
+            191867
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 14088,
+        "scores": [
+          14088,
+          14088,
+          14088
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_fw_gzip",
+      "unit": "bytes",
+      "score": 9668,
+      "minScore": 9668,
+      "maxScore": 9668,
+      "p95": 9668,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5850,
+          "scores": [
+            5850,
+            5850,
+            5850
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 8463,
+          "scores": [
+            8463,
+            8463,
+            8463
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 13846,
+          "scores": [
+            13846,
+            13846,
+            13846
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 17019,
+          "scores": [
+            17019,
+            17019,
+            17019
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 23053,
+          "scores": [
+            23053,
+            23053,
+            23053
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 30162,
+          "scores": [
+            30162,
+            30162,
+            30162
+          ]
+        },
+        {
+          "name": "react",
+          "score": 60107,
+          "scores": [
+            60107,
+            60107,
+            60107
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5850,
+        "scores": [
+          5850,
+          5850,
+          5850
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "todo_fw_brotli",
+      "unit": "bytes",
+      "score": 8742,
+      "minScore": 8742,
+      "maxScore": 8742,
+      "p95": 8742,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5312,
+          "scores": [
+            5312,
+            5312,
+            5312
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 7720,
+          "scores": [
+            7720,
+            7720,
+            7720
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 12551,
+          "scores": [
+            12551,
+            12551,
+            12551
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 15501,
+          "scores": [
+            15501,
+            15501,
+            15501
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 20892,
+          "scores": [
+            20892,
+            20892,
+            20892
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 26835,
+          "scores": [
+            26835,
+            26835,
+            26835
+          ]
+        },
+        {
+          "name": "react",
+          "score": 51815,
+          "scores": [
+            51815,
+            51815,
+            51815
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5312,
+        "scores": [
+          5312,
+          5312,
+          5312
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_js_raw",
+      "unit": "bytes",
+      "score": 28989,
+      "minScore": 28989,
+      "maxScore": 28989,
+      "p95": 28989,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 17744,
+          "scores": [
+            17744,
+            17744,
+            17744
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 27012,
+          "scores": [
+            27012,
+            27012,
+            27012
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 40486,
+          "scores": [
+            40486,
+            40486,
+            40486
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 48610,
+          "scores": [
+            48610,
+            48610,
+            48610
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 67320,
+          "scores": [
+            67320,
+            67320,
+            67320
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 94561,
+          "scores": [
+            94561,
+            94561,
+            94561
+          ]
+        },
+        {
+          "name": "react",
+          "score": 196970,
+          "scores": [
+            196970,
+            196970,
+            196970
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 17744,
+        "scores": [
+          17744,
+          17744,
+          17744
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_js_gzip",
+      "unit": "bytes",
+      "score": 12045,
+      "minScore": 12045,
+      "maxScore": 12045,
+      "p95": 12045,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 7607,
+          "scores": [
+            7607,
+            7607,
+            7607
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 10388,
+          "scores": [
+            10388,
+            10388,
+            10388
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 16098,
+          "scores": [
+            16098,
+            16098,
+            16098
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 19164,
+          "scores": [
+            19164,
+            19164,
+            19164
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 25988,
+          "scores": [
+            25988,
+            25988,
+            25988
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 32202,
+          "scores": [
+            32202,
+            32202,
+            32202
+          ]
+        },
+        {
+          "name": "react",
+          "score": 62475,
+          "scores": [
+            62475,
+            62475,
+            62475
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 7607,
+        "scores": [
+          7607,
+          7607,
+          7607
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_js_brotli",
+      "unit": "bytes",
+      "score": 10880,
+      "minScore": 10880,
+      "maxScore": 10880,
+      "p95": 10880,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 6886,
+          "scores": [
+            6886,
+            6886,
+            6886
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 9443,
+          "scores": [
+            9443,
+            9443,
+            9443
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 14580,
+          "scores": [
+            14580,
+            14580,
+            14580
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 17386,
+          "scores": [
+            17386,
+            17386,
+            17386
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 23565,
+          "scores": [
+            23565,
+            23565,
+            23565
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 28671,
+          "scores": [
+            28671,
+            28671,
+            28671
+          ]
+        },
+        {
+          "name": "react",
+          "score": 53896,
+          "scores": [
+            53896,
+            53896,
+            53896
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 6886,
+        "scores": [
+          6886,
+          6886,
+          6886
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_app_raw",
+      "unit": "bytes",
+      "score": 5311,
+      "minScore": 5311,
+      "maxScore": 5311,
+      "p95": 5311,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 3898,
+          "scores": [
+            3898,
+            3898,
+            3898
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 4166,
+          "scores": [
+            4166,
+            4166,
+            4166
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 4375,
+          "scores": [
+            4375,
+            4375,
+            4375
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 4573,
+          "scores": [
+            4573,
+            4573,
+            4573
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 4717,
+          "scores": [
+            4717,
+            4717,
+            4717
+          ]
+        },
+        {
+          "name": "react",
+          "score": 5158,
+          "scores": [
+            5158,
+            5158,
+            5158
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 5972,
+          "scores": [
+            5972,
+            5972,
+            5972
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 3898,
+        "scores": [
+          3898,
+          3898,
+          3898
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_app_gzip",
+      "unit": "bytes",
+      "score": 2428,
+      "minScore": 2428,
+      "maxScore": 2428,
+      "p95": 2428,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 1846,
+          "scores": [
+            1846,
+            1846,
+            1846
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 1926,
+          "scores": [
+            1926,
+            1926,
+            1926
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 2102,
+          "scores": [
+            2102,
+            2102,
+            2102
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 2156,
+          "scores": [
+            2156,
+            2156,
+            2156
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 2279,
+          "scores": [
+            2279,
+            2279,
+            2279
+          ]
+        },
+        {
+          "name": "react",
+          "score": 2381,
+          "scores": [
+            2381,
+            2381,
+            2381
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 2768,
+          "scores": [
+            2768,
+            2768,
+            2768
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 1846,
+        "scores": [
+          1846,
+          1846,
+          1846
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_app_brotli",
+      "unit": "bytes",
+      "score": 2165,
+      "minScore": 2165,
+      "maxScore": 2165,
+      "p95": 2165,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 1645,
+          "scores": [
+            1645,
+            1645,
+            1645
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 1726,
+          "scores": [
+            1726,
+            1726,
+            1726
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 1873,
+          "scores": [
+            1873,
+            1873,
+            1873
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 1946,
+          "scores": [
+            1946,
+            1946,
+            1946
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 2039,
+          "scores": [
+            2039,
+            2039,
+            2039
+          ]
+        },
+        {
+          "name": "react",
+          "score": 2142,
+          "scores": [
+            2142,
+            2142,
+            2142
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 2442,
+          "scores": [
+            2442,
+            2442,
+            2442
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 1645,
+        "scores": [
+          1645,
+          1645,
+          1645
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_fw_raw",
+      "unit": "bytes",
+      "score": 23678,
+      "minScore": 23678,
+      "maxScore": 23678,
+      "p95": 23678,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 13846,
+          "scores": [
+            13846,
+            13846,
+            13846
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 22846,
+          "scores": [
+            22846,
+            22846,
+            22846
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 36111,
+          "scores": [
+            36111,
+            36111,
+            36111
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 43893,
+          "scores": [
+            43893,
+            43893,
+            43893
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 62747,
+          "scores": [
+            62747,
+            62747,
+            62747
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 88589,
+          "scores": [
+            88589,
+            88589,
+            88589
+          ]
+        },
+        {
+          "name": "react",
+          "score": 191812,
+          "scores": [
+            191812,
+            191812,
+            191812
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 13846,
+        "scores": [
+          13846,
+          13846,
+          13846
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_fw_gzip",
+      "unit": "bytes",
+      "score": 9617,
+      "minScore": 9617,
+      "maxScore": 9617,
+      "p95": 9617,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5761,
+          "scores": [
+            5761,
+            5761,
+            5761
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 8462,
+          "scores": [
+            8462,
+            8462,
+            8462
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 13996,
+          "scores": [
+            13996,
+            13996,
+            13996
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 16885,
+          "scores": [
+            16885,
+            16885,
+            16885
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 23832,
+          "scores": [
+            23832,
+            23832,
+            23832
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 29434,
+          "scores": [
+            29434,
+            29434,
+            29434
+          ]
+        },
+        {
+          "name": "react",
+          "score": 60094,
+          "scores": [
+            60094,
+            60094,
+            60094
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5761,
+        "scores": [
+          5761,
+          5761,
+          5761
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "chat_fw_brotli",
+      "unit": "bytes",
+      "score": 8715,
+      "minScore": 8715,
+      "maxScore": 8715,
+      "p95": 8715,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5241,
+          "scores": [
+            5241,
+            5241,
+            5241
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 7717,
+          "scores": [
+            7717,
+            7717,
+            7717
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 12707,
+          "scores": [
+            12707,
+            12707,
+            12707
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 15347,
+          "scores": [
+            15347,
+            15347,
+            15347
+          ]
+        },
+        {
+          "name": "vue-vapor",
+          "score": 21619,
+          "scores": [
+            21619,
+            21619,
+            21619
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 26229,
+          "scores": [
+            26229,
+            26229,
+            26229
+          ]
+        },
+        {
+          "name": "react",
+          "score": 51754,
+          "scores": [
+            51754,
+            51754,
+            51754
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5241,
+        "scores": [
+          5241,
+          5241,
+          5241
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_js_raw",
+      "unit": "bytes",
+      "score": 43196,
+      "minScore": 43196,
+      "maxScore": 43196,
+      "p95": 43196,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 29422,
+          "scores": [
+            29422,
+            29422,
+            29422
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 36530,
+          "scores": [
+            36530,
+            36530,
+            36530
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 53246,
+          "scores": [
+            53246,
+            53246,
+            53246
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 65329,
+          "scores": [
+            65329,
+            65329,
+            65329
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 83910,
+          "scores": [
+            83910,
+            83910,
+            83910
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 132683,
+          "scores": [
+            132683,
+            132683,
+            132683
+          ]
+        },
+        {
+          "name": "react",
+          "score": 215975,
+          "scores": [
+            215975,
+            215975,
+            215975
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 29422,
+        "scores": [
+          29422,
+          29422,
+          29422
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_js_gzip",
+      "unit": "bytes",
+      "score": 16039,
+      "minScore": 16039,
+      "maxScore": 16039,
+      "p95": 16039,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 10641,
+          "scores": [
+            10641,
+            10641,
+            10641
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 12942,
+          "scores": [
+            12942,
+            12942,
+            12942
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 19470,
+          "scores": [
+            19470,
+            19470,
+            19470
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 24317,
+          "scores": [
+            24317,
+            24317,
+            24317
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 32107,
+          "scores": [
+            32107,
+            32107,
+            32107
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 44293,
+          "scores": [
+            44293,
+            44293,
+            44293
+          ]
+        },
+        {
+          "name": "react",
+          "score": 68143,
+          "scores": [
+            68143,
+            68143,
+            68143
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 10641,
+        "scores": [
+          10641,
+          10641,
+          10641
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_js_brotli",
+      "unit": "bytes",
+      "score": 14261,
+      "minScore": 14261,
+      "maxScore": 14261,
+      "p95": 14261,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 9528,
+          "scores": [
+            9528,
+            9528,
+            9528
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 11623,
+          "scores": [
+            11623,
+            11623,
+            11623
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 17481,
+          "scores": [
+            17481,
+            17481,
+            17481
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 21822,
+          "scores": [
+            21822,
+            21822,
+            21822
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 28810,
+          "scores": [
+            28810,
+            28810,
+            28810
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 38851,
+          "scores": [
+            38851,
+            38851,
+            38851
+          ]
+        },
+        {
+          "name": "react",
+          "score": 58534,
+          "scores": [
+            58534,
+            58534,
+            58534
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 9528,
+        "scores": [
+          9528,
+          9528,
+          9528
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_app_raw",
+      "unit": "bytes",
+      "score": 19087,
+      "minScore": 19087,
+      "maxScore": 19087,
+      "p95": 19087,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "inferno",
+          "score": 13677,
+          "scores": [
+            13677,
+            13677,
+            13677
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 15168,
+          "scores": [
+            15168,
+            15168,
+            15168
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 15964,
+          "scores": [
+            15964,
+            15964,
+            15964
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 16907,
+          "scores": [
+            16907,
+            16907,
+            16907
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 17436,
+          "scores": [
+            17436,
+            17436,
+            17436
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 22567,
+          "scores": [
+            22567,
+            22567,
+            22567
+          ]
+        },
+        {
+          "name": "react",
+          "score": 23623,
+          "scores": [
+            23623,
+            23623,
+            23623
+          ]
+        }
+      ],
+      "best": {
+        "name": "inferno",
+        "score": 13677,
+        "scores": [
+          13677,
+          13677,
+          13677
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_app_gzip",
+      "unit": "bytes",
+      "score": 6365,
+      "minScore": 6365,
+      "maxScore": 6365,
+      "p95": 6365,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "inferno",
+          "score": 4475,
+          "scores": [
+            4475,
+            4475,
+            4475
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 4735,
+          "scores": [
+            4735,
+            4735,
+            4735
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 5356,
+          "scores": [
+            5356,
+            5356,
+            5356
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 5380,
+          "scores": [
+            5380,
+            5380,
+            5380
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 5962,
+          "scores": [
+            5962,
+            5962,
+            5962
+          ]
+        },
+        {
+          "name": "react",
+          "score": 7625,
+          "scores": [
+            7625,
+            7625,
+            7625
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 7979,
+          "scores": [
+            7979,
+            7979,
+            7979
+          ]
+        }
+      ],
+      "best": {
+        "name": "inferno",
+        "score": 4475,
+        "scores": [
+          4475,
+          4475,
+          4475
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_app_brotli",
+      "unit": "bytes",
+      "score": 5482,
+      "minScore": 5482,
+      "maxScore": 5482,
+      "p95": 5482,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "inferno",
+          "score": 3900,
+          "scores": [
+            3900,
+            3900,
+            3900
+          ]
+        },
+        {
+          "name": "preact",
+          "score": 4166,
+          "scores": [
+            4166,
+            4166,
+            4166
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 4638,
+          "scores": [
+            4638,
+            4638,
+            4638
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 4684,
+          "scores": [
+            4684,
+            4684,
+            4684
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 5103,
+          "scores": [
+            5103,
+            5103,
+            5103
+          ]
+        },
+        {
+          "name": "react",
+          "score": 6460,
+          "scores": [
+            6460,
+            6460,
+            6460
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 6792,
+          "scores": [
+            6792,
+            6792,
+            6792
+          ]
+        }
+      ],
+      "best": {
+        "name": "inferno",
+        "score": 3900,
+        "scores": [
+          3900,
+          3900,
+          3900
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_fw_raw",
+      "unit": "bytes",
+      "score": 24109,
+      "minScore": 24109,
+      "maxScore": 24109,
+      "p95": 24109,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 14254,
+          "scores": [
+            14254,
+            14254,
+            14254
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 22853,
+          "scores": [
+            22853,
+            22853,
+            22853
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 36339,
+          "scores": [
+            36339,
+            36339,
+            36339
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 47893,
+          "scores": [
+            47893,
+            47893,
+            47893
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 67946,
+          "scores": [
+            67946,
+            67946,
+            67946
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 110116,
+          "scores": [
+            110116,
+            110116,
+            110116
+          ]
+        },
+        {
+          "name": "react",
+          "score": 192352,
+          "scores": [
+            192352,
+            192352,
+            192352
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 14254,
+        "scores": [
+          14254,
+          14254,
+          14254
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_fw_gzip",
+      "unit": "bytes",
+      "score": 9674,
+      "minScore": 9674,
+      "maxScore": 9674,
+      "p95": 9674,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5906,
+          "scores": [
+            5906,
+            5906,
+            5906
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 8467,
+          "scores": [
+            8467,
+            8467,
+            8467
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 14090,
+          "scores": [
+            14090,
+            14090,
+            14090
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 18355,
+          "scores": [
+            18355,
+            18355,
+            18355
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 26751,
+          "scores": [
+            26751,
+            26751,
+            26751
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 36314,
+          "scores": [
+            36314,
+            36314,
+            36314
+          ]
+        },
+        {
+          "name": "react",
+          "score": 60518,
+          "scores": [
+            60518,
+            60518,
+            60518
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5906,
+        "scores": [
+          5906,
+          5906,
+          5906
+        ]
+      }
+    },
+    {
+      "suite": "bundle-size",
+      "group": "",
+      "operation": "weather_fw_brotli",
+      "unit": "bytes",
+      "score": 8779,
+      "minScore": 8779,
+      "maxScore": 8779,
+      "p95": 8779,
+      "rme": 0,
+      "samples": 3,
+      "competitors": [
+        {
+          "name": "preact",
+          "score": 5362,
+          "scores": [
+            5362,
+            5362,
+            5362
+          ]
+        },
+        {
+          "name": "inferno",
+          "score": 7723,
+          "scores": [
+            7723,
+            7723,
+            7723
+          ]
+        },
+        {
+          "name": "solid",
+          "score": 12797,
+          "scores": [
+            12797,
+            12797,
+            12797
+          ]
+        },
+        {
+          "name": "svelte",
+          "score": 16719,
+          "scores": [
+            16719,
+            16719,
+            16719
+          ]
+        },
+        {
+          "name": "vue",
+          "score": 24172,
+          "scores": [
+            24172,
+            24172,
+            24172
+          ]
+        },
+        {
+          "name": "octane-tsrx",
+          "score": 32059,
+          "scores": [
+            32059,
+            32059,
+            32059
+          ]
+        },
+        {
+          "name": "react",
+          "score": 52074,
+          "scores": [
+            52074,
+            52074,
+            52074
+          ]
+        }
+      ],
+      "best": {
+        "name": "preact",
+        "score": 5362,
+        "scores": [
+          5362,
+          5362,
+          5362
+        ]
+      }
+    }
+  ]
+}

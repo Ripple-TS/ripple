@@ -52,6 +52,11 @@ mount(App, {
 });
 ```
 
+`mount()` renders the app under a default `try`/`pending`/`catch` boundary.
+Pass `rootBoundary: { pending?, catch? }` to give it components, or
+`rootBoundary: false` to render without one: `trackAsync()` must then sit inside
+a user `@try` block, and errors that escape a `@try` propagate out of the flush.
+
 Use `hydrate()` for server-rendered HTML that should become interactive.
 
 ```ts
@@ -101,6 +106,38 @@ If output needs multiple siblings, text, or expression containers after setup,
 wrap that output in a fragment. Plain text between tags is JSX text, not
 JavaScript.
 
+Props are plain objects. `<Child a={x} b="y" />` builds `{ a: x, b: 'y' }` once,
+when the component is called, and passes it as is: every prop expression is
+evaluated at that moment, and the object works everywhere a plain object does
+(`Object.keys`, spread, `JSON.stringify`, `structuredClone`, `.ts` helpers, a
+call like `{Format(props)}`). A prop only changes what the child shows when the
+value itself is live: pass the tracked object (`count={count}`) for state the
+child may also write, or a derived (`title={track(() => label + count.value)}`,
+a `Derived<string>`) for a computed, read-only value. The child reads `.value`
+in both cases:
+
+```tsrx
+import { track, type Derived, type Tracked } from 'ripple';
+
+function Card({ title, count }: { title: Derived<string>; count: Tracked<number> }) @{
+	<p>{title.value} ({count.value})</p>
+}
+
+export function App() @{
+	const count = track(0);
+	const label = 'Clicks';
+	<>
+		<Card title={track(() => label + ': ' + count.value)} {count} />
+		<button onClick={() => count.value++}>More</button>
+	</>
+}
+```
+
+`count={count.value}` passes the current value, a number, and the child never
+sees later changes; the types say which it is, since `number` is a value and
+`Tracked<number>` is live. Ordinary destructuring (`{ a, ...rest }`) works on
+the plain props object.
+
 ```tsrx
 export function LiteralText() {
 	return <div>
@@ -144,11 +181,11 @@ export default defineConfig({
 
 ## Reactivity
 
-Create reactive state with `track()`. Reading `.value` inside a template, effect,
-or derived subscribes to the tracked value; assigning to `.value` updates it.
+Create reactive state with `track()`. Reading `.value` subscribes to the
+tracked object; assigning to `.value` updates it.
 
 ```tsrx
-import { effect, track, type Derived, type Tracked } from 'ripple';
+import { effect, track, type Tracked } from 'ripple';
 
 export function Counter() @{
 	const count = track(0);
@@ -163,25 +200,21 @@ export function Counter() @{
 		<p>Double: {double.value}</p>
 		<button onClick={() => count.value++}>Increment</button>
 		<CounterValue {count} />
-		<CounterLabel count={count.readOnly()} />
 	</>
 }
 
 function CounterValue({ count }: { count: Tracked<number> }) {
-	return <button onClick={() => count.value++}>Shared value: {count.value}</button>;
-}
-
-function CounterLabel({ count }: { count: Derived<number> }) {
-	return <p>Read-only value: {count.value}</p>;
+	return <p>Shared value: {count.value}</p>;
 }
 ```
 
-Props are plain objects evaluated once, and ordinary destructuring works on them.
-Pass the tracked object itself (`Tracked<T>`) when a child should read and write
-it, and pass `tracked.readOnly()` — a `Derived<T>` whose `.value` is read-only,
-equivalent to `track(() => tracked.value)` — when a child should only read it. `track(() => ...)` derived values
-are read-only; pass `true` as the third argument to allow optimistic writes that
-last until the next recompute.
+`track(fn)` returns a `Derived`: its `value` is read-only in the types, and a
+write to it warns in development. Pass a setter, or `true` in the setter
+position, when the derived is meant to accept writes
+(`track(() => draft, undefined, true)` is a `WritableDerived`); a write then
+holds until the next recompute. A `Tracked` satisfies `Derived` where only reads
+are needed, so `count.readOnly()` (equivalent to `track(() => count.value)`) is
+the read-only way to hand tracked state to a child.
 
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.
@@ -316,6 +349,11 @@ export function ProfileBoundary() @{
 Events use JSX-style handler props. DOM refs can be callback refs, tracked refs,
 or local variables.
 
+Import `JSX` and `Ripple` with `import type { JSX, Ripple } from 'ripple'` for
+element prop and event types, such as `JSX.IntrinsicElements['input']` and
+`Ripple.EventHandler<HTMLInputElement, InputEvent>`. These are type namespaces,
+not runtime objects.
+
 ```tsrx
 import { track } from 'ripple';
 
@@ -342,8 +380,8 @@ export function SearchBox() @{
 ## Dynamic Components And Elements
 
 Use the dynamic tag syntax `<{expression}>` when the element tag or component
-constructor is chosen at runtime. The expression can be a string tag name or a
-component, including one read from a tracked value. The closing tag repeats the
+constructor is chosen at runtime. The expression can be a string tag name, a
+component, or a tracked variable holding either. The closing tag repeats the
 same expression: `</{expression}>`. Ripple host elements use `class`, not
 React's `className`.
 
@@ -361,7 +399,7 @@ function Details() {
 }
 
 export function DynamicPanel() @{
-	const tag = track('section' as Tag);
+	const tag = track<Tag>('section');
 	const Body = track(() => Summary, undefined, true);
 	// Or hold it in a plain Tracked: create it empty and assign the component,
 	// because track(Summary) would treat the function as a computation.
@@ -397,8 +435,21 @@ names. Do not use removed dynamic tag syntax such as `<@tag />`,
 
 ## Styles
 
-`<style>` blocks are static CSS scoped to the current template. Use CSS custom
-properties for runtime values.
+The `style` attribute accepts a CSS string or an object with camelCase or
+kebab-case keys. Ripple never adds units: write `style={{ width: '24rem',
+margin: 0, lineHeight: 1.5, '--accent': 'rebeccapurple' }}`. Nonzero lengths need
+explicit units; numbers are accepted for unitless properties and zero lengths.
+A `null` or `undefined` property value omits the declaration and removes it on
+client updates, allowing conditional styles such as `width: expanded ? '24rem' : null`.
+HTML and SVG style objects use property-specific CSS types. Import
+`CSSProperties` from `ripple` to type reusable style objects.
+CSS strings and custom property values are not validated as CSS syntax.
+
+A `<style>` block is static CSS scoped to its siblings: it styles the items
+written beside it and everything below them, never the element that contains
+it. The compiler adds a hash class to every selector in the block and to every
+element the block reaches, so rules do not leak into parents, outer siblings,
+child components, or the page. Use CSS custom properties for runtime values.
 
 ```tsrx
 import { track } from 'ripple';
@@ -407,38 +458,131 @@ export function Card() @{
 	const tone = track('rebeccapurple');
 
 	<>
-		<section class="card" style={{ '--tone': tone.value }}>
-			<h2>Card</h2>
-		</section>
 		<style>
 			.card {
 				border: 1px solid var(--tone);
 				padding: 1rem;
 			}
 		</style>
+		<section class="card" style={{ '--tone': tone.value }}>
+			<h2>Card</h2>
+		</section>
 	</>
 }
 ```
 
-Use `:global(...)` to opt out of scoping. Module-scope style expressions expose
-scoped class names that can be passed as props.
+- A block lives in the children list of an element or fragment, beside the
+  output it styles. A `@{ ... }` body or an `@if`/`@for`/`@switch`/`@try` branch
+  renders one output node and a block counts as one, so wrap the block and its
+  markup in a fragment: `<><style>...</style><div /></>`.
+- Raw CSS in `<style>` is TSRX syntax: it needs a `@{ ... }` body or a branch
+  around it. In a plain function that returns JSX, write `<style>{css}</style>`,
+  an ordinary element the compiler leaves alone.
+- Blocks among the same children share one hash class and one stylesheet. A
+  nested element or fragment whose children hold a block is a nested scope with
+  its own hash; elements carry the hash of every scope around them, outer first.
+  Outer rules reach nested scopes; inner rules never reach out.
+- A block inside an `@if`/`@for` branch styles only the elements that branch
+  renders, but its CSS always ships, because CSS is static.
+- A selector that matches nothing the block can reach, including a selector
+  that only matches the containing element, is removed as unused and left as a
+  `/* (unused) ... */` comment.
+- A scoped block accepts only the `ref` and `apply` attributes.
+- Use `:global(...)` to reach outside the scope: `:global(.x)` is page-wide,
+  `.card :global(.x)` reaches only below your scoped `.card`, `:global(.dark)
+  .card` reacts to an ancestor's class, `.card:global(.is-open)` matches a class
+  another library toggles. `:global { ... }` does the same for every rule inside
+  it. `:global` may only start or end a selector. Prefer passing a class from a
+  theme to a child you own; keep `:global` for children you cannot change, with
+  a scoped selector in front:
+
+  | I want to ...                                              | Use ...                                                                                  |
+  | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+  | Style my own elements                                      | A `<style>` block beside them; nothing global                                            |
+  | Share a look across my own components                      | A theme and `<style apply={theme} />` in each                                            |
+  | Let a child component pick up my styles                    | Pass `theme.$class` or `theme.card` as a prop                                            |
+  | Style a child I cannot change (third-party, rendered HTML) | `.wrapper :global(.their-class)`, or `.wrapper { :global { ... } }`; scoped prefix first |
+  | React to page-level state                                  | `:global(.theme-dark) .card` or `:global([data-theme='dark']) .card`                     |
+  | Style my element with a class another library toggles     | `.card:global(.is-open)`                                                                 |
+  | Page-wide rules (`body`, resets, fonts)                    | A `.css` file the page links, not a bare `:global`                                       |
+- CSS comes out in source order, outer scope first: a scope's blocks stay one
+  group, nested scopes follow their parent, sibling scopes follow source order,
+  an assigned block sits at its declaration, and an applied theme comes before
+  the block that applies it. At equal specificity the later rule wins.
+
+Assigning a `<style>` block to a variable produces a **class map** instead of a
+scoped block: `$class` is the block's hash class (after the classes of any theme
+it applies) and every standalone class selector becomes a key whose value is
+the hash class plus the class name. The declaration can sit at module scope or
+inside a component body. Pass these strings to child components as props.
 
 ```tsrx
-const styles = <style>
-	.highlight {
-		background: #e8f5e9;
+export const theme = <style>
+	div {
+		color: green;
+	}
+	.dark {
+		color: purple;
 	}
 </style>;
+// theme.$class -> 'tsrx-1a2b3c4d'
+// theme.dark -> 'tsrx-1a2b3c4d dark'
 
 export function Badge() {
-	return <span class={styles.highlight}>New</span>;
+	return <span class={theme.dark}>New</span>;
 }
 ```
+
+- A block that is exported, applied, or whose `$class` is read is a **theme**
+  and keeps every selector, element and descendant selectors included. A block
+  only read through its class keys keeps only its standalone class selectors.
+- `$class` is reserved; a standalone `<style>` at module scope is an error.
+
+`<style apply={theme} />` adds the theme's `$class` to every element of the
+scope it sits in, so the theme's element and descendant rules reach them as if
+the theme had been written there. `<style apply={theme}>...</style>` applies the
+theme and declares the scope's own block in one tag.
+
+```tsrx
+import { theme } from './theme.tsrx';
+
+export function Panel() @{
+	<>
+		<style apply={theme}>
+			div {
+				color: black;
+			}
+		</style>
+		<span class={theme.dark}>Purple</span>
+		<div>Black: the local rule beats the theme's green</div>
+	</>
+}
+```
+
+- `apply={[a, b]}` applies several themes; `const accent = <style apply={base}>`
+  composes at the definition, and `accent.$class` lists `base`'s classes first;
+  `export const bundle = <style apply={[a, b]} />;` bundles themes with no CSS
+  of its own.
+- The target must be an identifier, member expression, or array of those,
+  naming a block declared earlier in the module or imported. A same-module theme
+  becomes a string literal in the class attribute; an imported theme is read at
+  runtime through `theme.$class`.
+- To opt single elements in instead of a whole scope, give them
+  `class={theme.$class}`; a child component can receive `theme.$class` through a
+  prop and put it on its own elements.
+- An element's class list is: its own classes, the hash classes of the scopes
+  around it outer to inner, then the applied themes' classes.
+- On the client the Vite plugin emits one virtual CSS module per `.tsrx` file,
+  imported after the module's own imports. On the server, `render` returns the
+  hashes of the scopes it rendered as `css` (an applied theme before the scope
+  that applies it); a class map registers its sheet when one of its entries is
+  read. Style errors are compile errors with `tsrx-style-*` codes.
 
 ## Context
 
 Use `new Context(defaultValue?)`, `set(value)`, and `get()` to share state through
-the component tree.
+the component tree. Set a tracked object so consumers see updates; set a derived
+(`track(() => theme.value)`) when consumers should only read it.
 
 ```tsrx
 import { Context, track, type Tracked } from 'ripple';
@@ -601,6 +745,87 @@ export default {
 `index.html` must keep the `<!--ssr-head-->` and `<!--ssr-body-->` markers;
 the plugin falls back to buffered SSR with a warning when they are missing.
 
+### Static Generation
+
+`prerender(component, options?)` is the static-generation counterpart of
+`render`: buffered, every `@try` boundary and `trackAsync` settled before it
+resolves, and the scoped CSS returned as text.
+
+```ts
+import { prerender } from 'ripple/server';
+
+const { head, body, css } = await prerender(App);
+const html = template
+	.replace('<!--ssr-head-->', `${head}<style data-ripple-ssr>${css}</style>`)
+	.replace('<!--ssr-body-->', body);
+```
+
+Apps built on `@ripple-ts/vite-plugin` mark render routes instead. The build
+renders each marked route through the production server entry and writes
+`<outDir>/client<path>/index.html`, which the adapter's static file handler
+serves before the server renders anything; the page still hydrates. Only a
+static path (no `:param` or `*` segment) can be prerendered.
+
+```ts
+import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+	router: {
+		routes: [
+			new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true }),
+			new RenderRoute({ path: '/dashboard', entry: './src/Dashboard.tsrx' }),
+		],
+	},
+});
+```
+
+### Client-Only Builds
+
+An app that never hydrates server-rendered HTML tells the Vite plugin so:
+
+```ts
+export default defineConfig({
+	plugins: [ripple({ ssr: false })],
+});
+```
+
+Components then compile to bare DOM reads instead of the hydration cursor,
+`track()` calls carry no serialization hashes, and the runtime's hydration
+paths stay out of the bundle. `hydrate()` throws in such a build, and the
+option is rejected when `ripple.config.ts` declares render routes.
+
+### Custom Serialization
+
+Set `transport` in `ripple.config.ts` to serialize custom types in `trackAsync`
+hydration results and RPC arguments/results in both directions:
+
+```ts
+import { defineConfig } from '@ripple-ts/vite-plugin';
+import { Money } from './src/money';
+
+export default defineConfig({
+	transport: {
+		Money: {
+			encode: (value) => value instanceof Money && [value.amount, value.currency],
+			decode: ([amount, currency]) => new Money(amount, currency),
+		},
+	},
+});
+```
+
+Handlers are synchronous and browser compatible. `encode` returns truthy
+serializable data for recognized values, or `false`/`undefined` to skip them;
+wrap falsy data in an array or object. `decode` rebuilds the value. Encoders can
+claim plain objects too. With no transport or an empty one, plain hydration data
+uses raw JSON and other values use devalue's built-in types. A nonempty transport
+uses devalue for all hydration results. RPC always uses devalue.
+
+The Vite plugin registers the handlers at startup. For a custom integration,
+call `setTransport(transport)` from `ripple/server` before rendering or serving
+RPC, and from `ripple` in the browser before `hydrate`, `mount`, or RPC calls.
+Registration is application-wide; use the same definitions on both sides.
+`setTransport()` or `setTransport({})` restores built-in serialization.
+
 ## Raw HTML
 
 Use `innerHTML={trustedHtml}` for trusted markup. Do not pass untrusted strings to
@@ -623,6 +848,11 @@ Do:
 - Use JSX text for literal children.
 - Use `@for` for rendered lists and `@if` for conditional rendering.
 - Use Ripple collections for reactive collection state.
+- Pass a tracked or a derived as a prop when the child must follow a change; a
+  prop expression is evaluated once, when the component is called.
+- Put a `<style>` block beside the elements it styles, inside a fragment or
+  element; assign a block to a variable to share it as a theme (`apply`,
+  `$class`) or class map.
 
 Do not:
 
@@ -630,6 +860,8 @@ Do not:
 - Use raw `if`, `for`, `switch`, or `try` as rendered control flow.
 - Treat plain text inside a template as JavaScript; it is JSX text.
 - Put JavaScript expressions inside `<style>` blocks.
+- Expect a `<style>` block to style the element that contains it, or write raw
+  CSS in a `<style>` inside a plain function that returns JSX.
 - Invent imports or runtime APIs outside the `ripple` package or the active
   bundler integration.
 

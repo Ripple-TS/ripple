@@ -2074,728 +2074,728 @@
     "op": "js_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.4038567810269399,
+    "maxRatio": 0.3259263392857143,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.4585209441942966,
+    "maxRatio": 0.3722010283629126,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.46020337946326173,
+    "maxRatio": 0.37541824670979257,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "app_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 1.0178521225752037,
+    "maxRatio": 1.061849873488895,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.972210700953961,
+    "maxRatio": 0.9655601659751037,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.956501182033097,
+    "maxRatio": 0.9717114568599717,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "fw_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.34948461364833344,
+    "maxRatio": 0.2628446039327886,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.41367775506411447,
+    "maxRatio": 0.32179556517036234,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.41787630495362477,
+    "maxRatio": 0.32566493118618073,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.3676259536218748,
+    "maxRatio": 0.2963358906636482,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.43583642650931126,
+    "maxRatio": 0.35596828433036126,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.43835079466894733,
+    "maxRatio": 0.35966100517522837,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.8030432918988427,
+    "maxRatio": 0.9269181311615945,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.7442273534635879,
+    "maxRatio": 0.8307418924922256,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.7457713992824193,
+    "maxRatio": 0.8246421267893661,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.3449043826059291,
+    "maxRatio": 0.26426509157428424,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.4132016809593768,
+    "maxRatio": 0.3215967110934288,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.4166060281107579,
+    "maxRatio": 0.32696105831935907,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.3660600516221779,
+    "maxRatio": 0.30690242277471685,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.4401365754036633,
+    "maxRatio": 0.37503881746475376,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.44306240617628134,
+    "maxRatio": 0.38059363119528444,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.825184192900201,
+    "maxRatio": 0.894675150703282,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.854978354978355,
+    "maxRatio": 0.888728323699422,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.870756646216769,
+    "maxRatio": 0.8996723996723996,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_raw",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.3344942864797493,
+    "maxRatio": 0.26764045197485015,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_gzip",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.40100119022614295,
+    "maxRatio": 0.3278181694638853,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_brotli",
     "target": "ripple",
     "reference": "octane-tsrx",
-    "maxRatio": 0.40336035718481966,
+    "maxRatio": 0.3334858362880781,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8657206317867719,
+    "maxRatio": 0.7005469462169553,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.884807793575566,
+    "maxRatio": 0.7154243448319837,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8760643330179754,
+    "maxRatio": 0.7119289340101523,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "app_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.135843137254902,
+    "maxRatio": 1.1849411764705882,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.176706827309237,
+    "maxRatio": 1.1693467336683416,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.1487791027825098,
+    "maxRatio": 1.1690300623936472,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "fw_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8162249231219798,
+    "maxRatio": 0.6140013027102036,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8431818181818181,
+    "maxRatio": 0.6517928868765063,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8386477462437396,
+    "maxRatio": 0.6496256340069237,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.9087247606092129,
+    "maxRatio": 0.7314259105960265,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.9380035504574628,
+    "maxRatio": 0.762036853576382,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.9297808012093727,
+    "maxRatio": 0.7576090137547556,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.262041091276524,
+    "maxRatio": 1.4567194341529135,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.2972136222910218,
+    "maxRatio": 1.444015444015444,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.3002680965147453,
+    "maxRatio": 1.4440465532676814,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8792653959793755,
+    "maxRatio": 0.6719813937848517,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.9056462483151115,
+    "maxRatio": 0.7005633395926621,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8981917265296012,
+    "maxRatio": 0.6990678033622819,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.858960926119956,
+    "maxRatio": 0.7168156893741047,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8877518182403296,
+    "maxRatio": 0.7502174183128338,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8824031890660592,
+    "maxRatio": 0.7484224965706447,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.1264,
+    "maxRatio": 1.2212571428571428,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.1274976213130352,
+    "maxRatio": 1.170313986679353,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 1.1403320835565078,
+    "maxRatio": 1.1729845168179391,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_raw",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8262170560478767,
+    "maxRatio": 0.6565866356511866,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_gzip",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8526237439523632,
+    "maxRatio": 0.6894112603601029,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_brotli",
     "target": "ripple",
     "reference": "solid",
-    "maxRatio": 0.8454970856251539,
+    "maxRatio": 0.6883607460454867,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5461891786687427,
+    "maxRatio": 0.4546983261969638,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5587098383141444,
+    "maxRatio": 0.4663535475289912,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "js_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5515693012600229,
+    "maxRatio": 0.462680412371134,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "app_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.1016278715959227,
+    "maxRatio": 1.1492469192149704,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.1226053639846743,
+    "maxRatio": 1.114463601532567,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "app_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.078358208955224,
+    "maxRatio": 1.0986140724946696,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "fw_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.48341774786650943,
+    "maxRatio": 0.3760667452993825,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5065768513039917,
+    "maxRatio": 0.40621728642301214,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "fw_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5036342673818236,
+    "maxRatio": 0.4044814276404832,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5337375256536793,
+    "maxRatio": 0.4429509172659053,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5628482464765651,
+    "maxRatio": 0.47271386430678464,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_js_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5568835166825117,
+    "maxRatio": 0.4687853682828557,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.2134067357512954,
+    "maxRatio": 1.4005829015544042,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.23690036900369,
+    "maxRatio": 1.3800738007380073,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_app_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.2155388471177946,
+    "maxRatio": 1.3475355054302423,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.49971190095978135,
+    "maxRatio": 0.39479446191330686,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.524617186483321,
+    "maxRatio": 0.4207695310805535,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "todo_fw_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5206777713957496,
+    "maxRatio": 0.4199693662645989,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.4992869875222816,
+    "maxRatio": 0.4310903149138443,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.530744959211944,
+    "maxRatio": 0.464714483607819,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_js_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.5260343730108211,
+    "maxRatio": 0.46305962232123915,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.0776295648370873,
+    "maxRatio": 1.168379619505795,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.0992578849721706,
+    "maxRatio": 1.1410018552875696,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_app_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 1.094039054470709,
+    "maxRatio": 1.1289825282631039,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence. The app-chunk limits are above the initial recording: hoisted render blocks with per-instance state objects (the recursive-context and uibench timing work) grew the compiled app output before this recording, and the client-only compile recovered part of it."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_raw",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.4576473775638676,
+    "maxRatio": 0.37786667091653786,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_gzip",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.48065626049009735,
+    "maxRatio": 0.4048757972473985,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   },
   {
     "suite": "bundle-size",
     "op": "chat_fw_brotli",
     "target": "ripple",
     "reference": "vue-vapor",
-    "maxRatio": 0.4763865118645636,
+    "maxRatio": 0.40459780748415747,
     "unit": "bytes",
-    "note": "Maximum paired ratio in three normal runs, allowing 32 target bytes."
+    "note": "Paired ratio from the client-only (ssr: false) fixture recording of 2026-09-16, allowing 32 target bytes; bytes are deterministic, so one full-matrix run is the evidence."
   }
 ]

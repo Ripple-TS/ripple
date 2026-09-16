@@ -144,6 +144,20 @@ ignored. The committed ratio guards were initialized from three normal full-matr
 runs, with measured noise headroom. They use fresh Ripple comparisons rather than
 Octane's historical thresholds. See `baselines/README.md` for the refresh policy.
 
+## Bundle-size baseline
+
+Bytes are deterministic, so the bundle-size recording is one full-matrix run,
+saved under `benchmarks/results/bundle-size-baseline`, with its operation-level
+report in `benchmarks/results/bundle-size-report.md`. The Ripple fixtures build
+with the plugin's `ssr: false` option, the client-only footing every competitor
+fixture already has, and the `bundle-size` guards in `baselines/ratios.json` are
+recomputed from that run under the 32-byte policy. Refresh it with:
+
+```sh
+pnpm bench --results-dir=benchmarks/results/bundle-size-baseline bundle-size
+node benchmarks/report.mjs benchmarks/results/bundle-size-baseline benchmarks/results/bundle-size-baseline benchmarks/results/bundle-size-baseline --output=benchmarks/results/bundle-size-report.md
+```
+
 ## Normal baseline report
 
 After three successful normal runs, generate the operation-level gap report:
