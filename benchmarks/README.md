@@ -17,6 +17,7 @@ pnpm --filter ripple-benchmarks exec playwright install chromium
 pnpm bench --list
 pnpm bench:quick
 pnpm bench js-framework js-framework-reorder
+pnpm bench --quick weather-app weather-app-lighthouse bundle-size
 pnpm bench --quick --targets=ripple,octane-tsrx,solid,vue-vapor js-framework
 pnpm bench --record js-framework
 pnpm bench --compare js-framework
@@ -55,25 +56,27 @@ iterations. Server and byte suites build their own fixtures.
 
 ## Workloads
 
-| Suite                  | Measures                                                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `js-framework`         | Keyed row creation, update, selection, swapping, removal, and clear.                                                         |
-| `js-framework-reorder` | Reverse, shuffle, rotation, and displacement with retained-node identity checks.                                             |
-| `recursive-context`    | Tree creation, global/subtree context updates, and disposal.                                                                 |
-| `signal-favoring`      | Local updates through deep component chains.                                                                                 |
-| `news`                 | Buffered server rendering and interactive DOM hydration.                                                                     |
-| `todomvc`              | Editing, filtering, toggling, and deleting todos.                                                                            |
-| `chat-stream`          | Deterministic token streaming, conversation switching, and controlled input.                                                 |
-| `dbmon`                | Repeated database-monitor snapshots and query updates.                                                                       |
-| `uibench`              | List, table, tree, text, and attribute operations.                                                                           |
-| `effectful-list`       | Row effects, refs, layout probes, and cleanup.                                                                               |
-| `memo-wall`            | Unchanged inputs, one changed item, and context updates.                                                                     |
-| `portal-swarm`         | Portal creation, updates, events, and disposal.                                                                              |
-| `async-waterfall`      | Independent nested async work and version changes.                                                                           |
-| `streaming-ssr`        | Shell delivery and complete asynchronous server streams.                                                                     |
-| `ssr-throughput`       | Sustained news-page SSR at 50/500 cards; quick mode uses 50.                                                                 |
-| `reconcile-anchors`    | Ripple-only direct, wrapped, conditional-component, and switch-component list anchors; retained from the former local suite. |
-| `bundle-size`          | Normalized app/framework/total JS bytes for rows, TodoMVC, and chat.                                                         |
+| Suite                    | Measures                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `js-framework`           | Keyed row creation, update, selection, swapping, removal, and clear.                                                         |
+| `js-framework-reorder`   | Reverse, shuffle, rotation, and displacement with retained-node identity checks.                                             |
+| `recursive-context`      | Tree creation, global/subtree context updates, and disposal.                                                                 |
+| `signal-favoring`        | Local updates through deep component chains.                                                                                 |
+| `news`                   | Buffered server rendering and interactive DOM hydration.                                                                     |
+| `todomvc`                | Editing, filtering, toggling, and deleting todos.                                                                            |
+| `chat-stream`            | Deterministic token streaming, conversation switching, and controlled input.                                                 |
+| `dbmon`                  | Repeated database-monitor snapshots and query updates.                                                                       |
+| `uibench`                | List, table, tree, text, and attribute operations.                                                                           |
+| `effectful-list`         | Row effects, refs, layout probes, and cleanup.                                                                               |
+| `memo-wall`              | Unchanged inputs, one changed item, and context updates.                                                                     |
+| `portal-swarm`           | Portal creation, updates, events, and disposal.                                                                              |
+| `async-waterfall`        | Independent nested async work and version changes.                                                                           |
+| `streaming-ssr`          | Shell delivery and complete asynchronous server streams.                                                                     |
+| `ssr-throughput`         | Sustained news-page SSR at 50/500 cards; quick mode uses 50.                                                                 |
+| `reconcile-anchors`      | Ripple-only direct, wrapped, conditional-component, and switch-component list anchors; retained from the former local suite. |
+| `weather-app`            | Weather loading, forecast expansion, search, errors, recovery, and semantic parity.                                          |
+| `weather-app-lighthouse` | Production navigation audits and simulated/observed paint metrics.                                                           |
+| `bundle-size`            | Normalized app/framework/total JS bytes for rows, TodoMVC, chat, and weather.                                                |
 
 Capability gaps stay explicit. For example, the streaming comparison includes
 frameworks with an applicable streaming renderer; it does not turn buffered HTML
@@ -206,3 +209,16 @@ The runner's `--compare` can still use the retained local references for existin
 operations when explicitly requested. Saved historical runs remain comparable to
 one another. The new opt-in 1k diagnostic has no old baseline and should be run
 without `--compare` until one is deliberately recorded.
+
+## Weather application
+
+The weather import adds two default suites (19 total) and `weather_*` operations
+to bundle-size. All eight weather ports, including native Ripple, share styles,
+service code, and deterministic mock data. Standard Vue is selected as `vue`; it
+is distinct from `vue-vapor` in the existing workloads. See
+[weather-app/README.md](weather-app/README.md) for the workload and provenance.
+
+Bundle-size reports total, app, and framework JavaScript bytes using raw, gzip,
+and Brotli sizes. Every measured weather build must also pass the search,
+forecast, and error/recovery scenario in Chromium. Weather has no historical
+baseline; existing saved results remain unchanged.

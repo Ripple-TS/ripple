@@ -1,0 +1,77 @@
+{
+  "latitude": 51.5074,
+  "longitude": -0.1278,
+  "generationtime_ms": 0.26,
+  "utc_offset_seconds": 0,
+  "timezone": "GMT",
+  "timezone_abbreviation": "GMT",
+  "elevation": 38,
+  "current_units": {
+    "time": "iso8601",
+    "temperature_2m": "\u00b0C",
+    "relative_humidity_2m": "%",
+    "apparent_temperature": "\u00b0C",
+    "weather_code": "wmo code",
+    "cloud_cover": "%",
+    "surface_pressure": "hPa",
+    "wind_direction_10m": "\u00b0",
+    "wind_speed_10m": "km/h"
+  },
+  "current": {
+    "time": "2025-08-07T04:39",
+    "temperature_2m": 15.8,
+    "relative_humidity_2m": 68,
+    "apparent_temperature": 21.8,
+    "weather_code": 1,
+    "cloud_cover": 45,
+    "surface_pressure": 1015.3,
+    "wind_direction_10m": 230,
+    "wind_speed_10m": 12.4
+  },
+  "daily_units": {
+    "time": "iso8601",
+    "temperature_2m_max": "\u00b0C",
+    "temperature_2m_min": "\u00b0C",
+    "weather_code": "wmo code",
+    "sunrise": "iso8601",
+    "sunset": "iso8601",
+    "rain_sum": "mm",
+    "uv_index_max": "",
+    "precipitation_probability_max": "%"
+  },
+  "daily": {
+    "time": [
+      "2025-08-07",
+      "2025-08-08",
+      "2025-08-09",
+      "2025-08-10",
+      "2025-08-11",
+      "2025-08-12",
+      "2025-08-13"
+    ],
+    "temperature_2m_max": [21, 24.1, 20.2, 23.6, 19.2, 24.5, 16.8],
+    "temperature_2m_min": [8.1, 10.4, 9.8, 17.2, 10.5, 14, 14],
+    "weather_code": [2, 3, 63, 3, 2, 2, 61],
+    "sunrise": [
+      "2025-08-07T06:12:00",
+      "2025-08-08T07:32:00",
+      "2025-08-09T06:17:00",
+      "2025-08-10T06:49:00",
+      "2025-08-11T06:47:00",
+      "2025-08-12T06:40:00",
+      "2025-08-13T07:05:00"
+    ],
+    "sunset": [
+      "2025-08-07T18:43:00",
+      "2025-08-08T18:24:00",
+      "2025-08-09T19:39:00",
+      "2025-08-10T20:27:00",
+      "2025-08-11T18:37:00",
+      "2025-08-12T20:05:00",
+      "2025-08-13T20:43:00"
+    ],
+    "rain_sum": [0.21, 7.19, 8.97, 8.14, 8.41, 12.92, 2.6],
+    "uv_index_max": [2.13, 6.87, 2.96, 3.3, 5.62, 5.21, 6.09],
+    "precipitation_probability_max": [32, 31, 93, 6, 8, 15, 1]
+  }
+}

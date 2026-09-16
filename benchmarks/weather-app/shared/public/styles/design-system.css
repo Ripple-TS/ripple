@@ -1,0 +1,239 @@
+/*
+  Weather App Design System
+  Semantic CSS Variables for Cross-Framework Compatibility
+*/
+
+:root {
+	/* === COLOR PALETTE === */
+
+	/* Primary Colors */
+	--primary-50: #f0f4ff;
+	--primary-100: #e0e7ff;
+	--primary-200: #c7d2fe;
+	--primary-300: #a5b4fc;
+	--primary-400: #818cf8;
+	--primary-500: #6366f1;
+	--primary-600: #4f46e5;
+	--primary-700: #4338ca;
+	--primary-800: #3730a3;
+	--primary-900: #312e81;
+
+	/* Neutral Colors */
+	--neutral-0: #ffffff;
+	--neutral-50: #fafafa;
+	--neutral-100: #f5f5f5;
+	--neutral-200: #e5e5e5;
+	--neutral-300: #d4d4d4;
+	--neutral-400: #a3a3a3;
+	--neutral-500: #737373;
+	--neutral-600: #525252;
+	--neutral-700: #404040;
+	--neutral-800: #262626;
+	--neutral-900: #171717;
+
+	/* Status Colors */
+	--success-500: #10b981;
+	--warning-500: #f59e0b;
+	--error-500: #ef4444;
+	--info-500: #3b82f6;
+
+	/* === SEMANTIC COLOR TOKENS === */
+
+	/* Background */
+	--color-bg-primary: var(--neutral-50);
+	--color-bg-secondary: var(--primary-100);
+	--color-bg-elevated: var(--neutral-0);
+	--color-bg-surface: var(--neutral-0);
+	--color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+	/* Text */
+	--color-text-primary: var(--neutral-900);
+	--color-text-secondary: var(--neutral-600);
+	--color-text-muted: var(--neutral-400);
+	--color-text-inverse: var(--neutral-0);
+	--color-text-link: var(--primary-600);
+
+	/* Interactive */
+	--color-interactive-primary: var(--primary-600);
+	--color-interactive-primary-hover: var(--primary-700);
+	--color-interactive-primary-active: var(--primary-800);
+	--color-interactive-secondary: var(--neutral-200);
+	--color-interactive-secondary-hover: var(--neutral-300);
+
+	/* Border */
+	--color-border-primary: var(--neutral-200);
+	--color-border-secondary: var(--neutral-100);
+	--color-border-interactive: var(--primary-300);
+	--color-border-focus: var(--primary-500);
+
+	/* Status */
+	--color-status-success: var(--success-500);
+	--color-status-warning: var(--warning-500);
+	--color-status-error: var(--error-500);
+	--color-status-info: var(--info-500);
+
+	/* === SPACING SCALE === */
+	--space-0: 0;
+	--space-1: 0.25rem; /* 4px */
+	--space-2: 0.5rem; /* 8px */
+	--space-3: 0.75rem; /* 12px */
+	--space-4: 1rem; /* 16px */
+	--space-5: 1.25rem; /* 20px */
+	--space-6: 1.5rem; /* 24px */
+	--space-8: 2rem; /* 32px */
+	--space-10: 2.5rem; /* 40px */
+	--space-12: 3rem; /* 48px */
+	--space-16: 4rem; /* 64px */
+	--space-20: 5rem; /* 80px */
+
+	/* === TYPOGRAPHY === */
+
+	/* Font Family */
+	--font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+
+	/* Font Size */
+	--font-size-xs: 0.75rem; /* 12px */
+	--font-size-sm: 0.875rem; /* 14px */
+	--font-size-base: 1rem; /* 16px */
+	--font-size-lg: 1.125rem; /* 18px */
+	--font-size-xl: 1.25rem; /* 20px */
+	--font-size-2xl: 1.5rem; /* 24px */
+	--font-size-3xl: 1.875rem; /* 30px */
+	--font-size-4xl: 2.25rem; /* 36px */
+	--font-size-5xl: 3rem; /* 48px */
+	--font-size-6xl: 3.75rem; /* 60px */
+
+	/* Font Weight */
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+
+	/* Line Height */
+	--line-height-tight: 1.25;
+	--line-height-normal: 1.5;
+	--line-height-relaxed: 1.75;
+
+	/* === BORDER RADIUS === */
+	--radius-none: 0;
+	--radius-sm: 0.125rem; /* 2px */
+	--radius-base: 0.25rem; /* 4px */
+	--radius-md: 0.375rem; /* 6px */
+	--radius-lg: 0.5rem; /* 8px */
+	--radius-xl: 0.75rem; /* 12px */
+	--radius-2xl: 1rem; /* 16px */
+	--radius-3xl: 1.5rem; /* 24px */
+	--radius-full: 9999px;
+
+	/* === SHADOWS === */
+	--shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+	--shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+	/* === SOFT UI DESIGN === */
+
+	/* Soft UI Base Colors */
+	--color-bg-soft: #f0f4f8;
+	--color-surface-soft: #ffffff;
+	--color-shadow: rgba(209, 217, 224, 0.5);
+	--color-shadow-dark: #d1d9e0;
+
+	/* Component Shadows */
+	--shadow-card: 6px 6px 12px var(--color-shadow-dark);
+	--shadow-card-inner: inset 3px 3px 6px var(--color-shadow);
+	--shadow-card-hover: 12px 12px 24px var(--color-shadow-dark);
+	--shadow-button: 3px 3px 6px var(--color-shadow-dark);
+
+	/* Gradients */
+	--gradient-card: linear-gradient(145deg, var(--color-surface-soft), var(--color-bg-soft));
+	--gradient-button: linear-gradient(145deg, var(--primary-500), var(--primary-600));
+	--gradient-subtle: linear-gradient(145deg, #ffffff, #f8fafc);
+
+	/* === LAYOUT === */
+	--container-max-width: 768px;
+	--header-height: 4rem;
+	--content-padding: var(--space-4);
+
+	/* === TRANSITIONS === */
+	--transition-fast: 150ms ease-in-out;
+	--transition-base: 250ms ease-in-out;
+	--transition-slow: 350ms ease-in-out;
+
+	/* === Z-INDEX === */
+	--z-dropdown: 1000;
+	--z-sticky: 1020;
+	--z-fixed: 1030;
+	--z-modal-backdrop: 1040;
+	--z-modal: 1050;
+	--z-popover: 1060;
+	--z-tooltip: 1070;
+
+	/* === COMPONENT SPECIFIC === */
+
+	/* Weather Cards */
+	--card-bg: var(--gradient-card);
+	--card-shadow: var(--shadow-card);
+	--card-radius: var(--radius-2xl);
+	--card-padding: var(--space-8);
+
+	/* Interactive Elements */
+	--button-bg: var(--gradient-button);
+	--button-shadow: var(--shadow-card);
+	--button-shadow-hover: var(--shadow-card-hover);
+	--button-radius: var(--radius-xl);
+
+	/* Form Elements */
+	--input-bg: var(--color-bg-soft);
+	--input-shadow: var(--shadow-card-inner);
+	--input-radius: var(--radius-xl);
+	--input-padding: var(--space-4);
+
+	/* === RESPONSIVE BREAKPOINTS === */
+	--breakpoint-sm: 640px;
+	--breakpoint-md: 768px;
+	--breakpoint-lg: 1024px;
+	--breakpoint-xl: 1280px;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Background */
+		--color-bg-primary: var(--neutral-900);
+		--color-bg-secondary: var(--neutral-800);
+		--color-bg-elevated: var(--neutral-800);
+		--color-bg-surface: var(--neutral-800);
+
+		/* Text */
+		--color-text-primary: var(--neutral-50);
+		--color-text-secondary: var(--neutral-300);
+		--color-text-muted: var(--neutral-500);
+		--color-text-link: var(--primary-300);
+
+		/* Interactive */
+		--color-interactive-primary: var(--primary-400);
+		--color-interactive-primary-hover: var(--primary-300);
+		--color-interactive-primary-active: var(--primary-200);
+		--color-interactive-secondary: var(--neutral-700);
+		--color-interactive-secondary-hover: var(--neutral-600);
+
+		/* Border */
+		--color-border-primary: var(--neutral-700);
+		--color-border-secondary: var(--neutral-800);
+		--color-border-interactive: var(--primary-600);
+		--color-border-focus: var(--primary-400);
+
+		/* Soft UI (dark equivalents) */
+		--color-bg-soft: #1a1f2e;
+		--color-surface-soft: var(--neutral-800);
+		--color-shadow: rgba(0, 0, 0, 0.4);
+		--color-shadow-dark: #0d1117;
+
+		/* Gradients */
+		--gradient-card: linear-gradient(145deg, var(--neutral-800), #1a1f2e);
+		--gradient-subtle: linear-gradient(145deg, var(--neutral-800), var(--neutral-900));
+	}
+}

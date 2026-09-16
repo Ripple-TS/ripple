@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "Executable production bundle-size comparison for rows, TodoMVC, and chat-stream.",
+  "description": "Executable production bundle-size comparison for rows, TodoMVC, chat-stream, and weather.",
   "scripts": {
     "bench": "node run.mjs"
   },

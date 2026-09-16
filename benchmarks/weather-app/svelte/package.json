@@ -1,0 +1,19 @@
+{
+  "name": "svelte-weather-app-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Svelte 5 reference weather-app benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5296 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5296 --strictPort"
+  },
+  "dependencies": {
+    "svelte": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

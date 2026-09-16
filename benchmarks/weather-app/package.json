@@ -1,0 +1,17 @@
+{
+  "name": "ripple-weather-app-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Comparative weather application benchmark with native Ripple and seven reference frameworks.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:lighthouse": "node lighthouse.mjs",
+    "bench:long": "node run.mjs 16"
+  },
+  "dependencies": {
+    "chrome-launcher": "catalog:benchmarks",
+    "lighthouse": "catalog:benchmarks",
+    "playwright": "catalog:benchmarks"
+  }
+}

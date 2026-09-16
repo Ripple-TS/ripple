@@ -11,7 +11,8 @@ shared statistics, DOM census, streaming verification, React Compiler integratio
 and Inferno JSX integration. Octane-only compiler work counters, private bindings,
 deopt workloads, native renderers, and the larger integration applications are
 outside this port. The buffered throughput suite retains comparative news
-workloads; the byte suite retains rows, TodoMVC, and chat. Weather is deferred.
+workloads; the byte suite initially retained rows, TodoMVC, and chat. Weather was
+added in the synchronization below.
 
 Ripple fixture dependencies resolve to this workspace's `ripple`, `@tsrx/ripple`,
 and `@ripple-ts/vite-plugin`, replacing upstream's published Ripple dependencies.
@@ -61,3 +62,41 @@ pins remain unchanged. Existing baseline/result snapshots, reports, and ratio
 guards are retained unchanged: they still describe the original **0.2.4** runs.
 They were not rerun, rewritten, or relabeled as 0.2.6 measurements. Follow-up
 smoke output is kept separately under `tmp/octane-026-*/`.
+
+## Weather application synchronization (2026-09-16)
+
+Imported the comparative weather fixtures, shared assets, interaction harness, and
+Lighthouse runner from Octane `origin/main` at
+[`5ead1ff2c000f3bb322e7d4fd1d5786161195189`](https://github.com/octanejs/octane/commit/5ead1ff2c000f3bb322e7d4fd1d5786161195189).
+Added a native Ripple port and `weather_*` bundle measurements, with the same
+observable interaction checks applied to the measured production bundles. The
+weather suite uses standard Vue, separately named `vue`; the other suites retain
+`vue-vapor`. Dependencies follow the existing benchmark catalog, with pinned
+Lighthouse and Chrome launcher added. Octane-only codegen budgets and the separate
+Octane/React delivery experiment are excluded. Shared framework source remains
+external, and historical results and baselines are unchanged.
+
+The weather UI and assets retain Alicia Sykes’s MIT attribution in
+[weather-app/UPSTREAM_LICENSE](weather-app/UPSTREAM_LICENSE).
+
+## Bundle-size parity review (2026-09-16)
+
+Reviewed the comparative runner, framework fixture sources, and Vite configs
+against Octane `origin/main` at
+[`68515636eebde7d6f5db7180131908bfb0656c7a`](https://github.com/octanejs/octane/commit/68515636eebde7d6f5db7180131908bfb0656c7a).
+The build, chunk split, and compression algorithms already matched. Synchronized
+the TodoMVC and chat Octane entry files to upstream's equivalent `flushSync`
+imports. Ripple's workspace attribution, additional framework coverage, target
+selection, result units, and executable-bundle checks are retained.
+
+Upstream's fixed Octane budget rows and separate Octane-only reachability suite
+remain outside this port. See [bundle-size/README.md](bundle-size/README.md) for
+the measurement contract and deliberate integration differences. Existing
+baselines and historical result files are unchanged.
+
+Executed the upstream runner against this checkout's fixtures and dependencies,
+adapting only module/output paths and workspace runtime attribution. All 279 byte
+metrics from the 31 common builds matched exactly. The full Ripple runner also
+passed all 33 builds and their browser interaction checks. These checks establish
+measurement parity under the same toolchain, not equality with Octane's workspace
+runtime or its committed budget limits.

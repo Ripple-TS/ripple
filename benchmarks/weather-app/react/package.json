@@ -1,0 +1,20 @@
+{
+  "name": "react-weather-app-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "React 19 reference weather-app benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5293 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5293 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

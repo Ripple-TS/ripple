@@ -66,6 +66,8 @@ overrides:
 
 catalogs:
   benchmarks:
+    chrome-launcher: '1.2.1'
+    lighthouse: '13.4.1'
     '@babel/core': '7.29.7'
     '@preact/preset-vite': '2.10.6'
     '@solidjs/web': '2.0.0-rc.7'

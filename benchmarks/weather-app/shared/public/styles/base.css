@@ -1,0 +1,144 @@
+/* Reset and base styles */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	font-family: var(--font-family-primary);
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-normal);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	background: var(--color-bg-soft);
+	background-image:
+		radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+		radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+		radial-gradient(circle at 40% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
+	font-family: var(--font-family-primary);
+	line-height: var(--line-height-normal);
+	color: var(--color-text-primary);
+	min-height: 100vh;
+}
+
+::selection {
+	background: var(--color-primary);
+	color: var(--color-bg-soft);
+}
+
+/* Screen reader only */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Typography */
+h1 {
+	font-size: var(--font-size-3xl);
+	font-weight: var(--font-weight-bold);
+	line-height: var(--line-height-tight);
+}
+
+h2 {
+	font-size: var(--font-size-2xl);
+	font-weight: var(--font-weight-semibold);
+	line-height: var(--line-height-tight);
+}
+
+h3 {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-semibold);
+	line-height: var(--line-height-normal);
+}
+
+p {
+	line-height: var(--line-height-relaxed);
+}
+
+/* Focus styles */
+:focus-visible {
+	outline: 2px solid var(--color-border-focus);
+	outline-offset: 2px;
+}
+
+/* Button reset */
+button {
+	background: none;
+	border: none;
+	font: inherit;
+	cursor: pointer;
+}
+
+/* Input reset */
+input {
+	background: none;
+	border: none;
+	font: inherit;
+}
+
+/* List reset */
+ul,
+ol {
+	list-style: none;
+}
+
+/* Animations */
+.fade-in {
+	animation: fadeIn var(--transition-base) ease-out;
+}
+
+.fade-out {
+	animation: fadeOut var(--transition-base) ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+}
+
+@keyframes slideDown {
+	from {
+		max-height: 0;
+		opacity: 0;
+	}
+	to {
+		max-height: 300px;
+		opacity: 1;
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}

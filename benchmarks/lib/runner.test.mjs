@@ -87,7 +87,7 @@ test('the 1k clear diagnostic is selectable but cannot replace the default suite
 		await fs.readFile(new URL('../suites.json', import.meta.url), 'utf8'),
 	);
 	const defaults = selectSuites(manifest, []);
-	assert.equal(defaults.length, 17);
+	assert.equal(defaults.length, 19);
 	assert.ok(defaults.some((suite) => suite.name === 'js-framework'));
 	assert.ok(!defaults.some((suite) => suite.name === 'js-framework-clear-1k'));
 	const [diagnostic] = selectSuites(manifest, ['js-framework-clear-1k']);
@@ -95,4 +95,28 @@ test('the 1k clear diagnostic is selectable but cannot replace the default suite
 	assert.deepEqual(diagnostic.operations, ['clear_1k']);
 	assert.ok(diagnostic.targets.some((target) => target.name === 'ripple'));
 	assert.throws(() => selectSuites(manifest, ['missing-suite']), /Unknown suite/);
+});
+
+test('weather comparisons require Ripple and all nine bundle metrics per supported target', async () => {
+	const manifest = JSON.parse(
+		await fs.readFile(new URL('../suites.json', import.meta.url), 'utf8'),
+	);
+	const weather = manifest.find((suite) => suite.name === 'weather-app');
+	const lighthouse = manifest.find((suite) => suite.name === 'weather-app-lighthouse');
+	const bundle = manifest.find((suite) => suite.name === 'bundle-size');
+	assert.ok(weather.targets.some((target) => target.name === 'ripple'));
+	assert.deepEqual(lighthouse.targets, weather.targets);
+	for (const target of weather.targets) {
+		const required = bundle.targets.find((entry) => entry.name === target.name)?.operations;
+		for (const bucket of ['js', 'app', 'fw']) {
+			for (const compression of ['raw', 'gzip', 'brotli']) {
+				assert.ok(required?.includes(`weather_${bucket}_${compression}`), target.name);
+			}
+		}
+	}
+	// Standard Vue participates only in weather; Vapor keeps the existing workloads.
+	assert.ok(!bundle.targets.find((target) => target.name === 'vue').operations.includes('js_raw'));
+	assert.ok(
+		bundle.targets.find((target) => target.name === 'vue-vapor').operations.includes('js_raw'),
+	);
 });

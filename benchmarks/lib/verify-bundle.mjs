@@ -1,5 +1,6 @@
 import { preview } from 'vite';
 import { chromium } from 'playwright';
+import { runScenario } from '../weather-app/scenario.mjs';
 
 // Byte measurements are accepted only for executable production artifacts.
 // This untimed smoke check uses the same public interactions as the UI suites.
@@ -16,7 +17,9 @@ export async function verifyBundle(root, outDir, workload) {
 		const errors = [];
 		page.on('pageerror', (error) => errors.push(error.message));
 		const address = server.httpServer.address();
-		await page.goto(`http://127.0.0.1:${address.port}/`);
+		await page.goto(
+			`http://127.0.0.1:${address.port}/${workload === 'weather' ? '?mock=true&benchmark=true' : ''}`,
+		);
 		if (workload === 'rows') {
 			await page.locator('#run').click();
 			await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 1000);
@@ -43,6 +46,14 @@ export async function verifyBundle(root, outDir, workload) {
 				await window.__benchFlush?.();
 			});
 			await page.waitForFunction(() => document.querySelectorAll('.streaming').length === 0);
+		} else if (workload === 'weather') {
+			await page.waitForFunction(() => {
+				const content = document.querySelector('[data-testid="weather-content"]');
+				return (
+					content && !content.hidden && document.querySelector('[data-testid="loading"]')?.hidden
+				);
+			});
+			await runScenario(page, 0);
 		} else throw Error(`Unknown bundle workload: ${workload}`);
 		if (errors.length) throw Error(errors.join('; '));
 		return 'pass';

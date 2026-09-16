@@ -1,0 +1,18 @@
+{
+  "name": "inferno-weather-app-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Inferno class-component weather application benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5335 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5335 --strictPort"
+  },
+  "dependencies": {
+    "inferno": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite": "catalog:benchmarks"
+  }
+}

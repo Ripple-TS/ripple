@@ -1,0 +1,19 @@
+{
+  "name": "preact-weather-app-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Preact reference weather-app benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5294 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5294 --strictPort"
+  },
+  "dependencies": {
+    "preact": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

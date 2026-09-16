@@ -1,0 +1,19 @@
+{
+  "name": "vue-weather-app-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Vue 3 weather-app benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5297 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5297 --strictPort"
+  },
+  "dependencies": {
+    "vue": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

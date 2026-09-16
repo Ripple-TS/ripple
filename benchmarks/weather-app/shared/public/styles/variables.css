@@ -1,0 +1,67 @@
+/*
+  Legacy variable compatibility
+  Maps old variable names to new semantic design system
+*/
+
+:root {
+	/* Legacy color mappings */
+	--color-primary: var(--color-interactive-primary);
+	--color-primary-hover: var(--color-interactive-primary-hover);
+	--color-secondary: var(--color-text-secondary);
+	--color-background: var(--color-bg-primary);
+	--color-surface: var(--color-bg-surface);
+	--color-border: var(--color-border-primary);
+	--color-text: var(--color-text-primary);
+	--color-text-secondary: var(--color-text-secondary);
+	--color-text-muted: var(--color-text-muted);
+	--color-error: var(--color-status-error);
+	--color-success: var(--color-status-success);
+	--color-warning: var(--color-status-warning);
+
+	/* Weather condition colors */
+	--color-sunny: #fbbf24;
+	--color-cloudy: #6b7280;
+	--color-rainy: #3b82f6;
+	--color-stormy: #6366f1;
+	--color-snow: #e5e7eb;
+
+	/* Legacy spacing mappings */
+	--space-xs: var(--space-1);
+	--space-sm: var(--space-2);
+	--space-md: var(--space-4);
+	--space-lg: var(--space-6);
+	--space-xl: var(--space-8);
+	--space-2xl: var(--space-12);
+
+	/* Legacy font mappings */
+	--font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--font-size-xs: 0.75rem;
+	--font-size-sm: 0.875rem;
+	--font-size-base: 1rem;
+	--font-size-lg: 1.125rem;
+	--font-size-xl: 1.25rem;
+	--font-size-2xl: 1.5rem;
+	--font-size-3xl: 1.875rem;
+	--font-size-4xl: 2.25rem;
+
+	/* Legacy shadow mappings */
+	--shadow-sm: var(--shadow-xs);
+	--shadow-md: var(--shadow-base);
+	--shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+	/* Legacy radius mappings */
+	--radius-sm: var(--radius-base);
+	--radius-md: 0.375rem;
+	--radius-lg: 0.5rem;
+	--radius-xl: 0.75rem;
+	--radius-2xl: 1rem;
+
+	/* Legacy transition mappings */
+	--transition-fast: 150ms ease-in-out;
+	--transition-normal: 250ms ease-in-out;
+	--transition-slow: 350ms ease-in-out;
+
+	/* Layout */
+	--container-max-width: 768px;
+	--header-height: 4rem;
+}

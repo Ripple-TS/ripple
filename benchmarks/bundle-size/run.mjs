@@ -1,15 +1,10 @@
 // Bundle-size benchmark — PRODUCTION `vite build` of each comparative app,
 // reporting the built client JS bytes (raw / gzip / brotli) per framework. This
 // is the cross-framework shipped-bytes comparison the perf suites can't see
-// (docs/compiled-output-optimization-plan.md, Phase 0a).
+// in an interaction timing.
 //
-// Fairness: the apps' own vite configs differ where it matters for size (solid
-// ships `build.minify:false` for its dev-server bench, octane uses terser
-// passes:5, react passes:2) — so every target is built with ONE normalized
-// inline override (minify: 'esbuild', target: 'esnext'). Inline config wins
-// over the app's config file for these keys; everything else (plugins, mode,
-// NODE_ENV) still comes from each app's own config, exactly like the news
-// suite's programmatic builds.
+// Every target uses the same inline build override (minify: 'esbuild', target:
+// 'esnext'). Each app retains its own framework plugin and production mode.
 //
 // Only .js assets are summed; index.html and CSS are excluded. Weather's CSS is
 // shared byte-for-byte by every port, so including it would add the same constant
@@ -18,12 +13,11 @@
 //
 // Each build's emitted JavaScript is classified into two buckets: `app`
 // (authored app modules, including weather's shared sources) and `framework`
-// (node_modules, virtual helpers, AND the octane workspace runtime, which pnpm
-// resolves to packages/octane/src, never node_modules). Rolldown codeSplitting
+// (node_modules, virtual helpers, AND the Ripple workspace runtime, which pnpm
+// resolves to packages/ripple/src, never node_modules). Rolldown codeSplitting
 // forces the main app/framework separation and may emit additional runtime
 // files, which are charged to framework. The app-only ops (`app_*`) are the
-// scaling term as applications grow, so the per-component codegen share is what
-// the compiled-output plan must ratchet; the runtime is a one-time cost tracked
+// scaling term as applications grow; the runtime is a one-time cost tracked
 // by the `fw_*` ops. `js_*` totals stay for the whole-page view.
 //
 // Run:  node benchmarks/bundle-size/run.mjs
@@ -91,6 +85,11 @@ const SETS = [
 			'inferno',
 		],
 	},
+	{
+		root: WEATHER_APP,
+		prefix: 'weather_',
+		targets: ['octane-tsrx', 'react', 'preact', 'solid', 'svelte', 'vue', 'ripple', 'inferno'],
+	},
 ];
 const gz = (buf) => gzipSync(buf, { level: zc.Z_BEST_COMPRESSION }).length;
 const br = (buf) =>
@@ -139,7 +138,7 @@ for (const set of SETS)
 						// file-name classifier below charges both to framework overhead. Vite 8
 						// is rolldown-based: `manualChunks` is ignored, `codeSplitting` is
 						// the supported API. Framework is matched POSITIVELY (node_modules,
-						// the octane workspace runtime — pnpm resolves it to packages/octane,
+						// the Ripple workspace runtime — pnpm resolves it to packages/ripple,
 						// never node_modules — and `\0` virtuals) so the index.html entry
 						// proxy module stays in the entry chunk with the app code.
 						codeSplitting: {

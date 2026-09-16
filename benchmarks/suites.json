@@ -1202,15 +1202,15 @@
       {
         "name": "octane-tsrx",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1228,35 +1228,44 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "octane-jsx",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
+          "app_gzip",
+          "app_raw",
+          "fw_brotli",
           "fw_gzip",
-          "fw_brotli"
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw"
         ]
       },
       {
         "name": "react",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1274,21 +1283,30 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "preact",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1306,21 +1324,30 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "solid",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1338,21 +1365,30 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "svelte",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1370,21 +1406,30 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "ripple",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1402,21 +1447,30 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       },
       {
         "name": "vue-vapor",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1440,15 +1494,15 @@
       {
         "name": "inferno",
         "operations": [
-          "js_raw",
-          "js_gzip",
-          "js_brotli",
-          "app_raw",
-          "app_gzip",
           "app_brotli",
-          "fw_raw",
-          "fw_gzip",
+          "app_gzip",
+          "app_raw",
           "fw_brotli",
+          "fw_gzip",
+          "fw_raw",
+          "js_brotli",
+          "js_gzip",
+          "js_raw",
           "todo_js_raw",
           "todo_js_gzip",
           "todo_js_brotli",
@@ -1466,20 +1520,182 @@
           "chat_app_brotli",
           "chat_fw_raw",
           "chat_fw_gzip",
-          "chat_fw_brotli"
+          "chat_fw_brotli",
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
+        ]
+      },
+      {
+        "name": "vue",
+        "operations": [
+          "weather_js_raw",
+          "weather_js_gzip",
+          "weather_js_brotli",
+          "weather_app_raw",
+          "weather_app_gzip",
+          "weather_app_brotli",
+          "weather_fw_raw",
+          "weather_fw_gzip",
+          "weather_fw_brotli"
         ]
       }
     ],
+    "operations": []
+  },
+  {
+    "name": "weather-app",
+    "cwd": "weather-app",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 8,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5292/",
+        "filter": "octane-tsrx-weather-app-bench",
+        "port": 5292
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5293/",
+        "filter": "react-weather-app-bench",
+        "port": 5293
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5294/",
+        "filter": "preact-weather-app-bench",
+        "port": 5294
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5295/",
+        "filter": "solid-weather-app-bench",
+        "port": 5295
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5296/",
+        "filter": "svelte-weather-app-bench",
+        "port": 5296
+      },
+      {
+        "name": "vue",
+        "url": "http://localhost:5297/",
+        "filter": "vue-weather-app-bench",
+        "port": 5297
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5298/",
+        "filter": "ripple-weather-app-bench",
+        "port": 5298
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5335/",
+        "filter": "inferno-weather-app-bench",
+        "port": 5335
+      }
+    ],
     "operations": [
-      "app_brotli",
-      "app_gzip",
-      "app_raw",
-      "fw_brotli",
-      "fw_gzip",
-      "fw_raw",
-      "js_brotli",
-      "js_gzip",
-      "js_raw"
+      "initial_ready",
+      "forecast_cycle",
+      "search_city",
+      "search_error",
+      "search_recover",
+      "nodes_loaded",
+      "elements_loaded",
+      "text_loaded",
+      "comments_loaded",
+      "nodes_expanded",
+      "elements_expanded",
+      "text_expanded",
+      "comments_expanded",
+      "visible_chars_loaded",
+      "visible_chars_expanded",
+      "forecast_items",
+      "weather_details",
+      "forecast_details_expanded"
+    ]
+  },
+  {
+    "name": "weather-app-lighthouse",
+    "cwd": "weather-app",
+    "script": "lighthouse.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 5,
+      "quick": 1
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5292/",
+        "filter": "octane-tsrx-weather-app-bench",
+        "port": 5292
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5293/",
+        "filter": "react-weather-app-bench",
+        "port": 5293
+      },
+      {
+        "name": "preact",
+        "url": "http://localhost:5294/",
+        "filter": "preact-weather-app-bench",
+        "port": 5294
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5295/",
+        "filter": "solid-weather-app-bench",
+        "port": 5295
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5296/",
+        "filter": "svelte-weather-app-bench",
+        "port": 5296
+      },
+      {
+        "name": "vue",
+        "url": "http://localhost:5297/",
+        "filter": "vue-weather-app-bench",
+        "port": 5297
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5298/",
+        "filter": "ripple-weather-app-bench",
+        "port": 5298
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5335/",
+        "filter": "inferno-weather-app-bench",
+        "port": 5335
+      }
+    ],
+    "operations": [
+      "first_contentful_paint",
+      "largest_contentful_paint",
+      "speed_index",
+      "total_blocking_time",
+      "cumulative_layout_shift",
+      "observed_first_contentful_paint",
+      "observed_largest_contentful_paint"
     ]
   },
   {
