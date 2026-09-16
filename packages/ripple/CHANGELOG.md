@@ -1,5 +1,60 @@
 # ripple
 
+## 0.4.2
+
+### Patch Changes
+
+- [#1478](https://github.com/Ripple-TS/ripple/pull/1478)
+  [`1032539`](https://github.com/Ripple-TS/ripple/commit/10325392e4b1ec7fba78b8ddaf57bc5376adaab1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster buffered server
+  rendering. Static text and attribute values are emitted with characters above
+  U+00FF as numeric character references (raw-text elements such as `<script>`
+  excluded), so a server response stays a one-byte string whenever its dynamic
+  data is Latin-1 too: a single static em dash no longer widens the whole body to
+  two bytes per character, which halved the flatten, byte-length and UTF-8 encode
+  cost of a page. The runtime text escaper checks for `&` and `<` with two
+  single-character searches instead of a regex test.
+
+- [#1481](https://github.com/Ripple-TS/ripple/pull/1481)
+  [`e9382ed`](https://github.com/Ripple-TS/ripple/commit/e9382ed7538779aeb8671b8e3f3fdfd3a897b85a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Cheaper text-only elements
+  and typed loop items. An element whose only child is a typed text expression
+  (`<td>{row.name}</td>`) is cloned without a placeholder text node and written
+  through the element (`set_text_content`): the first write creates the text node
+  with `textContent`, later writes update it in place, and hydration adopts the
+  server-rendered text with no cursor descent, which removes a DOM read and a text
+  node per cell from every list row. A keyed `@for` key callback reads the item
+  directly instead of unwrapping it. Type inference now follows a binding's
+  declared type through property writes (`items.value = next` no longer hides
+  `track<Row[]>()` from the loop item) and through array and tuple indexing
+  (`row.queries[0].elapsed`), so those reads lower to direct text updates in one
+  render block per row.
+
+- [#1483](https://github.com/Ripple-TS/ripple/pull/1483)
+  [`5de359e`](https://github.com/Ripple-TS/ripple/commit/5de359e430391b0e1609795b42d26161fd5c2ff9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - perf: a list item without a
+  tracked of its own (a plain list's item, or a local keyed item) is created
+  through a lean first run (`run_branch`) instead of the generic block runner:
+  fewer checks and no re-run bookkeeping per item.
+
+- [#1482](https://github.com/Ripple-TS/ripple/pull/1482)
+  [`0030be0`](https://github.com/Ripple-TS/ripple/commit/0030be0aa3c7f1d2ce40500dc57ea980b69c69ec)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - perf: cheaper keyed lists. A
+  `@for` or `@if` that trails template siblings appends into its parent element
+  instead of inserting before a `<!>` placeholder. A list item whose updates live
+  in one render block carries that block on the item block itself (`_$_.item`),
+  and a keyed item that only its render block reads is held as it is instead of in
+  a tracked, re-running its block directly when the key's item is replaced. Leaf
+  text is written without a DOM read, from the value the render block last wrote.
+  A keyed diff that re-lays most of its items walks the range front to back
+  instead of appending every item at the end, about half the reorder cost in
+  Chromium and far less right after a layout flush.
+- Updated dependencies
+  [[`1032539`](https://github.com/Ripple-TS/ripple/commit/10325392e4b1ec7fba78b8ddaf57bc5376adaab1),
+  [`e9382ed`](https://github.com/Ripple-TS/ripple/commit/e9382ed7538779aeb8671b8e3f3fdfd3a897b85a),
+  [`0030be0`](https://github.com/Ripple-TS/ripple/commit/0030be0aa3c7f1d2ce40500dc57ea980b69c69ec)]:
+  - @tsrx/ripple@0.2.1
+
 ## 0.4.1
 
 ### Patch Changes
