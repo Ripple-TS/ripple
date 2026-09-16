@@ -55,6 +55,21 @@ describe('server output keeps static markup Latin-1', () => {
 		expect(code).toContain('<iframe>a — b</iframe>');
 	});
 
+	it('leaves nested text inside a raw-text element untouched', () => {
+		const code = server(`export function App(props: { on: boolean }) @{
+	<xmp>
+		<>
+			@if (props.on) {
+				<b>a — b</b>
+			}
+		</>
+	</xmp>
+}`);
+
+		expect(code).toContain('a — b');
+		expect(code).not.toContain('&#8212;');
+	});
+
 	it('does not touch dynamic text', () => {
 		const code = server(`export function App(props: { text: string }) @{
 	<p>{props.text}</p>

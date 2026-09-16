@@ -3064,19 +3064,22 @@ const RAW_TEXT_ELEMENTS = new Set([
 
 /**
  * The escaped markup for a static text child, kept Latin-1 (see
- * {@link to_latin1_html}) unless the enclosing element takes raw text.
+ * {@link to_latin1_html}) unless it sits inside a raw-text element, however
+ * deep: a fragment, control-flow branch or wrapper element inside `<xmp>` is
+ * still raw text to the browser.
  * @param {string | number | bigint | boolean | RegExp | null | undefined} value
  * @param {TransformServerContext} context
  * @returns {string}
  */
 function static_text(value, context) {
 	const escaped = escape(value);
-	const parent = context.path.at(-1);
-	if (
-		is_template_element(parent) &&
-		RAW_TEXT_ELEMENTS.has(get_element_identifier(parent)?.name ?? '')
-	) {
-		return escaped;
+	for (const ancestor of context.path) {
+		if (
+			is_template_element(ancestor) &&
+			RAW_TEXT_ELEMENTS.has(get_element_identifier(ancestor)?.name ?? '')
+		) {
+			return escaped;
+		}
 	}
 	return to_latin1_html(escaped);
 }
