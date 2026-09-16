@@ -73,6 +73,30 @@ hydrate(App, {
 | `mount()`   | Client-side only rendering (SPA). Clears the target element and renders fresh.              |
 | `hydrate()` | Server-side rendering (SSR). Adopts existing server-rendered HTML and makes it interactive. |
 
+### Client-Only Builds
+
+An app that only ever calls `mount()` can tell the Vite plugin so, and its
+bundle shrinks: components compile to plain DOM reads instead of the hydration
+cursor, `track()` calls carry no serialization hashes, and the runtime's
+hydration paths are left out entirely.
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import { ripple } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+  plugins: [ripple({ ssr: false })],
+});
+```
+
+`hydrate()` throws in such a build, and the option is rejected when
+`ripple.config.ts` declares render routes, since those are server rendered and
+hydrated. The opposite override, `ssr: true`, compiles every module for the
+server; it is meant for an adapter that drives the build itself. Leave the
+option unset for an app with render routes so Vite's client and server
+environments each get the output they need.
+
 ### Server-Side Rendering
 
 On the server, use `render()` from `ripple/server`. It is asynchronous — the
@@ -277,6 +301,47 @@ rendering or serving RPC and from `ripple` in the browser before `hydrate()`,
 `mount()`, or RPC calls. Registration applies to the whole application; use
 matching handlers on both sides. Calling `setTransport()` or `setTransport({})`
 restores built-in serialization.
+
+### Static Generation
+
+Pages whose content does not depend on the request can be rendered once at
+build time. `prerender()` from `ripple/server` is the static counterpart of
+`render()`: it is buffered, resolves once every `@try` boundary and
+`trackAsync` has settled, and returns the scoped CSS as text:
+
+```ts
+import { prerender } from 'ripple/server';
+import { App } from './App.tsrx';
+
+const { head, body, css } = await prerender(App);
+const html = template
+  .replace('<!--ssr-head-->', `${head}<style data-ripple-ssr>${css}</style>`)
+  .replace('<!--ssr-body-->', body);
+```
+
+With the Vite plugin, mark the render routes to prerender instead:
+
+```ts
+import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+  router: {
+    routes: [
+      new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true }),
+      new RenderRoute({ path: '/dashboard', entry: './src/Dashboard.tsrx' }),
+    ],
+  },
+});
+```
+
+After the server build, the plugin renders each marked route through the
+production server entry and writes `<outDir>/client<path>/index.html`. The
+node and bun adapters serve that file for the route before the server renders
+anything, with a cache policy that revalidates on every request, and the page
+hydrates exactly like a server-rendered one. Only a static path can be
+prerendered: a `:param` or `*` segment is a configuration error. Routes
+without the flag keep rendering per request, so static and dynamic pages mix
+freely in one app.
 
 ### Cleanup
 
