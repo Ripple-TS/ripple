@@ -9,21 +9,7 @@ import {
 	resume_block,
 } from './blocks.js';
 import { BRANCH_BLOCK, DIRECT_CHILD_BLOCK, TRY_BLOCK } from './constants.js';
-import {
-	COMMENT_NODE,
-	HYDRATION_START,
-	HYDRATION_START_PENDING,
-	HYDRATION_START_ERRORED,
-	STREAM_ERROR_SCRIPT_PREFIX,
-} from '../../../constants.js';
-import {
-	hydrate_next,
-	hydrate_node,
-	hydrating,
-	set_hydrate_node,
-	set_hydration,
-	skip_to_hydration_end,
-} from './hydration.js';
+import { H, hydrate_node, hydrating } from './hydration.js';
 import { resolve_anchor } from './operations.js';
 import { append } from './template.js';
 import {
@@ -39,7 +25,7 @@ import {
  * @param {() => void} fn
  * @returns {Block}
  */
-function boundary_branch(fn) {
+export function boundary_branch(fn) {
 	return create_block(BRANCH_BLOCK | DIRECT_CHILD_BLOCK, fn);
 }
 
@@ -83,7 +69,7 @@ function show_resolved_fragment(state) {
 }
 
 /** @param {TryState} state */
-function render_resolved(state) {
+export function render_resolved(state) {
 	if (
 		state.try_block !== null &&
 		!is_destroyed(state.try_block) &&
@@ -156,7 +142,7 @@ function render_pending(state) {
 }
 
 /** @param {TryState} state */
-function destroy_pending(state) {
+export function destroy_pending(state) {
 	if (state.pending_branch !== null && !is_destroyed(state.pending_branch)) {
 		destroy_block(state.pending_branch);
 	}
@@ -164,11 +150,13 @@ function destroy_pending(state) {
 }
 
 /**
+ * Routes an error into a boundary: its catch branch renders in place of the
+ * content, which is kept offscreen for `reset`.
  * @param {TryState} state
  * @param {any} error
  * @returns {void}
  */
-function handle_error(state, error) {
+export function catch_error(state, error) {
 	if (state.mode === 'catch') {
 		// we don't want to do this again and render catch block again
 		return;
@@ -219,121 +207,6 @@ function handle_error(state, error) {
 	}
 
 	destroy_resolved(state);
-}
-
-/**
- * Retires the slot wrapper markers once the slot's fate is decided: the
- * open comment loses its marker data (it may still serve as the boundary
- * anchor, so it must stay in the DOM) and the close comment is dropped —
- * keeping `[`/`]` depth balanced for scans over surrounding slots.
- * @param {TryState} state
- * @returns {void}
- */
-function neutralize_slot_markers(state) {
-	/** @type {Comment} */ (state.slot_open).data = '';
-	/** @type {ChildNode} */ (state.slot_close).remove();
-}
-
-/**
- * Reads the streamed unit error envelope for this slot and routes the
- * error into this boundary, or the nearest catch boundary above it.
- * @param {TryState} state
- * @param {string} id
- * @returns {void}
- */
-function route_streamed_error(state, id) {
-	if (state.try_block === null || is_destroyed(state.try_block)) {
-		return;
-	}
-	neutralize_slot_markers(state);
-	var message = 'An error occurred during server rendering';
-	var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
-	if (script !== null) {
-		try {
-			message = JSON.parse(/** @type {string} */ (script.textContent)).message ?? message;
-		} catch {
-			// keep the generic message
-		}
-		script.remove();
-	}
-	var error = new Error(message);
-	if (state.catch_fn !== null) {
-		handle_error(state, error);
-		return;
-	}
-	var outer = get_boundary_with_catch(/** @type {Block} */ (state.try_block));
-	if (outer === null) {
-		throw error;
-	}
-	handle_error(outer.s, error);
-}
-
-/**
- * Empties the streamed slot: destroys the hydrated fallback branch and
- * sweeps whatever remains between the wrapper comments (leftover marker
- * comments included).
- * @param {TryState} state
- * @returns {void}
- */
-function clear_streamed_slot(state) {
-	destroy_pending(state);
-	var node = /** @type {ChildNode} */ (state.slot_open).nextSibling;
-	while (node !== null && node !== state.slot_close) {
-		var next = node.nextSibling;
-		/** @type {ChildNode} */ (node).remove();
-		node = next;
-	}
-}
-
-/**
- * Called by the inline stream runtime when this slot's chunk arrives after
- * hydration: swaps the fallback for the streamed content and claims the
- * new DOM through a boundary-scoped hydration walk (trackAsync inside the
- * body picks its serialized envelope up from the same chunk).
- * @param {TryState} state
- * @param {HTMLTemplateElement | null} template
- * @param {number | undefined} [errored]
- * @returns {void}
- */
-function activate_streamed_chunk(state, template, errored) {
-	if (state.try_block === null || is_destroyed(state.try_block)) {
-		return;
-	}
-	var id = /** @type {string} */ (state.streamed_id);
-	state.streamed_id = null;
-	if (errored) {
-		clear_streamed_slot(state);
-		route_streamed_error(state, id);
-		return;
-	}
-	clear_streamed_slot(state);
-	if (template !== null) {
-		/** @type {ChildNode} */ (state.slot_close).before(template.content);
-	}
-	var first = /** @type {ChildNode} */ (state.slot_open).nextSibling;
-	if (first === null || first === state.slot_close) {
-		neutralize_slot_markers(state);
-		return;
-	}
-	// adopt the streamed body's own <!--[--> as the boundary anchor (the
-	// node the buffered-SSR hydration path would have used) and drop the
-	// slot wrapper comments, so the resulting DOM matches buffered SSR
-	// exactly like the pre-hydration swap path does
-	if (state.anchor === state.slot_open) {
-		state.anchor = first;
-	}
-	/** @type {ChildNode} */ (state.slot_open).remove();
-	/** @type {ChildNode} */ (state.slot_close).remove();
-	var previous_hydrating = hydrating;
-	var previous_hydrate_node = hydrate_node;
-	set_hydration(true, first);
-	hydrate_next(); // consume the streamed body's <!--[-->
-	try {
-		state.has_resolved = true;
-		render_resolved(state);
-	} finally {
-		set_hydration(previous_hydrating, previous_hydrate_node);
-	}
 }
 
 /** @param {TryState} state */
@@ -420,62 +293,10 @@ function complete_request(state, request_id, show_resolved_branch = true) {
 	return true;
 }
 
-/**
- * @param {TryState} state
- * @param {Comment} marker
- * @param {string} data
- */
-function hydrate_streamed_slot(state, marker, data) {
-	// live streamed slot
-	state.streamed_id = data.slice(HYDRATION_START_PENDING.length);
-	state.streamed_errored = data.startsWith(HYDRATION_START_ERRORED);
-	state.slot_open = marker;
-	hydrate_next(); // consume the slot wrapper open
-	state.slot_close = /** @type {Comment} */ (skip_to_hydration_end());
-	var fallback_start = /** @type {Comment} */ (hydrate_node);
-	state.streamed_fallback =
-		!state.streamed_errored &&
-		state.pending_fn !== null &&
-		fallback_start.nodeType === COMMENT_NODE &&
-		fallback_start.data === HYDRATION_START;
-	if (state.streamed_fallback) {
-		hydrate_next(); // consume the fallback's <!--[-->
-	}
-}
-
-/** @param {TryState} state */
-function register_streamed_slot(state) {
-	// continue the outer hydration walk after the slot
-	set_hydrate_node(state.slot_close);
-
-	var registry = (window.__RIPPLE_B__ ??= {});
-	var unit_id = /** @type {string} */ (state.streamed_id);
-	if (state.streamed_errored) {
-		// the inline runtime already emptied the slot and marked it errored
-		// — route the error once the surrounding hydration has finished
-		queue_microtask(() => route_streamed_error(state, unit_id));
-	} else {
-		registry[unit_id] = {
-			a: (template, errored) => activate_streamed_chunk(state, template, errored),
-		};
-	}
-}
-
-/** @param {TryState} state */
-function hydrate_streamed_fallback(state) {
-	// The body has not arrived yet; hydrate its fallback until activation.
-	if (state.streamed_fallback) {
-		state.mode = 'pending';
-		state.pending_branch = boundary_branch(() => {
-			/** @type {TryPendingFunction} */ (state.pending_fn)(state.anchor);
-		});
-	}
-}
-
 /** @param {TryState} state */
 function run_try(state) {
 	if (state.streamed_id !== null) {
-		hydrate_streamed_fallback(state);
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).f(state);
 	} else {
 		state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
 	}
@@ -524,26 +345,13 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
-
-		var marker = /** @type {Comment} */ (hydrate_node);
-		var data = marker.nodeType === COMMENT_NODE ? marker.data : '';
-
-		// A slot at this anchor belongs to this boundary, including the root.
-		if (data.startsWith(HYDRATION_START_PENDING) || data.startsWith(HYDRATION_START_ERRORED)) {
-			hydrate_streamed_slot(state, marker, data);
-		} else {
-			// Settled SSR content must not transition back to pending.
-			if (pending_fn !== null) {
-				state.has_resolved = true;
-			}
-			hydrate_next(); // consume <!--[-->
-		}
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).m(state);
 	}
 
 	state.try_block = create_block(TRY_BLOCK, run_try, state);
 
 	if (state.streamed_id !== null) {
-		register_streamed_slot(state);
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).s(state);
 	}
 
 	own_anchor(node, state.anchor);
@@ -597,7 +405,7 @@ export function get_boundary_with_catch(block) {
  * @returns {void}
  */
 export function handle_boundary_error(boundary, error) {
-	handle_error(boundary.s, error);
+	catch_error(boundary.s, error);
 }
 
 /**

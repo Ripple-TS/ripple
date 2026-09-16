@@ -6,8 +6,8 @@ import { BRANCH_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
 import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
-import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
-import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
+import { H, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
+import { COMMENT_NODE, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { is_tsrx_element, TSRX_ELEMENT } from '../../element.js';
 
 /**
@@ -133,61 +133,15 @@ function render_tsrx_element(value, anchor, block) {
  * @returns {void}
  */
 function render_tsrx_collection_text(value, anchor, assign = false) {
-	if (!hydrating) {
-		var text = create_text(value);
-		insert_before(anchor, text);
-		if (assign) {
-			assign_nodes(text, text);
-		}
+	if (hydrating) {
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).x(value, anchor, assign);
 		return;
 	}
-
-	var node = hydrate_node;
-
-	if (node?.nodeType === COMMENT_NODE && /** @type {Comment} */ (node).data === HYDRATION_START) {
-		node = get_next_sibling(node);
-	}
-
-	if (node?.nodeType === TEXT_NODE) {
-		var current_value = /** @type {Text} */ (node).nodeValue ?? '';
-
-		if (current_value !== value) {
-			/** @type {Text} */ (node).nodeValue = value;
-
-			if (current_value.startsWith(value)) {
-				var remaining = current_value.slice(value.length);
-
-				if (remaining !== '') {
-					var remaining_text = create_text(remaining);
-					/** @type {ChildNode} */ (node).after(remaining_text);
-					if (assign) {
-						assign_nodes(node, node);
-					}
-					set_hydrate_node(remaining_text);
-					return;
-				}
-			}
-		}
-
-		if (assign) {
-			assign_nodes(node, node);
-		}
-		set_hydrate_node(get_next_sibling(node) ?? anchor);
-		return;
-	}
-
-	var new_text = create_text(value);
-
-	if (node !== null && node !== anchor) {
-		/** @type {ChildNode} */ (node).before(new_text);
-	} else {
-		anchor.before(new_text);
-	}
-
+	var text = create_text(value);
+	insert_before(anchor, text);
 	if (assign) {
-		assign_nodes(new_text, new_text);
+		assign_nodes(text, text);
 	}
-	set_hydrate_node(node ?? anchor);
 }
 
 /**
@@ -253,7 +207,7 @@ function run_expression(s) {
 		hydrating && s.n === COMMENT_NODE && /** @type {Comment} */ (anchor).data === HYDRATION_START;
 
 	if (is_hydration_marker) {
-		s.m ??= ensure_expression_end(anchor);
+		s.m ??= /** @type {import('./hydrate.js').HydrationRuntime} */ (H).e(anchor);
 	}
 
 	var end = s.m;
@@ -357,7 +311,10 @@ function run_expression(s) {
 	}
 
 	if (is_hydration_marker) {
-		var text = (s.t = get_hydrated_text(anchor, /** @type {Comment} */ (end)));
+		var text = (s.t = /** @type {import('./hydrate.js').HydrationRuntime} */ (H).h(
+			anchor,
+			/** @type {Comment} */ (end),
+		));
 
 		if (next_text === '') {
 			if (text !== null) {
@@ -410,66 +367,10 @@ function restore_parent_start(s) {
 
 /**
  * @param {Node} anchor
- * @returns {Comment}
- */
-function ensure_expression_end(anchor) {
-	if (hydrating) {
-		/** @type {Node | null} */
-		var current = get_next_sibling(anchor);
-		var depth = 0;
-
-		while (current !== null) {
-			if (current.nodeType === COMMENT_NODE) {
-				var data = /** @type {Comment} */ (current).data;
-
-				if (data === HYDRATION_START) {
-					depth += 1;
-				} else if (data === HYDRATION_END) {
-					if (depth === 0) {
-						return /** @type {Comment} */ (current);
-					}
-
-					depth -= 1;
-				}
-			}
-
-			current = get_next_sibling(current);
-		}
-
-		throw new Error('Hydration mismatch: expected end marker for expression block');
-	}
-
-	var end = document.createComment(HYDRATION_END);
-	/** @type {ChildNode} */ (anchor).after(end);
-	return end;
-}
-
-/**
- * @param {Node} anchor
- * @param {Node} end
- * @returns {Text | null}
- */
-function get_hydrated_text(anchor, end) {
-	var first = get_next_sibling(anchor);
-
-	if (first === end) {
-		return null;
-	}
-
-	if (first?.nodeType === TEXT_NODE && get_next_sibling(first) === end) {
-		return /** @type {Text} */ (first);
-	}
-
-	clear_expression_range(anchor, end);
-	return null;
-}
-
-/**
- * @param {Node} anchor
  * @param {Node} end
  * @returns {void}
  */
-function clear_expression_range(anchor, end) {
+export function clear_expression_range(anchor, end) {
 	var current = get_next_sibling(anchor);
 
 	while (current !== null && current !== end) {

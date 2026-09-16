@@ -39,7 +39,7 @@ export var ITEM_BLOCK = 1 << 26;
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 
 /** @type {unique symbol} */
-export const UNINITIALIZED = Symbol('uninitialized');
+export const UNINITIALIZED = Symbol();
 /** @type {unique symbol} */
 export const TRACKED_ARRAY = Symbol();
 /** @type {unique symbol} */
@@ -58,13 +58,13 @@ export const NAMESPACE_URI = {
 	mathml: 'http://www.w3.org/1998/Math/MathML',
 };
 /** @type {unique symbol} */
-export const TRACKED_UPDATED = Symbol('TRACKED_UPDATED');
+export const TRACKED_UPDATED = Symbol();
 /** @type {unique symbol} */
-export const SUSPENSE_PENDING = Symbol('suspense_pending');
+export const SUSPENSE_PENDING = Symbol();
 /** @type {unique symbol} */
-export const SUSPENSE_REJECTED = Symbol('suspense_rejected');
+export const SUSPENSE_REJECTED = Symbol();
 /** @type {unique symbol} */
-export const ASYNC_DERIVED_READ_THROWN = Symbol('async_derived_read_thrown');
+export const ASYNC_DERIVED_READ_THROWN = Symbol();
 
 /** The hoisted render function a module-level component carries (see `render_component`). */
-export const RENDER_ENTRY = Symbol('render');
+export const RENDER_ENTRY = Symbol();

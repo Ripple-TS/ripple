@@ -63,7 +63,6 @@ export {
 	update_property,
 	update_pre_property,
 	track,
-	track_async,
 	is_tracked_pending,
 	peek_tracked,
 	push_component,
@@ -79,6 +78,8 @@ export {
 	queue_post_block_flush_callback,
 	schedule_update,
 } from './runtime.js';
+
+export { track_async } from './track-async.js';
 
 export { composite } from './composite.js';
 

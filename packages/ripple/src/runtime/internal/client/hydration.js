@@ -1,14 +1,7 @@
 /** @import { AppendIntoAnchor, Block, Derived, Tracked } from '#client' */
 
-import {
-	COMMENT_NODE,
-	HYDRATION_END,
-	HYDRATION_ERROR,
-	HYDRATION_START,
-	TEXT_NODE,
-} from '../../../constants.js';
+import { HYDRATION_ERROR, TEXT_NODE } from '../../../constants.js';
 import { create_text, first_child_getter, next_sibling_getter } from './operations.js';
-import { active_block } from './runtime.js';
 
 export let hydrating = false;
 
@@ -22,6 +15,21 @@ export let hydrate_node = null;
  * @type {Map<string, Tracked | Derived>}
  */
 export const track_hash_reference = new Map();
+
+/**
+ * The hydration paths of the DOM runtime (see `hydrate.js`), installed by
+ * `hydrate()`: the runtime reaches them through this object, so a client-only
+ * mount never loads them.
+ * @type {import('./hydrate.js').HydrationRuntime | null}
+ */
+export let H = null;
+
+/**
+ * @param {import('./hydrate.js').HydrationRuntime} runtime
+ */
+export function set_hydration_runtime(runtime) {
+	H = runtime;
+}
 
 /**
  * @param {boolean} value
@@ -130,53 +138,6 @@ function repair_next_sibling(next_sibling) {
 	return text;
 }
 
-/**
- * The hydration path of `append`: repositions the hydration cursor instead
- * of inserting. Kept out of the insert path so a client-only mount never
- * compiles it.
- *
- * Every hydrated node, block, and component leaves the cursor on its last
- * DOM node, and whoever owns the next node steps past it: a parent element
- * with its sibling traversal, a control-flow block by reaching its end
- * marker, an append-into sentinel by adopting the cursor as the next
- * component's first node.
- * @param {ChildNode | AppendIntoAnchor} anchor
- * @param {Node} dom
- */
-export function hydrate_append(anchor, dom) {
-	var node = /** @type {Node} */ (hydrate_node);
-
-	// The cursor descended into dom's children (child()/sibling() traversal
-	// inside a single-node template) without a compiler-emitted pop(): bring it
-	// back up to dom before deciding where to leave it.
-	if (node !== dom && dom.contains(node)) {
-		node = dom;
-	}
-
-	// A child component renders into the anchor it was handed, which is its
-	// own first node. Its content is hydrated, so leave the cursor on the
-	// content's last node for the parent's sibling traversal.
-	if (anchor === dom) {
-		hydrate_node = node;
-		return;
-	}
-
-	if (node !== dom) {
-		// A fragment's cursor sits on its last top-level node, past the
-		// template's first node: widen the block's end to cover the whole
-		// fragment rather than only the node assign_nodes saw.
-		var s = /** @type {Block} */ (active_block).s;
-		if (s !== null) {
-			s.end = node;
-		}
-	}
-
-	// Step past the content: a branch lands on its block's end marker, the
-	// root on the boundary's end marker, an append-into sentinel on the next
-	// component's first node.
-	hydrate_node = next_sibling_getter.call(node);
-}
-
 export function next(n = 1) {
 	if (hydrating) {
 		var node = hydrate_node;
@@ -193,30 +154,4 @@ export function next(n = 1) {
 export function pop(node) {
 	if (!hydrating) return;
 	hydrate_node = node;
-}
-
-/**
- * Scans forward from the current hydrate_node to find the matching HYDRATION_END
- * comment, handling nested blocks by tracking depth.
- * Should be called after hydrate_next() has consumed the opening HYDRATION_START.
- * Any `[`-prefixed comment opens a nested region — this includes the plain
- * `<!--[-->` markers as well as streaming slot markers (`<!--[?N-->`,
- * `<!--[!N-->`), which always pair with a `<!--]-->`.
- * @returns {Node} The HYDRATION_END comment node.
- */
-export function skip_to_hydration_end() {
-	var depth = 0;
-	var node = /** @type {Node} */ (hydrate_node);
-	while (true) {
-		if (node.nodeType === COMMENT_NODE) {
-			var data = /** @type {Comment} */ (node).data;
-			if (data === HYDRATION_END) {
-				if (depth === 0) return node;
-				depth -= 1;
-			} else if (data.startsWith(HYDRATION_START)) {
-				depth += 1;
-			}
-		}
-		node = /** @type {Node} */ (next_sibling_getter.call(node));
-	}
 }

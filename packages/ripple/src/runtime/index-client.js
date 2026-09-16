@@ -6,6 +6,7 @@ import { init_operations } from './internal/client/operations.js';
 import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
 import { remove_styles } from './internal/client/css.js';
+import { install_hydration } from './internal/client/hydrate.js';
 import { normalize_children } from './element.js';
 import {
 	hydrate_next,
@@ -145,6 +146,7 @@ export function mount(component, options) {
  */
 export function hydrate(component, options) {
 	init_operations();
+	install_hydration();
 	requestAnimationFrame(remove_styles);
 
 	let props = options.props ?? {};
@@ -215,12 +217,13 @@ export { Context } from './internal/client/context.js';
 export {
 	flush_sync as flushSync,
 	track,
-	track_async as trackAsync,
 	untrack,
 	tick,
 	is_tracked_pending as trackPending,
 	peek_tracked as peek,
 } from './internal/client/runtime.js';
+
+export { track_async as trackAsync } from './internal/client/track-async.js';
 
 export { snapshot } from './proxy.js';
 

@@ -6,8 +6,8 @@ import {
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
 } from '../../../constants.js';
-import { hydrate_append, hydrate_node, hydrating } from './hydration.js';
-import { create_text, get_first_child, get_next_sibling, is_firefox } from './operations.js';
+import { H, hydrate_node, hydrating } from './hydration.js';
+import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 
 /**
@@ -50,56 +50,6 @@ export function create_fragment_from_html(
 	var elem = document.createElement('template');
 	elem.innerHTML = html;
 	return elem.content;
-}
-
-/**
- * The hydration path of a {@link template} instance: adopts the server node(s)
- * at the cursor instead of cloning. Kept out of the clone path so a client-only
- * mount never compiles it.
- * @param {boolean} is_fragment
- * @param {number} count
- * @returns {Node}
- */
-function hydrate_template(is_fragment, count) {
-	var node = /** @type {Node} */ (hydrate_node);
-	var end = is_fragment ? hydrate_fragment_end(node, count) : node;
-	// assign_nodes, inline: the per-node hydration path stays free of helpers.
-	var block = /** @type {Block} */ (active_block);
-	var s = block.s;
-	if (s === null) {
-		block.s = { start: node, end };
-	} else if (s.start === null) {
-		s.start = node;
-		s.end = end;
-	}
-	return node;
-}
-
-/**
- * The last top-level node of a hydrated fragment template. Walks using the
- * compiler-provided hop count so hydration never parses template HTML.
- * @param {Node} start
- * @param {number} count
- * @returns {Node}
- */
-function hydrate_fragment_end(start, count) {
-	var end = start;
-
-	for (var i = 1; i < count; i++) {
-		var next = get_next_sibling(end);
-
-		while (next !== null && next.nodeType === Node.COMMENT_NODE) {
-			next = get_next_sibling(next);
-		}
-
-		if (next === null) {
-			break;
-		}
-
-		end = next;
-	}
-
-	return end;
 }
 
 /**
@@ -192,7 +142,10 @@ export function template(content, flags, count = 1) {
 		node_mathml: false,
 	};
 
-	return () => (hydrating ? hydrate_template(is_fragment, count) : clone_template(t));
+	return () =>
+		hydrating
+			? /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(is_fragment, count)
+			: clone_template(t);
 }
 
 /**
@@ -202,7 +155,7 @@ export function template(content, flags, count = 1) {
  */
 export function append(anchor, dom) {
 	if (hydrating) {
-		hydrate_append(anchor, dom);
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).a(anchor, dom);
 		return;
 	}
 	if (/** @type {AppendIntoAnchor} */ (anchor).into === true) {
