@@ -148,9 +148,10 @@ describe('grouped render read hoisting', () => {
 		`);
 
 		expect(code).not.toContain('var __pattern');
-		// Two guarded reads in the render (through the block state) plus the key
-		// function.
-		expect(code.match(/_\$_\.get\((?:__prev\._)?pattern\)/g)).toHaveLength(3);
+		// Two guarded reads in the render (through the block state); the key
+		// function reads the item itself.
+		expect(code.match(/_\$_\.get\((?:__prev\._)?pattern\)/g)).toHaveLength(2);
+		expect(code).toContain('(pattern) => pattern.id');
 	});
 
 	it('leaves reads inside nested functions alone', () => {
@@ -199,7 +200,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(');
+		expect(code).toContain('_$_.set_text_content(');
 		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
 		expect(code).toContain('__pattern.label.value');
 	});
@@ -224,7 +225,7 @@ describe('@for item type inference', () => {
 		`);
 
 		// The fragment itself renders through expression(); the loop bodies do not.
-		expect(code.match(/_\$_\.set_text\(/g)).toHaveLength(2);
+		expect(code.match(/_\$_\.set_text_content\(/g)).toHaveLength(2);
 		expect(code).not.toContain('_$_.expression(expression');
 	});
 
@@ -251,8 +252,8 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(__prev._expression, __prev.a = __a)');
-		expect(code).toContain('expression_1.nodeValue = count');
+		expect(code).toContain('_$_.set_text_content(__prev._td, __prev.a = __a)');
+		expect(code).toContain('td_1.textContent = count');
 	});
 
 	it('types the bindings of a regular object pattern declaration', () => {
@@ -264,8 +265,8 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text(__prev._expression, __prev.a = __a)');
-		expect(code).toContain('expression_1.nodeValue = count');
+		expect(code).toContain('_$_.set_text_content(__prev._td, __prev.a = __a)');
+		expect(code).toContain('td_1.textContent = count');
 	});
 
 	it('types track() calls by their explicit type argument', () => {
@@ -282,7 +283,7 @@ describe('@for item type inference', () => {
 
 		// The parser exposes call generics as \`typeArguments\`; both typed calls
 		// lower to direct text writes, the untyped one keeps the generic expression.
-		expect(code.match(/_\$_\.set_text\(/g)).toHaveLength(2);
+		expect(code.match(/_\$_\.set_text_content\(/g)).toHaveLength(2);
 		expect(code).toContain('_$_.expression(expression_2, () => raw.value)');
 	});
 
@@ -297,7 +298,7 @@ describe('@for item type inference', () => {
 			}
 		`);
 
-		expect(code).toContain('_$_.set_text(');
+		expect(code).toContain('_$_.set_text_content(');
 		expect(code).toContain('_$_.expression(');
 	});
 });

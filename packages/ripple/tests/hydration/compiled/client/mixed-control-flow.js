@@ -1,14 +1,14 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div> </div>`, 0);
+var root_1 = _$_.template(`<div></div>`, 0);
 
 function render(__prev) {
 	var __pattern = _$_.get(__prev._pattern);
 	var __a = `A-${__pattern.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
+		_$_.set_text_content(__prev._div, __prev.a = __a);
 	}
 
 	var __b = `row row-${__pattern.id} kind-a`;
@@ -28,14 +28,14 @@ function render_1(__prev) {
 	}
 }
 
-var root_3 = _$_.template(`<div> </div>`, 0);
+var root_3 = _$_.template(`<div></div>`, 0);
 
 function render_2(__prev) {
 	var __pattern_1 = _$_.get(__prev._pattern);
 	var __a = `B-${__pattern_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_1, __prev.a = __a);
+		_$_.set_text_content(__prev._div_2, __prev.a = __a);
 	}
 
 	var __b = `row row-${__pattern_1.id} kind-b`;
@@ -61,18 +61,7 @@ function switch_case_0(__anchor, pattern) {
 		(__anchor) => {
 			var div = root_1();
 
-			{
-				var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
-			}
-
-			_$_.render(render, {
-				a: ' ',
-				b: _$_.UNINITIALIZED,
-				_pattern: pattern,
-				_expression: expression,
-				_div: div
-			});
-
+			_$_.render(render, { a: '', b: _$_.UNINITIALIZED, _pattern: pattern, _div: div });
 			_$_.append(__anchor, div);
 		},
 		null,
@@ -92,15 +81,10 @@ function switch_case_default(__anchor, pattern) {
 		(__anchor) => {
 			var div_2 = root_3();
 
-			{
-				var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_2.firstChild;
-			}
-
 			_$_.render(render_2, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern: pattern,
-				_expression_1: expression_1,
 				_div_2: div_2
 			});
 
@@ -154,7 +138,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 				_$_.if(__anchor, if_1, true, pattern);
 			},
 			4,
-			(pattern) => _$_.get(pattern).id
+			(pattern) => pattern.id
 		);
 
 		_$_.hydrating && _$_.pop(section);
@@ -165,14 +149,14 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 
 MixedControlFlowStatic[_$_.$r] = MixedControlFlowStatic_render;
 
-var root_8 = _$_.template(`<p> </p>`, 0);
+var root_8 = _$_.template(`<p></p>`, 0);
 
 function render_4(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._pattern_1);
 	var __a = `A:${__pattern_1_1.label}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_2, __prev.a = __a);
+		_$_.set_text_content(__prev._p, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_1_1.id}`;
@@ -183,14 +167,14 @@ function render_4(__prev) {
 }
 
 var root_9 = _$_.template(`<p class="pending">pending a</p>`, 0);
-var root_10 = _$_.template(`<p> </p>`, 0);
+var root_10 = _$_.template(`<p></p>`, 0);
 
 function render_5(__prev) {
 	var __pattern_1_2 = _$_.get(__prev._pattern_1);
 	var __a = `B:${__pattern_1_2.label}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_3, __prev.a = __a);
+		_$_.set_text_content(__prev._p_2, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_1_2.id}`;
@@ -208,18 +192,7 @@ function switch_case_0_1(__anchor, { mode, pattern_1 }) {
 		(__anchor) => {
 			var p = root_8();
 
-			{
-				var expression_2 = _$_.hydrating ? _$_.hydrate_text() : p.firstChild;
-			}
-
-			_$_.render(render_4, {
-				a: ' ',
-				b: _$_.UNINITIALIZED,
-				_pattern_1: pattern_1,
-				_expression_2: expression_2,
-				_p: p
-			});
-
+			_$_.render(render_4, { a: '', b: _$_.UNINITIALIZED, _pattern_1: pattern_1, _p: p });
 			_$_.append(__anchor, p);
 		},
 		null,
@@ -238,15 +211,10 @@ function switch_case_default_1(__anchor, { mode, pattern_1 }) {
 		(__anchor) => {
 			var p_2 = root_10();
 
-			{
-				var expression_3 = _$_.hydrating ? _$_.hydrate_text() : p_2.firstChild;
-			}
-
 			_$_.render(render_5, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_1: pattern_1,
-				_expression_3: expression_3,
 				_p_2: p_2
 			});
 
@@ -285,7 +253,7 @@ function consequent_1(__anchor, { show, items, mode }) {
 				_$_.switch(__anchor, switch_2, true, { mode, pattern_1 });
 			},
 			4,
-			(pattern_1) => _$_.get(pattern_1).id
+			(pattern_1) => pattern_1.id
 		);
 
 		_$_.hydrating && _$_.pop(div_4);
@@ -339,7 +307,7 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 
 MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 
-var root_14 = _$_.template(`<div> </div>`, 0);
+var root_14 = _$_.template(`<div></div>`, 0);
 var root_15 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
 
 function switch_case_0_2(__anchor, { state, row }) {
@@ -355,9 +323,7 @@ function switch_case_0_2(__anchor, { state, row }) {
 			_$_.set_class(div_6, `pending-row pending-row-${row}`, void 0, true);
 
 			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
-
-				expression_4.nodeValue = `pending ${row}`;
+				div_6.textContent = `pending ${row}`;
 			}
 
 			_$_.append(__anchor, div_6);

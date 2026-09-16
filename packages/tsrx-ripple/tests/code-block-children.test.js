@@ -22,7 +22,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const component = code.search(/_\$_\.tsrx_element\(\(__anchor, __block\) => \{\s*const x = 1;/);
 		expect(component).toBeGreaterThan(-1);
 		expect(code.indexOf('_$_.expression(')).toBeLessThan(component);
-		expect(code).toContain('.nodeValue = x;');
+		expect(code).toContain('.textContent = x;');
 		expect(code).not.toContain('(() => {');
 	});
 
@@ -66,7 +66,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		// Shadowed declarations survive because each block is its own scope.
 		expect(code).toContain('const x = 1;');
 		expect(code).toContain('const x = 2;');
-		expect(code).toContain('.nodeValue = x + y;');
+		expect(code).toContain('.textContent = x + y;');
 		// Each nesting level becomes its own inline component scope.
 		expect(code.indexOf('const x = 2;')).toBeGreaterThan(code.indexOf('const x = 1;'));
 	});
@@ -227,7 +227,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		expect(anchor).toBeGreaterThan(-1);
 		expect(code.indexOf('const x = 1;')).toBeLessThan(anchor);
 		expect(code.indexOf('const y = 2;')).toBeGreaterThan(anchor);
-		expect(code).toContain('.nodeValue = x + y;');
+		expect(code).toContain('.textContent = x + y;');
 	});
 
 	it('scopes a nested code-block render chain in a function body (server)', () => {

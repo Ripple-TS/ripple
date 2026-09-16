@@ -4,13 +4,12 @@ import {
 	hydrate_first_child,
 	hydrate_next_sibling,
 	hydrate_node,
-	hydrate_text_child,
 	hydrating,
 	set_hydrate_node,
 } from './hydration.js';
 import { get_descriptor } from '@tsrx/core/runtime/language-helpers';
 
-export { hydrate_first_child, hydrate_next_sibling, hydrate_text_child };
+export { hydrate_first_child, hydrate_next_sibling };
 
 /**
  * The `firstChild` / `nextSibling` getters, called directly so a traversal

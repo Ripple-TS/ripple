@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class="typed-run"> <span>tail</span></div><p class="typed-number"> </p><button>update</button>`, 1, 3);
+var root_1 = _$_.template(`<div class="typed-run"> <span>tail</span></div><p class="typed-number"></p><button>update</button>`, 1, 3);
 
 function render(__prev) {
 	var __a = 'value: ' + (__prev._row.value.label + String(__prev._row.value.count ?? ''));
@@ -13,7 +13,7 @@ function render(__prev) {
 	var __b = (0, __prev._row.value.count);
 
 	if (__prev.b !== __b) {
-		_$_.set_text(__prev._expression_1, __prev.b = __b);
+		_$_.set_text_content(__prev._p, __prev.b = __b);
 	}
 }
 
@@ -35,25 +35,13 @@ function TypedText_render(__anchor, __block) {
 		}
 
 		var p = _$_.hydrating ? _$_.hydrate_sibling() : div.nextSibling;
-
-		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_text() : p.firstChild;
-		}
-
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : p.nextSibling;
 
 		button.__click = () => {
 			row.value = { label: '&next', count: 3n };
 		};
 
-		_$_.render(render, {
-			a: ' ',
-			b: ' ',
-			_row: row,
-			_expression: expression,
-			_expression_1: expression_1
-		});
-
+		_$_.render(render, { a: ' ', b: '', _row: row, _expression: expression, _p: p });
 		_$_.append(__anchor, fragment_1);
 	}));
 

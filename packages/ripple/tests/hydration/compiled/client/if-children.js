@@ -42,15 +42,13 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 
 IfWithChildren[_$_.$r] = IfWithChildren_render;
 
-var root_2 = _$_.template(`<div class="item"> </div>`, 0);
+var root_2 = _$_.template(`<div class="item"></div>`, 0);
 
 function ChildItem_render(__anchor, __block, { text: label }) {
 	var div_3 = root_2();
 
 	{
-		var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_3.firstChild;
-
-		expression_1.nodeValue = label;
+		div_3.textContent = label;
 	}
 
 	_$_.append(__anchor, div_3);
@@ -337,13 +335,13 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 
 DomElementChildrenThenSibling[_$_.$r] = DomElementChildrenThenSibling_render;
 
-var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
+var root_19 = _$_.template(`<div class="container"><ul class="list"><li class="item"></li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
 
 function render_1(__prev) {
 	var __a = 'Item count: ' + String(__prev._count.value ?? '');
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_3, __prev.a = __a);
+		_$_.set_text_content(__prev._li, __prev.a = __a);
 	}
 }
 
@@ -363,10 +361,6 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 
 			{
 				var li = _$_.hydrating ? _$_.hydrate_child() : ul.firstChild;
-
-				{
-					var expression_3 = _$_.hydrating ? _$_.hydrate_text() : li.firstChild;
-				}
 			}
 
 			_$_.hydrating && _$_.pop(ul);
@@ -377,7 +371,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 		button_4.__click = () => count.value++;
-		_$_.render(render_1, { a: ' ', _count: count, _expression_3: expression_3 });
+		_$_.render(render_1, { a: '', _count: count, _li: li });
 		_$_.append(__anchor, fragment_7);
 	}));
 
@@ -421,13 +415,13 @@ function RootIfChild_render(__anchor, __block, props) {
 
 RootIfChild[_$_.$r] = RootIfChild_render;
 
-var root_23 = _$_.template(`<span class="root-for"> </span>`, 0);
+var root_23 = _$_.template(`<span class="root-for"></span>`, 0);
 
 function render_2(__prev) {
 	var __a = _$_.get(__prev._pattern);
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_4, __prev.a = __a);
+		_$_.set_text_content(__prev._span_2, __prev.a = __a);
 	}
 }
 
@@ -438,11 +432,7 @@ function RootForChild_render(__anchor, __block, props) {
 		(__anchor, pattern) => {
 			var span_2 = root_23();
 
-			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
-			}
-
-			_$_.render(render_2, { a: ' ', _pattern: pattern, _expression_4: expression_4 });
+			_$_.render(render_2, { a: '', _pattern: pattern, _span_2: span_2 });
 			_$_.append(__anchor, span_2);
 		},
 		16

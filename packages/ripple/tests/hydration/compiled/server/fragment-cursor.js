@@ -21,15 +21,7 @@ export function TrailingNavigatedElements() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</div><button class="inc">inc</button><button class="dec">dec</button>';
+			__out += '<div class="count">' + _$_.escape(n.value) + '</div><button class="inc">inc</button><button class="dec">dec</button>';
 			_$_.output_push(__out);
 		});
 	});
@@ -293,15 +285,7 @@ export function WrapTrailingNavigatedElements() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -325,15 +309,7 @@ export function WrapTrailingStaticNavigatedElements() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -357,15 +333,7 @@ export function WrapNavigatedThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -389,15 +357,7 @@ export function WrapLeadingNavigatedThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -421,15 +381,7 @@ export function WrapTrailingNestedNavigated() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -453,15 +405,7 @@ export function WrapNestedNavigatedThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -485,15 +429,7 @@ export function WrapTrackedTextThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -517,15 +453,7 @@ export function WrapStaticThenTrackedText() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -549,15 +477,7 @@ export function WrapStaticNestedThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -581,15 +501,7 @@ export function WrapAllStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -613,15 +525,7 @@ export function WrapTrailingDynamicChild() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -645,15 +549,7 @@ export function WrapDynamicChildThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -677,15 +573,7 @@ export function WrapIfThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -709,15 +597,7 @@ export function WrapStaticThenIf() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -741,15 +621,7 @@ export function WrapCompThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -773,15 +645,7 @@ export function WrapStaticThenComp() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -805,15 +669,7 @@ export function WrapSiblingComps() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -854,15 +710,7 @@ export function TrailingNestedFragment() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</div><span class="x">x</span><button class="inc">inc</button>';
+			__out += '<div class="count">' + _$_.escape(n.value) + '</div><span class="x">x</span><button class="inc">inc</button>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1034,15 +882,7 @@ export function WrapUntrackedTextThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1066,15 +906,7 @@ export function WrapNestedFragmentThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1098,15 +930,7 @@ export function WrapTrailingNestedFragment() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1130,15 +954,7 @@ export function WrapForThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1162,15 +978,7 @@ export function WrapSwitchThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1194,15 +1002,7 @@ export function WrapTryThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1226,15 +1026,7 @@ export function WrapStyleThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1258,15 +1050,7 @@ export function WrapCollectionThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1290,15 +1074,7 @@ export function WrapInlineElementThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1379,15 +1155,7 @@ export function WrapIfOnly() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1411,15 +1179,7 @@ export function WrapIfThenOne() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1443,15 +1203,7 @@ export function WrapSingleRootWithIf() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1469,15 +1221,7 @@ export function ExprThenSiblingInDiv() {
 			_$_.output_push(__out);
 			__out = '';
 			_$_.render_expression(label.toUpperCase());
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1515,15 +1259,7 @@ export function IfTwoInDiv() {
 				__out += '<b class="if">x</b><i class="if2">y</i>';
 			}
 
-			__out += '<!--]--><span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<!--]--><span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1547,15 +1283,7 @@ export function WrapIfTwoThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1640,15 +1368,7 @@ export function WrapStaticCallThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -1672,15 +1392,7 @@ export function WrapStaticThenStyleThenStatic() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="after">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(n.value);
-			}
-
-			__out += '</span><button class="outer-inc">outer</button></div>';
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
 			_$_.output_push(__out);
 		});
 	});

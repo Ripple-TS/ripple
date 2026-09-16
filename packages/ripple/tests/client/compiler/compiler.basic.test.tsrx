@@ -110,8 +110,8 @@ describe('compiler > basics', () => {
 
 		const { code } = compile(source, 'stringish-text.tsrx', { mode: 'client' });
 
-		expect(code).toContain('_$_.set_text');
-		expect(code).toContain('nodeValue = title');
+		expect(code).toContain('_$_.set_text_content');
+		expect(code).toContain('textContent = title');
 		expect(count_occurrences(code, '_$_.expression')).toBe(2);
 	});
 

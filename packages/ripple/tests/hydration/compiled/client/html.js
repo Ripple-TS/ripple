@@ -289,13 +289,13 @@ function if_2(nextLink) {
 	if (nextLink) return consequent_1;
 }
 
-var root_18 = _$_.template(`<li><a> </a></li>`, 0);
+var root_18 = _$_.template(`<li><a></a></li>`, 0);
 
 function render_4(__prev) {
 	var __a = __prev._item.text;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_3, __prev.a = __a);
+		_$_.set_text_content(__prev._a_2, __prev.a = __a);
 	}
 
 	var __b = __prev._item.href;
@@ -322,20 +322,9 @@ function consequent_2(__anchor, toc) {
 
 					{
 						var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
-
-						{
-							var expression_3 = _$_.hydrating ? _$_.hydrate_text() : a_2.firstChild;
-						}
 					}
 
-					_$_.render(render_4, {
-						a: ' ',
-						b: void 0,
-						_item: item,
-						_expression_3: expression_3,
-						_a_2: a_2
-					});
-
+					_$_.render(render_4, { a: '', b: void 0, _item: item, _a_2: a_2 });
 					_$_.append(__anchor, li);
 				},
 				4
@@ -650,7 +639,7 @@ function HtmlAfterIfInChildren_render(__anchor, __block) {
 
 HtmlAfterIfInChildren[_$_.$r] = HtmlAfterIfInChildren_render;
 
-var root_30 = _$_.template(`<span class="for-item"> </span>`, 0);
+var root_30 = _$_.template(`<span class="for-item"></span>`, 0);
 
 function ForList_render(__anchor, __block, { items }) {
 	_$_.for(
@@ -660,9 +649,7 @@ function ForList_render(__anchor, __block, { items }) {
 			var span = root_30();
 
 			{
-				var expression_11 = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
-
-				expression_11.nodeValue = item;
+				span.textContent = item;
 			}
 
 			_$_.append(__anchor, span);
@@ -695,7 +682,7 @@ function HtmlAfterForInChildren_render(__anchor, __block) {
 
 HtmlAfterForInChildren[_$_.$r] = HtmlAfterForInChildren_render;
 
-var root_32 = _$_.template(`<div class="try-box"> </div>`, 0);
+var root_32 = _$_.template(`<div class="try-box"></div>`, 0);
 var root_33 = _$_.template(`<span>error</span>`, 0);
 
 function TryBox_render(__anchor, __block, { value }) {
@@ -705,9 +692,7 @@ function TryBox_render(__anchor, __block, { value }) {
 			var div_26 = root_32();
 
 			{
-				var expression_12 = _$_.hydrating ? _$_.hydrate_text() : div_26.firstChild;
-
-				expression_12.nodeValue = value;
+				div_26.textContent = value;
 			}
 
 			_$_.append(__anchor, div_26);
@@ -813,7 +798,7 @@ function if_5(active) {
 	if (active) return consequent_4;
 }
 
-var root_38 = _$_.template(`<div><!><a><span> </span></a></div>`, 0);
+var root_38 = _$_.template(`<div><!><a><span></span></a></div>`, 0);
 
 function NavItem_render(__anchor, __block, { href, text: label, active = false }) {
 	var div_27 = root_38();
@@ -833,9 +818,7 @@ function NavItem_render(__anchor, __block, { href, text: label, active = false }
 			var span_3 = _$_.hydrating ? _$_.hydrate_child() : a_3.firstChild;
 
 			{
-				var expression_15 = _$_.hydrating ? _$_.hydrate_text() : span_3.firstChild;
-
-				expression_15.nodeValue = label;
+				span_3.textContent = label;
 			}
 		}
 
@@ -866,7 +849,7 @@ function if_6({ expanded, children }) {
 	if (expanded.value) return consequent_5;
 }
 
-var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
+var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2></h2><button>Toggle</button></div><!></section>`, 0);
 
 function SidebarSection_render(__anchor, __block, { title, children }) {
 	const expanded = _$_.track(true, __block, '6ac6906f');
@@ -879,9 +862,7 @@ function SidebarSection_render(__anchor, __block, { title, children }) {
 			var h2_2 = _$_.hydrating ? _$_.hydrate_child() : div_29.firstChild;
 
 			{
-				var expression_16 = _$_.hydrating ? _$_.hydrate_text() : h2_2.firstChild;
-
-				expression_16.nodeValue = title;
+				h2_2.textContent = title;
 			}
 
 			var button = _$_.hydrating ? _$_.hydrate_sibling() : h2_2.nextSibling;
@@ -1550,13 +1531,13 @@ function if_17({ prevLink, nextLink }) {
 	if (prevLink || nextLink) return consequent_16;
 }
 
-var root_75 = _$_.template(`<a> </a>`, 0);
+var root_75 = _$_.template(`<a></a>`, 0);
 
 function render_8(__prev) {
 	var __a = __prev._item.text;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_25, __prev.a = __a);
+		_$_.set_text_content(__prev._a_8, __prev.a = __a);
 	}
 
 	var __b = __prev._item.href;
@@ -1581,18 +1562,7 @@ function consequent_17(__anchor, toc) {
 				(__anchor, item) => {
 					var a_8 = root_75();
 
-					{
-						var expression_25 = _$_.hydrating ? _$_.hydrate_text() : a_8.firstChild;
-					}
-
-					_$_.render(render_8, {
-						a: ' ',
-						b: void 0,
-						_item: item,
-						_expression_25: expression_25,
-						_a_8: a_8
-					});
-
+					_$_.render(render_8, { a: '', b: void 0, _item: item, _a_8: a_8 });
 					_$_.append(__anchor, a_8);
 				},
 				4

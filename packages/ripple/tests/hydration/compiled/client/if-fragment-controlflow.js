@@ -24,7 +24,7 @@ function consequent(__anchor, { hasLoaded, muzes }) {
 			_$_.append(__anchor, p);
 		},
 		0,
-		(pattern) => _$_.get(pattern).muzeId
+		(pattern) => pattern.muzeId
 	);
 
 	_$_.next();
@@ -101,7 +101,7 @@ function consequent_3(__anchor, { hasLoaded, muzes }) {
 			_$_.append(__anchor, p_1);
 		},
 		0,
-		(pattern_1) => _$_.get(pattern_1).muzeId
+		(pattern_1) => pattern_1.muzeId
 	);
 
 	var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
@@ -197,7 +197,7 @@ function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
 				_$_.append(__anchor, p_2);
 			},
 			0,
-			(pattern_2) => _$_.get(pattern_2).muzeId
+			(pattern_2) => pattern_2.muzeId
 		);
 
 		_$_.next();
@@ -241,7 +241,7 @@ function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
 					_$_.append(__anchor, p_3);
 				},
 				16,
-				(pattern_3) => _$_.get(pattern_3).muzeId
+				(pattern_3) => pattern_3.muzeId
 			);
 		}));
 
@@ -280,7 +280,7 @@ function consequent_5(__anchor, { hasLoaded, muzes }) {
 				_$_.append(__anchor, p_4);
 			},
 			16,
-			(pattern_4) => _$_.get(pattern_4).muzeId
+			(pattern_4) => pattern_4.muzeId
 		);
 	}));
 
@@ -341,7 +341,7 @@ function alternate(__anchor, { hasLoaded, muzes }) {
 			_$_.append(__anchor, p_5);
 		},
 		0,
-		(pattern_5) => _$_.get(pattern_5).muzeId
+		(pattern_5) => pattern_5.muzeId
 	);
 
 	_$_.next();
@@ -396,7 +396,7 @@ function consequent_7(__anchor, { hasLoaded, muzes }) {
 				_$_.append(__anchor, p_6);
 			},
 			0,
-			(pattern_6) => _$_.get(pattern_6).muzeId
+			(pattern_6) => pattern_6.muzeId
 		);
 
 		_$_.hydrating && _$_.pop(section);

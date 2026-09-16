@@ -5,10 +5,29 @@ import { bindSetData, initialData } from './ops.js';
 // array; the ops driver reassigns it (`items.value = nextData`) each tick, exactly the
 // immutable-newArray + keyed `@for` model the octane/react apps use — so it's a
 // like-for-like comparison on the keyed-reconcile + cell-diff update path.
+//
+// The row shape is declared here: the shared JS data generator builds rows
+// with `new Array(n)`, which TypeScript infers as `any[]`, so neither the
+// checker nor the compiler's syntax inference can see that every cell is a
+// primitive without it. Typed cells lower to direct text and class writes in
+// one render block per row instead of one value-aware block per cell.
+
+interface Query {
+	elapsed: string;
+	className: string;
+}
+
+interface Db {
+	id: number;
+	name: string;
+	count: number;
+	countClass: string;
+	queries: Query[];
+}
 
 export default function App() @{
-	const items = track(initialData());
-	bindSetData((d) => {
+	const items = track<Db[]>(initialData());
+	bindSetData((d: Db[]) => {
 		items.value = d;
 	});
 

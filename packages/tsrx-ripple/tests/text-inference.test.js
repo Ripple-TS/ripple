@@ -87,7 +87,7 @@ describe('primitive text inference', () => {
 			export function App(props: Props) @{ <div>{props.render()}{props.format(1)}</div> }`;
 		const client = compile(source, 'App.tsrx', { mode: 'client' }).code;
 		expect(client).not.toMatch(/_\$_\.expression(?:_children)?\(/);
-		expect(client).toContain('_$_.set_text(');
+		expect(client).toContain('_$_.set_text_content(');
 	});
 
 	it.each([

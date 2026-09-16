@@ -339,7 +339,7 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
 		expect(code).toContain('__pattern.nested.label');
 		expect(code).toContain('__pattern.tags[0]');
-		expect(code).toContain('(pattern) => _$_.get(pattern).id');
+		expect(code).toContain('(pattern) => pattern.id');
 	});
 
 	it('reads names behind a rest element or a default by destructuring the item', () => {
@@ -363,7 +363,7 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 		// key callback receives the raw item and reads its member chain.
 		expect(code).toContain('({ id, ...rest }) => ({ id, rest })');
 		expect(code).toContain('_$_.get(pattern).rest.name');
-		expect(code).toContain('(pattern) => _$_.get(pattern).id');
+		expect(code).toContain('(pattern) => pattern.id');
 		expect(code).toContain("([first, second = 'x', ...others]) => ({ first, second, others })");
 		expect(code).toContain('__pattern_1.second');
 		expect(code).toContain('__pattern_1.others.length');
@@ -385,9 +385,7 @@ describe('@tsrx/ripple keyed @for key callbacks', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			'(pattern) => (({ id, ...rest }) => ({ id, rest }))(_$_.get(pattern)).rest.key',
-		);
+		expect(code).toContain('(pattern) => (({ id, ...rest }) => ({ id, rest }))(pattern).rest.key');
 	});
 });
 

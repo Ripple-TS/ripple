@@ -1,7 +1,15 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"> </span></div>`, 0);
+var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"></span></div>`, 0);
+
+function render(__prev) {
+	var __a = __prev._count.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span, __prev.a = __a);
+	}
+}
 
 function ClickCounter_render(__anchor, __block) {
 	const count = _$_.track(0, __block, 'a070e3a7');
@@ -15,21 +23,23 @@ function ClickCounter_render(__anchor, __block) {
 		};
 
 		var span = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
-
-		{
-			var expression = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
-
-			_$_.expression(expression, () => count.value);
-			_$_.hydrating && _$_.pop(span);
-		}
 	}
 
+	_$_.render(render, { a: '', _count: count, _span: span });
 	_$_.append(__anchor, div);
 }
 
 ClickCounter[_$_.$r] = ClickCounter_render;
 
-var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"> </span><button class="increment">+</button></div>`, 0);
+var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"></span><button class="increment">+</button></div>`, 0);
+
+function render_1(__prev) {
+	var __a = __prev._count.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span_1, __prev.a = __a);
+	}
+}
 
 function IncrementDecrement_render(__anchor, __block) {
 	const count = _$_.track(0, __block, '87fcabdd');
@@ -43,14 +53,6 @@ function IncrementDecrement_render(__anchor, __block) {
 		};
 
 		var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
-
-		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_child() : span_1.firstChild;
-
-			_$_.expression(expression_1, () => count.value);
-			_$_.hydrating && _$_.pop(span_1);
-		}
-
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
 
 		button_2.__click = () => {
@@ -58,12 +60,27 @@ function IncrementDecrement_render(__anchor, __block) {
 		};
 	}
 
+	_$_.render(render_1, { a: '', _count: count, _span_1: span_1 });
 	_$_.append(__anchor, div_1);
 }
 
 IncrementDecrement[_$_.$r] = IncrementDecrement_render;
 
-var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"> </span><span class="hovers"> </span></div>`, 0);
+var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"></span><span class="hovers"></span></div>`, 0);
+
+function render_2(__prev) {
+	var __a = __prev._clicks.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span_2, __prev.a = __a);
+	}
+
+	var __b = __prev._hovers.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_text_content(__prev._span_3, __prev.b = __b);
+	}
+}
 
 function MultipleEvents_render(__anchor, __block) {
 	const clicks = _$_.track(0, __block, '41b9f0b0');
@@ -82,30 +99,32 @@ function MultipleEvents_render(__anchor, __block) {
 		});
 
 		var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
-
-		{
-			var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
-
-			_$_.expression(expression_2, () => clicks.value);
-			_$_.hydrating && _$_.pop(span_2);
-		}
-
 		var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
-
-		{
-			var expression_3 = _$_.hydrating ? _$_.hydrate_child() : span_3.firstChild;
-
-			_$_.expression(expression_3, () => hovers.value);
-			_$_.hydrating && _$_.pop(span_3);
-		}
 	}
+
+	_$_.render(render_2, {
+		a: '',
+		b: '',
+		_clicks: clicks,
+		_span_2: span_2,
+		_hovers: hovers,
+		_span_3: span_3
+	});
 
 	_$_.append(__anchor, div_2);
 }
 
 MultipleEvents[_$_.$r] = MultipleEvents_render;
 
-var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"> </span><span class="action"> </span></div>`, 0);
+var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"></span><span class="action"> </span></div>`, 0);
+
+function render_3(__prev) {
+	var __a = __prev._count.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span_4, __prev.a = __a);
+	}
+}
 
 function MultiStateUpdate_render(__anchor, __block) {
 	const count = _$_.track(0, __block, '5a375160');
@@ -124,14 +143,6 @@ function MultiStateUpdate_render(__anchor, __block) {
 		button_4.__click = handleClick;
 
 		var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_4.nextSibling;
-
-		{
-			var expression_4 = _$_.hydrating ? _$_.hydrate_child() : span_4.firstChild;
-
-			_$_.expression(expression_4, () => count.value);
-			_$_.hydrating && _$_.pop(span_4);
-		}
-
 		var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
 
 		{
@@ -142,18 +153,19 @@ function MultiStateUpdate_render(__anchor, __block) {
 		}
 	}
 
+	_$_.render(render_3, { a: '', _count: count, _span_4: span_4 });
 	_$_.append(__anchor, div_3);
 }
 
 MultiStateUpdate[_$_.$r] = MultiStateUpdate_render;
 
-var root_4 = _$_.template(`<div><button class="toggle"> </button></div>`, 0);
+var root_4 = _$_.template(`<div><button class="toggle"></button></div>`, 0);
 
-function render(__prev) {
+function render_4(__prev) {
 	var __a = __prev._isOn.value ? 'ON' : 'OFF';
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_6, __prev.a = __a);
+		_$_.set_text_content(__prev._button_5, __prev.a = __a);
 	}
 }
 
@@ -167,25 +179,21 @@ function ToggleButton_render(__anchor, __block) {
 		button_5.__click = () => {
 			isOn.value = !isOn.value;
 		};
-
-		{
-			var expression_6 = _$_.hydrating ? _$_.hydrate_text() : button_5.firstChild;
-		}
 	}
 
-	_$_.render(render, { a: ' ', _isOn: isOn, _expression_6: expression_6 });
+	_$_.render(render_4, { a: '', _isOn: isOn, _button_5: button_5 });
 	_$_.append(__anchor, div_4);
 }
 
 ToggleButton[_$_.$r] = ToggleButton_render;
 
-var root_5 = _$_.template(`<button class="child-btn"> </button>`, 0);
+var root_5 = _$_.template(`<button class="child-btn"></button>`, 0);
 
-function render_1(__prev) {
+function render_5(__prev) {
 	var __a = __prev._props.label;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_7, __prev.a = __a);
+		_$_.set_text_content(__prev._button_6, __prev.a = __a);
 	}
 }
 
@@ -193,18 +201,21 @@ function ChildButton_render(__anchor, __block, props) {
 	var button_6 = root_5();
 
 	_$_.render_event('Click', button_6, () => props.onClick);
-
-	{
-		var expression_7 = _$_.hydrating ? _$_.hydrate_text() : button_6.firstChild;
-	}
-
-	_$_.render(render_1, { a: ' ', _props: props, _expression_7: expression_7 });
+	_$_.render(render_5, { a: '', _props: props, _button_6: button_6 });
 	_$_.append(__anchor, button_6);
 }
 
 ChildButton[_$_.$r] = ChildButton_render;
 
-var root_6 = _$_.template(`<div><!><span class="count"> </span></div>`, 0);
+var root_6 = _$_.template(`<div><!><span class="count"></span></div>`, 0);
+
+function render_6(__prev) {
+	var __a = __prev._count.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span_6, __prev.a = __a);
+	}
+}
 
 function ParentWithChildButton_render(__anchor, __block) {
 	const count = _$_.track(0, __block, 'dcc2e0f9');
@@ -222,16 +233,10 @@ function ParentWithChildButton_render(__anchor, __block) {
 
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
-		{
-			var expression_8 = _$_.hydrating ? _$_.hydrate_child() : span_6.firstChild;
-
-			_$_.expression(expression_8, () => count.value);
-			_$_.hydrating && _$_.pop(span_6);
-		}
-
 		_$_.hydrating && _$_.pop(div_5);
 	}
 
+	_$_.render(render_6, { a: '', _count: count, _span_6: span_6 });
 	_$_.append(__anchor, div_5);
 }
 

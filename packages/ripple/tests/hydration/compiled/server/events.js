@@ -10,15 +10,7 @@ export function ClickCounter() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="increment">Increment</button><span class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(count.value);
-			}
-
-			__out += '</span></div>';
+			__out += '<div><button class="increment">Increment</button><span class="count">' + _$_.escape(count.value) + '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -31,15 +23,7 @@ export function IncrementDecrement() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="decrement">-</button><span class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(count.value);
-			}
-
-			__out += '</span><button class="increment">+</button></div>';
+			__out += '<div><button class="decrement">-</button><span class="count">' + _$_.escape(count.value) + '</span><button class="increment">+</button></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -53,23 +37,7 @@ export function MultipleEvents() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="target">Target</button><span class="clicks">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(clicks.value);
-			}
-
-			__out += '</span><span class="hovers">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(hovers.value);
-			}
-
-			__out += '</span></div>';
+			__out += '<div><button class="target">Target</button><span class="clicks">' + _$_.escape(clicks.value) + '</span><span class="hovers">' + _$_.escape(hovers.value) + '</span></div>';
 			_$_.output_push(__out);
 		});
 	});
@@ -88,15 +56,7 @@ export function MultiStateUpdate() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="btn">Click</button><span class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(count.value);
-			}
-
-			__out += '</span><span class="action">';
+			__out += '<div><button class="btn">Click</button><span class="count">' + _$_.escape(count.value) + '</span><span class="action">';
 
 			{
 				_$_.output_push(__out);
@@ -160,15 +120,7 @@ export function ParentWithChildButton() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<span class="count">';
-
-			{
-				_$_.output_push(__out);
-				__out = '';
-				_$_.render_expression(count.value);
-			}
-
-			__out += '</span></div>';
+			__out += '<span class="count">' + _$_.escape(count.value) + '</span></div>';
 			_$_.output_push(__out);
 		});
 	});

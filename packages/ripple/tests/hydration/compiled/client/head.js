@@ -208,13 +208,13 @@ function ConditionalTitle_render(__anchor, __block) {
 
 ConditionalTitle[_$_.$r] = ConditionalTitle_render;
 
-var root_17 = _$_.template(`<div><span> </span></div>`, 0);
+var root_17 = _$_.template(`<div><span></span></div>`, 0);
 
 function render(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_4, __prev.a = __a);
+		_$_.set_text_content(__prev._span_1, __prev.a = __a);
 	}
 }
 
@@ -231,10 +231,6 @@ function ComputedTitle_render(__anchor, __block) {
 
 		{
 			var span_1 = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-
-			{
-				var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_1.firstChild;
-			}
 		}
 
 		_$_.head('60e9fce1', (__anchor) => {
@@ -243,7 +239,7 @@ function ComputedTitle_render(__anchor, __block) {
 			});
 		});
 
-		_$_.render(render, { a: ' ', _count: count, _expression_4: expression_4 });
+		_$_.render(render, { a: '', _count: count, _span_1: span_1 });
 		_$_.append(__anchor, div_7);
 	}));
 

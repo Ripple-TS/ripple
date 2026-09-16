@@ -2230,6 +2230,26 @@ const visit_for_of_statement = (node, context) => {
 			}
 		} else {
 			let key_expression = /** @type {AST.Expression} */ (context.visit(key));
+			if (!fields) {
+				// The key receives the item as the collection holds it, not the
+				// item's tracked, so it reads the item directly.
+				key_expression = /** @type {AST.Expression} */ (
+					walk(/** @type {AST.Node} */ (key_expression), null, {
+						CallExpression(call, { next }) {
+							if (
+								call.callee.type === 'Identifier' &&
+								call.callee.name === '_$_.get' &&
+								call.arguments.length === 1 &&
+								call.arguments[0].type === 'Identifier' &&
+								call.arguments[0].name === /** @type {AST.Identifier} */ (pattern).name
+							) {
+								return call.arguments[0];
+							}
+							next();
+						},
+					})
+				);
+			}
 			if (fields) {
 				// The key receives the item as the collection holds it, before the
 				// runtime destructures it. A name with a member chain reads that
@@ -2240,7 +2260,7 @@ const visit_for_of_statement = (node, context) => {
 						(read) => [read.node.name, read.chain],
 					),
 				);
-				const item = () => b.call('_$_.get', /** @type {AST.Identifier} */ (pattern));
+				const item = () => /** @type {AST.Identifier} */ (pattern);
 				key_expression = /** @type {AST.Expression} */ (
 					walk(/** @type {AST.Node} */ (key_expression), null, {
 						MemberExpression(member, { next }) {
@@ -6388,23 +6408,15 @@ function transform_children(children, context) {
 					const parent = /** @type {AST.Expression} */ (state.flush_node?.());
 					const leaf_text = state.leaf_text;
 					if (is_text === true && normalized.length === 1 && leaf_text !== undefined) {
-						// The element's only child is a text node: adopt it without
-						// moving the hydration cursor off the element, so the element
-						// needs no pop() and its append() no descent check.
+						// The element's only child is a text node: the template holds
+						// no placeholder, the text is written through the element
+						// itself (`set_text_content`), and the hydration cursor never
+						// leaves the element, so it needs no pop().
 						leaf_text.value = true;
-						state.init?.push(
-							b.var(
-								id,
-								b.conditional(
-									b.member(b.id('_$_'), b.id('hydrating')),
-									b.call('_$_.hydrate_text'),
-									b.member(parent, b.id('firstChild')),
-								),
-							),
-						);
-					} else {
-						state.init?.push(b.var(id, inline_traversal('child', parent, is_text)));
+						cached = /** @type {AST.Identifier} */ (parent);
+						return cached;
 					}
+					state.init?.push(b.var(id, inline_traversal('child', parent, is_text)));
 					cached = id;
 					return id;
 				} else {
@@ -6416,19 +6428,34 @@ function transform_children(children, context) {
 
 			const is_controlled = normalized.length === 1 && !root;
 			/**
+			 * Whether `flush_node(true)` adopted the enclosing element for this
+			 * text, the element's only child (see `leaf_text`).
+			 */
+			const is_leaf_text = () =>
+				normalized.length === 1 && state.leaf_text !== undefined && state.leaf_text.value === true;
+			/**
 			 * @param {AST.Expression} identity
 			 * @param {AST.Expression} expr
 			 */
 			const render_text_expression = (identity, expr) => {
 				if (metadata?.tracking) {
-					state.template?.push(' ');
 					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: expr,
-						identity,
-						initial: b.literal(' '),
-					});
+					if (is_leaf_text()) {
+						state.update?.push({
+							operation: (key) => b.stmt(b.call('_$_.set_text_content', id, key)),
+							expression: expr,
+							identity,
+							initial: b.literal(''),
+						});
+					} else {
+						state.template?.push(' ');
+						state.update?.push({
+							operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+							expression: expr,
+							identity,
+							initial: b.literal(' '),
+						});
+					}
 				} else if (normalized.length === 1) {
 					if (expr.type === 'Literal') {
 						if (
@@ -6443,17 +6470,31 @@ function transform_children(children, context) {
 						}
 					} else {
 						const id = flush_node(true);
-						state.template?.push(' ');
-						// avoid set_text overhead for single text nodes
-						state.init?.push(
-							b.stmt(
-								b.assignment(
-									'=',
-									b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
-									expr,
+						if (is_leaf_text()) {
+							// A one-off text: written through the element, which the
+							// template leaves empty.
+							state.init?.push(
+								b.stmt(
+									b.assignment(
+										'=',
+										b.member(/** @type {AST.Identifier} */ (id), b.id('textContent')),
+										expr,
+									),
 								),
-							),
-						);
+							);
+						} else {
+							state.template?.push(' ');
+							// avoid set_text overhead for single text nodes
+							state.init?.push(
+								b.stmt(
+									b.assignment(
+										'=',
+										b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
+										expr,
+									),
+								),
+							);
+						}
 					}
 				} else {
 					if (expr.type === 'Literal') {

@@ -130,24 +130,20 @@ function SiblingComponents_render(__anchor, __block) {
 
 SiblingComponents[_$_.$r] = SiblingComponents_render;
 
-var root_12 = _$_.template(`<div> </div>`, 0);
+var root_12 = _$_.template(`<div></div>`, 0);
 
 function render(__prev) {
 	var __a = 'Hello ' + __prev._props.name;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
+		_$_.set_text_content(__prev._div_5, __prev.a = __a);
 	}
 }
 
 function Greeting_render(__anchor, __block, props) {
 	var div_5 = root_12();
 
-	{
-		var expression = _$_.hydrating ? _$_.hydrate_text() : div_5.firstChild;
-	}
-
-	_$_.render(render, { a: ' ', _props: props, _expression: expression });
+	_$_.render(render, { a: '', _props: props, _div_5: div_5 });
 	_$_.append(__anchor, div_5);
 }
 
@@ -159,7 +155,7 @@ function WithGreeting_render(__anchor, __block) {
 
 WithGreeting[_$_.$r] = WithGreeting_render;
 
-var root_14 = _$_.template(`<div> </div><span> </span>`, 1, 2);
+var root_14 = _$_.template(`<div></div><span> </span>`, 1, 2);
 var root_13 = _$_.template(`<!>`, 1, 1);
 
 function ExpressionContent_render(__anchor, __block) {
@@ -173,9 +169,7 @@ function ExpressionContent_render(__anchor, __block) {
 		var div_6 = _$_.first_child_frag(fragment_7);
 
 		{
-			var expression_1 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
-
-			expression_1.nodeValue = value;
+			div_6.textContent = value;
 		}
 
 		var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : div_6.nextSibling;
@@ -195,15 +189,13 @@ function ExpressionContent_render(__anchor, __block) {
 
 ExpressionContent[_$_.$r] = ExpressionContent_render;
 
-var root_15 = _$_.template(`<div class="helper-item"> </div>`, 0);
+var root_15 = _$_.template(`<div class="helper-item"></div>`, 0);
 
 function NestedHelperItem_render(__anchor, __block, { item }) {
 	var div_7 = root_15();
 
 	{
-		var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_7.firstChild;
-
-		expression_3.nodeValue = item;
+		div_7.textContent = item;
 	}
 
 	_$_.append(__anchor, div_7);
@@ -211,7 +203,7 @@ function NestedHelperItem_render(__anchor, __block, { item }) {
 
 NestedHelperItem[_$_.$r] = NestedHelperItem_render;
 
-var root_17 = _$_.template(`<span class="label"> </span><!>`, 1, 2);
+var root_17 = _$_.template(`<span class="label"></span><!>`, 1, 2);
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
@@ -223,9 +215,7 @@ function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
 		var span_2 = _$_.first_child_frag(fragment_9);
 
 		{
-			var expression_4 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
-
-			expression_4.nodeValue = label;
+			span_2.textContent = label;
 		}
 
 		var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
@@ -689,24 +679,20 @@ function TextProp_render(__anchor, __block, { children }) {
 
 TextProp[_$_.$r] = TextProp_render;
 
-var root_53 = _$_.template(`<div class="text-prop"> </div>`, 0);
+var root_53 = _$_.template(`<div class="text-prop"></div>`, 0);
 
 function render_1(__prev) {
 	var __a = __prev._children.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_25, __prev.a = __a);
+		_$_.set_text_content(__prev._div_22, __prev.a = __a);
 	}
 }
 
 function TypedTextProp_render(__anchor, __block, { children }) {
 	var div_22 = root_53();
 
-	{
-		var expression_25 = _$_.hydrating ? _$_.hydrate_text() : div_22.firstChild;
-	}
-
-	_$_.render(render_1, { a: ' ', _children: children, _expression_25: expression_25 });
+	_$_.render(render_1, { a: '', _children: children, _div_22: div_22 });
 	_$_.append(__anchor, div_22);
 }
 
@@ -785,7 +771,7 @@ function StaticHeader_render(__anchor, __block) {
 
 StaticHeader[_$_.$r] = StaticHeader_render;
 
-var root_61 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
+var root_61 = _$_.template(`<!><span class="sibling1"></span><span class="sibling2"></span>`, 1, 3);
 var root_60 = _$_.template(`<!>`, 1, 1);
 
 function StaticChildWithSiblings_render(__anchor, __block) {
@@ -802,17 +788,13 @@ function StaticChildWithSiblings_render(__anchor, __block) {
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_18.nextSibling;
 
 		{
-			var expression_26 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
-
-			expression_26.nodeValue = foo;
+			span_6.textContent = foo;
 		}
 
 		var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
 
 		{
-			var expression_27 = _$_.hydrating ? _$_.hydrate_text() : span_7.firstChild;
-
-			expression_27.nodeValue = foo;
+			span_7.textContent = foo;
 		}
 
 		_$_.append(__anchor, fragment_28);
@@ -993,47 +975,39 @@ function NestedComponentAsLastSibling_render(__anchor, __block) {
 
 NestedComponentAsLastSibling[_$_.$r] = NestedComponentAsLastSibling_render;
 
-var root_73 = _$_.template(`<div> </div>`, 0);
+var root_73 = _$_.template(`<div></div>`, 0);
 
 function render_2(__prev) {
 	var __a = "label: " + String(_$_.with_scope(__prev.___block, fetchLabel));
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._text, __prev.a = __a);
+		_$_.set_text_content(__prev._div_28, __prev.a = __a);
 	}
 }
 
 function TextTailExpression_render(__anchor, __block) {
 	var div_28 = root_73();
 
-	{
-		var text = _$_.hydrating ? _$_.hydrate_text() : div_28.firstChild;
-	}
-
-	_$_.render(render_2, { a: ' ', ___block: __block, _text: text });
+	_$_.render(render_2, { a: '', ___block: __block, _div_28: div_28 });
 	_$_.append(__anchor, div_28);
 }
 
 TextTailExpression[_$_.$r] = TextTailExpression_render;
 
-var root_74 = _$_.template(`<div> </div>`, 0);
+var root_74 = _$_.template(`<div></div>`, 0);
 
 function render_3(__prev) {
 	var __a = 'frag-' + String(_$_.with_scope(__prev.___block, fetchLabel));
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_30, __prev.a = __a);
+		_$_.set_text_content(__prev._div_29, __prev.a = __a);
 	}
 }
 
 function FragmentTailExpression_render(__anchor, __block) {
 	var div_29 = root_74();
 
-	{
-		var expression_30 = _$_.hydrating ? _$_.hydrate_text() : div_29.firstChild;
-	}
-
-	_$_.render(render_3, { a: ' ', ___block: __block, _expression_30: expression_30 });
+	_$_.render(render_3, { a: '', ___block: __block, _div_29: div_29 });
 	_$_.append(__anchor, div_29);
 }
 
@@ -1138,13 +1112,13 @@ function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 
 FragmentLeadsWithPrimitiveCall[_$_.$r] = FragmentLeadsWithPrimitiveCall_render;
 
-var root_83 = _$_.template(`<div class="primitive-calls"> </div><button>update</button>`, 1, 2);
+var root_83 = _$_.template(`<div class="primitive-calls"></div><button>update</button>`, 1, 2);
 
 function render_5(__prev) {
 	var __a = "sum: " + (String(Number(__prev._count.value) + Number(__prev._count.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._count.value)) ?? '')));
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._text_1, __prev.a = __a);
+		_$_.set_text_content(__prev._div_33, __prev.a = __a);
 	}
 }
 
@@ -1158,15 +1132,10 @@ function PrimitiveTextCalls_render(__anchor, __block) {
 	_$_.expression(node_30, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_37 = root_83();
 		var div_33 = _$_.first_child_frag(fragment_37);
-
-		{
-			var text_1 = _$_.hydrating ? _$_.hydrate_text() : div_33.firstChild;
-		}
-
 		var button_2 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
 
 		button_2.__click = () => count.value++;
-		_$_.render(render_5, { a: ' ', _count: count, ___block: __block, _text_1: text_1 });
+		_$_.render(render_5, { a: '', _count: count, ___block: __block, _div_33: div_33 });
 		_$_.append(__anchor, fragment_37);
 	}));
 

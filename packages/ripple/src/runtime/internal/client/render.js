@@ -13,8 +13,33 @@ import { event_listener } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { hydrating } from './hydration.js';
+import { TEXT_NODE } from '../../../constants.js';
 import { clsx } from 'clsx';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
+
+/**
+ * Sets the text of an element whose only child is that text. The template
+ * leaves such an element empty, so the first write creates the text node and
+ * later writes update it in place; server-rendered text is adopted as is.
+ * @param {Element} element
+ * @param {any} value
+ * @returns {void}
+ */
+export function set_text_content(element, value) {
+	var str = value == null ? '' : value + '';
+	var text = element.firstChild;
+	if (text === null) {
+		if (str !== '') {
+			element.textContent = str;
+		}
+	} else if (!hydrating) {
+		/** @type {Text} */ (text).nodeValue = str;
+	} else if (text.nodeType !== TEXT_NODE) {
+		element.textContent = str;
+	} else if (text.nodeValue !== str) {
+		text.nodeValue = str;
+	}
+}
 
 /**
  * @param {Text} text

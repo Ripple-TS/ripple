@@ -35,13 +35,13 @@ function StaticForLoop_render(__anchor, __block) {
 
 StaticForLoop[_$_.$r] = StaticForLoop_render;
 
-var root_3 = _$_.template(`<li> </li>`, 0);
+var root_3 = _$_.template(`<li></li>`, 0);
 
 function render(__prev) {
 	var __a = `${__prev._i.value}: ${__prev._item}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_1, __prev.a = __a);
+		_$_.set_text_content(__prev._li_1, __prev.a = __a);
 	}
 }
 
@@ -58,11 +58,7 @@ function ForLoopWithIndex_render(__anchor, __block) {
 			(__anchor, item, i) => {
 				var li_1 = root_3();
 
-				{
-					var expression_1 = _$_.hydrating ? _$_.hydrate_text() : li_1.firstChild;
-				}
-
-				_$_.render(render, { a: ' ', _i: i, _item: item, _expression_1: expression_1 });
+				_$_.render(render, { a: '', _i: i, _item: item, _li_1: li_1 });
 				_$_.append(__anchor, li_1);
 			},
 			12
@@ -105,7 +101,7 @@ function KeyedForLoop_render(__anchor, __block) {
 				_$_.append(__anchor, li_2);
 			},
 			4,
-			(pattern) => _$_.get(pattern).id
+			(pattern) => pattern.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_2);
@@ -346,7 +342,7 @@ function NestedForLoop_render(__anchor, __block) {
 
 NestedForLoop[_$_.$r] = NestedForLoop_render;
 
-var root_18 = _$_.template(`<span> </span>`, 0);
+var root_18 = _$_.template(`<span></span>`, 0);
 var root_17 = _$_.template(`<div class="container"></div>`, 0);
 
 function EmptyForLoop_render(__anchor, __block) {
@@ -361,9 +357,7 @@ function EmptyForLoop_render(__anchor, __block) {
 				var span_2 = root_18();
 
 				{
-					var expression_7 = _$_.hydrating ? _$_.hydrate_text() : span_2.firstChild;
-
-					expression_7.nodeValue = item;
+					span_2.textContent = item;
 				}
 
 				_$_.append(__anchor, span_2);
@@ -430,7 +424,7 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 				_$_.append(__anchor, div_6);
 			},
 			4,
-			(pattern_1) => _$_.get(pattern_1).id
+			(pattern_1) => pattern_1.id
 		);
 
 		_$_.hydrating && _$_.pop(div_5);
@@ -496,7 +490,7 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 					_$_.append(__anchor, li_5);
 				},
 				4,
-				(pattern_2) => _$_.get(pattern_2).id
+				(pattern_2) => pattern_2.id
 			);
 
 			_$_.hydrating && _$_.pop(ul_5);
@@ -556,7 +550,7 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 					_$_.append(__anchor, li_6);
 				},
 				4,
-				(pattern_3) => _$_.get(pattern_3).id
+				(pattern_3) => pattern_3.id
 			);
 
 			_$_.hydrating && _$_.pop(ul_6);
@@ -690,7 +684,7 @@ function ForLoopInsideIf_render(__anchor, __block) {
 
 ForLoopInsideIf[_$_.$r] = ForLoopInsideIf_render;
 
-var root_36 = _$_.template(`<li> </li>`, 0);
+var root_36 = _$_.template(`<li></li>`, 0);
 var root_35 = _$_.template(`<button class="populate">Populate</button><ul class="list"></ul>`, 1, 2);
 var root_34 = _$_.template(`<!>`, 1, 1);
 
@@ -717,10 +711,7 @@ function ForLoopEmptyToPopulated_render(__anchor, __block) {
 					var li_9 = root_36();
 
 					{
-						var expression_14 = _$_.hydrating ? _$_.hydrate_child() : li_9.firstChild;
-
-						_$_.expression(expression_14, () => item);
-						_$_.hydrating && _$_.pop(li_9);
+						li_9.textContent = item;
 					}
 
 					_$_.append(__anchor, li_9);
@@ -989,7 +980,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 							_$_.append(__anchor, div_12);
 						},
 						0,
-						(pattern_5) => _$_.get(pattern_5).id
+						(pattern_5) => pattern_5.id
 					);
 
 					_$_.hydrating && _$_.pop(div_11);
@@ -999,7 +990,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 				_$_.append(__anchor, div_11);
 			},
 			4,
-			(pattern_4) => _$_.get(pattern_4).id
+			(pattern_4) => pattern_4.id
 		);
 
 		_$_.hydrating && _$_.pop(div_10);
@@ -1010,13 +1001,13 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 
 ForLoopDeeplyNested[_$_.$r] = ForLoopDeeplyNested_render;
 
-var root_49 = _$_.template(`<li> </li>`, 0);
+var root_49 = _$_.template(`<li></li>`, 0);
 
 function render_11(__prev) {
 	var __a = `[${__prev._i.value}] ${__prev._item}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_20, __prev.a = __a);
+		_$_.set_text_content(__prev._li_12, __prev.a = __a);
 	}
 
 	var __b = `item-${__prev._i.value}`;
@@ -1051,16 +1042,11 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 				(__anchor, item, i) => {
 					var li_12 = root_49();
 
-					{
-						var expression_20 = _$_.hydrating ? _$_.hydrate_text() : li_12.firstChild;
-					}
-
 					_$_.render(render_11, {
-						a: ' ',
+						a: '',
 						b: _$_.UNINITIALIZED,
 						_i: i,
 						_item: item,
-						_expression_20: expression_20,
 						_li_12: li_12
 					});
 
@@ -1080,14 +1066,14 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 
 ForLoopIndexUpdate[_$_.$r] = ForLoopIndexUpdate_render;
 
-var root_52 = _$_.template(`<li> </li>`, 0);
+var root_52 = _$_.template(`<li></li>`, 0);
 
 function render_12(__prev) {
 	var __pattern_6 = _$_.get(__prev._pattern_6);
 	var __a = `[${__prev._i.value}] ${__pattern_6.id}: ${__pattern_6.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_21, __prev.a = __a);
+		_$_.set_text_content(__prev._li_13, __prev.a = __a);
 	}
 
 	var __b = __prev._i.value;
@@ -1137,24 +1123,19 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 				(__anchor, pattern_6, i) => {
 					var li_13 = root_52();
 
-					{
-						var expression_21 = _$_.hydrating ? _$_.hydrate_text() : li_13.firstChild;
-					}
-
 					_$_.render(render_12, {
-						a: ' ',
+						a: '',
 						b: void 0,
 						c: _$_.UNINITIALIZED,
 						_pattern_6: pattern_6,
 						_i: i,
-						_expression_21: expression_21,
 						_li_13: li_13
 					});
 
 					_$_.append(__anchor, li_13);
 				},
 				12,
-				(pattern_6, i) => _$_.get(pattern_6).id
+				(pattern_6, i) => pattern_6.id
 			);
 
 			_$_.hydrating && _$_.pop(ul_13);
@@ -1241,7 +1222,7 @@ function ForLoopItemState_render(__anchor, __block) {
 				_$_.render_component(TodoItem, __anchor, { id: _$_.get(pattern_7).id, text: _$_.get(pattern_7).text });
 			},
 			4,
-			(pattern_7) => _$_.get(pattern_7).id
+			(pattern_7) => pattern_7.id
 		);
 
 		_$_.hydrating && _$_.pop(div_15);
@@ -1252,7 +1233,7 @@ function ForLoopItemState_render(__anchor, __block) {
 
 ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 
-var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
+var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span></span></div>`, 0);
 
 function render_13(__prev) {
 	var __a = __prev._done.value;
@@ -1264,7 +1245,7 @@ function render_13(__prev) {
 	var __b = __prev._props.text;
 
 	if (__prev.b !== __b) {
-		_$_.set_text(__prev._expression_23, __prev.b = __b);
+		_$_.set_text_content(__prev._span_6, __prev.b = __b);
 	}
 
 	var __c = __prev._done.value ? 'completed' : 'pending';
@@ -1292,21 +1273,16 @@ function TodoItem_render(__anchor, __block, props) {
 		};
 
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : input.nextSibling;
-
-		{
-			var expression_23 = _$_.hydrating ? _$_.hydrate_text() : span_6.firstChild;
-		}
 	}
 
 	_$_.render(render_13, {
 		a: void 0,
-		b: ' ',
+		b: '',
 		c: _$_.UNINITIALIZED,
 		d: _$_.UNINITIALIZED,
 		_done: done,
 		_input: input,
 		_props: props,
-		_expression_23: expression_23,
 		_span_6: span_6,
 		_div_16: div_16
 	});
@@ -1706,13 +1682,13 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 
 KeyedForLoopAppendAndRotate[_$_.$r] = KeyedForLoopAppendAndRotate_render;
 
-var root_79 = _$_.template(`<span class="item"> </span>`, 0);
+var root_79 = _$_.template(`<span class="item"></span>`, 0);
 
 function render_15(__prev) {
 	var __a = _$_.get(__prev._pattern_9);
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_32, __prev.a = __a);
+		_$_.set_text_content(__prev._span_8, __prev.a = __a);
 	}
 }
 
@@ -1723,11 +1699,7 @@ function RootKeyedList_render(__anchor, __block, props) {
 		(__anchor, pattern_9) => {
 			var span_8 = root_79();
 
-			{
-				var expression_32 = _$_.hydrating ? _$_.hydrate_text() : span_8.firstChild;
-			}
-
-			_$_.render(render_15, { a: ' ', _pattern_9: pattern_9, _expression_32: expression_32 });
+			_$_.render(render_15, { a: '', _pattern_9: pattern_9, _span_8: span_8 });
 			_$_.append(__anchor, span_8);
 		},
 		16

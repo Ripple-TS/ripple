@@ -3810,7 +3810,9 @@ export function get_expression_type_annotation(expression, state, visited = new 
 		if (annotation !== undefined) {
 			return annotation;
 		}
-		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
+		// A property write (`items.value = next`) leaves the binding's declared
+		// type alone; only reassignment can give it another initializer.
+		if (binding.initial && !binding.reassigned) {
 			const initial = binding.initial;
 			if (initial.type !== 'ImportDeclaration' && initial.type !== 'TSModuleDeclaration') {
 				visited.add(binding);
@@ -3826,10 +3828,14 @@ export function get_expression_type_annotation(expression, state, visited = new 
 
 	if (expression.type === 'MemberExpression') {
 		const property_name = get_static_property_name(expression);
-		if (property_name === null) return undefined;
-
 		const object_type = get_expression_type_annotation(expression.object, state, visited);
 		if (object_type === undefined) return undefined;
+
+		if (property_name === null) {
+			return expression.computed && expression.property.type !== 'PrivateIdentifier'
+				? get_indexed_element_type_annotation(object_type, expression.property, state, visited)
+				: undefined;
+		}
 
 		return get_member_type_annotation(object_type, property_name, state);
 	}
@@ -3839,4 +3845,97 @@ export function get_expression_type_annotation(expression, state, visited = new 
 	}
 
 	return undefined;
+}
+
+/**
+ * The type of `object[index]` for an object of an array or tuple type: the
+ * element type of `T[]`, `readonly T[]`, `Array<T>` or `ReadonlyArray<T>`
+ * when the index is provably a number, or a tuple's element at a numeric
+ * literal index. The element type is returned as is, not widened to
+ * `T | undefined`: an index past the end reads `undefined`, which renders as
+ * empty text, so whatever `is_text_primitive_type_annotation` accepts for `T`
+ * (string, number, boolean, bigint, null, undefined, literals, unions of
+ * those) still holds for the indexed read.
+ * @param {AST.TypeNode} object_type
+ * @param {AST.Expression} index
+ * @param {{ scope: ScopeInterface }} state
+ * @param {Set<Binding>} visited
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_indexed_element_type_annotation(object_type, index, state, visited) {
+	const resolved = resolve_type_annotation(object_type, state);
+	const literal_index =
+		index.type === 'Literal' && typeof index.value === 'number' ? index.value : undefined;
+
+	if (resolved?.type === 'TSTupleType') {
+		if (literal_index === undefined || !Number.isInteger(literal_index)) return undefined;
+		const element = resolved.elementTypes[literal_index];
+		return element === undefined ||
+			element.type === 'TSRestType' ||
+			element.type === 'TSOptionalType' ||
+			element.type === 'TSNamedTupleMember'
+			? undefined
+			: element;
+	}
+
+	if (literal_index === undefined && !is_number_expression(index, state, visited)) {
+		return undefined;
+	}
+
+	if (resolved?.type === 'TSArrayType') {
+		return resolved.elementType;
+	}
+
+	if (
+		resolved?.type === 'TSTypeOperator' &&
+		resolved.operator === 'readonly' &&
+		resolved.typeAnnotation?.type === 'TSArrayType'
+	) {
+		return resolved.typeAnnotation.elementType;
+	}
+
+	if (
+		resolved?.type === 'TSTypeReference' &&
+		resolved.typeName.type === 'Identifier' &&
+		(resolved.typeName.name === 'Array' || resolved.typeName.name === 'ReadonlyArray') &&
+		state.scope.get(resolved.typeName.name) === null
+	) {
+		return get_single_type_argument(resolved);
+	}
+
+	return undefined;
+}
+
+/**
+ * Whether an index expression is provably a number: a numeric literal, an
+ * arithmetic or update expression, or a value of a declared `number` type.
+ * @param {AST.Expression} expression
+ * @param {{ scope: ScopeInterface }} state
+ * @param {Set<Binding>} visited
+ * @returns {boolean}
+ */
+function is_number_expression(expression, state, visited) {
+	if (expression.type === 'Literal') {
+		return typeof expression.value === 'number';
+	}
+	if (expression.type === 'UpdateExpression') {
+		return true;
+	}
+	if (expression.type === 'UnaryExpression') {
+		return (
+			expression.operator === '-' || expression.operator === '+' || expression.operator === '~'
+		);
+	}
+	if (expression.type === 'BinaryExpression') {
+		// `+` may concatenate strings; every other arithmetic operator coerces
+		// to a number (or a bigint, which is not an array index either way).
+		return expression.operator !== '+'
+			? ['-', '*', '/', '%', '**', '<<', '>>', '>>>', '&', '|', '^'].includes(expression.operator)
+			: is_number_expression(/** @type {AST.Expression} */ (expression.left), state, visited) &&
+					is_number_expression(expression.right, state, visited);
+	}
+	return (
+		unwrap_type_annotation(get_expression_type_annotation(expression, state, visited))?.type ===
+		'TSNumberKeyword'
+	);
 }

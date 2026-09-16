@@ -1,13 +1,13 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="count"> </div>`, 0);
+var root = _$_.template(`<div class="count"></div>`, 0);
 
 function render(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
+		_$_.set_text_content(__prev._div, __prev.a = __a);
 	}
 }
 
@@ -15,11 +15,7 @@ function TrackedState_render(__anchor, __block) {
 	const count = _$_.track(0, __block, 'c1818584');
 	var div = root();
 
-	{
-		var expression = _$_.hydrating ? _$_.hydrate_text() : div.firstChild;
-	}
-
-	_$_.render(render, { a: ' ', _count: count, _expression: expression });
+	_$_.render(render, { a: '', _count: count, _div: div });
 	_$_.append(__anchor, div);
 }
 
@@ -73,25 +69,25 @@ function ComputedValues_render(__anchor, __block) {
 
 ComputedValues[_$_.$r] = ComputedValues_render;
 
-var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
+var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"></div><div class="y"></div><div class="z"></div></div>`, 0);
 
 function render_1(__prev) {
 	var __a = __prev._x.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_3, __prev.a = __a);
+		_$_.set_text_content(__prev._div_4, __prev.a = __a);
 	}
 
 	var __b = __prev._y.value;
 
 	if (__prev.b !== __b) {
-		_$_.set_text(__prev._expression_4, __prev.b = __b);
+		_$_.set_text_content(__prev._div_5, __prev.b = __b);
 	}
 
 	var __c = __prev._z.value;
 
 	if (__prev.c !== __c) {
-		_$_.set_text(__prev._expression_5, __prev.c = __c);
+		_$_.set_text_content(__prev._div_6, __prev.c = __c);
 	}
 }
 
@@ -103,34 +99,20 @@ function MultipleTracked_render(__anchor, __block) {
 
 	{
 		var div_4 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
-
-		{
-			var expression_3 = _$_.hydrating ? _$_.hydrate_text() : div_4.firstChild;
-		}
-
 		var div_5 = _$_.hydrating ? _$_.hydrate_sibling() : div_4.nextSibling;
-
-		{
-			var expression_4 = _$_.hydrating ? _$_.hydrate_text() : div_5.firstChild;
-		}
-
 		var div_6 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
-
-		{
-			var expression_5 = _$_.hydrating ? _$_.hydrate_text() : div_6.firstChild;
-		}
 	}
 
 	_$_.render(render_1, {
-		a: ' ',
-		b: ' ',
-		c: ' ',
+		a: '',
+		b: '',
+		c: '',
 		_x: x,
-		_expression_3: expression_3,
+		_div_4: div_4,
 		_y: y,
-		_expression_4: expression_4,
+		_div_5: div_5,
 		_z: z,
-		_expression_5: expression_5
+		_div_6: div_6
 	});
 
 	_$_.append(__anchor, div_3);

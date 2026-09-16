@@ -1,13 +1,13 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="resolved"><span class="value"> </span><button class="inc">inc</button></div>`, 0);
+var root = _$_.template(`<div class="resolved"><span class="value"></span><button class="inc">inc</button></div>`, 0);
 
 function render(__prev) {
 	var __a = __prev._data.value + ':' + __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression, __prev.a = __a);
+		_$_.set_text_content(__prev._span, __prev.a = __a);
 	}
 }
 
@@ -18,17 +18,12 @@ function BasicContent_render(__anchor, __block) {
 
 	{
 		var span = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
-
-		{
-			var expression = _$_.hydrating ? _$_.hydrate_text() : span.firstChild;
-		}
-
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 		button.__click = () => count.value++;
 	}
 
-	_$_.render(render, { a: ' ', _data: data, _count: count, _expression: expression });
+	_$_.render(render, { a: '', _data: data, _count: count, _span: span });
 	_$_.append(__anchor, div);
 }
 

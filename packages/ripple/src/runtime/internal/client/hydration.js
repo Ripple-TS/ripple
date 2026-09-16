@@ -77,22 +77,6 @@ export function hydrate_first_child(is_text) {
 }
 
 /**
- * Adopts the text node that is an element's only child, leaving the cursor on
- * the element: nothing else inside it navigates, so the parent's sibling
- * traversal continues from the element with no pop().
- * @returns {Node}
- */
-export function hydrate_text_child() {
-	var child = first_child_getter.call(/** @type {Node} */ (hydrate_node));
-
-	if (child === null || child.nodeType !== TEXT_NODE) {
-		child = repair_first_child(child);
-	}
-
-	return child;
-}
-
-/**
  * Handles `<p>{text}</p>` where `text` rendered empty on the server: there is
  * no text node to adopt (or, with siblings, the next node is not one), so one
  * is created in its place.

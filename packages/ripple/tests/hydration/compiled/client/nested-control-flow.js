@@ -48,7 +48,7 @@ function ForIf_render(__anchor, __block) {
 				_$_.if(__anchor, if_1, true, pattern);
 			},
 			4,
-			(pattern) => _$_.get(pattern).id
+			(pattern) => pattern.id
 		);
 
 		_$_.hydrating && _$_.pop(ul);
@@ -59,14 +59,14 @@ function ForIf_render(__anchor, __block) {
 
 ForIf[_$_.$r] = ForIf_render;
 
-var root_3 = _$_.template(`<li> </li>`, 0);
+var root_3 = _$_.template(`<li></li>`, 0);
 
 function render_1(__prev) {
 	var __pattern_1 = _$_.get(__prev._pattern_1);
 	var __a = `A-${__pattern_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_1, __prev.a = __a);
+		_$_.set_text_content(__prev._li_1, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_1.id} kind-a`;
@@ -76,14 +76,14 @@ function render_1(__prev) {
 	}
 }
 
-var root_4 = _$_.template(`<li> </li>`, 0);
+var root_4 = _$_.template(`<li></li>`, 0);
 
 function render_2(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._pattern_1);
 	var __a = `B-${__pattern_1_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_2, __prev.a = __a);
+		_$_.set_text_content(__prev._li_2, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_1_1.id} kind-b`;
@@ -96,15 +96,10 @@ function render_2(__prev) {
 function switch_case_0(__anchor, pattern_1) {
 	var li_1 = root_3();
 
-	{
-		var expression_1 = _$_.hydrating ? _$_.hydrate_text() : li_1.firstChild;
-	}
-
 	_$_.render(render_1, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_1: pattern_1,
-		_expression_1: expression_1,
 		_li_1: li_1
 	});
 
@@ -114,15 +109,10 @@ function switch_case_0(__anchor, pattern_1) {
 function switch_case_default(__anchor, pattern_1) {
 	var li_2 = root_4();
 
-	{
-		var expression_2 = _$_.hydrating ? _$_.hydrate_text() : li_2.firstChild;
-	}
-
 	_$_.render(render_2, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_1: pattern_1,
-		_expression_2: expression_2,
 		_li_2: li_2
 	});
 
@@ -158,7 +148,7 @@ function ForSwitch_render(__anchor, __block) {
 				_$_.switch(__anchor, switch_1, true, pattern_1);
 			},
 			4,
-			(pattern_1) => _$_.get(pattern_1).id
+			(pattern_1) => pattern_1.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_1);
@@ -273,14 +263,14 @@ function IfSwitchHidden_render(__anchor, __block) {
 
 IfSwitchHidden[_$_.$r] = IfSwitchHidden_render;
 
-var root_12 = _$_.template(`<li> </li>`, 0);
+var root_12 = _$_.template(`<li></li>`, 0);
 
 function render_3(__prev) {
 	var __pattern_2 = _$_.get(__prev._pattern_2);
 	var __a = `A-${__pattern_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_3, __prev.a = __a);
+		_$_.set_text_content(__prev._li_3, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_2.id} kind-a`;
@@ -290,14 +280,14 @@ function render_3(__prev) {
 	}
 }
 
-var root_13 = _$_.template(`<li> </li>`, 0);
+var root_13 = _$_.template(`<li></li>`, 0);
 
 function render_4(__prev) {
 	var __pattern_2_1 = _$_.get(__prev._pattern_2);
 	var __a = `D-${__pattern_2_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_4, __prev.a = __a);
+		_$_.set_text_content(__prev._li_4, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_2_1.id} kind-default`;
@@ -310,15 +300,10 @@ function render_4(__prev) {
 function switch_case_0_3(__anchor, pattern_2) {
 	var li_3 = root_12();
 
-	{
-		var expression_3 = _$_.hydrating ? _$_.hydrate_text() : li_3.firstChild;
-	}
-
 	_$_.render(render_3, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_2: pattern_2,
-		_expression_3: expression_3,
 		_li_3: li_3
 	});
 
@@ -328,15 +313,10 @@ function switch_case_0_3(__anchor, pattern_2) {
 function switch_case_default_3(__anchor, pattern_2) {
 	var li_4 = root_13();
 
-	{
-		var expression_4 = _$_.hydrating ? _$_.hydrate_text() : li_4.firstChild;
-	}
-
 	_$_.render(render_4, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_2: pattern_2,
-		_expression_4: expression_4,
 		_li_4: li_4
 	});
 
@@ -375,7 +355,7 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 				_$_.if(__anchor, if_4, true, pattern_2);
 			},
 			4,
-			(pattern_2) => _$_.get(pattern_2).id
+			(pattern_2) => pattern_2.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_2);
@@ -386,14 +366,14 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 
 ForIfSwitchSingle[_$_.$r] = ForIfSwitchSingle_render;
 
-var root_15 = _$_.template(`<li> </li>`, 0);
+var root_15 = _$_.template(`<li></li>`, 0);
 
 function render_5(__prev) {
 	var __pattern_3 = _$_.get(__prev._pattern_3);
 	var __a = `A-${__pattern_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_5, __prev.a = __a);
+		_$_.set_text_content(__prev._li_5, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_3.id} kind-a`;
@@ -403,14 +383,14 @@ function render_5(__prev) {
 	}
 }
 
-var root_16 = _$_.template(`<li> </li>`, 0);
+var root_16 = _$_.template(`<li></li>`, 0);
 
 function render_6(__prev) {
 	var __pattern_3_1 = _$_.get(__prev._pattern_3);
 	var __a = `B-${__pattern_3_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_6, __prev.a = __a);
+		_$_.set_text_content(__prev._li_6, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_3_1.id} kind-b`;
@@ -423,15 +403,10 @@ function render_6(__prev) {
 function switch_case_0_4(__anchor, pattern_3) {
 	var li_5 = root_15();
 
-	{
-		var expression_5 = _$_.hydrating ? _$_.hydrate_text() : li_5.firstChild;
-	}
-
 	_$_.render(render_5, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_3: pattern_3,
-		_expression_5: expression_5,
 		_li_5: li_5
 	});
 
@@ -441,15 +416,10 @@ function switch_case_0_4(__anchor, pattern_3) {
 function switch_case_default_4(__anchor, pattern_3) {
 	var li_6 = root_16();
 
-	{
-		var expression_6 = _$_.hydrating ? _$_.hydrate_text() : li_6.firstChild;
-	}
-
 	_$_.render(render_6, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_3: pattern_3,
-		_expression_6: expression_6,
 		_li_6: li_6
 	});
 
@@ -492,7 +462,7 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 				_$_.if(__anchor, if_5, true, pattern_3);
 			},
 			4,
-			(pattern_3) => _$_.get(pattern_3).id
+			(pattern_3) => pattern_3.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_3);
@@ -503,14 +473,14 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 
 ForIfSwitchMulti[_$_.$r] = ForIfSwitchMulti_render;
 
-var root_18 = _$_.template(`<li> </li>`, 0);
+var root_18 = _$_.template(`<li></li>`, 0);
 
 function render_7(__prev) {
 	var __pattern_4 = _$_.get(__prev._pattern_4);
 	var __a = `A-${__pattern_4.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_7, __prev.a = __a);
+		_$_.set_text_content(__prev._li_7, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_4.id} kind-a`;
@@ -520,14 +490,14 @@ function render_7(__prev) {
 	}
 }
 
-var root_19 = _$_.template(`<li> </li>`, 0);
+var root_19 = _$_.template(`<li></li>`, 0);
 
 function render_8(__prev) {
 	var __pattern_4_1 = _$_.get(__prev._pattern_4);
 	var __a = `B-${__pattern_4_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_8, __prev.a = __a);
+		_$_.set_text_content(__prev._li_8, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_4_1.id} kind-b`;
@@ -540,15 +510,10 @@ function render_8(__prev) {
 function switch_case_0_5(__anchor, pattern_4) {
 	var li_7 = root_18();
 
-	{
-		var expression_7 = _$_.hydrating ? _$_.hydrate_text() : li_7.firstChild;
-	}
-
 	_$_.render(render_7, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_4: pattern_4,
-		_expression_7: expression_7,
 		_li_7: li_7
 	});
 
@@ -558,15 +523,10 @@ function switch_case_0_5(__anchor, pattern_4) {
 function switch_case_default_5(__anchor, pattern_4) {
 	var li_8 = root_19();
 
-	{
-		var expression_8 = _$_.hydrating ? _$_.hydrate_text() : li_8.firstChild;
-	}
-
 	_$_.render(render_8, {
-		a: ' ',
+		a: '',
 		b: _$_.UNINITIALIZED,
 		_pattern_4: pattern_4,
-		_expression_8: expression_8,
 		_li_8: li_8
 	});
 
@@ -610,7 +570,7 @@ function ForIfSwitchWithDisabled_render(__anchor, __block) {
 				_$_.if(__anchor, if_6, true, pattern_4);
 			},
 			4,
-			(pattern_4) => _$_.get(pattern_4).id
+			(pattern_4) => pattern_4.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_4);
@@ -677,14 +637,14 @@ function SwitchTry_render(__anchor, __block) {
 
 SwitchTry[_$_.$r] = SwitchTry_render;
 
-var root_25 = _$_.template(`<li> </li>`, 0);
+var root_25 = _$_.template(`<li></li>`, 0);
 
 function render_9(__prev) {
 	var __pattern_5 = _$_.get(__prev._pattern_5);
 	var __a = `A-${__pattern_5.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_9, __prev.a = __a);
+		_$_.set_text_content(__prev._li_9, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_5.id} kind-a`;
@@ -694,14 +654,14 @@ function render_9(__prev) {
 	}
 }
 
-var root_26 = _$_.template(`<li> </li>`, 0);
+var root_26 = _$_.template(`<li></li>`, 0);
 
 function render_10(__prev) {
 	var __pattern_5_1 = _$_.get(__prev._pattern_5);
 	var __a = `pending ${__pattern_5_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_10, __prev.a = __a);
+		_$_.set_text_content(__prev._li_10, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_5_1.id}`;
@@ -711,14 +671,14 @@ function render_10(__prev) {
 	}
 }
 
-var root_27 = _$_.template(`<li> </li>`, 0);
+var root_27 = _$_.template(`<li></li>`, 0);
 
 function render_11(__prev) {
 	var __pattern_5_2 = _$_.get(__prev._pattern_5);
 	var __a = `B-${__pattern_5_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_11, __prev.a = __a);
+		_$_.set_text_content(__prev._li_11, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_5_2.id} kind-b`;
@@ -728,14 +688,14 @@ function render_11(__prev) {
 	}
 }
 
-var root_28 = _$_.template(`<li> </li>`, 0);
+var root_28 = _$_.template(`<li></li>`, 0);
 
 function render_12(__prev) {
 	var __pattern_5_3 = _$_.get(__prev._pattern_5);
 	var __a = `pending ${__pattern_5_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_12, __prev.a = __a);
+		_$_.set_text_content(__prev._li_12, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_5_3.id}`;
@@ -751,15 +711,10 @@ function switch_case_0_7(__anchor, pattern_5) {
 		(__anchor) => {
 			var li_9 = root_25();
 
-			{
-				var expression_9 = _$_.hydrating ? _$_.hydrate_text() : li_9.firstChild;
-			}
-
 			_$_.render(render_9, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_5: pattern_5,
-				_expression_9: expression_9,
 				_li_9: li_9
 			});
 
@@ -769,15 +724,10 @@ function switch_case_0_7(__anchor, pattern_5) {
 		(__anchor) => {
 			var li_10 = root_26();
 
-			{
-				var expression_10 = _$_.hydrating ? _$_.hydrate_text() : li_10.firstChild;
-			}
-
 			_$_.render(render_10, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_5: pattern_5,
-				_expression_10: expression_10,
 				_li_10: li_10
 			});
 
@@ -793,15 +743,10 @@ function switch_case_default_7(__anchor, pattern_5) {
 		(__anchor) => {
 			var li_11 = root_27();
 
-			{
-				var expression_11 = _$_.hydrating ? _$_.hydrate_text() : li_11.firstChild;
-			}
-
 			_$_.render(render_11, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_5: pattern_5,
-				_expression_11: expression_11,
 				_li_11: li_11
 			});
 
@@ -811,15 +756,10 @@ function switch_case_default_7(__anchor, pattern_5) {
 		(__anchor) => {
 			var li_12 = root_28();
 
-			{
-				var expression_12 = _$_.hydrating ? _$_.hydrate_text() : li_12.firstChild;
-			}
-
 			_$_.render(render_12, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_5: pattern_5,
-				_expression_12: expression_12,
 				_li_12: li_12
 			});
 
@@ -853,7 +793,7 @@ function ForSwitchTry_render(__anchor, __block) {
 				_$_.switch(__anchor, switch_8, true, pattern_5);
 			},
 			4,
-			(pattern_5) => _$_.get(pattern_5).id
+			(pattern_5) => pattern_5.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_5);
@@ -864,14 +804,14 @@ function ForSwitchTry_render(__anchor, __block) {
 
 ForSwitchTry[_$_.$r] = ForSwitchTry_render;
 
-var root_30 = _$_.template(`<li> </li>`, 0);
+var root_30 = _$_.template(`<li></li>`, 0);
 
 function render_13(__prev) {
 	var __pattern_6 = _$_.get(__prev._pattern_6);
 	var __a = `item-${__pattern_6.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_13, __prev.a = __a);
+		_$_.set_text_content(__prev._li_13, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_6.id}`;
@@ -881,14 +821,14 @@ function render_13(__prev) {
 	}
 }
 
-var root_31 = _$_.template(`<li> </li>`, 0);
+var root_31 = _$_.template(`<li></li>`, 0);
 
 function render_14(__prev) {
 	var __pattern_6_1 = _$_.get(__prev._pattern_6);
 	var __a = `pending ${__pattern_6_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_14, __prev.a = __a);
+		_$_.set_text_content(__prev._li_14, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_6_1.id}`;
@@ -904,15 +844,10 @@ function consequent_6(__anchor, pattern_6) {
 		(__anchor) => {
 			var li_13 = root_30();
 
-			{
-				var expression_13 = _$_.hydrating ? _$_.hydrate_text() : li_13.firstChild;
-			}
-
 			_$_.render(render_13, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_6: pattern_6,
-				_expression_13: expression_13,
 				_li_13: li_13
 			});
 
@@ -922,15 +857,10 @@ function consequent_6(__anchor, pattern_6) {
 		(__anchor) => {
 			var li_14 = root_31();
 
-			{
-				var expression_14 = _$_.hydrating ? _$_.hydrate_text() : li_14.firstChild;
-			}
-
 			_$_.render(render_14, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_6: pattern_6,
-				_expression_14: expression_14,
 				_li_14: li_14
 			});
 
@@ -958,7 +888,7 @@ function ForIfTry_render(__anchor, __block) {
 				_$_.if(__anchor, if_7, true, pattern_6);
 			},
 			4,
-			(pattern_6) => _$_.get(pattern_6).id
+			(pattern_6) => pattern_6.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_6);
@@ -969,14 +899,14 @@ function ForIfTry_render(__anchor, __block) {
 
 ForIfTry[_$_.$r] = ForIfTry_render;
 
-var root_33 = _$_.template(`<li> </li>`, 0);
+var root_33 = _$_.template(`<li></li>`, 0);
 
 function render_15(__prev) {
 	var __pattern_7 = _$_.get(__prev._pattern_7);
 	var __a = `A-${__pattern_7.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_15, __prev.a = __a);
+		_$_.set_text_content(__prev._li_15, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_7.id} kind-a`;
@@ -986,14 +916,14 @@ function render_15(__prev) {
 	}
 }
 
-var root_34 = _$_.template(`<li> </li>`, 0);
+var root_34 = _$_.template(`<li></li>`, 0);
 
 function render_16(__prev) {
 	var __pattern_7_1 = _$_.get(__prev._pattern_7);
 	var __a = `pending ${__pattern_7_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_16, __prev.a = __a);
+		_$_.set_text_content(__prev._li_16, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_7_1.id}`;
@@ -1003,14 +933,14 @@ function render_16(__prev) {
 	}
 }
 
-var root_35 = _$_.template(`<li> </li>`, 0);
+var root_35 = _$_.template(`<li></li>`, 0);
 
 function render_17(__prev) {
 	var __pattern_7_2 = _$_.get(__prev._pattern_7);
 	var __a = `D-${__pattern_7_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_17, __prev.a = __a);
+		_$_.set_text_content(__prev._li_17, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_7_2.id} kind-default`;
@@ -1020,14 +950,14 @@ function render_17(__prev) {
 	}
 }
 
-var root_36 = _$_.template(`<li> </li>`, 0);
+var root_36 = _$_.template(`<li></li>`, 0);
 
 function render_18(__prev) {
 	var __pattern_7_3 = _$_.get(__prev._pattern_7);
 	var __a = `pending ${__pattern_7_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_18, __prev.a = __a);
+		_$_.set_text_content(__prev._li_18, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_7_3.id}`;
@@ -1043,15 +973,10 @@ function switch_case_0_8(__anchor, pattern_7) {
 		(__anchor) => {
 			var li_15 = root_33();
 
-			{
-				var expression_15 = _$_.hydrating ? _$_.hydrate_text() : li_15.firstChild;
-			}
-
 			_$_.render(render_15, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_7: pattern_7,
-				_expression_15: expression_15,
 				_li_15: li_15
 			});
 
@@ -1061,15 +986,10 @@ function switch_case_0_8(__anchor, pattern_7) {
 		(__anchor) => {
 			var li_16 = root_34();
 
-			{
-				var expression_16 = _$_.hydrating ? _$_.hydrate_text() : li_16.firstChild;
-			}
-
 			_$_.render(render_16, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_7: pattern_7,
-				_expression_16: expression_16,
 				_li_16: li_16
 			});
 
@@ -1085,15 +1005,10 @@ function switch_case_default_8(__anchor, pattern_7) {
 		(__anchor) => {
 			var li_17 = root_35();
 
-			{
-				var expression_17 = _$_.hydrating ? _$_.hydrate_text() : li_17.firstChild;
-			}
-
 			_$_.render(render_17, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_7: pattern_7,
-				_expression_17: expression_17,
 				_li_17: li_17
 			});
 
@@ -1103,15 +1018,10 @@ function switch_case_default_8(__anchor, pattern_7) {
 		(__anchor) => {
 			var li_18 = root_36();
 
-			{
-				var expression_18 = _$_.hydrating ? _$_.hydrate_text() : li_18.firstChild;
-			}
-
 			_$_.render(render_18, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_7: pattern_7,
-				_expression_18: expression_18,
 				_li_18: li_18
 			});
 
@@ -1153,7 +1063,7 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 				_$_.if(__anchor, if_8, true, pattern_7);
 			},
 			4,
-			(pattern_7) => _$_.get(pattern_7).id
+			(pattern_7) => pattern_7.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_7);
@@ -1164,14 +1074,14 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 
 ForIfSwitchTrySingle[_$_.$r] = ForIfSwitchTrySingle_render;
 
-var root_38 = _$_.template(`<li> </li>`, 0);
+var root_38 = _$_.template(`<li></li>`, 0);
 
 function render_19(__prev) {
 	var __pattern_8 = _$_.get(__prev._pattern_8);
 	var __a = `A-${__pattern_8.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_19, __prev.a = __a);
+		_$_.set_text_content(__prev._li_19, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_8.id} kind-a`;
@@ -1181,14 +1091,14 @@ function render_19(__prev) {
 	}
 }
 
-var root_39 = _$_.template(`<li> </li>`, 0);
+var root_39 = _$_.template(`<li></li>`, 0);
 
 function render_20(__prev) {
 	var __pattern_8_1 = _$_.get(__prev._pattern_8);
 	var __a = `pending ${__pattern_8_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_20, __prev.a = __a);
+		_$_.set_text_content(__prev._li_20, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_8_1.id}`;
@@ -1198,14 +1108,14 @@ function render_20(__prev) {
 	}
 }
 
-var root_40 = _$_.template(`<li> </li>`, 0);
+var root_40 = _$_.template(`<li></li>`, 0);
 
 function render_21(__prev) {
 	var __pattern_8_2 = _$_.get(__prev._pattern_8);
 	var __a = `B-${__pattern_8_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_21, __prev.a = __a);
+		_$_.set_text_content(__prev._li_21, __prev.a = __a);
 	}
 
 	var __b = `item item-${__pattern_8_2.id} kind-b`;
@@ -1215,14 +1125,14 @@ function render_21(__prev) {
 	}
 }
 
-var root_41 = _$_.template(`<li> </li>`, 0);
+var root_41 = _$_.template(`<li></li>`, 0);
 
 function render_22(__prev) {
 	var __pattern_8_3 = _$_.get(__prev._pattern_8);
 	var __a = `pending ${__pattern_8_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text(__prev._expression_22, __prev.a = __a);
+		_$_.set_text_content(__prev._li_22, __prev.a = __a);
 	}
 
 	var __b = `pending pending-${__pattern_8_3.id}`;
@@ -1238,15 +1148,10 @@ function switch_case_0_9(__anchor, pattern_8) {
 		(__anchor) => {
 			var li_19 = root_38();
 
-			{
-				var expression_19 = _$_.hydrating ? _$_.hydrate_text() : li_19.firstChild;
-			}
-
 			_$_.render(render_19, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_8: pattern_8,
-				_expression_19: expression_19,
 				_li_19: li_19
 			});
 
@@ -1256,15 +1161,10 @@ function switch_case_0_9(__anchor, pattern_8) {
 		(__anchor) => {
 			var li_20 = root_39();
 
-			{
-				var expression_20 = _$_.hydrating ? _$_.hydrate_text() : li_20.firstChild;
-			}
-
 			_$_.render(render_20, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_8: pattern_8,
-				_expression_20: expression_20,
 				_li_20: li_20
 			});
 
@@ -1280,15 +1180,10 @@ function switch_case_default_9(__anchor, pattern_8) {
 		(__anchor) => {
 			var li_21 = root_40();
 
-			{
-				var expression_21 = _$_.hydrating ? _$_.hydrate_text() : li_21.firstChild;
-			}
-
 			_$_.render(render_21, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_8: pattern_8,
-				_expression_21: expression_21,
 				_li_21: li_21
 			});
 
@@ -1298,15 +1193,10 @@ function switch_case_default_9(__anchor, pattern_8) {
 		(__anchor) => {
 			var li_22 = root_41();
 
-			{
-				var expression_22 = _$_.hydrating ? _$_.hydrate_text() : li_22.firstChild;
-			}
-
 			_$_.render(render_22, {
-				a: ' ',
+				a: '',
 				b: _$_.UNINITIALIZED,
 				_pattern_8: pattern_8,
-				_expression_22: expression_22,
 				_li_22: li_22
 			});
 
@@ -1352,7 +1242,7 @@ function ForIfSwitchTryMulti_render(__anchor, __block) {
 				_$_.if(__anchor, if_9, true, pattern_8);
 			},
 			4,
-			(pattern_8) => _$_.get(pattern_8).id
+			(pattern_8) => pattern_8.id
 		);
 
 		_$_.hydrating && _$_.pop(ul_8);
