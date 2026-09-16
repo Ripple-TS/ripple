@@ -1,4 +1,4 @@
-import { track, type Derived, type Tracked } from 'ripple';
+import { track, type Derived } from 'ripple';
 import { bindSetter } from '../../shared/bridge.js';
 import { INITIAL_SNAPSHOT } from '../../shared/workloads.js';
 
@@ -30,27 +30,14 @@ type Snapshot =
 	| { kind: 'anim'; boxes: AnimBox[] }
 	| { kind: 'tree'; nodes: TreeNode[] };
 
-interface RippleTableRow extends Omit<TableRow, 'active'> {
-	active: Tracked<boolean>;
-}
-
-interface RippleAnimBox extends Omit<AnimBox, 'transform'> {
-	transform: Tracked<string>;
-}
-
-type RippleSnapshot =
-	| { kind: 'table'; rows: RippleTableRow[] }
-	| { kind: 'anim'; boxes: RippleAnimBox[] }
-	| { kind: 'tree'; nodes: TreeNode[] };
-
-function TableView(props: { rows: Derived<RippleTableRow[]> }) @{
+function TableView(props: { rows: Derived<TableRow[]> }) @{
 	<table class="uibench-table" data-kind="table">
 		<tbody>
 			@for (const row of props.rows.value; key row.id) {
-				<tr data-id={row.id} class={row.active.value ? 'active' : 'inactive'}>
-					<th>{row.label as string}</th>
+				<tr data-id={row.id} class={row.active ? 'active' : 'inactive'}>
+					<th>{row.label}</th>
 					@for (const cell of row.cells; key cell.id) {
-						<td>{cell.text as string}</td>
+						<td>{cell.text}</td>
 					}
 				</tr>
 			}
@@ -58,17 +45,17 @@ function TableView(props: { rows: Derived<RippleTableRow[]> }) @{
 	</table>
 }
 
-function AnimView(props: { boxes: Derived<RippleAnimBox[]> }) @{
+function AnimView(props: { boxes: Derived<AnimBox[]> }) @{
 	<div class="uibench-anim" data-kind="anim">
 		@for (const box of props.boxes.value; key box.id) {
-			<div class="box" data-id={box.id} style={{ transform: box.transform.value }}></div>
+			<div class="box" data-id={box.id} style={{ transform: box.transform }}></div>
 		}
 	</div>
 }
 
 function TreeItem(props: { node: TreeNode }) @{
 	<li data-id={props.node.id} class={props.node.children.length === 0 ? 'leaf' : 'container'}>
-		<span>{props.node.label as string}</span>
+		<span>{props.node.label}</span>
 		@if (props.node.children.length > 0) {
 			<ul>
 				@for (const child of props.node.children; key child.id) {
@@ -88,58 +75,21 @@ function TreeView(props: { nodes: Derived<TreeNode[]> }) @{
 }
 
 export default function App() @{
-	const rowCache = new Map<string, RippleTableRow>();
-	const boxCache = new Map<string, RippleAnimBox>();
-
-	const adapt = (next: Snapshot): RippleSnapshot => {
-		if (next.kind === 'table') {
-			return {
-				kind: 'table',
-				rows: next.rows.map((row) => {
-					let current = rowCache.get(row.id);
-					if (current === undefined) {
-						current = { ...row, active: track(row.active) };
-						rowCache.set(row.id, current);
-					} else {
-						current.label = row.label;
-						current.cells = row.cells;
-						current.active.value = row.active;
-					}
-					return current;
-				}),
-			};
-		}
-		if (next.kind === 'anim') {
-			return {
-				kind: 'anim',
-				boxes: next.boxes.map((box) => {
-					let current = boxCache.get(box.id);
-					if (current === undefined) {
-						current = { ...box, transform: track(box.transform) };
-						boxCache.set(box.id, current);
-					} else {
-						current.transform.value = box.transform;
-					}
-					return current;
-				}),
-			};
-		}
-		return next;
-	};
-
-	const snapshot = track<RippleSnapshot>(adapt(INITIAL_SNAPSHOT as Snapshot));
+	const snapshot = track<Snapshot>(INITIAL_SNAPSHOT as Snapshot);
 	bindSetter((next: Snapshot) => {
-		snapshot.value = adapt(next);
+		snapshot.value = next;
 	});
 
 	// A prop is a value: each view gets a derived so a new snapshot of the same
-	// kind updates the rows in place instead of being read once.
+	// kind updates its keyed list in place instead of being read once. A row or
+	// box replaced by the workload (a new object under the same key) flows
+	// through the keyed item's tracked value to that item's render block.
 	@switch (snapshot.value.kind) {
 		@case 'table': {
-			<TableView rows={track(() => (snapshot.value as { rows: RippleTableRow[] }).rows)} />
+			<TableView rows={track(() => (snapshot.value as { rows: TableRow[] }).rows)} />
 		}
 		@case 'anim': {
-			<AnimView boxes={track(() => (snapshot.value as { boxes: RippleAnimBox[] }).boxes)} />
+			<AnimView boxes={track(() => (snapshot.value as { boxes: AnimBox[] }).boxes)} />
 		}
 		@case 'tree': {
 			<TreeView nodes={track(() => (snapshot.value as { nodes: TreeNode[] }).nodes)} />

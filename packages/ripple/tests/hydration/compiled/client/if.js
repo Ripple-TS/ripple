@@ -165,14 +165,14 @@ function if_6(inner) {
 	if (inner.value) return consequent_5;
 }
 
-var root_13 = _$_.template(`<div class="outer-content">Outer<!></div>`, 0);
+var root_13 = _$_.template(`<div class="outer-content">Outer</div>`, 0);
 
 function consequent_6(__anchor, { outer, inner }) {
 	var div_7 = root_13();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : expression.nextSibling;
+		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_7);
 
 		_$_.if(node_5, if_6, false, inner);
 		_$_.hydrating && _$_.pop(div_7);
@@ -245,7 +245,7 @@ function if_8(status) {
 	if (status.value === 'loading') return consequent_7; else if (status.value === 'success') return consequent_8; else return alternate_2;
 }
 
-var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
+var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button></div>`, 0);
 
 function IfElseIfChain_render(__anchor, __block) {
 	const status = _$_.track('loading', __block, '4c69c94a');
@@ -270,7 +270,7 @@ function IfElseIfChain_render(__anchor, __block) {
 			status.value = 'loading';
 		};
 
-		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : button_6.nextSibling;
+		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8);
 
 		_$_.if(node_7, if_8, false, status);
 		_$_.hydrating && _$_.pop(div_8);

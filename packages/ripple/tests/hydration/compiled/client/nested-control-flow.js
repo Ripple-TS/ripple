@@ -66,7 +66,8 @@ function render_1(__prev) {
 	var __a = `A-${__pattern_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_1, __prev.a = __a);
+		_$_.set_text_content(__prev._li_1, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_1.id} kind-a`;
@@ -83,7 +84,8 @@ function render_2(__prev) {
 	var __a = `B-${__pattern_1_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_2, __prev.a = __a);
+		_$_.set_text_content(__prev._li_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_1_1.id} kind-b`;
@@ -270,7 +272,8 @@ function render_3(__prev) {
 	var __a = `A-${__pattern_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_3, __prev.a = __a);
+		_$_.set_text_content(__prev._li_3, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_2.id} kind-a`;
@@ -287,7 +290,8 @@ function render_4(__prev) {
 	var __a = `D-${__pattern_2_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_4, __prev.a = __a);
+		_$_.set_text_content(__prev._li_4, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_2_1.id} kind-default`;
@@ -373,7 +377,8 @@ function render_5(__prev) {
 	var __a = `A-${__pattern_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_5, __prev.a = __a);
+		_$_.set_text_content(__prev._li_5, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_3.id} kind-a`;
@@ -390,7 +395,8 @@ function render_6(__prev) {
 	var __a = `B-${__pattern_3_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_6, __prev.a = __a);
+		_$_.set_text_content(__prev._li_6, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_3_1.id} kind-b`;
@@ -480,7 +486,8 @@ function render_7(__prev) {
 	var __a = `A-${__pattern_4.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_7, __prev.a = __a);
+		_$_.set_text_content(__prev._li_7, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_4.id} kind-a`;
@@ -497,7 +504,8 @@ function render_8(__prev) {
 	var __a = `B-${__pattern_4_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_8, __prev.a = __a);
+		_$_.set_text_content(__prev._li_8, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_4_1.id} kind-b`;
@@ -644,7 +652,8 @@ function render_9(__prev) {
 	var __a = `A-${__pattern_5.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_9, __prev.a = __a);
+		_$_.set_text_content(__prev._li_9, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_5.id} kind-a`;
@@ -661,7 +670,8 @@ function render_10(__prev) {
 	var __a = `pending ${__pattern_5_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_10, __prev.a = __a);
+		_$_.set_text_content(__prev._li_10, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_5_1.id}`;
@@ -678,7 +688,8 @@ function render_11(__prev) {
 	var __a = `B-${__pattern_5_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_11, __prev.a = __a);
+		_$_.set_text_content(__prev._li_11, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_5_2.id} kind-b`;
@@ -695,7 +706,8 @@ function render_12(__prev) {
 	var __a = `pending ${__pattern_5_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_12, __prev.a = __a);
+		_$_.set_text_content(__prev._li_12, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_5_3.id}`;
@@ -811,7 +823,8 @@ function render_13(__prev) {
 	var __a = `item-${__pattern_6.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_13, __prev.a = __a);
+		_$_.set_text_content(__prev._li_13, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_6.id}`;
@@ -828,7 +841,8 @@ function render_14(__prev) {
 	var __a = `pending ${__pattern_6_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_14, __prev.a = __a);
+		_$_.set_text_content(__prev._li_14, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_6_1.id}`;
@@ -906,7 +920,8 @@ function render_15(__prev) {
 	var __a = `A-${__pattern_7.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_15, __prev.a = __a);
+		_$_.set_text_content(__prev._li_15, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_7.id} kind-a`;
@@ -923,7 +938,8 @@ function render_16(__prev) {
 	var __a = `pending ${__pattern_7_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_16, __prev.a = __a);
+		_$_.set_text_content(__prev._li_16, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_7_1.id}`;
@@ -940,7 +956,8 @@ function render_17(__prev) {
 	var __a = `D-${__pattern_7_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_17, __prev.a = __a);
+		_$_.set_text_content(__prev._li_17, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_7_2.id} kind-default`;
@@ -957,7 +974,8 @@ function render_18(__prev) {
 	var __a = `pending ${__pattern_7_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_18, __prev.a = __a);
+		_$_.set_text_content(__prev._li_18, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_7_3.id}`;
@@ -1081,7 +1099,8 @@ function render_19(__prev) {
 	var __a = `A-${__pattern_8.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_19, __prev.a = __a);
+		_$_.set_text_content(__prev._li_19, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_8.id} kind-a`;
@@ -1098,7 +1117,8 @@ function render_20(__prev) {
 	var __a = `pending ${__pattern_8_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_20, __prev.a = __a);
+		_$_.set_text_content(__prev._li_20, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_8_1.id}`;
@@ -1115,7 +1135,8 @@ function render_21(__prev) {
 	var __a = `B-${__pattern_8_2.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_21, __prev.a = __a);
+		_$_.set_text_content(__prev._li_21, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_8_2.id} kind-b`;
@@ -1132,7 +1153,8 @@ function render_22(__prev) {
 	var __a = `pending ${__pattern_8_3.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li_22, __prev.a = __a);
+		_$_.set_text_content(__prev._li_22, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `pending pending-${__pattern_8_3.id}`;

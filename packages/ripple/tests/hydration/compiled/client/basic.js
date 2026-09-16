@@ -136,7 +136,8 @@ function render(__prev) {
 	var __a = 'Hello ' + __prev._props.name;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_5, __prev.a = __a);
+		_$_.set_text_content(__prev._div_5, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -685,7 +686,8 @@ function render_1(__prev) {
 	var __a = __prev._children.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_22, __prev.a = __a);
+		_$_.set_text_content(__prev._div_22, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -981,7 +983,8 @@ function render_2(__prev) {
 	var __a = "label: " + String(_$_.with_scope(__prev.___block, fetchLabel));
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_28, __prev.a = __a);
+		_$_.set_text_content(__prev._div_28, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -1000,7 +1003,8 @@ function render_3(__prev) {
 	var __a = 'frag-' + String(_$_.with_scope(__prev.___block, fetchLabel));
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_29, __prev.a = __a);
+		_$_.set_text_content(__prev._div_29, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -1118,7 +1122,8 @@ function render_5(__prev) {
 	var __a = "sum: " + (String(Number(__prev._count.value) + Number(__prev._count.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._count.value)) ?? '')));
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_33, __prev.a = __a);
+		_$_.set_text_content(__prev._div_33, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 

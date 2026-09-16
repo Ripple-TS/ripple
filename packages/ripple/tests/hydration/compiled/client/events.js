@@ -7,7 +7,8 @@ function render(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span, __prev.a = __a);
+		_$_.set_text_content(__prev._span, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -37,7 +38,8 @@ function render_1(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_1, __prev.a = __a);
+		_$_.set_text_content(__prev._span_1, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -72,13 +74,15 @@ function render_2(__prev) {
 	var __a = __prev._clicks.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_2, __prev.a = __a);
+		_$_.set_text_content(__prev._span_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = __prev._hovers.value;
 
 	if (__prev.b !== __b) {
-		_$_.set_text_content(__prev._span_3, __prev.b = __b);
+		_$_.set_text_content(__prev._span_3, __b, __prev.b);
+		__prev.b = __b;
 	}
 }
 
@@ -122,7 +126,8 @@ function render_3(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_4, __prev.a = __a);
+		_$_.set_text_content(__prev._span_4, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -165,7 +170,8 @@ function render_4(__prev) {
 	var __a = __prev._isOn.value ? 'ON' : 'OFF';
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._button_5, __prev.a = __a);
+		_$_.set_text_content(__prev._button_5, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -193,7 +199,8 @@ function render_5(__prev) {
 	var __a = __prev._props.label;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._button_6, __prev.a = __a);
+		_$_.set_text_content(__prev._button_6, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -213,7 +220,8 @@ function render_6(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_6, __prev.a = __a);
+		_$_.set_text_content(__prev._span_6, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 

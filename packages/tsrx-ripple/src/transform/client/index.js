@@ -24,6 +24,13 @@
 */
 
 import { walk } from 'zimmerframe';
+
+/**
+ * A `for_keyed` flag of the Ripple runtime (`packages/ripple/src/constants.js`),
+ * next to the target-neutral flags from `@tsrx/core`: the loop item is read
+ * only by the render block its item block carries.
+ */
+const LOCAL_ITEMS = 1 << 7;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
 import path from 'node:path';
 import { print } from 'esrap';
@@ -1855,7 +1862,9 @@ const visit_if_statement = (node, context) => {
 	}
 
 	const root_controlled = node.metadata?.root_controlled === true;
-	if (!root_controlled) {
+	// A trailing if appends into the parent (`append_after`, see
+	// transform_children) and needs no placeholder either.
+	if (!root_controlled && node.metadata?.append_after === undefined) {
 		context.state.template?.push('<!>');
 	}
 
@@ -2162,8 +2171,10 @@ const visit_for_of_statement = (node, context) => {
 		return;
 	}
 
-	// do only if not controller
-	if (!is_controlled && !root_controlled) {
+	// A controlled list appends into its parent, a root-controlled one renders
+	// before the component's anchor, and a trailing one appends into the parent
+	// (`append_after`, see transform_children): none needs a placeholder.
+	if (!is_controlled && !root_controlled && node.metadata?.append_after === undefined) {
 		context.state.template?.push('<!>');
 	}
 
@@ -2186,6 +2197,51 @@ const visit_for_of_statement = (node, context) => {
 		},
 	});
 	const fields = node.metadata?.tsrx_for_pattern_fields;
+
+	// An item body whose updates all live in one render block carries that
+	// block on the item block itself: the `_$_.render(fn, state)` call becomes
+	// `_$_.item(state)`, and `fn` travels once with the list (see the
+	// runtime's `item`). Only a hoisted function can: it must be shared.
+	/** @type {AST.Identifier | null} */
+	let update_fn = null;
+	if (!context.state.to_ts) {
+		const render_calls = find_render_calls(body);
+		if (render_calls.length === 1) {
+			const { statements, index } = render_calls[0];
+			const call = /** @type {AST.CallExpression} */ (
+				/** @type {AST.ExpressionStatement} */ (statements[index]).expression
+			);
+			if (call.arguments.length === 2 && call.arguments[0].type === 'Identifier') {
+				update_fn = call.arguments[0];
+				statements[index] = b.stmt(
+					b.call('_$_.item', /** @type {AST.Expression} */ (call.arguments[1])),
+				);
+			}
+		}
+	}
+
+	// A keyed item that only its update function reads (the pattern appears
+	// nowhere in the body but in that function's state) is held as it is,
+	// not in a tracked: the update function reads the item off its state, and
+	// a replaced item re-runs the item block directly (see `LOCAL_ITEMS`).
+	if (
+		update_fn !== null &&
+		key != null &&
+		!index &&
+		!fields &&
+		pattern.type === 'Identifier' &&
+		!reads_outside_item_state(body, pattern.name)
+	) {
+		flags |= LOCAL_ITEMS;
+		const local = /** @type {AST.Identifier} */ (update_fn);
+		const declaration = context.state.hoisted.find(
+			(statement) => statement.type === 'FunctionDeclaration' && statement.id?.name === local.name,
+		);
+		if (declaration !== undefined) {
+			read_item_from_state(/** @type {AST.FunctionDeclaration} */ (declaration), pattern.name);
+			rename_item_slot(find_render_calls(body)[0], pattern.name);
+		}
+	}
 
 	// Selectors are created once per loop, ahead of the loop itself.
 	for (const { id: selector_id, source } of selector_for.selectors) {
@@ -2299,6 +2355,15 @@ const visit_for_of_statement = (node, context) => {
 		}
 		for_args.push(pattern_fields_arrow(node, fields));
 	}
+	if (update_fn !== null) {
+		// After the key, empty renderer and item destructuring of a keyed list,
+		// or the empty renderer of a plain one.
+		const position = key != null ? 7 : 5;
+		while (for_args.length < position) {
+			for_args.push(b.void0);
+		}
+		for_args.push(update_fn);
+	}
 
 	context.state.init?.push(
 		b.stmt(
@@ -2309,6 +2374,134 @@ const visit_for_of_statement = (node, context) => {
 		),
 	);
 };
+
+/**
+ * Whether a compiled item body reads the loop item anywhere but as the value
+ * it hands to its update function's state (`_$_.item({ _item: item })`).
+ * @param {AST.Statement[]} body
+ * @param {string} name
+ * @returns {boolean}
+ */
+function reads_outside_item_state(body, name) {
+	let found = false;
+	walk(/** @type {AST.Node} */ (b.block(body)), null, {
+		CallExpression(node, { next }) {
+			if (node.callee.type === 'Identifier' && node.callee.name === '_$_.item') {
+				return;
+			}
+			next();
+		},
+		Identifier(node) {
+			if (node.name === name) {
+				found = true;
+			}
+		},
+	});
+	return found;
+}
+
+/**
+ * The slot of a local item on its update function's state. The runtime
+ * writes a replaced item there (see `LOCAL_ITEMS`), so the name is fixed; it
+ * cannot collide with a value key (letters) or a captured local (`_name`).
+ */
+const ITEM_SLOT = '$item';
+
+/**
+ * Whether a node is the member expression `__prev._<name>`.
+ * @param {AST.Node} node
+ * @param {string} name
+ */
+function is_item_read(node, name) {
+	return (
+		node.type === 'MemberExpression' &&
+		node.object.type === 'Identifier' &&
+		node.object.name === '__prev' &&
+		node.property.type === 'Identifier' &&
+		node.property.name === '_' + name
+	);
+}
+
+/**
+ * Rewrites an update function's reads of a local item (see `LOCAL_ITEMS`),
+ * `_$_.get(__prev._item)` or `__prev._item`, to `__prev.$item`: the state
+ * holds the item itself, in the slot the runtime refreshes.
+ * @param {AST.FunctionDeclaration} declaration
+ * @param {string} name
+ */
+function read_item_from_state(declaration, name) {
+	const slot = () => b.member(b.id('__prev'), b.id(ITEM_SLOT));
+	declaration.body = /** @type {AST.BlockStatement} */ (
+		walk(/** @type {AST.Node} */ (declaration.body), null, {
+			CallExpression(node, { next }) {
+				if (
+					node.callee.type === 'Identifier' &&
+					node.callee.name === '_$_.get' &&
+					node.arguments.length === 1 &&
+					is_item_read(node.arguments[0], name)
+				) {
+					return slot();
+				}
+				next();
+			},
+			MemberExpression(node, { next }) {
+				if (is_item_read(node, name)) {
+					return slot();
+				}
+				next();
+			},
+		})
+	);
+}
+
+/**
+ * Renames the `_item` property of an item body's `_$_.item({ … })` state to
+ * the local item slot (see `read_item_from_state`).
+ * @param {{ statements: AST.Statement[]; index: number }} call
+ * @param {string} name
+ */
+function rename_item_slot(call, name) {
+	const state = /** @type {AST.ObjectExpression} */ (
+		/** @type {AST.CallExpression} */ (
+			/** @type {AST.ExpressionStatement} */ (call.statements[call.index]).expression
+		).arguments[0]
+	);
+	for (const property of state.properties) {
+		if (
+			property.type === 'Property' &&
+			property.key.type === 'Identifier' &&
+			property.key.name === '_' + name
+		) {
+			property.key = b.id(ITEM_SLOT);
+			property.shorthand = false;
+		}
+	}
+}
+
+/**
+ * The `_$_.render(…)` statements of a compiled item body: at its top level or
+ * in a nested block, never inside a function of its own.
+ * @param {AST.Statement[]} statements
+ * @param {{ statements: AST.Statement[]; index: number }[]} [found]
+ * @returns {{ statements: AST.Statement[]; index: number }[]}
+ */
+function find_render_calls(statements, found = []) {
+	for (let index = 0; index < statements.length; index++) {
+		const statement = statements[index];
+		if (statement.type === 'BlockStatement') {
+			find_render_calls(statement.body, found);
+		} else if (
+			statement.type === 'ExpressionStatement' &&
+			statement.expression.type === 'CallExpression' &&
+			statement.expression.callee.type === 'Identifier' &&
+			(statement.expression.callee.name === '_$_.render' ||
+				statement.expression.callee.name === '_$_.item')
+		) {
+			found.push({ statements, index });
+		}
+	}
+	return found;
+}
 
 /**
  * The function that destructures a keyed loop item with the authored pattern
@@ -6211,6 +6404,28 @@ function transform_children(children, context) {
 			!is_ripple_fragment_element(n, context)
 		);
 	};
+	/**
+	 * A template `@if`: one that renders (a plain `if` around setup code
+	 * lowers to JavaScript and holds no template position).
+	 * @param {AST.Node} n
+	 */
+	const is_template_if_child = (n) =>
+		(n.type === 'IfStatement' || n.type === 'JSXIfExpression') &&
+		!n.metadata?.regular_js &&
+		!(
+			(n.metadata?.script_only || n.metadata?.has_continue) &&
+			!n.metadata?.has_template &&
+			!(/** @type {AST.IfStatement} */ (n).alternate)
+		);
+	/**
+	 * A template `@for` (see `is_template_if_child`).
+	 * @param {AST.Node} n
+	 */
+	const is_template_for_child = (n) =>
+		(n.type === 'ForOfStatement' ||
+			(n.type === 'JSXForExpression' && n.statementType === 'ForOfStatement')) &&
+		!n.metadata?.regular_js &&
+		!(n.metadata?.script_only && !n.metadata?.has_template);
 	const all_component_append =
 		!root &&
 		!root_controlled &&
@@ -6225,12 +6440,23 @@ function transform_children(children, context) {
 			child.metadata = { ...child.metadata, append_into: append_anchor_id };
 		}
 	} else if (!root && !root_controlled && state.flush_node != null) {
-		// A trailing run of static components behind template siblings appends
-		// into the parent as well: no `<!>` placeholder per component, and an
-		// appendChild instead of an insert. Hydration keeps the sibling cursor,
-		// so the earlier siblings are still navigated (see flush_node).
+		// A trailing run of static components and template `@if`s, with a
+		// template `@for` allowed last of all, behind template siblings appends
+		// into the parent as well: no `<!>` placeholder per node, and an
+		// appendChild instead of an insert. An if materializes an anchor of its
+		// own once a branch swap needs a position (see the runtime's
+		// `materialize_anchor`); a list keeps inserting at the parent's end, so
+		// nothing may follow it. Hydration keeps the sibling cursor, so the
+		// earlier siblings are still navigated (see flush_node).
 		let trailing_start = normalized.length;
-		while (trailing_start > 0 && is_static_component_child(normalized[trailing_start - 1])) {
+		if (trailing_start > 0 && is_template_for_child(normalized[trailing_start - 1])) {
+			trailing_start -= 1;
+		}
+		while (
+			trailing_start > 0 &&
+			(is_static_component_child(normalized[trailing_start - 1]) ||
+				is_template_if_child(normalized[trailing_start - 1]))
+		) {
 			trailing_start -= 1;
 		}
 		if (
@@ -6442,10 +6668,16 @@ function transform_children(children, context) {
 					const id = flush_node(true);
 					if (is_leaf_text()) {
 						state.update?.push({
-							operation: (key) => b.stmt(b.call('_$_.set_text_content', id, key)),
+							// The previous value says whether the element holds a text
+							// node yet, so the write needs no DOM read.
+							operation: (key, prev) =>
+								b.stmt(
+									b.call('_$_.set_text_content', id, key, /** @type {AST.Expression} */ (prev)),
+								),
 							expression: expr,
 							identity,
 							initial: b.literal(''),
+							needsPrevTracking: true,
 						});
 					} else {
 						state.template?.push(' ');

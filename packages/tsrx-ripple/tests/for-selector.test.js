@@ -150,7 +150,7 @@ describe('grouped render read hoisting', () => {
 		expect(code).not.toContain('var __pattern');
 		// Two guarded reads in the render (through the block state); the key
 		// function reads the item itself.
-		expect(code.match(/_\$_\.get\((?:__prev\._)?pattern\)/g)).toHaveLength(2);
+		expect(code.match(/__prev\.\$item\b/g)).toHaveLength(2);
 		expect(code).toContain('(pattern) => pattern.id');
 	});
 
@@ -167,9 +167,7 @@ describe('grouped render read hoisting', () => {
 		// The call is wrapped in a scope arrow, so its reads are nested and
 		// only the title read is unconditional: nothing to hoist.
 		expect(code).not.toContain('var __pattern');
-		expect(code).toContain(
-			'[_$_.get(__prev._pattern).id].some((id) => _$_.get(__prev._pattern).id === id)',
-		);
+		expect(code).toContain('[__prev.$item.id].some((id) => __prev.$item.id === id)');
 	});
 
 	it('reuses an unconditional read on conditional paths too', () => {
@@ -183,7 +181,7 @@ describe('grouped render read hoisting', () => {
 			}
 		`);
 
-		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
+		expect(code).toContain('var __pattern = __prev.$item;');
 		expect(code).not.toContain('_$_.get(pattern).label');
 	});
 });
@@ -201,7 +199,7 @@ describe('@for item type inference', () => {
 
 		expect(code).not.toContain('_$_.expression(');
 		expect(code).toContain('_$_.set_text_content(');
-		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
+		expect(code).toContain('var __pattern = __prev.$item;');
 		expect(code).toContain('__pattern.label.value');
 	});
 
@@ -252,7 +250,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text_content(__prev._td, __prev.a = __a)');
+		expect(code).toContain('_$_.set_text_content(__prev._td, __a, __prev.a)');
 		expect(code).toContain('td_1.textContent = count');
 	});
 
@@ -265,7 +263,7 @@ describe('@for item type inference', () => {
 		`);
 
 		expect(code).not.toContain('_$_.expression(');
-		expect(code).toContain('_$_.set_text_content(__prev._td, __prev.a = __a)');
+		expect(code).toContain('_$_.set_text_content(__prev._td, __a, __prev.a)');
 		expect(code).toContain('td_1.textContent = count');
 	});
 

@@ -84,7 +84,7 @@ export { composite } from './composite.js';
 
 export { render_component } from './component.js';
 
-export { for_block as for, for_block_keyed as for_keyed } from './for.js';
+export { for_block as for, for_block_keyed as for_keyed, item } from './for.js';
 
 export { selector, selector_match } from './selector.js';
 

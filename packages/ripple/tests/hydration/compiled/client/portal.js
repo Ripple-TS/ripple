@@ -39,7 +39,7 @@ function if_1(show) {
 	if (show.value) return consequent;
 }
 
-var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
+var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button></div>`, 0);
 
 function ConditionalPortal_render(__anchor, __block) {
 	const show = _$_.track(true, __block, '4f6df174');
@@ -50,7 +50,7 @@ function ConditionalPortal_render(__anchor, __block) {
 
 		button.__click = () => show.value = !show.value;
 
-		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
+		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_2);
 
 		_$_.if(node_1, if_1, false, show);
 		_$_.hydrating && _$_.pop(div_2);

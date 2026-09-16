@@ -7,7 +7,8 @@ function render(__prev) {
 	var __a = __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div, __prev.a = __a);
+		_$_.set_text_content(__prev._div, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -75,19 +76,22 @@ function render_1(__prev) {
 	var __a = __prev._x.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_4, __prev.a = __a);
+		_$_.set_text_content(__prev._div_4, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = __prev._y.value;
 
 	if (__prev.b !== __b) {
-		_$_.set_text_content(__prev._div_5, __prev.b = __b);
+		_$_.set_text_content(__prev._div_5, __b, __prev.b);
+		__prev.b = __b;
 	}
 
 	var __c = __prev._z.value;
 
 	if (__prev.c !== __c) {
-		_$_.set_text_content(__prev._div_6, __prev.c = __c);
+		_$_.set_text_content(__prev._div_6, __c, __prev.c);
+		__prev.c = __c;
 	}
 }
 

@@ -295,7 +295,8 @@ function render_4(__prev) {
 	var __a = __prev._item.text;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._a_2, __prev.a = __a);
+		_$_.set_text_content(__prev._a_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = __prev._item.href;
@@ -324,10 +325,12 @@ function consequent_2(__anchor, toc) {
 						var a_2 = _$_.hydrating ? _$_.hydrate_child() : li.firstChild;
 					}
 
-					_$_.render(render_4, { a: '', b: void 0, _item: item, _a_2: a_2 });
+					_$_.item({ a: '', b: void 0, _item: item, _a_2: a_2 });
 					_$_.append(__anchor, li);
 				},
-				4
+				4,
+				void 0,
+				render_4
 			);
 
 			_$_.hydrating && _$_.pop(ul);
@@ -341,7 +344,7 @@ function if_3(toc) {
 	if (toc.length > 0) return consequent_2;
 }
 
-var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article><!><!></div><aside><!></aside></div>`, 0);
+var root_14 = _$_.template(`<div class="layout"><div class="content-container"><article><div><!></div></article></div><aside><!></aside></div>`, 0);
 
 function DocLayout_render(
 	__anchor,
@@ -369,11 +372,11 @@ function DocLayout_render(
 
 			_$_.hydrating && _$_.pop(article);
 
-			var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
+			var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
 			_$_.if(node_5, if_1, false, editPath);
 
-			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_5.nextSibling;
+			var node_6 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_14);
 
 			_$_.if(node_6, if_2, false, nextLink);
 
@@ -849,7 +852,7 @@ function if_6({ expanded, children }) {
 	if (expanded.value) return consequent_5;
 }
 
-var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2></h2><button>Toggle</button></div><!></section>`, 0);
+var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2></h2><button>Toggle</button></div></section>`, 0);
 
 function SidebarSection_render(__anchor, __block, { title, children }) {
 	const expanded = _$_.track(true, __block, '6ac6906f');
@@ -872,7 +875,7 @@ function SidebarSection_render(__anchor, __block, { title, children }) {
 
 		_$_.hydrating && _$_.pop(div_29);
 
-		var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : div_29.nextSibling;
+		var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
 
 		_$_.if(node_20, if_6, false, { expanded, children });
 		_$_.hydrating && _$_.pop(section_1);
@@ -987,7 +990,7 @@ function if_7() {
 	if (true) return consequent_6;
 }
 
-var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!></main></div></div>`, 0);
+var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div></main></div></div>`, 0);
 
 function LayoutWithSidebarAndMain_render(__anchor, __block) {
 	var div_33 = root_46();
@@ -1008,7 +1011,7 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 
 			{
 				var div_35 = _$_.hydrating ? _$_.hydrate_child() : main.firstChild;
-				var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : div_35.nextSibling;
+				var node_27 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(main);
 
 				_$_.if(node_27, if_7);
 
@@ -1085,7 +1088,7 @@ function if_9() {
 	if (true) return consequent_8;
 }
 
-var root_50 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
+var root_50 = _$_.template(`<div class="content-container"><!><!><!><!></div>`, 0);
 
 function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 	var div_38 = root_50();
@@ -1110,7 +1113,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 
 		_$_.if(node_31, if_9);
 
-		var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_38);
+		var node_32 = _$_.hydrating ? _$_.hydrate_sibling() : node_31.nextSibling;
 
 		_$_.render_component(SimpleFooter, node_32, {});
 		_$_.hydrating && _$_.pop(div_38);
@@ -1134,7 +1137,7 @@ function if_10() {
 	if (true) return consequent_9;
 }
 
-var root_54 = _$_.template(`<div class="content-container"><!><!></div>`, 0);
+var root_54 = _$_.template(`<div class="content-container"><!><!><!></div>`, 0);
 
 function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 	const htmlContent = '<pre><code>const x = 1;</code></pre>';
@@ -1156,7 +1159,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 
 		_$_.if(node_34, if_10);
 
-		var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_40);
+		var node_35 = _$_.hydrating ? _$_.hydrate_sibling() : node_34.nextSibling;
 
 		_$_.render_component(SimpleFooter, node_35, {});
 		_$_.hydrating && _$_.pop(div_40);
@@ -1179,7 +1182,7 @@ function if_11() {
 	if (true) return consequent_10;
 }
 
-var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article><!></div>`, 0);
+var root_57 = _$_.template(`<div class="content-container"><article class="doc-content"><div><!></div></article></div>`, 0);
 
 function InlineArticleLayout_render(__anchor, __block, { children }) {
 	var div_43 = root_57();
@@ -1200,7 +1203,7 @@ function InlineArticleLayout_render(__anchor, __block, { children }) {
 
 		_$_.hydrating && _$_.pop(article_2);
 
-		var node_36 = _$_.hydrating ? _$_.hydrate_sibling() : article_2.nextSibling;
+		var node_36 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_43);
 
 		_$_.if(node_36, if_11);
 
@@ -1306,7 +1309,7 @@ function if_13(nextLink) {
 	if (nextLink) return consequent_12;
 }
 
-var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div></div></main></div></div>`, 0);
+var root_63 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div></div></main></div></div>`, 0);
 
 function DocsLayoutInner_render(
 	__anchor,
@@ -1354,11 +1357,11 @@ function DocsLayoutInner_render(
 
 							_$_.hydrating && _$_.pop(article_3);
 
-							var node_40 = _$_.hydrating ? _$_.hydrate_sibling() : article_3.nextSibling;
+							var node_40 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
 							_$_.if(node_40, if_12, false, editPath);
 
-							var node_41 = _$_.hydrating ? _$_.hydrate_sibling() : node_40.nextSibling;
+							var node_41 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_49);
 
 							_$_.if(node_41, if_13, false, nextLink);
 
@@ -1537,7 +1540,8 @@ function render_8(__prev) {
 	var __a = __prev._item.text;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._a_8, __prev.a = __a);
+		_$_.set_text_content(__prev._a_8, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = __prev._item.href;
@@ -1562,10 +1566,12 @@ function consequent_17(__anchor, toc) {
 				(__anchor, item) => {
 					var a_8 = root_75();
 
-					_$_.render(render_8, { a: '', b: void 0, _item: item, _a_8: a_8 });
+					_$_.item({ a: '', b: void 0, _item: item, _a_8: a_8 });
 					_$_.append(__anchor, a_8);
 				},
-				4
+				4,
+				void 0,
+				render_8
 			);
 
 			_$_.hydrating && _$_.pop(nav_5);
@@ -1579,7 +1585,7 @@ function if_18(toc) {
 	if (toc.length > 0) return consequent_17;
 }
 
-var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article><!><!></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
+var root_68 = _$_.template(`<div class="layout"><!><div class="docs-wrapper"><!><main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div><!></div></article></div></div><aside class="aside"><!></aside></div></main></div></div>`, 0);
 
 function DocsLayoutExact_render(
 	__anchor,
@@ -1633,11 +1639,11 @@ function DocsLayoutExact_render(
 
 							_$_.hydrating && _$_.pop(article_4);
 
-							var node_45 = _$_.hydrating ? _$_.hydrate_sibling() : article_4.nextSibling;
+							var node_45 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
 							_$_.if(node_45, if_14, false, editPath);
 
-							var node_46 = _$_.hydrating ? _$_.hydrate_sibling() : node_45.nextSibling;
+							var node_46 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_58);
 
 							_$_.if(node_46, if_17, false, { prevLink, nextLink });
 

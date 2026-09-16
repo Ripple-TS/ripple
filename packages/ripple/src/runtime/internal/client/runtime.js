@@ -36,6 +36,7 @@ import {
 	SCHEDULED,
 	SELECTOR,
 	IF_BLOCK,
+	ITEM_BLOCK,
 	RELEASED,
 	RENDER_ENTRY,
 	CREATES_DERIVEDS,
@@ -389,7 +390,9 @@ function handle_run_error(error, block) {
  * @returns {Derived[] | null}
  */
 function prepare_rerun(block) {
-	if ((block.f & (FOR_BLOCK | IF_BLOCK)) === 0) {
+	// A list, an if, and a list item re-run only their own logic; their child
+	// blocks (items, the branch's blocks, an item body's nested blocks) stay.
+	if ((block.f & (FOR_BLOCK | IF_BLOCK | ITEM_BLOCK)) === 0) {
 		destroy_non_branch_children(block);
 	}
 	run_teardown(block);
@@ -1258,7 +1261,8 @@ function is_tracking_dirty(tracking) {
 export function is_block_dirty(block) {
 	var flags = block.f;
 
-	if ((flags & (ROOT_BLOCK | BRANCH_BLOCK)) !== 0) {
+	// A branch never re-runs, except a list item that carries its render block.
+	if ((flags & ITEM_BLOCK) === 0 && (flags & (ROOT_BLOCK | BRANCH_BLOCK)) !== 0) {
 		return false;
 	}
 	if ((flags & BLOCK_HAS_RUN) === 0) {

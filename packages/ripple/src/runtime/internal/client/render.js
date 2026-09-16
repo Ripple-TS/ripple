@@ -21,23 +21,35 @@ import { normalize_css_property_name } from '@tsrx/core/runtime/html';
  * Sets the text of an element whose only child is that text. The template
  * leaves such an element empty, so the first write creates the text node and
  * later writes update it in place; server-rendered text is adopted as is.
+ * The element has a text node exactly when the value last written did not
+ * read as empty (an empty write drops the node again), so `prev`, the value
+ * the render block wrote before, says whether one exists without a DOM read.
  * @param {Element} element
  * @param {any} value
+ * @param {any} prev the value of the previous write (`''` before the first)
  * @returns {void}
  */
-export function set_text_content(element, value) {
+export function set_text_content(element, value, prev) {
 	var str = value == null ? '' : value + '';
-	var text = element.firstChild;
-	if (text === null) {
+	if (hydrating) {
+		var text = element.firstChild;
+		if (text === null) {
+			if (str !== '') {
+				element.textContent = str;
+			}
+		} else if (text.nodeType !== TEXT_NODE || str === '') {
+			element.textContent = str;
+		} else if (text.nodeValue !== str) {
+			text.nodeValue = str;
+		}
+	} else if (prev == null || prev === '') {
 		if (str !== '') {
 			element.textContent = str;
 		}
-	} else if (!hydrating) {
-		/** @type {Text} */ (text).nodeValue = str;
-	} else if (text.nodeType !== TEXT_NODE) {
-		element.textContent = str;
-	} else if (text.nodeValue !== str) {
-		text.nodeValue = str;
+	} else if (str === '') {
+		element.textContent = '';
+	} else {
+		/** @type {Text} */ (element.firstChild).nodeValue = str;
 	}
 }
 

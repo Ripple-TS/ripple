@@ -1,6 +1,6 @@
 /** @import { AppendIntoAnchor, Block, Tracked } from '#client' */
 
-import { IS_CONTROLLED, IS_INDEXED, ROOT_CONTROLLED } from '../../../constants.js';
+import { IS_CONTROLLED, IS_INDEXED, LOCAL_ITEMS, ROOT_CONTROLLED } from '../../../constants.js';
 import {
 	block as create_block,
 	branch,
@@ -11,11 +11,11 @@ import {
 	own_anchor,
 	render,
 } from './blocks.js';
-import { BRANCH_BLOCK, FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
+import { BRANCH_BLOCK, DESTROYED, FOR_BLOCK, ITEM_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_first_child, hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { get_last_child, next_sibling, resolve_anchor } from './operations.js';
 import { append } from './template.js';
-import { active_block, set, set_tracking, tracked } from './runtime.js';
+import { active_block, run_block, set, set_tracking, tracked } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
 
 /**
@@ -42,6 +42,9 @@ function create_item(anchor, value, index, render_fn, is_indexed, is_keyed, map_
 		v: tracked_value,
 		// The item as the collection holds it; a keyed diff compares against it.
 		r: value,
+		// The render state of a body that carries its render block on the item
+		// block itself (see `item`), or null.
+		p: null,
 	};
 
 	// Passed through module state rather than a per-item closure; run_item
@@ -81,14 +84,45 @@ var item_anchor = null;
 var item_render_fn = null;
 
 /**
- * @param {{ i: Tracked | undefined, v: any }} state
+ * @param {{ i: Tracked | undefined, v: any, p: any }} state
  */
 function run_item(state) {
+	var p = state.p;
+	if (p !== null) {
+		// A re-run of an item that carries its render block: only the body's
+		// update function, tracked (see `item`).
+		set_tracking(true);
+		/** @type {(prev: any) => void} */ (
+			/** @type {ListState} */ (/** @type {Block} */ (/** @type {Block} */ (active_block).p).s).u
+		)(p);
+		return;
+	}
 	var render_fn = /** @type {(anchor: Node, value: any, index?: any) => Block} */ (item_render_fn);
 	var anchor = /** @type {Node} */ (item_anchor);
 	item_render_fn = null;
 	item_anchor = null;
 	render_fn(anchor, state.v, state.i);
+}
+
+/**
+ * The compiled body of a list item whose updates all live in one render block
+ * calls this where it would have created that block: the item block carries
+ * the render block instead. The update function is the list's (passed to
+ * `for`/`for_keyed`, the same for every item) and `prev` its state; it runs
+ * tracked here, so its dependencies are the item block's own, and a change
+ * re-runs it alone through `run_item`. One block, one run, and one state
+ * object less per item.
+ * @param {any} prev
+ */
+export function item(prev) {
+	var block = /** @type {Block} */ (active_block);
+	block.s.p = prev;
+	block.f |= ITEM_BLOCK;
+	set_tracking(true);
+	/** @type {(prev: any) => void} */ (
+		/** @type {ListState} */ (/** @type {Block} */ (block.p).s).u
+	)(prev);
+	set_tracking(false);
 }
 
 /**
@@ -236,7 +270,10 @@ class ListState {
 	 * @param {boolean} is_indexed
 	 * @param {((item: any) => any) | undefined} get_key
 	 * @param {((anchor: Node) => void) | undefined} render_empty
-	 * @param {((item: any) => any) | undefined} [map_item]
+	 * @param {((item: any) => any) | undefined} map_item
+	 * @param {((prev: any) => void) | undefined} update_fn the update function
+	 *   of an item body that carries its render block (see `item`)
+	 * @param {boolean} is_local items are held as they are (`LOCAL_ITEMS`)
 	 */
 	constructor(
 		anchor,
@@ -247,6 +284,8 @@ class ListState {
 		get_key,
 		render_empty,
 		map_item,
+		update_fn,
+		is_local,
 	) {
 		this.a = anchor;
 		this.g = get_collection;
@@ -256,6 +295,8 @@ class ListState {
 		this.k = get_key;
 		this.e = render_empty;
 		this.m = map_item;
+		this.u = update_fn;
+		this.l = is_local;
 	}
 }
 
@@ -287,7 +328,18 @@ function run_for_keyed(state) {
 	var array = collection_to_array(state.g());
 
 	set_tracking(false);
-	reconcile_by_key(state.a, block, array, state.r, state.c, state.x, state.k, state.e, state.m);
+	reconcile_by_key(
+		state.a,
+		block,
+		array,
+		state.r,
+		state.c,
+		state.x,
+		state.k,
+		state.e,
+		state.m,
+		state.l,
+	);
 	set_tracking(true);
 
 	if (hydrating) {
@@ -302,9 +354,11 @@ function run_for_keyed(state) {
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
  * @param {(anchor: Node) => void} [render_empty]
+ * @param {(prev: any) => void} [update_fn] for an item body that carries its
+ *   render block: its update function (see `item`)
  * @returns {void}
  */
-export function for_block(node, get_collection, render_fn, flags, render_empty) {
+export function for_block(node, get_collection, render_fn, flags, render_empty, update_fn) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
@@ -340,6 +394,9 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 			is_indexed,
 			undefined,
 			render_empty,
+			undefined,
+			update_fn,
+			false,
 		),
 		FOR_BLOCK,
 	);
@@ -365,6 +422,8 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
  * @param {(item: V) => any} [map_item] for a destructuring pattern with a rest
  *   element or a default: destructures the item once, natively, into an object
  *   of the pattern's names, which is what the item's tracked then holds
+ * @param {(prev: any) => void} [update_fn] for an item body that carries its
+ *   render block: its update function (see `item`)
  * @returns {void}
  */
 export function for_block_keyed(
@@ -375,6 +434,7 @@ export function for_block_keyed(
 	get_key,
 	render_empty,
 	map_item,
+	update_fn,
 ) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
@@ -412,6 +472,8 @@ export function for_block_keyed(
 			get_key,
 			render_empty,
 			map_item,
+			update_fn,
+			(flags & LOCAL_ITEMS) !== 0,
 		),
 		FOR_BLOCK,
 	);
@@ -459,13 +521,23 @@ function update_index(block, index) {
  * @param {Block} block
  * @param {any} value
  * @param {((item: any) => any) | undefined} map_item
+ * @param {boolean} is_local
  * @returns {void}
  */
-function update_value(block, value, map_item) {
+function update_value(block, value, map_item, is_local) {
 	var state = block.s;
 	if (state.r !== value) {
 		state.r = value;
-		set(state.v, map_item === undefined ? value : map_item(value));
+		var next = map_item === undefined ? value : map_item(value);
+		if (is_local) {
+			// Held as it is, read by the item block's update function alone
+			// (`LOCAL_ITEMS`) off its state's `$item` slot: the block re-runs here.
+			state.v = next;
+			state.p.$item = next;
+			run_block(block);
+		} else {
+			set(state.v, next);
+		}
 	}
 }
 
@@ -481,6 +553,7 @@ function update_value(block, value, map_item) {
  * @param {((item: V) => K) | undefined} get_key identity keys when omitted
  * @param {((anchor: Node) => void) | undefined} render_empty
  * @param {((item: V) => any) | undefined} map_item
+ * @param {boolean} is_local items are held as they are (`LOCAL_ITEMS`)
  * @returns {void}
  *
  * The first run only creates items, so it lives in this small function and
@@ -496,6 +569,7 @@ function reconcile_by_key(
 	get_key,
 	render_empty,
 	map_item,
+	is_local,
 ) {
 	var b_length = b.length;
 	var state = /** @type {ListState} */ (block.s);
@@ -512,7 +586,7 @@ function reconcile_by_key(
 			if (get_key !== undefined) {
 				b_keys[j] = get_key(value);
 			}
-			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, true, map_item);
+			b_blocks[j] = create_item(anchor, value, j, render_fn, is_indexed, !is_local, map_item);
 		}
 
 		state.array = b;
@@ -531,6 +605,7 @@ function reconcile_by_key(
 		get_key,
 		render_empty,
 		map_item,
+		is_local,
 	);
 }
 
@@ -547,6 +622,7 @@ function reconcile_by_key(
  * @param {((item: V) => K) | undefined} get_key
  * @param {((anchor: Node) => void) | undefined} render_empty
  * @param {((item: V) => any) | undefined} map_item
+ * @param {boolean} is_local items are held as they are (`LOCAL_ITEMS`)
  * @returns {void}
  */
 function reconcile_by_key_diff(
@@ -559,7 +635,9 @@ function reconcile_by_key_diff(
 	get_key,
 	render_empty,
 	map_item,
+	is_local,
 ) {
+	var is_keyed = !is_local;
 	var state = /** @type {ListState} */ (block.s);
 
 	// Variables used in conditional branches - declare with initial values
@@ -627,7 +705,7 @@ function reconcile_by_key_diff(
 	// Fast-path for create
 	if (a_length === 0) {
 		for (; j < b_length; j++) {
-			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, true, map_item);
+			b_blocks[j] = create_item(anchor, b[j], j, render_fn, is_indexed, is_keyed, map_item);
 		}
 		state.array = b;
 		state.blocks = b_blocks;
@@ -675,7 +753,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_start);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val, map_item);
+				update_value(b_block, b_val, map_item, is_local);
 			}
 			a_start++;
 			b_start++;
@@ -688,7 +766,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_end);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val, map_item);
+				update_value(b_block, b_val, map_item, is_local);
 			}
 			a_end--;
 			b_end--;
@@ -710,7 +788,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_start);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val, map_item);
+				update_value(b_block, b_val, map_item, is_local);
 			}
 			move(b_block, /** @type {ChildNode} */ (a_blocks[a_start].s.start));
 			a_end--;
@@ -725,7 +803,7 @@ function reconcile_by_key_diff(
 				update_index(b_block, b_end);
 			}
 			if (get_key !== undefined) {
-				update_value(b_block, b_val, map_item);
+				update_value(b_block, b_val, map_item, is_local);
 			}
 			move(b_block, block_start(b_blocks, b_end + 1, b_length, anchor));
 			a_start++;
@@ -747,7 +825,7 @@ function reconcile_by_key_diff(
 					b_start,
 					render_fn,
 					is_indexed,
-					true,
+					is_keyed,
 					map_item,
 				);
 				b_start++;
@@ -796,7 +874,7 @@ function reconcile_by_key_diff(
 								update_index(b_block, j);
 							}
 							if (get_key !== undefined) {
-								update_value(b_block, b_val, map_item);
+								update_value(b_block, b_val, map_item, is_local);
 							}
 							++patched;
 							break;
@@ -839,7 +917,7 @@ function reconcile_by_key_diff(
 							update_index(b_block, j);
 						}
 						if (get_key !== undefined) {
-							update_value(b_block, b_val, map_item);
+							update_value(b_block, b_val, map_item, is_local);
 						}
 						++patched;
 					} else if (!fast_path_removal) {
@@ -864,6 +942,7 @@ function reconcile_by_key_diff(
 			get_key,
 			render_empty,
 			map_item,
+			is_local,
 		);
 		return;
 	} else if (moved) {
@@ -872,26 +951,23 @@ function reconcile_by_key_diff(
 		j = seq.length - 1;
 
 		// When most surviving items have to move anyway, re-lay the whole range
-		// in order before a fixed target: inserting before the same node is
-		// noticeably cheaper per item than moving into arbitrary positions.
+		// in order (see `relay`).
 		if ((patched - seq.length) * 3 > b_left * 2) {
-			var relay_target = block_start(b_blocks, b_end + 1, b_length, anchor);
-			for (i = 0; i < b_left; i++) {
-				pos = i + b_start;
-				if (sources[i] === 0) {
-					b_blocks[pos] = create_item(
-						relay_target,
-						b[pos],
-						pos,
-						render_fn,
-						is_indexed,
-						true,
-						map_item,
-					);
-				} else {
-					move(b_blocks[pos], relay_target);
-				}
-			}
+			relay(
+				anchor,
+				a_blocks,
+				a_start,
+				a_end,
+				b,
+				b_blocks,
+				b_start,
+				b_end,
+				sources,
+				render_fn,
+				is_indexed,
+				is_keyed,
+				map_item,
+			);
 			state.array = b;
 			state.blocks = b_blocks;
 			state.keys = b_keys;
@@ -905,7 +981,7 @@ function reconcile_by_key_diff(
 				next_pos = pos + 1;
 
 				var target = block_start(b_blocks, next_pos, b_length, anchor);
-				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true, map_item);
+				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, is_keyed, map_item);
 			} else if (j < 0 || i !== seq[j]) {
 				pos = i + b_start;
 				next_pos = pos + 1;
@@ -924,7 +1000,7 @@ function reconcile_by_key_diff(
 				next_pos = pos + 1;
 
 				var target = block_start(b_blocks, next_pos, b_length, anchor);
-				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true, map_item);
+				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, is_keyed, map_item);
 			}
 		}
 	}
@@ -932,6 +1008,81 @@ function reconcile_by_key_diff(
 	state.array = b;
 	state.blocks = b_blocks;
 	state.keys = b_keys;
+}
+
+/**
+ * Re-lays the unmatched range `b_start..b_end` in its new order, walking it
+ * front to back: `cursor` is the first node of the range that is not in place
+ * yet, so a block already there costs a compare and a sibling read, and every
+ * other block (or a new item) is inserted before `cursor`. Inserting each item
+ * toward the front is what the reverse fast path does too; appending every
+ * item at the end of the range instead cost about twice as much in Blink's
+ * reorder floor (500 rows: 0.55 ms against 0.29), and several times more
+ * right after a layout flush, so this holds even when most items move.
+ * @template V
+ * @param {ListAnchor} anchor
+ * @param {Block[]} a_blocks the old blocks; destroyed ones are skipped
+ * @param {number} a_start
+ * @param {number} a_end
+ * @param {V[]} b
+ * @param {Block[]} b_blocks matched blocks at their new index, holes for new items
+ * @param {number} b_start
+ * @param {number} b_end
+ * @param {Int32Array} sources zero at the index of a new item
+ * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
+ * @param {boolean} is_indexed
+ * @param {boolean} is_keyed
+ * @param {((item: V) => any) | undefined} map_item
+ */
+function relay(
+	anchor,
+	a_blocks,
+	a_start,
+	a_end,
+	b,
+	b_blocks,
+	b_start,
+	b_end,
+	sources,
+	render_fn,
+	is_indexed,
+	is_keyed,
+	map_item,
+) {
+	var b_length = b.length;
+	var end_target = block_start(b_blocks, b_end + 1, b_length, anchor);
+	/** @type {ChildNode | AppendIntoAnchor | null} */
+	var cursor = null;
+
+	// The range starts at the first surviving old block.
+	for (var i = a_start; i <= a_end && cursor === null; i++) {
+		var old_block = a_blocks[i];
+		if ((old_block.f & DESTROYED) === 0) {
+			cursor = /** @type {ChildNode | null} */ (get_first_node(old_block));
+		}
+	}
+	if (cursor === null) {
+		cursor = end_target;
+	}
+
+	for (var pos = b_start; pos <= b_end; pos++) {
+		if (sources[pos - b_start] === 0) {
+			b_blocks[pos] = create_item(cursor, b[pos], pos, render_fn, is_indexed, is_keyed, map_item);
+			continue;
+		}
+		var block = b_blocks[pos];
+		var first = get_first_node(block);
+		if (first === null) {
+			// Renders nothing: it has no place to take.
+			continue;
+		}
+		if (first !== cursor) {
+			move(block, cursor);
+			continue;
+		}
+		var after = next_sibling(/** @type {Node} */ (get_last_node(block)));
+		cursor = after === null ? end_target : /** @type {ChildNode} */ (after);
+	}
 }
 
 /**
@@ -1211,18 +1362,23 @@ function reconcile_by_ref_diff(anchor, block, b, b_blocks, render_fn, is_control
 		j = seq.length - 1;
 
 		// When most surviving items have to move anyway, re-lay the whole range
-		// in order before a fixed target: inserting before the same node is
-		// noticeably cheaper per item than moving into arbitrary positions.
+		// in order (see `relay`).
 		if ((patched - seq.length) * 3 > b_left * 2) {
-			var relay_target = block_start(b_blocks, b_end + 1, b_length, anchor);
-			for (i = 0; i < b_left; i++) {
-				pos = i + b_start;
-				if (sources[i] === 0) {
-					b_blocks[pos] = create_item(relay_target, b[pos], pos, render_fn, is_indexed, false);
-				} else {
-					move(b_blocks[pos], relay_target);
-				}
-			}
+			relay(
+				anchor,
+				a_blocks,
+				a_start,
+				a_end,
+				b,
+				b_blocks,
+				b_start,
+				b_end,
+				sources,
+				render_fn,
+				is_indexed,
+				false,
+				undefined,
+			);
 			state.array = b;
 			state.blocks = b_blocks;
 			return;

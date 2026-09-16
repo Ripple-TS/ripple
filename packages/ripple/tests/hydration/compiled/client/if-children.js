@@ -20,7 +20,7 @@ function if_1({ expanded, children }) {
 	if (expanded.value) return consequent;
 }
 
-var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
+var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div></div>`, 0);
 
 function IfWithChildren_render(__anchor, __block, { children }) {
 	const expanded = _$_.track(true, __block, 'c64714b1');
@@ -31,7 +31,7 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 
 		div_1.__click = () => expanded.value = !expanded.value;
 
-		var node = _$_.hydrating ? _$_.hydrate_sibling() : div_1.nextSibling;
+		var node = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div);
 
 		_$_.if(node, if_1, false, { expanded, children });
 		_$_.hydrating && _$_.pop(div);
@@ -88,7 +88,7 @@ function if_2(expanded) {
 	if (expanded.value) return consequent_1;
 }
 
-var root_4 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
+var root_4 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div></div>`, 0);
 
 function IfWithStaticChildren_render(__anchor, __block) {
 	const expanded = _$_.track(true, __block, '3bba8f77');
@@ -99,7 +99,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 		div_5.__click = () => expanded.value = !expanded.value;
 
-		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : div_5.nextSibling;
+		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_4);
 
 		_$_.if(node_3, if_2, false, expanded);
 		_$_.hydrating && _$_.pop(div_4);
@@ -129,7 +129,7 @@ function if_3({ expanded, children }) {
 	if (expanded.value) return consequent_2;
 }
 
-var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
+var root_6 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div></section>`, 0);
 
 function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
 	const expanded = _$_.track(true, __block, 'a1b8fb4c');
@@ -141,7 +141,7 @@ function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
 		div_7.__click = () => expanded.value = !expanded.value;
 		_$_.hydrating && _$_.pop(div_7);
 
-		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_7.nextSibling;
+		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section);
 
 		_$_.if(node_4, if_3, false, { expanded, children });
 		_$_.hydrating && _$_.pop(section);
@@ -184,7 +184,7 @@ function if_4(show) {
 	if (show.value) return consequent_3;
 }
 
-var root_10 = _$_.template(`<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!></div><button class="toggle">Toggle</button>`, 1, 2);
+var root_10 = _$_.template(`<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div></div><button class="toggle">Toggle</button>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ElementWithChildrenThenIf_render(__anchor, __block) {
@@ -194,17 +194,17 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 
 	_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_3 = root_10();
-		var div_10 = _$_.first_child_frag(fragment_3);
+		var div_9 = _$_.first_child_frag(fragment_3);
 
 		{
-			var div_9 = _$_.hydrating ? _$_.hydrate_child() : div_10.firstChild;
-			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
+			var div_10 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
+			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_9);
 
 			_$_.if(node_7, if_4, false, show);
-			_$_.hydrating && _$_.pop(div_10);
+			_$_.hydrating && _$_.pop(div_9);
 		}
 
-		var button = _$_.hydrating ? _$_.hydrate_sibling() : div_10.nextSibling;
+		var button = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 		button.__click = () => show.value = !show.value;
 		_$_.append(__anchor, fragment_3);
@@ -227,7 +227,7 @@ function if_5(visible) {
 	if (visible.value) return consequent_4;
 }
 
-var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!></section><button class="btn">Toggle</button>`, 1, 2);
+var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article></section><button class="btn">Toggle</button>`, 1, 2);
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function DeepNestingThenIf_render(__anchor, __block) {
@@ -241,7 +241,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 
 		{
 			var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
-			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
+			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
 
 			_$_.if(node_9, if_5, false, visible);
 			_$_.hydrating && _$_.pop(section_1);
@@ -341,7 +341,8 @@ function render_1(__prev) {
 	var __a = 'Item count: ' + String(__prev._count.value ?? '');
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._li, __prev.a = __a);
+		_$_.set_text_content(__prev._li, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -418,10 +419,11 @@ RootIfChild[_$_.$r] = RootIfChild_render;
 var root_23 = _$_.template(`<span class="root-for"></span>`, 0);
 
 function render_2(__prev) {
-	var __a = _$_.get(__prev._pattern);
+	var __a = __prev.$item;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span_2, __prev.a = __a);
+		_$_.set_text_content(__prev._span_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 
@@ -432,10 +434,14 @@ function RootForChild_render(__anchor, __block, props) {
 		(__anchor, pattern) => {
 			var span_2 = root_23();
 
-			_$_.render(render_2, { a: '', _pattern: pattern, _span_2: span_2 });
+			_$_.item({ a: '', $item: pattern, _span_2: span_2 });
 			_$_.append(__anchor, span_2);
 		},
-		16
+		144,
+		void 0,
+		void 0,
+		void 0,
+		render_2
 	);
 }
 

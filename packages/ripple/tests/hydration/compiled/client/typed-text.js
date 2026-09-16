@@ -13,7 +13,8 @@ function render(__prev) {
 	var __b = (0, __prev._row.value.count);
 
 	if (__prev.b !== __b) {
-		_$_.set_text_content(__prev._p, __prev.b = __b);
+		_$_.set_text_content(__prev._p, __b, __prev.b);
+		__prev.b = __b;
 	}
 }
 

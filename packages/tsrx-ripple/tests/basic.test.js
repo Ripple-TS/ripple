@@ -334,9 +334,9 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 			'App.tsrx',
 		);
 
-		// The render lowering reads the tracked item once per run (`__pattern`);
-		// each name is then a plain member chain on it.
-		expect(code).toContain('var __pattern = _$_.get(__prev._pattern);');
+		// The render lowering reads the item once per run (`__pattern`; a local
+		// item, off its slot); each name is then a plain member chain on it.
+		expect(code).toContain('var __pattern = __prev.$item;');
 		expect(code).toContain('__pattern.nested.label');
 		expect(code).toContain('__pattern.tags[0]');
 		expect(code).toContain('(pattern) => pattern.id');
@@ -1038,7 +1038,10 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		);
 		expect(code).toContain('_$_.for_keyed(');
 		expect(code).not.toContain('(pattern) => _$_.get(pattern)');
-		expect(code).toMatch(/_\$_\.for_keyed\([\s\S]*?\n\s*\d+\n\s*\);/);
+		// flags, then an empty key slot ahead of the item body's update function
+		expect(code).toMatch(
+			/_\$_\.for_keyed\([\s\S]*?\n\s*\d+,\n\s*void 0,\n\s*void 0,\n\s*void 0,\n\s*render\n\s*\);/,
+		);
 	});
 
 	it('@for keyed by the item itself keeps the @empty branch in its slot', () => {

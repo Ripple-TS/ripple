@@ -7,7 +7,8 @@ function render(__prev) {
 	var __a = __prev._data.value + ':' + __prev._count.value;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._span, __prev.a = __a);
+		_$_.set_text_content(__prev._span, __a, __prev.a);
+		__prev.a = __a;
 	}
 }
 

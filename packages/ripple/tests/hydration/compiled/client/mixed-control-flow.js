@@ -8,7 +8,8 @@ function render(__prev) {
 	var __a = `A-${__pattern.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div, __prev.a = __a);
+		_$_.set_text_content(__prev._div, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `row row-${__pattern.id} kind-a`;
@@ -35,7 +36,8 @@ function render_2(__prev) {
 	var __a = `B-${__pattern_1.id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._div_2, __prev.a = __a);
+		_$_.set_text_content(__prev._div_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `row row-${__pattern_1.id} kind-b`;
@@ -156,7 +158,8 @@ function render_4(__prev) {
 	var __a = `A:${__pattern_1_1.label}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._p, __prev.a = __a);
+		_$_.set_text_content(__prev._p, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_1_1.id}`;
@@ -174,7 +177,8 @@ function render_5(__prev) {
 	var __a = `B:${__pattern_1_2.label}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._p_2, __prev.a = __a);
+		_$_.set_text_content(__prev._p_2, __a, __prev.a);
+		__prev.a = __a;
 	}
 
 	var __b = `item item-${__pattern_1_2.id}`;
