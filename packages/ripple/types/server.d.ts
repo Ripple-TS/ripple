@@ -94,3 +94,20 @@ export declare function render(
 	component: Component,
 	options: StreamingRenderOptions,
 ): Promise<RenderStreamResult>;
+
+export interface PrerenderResult {
+	head: string;
+	body: string;
+	/** the scoped CSS text — emit it in a `<style data-ripple-ssr>` tag */
+	css: string;
+	topLevelError: Error | null;
+}
+
+/**
+ * Renders a component to static HTML: buffered, every boundary settled, the
+ * scoped CSS as text. The static-generation counterpart of `render()`.
+ */
+export declare function prerender(
+	component: Component,
+	options?: { rootBoundary?: RootBoundaryOptions },
+): Promise<PrerenderResult>;

@@ -175,14 +175,18 @@ export function serveStatic(dir, options = {}) {
 			return await next();
 		}
 
-		const bun_file = globalThis.Bun.file(file_path);
+		let bun_file = globalThis.Bun.file(file_path);
 		if (!(await bun_file.exists())) {
 			return await next();
 		}
 
-		// Bun.file().size is 0 for directories; skip them
+		// Bun.file().size is 0 for directories: a prerendered page lives at
+		// `<path>/index.html`, written at build time.
 		if (bun_file.size === 0) {
-			return await next();
+			bun_file = globalThis.Bun.file(resolve(file_path, 'index.html'));
+			if (!(await bun_file.exists()) || bun_file.size === 0) {
+				return await next();
+			}
 		}
 
 		const headers = new Headers();

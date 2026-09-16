@@ -39,6 +39,7 @@ export class RenderRoute {
 	entry: RenderRouteEntry;
 	layout?: string;
 	before: Middleware[];
+	prerender: boolean;
 	constructor(options: RenderRouteOptions);
 }
 
@@ -67,6 +68,15 @@ export interface RenderRouteOptions {
 	layout?: string;
 	/** Middleware to run before rendering */
 	before?: Middleware[];
+	/**
+	 * Render the page to static HTML at build time and serve that file. The
+	 * path must be static (no `:param` or `*` segments); the build renders it
+	 * buffered with every boundary settled and writes `<outDir>/client<path>/index.html`,
+	 * which the adapter's static file handler serves before the server renders
+	 * anything. The page still hydrates like a server-rendered one.
+	 * @default false
+	 */
+	prerender?: boolean;
 }
 
 export interface ServerRouteOptions {

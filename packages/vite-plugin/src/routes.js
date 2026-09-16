@@ -74,6 +74,9 @@ export class RenderRoute {
 	/** @type {Middleware[]} */
 	before;
 
+	/** @type {boolean} */
+	prerender;
+
 	/**
 	 * @param {RenderRouteOptions} options
 	 */
@@ -86,6 +89,7 @@ export class RenderRoute {
 		this.entry = options.entry;
 		this.layout = options.layout;
 		this.before = options.before ?? [];
+		this.prerender = options.prerender === true;
 	}
 }
 

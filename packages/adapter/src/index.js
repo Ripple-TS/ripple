@@ -102,6 +102,13 @@ export function get_static_cache_control(
 		return 'public, max-age=31536000, immutable';
 	}
 
+	// A document (a prerendered page, or a directory request served as its
+	// index) changes with every deploy and is not content-addressed, so it is
+	// revalidated on every request rather than held for `max_age`.
+	if (pathname.endsWith('.html') || !pathname.slice(pathname.lastIndexOf('/')).includes('.')) {
+		return 'public, max-age=0, must-revalidate';
+	}
+
 	return `public, max-age=${max_age}`;
 }
 

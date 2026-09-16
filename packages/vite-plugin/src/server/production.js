@@ -126,6 +126,47 @@ export function createHandler(manifest, options) {
 	return handler;
 }
 
+/**
+ * Renders the render routes marked `prerender` to static HTML, buffered with
+ * every boundary settled, as the build-time counterpart of the request
+ * handler: the same template, assets, route data and hydration script, so the
+ * written page hydrates exactly like a server-rendered one.
+ * @param {ServerManifest} manifest
+ * @param {HandlerOptions} options
+ * @param {string} origin the URL origin the pages are rendered under
+ * @returns {Promise<Map<string, string>>} route path → HTML document
+ */
+export async function prerenderRoutes(manifest, options, origin = 'http://localhost') {
+	const { render, getCss, htmlTemplate } = options;
+	/** @type {Map<string, string>} */
+	const pages = new Map();
+	// Buffered: a streamed shell is not a document.
+	const buffered = { ...manifest, streaming: false };
+
+	for (const route of manifest.routes) {
+		if (route.type !== 'render' || !route.prerender) continue;
+		const request = new Request(new URL(route.path, origin));
+		const context = createContext(request, {});
+		const response = await handleRenderRoute(
+			route,
+			context,
+			buffered,
+			manifest.middlewares,
+			render,
+			getCss,
+			htmlTemplate,
+			manifest.clientAssets || {},
+			undefined,
+		);
+		if (response.status !== 200) {
+			throw new Error(`[ripple] Prerendering ${route.path} failed with status ${response.status}`);
+		}
+		pages.set(route.path, await response.text());
+	}
+
+	return pages;
+}
+
 // ============================================================================
 // Render routes
 // ============================================================================

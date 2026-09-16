@@ -37,7 +37,10 @@ function validate_render_route(route) {
 		return;
 	}
 
-	const render_route = /** @type {{ entry?: unknown, layout?: unknown }} */ (route);
+	const render_route =
+		/** @type {{ path?: unknown, entry?: unknown, layout?: unknown, prerender?: unknown }} */ (
+			route
+		);
 	const has_entry =
 		typeof render_route.entry === 'string' ||
 		(Array.isArray(render_route.entry) &&
@@ -52,6 +55,24 @@ function validate_render_route(route) {
 	if (render_route.layout !== undefined && typeof render_route.layout !== 'string') {
 		throw new Error('[@ripple-ts/vite-plugin] RenderRoute `layout` must be a string path.');
 	}
+
+	if (render_route.prerender !== undefined && typeof render_route.prerender !== 'boolean') {
+		throw new Error('[@ripple-ts/vite-plugin] RenderRoute `prerender` must be a boolean.');
+	}
+	if (render_route.prerender === true && !is_static_route_path(render_route.path)) {
+		throw new Error(
+			`[@ripple-ts/vite-plugin] RenderRoute \`${render_route.path}\` cannot be prerendered: only a static path (no \`:param\` or \`*\` segment) can be rendered to a file at build time.`,
+		);
+	}
+}
+
+/**
+ * Whether a route path names exactly one page.
+ * @param {unknown} path
+ * @returns {boolean}
+ */
+export function is_static_route_path(path) {
+	return typeof path === 'string' && !/[:*]/.test(path);
 }
 
 /**

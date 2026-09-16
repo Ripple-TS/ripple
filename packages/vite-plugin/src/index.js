@@ -5,6 +5,7 @@
 /// <reference types="@tsrx/ripple/types/rpc" />
 
 import { compile } from '@tsrx/ripple';
+import { pathToFileURL } from 'node:url';
 import { create_text_types } from './text-types.js';
 import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 import fs from 'node:fs';
@@ -1160,7 +1161,32 @@ export function ripple(inlineOptions = {}) {
 						const serverHtml = path.join(serverOutDir, 'index.html');
 						if (fs.existsSync(clientHtml)) {
 							fs.copyFileSync(clientHtml, serverHtml);
-							console.log('[@ripple-ts/vite-plugin] Copied HTML template to server output');
+							// The template must not be served as a page: a static file
+							// handler that maps `/` to `index.html` would return its
+							// unresolved placeholders instead of rendering.
+							fs.rmSync(clientHtml);
+							console.log('[@ripple-ts/vite-plugin] Moved HTML template to server output');
+						}
+
+						// Static generation: every render route marked `prerender` is
+						// rendered through the built server entry and written where the
+						// adapter's static handler serves it ahead of the server.
+						const prerenderRoutes = renderRoutes.filter(
+							(/** @type {RenderRoute} */ r) => r.prerender === true,
+						);
+						if (prerenderRoutes.length > 0) {
+							const entryUrl = pathToFileURL(path.join(serverOutDir, ENTRY_FILENAME)).href;
+							/** @type {{ prerender: (origin?: string) => Promise<Map<string, string>> }} */
+							const serverEntry = await import(/* @vite-ignore */ `${entryUrl}?t=${Date.now()}`);
+							const pages = await serverEntry.prerender();
+							for (const [routePath, html] of pages) {
+								const file = path.join(clientOutDir, routePath, 'index.html');
+								fs.mkdirSync(path.dirname(file), { recursive: true });
+								fs.writeFileSync(file, html);
+							}
+							console.log(
+								`[@ripple-ts/vite-plugin] Prerendered ${pages.size} page${pages.size === 1 ? '' : 's'}`,
+							);
 						}
 
 						console.log('[@ripple-ts/vite-plugin] Server build complete.');

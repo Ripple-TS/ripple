@@ -8,6 +8,22 @@ export default {
 };
 ```
 
+## Static generation
+
+Mark a render route with `prerender: true` to render it at build time:
+
+```ts
+new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true });
+```
+
+After the server build the plugin renders each marked route through the built
+server entry, buffered with every boundary settled, and writes
+`<outDir>/client<path>/index.html`. The node and bun adapters serve that file for
+the route before the server renders anything, and the page hydrates like a
+server-rendered one. Only a static path can be prerendered; a `:param` or `*`
+segment is a config error. `prerender()` from `ripple/server` does the same for a
+component outside the plugin.
+
 ## Client-only builds
 
 An app that never hydrates server-rendered HTML can say so:

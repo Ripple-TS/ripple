@@ -745,6 +745,55 @@ export default {
 `index.html` must keep the `<!--ssr-head-->` and `<!--ssr-body-->` markers;
 the plugin falls back to buffered SSR with a warning when they are missing.
 
+### Static Generation
+
+`prerender(component, options?)` is the static-generation counterpart of
+`render`: buffered, every `@try` boundary and `trackAsync` settled before it
+resolves, and the scoped CSS returned as text.
+
+```ts
+import { prerender } from 'ripple/server';
+
+const { head, body, css } = await prerender(App);
+const html = template
+	.replace('<!--ssr-head-->', `${head}<style data-ripple-ssr>${css}</style>`)
+	.replace('<!--ssr-body-->', body);
+```
+
+Apps built on `@ripple-ts/vite-plugin` mark render routes instead. The build
+renders each marked route through the production server entry and writes
+`<outDir>/client<path>/index.html`, which the adapter's static file handler
+serves before the server renders anything; the page still hydrates. Only a
+static path (no `:param` or `*` segment) can be prerendered.
+
+```ts
+import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';
+
+export default defineConfig({
+	router: {
+		routes: [
+			new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true }),
+			new RenderRoute({ path: '/dashboard', entry: './src/Dashboard.tsrx' }),
+		],
+	},
+});
+```
+
+### Client-Only Builds
+
+An app that never hydrates server-rendered HTML tells the Vite plugin so:
+
+```ts
+export default defineConfig({
+	plugins: [ripple({ ssr: false })],
+});
+```
+
+Components then compile to bare DOM reads instead of the hydration cursor,
+`track()` calls carry no serialization hashes, and the runtime's hydration
+paths stay out of the bundle. `hydrate()` throws in such a build, and the
+option is rejected when `ripple.config.ts` declares render routes.
+
 ### Custom Serialization
 
 Set `transport` in `ripple.config.ts` to serialize custom types in `trackAsync`

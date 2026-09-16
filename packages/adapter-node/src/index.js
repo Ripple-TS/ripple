@@ -342,7 +342,7 @@ function create_static_handler(dir, options = {}) {
 			pathname = '/' + pathname;
 		}
 
-		const file_path = resolve_static_file_path(base_dir, pathname);
+		let file_path = resolve_static_file_path(base_dir, pathname);
 		if (file_path === null || !existsSync(file_path)) {
 			return null;
 		}
@@ -355,7 +355,19 @@ function create_static_handler(dir, options = {}) {
 		}
 
 		if (file_stats.isDirectory()) {
-			return null;
+			// A prerendered page: `<path>/index.html` written at build time.
+			file_path = resolve(file_path, 'index.html');
+			if (!existsSync(file_path)) {
+				return null;
+			}
+			try {
+				file_stats = statSync(file_path);
+			} catch {
+				return null;
+			}
+			if (file_stats.isDirectory()) {
+				return null;
+			}
 		}
 
 		const headers = new Headers();

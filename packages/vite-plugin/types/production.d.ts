@@ -7,6 +7,16 @@ import type {
 	RootBoundaryOptions,
 } from '@ripple-ts/vite-plugin';
 
+/**
+ * Renders every render route marked `prerender` to a full HTML document,
+ * keyed by route path. Buffered, every boundary settled.
+ */
+export function prerenderRoutes(
+	manifest: ServerManifest,
+	options: HandlerOptions,
+	origin?: string,
+): Promise<Map<string, string>>;
+
 export function resolveRippleConfig(
 	raw: RippleConfigOptions,
 	options?: { requireAdapter?: boolean },

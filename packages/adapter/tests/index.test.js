@@ -90,5 +90,11 @@ describe('@ripple-ts/adapter', () => {
 			'public, max-age=31536000, immutable',
 		);
 		expect(get_static_cache_control('/assets/app.js', 60, false)).toBe('public, max-age=60');
+		expect(get_static_cache_control('/docs/intro/index.html', 60, false)).toBe(
+			'public, max-age=0, must-revalidate',
+		);
+		expect(get_static_cache_control('/docs/intro', 60, false)).toBe(
+			'public, max-age=0, must-revalidate',
+		);
 	});
 });

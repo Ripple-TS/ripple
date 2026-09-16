@@ -146,7 +146,7 @@ export function generateServerEntry(options) {
 // Do not edit — regenerated on each build
 
 import { render, getCss, createStream, executeServerFunction${options.transport ? ', setTransport' : ''} } from 'ripple/server';
-import { createHandler, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
+import { createHandler, prerenderRoutes, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
@@ -193,8 +193,7 @@ const htmlTemplate = readFileSync(join(__dirname, ${JSON.stringify(htmlTemplateP
 
 const clientAssets = ${JSON.stringify(clientAssetMap, null, 2)};
 
-const handler = createHandler(
-  {
+const manifest = {
     routes: rippleConfig.router.routes,
     components,
     layouts,
@@ -205,15 +204,18 @@ const handler = createHandler(
     streaming: rippleConfig.ssr.streaming,
     runtime: rippleConfig.adapter.runtime,
     clientAssets,
-  },
-  {
+};
+const handlerOptions = {
     render,
     getCss,
     htmlTemplate,
     executeServerFunction,
     createSsrStream: createStream,
-  },
-);
+};
+const handler = createHandler(manifest, handlerOptions);
+
+// Build-time static generation of the render routes marked for prerendering.
+export const prerender = (origin) => prerenderRoutes(manifest, handlerOptions, origin);
 
 export { handler };
 
