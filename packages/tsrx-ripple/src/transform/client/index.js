@@ -6606,6 +6606,10 @@ function transform_children(children, context) {
 		// (`alias_prev`) instead of stepping to a sibling. Hydration keeps the
 		// sibling cursor: the placeholder never existed in the server output.
 		let anchor_ahead = false;
+		// The rendered node after the current one: setup statements between
+		// children render nothing and are skipped.
+		/** @type {AST.Node | null} */
+		let following = null;
 		for (let i = normalized.length - 1; i >= 0; i--) {
 			const child = normalized[i];
 			if (!is_template_or_control_flow(child)) {
@@ -6615,6 +6619,7 @@ function transform_children(children, context) {
 				anchor_ahead = true;
 			} else if (
 				anchor_ahead &&
+				following !== null &&
 				child.metadata?.append_into === undefined &&
 				child.metadata?.append_after === undefined &&
 				(is_static_component_child(child) ||
@@ -6622,10 +6627,11 @@ function transform_children(children, context) {
 					is_template_for_child(child))
 			) {
 				child.metadata = { ...child.metadata, append_before: true };
-				normalized[i + 1].metadata = { ...normalized[i + 1].metadata, alias_prev: true };
+				following.metadata = { ...following.metadata, alias_prev: true };
 			} else {
 				anchor_ahead = false;
 			}
+			following = child;
 		}
 	}
 

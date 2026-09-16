@@ -1503,3 +1503,33 @@ export function ForThenStaticInDiv() {
 		});
 	});
 }
+
+export function CompThenStatementThenStaticInDiv() {
+	return _$_.tsrx_element(() => {
+		const n = _$_.track(0, '9bd400c7');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<div class="outer">';
+
+			{
+				const comp = Leaf;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			{
+				const label = 'after';
+
+				console.assert(label === 'after');
+			}
+
+			__out += '<span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
+			_$_.output_push(__out);
+		});
+	});
+}

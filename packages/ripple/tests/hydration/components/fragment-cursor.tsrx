@@ -695,3 +695,16 @@ export function ForThenStaticInDiv() @{
 		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
 	</div>
 }
+
+export function CompThenStatementThenStaticInDiv() @{
+	const n = track(0);
+	<div class="outer">
+		<Leaf />
+		@{
+			const label = 'after';
+			console.assert(label === 'after');
+		}
+		<span class="after">{n.value}</span>
+		<button class="outer-inc" onClick={() => n.value++}>{'outer'}</button>
+	</div>
+}

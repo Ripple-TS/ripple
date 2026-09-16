@@ -1077,6 +1077,28 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		expect(code).toMatch(/var em = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node_1;/);
 	});
 
+	it('aliases the next rendered sibling across a setup block between children', () => {
+		const { code } = compile(
+			`function Item() @{ <b>item</b> }
+			function App({ label }) @{
+				<div>
+					<Item />
+					@{ const upper = label.toUpperCase(); console.log(upper); }
+					<span>{label}</span>
+				</div>
+			}`,
+			'App.tsrx',
+			{ mode: 'client' },
+		);
+		expect(code).toContain('_$_.template(`<div><span> </span></div>`');
+		expect(code).toMatch(
+			/var node = _\$_\.hydrating \? _\$_\.hydrate_child\(\) : div\.firstChild;/,
+		);
+		expect(code).toContain('_$_.render_component(Item, node, {});');
+		expect(code).toMatch(/var span = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : node;/);
+		expect(code).not.toContain('node.nextSibling');
+	});
+
 	it('lowers RippleArray statics to standalone runtime functions', () => {
 		const source = `import { RippleArray } from 'ripple';
 			function App() @{

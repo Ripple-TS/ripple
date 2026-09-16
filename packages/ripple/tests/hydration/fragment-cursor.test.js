@@ -53,6 +53,7 @@ const rootShapes = [
 	'SiblingCompsInDiv',
 	'IfSwapThenStaticInDiv',
 	'ForThenStaticInDiv',
+	'CompThenStatementThenStaticInDiv',
 ];
 
 /**

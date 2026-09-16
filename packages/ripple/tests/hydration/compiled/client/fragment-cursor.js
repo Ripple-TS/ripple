@@ -2305,6 +2305,45 @@ function ForThenStaticInDiv_render(__anchor, __block) {
 
 ForThenStaticInDiv[_$_.$r] = ForThenStaticInDiv_render;
 
+var root_123 = _$_.template(`<div class="outer"><span class="after"></span><button class="outer-inc">outer</button></div>`, 0);
+
+function render_44(__prev) {
+	var __a = __prev._n.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._span_39, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
+	const n = _$_.track(0, __block, '9bd400c7');
+	var div_58 = root_123();
+
+	{
+		var node_84 = _$_.hydrating ? _$_.hydrate_child() : div_58.firstChild;
+
+		_$_.render_component(Leaf, node_84, {});
+
+		{
+			const label = 'after';
+
+			_$_.with_scope(__block, () => console.assert(label === 'after'));
+		}
+
+		var span_39 = _$_.hydrating ? _$_.hydrate_sibling() : node_84;
+		var button_47 = _$_.hydrating ? _$_.hydrate_sibling() : span_39.nextSibling;
+
+		button_47.__click = () => n.value++;
+		_$_.hydrating && _$_.pop(div_58);
+	}
+
+	_$_.render(render_44, { a: '', _n: n, _span_39: span_39 });
+	_$_.append(__anchor, div_58);
+}
+
+CompThenStatementThenStaticInDiv[_$_.$r] = CompThenStatementThenStaticInDiv_render;
+
 import { track } from 'ripple';
 
 function Leaf() {
@@ -2593,6 +2632,10 @@ export function IfSwapThenStaticInDiv() {
 
 export function ForThenStaticInDiv() {
 	return _$_.tsrx_element(ForThenStaticInDiv_render);
+}
+
+export function CompThenStatementThenStaticInDiv() {
+	return _$_.tsrx_element(CompThenStatementThenStaticInDiv_render);
 }
 
 _$_.delegate(['click']);
