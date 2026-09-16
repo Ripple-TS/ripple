@@ -434,6 +434,10 @@ export function event(event_name, dom, handler) {
 export function listen(name, dom, handler, capture) {
 	dom.addEventListener(
 		name,
+		/**
+		 * @this {EventTarget}
+		 * @param {Event} event
+		 */
 		function (event) {
 			var previous_block = active_block;
 			var previous_reaction = active_reaction;

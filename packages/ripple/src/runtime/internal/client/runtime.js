@@ -1,4 +1,4 @@
-/** @import { AppendIntoAnchor, Block, Component, Dependency, BlockWithTryBoundaryAndCatch } from '#client' */
+/** @import { AppendIntoAnchor, Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
 /** @typedef {TrackedValue} Tracked */
 /** @typedef {DerivedValue} Derived */
