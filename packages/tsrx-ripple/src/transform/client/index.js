@@ -1926,12 +1926,16 @@ const visit_if_statement = (node, context) => {
 				: render_branch(alternate, alternate_scope, 'alternate');
 		}
 
+		// The condition is a render expression of its own: inside a `@for`, an
+		// `outer === item` comparison lowers to a selector lookup like one in
+		// an attribute would (see `visit_selector_comparison`).
 		return b.if(
 			/** @type {AST.Expression} */ (
 				context.visit(if_node.test, {
 					...context.state,
 					scope,
 					metadata: { ...context.state.metadata },
+					selector_root: if_node.test,
 				})
 			),
 			consequent_statement,
@@ -2268,13 +2272,17 @@ const visit_for_of_statement = (node, context) => {
 			)
 		: undefined;
 
+	// The runtime passes a keyed item's key behind the index; the body
+	// receives it when a lowered comparison reads it (see `selector_for.key`).
+	const render_params = index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern];
+	if (selector_for.key_id !== null) {
+		if (!index) render_params.push(b.id(body_scope.generate('index')));
+		render_params.push(selector_for.key_id);
+	}
 	const for_args = [
 		id,
 		b.thunk(/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (node.right)))),
-		b.arrow(
-			index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
-			b.block(body),
-		),
+		b.arrow(render_params, b.block(body)),
 		b.literal(flags),
 	];
 	if (key != null) {
@@ -2570,7 +2578,73 @@ function create_selector_for_state(node, body_scope, state) {
 		}
 	}
 
-	return { pattern_bindings, outer_scope: state.scope, selectors: [] };
+	// A key read off the item as authored (`key t.id`, `key t`): the body may
+	// read it as the block's key. Behind a rest or default the key reads the
+	// item before the runtime destructures it, unlike the body.
+	const key =
+		node.key != null && !node.metadata?.tsrx_for_pattern_fields
+			? /** @type {AST.Expression} */ (node.key)
+			: null;
+
+	return {
+		pattern_bindings,
+		outer_scope: state.scope,
+		selectors: [],
+		key,
+		body_scope,
+		key_id: null,
+	};
+}
+
+/**
+ * Whether two pure operands (see `collect_pure_operand_references`) spell the
+ * same read: the same names, members and literals.
+ * @param {AST.Node} a
+ * @param {AST.Node} b
+ * @returns {boolean}
+ */
+function same_operand(a, b) {
+	a = unwrap_operand(a);
+	b = unwrap_operand(b);
+	if (a.type !== b.type) {
+		return false;
+	}
+	switch (a.type) {
+		case 'Identifier':
+			return a.name === /** @type {AST.Identifier} */ (b).name;
+		case 'Literal':
+			return a.value === /** @type {AST.Literal} */ (b).value;
+		case 'MemberExpression': {
+			const other = /** @type {AST.MemberExpression} */ (b);
+			return (
+				a.computed === other.computed &&
+				a.optional === other.optional &&
+				same_operand(a.object, other.object) &&
+				same_operand(a.property, other.property)
+			);
+		}
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {AST.Node}
+ */
+function unwrap_operand(node) {
+	while (
+		node.type === 'ChainExpression' ||
+		node.type === 'ParenthesizedExpression' ||
+		node.type === 'TSNonNullExpression' ||
+		node.type === 'TSInstantiationExpression' ||
+		node.type === 'TSAsExpression' ||
+		node.type === 'TSTypeAssertion' ||
+		node.type === 'TSSatisfiesExpression'
+	) {
+		node = node.expression;
+	}
+	return node;
 }
 
 /**
@@ -2746,24 +2820,48 @@ function visit_selector_comparison(node, context) {
 	const outer_expression = /** @type {AST.Expression} */ (
 		context.visit(outer, { ...state, metadata: outer_metadata })
 	);
-	const item_expression = /** @type {AST.Expression} */ (
-		context.visit(item, { ...state, metadata: item_metadata })
-	);
-
-	// The enclosing render expression tracks whatever either side tracked.
-	if (state.metadata?.tracking === false && (outer_metadata.tracking || item_metadata.tracking)) {
-		state.metadata.tracking = true;
-	}
-
 	if (!outer_metadata.tracking) {
 		// A static outer value needs no selector; keep the plain comparison.
+		const item_expression = /** @type {AST.Expression} */ (
+			context.visit(item, { ...state, metadata: item_metadata })
+		);
+		if (state.metadata?.tracking === false && item_metadata.tracking) {
+			state.metadata.tracking = true;
+		}
 		return outer === left
 			? b.binary(node.operator, outer_expression, item_expression)
 			: b.binary(node.operator, item_expression, outer_expression);
 	}
 
-	const selector_id = b.id(selector_for.outer_scope.generate('selector'));
-	selector_for.selectors.push({ id: selector_id, source: outer_expression });
+	// The item's key is fixed for its block's life, so a comparison against
+	// the key expression reads the key the runtime passed (`__key`) instead
+	// of the item's tracked: the block then depends on the selector alone.
+	const item_references = outer === left ? right_references : left_references;
+	const reads_key =
+		selector_for.key !== null &&
+		same_operand(item, selector_for.key) &&
+		item_references.every((reference) => {
+			const binding = state.scope.get(reference.name);
+			return binding !== null && selector_for.pattern_bindings.has(binding);
+		});
+	const item_expression = reads_key
+		? (selector_for.key_id ??= b.id(selector_for.body_scope.generate('key')))
+		: /** @type {AST.Expression} */ (context.visit(item, { ...state, metadata: item_metadata }));
+
+	// The enclosing render expression tracks what the outer side tracked (and
+	// the item side, when it is read rather than the key).
+	if (state.metadata?.tracking === false) {
+		state.metadata.tracking = true;
+	}
+
+	// One selector per outer read: every comparison against the same outer
+	// value in the loop shares it. Same spelling, same binding, as an outer
+	// read resolves to a binding owned above the loop (see `classify`).
+	let selector_id = selector_for.selectors.find((entry) => same_operand(entry.outer, outer))?.id;
+	if (selector_id === undefined) {
+		selector_id = b.id(selector_for.outer_scope.generate('selector'));
+		selector_for.selectors.push({ id: selector_id, source: outer_expression, outer });
+	}
 
 	const match = b.call('_$_.selector_match', selector_id, item_expression);
 	return node.operator === '===' ? match : b.unary('!', match);
@@ -6468,6 +6566,12 @@ function transform_children(children, context) {
 			for (let i = trailing_start; i < normalized.length; i++) {
 				normalized[i].metadata = { ...normalized[i].metadata, append_after: parent_id };
 			}
+			// The if that closes the run is the parent's tail: nothing the
+			// framework renders follows it, so it never needs an anchor.
+			const last = normalized[normalized.length - 1];
+			if (is_template_if_child(last)) {
+				last.metadata = { ...last.metadata, append_tail: true };
+			}
 		}
 	}
 
@@ -6608,7 +6712,9 @@ function transform_children(children, context) {
 								b.conditional(
 									b.member(b.id('_$_'), b.id('hydrating')),
 									b.call('_$_.hydrate_sibling'),
-									b.call('_$_.append_into', append_after),
+									node.metadata?.append_tail === true
+										? b.call('_$_.append_into', append_after, b.true)
+										: b.call('_$_.append_into', append_after),
 								),
 							),
 						);

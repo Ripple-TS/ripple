@@ -111,9 +111,33 @@ describe('trailing control flow appending into its parent', () => {
 		`);
 
 		// The list is followed by the if, so it keeps its placeholder; the if
-		// is last and appends into the div.
+		// is last and appends into the div, as its tail: it never needs an
+		// anchor of its own.
 		expect(code).toContain('_$_.template(`<div><b>head</b><!></div>`');
+		expect(code).toContain('_$_.append_into(div, true)');
+	});
+
+	it('marks only the @if that closes the trailing run as the tail', () => {
+		const code = compile_client(`${ROWS}
+			function Footer() @{
+				<i>{'footer'}</i>
+			}
+			export default function App() @{
+				const open = track(false);
+				<div>
+					<b>{'head'}</b>
+					@if (open.value) {
+						<i>{'open'}</i>
+					}
+					<Footer />
+				</div>
+			}
+		`);
+
+		// The footer follows the if, so the if materializes an anchor when it
+		// needs a position (no tail flag).
 		expect(code).toContain('_$_.append_into(div)');
+		expect(code).not.toContain('_$_.append_into(div, true)');
 	});
 
 	it('keeps the placeholder of a @for followed by a component', () => {

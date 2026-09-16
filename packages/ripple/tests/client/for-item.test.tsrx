@@ -270,6 +270,45 @@ describe('trailing control flow appends into the parent', () => {
 		expect(div.lastElementChild?.localName).toBe('span');
 	});
 
+	it('leaves no anchor node behind a trailing @if', () => {
+		let set: (value: boolean) => void = () => {};
+
+		function App() @{
+			const open = track(false);
+			set = (value) => {
+				open.value = value;
+			};
+			<div>
+				<b>{'head'}</b>
+				@if (open.value) {
+					<span>{'open'}</span>
+				}
+			</div>
+		}
+
+		render(App);
+		flushSync();
+		const div = container.querySelector('div')!;
+		// The if is the div's tail: nothing follows it, so it needs no anchor,
+		// off or on.
+		expect(div.childNodes.length).toBe(1);
+
+		set(true);
+		flushSync();
+		expect(div.innerHTML).toBe('<b>head</b><span>open</span>');
+		expect(div.childNodes.length).toBe(2);
+
+		set(false);
+		flushSync();
+		expect(div.innerHTML).toBe('<b>head</b>');
+		expect(div.childNodes.length).toBe(1);
+
+		set(true);
+		flushSync();
+		expect(div.innerHTML).toBe('<b>head</b><span>open</span>');
+		expect(div.childNodes.length).toBe(2);
+	});
+
 	it('keeps a trailing @for with @empty in place', () => {
 		let set: (items: string[]) => void = () => {};
 

@@ -266,18 +266,12 @@ export function set_value(element, value) {
  * @returns {void}
  */
 export function set_checked(element, checked) {
-	var attributes = (element.__attributes ??= {});
-
-	if (
-		attributes.checked ===
-		(attributes.checked =
-			// treat null and undefined the same for the initial value
-			checked ?? undefined)
-	) {
-		return;
+	// Compared against the element itself rather than a record of the last
+	// write: no expando per checkbox, and a box the user just toggled to the
+	// value being set needs no write at all.
+	if (element.checked !== (checked = !!checked)) {
+		element.checked = checked;
 	}
-
-	element.checked = checked;
 }
 
 /**

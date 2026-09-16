@@ -103,8 +103,6 @@ export function on(element, type, handler, options = {}) {
 	};
 }
 
-var last_propagated_event = null;
-
 /**
  * @this {EventTarget}
  * @param {Event} event
@@ -114,19 +112,19 @@ export function handle_event_propagation(event) {
 	var handler_element = this;
 	var owner_document = /** @type {Node} */ (handler_element).ownerDocument;
 	var event_name = event.type;
-	var path = event.composedPath?.() || [];
-	var current_target = /** @type {null | Element} */ (path[0] || event.target);
+	/** @type {null | Element} */
+	var current_target;
 
-	last_propagated_event = event;
-
-	// composedPath contains list of nodes the event has propagated through.
-	// We check __root to skip all nodes below it in case this is a
-	// parent of the __root node, which indicates that there's nested
-	// mounted apps. In this case we don't want to trigger events multiple times.
-	var path_idx = 0;
-	var handled_at = last_propagated_event === event && event.__root;
+	// __root marks the root that already handled this event: this listener
+	// then belongs to a parent of a nested mounted app, and the walk resumes
+	// from that root so nothing below it handles the event twice. Only then
+	// is the composed path needed; a plain event starts at its target (the
+	// composed target when it was retargeted out of a shadow tree).
+	var handled_at = event.__root;
 
 	if (handled_at) {
+		var path = event.composedPath?.() || [];
+		var path_idx = 0;
 		var at_idx = path.indexOf(handled_at);
 		if (at_idx !== -1 && (handler_element === document || handler_element === window)) {
 			// This is the fallback document listener or a window listener, but the event was already handled
@@ -151,9 +149,14 @@ export function handle_event_propagation(event) {
 		if (at_idx <= handler_idx) {
 			path_idx = at_idx;
 		}
+		current_target = /** @type {Element} */ (path[path_idx] || event.target);
+	} else {
+		current_target = /** @type {Element} */ (event.target);
+		if (current_target !== null && /** @type {any} */ (current_target).shadowRoot) {
+			current_target = /** @type {Element} */ (event.composedPath?.()[0] || current_target);
+		}
 	}
 
-	current_target = /** @type {Element} */ (path[path_idx] || event.target);
 	// there can only be one delegated event per element, and we either already handled the current target,
 	// or this is the very first target in the chain which has a non-delegated listener, in which case it's safe
 	// to handle a possible delegated event on it later (through the root delegation listener for example).
@@ -181,9 +184,10 @@ export function handle_event_propagation(event) {
 		 */
 		var throw_error;
 		/**
-		 * @type {unknown[]}
+		 * @type {unknown[] | null}
 		 */
-		var other_errors = [];
+		var other_errors = null;
+		var prop = '__' + event_name;
 
 		while (current_target !== null) {
 			/** @type {null | Element} */
@@ -194,7 +198,7 @@ export function handle_event_propagation(event) {
 				null;
 
 			try {
-				var delegated = /** @type {Record<string, any>} */ (current_target)['__' + event_name];
+				var delegated = /** @type {Record<string, any>} */ (current_target)[prop];
 
 				if (delegated !== undefined && !(/** @type {any} */ (current_target).disabled)) {
 					if (is_array(delegated)) {
@@ -207,7 +211,7 @@ export function handle_event_propagation(event) {
 				}
 			} catch (error) {
 				if (throw_error) {
-					other_errors.push(error);
+					(other_errors ??= []).push(error);
 				} else {
 					throw_error = error;
 				}
@@ -219,16 +223,17 @@ export function handle_event_propagation(event) {
 		}
 
 		if (throw_error) {
-			for (let error of other_errors) {
-				// Throw the rest of the errors, one-by-one on a microtask
-				queueMicrotask(() => {
-					throw error;
-				});
+			if (other_errors !== null) {
+				for (let error of other_errors) {
+					// Throw the rest of the errors, one-by-one on a microtask
+					queueMicrotask(() => {
+						throw error;
+					});
+				}
 			}
 			throw throw_error;
 		}
 	} finally {
-		set_active_block(previous_block);
 		event.__root = handler_element;
 		// @ts-ignore remove proxy on currentTarget
 		delete event.currentTarget;

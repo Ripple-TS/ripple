@@ -875,7 +875,9 @@ function SidebarSection_render(__anchor, __block, { title, children }) {
 
 		_$_.hydrating && _$_.pop(div_29);
 
-		var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
+		var node_20 = _$_.hydrating
+			? _$_.hydrate_sibling()
+			: _$_.append_into(section_1, true);
 
 		_$_.if(node_20, if_6, false, { expanded, children });
 		_$_.hydrating && _$_.pop(section_1);

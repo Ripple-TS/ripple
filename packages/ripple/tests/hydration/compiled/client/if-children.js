@@ -31,7 +31,7 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 
 		div_1.__click = () => expanded.value = !expanded.value;
 
-		var node = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div);
+		var node = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div, true);
 
 		_$_.if(node, if_1, false, { expanded, children });
 		_$_.hydrating && _$_.pop(div);
@@ -99,7 +99,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 		div_5.__click = () => expanded.value = !expanded.value;
 
-		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_4);
+		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_4, true);
 
 		_$_.if(node_3, if_2, false, expanded);
 		_$_.hydrating && _$_.pop(div_4);
@@ -141,7 +141,9 @@ function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
 		div_7.__click = () => expanded.value = !expanded.value;
 		_$_.hydrating && _$_.pop(div_7);
 
-		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section);
+		var node_4 = _$_.hydrating
+			? _$_.hydrate_sibling()
+			: _$_.append_into(section, true);
 
 		_$_.if(node_4, if_3, false, { expanded, children });
 		_$_.hydrating && _$_.pop(section);
@@ -198,7 +200,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 
 		{
 			var div_10 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
-			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_9);
+			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_9, true);
 
 			_$_.if(node_7, if_4, false, show);
 			_$_.hydrating && _$_.pop(div_9);
@@ -241,7 +243,10 @@ function DeepNestingThenIf_render(__anchor, __block) {
 
 		{
 			var article = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
-			var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(section_1);
+
+			var node_9 = _$_.hydrating
+				? _$_.hydrate_sibling()
+				: _$_.append_into(section_1, true);
 
 			_$_.if(node_9, if_5, false, visible);
 			_$_.hydrating && _$_.pop(section_1);

@@ -100,7 +100,7 @@ export function mount(component, options) {
 	// The app appends into the emptied target; a root that keeps inserting
 	// relative to its anchor materializes one (see `resolve_anchor`).
 	/** @type {AppendIntoAnchor} */
-	const anchor = { parent: target, into: true };
+	const anchor = { parent: target, into: true, tail: false };
 
 	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
 	let events_ref = handle_root_events(target);

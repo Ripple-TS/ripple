@@ -33,7 +33,11 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain('const selector = _$_.selector(() => selected.value);');
-		expect(code).toContain("_$_.selector_match(__prev._selector, __pattern.id) ? 'danger' : ''");
+		// The comparison reads the item's key, fixed for the block's life,
+		// through the render function's key parameter: the render block then
+		// depends on the selector alone.
+		expect(code).toContain('(__anchor, pattern, index, key) => {');
+		expect(code).toContain("_$_.selector_match(__prev._selector, __prev._key) ? 'danger' : ''");
 		expect(code.indexOf('_$_.selector(')).toBeLessThan(code.indexOf('_$_.for_keyed('));
 	});
 
@@ -49,7 +53,7 @@ describe('@for selector lowering', () => {
 		`);
 
 		expect(code).toContain(
-			"!_$_.selector_match(__prev._selector, __pattern.id) ? 'plain' : 'danger'",
+			"!_$_.selector_match(__prev._selector, __prev._key) ? 'plain' : 'danger'",
 		);
 	});
 
@@ -66,6 +70,77 @@ describe('@for selector lowering', () => {
 
 		expect(code).toContain('_$_.selector(() => selected.value)');
 		expect(code).toContain('_$_.selector_match(__prev._selector, __prev._row.id)');
+	});
+
+	it('lowers an @if condition in the loop body, reading the item key as the block key', () => {
+		const code = compile_client(`${ROWS}
+			export default function App() @{
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
+					<tr>
+						<td>{row.id}</td>
+						@if (selected.value === row.id) {
+							<td>{'selected'}</td>
+						}
+					</tr>
+				}
+			}
+		`);
+
+		expect(code).toContain('const selector = _$_.selector(() => selected.value);');
+		expect(code).toContain('(__anchor, pattern, index, key) => {');
+		// The hoisted condition captures the selector and the key, not the item.
+		expect(code).toContain('function if_1({ selector, key }) {');
+		expect(code).toContain('if (_$_.selector_match(selector, key)) return consequent;');
+	});
+
+	it('shares one selector between an attribute and an @if reading the same outer value', () => {
+		const code = compile_client(`${ROWS}
+			export default function App() @{
+				const items = track<Row[]>([]);
+				const selected = track<number | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
+					<tr class={selected.value === row.id ? 'danger' : ''}>
+						<td>{row.id}</td>
+						@if (selected.value === row.id) {
+							<td>{'selected'}</td>
+						}
+					</tr>
+				}
+			}
+		`);
+
+		expect(code.match(/_\$_\.selector\(/g)).toHaveLength(1);
+		expect(code).toContain("_$_.selector_match(__prev._selector, __prev._key) ? 'danger' : ''");
+		expect(code).toContain('if (_$_.selector_match(selector, key)) return consequent;');
+	});
+
+	it('reads the item, not the key, when the compared member is not the key', () => {
+		const code = compile_client(`
+			import { track } from 'ripple';
+			interface Row {
+				id: number;
+				group: string;
+			}
+			export default function App() @{
+				const items = track<Row[]>([]);
+				const group = track<string | undefined>(undefined);
+				@for (const row of items.value; key row.id) {
+					<tr>
+						<td>{row.id}</td>
+						@if (group.value === row.group) {
+							<td>{'match'}</td>
+						}
+					</tr>
+				}
+			}
+		`);
+
+		expect(code).toContain('(__anchor, pattern) => {');
+		expect(code).toContain(
+			'if (_$_.selector_match(selector, _$_.get(pattern).group)) return consequent;',
+		);
 	});
 
 	it('keeps a plain comparison when the outer side is static', () => {

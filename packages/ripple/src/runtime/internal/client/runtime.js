@@ -421,11 +421,12 @@ function register_teardown(block, teardown) {
  * dependencies a nested `item` records on it. Errors are handled as
  * `run_block` handles them.
  * @param {Block} block
- * @param {(anchor: any, value: any) => void} fn
+ * @param {(anchor: any, value: any, index?: any, key?: any) => void} fn
  * @param {any} anchor
  * @param {any} value
+ * @param {any} [key] a keyed list item's key (see `create_item`)
  */
-export function run_branch(block, fn, anchor, value) {
+export function run_branch(block, fn, anchor, value, key) {
 	var previous_block = active_block;
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
@@ -438,7 +439,7 @@ export function run_branch(block, fn, anchor, value) {
 		active_component = block.co;
 		tracking = false;
 		active_dependency = null;
-		fn(anchor, value);
+		fn(anchor, value, undefined, key);
 		if (active_dependency !== null) {
 			block.d = active_dependency;
 		}

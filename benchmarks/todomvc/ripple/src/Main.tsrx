@@ -67,16 +67,17 @@ export default function TodoApp() @{
 		});
 	};
 
-	// Ripple is fine-grained: the body runs ONCE, so deriveds must be
-	// FUNCTIONS evaluated inside template expressions (the tracked reads then
-	// register with the reactive expression), never setup-time consts.
-	const visible = () => filter.value === 'active'
-		? todos.value.filter((t) => !t.completed)
-		: filter.value === 'completed'
-			? todos.value.filter((t) => t.completed)
-			: todos.value;
-	const remaining = () => todos.value.filter((t) => !t.completed).length;
-	const anyCompleted = () => todos.value.some((t) => t.completed);
+	// Deriveds (`track(fn)`) memoize the filtered views, like the sibling
+	// apps' computeds: one pass per todos change, shared by every reader.
+	const visible = track(
+		() => filter.value === 'active'
+			? todos.value.filter((t) => !t.completed)
+			: filter.value === 'completed'
+				? todos.value.filter((t) => t.completed)
+				: todos.value,
+	);
+	const remaining = track(() => todos.value.filter((t) => !t.completed).length);
+	const anyCompleted = track(() => todos.value.length - remaining.value > 0);
 
 	<section class="todoapp">
 		<header class="header">
@@ -90,11 +91,11 @@ export default function TodoApp() @{
 						id="toggle-all"
 						class="toggle-all"
 						type="checkbox"
-						checked={remaining() === 0}
+						checked={remaining.value === 0}
 						onClick={toggleAll}
 					/>
 					<ul class="todo-list">
-						@for (const t of visible(); key t.id) {
+						@for (const t of visible.value; key t.id) {
 							<li
 								class={(t.completed ? 'completed' : '') +
 									(editing.value === t.id ? ' editing' : '')}
@@ -123,8 +124,8 @@ export default function TodoApp() @{
 				</section>
 				<footer class="footer">
 					<span class="todo-count">
-						<strong>{remaining()}</strong>
-						{remaining() === 1 ? ' item left' : ' items left'}
+						<strong>{remaining.value}</strong>
+						{remaining.value === 1 ? ' item left' : ' items left'}
 					</span>
 					<ul class="filters">
 						<li>
@@ -155,7 +156,7 @@ export default function TodoApp() @{
 							>{'Completed'}</a>
 						</li>
 					</ul>
-					@if (anyCompleted()) {
+					@if (anyCompleted.value) {
 						<button class="clear-completed" onClick={clearCompleted}>{'Clear completed'}</button>
 					}
 				</footer>

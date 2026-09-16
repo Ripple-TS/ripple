@@ -48,6 +48,11 @@ export type AppendIntoAnchor = {
 	parent: Node;
 	/** Marks the sentinel; a missing-property read on a DOM node is cheaper than `in`. */
 	into: true;
+	/**
+	 * The sentinel is the tail of `parent`: nothing the framework renders
+	 * follows what it anchors, so an `@if` there never needs an anchor node.
+	 */
+	tail: boolean;
 };
 
 export type Block = {
@@ -144,7 +149,6 @@ declare global {
 
 	interface Element {
 		__attributes?: {
-			checked?: boolean;
 			value?: string;
 		};
 		__click?: () => void;

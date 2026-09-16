@@ -50,7 +50,7 @@ function ConditionalPortal_render(__anchor, __block) {
 
 		button.__click = () => show.value = !show.value;
 
-		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_2);
+		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_2, true);
 
 		_$_.if(node_1, if_1, false, show);
 		_$_.hydrating && _$_.pop(div_2);

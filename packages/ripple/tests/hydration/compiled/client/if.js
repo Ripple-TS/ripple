@@ -172,7 +172,7 @@ function consequent_6(__anchor, { outer, inner }) {
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
-		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_7);
+		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_7, true);
 
 		_$_.if(node_5, if_6, false, inner);
 		_$_.hydrating && _$_.pop(div_7);
@@ -270,7 +270,7 @@ function IfElseIfChain_render(__anchor, __block) {
 			status.value = 'loading';
 		};
 
-		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8);
+		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8, true);
 
 		_$_.if(node_7, if_8, false, status);
 		_$_.hydrating && _$_.pop(div_8);

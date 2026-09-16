@@ -67,7 +67,7 @@ function run_portal(s) {
 		end: null,
 		r: s.r,
 		c: next_children,
-		a: { parent: next_target, into: true },
+		a: { parent: next_target, into: true, tail: false },
 		b: /** @type {Block} */ (s.p),
 	});
 

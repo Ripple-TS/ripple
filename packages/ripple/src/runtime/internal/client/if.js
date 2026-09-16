@@ -108,7 +108,9 @@ function destroy_branch(state, block) {
  * is materialized as late as possible: when a branch swap needs the position
  * of the branch being replaced (still rendered), or when the if renders
  * nothing and would otherwise have no position at all. Until then a list of
- * `@if` items keeps no anchor nodes in the DOM.
+ * `@if` items keeps no anchor nodes in the DOM. A tail sentinel (the if is
+ * the last thing rendered into its parent) is never materialized: appending
+ * to the parent stays right for the if's whole life.
  * @param {IfState} state
  * @param {Block} block
  */
@@ -147,9 +149,14 @@ function update_branch(state, fn) {
 
 	var block = /** @type {Block} */ (active_block);
 
+	var anchor = /** @type {AppendIntoAnchor} */ (state.a);
+	// A sentinel the if may still materialize (a tail sentinel never is).
+	var sentinel = anchor.into === true && anchor.tail !== true;
+
 	if (previous !== UNINITIALIZED) {
-		if (/** @type {AppendIntoAnchor} */ (state.a).into === true) {
+		if (sentinel) {
 			materialize_anchor(state, block);
+			sentinel = false;
 		}
 		destroy_branch(state, block);
 	}
@@ -161,14 +168,10 @@ function update_branch(state, fn) {
 
 		if (o !== null) {
 			move_block_last(o);
-		} else if (
-			/** @type {AppendIntoAnchor} */ (state.a).into === true &&
-			state.start === null &&
-			first_child_node(block, null) === null
-		) {
+		} else if (sentinel && state.start === null && first_child_node(block, null) === null) {
 			materialize_anchor(state, block);
 		}
-	} else if (/** @type {AppendIntoAnchor} */ (state.a).into === true) {
+	} else if (sentinel) {
 		materialize_anchor(state, block);
 	}
 }

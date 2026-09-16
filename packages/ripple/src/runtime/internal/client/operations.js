@@ -89,9 +89,12 @@ export function first_child(node, is_text) {
  * hydration we descend the cursor into `parent` (mirroring first_child) so the
  * first appended component adopts the server's first child of `parent`.
  * @param {Node} parent
+ * @param {boolean} [tail] the sentinel stands for the tail of `parent`: what
+ *   it anchors is the last thing the framework appends there, so it stays the
+ *   right insertion point for its whole life (see the `if` runtime)
  * @returns {AppendIntoAnchor}
  */
-export function append_into(parent) {
+export function append_into(parent, tail) {
 	if (hydrating) {
 		var child = get_first_child(/** @type {Node} */ (hydrate_node));
 
@@ -102,7 +105,7 @@ export function append_into(parent) {
 		set_hydrate_node(child);
 	}
 
-	return { parent, into: true };
+	return { parent, into: true, tail: tail === true };
 }
 
 /**

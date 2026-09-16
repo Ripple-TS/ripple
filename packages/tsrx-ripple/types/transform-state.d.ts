@@ -11,8 +11,17 @@ export interface SelectorForState {
 	pattern_bindings: Set<Binding>;
 	/** The scope the loop is declared in; selector sources must be visible there. */
 	outer_scope: ScopeInterface;
-	/** Selectors the body needs, created ahead of the loop. */
-	selectors: Array<{ id: AST.Identifier; source: AST.Expression }>;
+	/** Selectors the body needs, created ahead of the loop, one per outer read. */
+	selectors: Array<{ id: AST.Identifier; source: AST.Expression; outer: AST.Expression }>;
+	/**
+	 * The loop's key expression when the body may read it as the item's key
+	 * (`__key`, fixed for the item block's life), or null.
+	 */
+	key: AST.Expression | null;
+	/** The loop body's scope, where the key parameter is named. */
+	body_scope: ScopeInterface;
+	/** The key parameter, once a lowered comparison reads it: the render function then receives it. */
+	key_id: AST.Identifier | null;
 }
 
 declare module '@tsrx/core/types' {
@@ -22,6 +31,11 @@ declare module '@tsrx/core/types' {
 		 * follows its template siblings (set by transform_children).
 		 */
 		append_after?: AST.Expression;
+		/**
+		 * The template `@if` is the last thing rendered into `append_after`: its
+		 * sentinel is the parent's tail, so it never needs an anchor node.
+		 */
+		append_tail?: boolean;
 	}
 
 	interface TransformClientState {

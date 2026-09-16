@@ -219,3 +219,98 @@ describe('keyed reconciliation with most items moving', () => {
 		expect(after.map((el) => el.textContent)).toEqual(order.map(String));
 	});
 });
+
+// An `@if (outer === item.key)` in a keyed loop body lowers to the same
+// selector as an attribute comparison would, reading the block's key: a
+// change of the outer value re-runs the ifs of its previous and next key
+// alone, and a replaced item never re-runs its if.
+describe('@if selector comparisons', () => {
+	interface Item {
+		id: number;
+		label: string;
+	}
+	let select: (id: number | undefined) => void = () => {};
+	let setItems: (items: Item[]) => void = () => {};
+
+	function App() @{
+		const items = track<Item[]>([
+			{ id: 1, label: 'one' },
+			{ id: 2, label: 'two' },
+			{ id: 3, label: 'three' },
+		]);
+		const selected = track<number | undefined>(undefined);
+		select = (id) => {
+			selected.value = id;
+		};
+		setItems = (next) => {
+			items.value = next;
+		};
+
+		<ul>
+			@for (const item of items.value; key item.id) {
+				<li data-id={item.id}>
+					<span>{item.label}</span>
+					@if (selected.value === item.id) {
+						<b>{'current'}</b>
+					}
+				</li>
+			}
+		</ul>
+	}
+
+	function marked(): string[] {
+		return Array.from(container.querySelectorAll('li')).map(
+			(li) => `${li.getAttribute('data-id')}:${li.textContent}`,
+		);
+	}
+
+	it('moves the marker between rows and keeps it on a replaced row', () => {
+		render(App);
+		flushSync();
+		expect(marked()).toEqual(['1:one', '2:two', '3:three']);
+
+		select(2);
+		flushSync();
+		expect(marked()).toEqual(['1:one', '2:twocurrent', '3:three']);
+		const b = container.querySelector('b')!;
+
+		select(3);
+		flushSync();
+		expect(marked()).toEqual(['1:one', '2:two', '3:threecurrent']);
+
+		// The selected row's object is replaced under its key: the label
+		// updates and the marker stays, in place behind the label.
+		setItems([
+			{ id: 1, label: 'uno' },
+			{ id: 2, label: 'dos' },
+			{ id: 3, label: 'tres' },
+		]);
+		flushSync();
+		expect(marked()).toEqual(['1:uno', '2:dos', '3:trescurrent']);
+		expect(container.querySelector('li:last-child')!.childNodes.length).toBe(2);
+		expect(container.querySelector('b')).not.toBe(b);
+
+		select(undefined);
+		flushSync();
+		expect(marked()).toEqual(['1:uno', '2:dos', '3:tres']);
+		// Off again, and no anchor node is left behind the label.
+		for (const li of container.querySelectorAll('li')) {
+			expect(li.childNodes.length).toBe(1);
+		}
+	});
+
+	it('marks a row created after the selection was set', () => {
+		render(App);
+		flushSync();
+		select(4);
+		flushSync();
+		expect(marked()).toEqual(['1:one', '2:two', '3:three']);
+
+		setItems([
+			{ id: 4, label: 'four' },
+			{ id: 1, label: 'one' },
+		]);
+		flushSync();
+		expect(marked()).toEqual(['4:fourcurrent', '1:one']);
+	});
+});
