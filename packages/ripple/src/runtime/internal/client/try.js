@@ -16,8 +16,26 @@ import {
 	active_block,
 	queue_microtask,
 	queue_post_block_flush_callback,
+	set_catch_router,
 	with_block,
 } from './runtime.js';
+
+var installed = false;
+
+/**
+ * The runtime's catch routing: the nearest boundary above `block` with a
+ * catch branch takes the error, or null leaves it to the caller.
+ * @param {unknown} error
+ * @param {Block} block
+ * @returns {BlockWithTryBoundaryAndCatch | null}
+ */
+function route_error(error, block) {
+	var boundary = get_boundary_with_catch(block);
+	if (boundary !== null) {
+		catch_error(boundary.s, error);
+	}
+	return boundary;
+}
 
 /**
  * A boundary's branches run as direct children of its try block (see
@@ -296,6 +314,10 @@ function run_try(state) {
  * @returns {void}
  */
 export function try_block(node, try_fn, catch_fn, pending_fn = null, root_controlled = false) {
+	if (!installed) {
+		installed = true;
+		set_catch_router(route_error);
+	}
 	/** @type {Node | undefined} */
 	var boundary;
 	/** @type {TryState} */

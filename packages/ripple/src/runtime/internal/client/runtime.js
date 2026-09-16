@@ -32,7 +32,6 @@ import {
 	RENDER_ENTRY,
 	CREATES_DERIVEDS,
 } from './constants.js';
-import { get_boundary_with_catch, handle_boundary_error } from './try.js';
 import { is_ripple_object } from './utils.js';
 import { render_value } from './expression.js';
 import { throw_invalid_component_type } from './component.js';
@@ -308,18 +307,31 @@ function run_derived(computed) {
 }
 
 /**
+ * Routes an error thrown by a block into the nearest boundary with a catch
+ * branch (see `try.js`). Installed by the first `try_block`, so a bundle whose
+ * mount and components create no boundary carries no catch machinery.
+ * @type {((error: unknown, block: Block) => BlockWithTryBoundaryAndCatch | null) | null}
+ */
+let catch_router = null;
+
+/**
+ * @param {(error: unknown, block: Block) => BlockWithTryBoundaryAndCatch | null} fn
+ */
+export function set_catch_router(fn) {
+	catch_router = fn;
+}
+
+/**
  * @param {unknown} error
  * @param {Block} block
  * @returns {BlockWithTryBoundaryAndCatch}
  */
 export function handle_error(error, block) {
-	var boundary_with_catch = get_boundary_with_catch(block);
-	if (boundary_with_catch !== null) {
-		handle_boundary_error(boundary_with_catch, error);
-		return boundary_with_catch;
+	var boundary_with_catch = catch_router === null ? null : catch_router(error, block);
+	if (boundary_with_catch === null) {
+		throw error;
 	}
-
-	throw error;
+	return boundary_with_catch;
 }
 
 /**
