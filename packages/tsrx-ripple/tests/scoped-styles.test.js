@@ -147,7 +147,8 @@ function class_candidates(key, chain, hashes) {
 	if (!is_expression) {
 		if (!has_runtime) {
 			const value = [key, ...chain.map((label) => hash_of(label, hashes))].join(' ');
-			return [[`class="${value}"`], [`class: '${value}'`]];
+			// A template attribute is unquoted when its value is a single token.
+			return [[`class="${value}"`], [`class=${value}`], [`class: '${value}'`]];
 		}
 		return [[`'${key}', ${chain_text(chain, hashes)}`]];
 	}

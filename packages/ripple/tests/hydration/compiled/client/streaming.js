@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="resolved"><span class="value"></span><button class="inc">inc</button></div>`, 0);
+var root = _$_.template(`<div class=resolved><span class=value></span><button class=inc>inc`, 0);
 
 function render(__prev) {
 	var __a = __prev._data.value + ':' + __prev._count.value;
@@ -30,9 +30,9 @@ function BasicContent_render(__anchor, __block) {
 
 BasicContent[_$_.$r] = BasicContent_render;
 
-var root_3 = _$_.template(`<!><footer class="after-async">after-async</footer>`, 1, 2);
-var root_4 = _$_.template(`<p class="loading">loading...</p>`, 0);
-var root_2 = _$_.template(`<span class="before">before</span><!><span class="sibling-after">sibling-after</span>`, 1, 3);
+var root_3 = _$_.template(`<!><footer class=after-async>after-async`, 1, 2);
+var root_4 = _$_.template(`<p class=loading>loading...`, 0);
+var root_2 = _$_.template(`<span class=before>before</span><!><span class=sibling-after>sibling-after`, 1, 3);
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function StreamPending_render(__anchor, __block) {
@@ -71,7 +71,7 @@ function StreamPending_render(__anchor, __block) {
 
 StreamPending[_$_.$r] = StreamPending_render;
 
-var root_5 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_5 = _$_.template(`<p class=resolved> `, 0);
 
 function CatchOnlyContent_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.catchOnly.promise, __block, '50f939c6');
@@ -89,8 +89,8 @@ function CatchOnlyContent_render(__anchor, __block) {
 
 CatchOnlyContent[_$_.$r] = CatchOnlyContent_render;
 
-var root_8 = _$_.template(`<em class="caught"> </em>`, 0);
-var root_7 = _$_.template(`<span class="before">before</span><!>`, 1, 2);
+var root_8 = _$_.template(`<em class=caught> `, 0);
+var root_7 = _$_.template(`<span class=before>before</span><!>`, 1, 2);
 var root_6 = _$_.template(`<!>`, 1, 1);
 
 function StreamCatchOnly_render(__anchor, __block) {
@@ -129,7 +129,7 @@ function StreamCatchOnly_render(__anchor, __block) {
 
 StreamCatchOnly[_$_.$r] = StreamCatchOnly_render;
 
-var root_9 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_9 = _$_.template(`<p class=resolved> `, 0);
 
 function RejectContent_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.rejects.promise, __block, '96452a54');
@@ -147,8 +147,8 @@ function RejectContent_render(__anchor, __block) {
 
 RejectContent[_$_.$r] = RejectContent_render;
 
-var root_10 = _$_.template(`<em class="caught"> </em>`, 0);
-var root_11 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_10 = _$_.template(`<em class=caught> `, 0);
+var root_11 = _$_.template(`<p class=loading>loading...`, 0);
 
 function StreamRejects_render(__anchor, __block) {
 	_$_.try(
@@ -179,7 +179,7 @@ function StreamRejects_render(__anchor, __block) {
 
 StreamRejects[_$_.$r] = StreamRejects_render;
 
-var root_12 = _$_.template(`<p class="resolved"> </p>`, 0);
+var root_12 = _$_.template(`<p class=resolved> `, 0);
 
 function NoCatchContent_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.noCatch.promise, __block, '6baa716b');
@@ -197,7 +197,7 @@ function NoCatchContent_render(__anchor, __block) {
 
 NoCatchContent[_$_.$r] = NoCatchContent_render;
 
-var root_13 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_13 = _$_.template(`<p class=loading>loading...`, 0);
 
 function StreamNoCatch_render(__anchor, __block) {
 	_$_.try(
@@ -217,7 +217,7 @@ function StreamNoCatch_render(__anchor, __block) {
 
 StreamNoCatch[_$_.$r] = StreamNoCatch_render;
 
-var root_14 = _$_.template(`<section class="root-catch"> </section>`, 0);
+var root_14 = _$_.template(`<section class=root-catch> `, 0);
 
 function RootCatch_render(__anchor, __block, { error, reset }) {
 	var section = root_14();
@@ -236,7 +236,7 @@ function RootCatch_render(__anchor, __block, { error, reset }) {
 
 RootCatch[_$_.$r] = RootCatch_render;
 
-var root_15 = _$_.template(`<p class="root-pending">root-loading</p>`, 0);
+var root_15 = _$_.template(`<p class=root-pending>root-loading`, 0);
 
 function RootPending_render(__anchor, __block) {
 	var p_6 = root_15();
@@ -246,7 +246,7 @@ function RootPending_render(__anchor, __block) {
 
 RootPending[_$_.$r] = RootPending_render;
 
-var root_17 = _$_.template(`<p class="head-content"> </p>`, 0);
+var root_17 = _$_.template(`<p class=head-content> `, 0);
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function HeadContent_render(__anchor, __block) {
@@ -290,7 +290,7 @@ function HeadContent_render(__anchor, __block) {
 
 HeadContent[_$_.$r] = HeadContent_render;
 
-var root_18 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_18 = _$_.template(`<p class=loading>loading...`, 0);
 
 function StreamHead_render(__anchor, __block) {
 	_$_.try(
@@ -310,7 +310,7 @@ function StreamHead_render(__anchor, __block) {
 
 StreamHead[_$_.$r] = StreamHead_render;
 
-var root_19 = _$_.template(`<p class="root-async"> </p>`, 0);
+var root_19 = _$_.template(`<p class=root-async> `, 0);
 
 function StreamRootDirect_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.rootDirect.promise, __block, 'bc9e61da');
@@ -328,7 +328,7 @@ function StreamRootDirect_render(__anchor, __block) {
 
 StreamRootDirect[_$_.$r] = StreamRootDirect_render;
 
-var root_20 = _$_.template(`<p class="outer"> </p>`, 0);
+var root_20 = _$_.template(`<p class=outer> `, 0);
 
 function OuterContent_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.outer.promise, __block, '35931cce');
@@ -346,7 +346,7 @@ function OuterContent_render(__anchor, __block) {
 
 OuterContent[_$_.$r] = OuterContent_render;
 
-var root_21 = _$_.template(`<p class="inner"> </p>`, 0);
+var root_21 = _$_.template(`<p class=inner> `, 0);
 
 function InnerContent_render(__anchor, __block) {
 	const data = _$_.track_async(() => controls.inner.promise, __block, '6c7d38ed');
@@ -364,9 +364,9 @@ function InnerContent_render(__anchor, __block) {
 
 InnerContent[_$_.$r] = InnerContent_render;
 
-var root_23 = _$_.template(`<p class="inner-loading">inner-loading</p>`, 0);
+var root_23 = _$_.template(`<p class=inner-loading>inner-loading`, 0);
 var root_22 = _$_.template(`<!><!>`, 1, 2);
-var root_24 = _$_.template(`<p class="outer-loading">outer-loading</p>`, 0);
+var root_24 = _$_.template(`<p class=outer-loading>outer-loading`, 0);
 
 function StreamNested_render(__anchor, __block) {
 	_$_.try(
@@ -423,8 +423,6 @@ function make() {
 export const controls = {};
 
 export function resetControls() {
-	var __block = _$_.scope();
-
 	controls.basic = make();
 	controls.catchOnly = make();
 	controls.rejects = make();

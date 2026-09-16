@@ -1,8 +1,8 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<li> </li>`, 0);
-var root = _$_.template(`<ul></ul>`, 0);
+var root_1 = _$_.template(`<li> `, 0);
+var root = _$_.template(`<ul>`, 0);
 
 function StaticForLoop_render(__anchor, __block) {
 	const items = ['Apple', 'Banana', 'Cherry'];
@@ -35,7 +35,7 @@ function StaticForLoop_render(__anchor, __block) {
 
 StaticForLoop[_$_.$r] = StaticForLoop_render;
 
-var root_3 = _$_.template(`<li></li>`, 0);
+var root_3 = _$_.template(`<li>`, 0);
 
 function render(__prev) {
 	var __a = `${__prev._i.value}: ${__prev._item}`;
@@ -46,7 +46,7 @@ function render(__prev) {
 	}
 }
 
-var root_2 = _$_.template(`<ul></ul>`, 0);
+var root_2 = _$_.template(`<ul>`, 0);
 
 function ForLoopWithIndex_render(__anchor, __block) {
 	const items = ['A', 'B', 'C'];
@@ -75,8 +75,8 @@ function ForLoopWithIndex_render(__anchor, __block) {
 
 ForLoopWithIndex[_$_.$r] = ForLoopWithIndex_render;
 
-var root_5 = _$_.template(`<li> </li>`, 0);
-var root_4 = _$_.template(`<ul></ul>`, 0);
+var root_5 = _$_.template(`<li> `, 0);
+var root_4 = _$_.template(`<ul>`, 0);
 
 function KeyedForLoop_render(__anchor, __block) {
 	const items = [
@@ -115,8 +115,8 @@ function KeyedForLoop_render(__anchor, __block) {
 
 KeyedForLoop[_$_.$r] = KeyedForLoop_render;
 
-var root_8 = _$_.template(`<li> </li>`, 0);
-var root_7 = _$_.template(`<button class="add">Add</button><ul></ul>`, 1, 2);
+var root_8 = _$_.template(`<li> `, 0);
+var root_7 = _$_.template(`<button class=add>Add</button><ul>`, 1, 2);
 var root_6 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveForLoopAdd_render(__anchor, __block) {
@@ -164,8 +164,8 @@ function ReactiveForLoopAdd_render(__anchor, __block) {
 
 ReactiveForLoopAdd[_$_.$r] = ReactiveForLoopAdd_render;
 
-var root_11 = _$_.template(`<li> </li>`, 0);
-var root_10 = _$_.template(`<button class="remove">Remove</button><ul></ul>`, 1, 2);
+var root_11 = _$_.template(`<li> `, 0);
+var root_10 = _$_.template(`<button class=remove>Remove</button><ul>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveForLoopRemove_render(__anchor, __block) {
@@ -213,17 +213,17 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 
 ReactiveForLoopRemove[_$_.$r] = ReactiveForLoopRemove_render;
 
-var root_13 = _$_.template(`<div><span class="value"> </span><button class="increment">+</button></div>`, 0);
+var root_13 = _$_.template(`<div><span class=value> </span><button class=increment>+`, 0);
 
 function render_1(__prev) {
 	var __a = `item-${__prev._i.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_1, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_1, __prev.a = __a);
 	}
 }
 
-var root_12 = _$_.template(`<div></div>`, 0);
+var root_12 = _$_.template(`<div>`, 0);
 
 function ForLoopInteractive_render(__anchor, __block) {
 	const counts = _$_.track([0, 0, 0], __block, '36f563df');
@@ -272,13 +272,13 @@ function ForLoopInteractive_render(__anchor, __block) {
 
 ForLoopInteractive[_$_.$r] = ForLoopInteractive_render;
 
-var root_16 = _$_.template(`<span> </span>`, 0);
+var root_16 = _$_.template(`<span> `, 0);
 
 function render_2(__prev) {
 	var __a = `cell-${__prev._rowIndex.value}-${__prev._colIndex.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._span_1, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._span_1, __prev.a = __a);
 	}
 }
 
@@ -286,12 +286,12 @@ function render_3(__prev) {
 	var __a = `row-${__prev._rowIndex.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_3, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_3, __prev.a = __a);
 	}
 }
 
-var root_15 = _$_.template(`<div></div>`, 0);
-var root_14 = _$_.template(`<div class="grid"></div>`, 0);
+var root_15 = _$_.template(`<div>`, 0);
+var root_14 = _$_.template(`<div class=grid>`, 0);
 
 function NestedForLoop_render(__anchor, __block) {
 	const grid = [[1, 2], [3, 4]];
@@ -351,8 +351,8 @@ function NestedForLoop_render(__anchor, __block) {
 
 NestedForLoop[_$_.$r] = NestedForLoop_render;
 
-var root_18 = _$_.template(`<span></span>`, 0);
-var root_17 = _$_.template(`<div class="container"></div>`, 0);
+var root_18 = _$_.template(`<span>`, 0);
+var root_17 = _$_.template(`<div class=container>`, 0);
 
 function EmptyForLoop_render(__anchor, __block) {
 	const items = [];
@@ -382,17 +382,17 @@ function EmptyForLoop_render(__anchor, __block) {
 
 EmptyForLoop[_$_.$r] = EmptyForLoop_render;
 
-var root_20 = _$_.template(`<div><span class="name"> </span><span class="role"> </span></div>`, 0);
+var root_20 = _$_.template(`<div><span class=name> </span><span class=role> `, 0);
 
 function render_4(__prev) {
 	var __a = `user-${_$_.get(__prev._pattern_1).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_6, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_6, __prev.a = __a);
 	}
 }
 
-var root_19 = _$_.template(`<div></div>`, 0);
+var root_19 = _$_.template(`<div>`, 0);
 
 function ForLoopComplexObjects_render(__anchor, __block) {
 	const users = [
@@ -447,17 +447,17 @@ function ForLoopComplexObjects_render(__anchor, __block) {
 
 ForLoopComplexObjects[_$_.$r] = ForLoopComplexObjects_render;
 
-var root_23 = _$_.template(`<li> </li>`, 0);
+var root_23 = _$_.template(`<li> `, 0);
 
 function render_5(__prev) {
 	var __a = `item-${_$_.get(__prev._pattern_2).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._li_5, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._li_5, __prev.a = __a);
 	}
 }
 
-var root_22 = _$_.template(`<button class="reorder">Reorder</button><ul></ul>`, 1, 2);
+var root_22 = _$_.template(`<button class=reorder>Reorder</button><ul>`, 1, 2);
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopReorder_render(__anchor, __block) {
@@ -519,17 +519,17 @@ function KeyedForLoopReorder_render(__anchor, __block) {
 
 KeyedForLoopReorder[_$_.$r] = KeyedForLoopReorder_render;
 
-var root_26 = _$_.template(`<li> </li>`, 0);
+var root_26 = _$_.template(`<li> `, 0);
 
 function render_6(__prev) {
 	var __a = `item-${_$_.get(__prev._pattern_3).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._li_6, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._li_6, __prev.a = __a);
 	}
 }
 
-var root_25 = _$_.template(`<button class="update">Update</button><ul></ul>`, 1, 2);
+var root_25 = _$_.template(`<button class=update>Update</button><ul>`, 1, 2);
 var root_24 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopUpdate_render(__anchor, __block) {
@@ -582,8 +582,8 @@ function KeyedForLoopUpdate_render(__anchor, __block) {
 
 KeyedForLoopUpdate[_$_.$r] = KeyedForLoopUpdate_render;
 
-var root_29 = _$_.template(`<li> </li>`, 0);
-var root_28 = _$_.template(`<button class="shuffle">Shuffle</button><ul></ul>`, 1, 2);
+var root_29 = _$_.template(`<li> `, 0);
+var root_28 = _$_.template(`<button class=shuffle>Shuffle</button><ul>`, 1, 2);
 var root_27 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopMixedOperations_render(__anchor, __block) {
@@ -608,7 +608,7 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_7 = root_29();
 
-					_$_.set_class(li_7, `item-${item}`, void 0, true);
+					_$_.set_class(li_7, `item-${item}`);
 
 					{
 						var expression_12 = _$_.hydrating ? _$_.hydrate_child() : li_7.firstChild;
@@ -633,10 +633,10 @@ function ForLoopMixedOperations_render(__anchor, __block) {
 
 ForLoopMixedOperations[_$_.$r] = ForLoopMixedOperations_render;
 
-var root_33 = _$_.template(`<li> </li>`, 0);
-var root_32 = _$_.template(`<ul class="list"></ul>`, 0);
+var root_33 = _$_.template(`<li> `, 0);
+var root_32 = _$_.template(`<ul class=list>`, 0);
 
-function consequent(__anchor, { showList, items }) {
+function consequent(__anchor, { a: showList, b: items }) {
 	var ul_8 = root_32();
 
 	{
@@ -664,11 +664,11 @@ function consequent(__anchor, { showList, items }) {
 	_$_.append(__anchor, ul_8);
 }
 
-function if_1({ showList, items }) {
+function if_1({ a: showList, b: items }) {
 	if (showList.value) return consequent;
 }
 
-var root_31 = _$_.template(`<button class="toggle">Toggle List</button><button class="add">Add Item</button><!>`, 1, 3);
+var root_31 = _$_.template(`<button class=toggle>Toggle List</button><button class=add>Add Item</button><!>`, 1, 3);
 var root_30 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopInsideIf_render(__anchor, __block) {
@@ -693,7 +693,7 @@ function ForLoopInsideIf_render(__anchor, __block) {
 
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
 
-		_$_.if(node_5, if_1, false, { showList, items });
+		_$_.if(node_5, if_1, false, { a: showList, b: items });
 		_$_.append(__anchor, fragment_11);
 	}));
 
@@ -702,8 +702,8 @@ function ForLoopInsideIf_render(__anchor, __block) {
 
 ForLoopInsideIf[_$_.$r] = ForLoopInsideIf_render;
 
-var root_36 = _$_.template(`<li></li>`, 0);
-var root_35 = _$_.template(`<button class="populate">Populate</button><ul class="list"></ul>`, 1, 2);
+var root_36 = _$_.template(`<li>`, 0);
+var root_35 = _$_.template(`<button class=populate>Populate</button><ul class=list>`, 1, 2);
 var root_34 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopEmptyToPopulated_render(__anchor, __block) {
@@ -748,8 +748,8 @@ function ForLoopEmptyToPopulated_render(__anchor, __block) {
 
 ForLoopEmptyToPopulated[_$_.$r] = ForLoopEmptyToPopulated_render;
 
-var root_39 = _$_.template(`<li> </li>`, 0);
-var root_38 = _$_.template(`<button class="clear">Clear</button><ul class="list"></ul>`, 1, 2);
+var root_39 = _$_.template(`<li> `, 0);
+var root_38 = _$_.template(`<button class=clear>Clear</button><ul class=list>`, 1, 2);
 var root_37 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopPopulatedToEmpty_render(__anchor, __block) {
@@ -797,13 +797,13 @@ function ForLoopPopulatedToEmpty_render(__anchor, __block) {
 
 ForLoopPopulatedToEmpty[_$_.$r] = ForLoopPopulatedToEmpty_render;
 
-var root_42 = _$_.template(`<span> </span>`, 0);
+var root_42 = _$_.template(`<span> `, 0);
 
 function render_7(__prev) {
 	var __a = `cell-${__prev._rowIndex.value}-${__prev._colIndex.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._span_5, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._span_5, __prev.a = __a);
 	}
 }
 
@@ -811,12 +811,12 @@ function render_8(__prev) {
 	var __a = `row-${__prev._rowIndex.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_9, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_9, __prev.a = __a);
 	}
 }
 
-var root_41 = _$_.template(`<div></div>`, 0);
-var root_40 = _$_.template(`<div class="nested-for-reactive"><button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid"></div></div>`, 0);
+var root_41 = _$_.template(`<div>`, 0);
+var root_40 = _$_.template(`<div class=nested-for-reactive><button class=add-row>Add Row</button><button class=update-cell>Update Cell</button><div class=grid>`, 0);
 
 function NestedForLoopReactive_render(__anchor, __block) {
 	const grid = _$_.track([[1, 2], [3, 4]], __block, 'a2f41fb3');
@@ -895,28 +895,28 @@ function NestedForLoopReactive_render(__anchor, __block) {
 
 NestedForLoopReactive[_$_.$r] = NestedForLoopReactive_render;
 
-var root_46 = _$_.template(`<li class="member"> </li>`, 0);
-var root_45 = _$_.template(`<div><h3 class="team-name"> </h3><ul></ul></div>`, 0);
+var root_46 = _$_.template(`<li class=member> `, 0);
+var root_45 = _$_.template(`<div><h3 class=team-name> </h3><ul>`, 0);
 
 function render_9(__prev) {
 	var __a = `team-${_$_.get(__prev._pattern_5).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_12, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_12, __prev.a = __a);
 	}
 }
 
-var root_44 = _$_.template(`<div><h2 class="dept-name"> </h2></div>`, 0);
+var root_44 = _$_.template(`<div><h2 class=dept-name> `, 0);
 
 function render_10(__prev) {
 	var __a = `dept-${_$_.get(__prev._pattern_4).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_11, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_11, __prev.a = __a);
 	}
 }
 
-var root_43 = _$_.template(`<div class="org"></div>`, 0);
+var root_43 = _$_.template(`<div class=org>`, 0);
 
 function ForLoopDeeplyNested_render(__anchor, __block) {
 	const departments = [
@@ -1029,7 +1029,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 
 ForLoopDeeplyNested[_$_.$r] = ForLoopDeeplyNested_render;
 
-var root_49 = _$_.template(`<li></li>`, 0);
+var root_49 = _$_.template(`<li>`, 0);
 
 function render_11(__prev) {
 	var __a = `[${__prev._i.value}] ${__prev._item}`;
@@ -1042,11 +1042,11 @@ function render_11(__prev) {
 	var __b = `item-${__prev._i.value}`;
 
 	if (__prev.b !== __b) {
-		_$_.set_class(__prev._li_12, __prev.b = __b, void 0, true);
+		_$_.set_class(__prev._li_12, __prev.b = __b);
 	}
 }
 
-var root_48 = _$_.template(`<button class="prepend">Prepend</button><ul></ul>`, 1, 2);
+var root_48 = _$_.template(`<button class=prepend>Prepend</button><ul>`, 1, 2);
 var root_47 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopIndexUpdate_render(__anchor, __block) {
@@ -1097,7 +1097,7 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 
 ForLoopIndexUpdate[_$_.$r] = ForLoopIndexUpdate_render;
 
-var root_52 = _$_.template(`<li></li>`, 0);
+var root_52 = _$_.template(`<li>`, 0);
 
 function render_12(__prev) {
 	var __pattern_6 = _$_.get(__prev._pattern_6);
@@ -1117,11 +1117,11 @@ function render_12(__prev) {
 	var __c = `item-${__pattern_6.id}`;
 
 	if (__prev.c !== __c) {
-		_$_.set_class(__prev._li_13, __prev.c = __c, void 0, true);
+		_$_.set_class(__prev._li_13, __prev.c = __c);
 	}
 }
 
-var root_51 = _$_.template(`<button class="reorder">Rotate</button><ul></ul>`, 1, 2);
+var root_51 = _$_.template(`<button class=reorder>Rotate</button><ul>`, 1, 2);
 var root_50 = _$_.template(`<!>`, 1, 1);
 
 function KeyedForLoopWithIndex_render(__anchor, __block) {
@@ -1184,8 +1184,8 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 
 KeyedForLoopWithIndex[_$_.$r] = KeyedForLoopWithIndex_render;
 
-var root_55 = _$_.template(`<div> </div>`, 0);
-var root_54 = _$_.template(`<div class="wrapper"><header class="before">Before</header><footer class="after">After</footer></div><button class="add">Add</button>`, 1, 2);
+var root_55 = _$_.template(`<div> `, 0);
+var root_54 = _$_.template(`<div class=wrapper><header class=before>Before</header><footer class=after>After</footer></div><button class=add>Add`, 1, 2);
 var root_53 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopWithSiblings_render(__anchor, __block) {
@@ -1207,7 +1207,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 				(__anchor, item) => {
 					var div_14 = root_55();
 
-					_$_.set_class(div_14, `item-${item}`, void 0, true);
+					_$_.set_class(div_14, `item-${item}`);
 
 					{
 						var expression_22 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
@@ -1238,7 +1238,7 @@ function ForLoopWithSiblings_render(__anchor, __block) {
 
 ForLoopWithSiblings[_$_.$r] = ForLoopWithSiblings_render;
 
-var root_56 = _$_.template(`<div></div>`, 0);
+var root_56 = _$_.template(`<div>`, 0);
 
 function ForLoopItemState_render(__anchor, __block) {
 	const initialItems = [
@@ -1268,7 +1268,7 @@ function ForLoopItemState_render(__anchor, __block) {
 
 ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 
-var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span></span></div>`, 0);
+var root_57 = _$_.template(`<div><input type=checkbox class=checkbox><span>`, 0);
 
 function render_13(__prev) {
 	var __a = __prev._done.value;
@@ -1287,13 +1287,13 @@ function render_13(__prev) {
 	var __c = __prev._done.value ? 'completed' : 'pending';
 
 	if (__prev.c !== __c) {
-		_$_.set_class(__prev._span_6, __prev.c = __c, void 0, true);
+		_$_.set_class(__prev._span_6, __prev.c = __c);
 	}
 
 	var __d = `todo-${__prev._props.id}`;
 
 	if (__prev.d !== __d) {
-		_$_.set_class(__prev._div_16, __prev.d = __d, void 0, true);
+		_$_.set_class(__prev._div_16, __prev.d = __d);
 	}
 }
 
@@ -1328,8 +1328,8 @@ function TodoItem_render(__anchor, __block, props) {
 
 TodoItem[_$_.$r] = TodoItem_render;
 
-var root_59 = _$_.template(`<li class="single"> </li>`, 0);
-var root_58 = _$_.template(`<ul></ul>`, 0);
+var root_59 = _$_.template(`<li class=single> `, 0);
+var root_58 = _$_.template(`<ul>`, 0);
 
 function ForLoopSingleItem_render(__anchor, __block) {
 	const items = ['Only'];
@@ -1362,8 +1362,8 @@ function ForLoopSingleItem_render(__anchor, __block) {
 
 ForLoopSingleItem[_$_.$r] = ForLoopSingleItem_render;
 
-var root_62 = _$_.template(`<li> </li>`, 0);
-var root_61 = _$_.template(`<button class="prepend">Prepend A</button><ul></ul>`, 1, 2);
+var root_62 = _$_.template(`<li> `, 0);
+var root_61 = _$_.template(`<button class=prepend>Prepend A</button><ul>`, 1, 2);
 var root_60 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopAddAtBeginning_render(__anchor, __block) {
@@ -1388,7 +1388,7 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_15 = root_62();
 
-					_$_.set_class(li_15, `item-${item}`, void 0, true);
+					_$_.set_class(li_15, `item-${item}`);
 
 					{
 						var expression_25 = _$_.hydrating ? _$_.hydrate_child() : li_15.firstChild;
@@ -1413,8 +1413,8 @@ function ForLoopAddAtBeginning_render(__anchor, __block) {
 
 ForLoopAddAtBeginning[_$_.$r] = ForLoopAddAtBeginning_render;
 
-var root_65 = _$_.template(`<li> </li>`, 0);
-var root_64 = _$_.template(`<button class="insert">Insert B</button><ul></ul>`, 1, 2);
+var root_65 = _$_.template(`<li> `, 0);
+var root_64 = _$_.template(`<button class=insert>Insert B</button><ul>`, 1, 2);
 var root_63 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopAddInMiddle_render(__anchor, __block) {
@@ -1442,7 +1442,7 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_16 = root_65();
 
-					_$_.set_class(li_16, `item-${item}`, void 0, true);
+					_$_.set_class(li_16, `item-${item}`);
 
 					{
 						var expression_26 = _$_.hydrating ? _$_.hydrate_child() : li_16.firstChild;
@@ -1467,8 +1467,8 @@ function ForLoopAddInMiddle_render(__anchor, __block) {
 
 ForLoopAddInMiddle[_$_.$r] = ForLoopAddInMiddle_render;
 
-var root_68 = _$_.template(`<li> </li>`, 0);
-var root_67 = _$_.template(`<button class="remove-middle">Remove B</button><ul></ul>`, 1, 2);
+var root_68 = _$_.template(`<li> `, 0);
+var root_67 = _$_.template(`<button class=remove-middle>Remove B</button><ul>`, 1, 2);
 var root_66 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopRemoveFromMiddle_render(__anchor, __block) {
@@ -1493,7 +1493,7 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_17 = root_68();
 
-					_$_.set_class(li_17, `item-${item}`, void 0, true);
+					_$_.set_class(li_17, `item-${item}`);
 
 					{
 						var expression_27 = _$_.hydrating ? _$_.hydrate_child() : li_17.firstChild;
@@ -1518,17 +1518,17 @@ function ForLoopRemoveFromMiddle_render(__anchor, __block) {
 
 ForLoopRemoveFromMiddle[_$_.$r] = ForLoopRemoveFromMiddle_render;
 
-var root_70 = _$_.template(`<li> </li>`, 0);
+var root_70 = _$_.template(`<li> `, 0);
 
 function render_14(__prev) {
 	var __a = `item-${__prev._i.value}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._li_18, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._li_18, __prev.a = __a);
 	}
 }
 
-var root_69 = _$_.template(`<ul class="large-list"></ul>`, 0);
+var root_69 = _$_.template(`<ul class=large-list>`, 0);
 
 function ForLoopLargeList_render(__anchor, __block) {
 	const items = _$_.with_scope(__block, () => Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`));
@@ -1564,8 +1564,8 @@ function ForLoopLargeList_render(__anchor, __block) {
 
 ForLoopLargeList[_$_.$r] = ForLoopLargeList_render;
 
-var root_73 = _$_.template(`<li> </li>`, 0);
-var root_72 = _$_.template(`<button class="swap">Swap First and Last</button><ul></ul>`, 1, 2);
+var root_73 = _$_.template(`<li> `, 0);
+var root_72 = _$_.template(`<button class=swap>Swap First and Last</button><ul>`, 1, 2);
 var root_71 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopSwap_render(__anchor, __block) {
@@ -1593,7 +1593,7 @@ function ForLoopSwap_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_19 = root_73();
 
-					_$_.set_class(li_19, `item-${item}`, void 0, true);
+					_$_.set_class(li_19, `item-${item}`);
 
 					{
 						var expression_29 = _$_.hydrating ? _$_.hydrate_child() : li_19.firstChild;
@@ -1618,8 +1618,8 @@ function ForLoopSwap_render(__anchor, __block) {
 
 ForLoopSwap[_$_.$r] = ForLoopSwap_render;
 
-var root_76 = _$_.template(`<li> </li>`, 0);
-var root_75 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
+var root_76 = _$_.template(`<li> `, 0);
+var root_75 = _$_.template(`<button class=reverse>Reverse</button><ul>`, 1, 2);
 var root_74 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopReverse_render(__anchor, __block) {
@@ -1644,7 +1644,7 @@ function ForLoopReverse_render(__anchor, __block) {
 				(__anchor, item) => {
 					var li_20 = root_76();
 
-					_$_.set_class(li_20, `item-${item}`, void 0, true);
+					_$_.set_class(li_20, `item-${item}`);
 
 					{
 						var expression_30 = _$_.hydrating ? _$_.hydrate_child() : li_20.firstChild;
@@ -1669,8 +1669,8 @@ function ForLoopReverse_render(__anchor, __block) {
 
 ForLoopReverse[_$_.$r] = ForLoopReverse_render;
 
-var root_78 = _$_.template(`<span class="item"> </span>`, 0);
-var root_77 = _$_.template(`<div class="wrapper"><div class="host"><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
+var root_78 = _$_.template(`<span class=item> `, 0);
+var root_77 = _$_.template(`<div class=wrapper><div class=host><p class=tail>p</p></div><button class=push>Push</button><button class=rotate>Rotate`, 0);
 
 function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, 'a8b41504');
@@ -1720,7 +1720,7 @@ function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 
 KeyedForLoopAppendAndRotate[_$_.$r] = KeyedForLoopAppendAndRotate_render;
 
-var root_79 = _$_.template(`<span class="item"></span>`, 0);
+var root_79 = _$_.template(`<span class=item>`, 0);
 
 function render_15(__prev) {
 	var __a = __prev.$item;
@@ -1751,7 +1751,7 @@ function RootKeyedList_render(__anchor, __block, props) {
 
 RootKeyedList[_$_.$r] = RootKeyedList_render;
 
-var root_80 = _$_.template(`<div class="wrapper"><div class="host"><p class="tail">p</p></div><button class="push">Push</button><button class="rotate">Rotate</button></div>`, 0);
+var root_80 = _$_.template(`<div class=wrapper><div class=host><p class=tail>p</p></div><button class=push>Push</button><button class=rotate>Rotate`, 0);
 
 function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, '50a91d60');

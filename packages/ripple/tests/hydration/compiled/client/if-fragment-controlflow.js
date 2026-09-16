@@ -1,10 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_2 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_1 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
+var root_2 = _$_.template(`<p class=muze> `, 0);
+var root_1 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent(__anchor, { hasLoaded, muzes }) {
+function consequent(__anchor, { a: hasLoaded, b: muzes }) {
 	var fragment = root_1();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -31,11 +31,11 @@ function consequent(__anchor, { hasLoaded, muzes }) {
 	_$_.append(__anchor, fragment);
 }
 
-function if_1({ hasLoaded, muzes }) {
+function if_1({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent;
 }
 
-var root = _$_.template(`<div class="feed-c"><!></div>`, 0);
+var root = _$_.template(`<div class=feed-c><!>`, 0);
 
 function IfFragmentForElement_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -45,7 +45,7 @@ function IfFragmentForElement_render(__anchor, __block) {
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
-		_$_.if(node, if_1, false, { hasLoaded, muzes });
+		_$_.if(node, if_1, false, { a: hasLoaded, b: muzes });
 		_$_.hydrating && _$_.pop(div);
 	}
 
@@ -54,8 +54,8 @@ function IfFragmentForElement_render(__anchor, __block) {
 
 IfFragmentForElement[_$_.$r] = IfFragmentForElement_render;
 
-var root_5 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_6 = _$_.template(`<span class="has-items">has items</span>`, 0);
+var root_5 = _$_.template(`<p class=muze> `, 0);
+var root_6 = _$_.template(`<span class=has-items>has items`, 0);
 
 function consequent_1(__anchor, muzes) {
 	var span = root_6();
@@ -67,7 +67,7 @@ function if_2(muzes) {
 	if (muzes.length > 0) return consequent_1;
 }
 
-var root_7 = _$_.template(`<span class="empty">empty</span>`, 0);
+var root_7 = _$_.template(`<span class=empty>empty`, 0);
 
 function consequent_2(__anchor, muzes) {
 	var span_1 = root_7();
@@ -81,7 +81,7 @@ function if_3(muzes) {
 
 var root_4 = _$_.template(`<!><!><!>`, 1, 3);
 
-function consequent_3(__anchor, { hasLoaded, muzes }) {
+function consequent_3(__anchor, { a: hasLoaded, b: muzes }) {
 	var fragment_1 = root_4();
 	var node_3 = _$_.first_child_frag(fragment_1);
 
@@ -114,11 +114,11 @@ function consequent_3(__anchor, { hasLoaded, muzes }) {
 	_$_.append(__anchor, fragment_1);
 }
 
-function if_4({ hasLoaded, muzes }) {
+function if_4({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_3;
 }
 
-var root_3 = _$_.template(`<div class="feed"><!></div>`, 0);
+var root_3 = _$_.template(`<div class=feed><!>`, 0);
 
 function IfFragmentForIfIf_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -128,7 +128,7 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 	{
 		var node_2 = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
 
-		_$_.if(node_2, if_4, false, { hasLoaded, muzes });
+		_$_.if(node_2, if_4, false, { a: hasLoaded, b: muzes });
 		_$_.hydrating && _$_.pop(div_1);
 	}
 
@@ -137,7 +137,7 @@ function IfFragmentForIfIf_render(__anchor, __block) {
 
 IfFragmentForIfIf[_$_.$r] = IfFragmentForIfIf_render;
 
-var root_9 = _$_.template(`<p class="muze">b</p><p class="muze">c</p>`, 1, 2);
+var root_9 = _$_.template(`<p class=muze>b</p><p class=muze>c`, 1, 2);
 
 function consequent_4(__anchor, hasLoaded) {
 	var fragment_2 = root_9();
@@ -150,7 +150,7 @@ function if_5(hasLoaded) {
 	if (hasLoaded) return consequent_4;
 }
 
-var root_8 = _$_.template(`<div class="feed-b"><!></div>`, 0);
+var root_8 = _$_.template(`<div class=feed-b><!>`, 0);
 
 function IfFragmentElements_render(__anchor, __block) {
 	const hasLoaded = true;
@@ -168,8 +168,8 @@ function IfFragmentElements_render(__anchor, __block) {
 
 IfFragmentElements[_$_.$r] = IfFragmentElements_render;
 
-var root_12 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_11 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
+var root_12 = _$_.template(`<p class=muze> `, 0);
+var root_11 = _$_.template(`<!><span class=after>after`, 1, 2);
 var root_10 = _$_.template(`<!>`, 1, 1);
 
 function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
@@ -209,8 +209,8 @@ function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
 
 ComponentBodyFragmentControlFlow[_$_.$r] = ComponentBodyFragmentControlFlow_render;
 
-var root_14 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_15 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
+var root_14 = _$_.template(`<p class=muze> `, 0);
+var root_15 = _$_.template(`<!><span class=after>after`, 1, 2);
 var root_13 = _$_.template(`<!>`, 1, 1);
 
 function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
@@ -254,10 +254,10 @@ function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
 
 ComponentBodyCodeBlockControlFlow[_$_.$r] = ComponentBodyCodeBlockControlFlow_render;
 
-var root_17 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_18 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
+var root_17 = _$_.template(`<p class=muze> `, 0);
+var root_18 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent_5(__anchor, { hasLoaded, muzes }) {
+function consequent_5(__anchor, { a: hasLoaded, b: muzes }) {
 	var fragment_7 = root_18();
 	var expression_6 = _$_.first_child_frag(fragment_7);
 
@@ -288,11 +288,11 @@ function consequent_5(__anchor, { hasLoaded, muzes }) {
 	_$_.append(__anchor, fragment_7);
 }
 
-function if_6({ hasLoaded, muzes }) {
+function if_6({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_5;
 }
 
-var root_16 = _$_.template(`<div class="feed-f"><!></div>`, 0);
+var root_16 = _$_.template(`<div class=feed-f><!>`, 0);
 
 function IfCodeBlockControlFlow_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -302,7 +302,7 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 	{
 		var node_10 = _$_.hydrating ? _$_.hydrate_child() : div_3.firstChild;
 
-		_$_.if(node_10, if_6, false, { hasLoaded, muzes });
+		_$_.if(node_10, if_6, false, { a: hasLoaded, b: muzes });
 		_$_.hydrating && _$_.pop(div_3);
 	}
 
@@ -311,17 +311,17 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 
 IfCodeBlockControlFlow[_$_.$r] = IfCodeBlockControlFlow_render;
 
-var root_20 = _$_.template(`<span class="loading">loading</span>`, 0);
-var root_22 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_21 = _$_.template(`<!><span class="after">after</span>`, 1, 2);
+var root_20 = _$_.template(`<span class=loading>loading`, 0);
+var root_22 = _$_.template(`<p class=muze> `, 0);
+var root_21 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent_6(__anchor, { hasLoaded, muzes }) {
+function consequent_6(__anchor, { a: hasLoaded, b: muzes }) {
 	var span_2 = root_20();
 
 	_$_.append(__anchor, span_2);
 }
 
-function alternate(__anchor, { hasLoaded, muzes }) {
+function alternate(__anchor, { a: hasLoaded, b: muzes }) {
 	var fragment_8 = root_21();
 	var node_12 = _$_.first_child_frag(fragment_8);
 
@@ -348,11 +348,11 @@ function alternate(__anchor, { hasLoaded, muzes }) {
 	_$_.append(__anchor, fragment_8);
 }
 
-function if_7({ hasLoaded, muzes }) {
+function if_7({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_6; else return alternate;
 }
 
-var root_19 = _$_.template(`<div class="feed-d"><!></div>`, 0);
+var root_19 = _$_.template(`<div class=feed-d><!>`, 0);
 
 function IfElseFragment_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -362,7 +362,7 @@ function IfElseFragment_render(__anchor, __block) {
 	{
 		var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_4.firstChild;
 
-		_$_.if(node_11, if_7, false, { hasLoaded, muzes });
+		_$_.if(node_11, if_7, false, { a: hasLoaded, b: muzes });
 		_$_.hydrating && _$_.pop(div_4);
 	}
 
@@ -371,10 +371,10 @@ function IfElseFragment_render(__anchor, __block) {
 
 IfElseFragment[_$_.$r] = IfElseFragment_render;
 
-var root_25 = _$_.template(`<p class="muze"> </p>`, 0);
-var root_24 = _$_.template(`<section><span class="after">after</span></section>`, 0);
+var root_25 = _$_.template(`<p class=muze> `, 0);
+var root_24 = _$_.template(`<section><span class=after>after`, 0);
 
-function consequent_7(__anchor, { hasLoaded, muzes }) {
+function consequent_7(__anchor, { a: hasLoaded, b: muzes }) {
 	var section = root_24();
 
 	{
@@ -405,11 +405,11 @@ function consequent_7(__anchor, { hasLoaded, muzes }) {
 	_$_.append(__anchor, section);
 }
 
-function if_8({ hasLoaded, muzes }) {
+function if_8({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_7;
 }
 
-var root_23 = _$_.template(`<div class="feed-e"><!></div>`, 0);
+var root_23 = _$_.template(`<div class=feed-e><!>`, 0);
 
 function IfDivFragment_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -419,7 +419,7 @@ function IfDivFragment_render(__anchor, __block) {
 	{
 		var node_13 = _$_.hydrating ? _$_.hydrate_child() : div_5.firstChild;
 
-		_$_.if(node_13, if_8, false, { hasLoaded, muzes });
+		_$_.if(node_13, if_8, false, { a: hasLoaded, b: muzes });
 		_$_.hydrating && _$_.pop(div_5);
 	}
 

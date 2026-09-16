@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div>Hello World</div>`, 0);
+var root = _$_.template(`<div>Hello World`, 0);
 
 function StaticText_render(__anchor, __block) {
 	var div = root();
@@ -11,7 +11,7 @@ function StaticText_render(__anchor, __block) {
 
 StaticText[_$_.$r] = StaticText_render;
 
-var root_2 = _$_.template(`<h1>Title</h1><p>Paragraph text</p><span>Span text</span>`, 1, 3);
+var root_2 = _$_.template(`<h1>Title</h1><p>Paragraph text</p><span>Span text`, 1, 3);
 var root_1 = _$_.template(`<!>`, 1, 1);
 
 function MultipleElements_render(__anchor, __block) {
@@ -30,7 +30,7 @@ function MultipleElements_render(__anchor, __block) {
 
 MultipleElements[_$_.$r] = MultipleElements_render;
 
-var root_3 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div></div>`, 0);
+var root_3 = _$_.template(`<div class=outer><div class=inner><span>Nested content`, 0);
 
 function NestedElements_render(__anchor, __block) {
 	var div_1 = root_3();
@@ -40,7 +40,7 @@ function NestedElements_render(__anchor, __block) {
 
 NestedElements[_$_.$r] = NestedElements_render;
 
-var root_5 = _$_.template(`<input type="text" placeholder="Enter text" disabled><a href="/link" target="_blank">Link</a>`, 1, 2);
+var root_5 = _$_.template(`<input type=text placeholder="Enter text" disabled><a href=/link target=_blank>Link`, 1, 2);
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function WithAttributes_render(__anchor, __block) {
@@ -59,7 +59,7 @@ function WithAttributes_render(__anchor, __block) {
 
 WithAttributes[_$_.$r] = WithAttributes_render;
 
-var root_6 = _$_.template(`<span class="child">Child content</span>`, 0);
+var root_6 = _$_.template(`<span class=child>Child content`, 0);
 
 function ChildComponent_render(__anchor, __block) {
 	var span = root_6();
@@ -69,7 +69,7 @@ function ChildComponent_render(__anchor, __block) {
 
 ChildComponent[_$_.$r] = ChildComponent_render;
 
-var root_7 = _$_.template(`<div class="parent"></div>`, 0);
+var root_7 = _$_.template(`<div class=parent>`, 0);
 
 function ParentWithChild_render(__anchor, __block) {
 	var div_2 = root_7();
@@ -86,7 +86,7 @@ function ParentWithChild_render(__anchor, __block) {
 
 ParentWithChild[_$_.$r] = ParentWithChild_render;
 
-var root_8 = _$_.template(`<div class="first">First</div>`, 0);
+var root_8 = _$_.template(`<div class=first>First`, 0);
 
 function FirstSibling_render(__anchor, __block) {
 	var div_3 = root_8();
@@ -96,7 +96,7 @@ function FirstSibling_render(__anchor, __block) {
 
 FirstSibling[_$_.$r] = FirstSibling_render;
 
-var root_9 = _$_.template(`<div class="second">Second</div>`, 0);
+var root_9 = _$_.template(`<div class=second>Second`, 0);
 
 function SecondSibling_render(__anchor, __block) {
 	var div_4 = root_9();
@@ -130,7 +130,7 @@ function SiblingComponents_render(__anchor, __block) {
 
 SiblingComponents[_$_.$r] = SiblingComponents_render;
 
-var root_12 = _$_.template(`<div></div>`, 0);
+var root_12 = _$_.template(`<div>`, 0);
 
 function render(__prev) {
 	var __a = 'Hello ' + __prev._props.name;
@@ -156,7 +156,7 @@ function WithGreeting_render(__anchor, __block) {
 
 WithGreeting[_$_.$r] = WithGreeting_render;
 
-var root_14 = _$_.template(`<div></div><span> </span>`, 1, 2);
+var root_14 = _$_.template(`<div></div><span> `, 1, 2);
 var root_13 = _$_.template(`<!>`, 1, 1);
 
 function ExpressionContent_render(__anchor, __block) {
@@ -190,7 +190,7 @@ function ExpressionContent_render(__anchor, __block) {
 
 ExpressionContent[_$_.$r] = ExpressionContent_render;
 
-var root_15 = _$_.template(`<div class="helper-item"></div>`, 0);
+var root_15 = _$_.template(`<div class=helper-item>`, 0);
 
 function NestedHelperItem_render(__anchor, __block, { item }) {
 	var div_7 = root_15();
@@ -204,7 +204,7 @@ function NestedHelperItem_render(__anchor, __block, { item }) {
 
 NestedHelperItem[_$_.$r] = NestedHelperItem_render;
 
-var root_17 = _$_.template(`<span class="label"></span><!>`, 1, 2);
+var root_17 = _$_.template(`<span class=label></span><!>`, 1, 2);
 var root_16 = _$_.template(`<!>`, 1, 1);
 
 function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
@@ -238,8 +238,8 @@ function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
 
 NestedTsxTsrxFragment[_$_.$r] = NestedTsxTsrxFragment_render;
 
-var root_19 = _$_.template(`<div class="app-item"> </div>`, 0);
-var root_18 = _$_.template(`<div class="nested-expression-values"><!></div>`, 0);
+var root_19 = _$_.template(`<div class=app-item> `, 0);
+var root_18 = _$_.template(`<div class=nested-expression-values><!>`, 0);
 
 function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 	var div_8 = root_18();
@@ -276,10 +276,10 @@ function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 
 NestedTsxTsrxExpressionValues[_$_.$r] = NestedTsxTsrxExpressionValues_render;
 
-var root_20 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_21 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_20 = _$_.template(`<strong class=middle>beta`, 0);
+var root_21 = _$_.template(`<em class=tail>epsilon`, 0);
 var root_22 = _$_.template(` `, 1, 1);
-var root_23 = _$_.template(`<div class="mixed-collection"><!></div>`, 0);
+var root_23 = _$_.template(`<div class=mixed-collection><!>`, 0);
 
 function MixedTsrxCollectionText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -322,10 +322,10 @@ function MixedTsrxCollectionText_render(__anchor, __block) {
 
 MixedTsrxCollectionText[_$_.$r] = MixedTsrxCollectionText_render;
 
-var root_24 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_25 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_24 = _$_.template(`<strong class=middle>beta`, 0);
+var root_25 = _$_.template(`<em class=tail>epsilon`, 0);
 var root_26 = _$_.template(` `, 1, 1);
-var root_27 = _$_.template(`<div class="mixed-collection-split"><!></div>`, 0);
+var root_27 = _$_.template(`<div class=mixed-collection-split><!>`, 0);
 
 function MixedTsrxCollectionSplitServerText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -368,10 +368,10 @@ function MixedTsrxCollectionSplitServerText_render(__anchor, __block) {
 
 MixedTsrxCollectionSplitServerText[_$_.$r] = MixedTsrxCollectionSplitServerText_render;
 
-var root_28 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_29 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_28 = _$_.template(`<strong class=middle>beta`, 0);
+var root_29 = _$_.template(`<em class=tail>epsilon`, 0);
 var root_30 = _$_.template(` `, 1, 1);
-var root_31 = _$_.template(`<div class="mixed-collection-split"><!></div>`, 0);
+var root_31 = _$_.template(`<div class=mixed-collection-split><!>`, 0);
 
 function MixedTsrxCollectionSplitClientText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -414,9 +414,9 @@ function MixedTsrxCollectionSplitClientText_render(__anchor, __block) {
 
 MixedTsrxCollectionSplitClientText[_$_.$r] = MixedTsrxCollectionSplitClientText_render;
 
-var root_32 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
+var root_32 = _$_.template(`<span class=primitive-tail> ok`, 0);
 var root_33 = _$_.template(` `, 1, 1);
-var root_34 = _$_.template(`<div class="mixed-collection-primitive"><!></div>`, 0);
+var root_34 = _$_.template(`<div class=mixed-collection-primitive><!>`, 0);
 
 function MixedTsrxCollectionPrimitiveServerText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -452,9 +452,9 @@ function MixedTsrxCollectionPrimitiveServerText_render(__anchor, __block) {
 
 MixedTsrxCollectionPrimitiveServerText[_$_.$r] = MixedTsrxCollectionPrimitiveServerText_render;
 
-var root_35 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
+var root_35 = _$_.template(`<span class=primitive-tail> ok`, 0);
 var root_36 = _$_.template(` `, 1, 1);
-var root_37 = _$_.template(`<div class="mixed-collection-primitive"><!></div>`, 0);
+var root_37 = _$_.template(`<div class=mixed-collection-primitive><!>`, 0);
 
 function MixedTsrxCollectionPrimitiveClientText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -490,7 +490,7 @@ function MixedTsrxCollectionPrimitiveClientText_render(__anchor, __block) {
 
 MixedTsrxCollectionPrimitiveClientText[_$_.$r] = MixedTsrxCollectionPrimitiveClientText_render;
 
-var root_38 = _$_.template(`<div class="dynamic-array-call"> </div>`, 0);
+var root_38 = _$_.template(`<div class=dynamic-array-call> `, 0);
 
 function DynamicArrayFromCall_render(__anchor, __block) {
 	const items = _$_.with_scope(__block, createPrimitiveItems);
@@ -508,7 +508,7 @@ function DynamicArrayFromCall_render(__anchor, __block) {
 
 DynamicArrayFromCall[_$_.$r] = DynamicArrayFromCall_render;
 
-var root_39 = _$_.template(`<div class="dynamic-array-track"> </div>`, 0);
+var root_39 = _$_.template(`<div class=dynamic-array-track> `, 0);
 
 function DynamicArrayFromTrack_render(__anchor, __block) {
 	const items = _$_.track(['start:', ['one', 2], true, null, false, ':end'], __block, 'b5de6402');
@@ -526,7 +526,7 @@ function DynamicArrayFromTrack_render(__anchor, __block) {
 
 DynamicArrayFromTrack[_$_.$r] = DynamicArrayFromTrack_render;
 
-var root_40 = _$_.template(`<div class="dynamic-array-conditional"> </div>`, 0);
+var root_40 = _$_.template(`<div class=dynamic-array-conditional> `, 0);
 
 function DynamicArrayFromConditional_render(__anchor, __block) {
 	const condition = true;
@@ -549,7 +549,7 @@ function DynamicArrayFromConditional_render(__anchor, __block) {
 
 DynamicArrayFromConditional[_$_.$r] = DynamicArrayFromConditional_render;
 
-var root_41 = _$_.template(`<div class="dynamic-array-logical"> </div>`, 0);
+var root_41 = _$_.template(`<div class=dynamic-array-logical> `, 0);
 
 function DynamicArrayFromLogical_render(__anchor, __block) {
 	const condition = true;
@@ -568,7 +568,7 @@ function DynamicArrayFromLogical_render(__anchor, __block) {
 
 DynamicArrayFromLogical[_$_.$r] = DynamicArrayFromLogical_render;
 
-var root_42 = _$_.template(`<section class="outer"><div class="inner">from tsrx</div></section>`, 0);
+var root_42 = _$_.template(`<section class=outer><div class=inner>from tsrx`, 0);
 var root_44 = _$_.template(`<!>`, 1, 1);
 var root_43 = _$_.template(`<!>`, 1, 1);
 
@@ -595,7 +595,7 @@ function NestedTsrxInsideTopLevelTsxExpression_render(__anchor, __block) {
 
 NestedTsrxInsideTopLevelTsxExpression[_$_.$r] = NestedTsrxInsideTopLevelTsxExpression_render;
 
-var root_45 = _$_.template(`<div class="wrapper"><section class="native"><span class="nested-tsrx">inside nested tsrx</span></section></div>`, 0);
+var root_45 = _$_.template(`<div class=wrapper><section class=native><span class=nested-tsrx>inside nested tsrx`, 0);
 var root_47 = _$_.template(`<!>`, 1, 1);
 var root_46 = _$_.template(`<!>`, 1, 1);
 
@@ -622,8 +622,8 @@ function NestedTsrxElementsInsideTopLevelTsxValue_render(__anchor, __block) {
 
 NestedTsrxElementsInsideTopLevelTsxValue[_$_.$r] = NestedTsrxElementsInsideTopLevelTsxValue_render;
 
-var root_48 = _$_.template(`<span class="nested-tsx">inside nested tsx</span>`, 0);
-var root_49 = _$_.template(`<div class="native"> </div>`, 0);
+var root_48 = _$_.template(`<span class=nested-tsx>inside nested tsx`, 0);
+var root_49 = _$_.template(`<div class=native> `, 0);
 var root_51 = _$_.template(`<!>`, 1, 1);
 var root_50 = _$_.template(`<!>`, 1, 1);
 
@@ -663,7 +663,7 @@ function TsxDeclaredBeforeTopLevelTsx_render(__anchor, __block) {
 
 TsxDeclaredBeforeTopLevelTsx[_$_.$r] = TsxDeclaredBeforeTopLevelTsx_render;
 
-var root_52 = _$_.template(`<div class="text-prop"> </div>`, 0);
+var root_52 = _$_.template(`<div class=text-prop> `, 0);
 
 function TextProp_render(__anchor, __block, { children }) {
 	var div_21 = root_52();
@@ -680,7 +680,7 @@ function TextProp_render(__anchor, __block, { children }) {
 
 TextProp[_$_.$r] = TextProp_render;
 
-var root_53 = _$_.template(`<div class="text-prop"></div>`, 0);
+var root_53 = _$_.template(`<div class=text-prop>`, 0);
 
 function render_1(__prev) {
 	var __a = __prev._children.value;
@@ -700,7 +700,7 @@ function TypedTextProp_render(__anchor, __block, { children }) {
 
 TypedTextProp[_$_.$r] = TypedTextProp_render;
 
-var root_55 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_55 = _$_.template(`<!><button class=show-text>Show`, 1, 2);
 var root_54 = _$_.template(`<!>`, 1, 1);
 
 function TextPropWithToggle_render(__anchor, __block) {
@@ -727,7 +727,7 @@ function TextPropWithToggle_render(__anchor, __block) {
 
 TextPropWithToggle[_$_.$r] = TextPropWithToggle_render;
 
-var root_57 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_57 = _$_.template(`<!><button class=show-text>Show`, 1, 2);
 var root_56 = _$_.template(`<!>`, 1, 1);
 
 function TypedTextPropWithToggle_render(__anchor, __block) {
@@ -754,7 +754,7 @@ function TypedTextPropWithToggle_render(__anchor, __block) {
 
 TypedTextPropWithToggle[_$_.$r] = TypedTextPropWithToggle_render;
 
-var root_59 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
+var root_59 = _$_.template(`<h1 class=sr-only>heading</h1><p class=subtitle>first paragraph</p><p class=subtitle>second paragraph`, 1, 3);
 var root_58 = _$_.template(`<!>`, 1, 1);
 
 function StaticHeader_render(__anchor, __block) {
@@ -773,7 +773,7 @@ function StaticHeader_render(__anchor, __block) {
 
 StaticHeader[_$_.$r] = StaticHeader_render;
 
-var root_61 = _$_.template(`<!><span class="sibling1"></span><span class="sibling2"></span>`, 1, 3);
+var root_61 = _$_.template(`<!><span class=sibling1></span><span class=sibling2>`, 1, 3);
 var root_60 = _$_.template(`<!>`, 1, 1);
 
 function StaticChildWithSiblings_render(__anchor, __block) {
@@ -807,7 +807,7 @@ function StaticChildWithSiblings_render(__anchor, __block) {
 
 StaticChildWithSiblings[_$_.$r] = StaticChildWithSiblings_render;
 
-var root_63 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
+var root_63 = _$_.template(`<h1 class=sr-only>Ripple</h1><img src=/images/logo.png alt=Logo class=logo><p class=subtitle>the elegant TypeScript UI framework`, 1, 3);
 var root_62 = _$_.template(`<!>`, 1, 1);
 
 function Header_render(__anchor, __block) {
@@ -826,8 +826,8 @@ function Header_render(__anchor, __block) {
 
 Header[_$_.$r] = Header_render;
 
-var root_65 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
-var root_64 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
+var root_65 = _$_.template(`<a href=/playground class=playground-link>Playground`, 0);
+var root_64 = _$_.template(`<div class=social-links><a href=https://github.com class=github-link>GitHub</a><a href=https://discord.com class=discord-link>Discord</a><!>`, 0);
 
 function Actions_render(__anchor, __block, { playgroundVisible = false }) {
 	var div_23 = root_64();
@@ -853,7 +853,7 @@ function Actions_render(__anchor, __block, { playgroundVisible = false }) {
 
 Actions[_$_.$r] = Actions_render;
 
-var root_66 = _$_.template(`<main><div class="container"><!></div></main>`, 0);
+var root_66 = _$_.template(`<main><div class=container><!>`, 0);
 
 function Layout_render(__anchor, __block, { children }) {
 	var main = root_66();
@@ -874,7 +874,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_67 = _$_.template(`<div class="content"><p>Some content here</p></div>`, 0);
+var root_67 = _$_.template(`<div class=content><p>Some content here`, 0);
 
 function Content_render(__anchor, __block) {
 	var div_25 = root_67();
@@ -912,7 +912,7 @@ function WebsiteIndex_render(__anchor, __block) {
 
 WebsiteIndex[_$_.$r] = WebsiteIndex_render;
 
-var root_69 = _$_.template(`<footer class="last-child">I am the last child</footer>`, 0);
+var root_69 = _$_.template(`<footer class=last-child>I am the last child`, 0);
 
 function LastChild_render(__anchor, __block) {
 	var footer = root_69();
@@ -922,7 +922,7 @@ function LastChild_render(__anchor, __block) {
 
 LastChild[_$_.$r] = LastChild_render;
 
-var root_70 = _$_.template(`<div class="wrapper"><h1>Header</h1><p>Some content</p></div>`, 0);
+var root_70 = _$_.template(`<div class=wrapper><h1>Header</h1><p>Some content`, 0);
 
 function ComponentAsLastSibling_render(__anchor, __block) {
 	var div_26 = root_70();
@@ -941,7 +941,7 @@ function ComponentAsLastSibling_render(__anchor, __block) {
 
 ComponentAsLastSibling[_$_.$r] = ComponentAsLastSibling_render;
 
-var root_71 = _$_.template(`<div class="inner"><span>Inner text</span></div>`, 0);
+var root_71 = _$_.template(`<div class=inner><span>Inner text`, 0);
 
 function InnerContent_render(__anchor, __block) {
 	var div_27 = root_71();
@@ -959,7 +959,7 @@ function InnerContent_render(__anchor, __block) {
 
 InnerContent[_$_.$r] = InnerContent_render;
 
-var root_72 = _$_.template(`<section class="outer"><h2>Section title</h2></section>`, 0);
+var root_72 = _$_.template(`<section class=outer><h2>Section title`, 0);
 
 function NestedComponentAsLastSibling_render(__anchor, __block) {
 	var section_1 = root_72();
@@ -977,7 +977,7 @@ function NestedComponentAsLastSibling_render(__anchor, __block) {
 
 NestedComponentAsLastSibling[_$_.$r] = NestedComponentAsLastSibling_render;
 
-var root_73 = _$_.template(`<div></div>`, 0);
+var root_73 = _$_.template(`<div>`, 0);
 
 function render_2(__prev) {
 	var __a = "label: " + String(_$_.with_scope(__prev.___block, fetchLabel));
@@ -997,7 +997,7 @@ function TextTailExpression_render(__anchor, __block) {
 
 TextTailExpression[_$_.$r] = TextTailExpression_render;
 
-var root_74 = _$_.template(`<div></div>`, 0);
+var root_74 = _$_.template(`<div>`, 0);
 
 function render_3(__prev) {
 	var __a = 'frag-' + String(_$_.with_scope(__prev.___block, fetchLabel));
@@ -1017,7 +1017,7 @@ function FragmentTailExpression_render(__anchor, __block) {
 
 FragmentTailExpression[_$_.$r] = FragmentTailExpression_render;
 
-var root_75 = _$_.template(`<div>frag-<span>tail</span></div>`, 0);
+var root_75 = _$_.template(`<div>frag-<span>tail`, 0);
 
 function FragmentChildOnly_render(__anchor, __block) {
 	var div_30 = root_75();
@@ -1031,7 +1031,7 @@ function FragmentChildOnly_render(__anchor, __block) {
 
 FragmentChildOnly[_$_.$r] = FragmentChildOnly_render;
 
-var root_77 = _$_.template(`<!><p>after-opaque</p>`, 1, 2);
+var root_77 = _$_.template(`<!><p>after-opaque`, 1, 2);
 var root_76 = _$_.template(`<!>`, 1, 1);
 
 function OpaqueLead_render(__anchor, __block, props) {
@@ -1052,7 +1052,7 @@ function OpaqueLead_render(__anchor, __block, props) {
 
 OpaqueLead[_$_.$r] = OpaqueLead_render;
 
-var root_78 = _$_.template(`<div></div>`, 0);
+var root_78 = _$_.template(`<div>`, 0);
 
 function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
 	var div_31 = root_78();
@@ -1069,7 +1069,7 @@ function FragmentLeadsWithOpaqueValue_render(__anchor, __block) {
 
 FragmentLeadsWithOpaqueValue[_$_.$r] = FragmentLeadsWithOpaqueValue_render;
 
-var root_80 = _$_.template(` <p>after-call</p>`, 1, 2);
+var root_80 = _$_.template(` <p>after-call`, 1, 2);
 
 function render_4(__prev) {
 	var __a = String(_$_.with_scope(__prev.___block, fetchLabel));
@@ -1099,7 +1099,7 @@ function PrimitiveCallLead_render(__anchor, __block) {
 
 PrimitiveCallLead[_$_.$r] = PrimitiveCallLead_render;
 
-var root_81 = _$_.template(`<div></div>`, 0);
+var root_81 = _$_.template(`<div>`, 0);
 
 function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 	var div_32 = root_81();
@@ -1116,7 +1116,7 @@ function FragmentLeadsWithPrimitiveCall_render(__anchor, __block) {
 
 FragmentLeadsWithPrimitiveCall[_$_.$r] = FragmentLeadsWithPrimitiveCall_render;
 
-var root_83 = _$_.template(`<div class="primitive-calls"></div><button>update</button>`, 1, 2);
+var root_83 = _$_.template(`<div class=primitive-calls></div><button>update`, 1, 2);
 
 function render_5(__prev) {
 	var __a = "sum: " + (String(Number(__prev._count.value) + Number(__prev._count.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev.___block, () => BigInt(__prev._count.value)) ?? '')));
@@ -1149,11 +1149,11 @@ function PrimitiveTextCalls_render(__anchor, __block) {
 
 PrimitiveTextCalls[_$_.$r] = PrimitiveTextCalls_render;
 
-var root_84 = _$_.template(`<b>string</b>`, 0);
-var root_85 = _$_.template(`<b>number</b>`, 0);
-var root_86 = _$_.template(`<b>bigint</b>`, 0);
-var root_87 = _$_.template(`<b>date</b>`, 0);
-var root_89 = _$_.template(`<p>before<!>after</p><p>before<!>after</p><p>before<!>after</p><p>before<!>after</p>`, 1, 4);
+var root_84 = _$_.template(`<b>string`, 0);
+var root_85 = _$_.template(`<b>number`, 0);
+var root_86 = _$_.template(`<b>bigint`, 0);
+var root_87 = _$_.template(`<b>date`, 0);
+var root_89 = _$_.template(`<p>before<!>after</p><p>before<!>after</p><p>before<!>after</p><p>before<!>after`, 1, 4);
 var root_88 = _$_.template(`<!>`, 1, 1);
 
 function ShadowedTextCalls_render(__anchor, __block) {

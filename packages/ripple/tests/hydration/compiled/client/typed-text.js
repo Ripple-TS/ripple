@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class="typed-run"> <span>tail</span></div><p class="typed-number"></p><button>update</button>`, 1, 3);
+var root_1 = _$_.template(`<div class=typed-run> <span>tail</span></div><p class=typed-number></p><button>update`, 1, 3);
 
 function render(__prev) {
 	var __a = 'value: ' + (__prev._row.value.label + String(__prev._row.value.count ?? ''));

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div></div>`, 0);
+var root_1 = _$_.template(`<div>`, 0);
 
 function render(__prev) {
 	var __pattern = _$_.get(__prev._pattern);
@@ -15,21 +15,21 @@ function render(__prev) {
 	var __b = `row row-${__pattern.id} kind-a`;
 
 	if (__prev.b !== __b) {
-		_$_.set_class(__prev._div, __prev.b = __b, void 0, true);
+		_$_.set_class(__prev._div, __prev.b = __b);
 	}
 }
 
-var root_2 = _$_.template(`<div>pending a</div>`, 0);
+var root_2 = _$_.template(`<div>pending a`, 0);
 
 function render_1(__prev) {
 	var __a = `pending pending-${_$_.get(__prev._pattern).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_1, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_1, __prev.a = __a);
 	}
 }
 
-var root_3 = _$_.template(`<div></div>`, 0);
+var root_3 = _$_.template(`<div>`, 0);
 
 function render_2(__prev) {
 	var __pattern_1 = _$_.get(__prev._pattern);
@@ -43,17 +43,17 @@ function render_2(__prev) {
 	var __b = `row row-${__pattern_1.id} kind-b`;
 
 	if (__prev.b !== __b) {
-		_$_.set_class(__prev._div_2, __prev.b = __b, void 0, true);
+		_$_.set_class(__prev._div_2, __prev.b = __b);
 	}
 }
 
-var root_4 = _$_.template(`<div>pending b</div>`, 0);
+var root_4 = _$_.template(`<div>pending b`, 0);
 
 function render_3(__prev) {
 	var __a = `pending pending-${_$_.get(__prev._pattern).id}`;
 
 	if (__prev.a !== __a) {
-		_$_.set_class(__prev._div_3, __prev.a = __a, void 0, true);
+		_$_.set_class(__prev._div_3, __prev.a = __a);
 	}
 }
 
@@ -121,7 +121,7 @@ function if_1(pattern) {
 	if (_$_.get(pattern).enabled) return consequent;
 }
 
-var root = _$_.template(`<section class="mixed-static"></section>`, 0);
+var root = _$_.template(`<section class=mixed-static>`, 0);
 
 function MixedControlFlowStatic_render(__anchor, __block) {
 	const rows = [
@@ -151,7 +151,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 
 MixedControlFlowStatic[_$_.$r] = MixedControlFlowStatic_render;
 
-var root_8 = _$_.template(`<p></p>`, 0);
+var root_8 = _$_.template(`<p>`, 0);
 
 function render_4(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._pattern_1);
@@ -165,12 +165,12 @@ function render_4(__prev) {
 	var __b = `item item-${__pattern_1_1.id}`;
 
 	if (__prev.b !== __b) {
-		_$_.set_class(__prev._p, __prev.b = __b, void 0, true);
+		_$_.set_class(__prev._p, __prev.b = __b);
 	}
 }
 
-var root_9 = _$_.template(`<p class="pending">pending a</p>`, 0);
-var root_10 = _$_.template(`<p></p>`, 0);
+var root_9 = _$_.template(`<p class=pending>pending a`, 0);
+var root_10 = _$_.template(`<p>`, 0);
 
 function render_5(__prev) {
 	var __pattern_1_2 = _$_.get(__prev._pattern_1);
@@ -184,13 +184,13 @@ function render_5(__prev) {
 	var __b = `item item-${__pattern_1_2.id}`;
 
 	if (__prev.b !== __b) {
-		_$_.set_class(__prev._p_2, __prev.b = __b, void 0, true);
+		_$_.set_class(__prev._p_2, __prev.b = __b);
 	}
 }
 
-var root_11 = _$_.template(`<p class="pending">pending b</p>`, 0);
+var root_11 = _$_.template(`<p class=pending>pending b`, 0);
 
-function switch_case_0_1(__anchor, { mode, pattern_1 }) {
+function switch_case_0_1(__anchor, { a: mode, b: pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -209,7 +209,7 @@ function switch_case_0_1(__anchor, { mode, pattern_1 }) {
 	);
 }
 
-function switch_case_default_1(__anchor, { mode, pattern_1 }) {
+function switch_case_default_1(__anchor, { a: mode, b: pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -234,7 +234,7 @@ function switch_case_default_1(__anchor, { mode, pattern_1 }) {
 	);
 }
 
-function switch_2({ mode, pattern_1 }) {
+function switch_2({ a: mode, b: pattern_1 }) {
 	switch (mode.value) {
 		case 'a':
 			return switch_case_0_1;
@@ -244,9 +244,9 @@ function switch_2({ mode, pattern_1 }) {
 	}
 }
 
-var root_7 = _$_.template(`<div class="mixed-reactive-list"></div>`, 0);
+var root_7 = _$_.template(`<div class=mixed-reactive-list>`, 0);
 
-function consequent_1(__anchor, { show, items, mode }) {
+function consequent_1(__anchor, { a: show, b: items, c: mode }) {
 	var div_4 = root_7();
 
 	{
@@ -254,7 +254,7 @@ function consequent_1(__anchor, { show, items, mode }) {
 			div_4,
 			() => items.value,
 			(__anchor, pattern_1) => {
-				_$_.switch(__anchor, switch_2, true, { mode, pattern_1 });
+				_$_.switch(__anchor, switch_2, true, { a: mode, b: pattern_1 });
 			},
 			4,
 			(pattern_1) => pattern_1.id
@@ -266,11 +266,11 @@ function consequent_1(__anchor, { show, items, mode }) {
 	_$_.append(__anchor, div_4);
 }
 
-function if_2({ show, items, mode }) {
+function if_2({ a: show, b: items, c: mode }) {
 	if (show.value) return consequent_1;
 }
 
-var root_6 = _$_.template(`<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!>`, 1, 4);
+var root_6 = _$_.template(`<button class=toggle-show>Toggle Show</button><button class=toggle-mode>Toggle Mode</button><button class=add-item>Add Item</button><!>`, 1, 4);
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function MixedControlFlowReactive_render(__anchor, __block) {
@@ -302,7 +302,7 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
 
-		_$_.if(node, if_2, false, { show, items, mode });
+		_$_.if(node, if_2, false, { a: show, b: items, c: mode });
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -311,10 +311,10 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 
 MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 
-var root_14 = _$_.template(`<div></div>`, 0);
-var root_15 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
+var root_14 = _$_.template(`<div>`, 0);
+var root_15 = _$_.template(`<div class=unexpected>unexpected`, 0);
 
-function switch_case_0_2(__anchor, { state, row }) {
+function switch_case_0_2(__anchor, { a: state, b: row }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -324,7 +324,7 @@ function switch_case_0_2(__anchor, { state, row }) {
 		(__anchor) => {
 			var div_6 = root_14();
 
-			_$_.set_class(div_6, `pending-row pending-row-${row}`, void 0, true);
+			_$_.set_class(div_6, `pending-row pending-row-${row}`);
 
 			{
 				div_6.textContent = `pending ${row}`;
@@ -336,13 +336,13 @@ function switch_case_0_2(__anchor, { state, row }) {
 	);
 }
 
-function switch_case_default_2(__anchor, { state, row }) {
+function switch_case_default_2(__anchor, { a: state, b: row }) {
 	var div_7 = root_15();
 
 	_$_.append(__anchor, div_7);
 }
 
-function switch_3({ state, row }) {
+function switch_3({ a: state, b: row }) {
 	switch (state) {
 		case 'slow':
 			return switch_case_0_2;
@@ -352,15 +352,15 @@ function switch_3({ state, row }) {
 	}
 }
 
-function consequent_2(__anchor, { row, state }) {
-	_$_.switch(__anchor, switch_3, true, { state, row });
+function consequent_2(__anchor, { a: row, b: state }) {
+	_$_.switch(__anchor, switch_3, true, { a: state, b: row });
 }
 
-function if_3({ row, state }) {
+function if_3({ a: row, b: state }) {
 	if (row === 1) return consequent_2;
 }
 
-var root_13 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
+var root_13 = _$_.template(`<div class=before>before</div><!>`, 1, 2);
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function MixedControlFlowAsyncPending_render(__anchor, __block) {
@@ -378,7 +378,7 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 			node_2,
 			() => rows,
 			(__anchor, row) => {
-				_$_.if(__anchor, if_3, true, { row, state });
+				_$_.if(__anchor, if_3, true, { a: row, b: state });
 			},
 			0
 		);
@@ -391,7 +391,7 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 
 MixedControlFlowAsyncPending[_$_.$r] = MixedControlFlowAsyncPending_render;
 
-var root_16 = _$_.template(`<div class="resolved-row"> </div>`, 0);
+var root_16 = _$_.template(`<div class=resolved-row> `, 0);
 
 function AsyncRow_render(__anchor, __block, { label }) {
 	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');

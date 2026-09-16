@@ -41,7 +41,7 @@ export {
 	SUSPENSE_REJECTED,
 	RENDER_ENTRY as $r,
 } from './constants.js';
-export { event, render_event, delegate } from './events.js';
+export { event, render_event, delegate, listen } from './events.js';
 export { portal } from './portal.js';
 
 export {

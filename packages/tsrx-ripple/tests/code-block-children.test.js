@@ -16,7 +16,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		const { code, errors } = compile(with_statements, 'App.tsrx');
 		expect(errors).toEqual([]);
 		// The block's render output replaces the block at its source position.
-		expect(code).toContain(`<span class="a">a</span><!>`);
+		expect(code).toContain(`<span class=a>a</span><!>`);
 		// Statements live inside the inline component callback — the wrapper
 		// IIFE collapses once they move there.
 		const component = code.search(/_\$_\.tsrx_element\(\(__anchor, __block\) => \{\s*const x = 1;/);
@@ -127,7 +127,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		expect(errors).toEqual([]);
 		// No anchor among the spans, no inline component — the empty chain
 		// renders nothing.
-		expect(code).toContain('<span>a</span><span>b</span>');
+		expect(code).toContain('<span>a</span><span>b`');
 		expect(code).not.toContain('<span>a</span><span>b</span><!>');
 		expect(code).not.toContain('(() => {');
 	});
@@ -158,7 +158,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 			expect(errors).toEqual([]);
 			// Identical to writing the element inline: no inline component, no
 			// expression anchor, no scope wrapper.
-			expect(code).toContain('<span class="a">a</span><span class="x">x</span>');
+			expect(code).toContain('<span class=a>a</span><span class=x>x`');
 			expect(code).not.toContain('(() => {');
 			expect(code).not.toContain('with_scope');
 		}

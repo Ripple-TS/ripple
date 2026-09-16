@@ -56,7 +56,9 @@ import {
 	getStyleElementStylesheet,
 	getOriginalEventName,
 	has_location,
+	isCaptureEvent,
 	isEventAttribute,
+	isNonDelegated,
 	isEmptyJsxFragment as is_empty_jsx_fragment,
 	isInsideComponent as is_inside_component,
 	normalizeEventName,
@@ -558,7 +560,8 @@ function visit_function(node, context) {
 	if (
 		metadata?.tracked === true &&
 		!is_inside_component(context, true) &&
-		body.type === 'BlockStatement'
+		body.type === 'BlockStatement' &&
+		references_block(body)
 	) {
 		body = { ...body, body: [b.var('__block', b.call('_$_.scope')), ...body.body] };
 	}
@@ -578,6 +581,59 @@ function visit_function(node, context) {
 		returnType: undefined,
 		typeParameters: undefined,
 	};
+}
+
+/** AST keys that hold no child values, or hold references back up the tree. */
+const NON_CHILD_KEYS = new Set([
+	'metadata',
+	'loc',
+	'start',
+	'end',
+	'range',
+	'leadingComments',
+	'trailingComments',
+	'typeAnnotation',
+	'typeParameters',
+	'typeArguments',
+	'returnType',
+]);
+
+/**
+ * Whether a compiled function body reads the `__block` binding a scope
+ * declaration would introduce. A body that never does (it creates no tracked
+ * value and wraps no call in `with_scope`) gets no `_$_.scope()` call: a
+ * bundler drops the unused binding but has to keep the call.
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function references_block(node) {
+	if (node.type === 'Identifier') {
+		return node.name === '__block';
+	}
+	for (const key in node) {
+		if (NON_CHILD_KEYS.has(key)) continue;
+		const value = /** @type {any} */ (node)[key];
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				if (is_ast_node(item) && references_block(item)) return true;
+			}
+		} else if (is_ast_node(value) && references_block(value)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is AST.Node}
+ */
+function is_ast_node(value) {
+	return (
+		value !== null &&
+		typeof value === 'object' &&
+		typeof (/** @type {any} */ (value).type) === 'string'
+	);
 }
 
 /**
@@ -1662,22 +1718,41 @@ function capture_context(captures) {
 	if (captures.length <= 1) {
 		return { params: captures.map((name) => b.id(name)), args: captures.map((name) => b.id(name)) };
 	}
+	// The keys are positional (`a`, `b`, …): the object is built at the call
+	// and taken apart in the signature, so the names it carries are never
+	// read, and short keys keep both sites small.
 	const pattern = captures.map(
-		(name) =>
+		(name, index) =>
 			/** @type {AST.AssignmentProperty} */ ({
 				type: 'Property',
 				kind: 'init',
-				key: b.id(name),
+				key: b.id(capture_key(index)),
 				value: b.id(name),
 				computed: false,
-				shorthand: true,
+				shorthand: false,
 				method: false,
 			}),
 	);
 	return {
 		params: [b.object_pattern(pattern)],
-		args: [b.object(captures.map((name) => b.prop('init', b.id(name), b.id(name), false, true)))],
+		args: [
+			b.object(captures.map((name, index) => b.prop('init', b.id(capture_key(index)), b.id(name)))),
+		],
 	};
+}
+
+/**
+ * The key of the `index`th captured local: `a`…`z`, then `aa`, `ab`, ….
+ * @param {number} index
+ * @returns {string}
+ */
+function capture_key(index) {
+	let key = '';
+	do {
+		key = String.fromCharCode(97 + (index % 26)) + key;
+		index = Math.floor(index / 26) - 1;
+	} while (index >= 0);
+	return key;
 }
 
 /**
@@ -3654,13 +3729,7 @@ const visitors = {
 		 *  @param {string | number | bigint | boolean | RegExp | null | undefined} value
 		 */
 		const handle_static_attr = (name, value) => {
-			const attr_value = b.literal(
-				` ${name}${
-					is_boolean_attribute(name) && value === true
-						? ''
-						: `="${value === true ? '' : escape_html(/** @type {string} */ (value), true)}"`
-				}`,
-			);
+			const attr_value = b.literal(` ${name}${static_attribute_value(name, value)}`);
 
 			if (is_spreading) {
 				// For spread attributes, store just the actual value, not the full attribute string
@@ -3882,6 +3951,27 @@ const visitors = {
 									state.init?.push(
 										b.stmt(b.call('_$_.render_event', b.literal(event_name), id, b.thunk(handler))),
 									);
+								} else if (
+									(isCaptureEvent(event_name) || isNonDelegated(normalizeEventName(name))) &&
+									(handler.type === 'ArrowFunctionExpression' ||
+										handler.type === 'FunctionExpression' ||
+										(attr_value.type === 'Identifier' &&
+											is_declared_function_within_component(attr_value, context)))
+								) {
+									// A plain function for an event its name keeps off delegation:
+									// the DOM name and phase are resolved here, so the runtime
+									// attaches the listener without its name tables or options.
+									state.init?.push(
+										b.stmt(
+											b.call(
+												'_$_.listen',
+												b.literal(normalizeEventName(name)),
+												id,
+												handler,
+												isCaptureEvent(event_name) ? b.true : undefined,
+											),
+										),
+									);
 								} else {
 									state.init?.push(b.stmt(b.call('_$_.event', b.literal(event_name), id, handler)));
 								}
@@ -3979,8 +4069,7 @@ const visitors = {
 									'_$_.set_class',
 									id,
 									b.literal(attr_value.value),
-									scope_class,
-									b.literal(is_html_class),
+									...set_class_args(scope_class, is_html_class),
 								),
 							),
 						);
@@ -3992,19 +4081,26 @@ const visitors = {
 						visit(attr_value, { ...state, metadata, selector_root: attr_value })
 					);
 
-					const hash_arg = scope_class ?? undefined;
-
 					if (metadata.tracking) {
 						local_updates.push({
 							operation: (key) =>
-								b.stmt(b.call('_$_.set_class', id, key, hash_arg, b.literal(is_html_class))),
+								b.stmt(
+									b.call('_$_.set_class', id, key, ...set_class_args(scope_class, is_html_class)),
+								),
 							expression,
 							identity: attr_value,
 							initial: b.member(b.id('_$_'), b.id('UNINITIALIZED')),
 						});
 					} else {
 						state.init?.push(
-							b.stmt(b.call('_$_.set_class', id, expression, hash_arg, b.literal(is_html_class))),
+							b.stmt(
+								b.call(
+									'_$_.set_class',
+									id,
+									expression,
+									...set_class_args(scope_class, is_html_class),
+								),
+							),
 						);
 					}
 				}
@@ -4020,7 +4116,12 @@ const visitors = {
 					const id = state.flush_node?.();
 					state.init?.push(
 						b.stmt(
-							b.call('_$_.set_class', id, b.literal(null), scope_class, b.literal(is_html_class)),
+							b.call(
+								'_$_.set_class',
+								id,
+								b.literal(null),
+								...set_class_args(scope_class, is_html_class),
+							),
 						),
 					);
 				}
@@ -4694,6 +4795,83 @@ const visitors = {
 		return { ...node, body: statements };
 	},
 };
+
+/**
+ * The `=value` part of a static attribute in a template string, in its
+ * shortest form the HTML parser reads back the same way: nothing for an empty
+ * value (`hidden`, `class`), the bare value when it holds none of the
+ * characters an unquoted value cannot (`type=text`), quotes otherwise.
+ * @param {string} name
+ * @param {string | number | bigint | boolean | RegExp | null | undefined} value
+ * @returns {string}
+ */
+function static_attribute_value(name, value) {
+	if (value === true && is_boolean_attribute(name)) {
+		return '';
+	}
+	const text = value === true ? '' : escape_html(String(value), true);
+	if (text === '') {
+		return '';
+	}
+	return /[\s"'=<>`]/.test(text) ? `="${text}"` : `=${text}`;
+}
+
+/**
+ * Elements whose end tag the parser needs even at the end of the input: their
+ * content is raw text or escapable raw text, and an implied end is a parse
+ * error the browsers recover from differently.
+ */
+const REQUIRED_END_TAGS = new Set([
+	'script',
+	'style',
+	'textarea',
+	'title',
+	'xmp',
+	'iframe',
+	'noembed',
+	'noframes',
+	'noscript',
+	'plaintext',
+]);
+
+/**
+ * Drops the end tags that close a template: the parser implies them when the
+ * input ends, so `<tr><td></td></tr>` and `<tr><td>` build the same tree. Only
+ * the run of end tags at the very end goes, and it stops at an element whose
+ * end tag matters (see `REQUIRED_END_TAGS`).
+ * @param {Array<string | AST.Expression>} items
+ * @returns {Array<string | AST.Expression>}
+ */
+function strip_trailing_end_tags(items) {
+	const stripped = items.slice();
+	while (stripped.length > 0) {
+		const last = stripped[stripped.length - 1];
+		if (typeof last !== 'string') break;
+		const match = /<\/([a-zA-Z][\w-]*)>$/.exec(last);
+		if (match === null || REQUIRED_END_TAGS.has(match[1].toLowerCase())) break;
+		const rest = last.slice(0, -match[0].length);
+		if (rest === '') {
+			stripped.pop();
+		} else {
+			stripped[stripped.length - 1] = rest;
+		}
+	}
+	return stripped;
+}
+
+/**
+ * The trailing arguments of a `set_class` call, without the runtime's
+ * defaults: no scope hash and an HTML element pass nothing.
+ * @param {AST.Expression | null} scope_class
+ * @param {boolean} is_html_class
+ * @returns {AST.Expression[]}
+ */
+function set_class_args(scope_class, is_html_class) {
+	if (is_html_class) {
+		return scope_class === null ? [] : [scope_class];
+	}
+	return [scope_class ?? b.void0, b.literal(false)];
+}
 
 /**
  * @param {Array<string | AST.Expression>} items
@@ -7148,7 +7326,12 @@ function transform_children(children, context) {
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			state.template
 		);
-		const template_args = [join_template(template_array), b.literal(flags)];
+		const template_args = [
+			join_template(
+				template_namespace === 'html' ? strip_trailing_end_tags(template_array) : template_array,
+			),
+			b.literal(flags),
+		];
 
 		// For fragments, add the pre-calculated hop count as a third argument.
 		// This count reflects emitted top-level positions.

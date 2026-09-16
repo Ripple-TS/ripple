@@ -91,7 +91,7 @@ describe('@for selector lowering', () => {
 		expect(code).toContain('const selector = _$_.selector(() => selected.value);');
 		expect(code).toContain('(__anchor, pattern, index, key) => {');
 		// The hoisted condition captures the selector and the key, not the item.
-		expect(code).toContain('function if_1({ selector, key }) {');
+		expect(code).toContain('function if_1({ a: selector, b: key }) {');
 		expect(code).toContain('if (_$_.selector_match(selector, key)) return consequent;');
 	});
 

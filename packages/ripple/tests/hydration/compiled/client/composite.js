@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="layout"><!></div>`, 0);
+var root = _$_.template(`<div class=layout><!>`, 0);
 
 function Layout_render(__anchor, __block, { children }) {
 	var div = root();
@@ -18,7 +18,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_1 = _$_.template(`<div class="layout">before<!>after</div>`, 0);
+var root_1 = _$_.template(`<div class=layout>before<!>after`, 0);
 
 function TextWrappedLayout_render(__anchor, __block, { children }) {
 	var div_1 = root_1();
@@ -36,7 +36,7 @@ function TextWrappedLayout_render(__anchor, __block, { children }) {
 
 TextWrappedLayout[_$_.$r] = TextWrappedLayout_render;
 
-var root_2 = _$_.template(`<div class="single">single</div>`, 0);
+var root_2 = _$_.template(`<div class=single>single`, 0);
 
 function SingleChild_render(__anchor, __block) {
 	var div_2 = root_2();
@@ -46,7 +46,7 @@ function SingleChild_render(__anchor, __block) {
 
 SingleChild[_$_.$r] = SingleChild_render;
 
-var root_4 = _$_.template(`<h1>title</h1><p>description</p>`, 1, 2);
+var root_4 = _$_.template(`<h1>title</h1><p>description`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
 function MultiRootChild_render(__anchor, __block) {
@@ -81,7 +81,7 @@ function LayoutWithSingleChild_render(__anchor, __block) {
 
 LayoutWithSingleChild[_$_.$r] = LayoutWithSingleChild_render;
 
-var root_5 = _$_.template(`<!><div class="extra">extra</div>`, 1, 2);
+var root_5 = _$_.template(`<!><div class=extra>extra`, 1, 2);
 
 function LayoutWithMultipleChildren_render(__anchor, __block) {
 	_$_.render_component(Layout, __anchor, {

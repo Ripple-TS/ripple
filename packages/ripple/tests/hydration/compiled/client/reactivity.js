@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="count"></div>`, 0);
+var root = _$_.template(`<div class=count>`, 0);
 
 function render(__prev) {
 	var __a = __prev._count.value;
@@ -22,7 +22,7 @@ function TrackedState_render(__anchor, __block) {
 
 TrackedState[_$_.$r] = TrackedState_render;
 
-var root_1 = _$_.template(`<div><span class="count"> </span></div>`, 0);
+var root_1 = _$_.template(`<div><span class=count> `, 0);
 
 function CounterWithInitial_render(__anchor, __block, props) {
 	const count = _$_.track(props.initial, __block, '03ea4348');
@@ -50,7 +50,7 @@ function CounterWrapper_render(__anchor, __block) {
 
 CounterWrapper[_$_.$r] = CounterWrapper_render;
 
-var root_2 = _$_.template(`<div class="sum"> </div>`, 0);
+var root_2 = _$_.template(`<div class=sum> `, 0);
 
 function ComputedValues_render(__anchor, __block) {
 	const a = _$_.track(2, __block, 'b78281db');
@@ -70,7 +70,7 @@ function ComputedValues_render(__anchor, __block) {
 
 ComputedValues[_$_.$r] = ComputedValues_render;
 
-var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"></div><div class="y"></div><div class="z"></div></div>`, 0);
+var root_3 = _$_.template(`<div class=multiple-tracked><div class=x></div><div class=y></div><div class=z>`, 0);
 
 function render_1(__prev) {
 	var __a = __prev._x.value;
@@ -124,7 +124,7 @@ function MultipleTracked_render(__anchor, __block) {
 
 MultipleTracked[_$_.$r] = MultipleTracked_render;
 
-var root_4 = _$_.template(`<div class="name"> </div>`, 0);
+var root_4 = _$_.template(`<div class=name> `, 0);
 
 function DerivedState_render(__anchor, __block) {
 	const firstName = _$_.track('John', __block, '6015eeca');

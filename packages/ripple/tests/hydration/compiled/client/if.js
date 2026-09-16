@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="shown">Visible</div>`, 0);
+var root = _$_.template(`<div class=shown>Visible`, 0);
 
 function consequent(__anchor, show) {
 	var div = root();
@@ -21,7 +21,7 @@ function IfTruthy_render(__anchor, __block) {
 
 IfTruthy[_$_.$r] = IfTruthy_render;
 
-var root_1 = _$_.template(`<div class="shown">Visible</div>`, 0);
+var root_1 = _$_.template(`<div class=shown>Visible`, 0);
 
 function consequent_1(__anchor, show) {
 	var div_1 = root_1();
@@ -41,8 +41,8 @@ function IfFalsy_render(__anchor, __block) {
 
 IfFalsy[_$_.$r] = IfFalsy_render;
 
-var root_2 = _$_.template(`<div class="logged-in">Welcome back!</div>`, 0);
-var root_3 = _$_.template(`<div class="logged-out">Please log in</div>`, 0);
+var root_2 = _$_.template(`<div class=logged-in>Welcome back!`, 0);
+var root_3 = _$_.template(`<div class=logged-out>Please log in`, 0);
 
 function consequent_2(__anchor, isLoggedIn) {
 	var div_2 = root_2();
@@ -68,7 +68,7 @@ function IfElse_render(__anchor, __block) {
 
 IfElse[_$_.$r] = IfElse_render;
 
-var root_6 = _$_.template(`<div class="content">Content visible</div>`, 0);
+var root_6 = _$_.template(`<div class=content>Content visible`, 0);
 
 function consequent_3(__anchor, show) {
 	var div_4 = root_6();
@@ -80,7 +80,7 @@ function if_4(show) {
 	if (show.value) return consequent_3;
 }
 
-var root_5 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
+var root_5 = _$_.template(`<button class=toggle>Toggle</button><!>`, 1, 2);
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIf_render(__anchor, __block) {
@@ -107,8 +107,8 @@ function ReactiveIf_render(__anchor, __block) {
 
 ReactiveIf[_$_.$r] = ReactiveIf_render;
 
-var root_9 = _$_.template(`<div class="on">ON</div>`, 0);
-var root_10 = _$_.template(`<div class="off">OFF</div>`, 0);
+var root_9 = _$_.template(`<div class=on>ON`, 0);
+var root_10 = _$_.template(`<div class=off>OFF`, 0);
 
 function consequent_4(__anchor, isOn) {
 	var div_5 = root_9();
@@ -126,7 +126,7 @@ function if_5(isOn) {
 	if (isOn.value) return consequent_4; else return alternate_1;
 }
 
-var root_8 = _$_.template(`<button class="toggle">Toggle</button><!>`, 1, 2);
+var root_8 = _$_.template(`<button class=toggle>Toggle</button><!>`, 1, 2);
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIfElse_render(__anchor, __block) {
@@ -153,7 +153,7 @@ function ReactiveIfElse_render(__anchor, __block) {
 
 ReactiveIfElse[_$_.$r] = ReactiveIfElse_render;
 
-var root_14 = _$_.template(`<span class="inner-content">Inner</span>`, 0);
+var root_14 = _$_.template(`<span class=inner-content>Inner`, 0);
 
 function consequent_5(__anchor, inner) {
 	var span = root_14();
@@ -165,9 +165,9 @@ function if_6(inner) {
 	if (inner.value) return consequent_5;
 }
 
-var root_13 = _$_.template(`<div class="outer-content">Outer</div>`, 0);
+var root_13 = _$_.template(`<div class=outer-content>Outer`, 0);
 
-function consequent_6(__anchor, { outer, inner }) {
+function consequent_6(__anchor, { a: outer, b: inner }) {
 	var div_7 = root_13();
 
 	{
@@ -181,11 +181,11 @@ function consequent_6(__anchor, { outer, inner }) {
 	_$_.append(__anchor, div_7);
 }
 
-function if_7({ outer, inner }) {
+function if_7({ a: outer, b: inner }) {
 	if (outer.value) return consequent_6;
 }
 
-var root_12 = _$_.template(`<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!>`, 1, 3);
+var root_12 = _$_.template(`<button class=outer-toggle>Outer</button><button class=inner-toggle>Inner</button><!>`, 1, 3);
 var root_11 = _$_.template(`<!>`, 1, 1);
 
 function NestedIf_render(__anchor, __block) {
@@ -210,7 +210,7 @@ function NestedIf_render(__anchor, __block) {
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
 
-		_$_.if(node_4, if_7, false, { outer, inner });
+		_$_.if(node_4, if_7, false, { a: outer, b: inner });
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -219,9 +219,9 @@ function NestedIf_render(__anchor, __block) {
 
 NestedIf[_$_.$r] = NestedIf_render;
 
-var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
-var root_17 = _$_.template(`<div class="state">Success!</div>`, 0);
-var root_18 = _$_.template(`<div class="state">Error occurred</div>`, 0);
+var root_16 = _$_.template(`<div class=state>Loading...`, 0);
+var root_17 = _$_.template(`<div class=state>Success!`, 0);
+var root_18 = _$_.template(`<div class=state>Error occurred`, 0);
 
 function consequent_7(__anchor, status) {
 	var div_9 = root_16();
@@ -245,7 +245,7 @@ function if_8(status) {
 	if (status.value === 'loading') return consequent_7; else if (status.value === 'success') return consequent_8; else return alternate_2;
 }
 
-var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button></div>`, 0);
+var root_15 = _$_.template(`<div><button class=success>Success</button><button class=error>Error</button><button class=loading>Loading`, 0);
 
 function IfElseIfChain_render(__anchor, __block) {
 	const status = _$_.track('loading', __block, '4c69c94a');

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<p class="root-pending">root loading...</p>`, 0);
+var root = _$_.template(`<p class=root-pending>root loading...`, 0);
 
 function RootPending_render(__anchor, __block) {
 	var p = root();
@@ -11,7 +11,7 @@ function RootPending_render(__anchor, __block) {
 
 RootPending[_$_.$r] = RootPending_render;
 
-var root_1 = _$_.template(`<section class="root-catch"><p class="root-error"> </p><button class="root-reset">retry</button></section>`, 0);
+var root_1 = _$_.template(`<section class=root-catch><p class=root-error> </p><button class=root-reset>retry`, 0);
 
 function RootCatch_render(__anchor, __block, { error, reset }) {
 	var section = root_1();
@@ -36,7 +36,7 @@ function RootCatch_render(__anchor, __block, { error, reset }) {
 
 RootCatch[_$_.$r] = RootCatch_render;
 
-var root_2 = _$_.template(`<p>should not render</p>`, 0);
+var root_2 = _$_.template(`<p>should not render`, 0);
 
 function RootThrows_render(__anchor, __block) {
 	throw _$_.with_scope(__block, () => new Error('root exploded'));
@@ -48,7 +48,7 @@ function RootThrows_render(__anchor, __block) {
 
 RootThrows[_$_.$r] = RootThrows_render;
 
-var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
+var root_3 = _$_.template(`<p class=root-async-value> `, 0);
 
 function RootAsyncDirect_render(__anchor, __block) {
 	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('root async value')), __block, 'd6bf9e33');
@@ -66,7 +66,7 @@ function RootAsyncDirect_render(__anchor, __block) {
 
 RootAsyncDirect[_$_.$r] = RootAsyncDirect_render;
 
-var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
+var root_4 = _$_.template(`<p class=root-async-value> `, 0);
 
 function RootAsyncRejects_render(__anchor, __block) {
 	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.reject(new Error('root async failed'))), __block, 'd2fe7b64');
@@ -84,7 +84,7 @@ function RootAsyncRejects_render(__anchor, __block) {
 
 RootAsyncRejects[_$_.$r] = RootAsyncRejects_render;
 
-var root_5 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_5 = _$_.template(`<p class=loading>loading...`, 0);
 
 function AsyncListInTryPending_render(__anchor, __block) {
 	_$_.try(
@@ -104,8 +104,8 @@ function AsyncListInTryPending_render(__anchor, __block) {
 
 AsyncListInTryPending[_$_.$r] = AsyncListInTryPending_render;
 
-var root_7 = _$_.template(`<li> </li>`, 0);
-var root_6 = _$_.template(`<ul class="items"></ul>`, 0);
+var root_7 = _$_.template(`<li> `, 0);
+var root_6 = _$_.template(`<ul class=items>`, 0);
 
 function AsyncList_render(__anchor, __block) {
 	const items = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b3d31627');
@@ -138,8 +138,8 @@ function AsyncList_render(__anchor, __block) {
 
 AsyncList[_$_.$r] = AsyncList_render;
 
-var root_10 = _$_.template(`<div class="loading">loading async content</div>`, 0);
-var root_9 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
+var root_10 = _$_.template(`<div class=loading>loading async content`, 0);
+var root_9 = _$_.template(`<div class=before>before</div><!>`, 1, 2);
 var root_8 = _$_.template(`<!>`, 1, 1);
 
 function AsyncTryWithLeadingSibling_render(__anchor, __block) {
@@ -172,7 +172,7 @@ function AsyncTryWithLeadingSibling_render(__anchor, __block) {
 
 AsyncTryWithLeadingSibling[_$_.$r] = AsyncTryWithLeadingSibling_render;
 
-var root_11 = _$_.template(`<div class="resolved"> </div>`, 0);
+var root_11 = _$_.template(`<div class=resolved> `, 0);
 
 function AsyncContent_render(__anchor, __block) {
 	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');

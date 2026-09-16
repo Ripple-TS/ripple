@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div><button class="increment">Increment</button><span class="count"></span></div>`, 0);
+var root = _$_.template(`<div><button class=increment>Increment</button><span class=count>`, 0);
 
 function render(__prev) {
 	var __a = __prev._count.value;
@@ -32,7 +32,7 @@ function ClickCounter_render(__anchor, __block) {
 
 ClickCounter[_$_.$r] = ClickCounter_render;
 
-var root_1 = _$_.template(`<div><button class="decrement">-</button><span class="count"></span><button class="increment">+</button></div>`, 0);
+var root_1 = _$_.template(`<div><button class=decrement>-</button><span class=count></span><button class=increment>+`, 0);
 
 function render_1(__prev) {
 	var __a = __prev._count.value;
@@ -68,7 +68,7 @@ function IncrementDecrement_render(__anchor, __block) {
 
 IncrementDecrement[_$_.$r] = IncrementDecrement_render;
 
-var root_2 = _$_.template(`<div><button class="target">Target</button><span class="clicks"></span><span class="hovers"></span></div>`, 0);
+var root_2 = _$_.template(`<div><button class=target>Target</button><span class=clicks></span><span class=hovers>`, 0);
 
 function render_2(__prev) {
 	var __a = __prev._clicks.value;
@@ -98,7 +98,7 @@ function MultipleEvents_render(__anchor, __block) {
 			clicks.value++;
 		};
 
-		_$_.event('MouseEnter', button_3, () => {
+		_$_.listen('mouseenter', button_3, () => {
 			hovers.value++;
 		});
 
@@ -120,7 +120,7 @@ function MultipleEvents_render(__anchor, __block) {
 
 MultipleEvents[_$_.$r] = MultipleEvents_render;
 
-var root_3 = _$_.template(`<div><button class="btn">Click</button><span class="count"></span><span class="action"> </span></div>`, 0);
+var root_3 = _$_.template(`<div><button class=btn>Click</button><span class=count></span><span class=action> `, 0);
 
 function render_3(__prev) {
 	var __a = __prev._count.value;
@@ -164,7 +164,7 @@ function MultiStateUpdate_render(__anchor, __block) {
 
 MultiStateUpdate[_$_.$r] = MultiStateUpdate_render;
 
-var root_4 = _$_.template(`<div><button class="toggle"></button></div>`, 0);
+var root_4 = _$_.template(`<div><button class=toggle>`, 0);
 
 function render_4(__prev) {
 	var __a = __prev._isOn.value ? 'ON' : 'OFF';
@@ -193,7 +193,7 @@ function ToggleButton_render(__anchor, __block) {
 
 ToggleButton[_$_.$r] = ToggleButton_render;
 
-var root_5 = _$_.template(`<button class="child-btn"></button>`, 0);
+var root_5 = _$_.template(`<button class=child-btn>`, 0);
 
 function render_5(__prev) {
 	var __a = __prev._props.label;
@@ -214,7 +214,7 @@ function ChildButton_render(__anchor, __block, props) {
 
 ChildButton[_$_.$r] = ChildButton_render;
 
-var root_6 = _$_.template(`<div><span class="count"></span></div>`, 0);
+var root_6 = _$_.template(`<div><span class=count>`, 0);
 
 function render_6(__prev) {
 	var __a = __prev._count.value;

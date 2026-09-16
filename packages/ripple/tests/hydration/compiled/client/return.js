@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="ready">ready</div>`, 1, 1);
+var root = _$_.template(`<div class=ready>ready`, 1, 1);
 
 function GuardReturnRenders_render(__anchor, __block) {
 	const ready = true;
@@ -17,7 +17,7 @@ function GuardReturnRenders_render(__anchor, __block) {
 
 GuardReturnRenders[_$_.$r] = GuardReturnRenders_render;
 
-var root_1 = _$_.template(`<div class="ready">ready</div>`, 1, 1);
+var root_1 = _$_.template(`<div class=ready>ready`, 1, 1);
 
 function GuardReturnNull_render(__anchor, __block) {
 	const ready = false;

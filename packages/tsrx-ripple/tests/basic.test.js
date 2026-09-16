@@ -169,10 +169,10 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 
 		// Condition and branches are module-level and destructure the packed
 		// captures; the call builds the object from the locals at that moment.
-		expect(code).toContain('function if_1({ depth, path })');
-		expect(code).toContain('function consequent(__anchor, { depth, path })');
-		expect(code).toContain('function alternate(__anchor, { depth, path })');
-		expect(code).toContain('_$_.if(__anchor, if_1, true, { depth, path });');
+		expect(code).toContain('function if_1({ a: depth, b: path })');
+		expect(code).toContain('function consequent(__anchor, { a: depth, b: path })');
+		expect(code).toContain('function alternate(__anchor, { a: depth, b: path })');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, { a: depth, b: path });');
 		expect(code).not.toContain('var consequent =');
 	});
 
@@ -194,10 +194,10 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		// they are boxed and the branch is hoisted with the boxes as captures.
 		expect(code).toContain('let div = { v: void 0 };');
 		expect(code).toContain('let clicks = { v: 0 };');
-		expect(code).toContain('function consequent(__anchor, { show, div, clicks })');
+		expect(code).toContain('function consequent(__anchor, { a: show, b: div, c: clicks })');
 		expect(code).toContain('_$_.ref(div_1, () => div.v, (v) => div.v = v);');
 		expect(code).toContain('clicks.v++');
-		expect(code).toContain('_$_.if(__anchor, if_1, true, { show, div, clicks });');
+		expect(code).toContain('_$_.if(__anchor, if_1, true, { a: show, b: div, c: clicks });');
 	});
 
 	it('boxes rebound parameters, nested pattern names, catch parameters and pattern targets', () => {
@@ -1010,7 +1010,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span>a</span></div>`');
+		expect(code).toContain('_$_.template(`<div><span>a`');
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : _\$_\.append_into\(div\);/,
 		);
@@ -1026,7 +1026,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> </span></div>`');
+		expect(code).toContain('_$_.template(`<div><span> `');
 		expect(code).not.toContain('_$_.append_into(');
 		// The client's `node` is the span itself; only hydration steps to it.
 		expect(code).toMatch(
@@ -1043,7 +1043,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><i> </i><span> </span></div>`');
+		expect(code).toContain('_$_.template(`<div><i> </i><span> `');
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : i\.nextSibling;/,
 		);
@@ -1064,7 +1064,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> </span><em> </em></div>`');
+		expect(code).toContain('_$_.template(`<div><span> </span><em> `');
 		expect(code).toContain('_$_.if(node, if_1, false, show);');
 		expect(code).toMatch(/_\$_\.for\(\s*node_1,/);
 		expect(code).toMatch(
@@ -1090,7 +1090,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> </span></div>`');
+		expect(code).toContain('_$_.template(`<div><span> `');
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_child\(\) : div\.firstChild;/,
 		);
@@ -1127,7 +1127,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		).code;
-		expect(text).toContain('_$_.template(`<div><!>a</div>`');
+		expect(text).toContain('_$_.template(`<div><!>a`');
 		const dynamic = compile(
 			`function Item() @{ <b>item</b> }
 			function App({ tag }) @{ <div><Item /><{tag}>{'a'}</{tag}></div> }`,
@@ -1516,7 +1516,7 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 		);
 
 		expect(code).toContain('_$_.try(');
-		expect(code).toContain('template(`<div>content</div>`');
+		expect(code).toContain('template(`<div>content`');
 	});
 
 	it('prints pending blocks as valid TypeScript in Volar output', () => {
@@ -1976,14 +1976,14 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('const test = _$_.tsrx_element');
-		expect(code).toContain('template(`<button>Hello</button>`');
+		expect(code).toContain('template(`<button>Hello`');
 	});
 
 	it('lowers bare native element expression statements outside components', () => {
 		const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('_$_.tsrx_element');
-		expect(code).toContain('template(`<button>Hello</button>`');
+		expect(code).toContain('template(`<button>Hello`');
 	});
 
 	it('renders native element values assigned inside returned templates on the server', () => {
@@ -2004,7 +2004,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('keeps direct arrow component returns on the render path', () => {
 		const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
-		expect(code).toContain('template(`<button>Hello</button>`');
+		expect(code).toContain('template(`<button>Hello`');
 		expect(code).toContain('_$_.append(__anchor, button)');
 		expect(code).not.toContain('template(``');
 	});
@@ -2017,7 +2017,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('template(`<div>Commented</div>`');
+		expect(code).toContain('template(`<div>Commented`');
 		expect(code).toContain('_$_.append(__anchor, div)');
 	});
 
@@ -2101,7 +2101,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('template(`<div> </div>`');
+		expect(code).toContain('template(`<div> `');
 		expect(code).toContain('_$_.hydrating ? _$_.hydrate_child() : div.firstChild');
 		expect(code).not.toContain('_$_.hydrate_child(true) : div.firstChild');
 		expect(code).toContain('_$_.expression(');
@@ -2398,7 +2398,7 @@ describe('@tsrx/ripple template comments', () => {
 	it('keeps line and block comments out of client templates', () => {
 		const { code } = compile(source, 'App.tsrx');
 		expect(code).not.toMatch(/world|hello/);
-		expect(code).toContain('<ul></ul><ul></ul>');
+		expect(code).toContain('<ul></ul><ul>`');
 	});
 
 	it('keeps line and block comments out of server output', () => {
@@ -2500,7 +2500,7 @@ describe('@tsrx/ripple fragment children flatten', () => {
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');
-		expect(code).toContain('`<div>ab<span>c</span>d</div>`');
+		expect(code).toContain('`<div>ab<span>c</span>d`');
 		expect(code).not.toContain('<!>');
 		expect(code).not.toContain('_$_.expression');
 
@@ -2514,7 +2514,7 @@ describe('@tsrx/ripple fragment children flatten', () => {
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');
-		expect(code).toContain('`<div>abc<span>d</span></div>`');
+		expect(code).toContain('`<div>abc<span>d`');
 		expect(code).not.toContain('<!>');
 
 		const server = compile(source, 'App.tsrx', { mode: 'server' });

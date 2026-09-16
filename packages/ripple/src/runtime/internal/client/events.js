@@ -418,6 +418,40 @@ export function event(event_name, dom, handler) {
 }
 
 /**
+ * Compiler-emitted listener for a static `onEvent={fn}` whose name can never
+ * be delegated (`onBlur`, `onScroll`, a `Capture` variant): a native listener
+ * on the element, with the handler run outside any reactive context as a
+ * delegated handler is. Nothing is returned, as for `event()`. The name is the
+ * DOM event name the compiler resolved, so no name table is consulted here.
+ * @param {string} name
+ * @param {EventTarget} dom
+ * @param {EventListener} handler
+ * @param {boolean} [capture]
+ * @returns {void}
+ */
+export function listen(name, dom, handler, capture) {
+	dom.addEventListener(
+		name,
+		function (event) {
+			var previous_block = active_block;
+			var previous_reaction = active_reaction;
+			var previous_tracking = tracking;
+			set_active_block(null);
+			set_active_reaction(null);
+			set_tracking(false);
+			try {
+				return handler.call(this, event);
+			} finally {
+				set_active_block(previous_block);
+				set_active_reaction(previous_reaction);
+				set_tracking(previous_tracking);
+			}
+		},
+		capture,
+	);
+}
+
+/**
  * Attaches a listener and returns its remover; `event()` is the one-shot
  * compiled form of this.
  * @param {string} event_name
