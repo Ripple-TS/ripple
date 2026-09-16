@@ -24,49 +24,34 @@ function remove() {
 }
 
 /**
- * @param {function} callback
+ * Calls back once every stylesheet link has loaded (or failed).
+ * @param {() => void} callback
  * @returns {void}
  */
 function remove_when_css_loaded(callback) {
-	/** @type {HTMLLinkElement[]} */
-	const links = Array.from(
-		/** @type {NodeListOf<HTMLLinkElement>} */ (
-			document.querySelectorAll('link[rel="stylesheet"]')
-		),
+	var links = /** @type {NodeListOf<HTMLLinkElement>} */ (
+		document.querySelectorAll('link[rel="stylesheet"]')
 	);
-	let remaining = links.length;
+	var remaining = links.length;
 
 	if (remaining === 0) {
 		callback();
 		return;
 	}
 
-	const done = () => {
-		remaining--;
-		if (remaining === 0) {
-			// clean up all listeners
-			links.forEach((link) => {
-				link.removeEventListener('load', onLoad);
-				link.removeEventListener('error', onError);
-			});
+	var done = () => {
+		if (--remaining === 0) {
 			callback();
 		}
 	};
 
-	function onLoad() {
-		done();
-	}
-	function onError() {
-		done();
-	}
-
-	links.forEach((link) => {
+	for (var link of links) {
 		if (link.sheet) {
 			// already loaded (possibly cached)
 			done();
 		} else {
-			link.addEventListener('load', onLoad);
-			link.addEventListener('error', onError);
+			link.addEventListener('load', done, { once: true });
+			link.addEventListener('error', done, { once: true });
 		}
-	});
+	}
 }

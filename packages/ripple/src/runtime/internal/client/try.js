@@ -31,7 +31,7 @@ export function boundary_branch(fn) {
 
 /** @param {TryState} state */
 function clear_paused_blocks(state) {
-	state.paused_blocks.clear();
+	state.z.clear();
 }
 
 /**
@@ -39,12 +39,12 @@ function clear_paused_blocks(state) {
  * @returns {boolean}
  */
 function resume_paused_blocks(state) {
-	if (state.paused_blocks.size === 0) {
+	if (state.z.size === 0) {
 		return false;
 	}
 
-	var blocks = state.paused_blocks;
-	state.paused_blocks = new Set();
+	var blocks = state.z;
+	state.z = new Set();
 	var resumed = false;
 
 	for (var block of blocks) {
@@ -59,83 +59,75 @@ function resume_paused_blocks(state) {
 
 /** @param {TryState} state */
 function show_resolved_fragment(state) {
-	if (state.offscreen_fragment !== null) {
-		/** @type {ChildNode} */ (state.anchor).before(state.offscreen_fragment);
-		state.offscreen_fragment = null;
+	if (state.o !== null) {
+		/** @type {ChildNode} */ (state.a).before(state.o);
+		state.o = null;
 	}
 
-	state.has_resolved = true;
-	state.mode = 'resolved';
+	state.h = true;
+	state.m = 0;
 }
 
 /** @param {TryState} state */
 export function render_resolved(state) {
-	if (
-		state.try_block !== null &&
-		!is_destroyed(state.try_block) &&
-		(state.resolved_branch === null || is_destroyed(state.resolved_branch))
-	) {
-		if (state.catch_branch !== null) {
-			destroy_block(state.catch_branch);
-			state.catch_branch = null;
+	if (state.b !== null && !is_destroyed(state.b) && (state.rb === null || is_destroyed(state.rb))) {
+		if (state.cb !== null) {
+			destroy_block(state.cb);
+			state.cb = null;
 		}
-		state.mode = 'resolved';
-		if (active_block !== state.try_block) {
-			with_block(state.try_block, () => {
-				state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
+		state.m = 0;
+		if (active_block !== state.b) {
+			with_block(state.b, () => {
+				state.rb = boundary_branch(() => state.fn(state.a));
 			});
 		} else {
-			state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
+			state.rb = boundary_branch(() => state.fn(state.a));
 		}
 	}
 }
 
 /** @param {TryState} state */
 function destroy_resolved(state) {
-	if (state.resolved_branch !== null && !is_destroyed(state.resolved_branch)) {
-		destroy_block(state.resolved_branch);
+	if (state.rb !== null && !is_destroyed(state.rb)) {
+		destroy_block(state.rb);
 	}
-	state.resolved_branch = null;
-	state.offscreen_fragment = null;
+	state.rb = null;
+	state.o = null;
 }
 
 /** @param {TryState} state */
 function move_resolved_offscreen(state) {
-	if (state.resolved_branch !== null) {
-		if (!state.offscreen_fragment) {
+	if (state.rb !== null) {
+		if (!state.o) {
 			// if offcreen_fragment exists, it means the resolved_branch is already offscreen,
 			// so we can skip moving it again
-			state.offscreen_fragment = document.createDocumentFragment();
-			move_block(state.resolved_branch, state.offscreen_fragment);
+			state.o = document.createDocumentFragment();
+			move_block(state.rb, state.o);
 		}
 	}
 }
 
 /** @param {TryState} state */
 function render_pending(state) {
-	if (state.pending_fn === null || state.mode === 'pending') {
+	if (state.p === null || state.m === 1) {
 		return;
 	}
 
 	move_resolved_offscreen(state);
 
-	state.mode = 'pending';
+	state.m = 1;
 
 	var create_pending = () => {
-		state.pending_branch = boundary_branch(() => {
-			/** @type {TryPendingFunction} */ (state.pending_fn)(state.anchor);
+		state.pb = boundary_branch(() => {
+			/** @type {TryPendingFunction} */ (state.p)(state.a);
 		});
 	};
 
 	// with_block ensures the branch is parented under the TRY_BLOCK when called
 	// from async contexts (microtasks) where active_block is null. During synchronous
 	// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
-	if (
-		state.try_block !== null &&
-		!is_destroyed(state.try_block) &&
-		active_block !== state.try_block
-	) {
-		with_block(state.try_block, create_pending);
+	if (state.b !== null && !is_destroyed(state.b) && active_block !== state.b) {
+		with_block(state.b, create_pending);
 	} else {
 		create_pending();
 	}
@@ -143,10 +135,10 @@ function render_pending(state) {
 
 /** @param {TryState} state */
 export function destroy_pending(state) {
-	if (state.pending_branch !== null && !is_destroyed(state.pending_branch)) {
-		destroy_block(state.pending_branch);
+	if (state.pb !== null && !is_destroyed(state.pb)) {
+		destroy_block(state.pb);
 	}
-	state.pending_branch = null;
+	state.pb = null;
 }
 
 /**
@@ -157,38 +149,38 @@ export function destroy_pending(state) {
  * @returns {void}
  */
 export function catch_error(state, error) {
-	if (state.mode === 'catch') {
+	if (state.m === 2) {
 		// we don't want to do this again and render catch block again
 		return;
 	}
-	state.pending_count = 0;
-	state.active_requests.clear();
+	state.n = 0;
+	state.q.clear();
 	clear_paused_blocks(state);
 
 	// Reject all pending deferred promises so dependent async tracked settle
 	// handlers fire and clean up. The settle will see the request already
 	// cleared and skip error routing, avoiding double-catch.
-	if (state.pending_deferreds.size > 0) {
-		for (var [, reject_fn] of state.pending_deferreds) {
+	if (state.d.size > 0) {
+		for (var [, reject_fn] of state.d) {
 			reject_fn(error);
 		}
-		state.pending_deferreds.clear();
+		state.d.clear();
 	}
 
-	if (state.mode === 'pending') {
+	if (state.m === 1) {
 		destroy_pending(state);
-	} else if (state.mode === 'resolved') {
+	} else if (state.m === 0) {
 		move_resolved_offscreen(state);
 	}
 
-	state.mode = 'catch';
+	state.m = 2;
 
 	var create_catch = () => {
-		state.catch_branch = boundary_branch(() => {
-			/** @type {TryCatchFunction} */ (state.catch_fn)(
-				state.anchor,
+		state.cb = boundary_branch(() => {
+			/** @type {TryCatchFunction} */ (state.c)(
+				state.a,
 				error,
-				(state.reset ??= () => render_resolved(state)),
+				(state.r ??= () => render_resolved(state)),
 			);
 		});
 	};
@@ -196,12 +188,8 @@ export function catch_error(state, error) {
 	// with_block ensures the branch is parented under the TRY_BLOCK when called
 	// from async contexts where active_block is null. During synchronous
 	// execution (try_block not yet assigned), active_block is already the TRY_BLOCK.
-	if (
-		state.try_block !== null &&
-		!is_destroyed(state.try_block) &&
-		active_block !== state.try_block
-	) {
-		with_block(state.try_block, create_catch);
+	if (state.b !== null && !is_destroyed(state.b) && active_block !== state.b) {
+		with_block(state.b, create_catch);
 	} else {
 		create_catch();
 	}
@@ -211,17 +199,12 @@ export function catch_error(state, error) {
 
 /** @param {TryState} state */
 function begin_request(state) {
-	var request_id = ++state.request_version;
-	state.active_requests.add(request_id);
+	var request_id = ++state.v;
+	state.q.add(request_id);
 
-	if (state.pending_count++ === 0 && state.pending_fn !== null && !state.has_resolved) {
+	if (state.n++ === 0 && state.p !== null && !state.h) {
 		queue_microtask(() => {
-			if (
-				state.try_block !== null &&
-				!is_destroyed(state.try_block) &&
-				state.pending_count > 0 &&
-				!state.has_resolved
-			) {
+			if (state.b !== null && !is_destroyed(state.b) && state.n > 0 && !state.h) {
 				render_pending(state);
 			}
 		});
@@ -236,11 +219,11 @@ function begin_request(state) {
  * @returns {number}
  */
 function replace_request(state, old_request_id) {
-	state.active_requests.delete(old_request_id);
-	state.pending_deferreds.delete(old_request_id);
+	state.q.delete(old_request_id);
+	state.d.delete(old_request_id);
 	// pending_count unchanged — one out, one in
-	var request_id = ++state.request_version;
-	state.active_requests.add(request_id);
+	var request_id = ++state.v;
+	state.q.add(request_id);
 	return request_id;
 }
 
@@ -251,15 +234,15 @@ function replace_request(state, old_request_id) {
  * @returns {boolean}
  */
 function complete_request(state, request_id, show_resolved_branch = true) {
-	if (!state.active_requests.delete(request_id)) {
+	if (!state.q.delete(request_id)) {
 		return false;
 	}
 
-	state.pending_deferreds.delete(request_id);
+	state.d.delete(request_id);
 
-	state.pending_count--;
+	state.n--;
 
-	if (state.pending_count === 0) {
+	if (state.n === 0) {
 		if (!show_resolved_branch) {
 			clear_paused_blocks(state);
 			return true;
@@ -272,17 +255,17 @@ function complete_request(state, request_id, show_resolved_branch = true) {
 			// and find more pending requests (and pause themselves) before we are
 			// certain to render the resolved state.
 			// Otherwise, we'll have multiple renders.
-			if (state.try_block === null || is_destroyed(state.try_block) || state.pending_count > 0) {
+			if (state.b === null || is_destroyed(state.b) || state.n > 0) {
 				return;
 			}
 
-			if (state.mode === 'pending') {
+			if (state.m === 1) {
 				destroy_pending(state);
 				show_resolved_fragment(state);
 			}
 
-			state.has_resolved = true;
-			state.mode = 'resolved';
+			state.h = true;
+			state.m = 0;
 		});
 		// this is more just in case here and shouldn't really cause anything to run
 		// most likely the scheduling is already there
@@ -295,10 +278,10 @@ function complete_request(state, request_id, show_resolved_branch = true) {
 
 /** @param {TryState} state */
 function run_try(state) {
-	if (state.streamed_id !== null) {
+	if (state.si !== null) {
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).f(state);
 	} else {
-		state.resolved_branch = boundary_branch(() => state.try_fn(state.anchor));
+		state.rb = boundary_branch(() => state.fn(state.a));
 	}
 }
 
@@ -317,28 +300,28 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 	var boundary;
 	/** @type {TryState} */
 	var state = {
-		anchor: root_controlled ? resolve_anchor(node) : /** @type {Node} */ (node),
-		try_fn,
-		catch_fn,
-		pending_fn,
-		reset: null,
-		pending_count: 0,
-		request_version: 0,
-		active_requests: new Set(),
-		try_block: null,
-		resolved_branch: null,
-		pending_branch: null,
-		catch_branch: null,
-		offscreen_fragment: null,
-		has_resolved: false,
-		mode: 'resolved',
-		pending_deferreds: new Map(),
-		paused_blocks: new Set(),
-		streamed_id: null,
-		streamed_errored: false,
-		streamed_fallback: false,
-		slot_open: null,
-		slot_close: null,
+		a: root_controlled ? resolve_anchor(node) : /** @type {Node} */ (node),
+		fn: try_fn,
+		c: catch_fn,
+		p: pending_fn,
+		r: null,
+		n: 0,
+		v: 0,
+		q: new Set(),
+		b: null,
+		rb: null,
+		pb: null,
+		cb: null,
+		o: null,
+		h: false,
+		m: 0,
+		d: new Map(),
+		z: new Set(),
+		si: null,
+		se: false,
+		sf: false,
+		so: null,
+		sc: null,
 	};
 
 	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
@@ -348,13 +331,13 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).m(state);
 	}
 
-	state.try_block = create_block(TRY_BLOCK, run_try, state);
+	state.b = create_block(TRY_BLOCK, run_try, state);
 
-	if (state.streamed_id !== null) {
+	if (state.si !== null) {
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).s(state);
 	}
 
-	own_anchor(node, state.anchor);
+	own_anchor(node, state.a);
 
 	if (hydrating && root_controlled) {
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
@@ -370,7 +353,7 @@ export function get_pending_boundary(block) {
 
 	while (current !== null) {
 		var state = /** @type {BlockWithTryBoundary} */ (current).s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.pending_fn !== null) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.p !== null) {
 			return /** @type {BlockWithTryBoundary} */ (current);
 		}
 		current = current.p;
@@ -389,7 +372,7 @@ export function get_boundary_with_catch(block) {
 
 	while (current !== null) {
 		var state = /** @type {BlockWithTryBoundary} */ (current).s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.catch_fn !== null) {
+		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
 			return /** @type {BlockWithTryBoundaryAndCatch} */ (current);
 		}
 		current = current.p;
@@ -445,7 +428,7 @@ export function complete_boundary_request(boundary, request_id, show_resolved_br
  */
 export function register_boundary_deferred(boundary, request_id, reject_fn) {
 	if (boundary !== null && !is_destroyed(boundary)) {
-		boundary.s.pending_deferreds.set(request_id, reject_fn);
+		boundary.s.d.set(request_id, reject_fn);
 	}
 }
 
@@ -456,6 +439,6 @@ export function register_boundary_deferred(boundary, request_id, reject_fn) {
  */
 export function register_boundary_paused_block(boundary, block) {
 	if (boundary !== null && !is_destroyed(boundary)) {
-		boundary.s.paused_blocks.add(block);
+		boundary.s.z.add(block);
 	}
 }

@@ -32,20 +32,12 @@ export function assign_nodes(start, end) {
 /**
  * Creates a DocumentFragment from an HTML string.
  * @param {string} html - The HTML string.
- * @param {boolean} use_svg_namespace - Whether to use SVG namespace.
- * @param {boolean} use_mathml_namespace - Whether to use MathML namespace.
+ * @param {string} ns - `'svg'`, `'math'`, or `''` for HTML.
  * @returns {DocumentFragment}
  */
-export function create_fragment_from_html(
-	html,
-	use_svg_namespace = false,
-	use_mathml_namespace = false,
-) {
-	if (use_svg_namespace) {
-		return from_namespace(html, 'svg');
-	}
-	if (use_mathml_namespace) {
-		return from_namespace(html, 'math');
+export function create_fragment_from_html(html, ns = '') {
+	if (ns !== '') {
+		return from_namespace(html, /** @type {'svg' | 'math'} */ (ns));
 	}
 	var elem = document.createElement('template');
 	elem.innerHTML = html;
@@ -53,19 +45,13 @@ export function create_fragment_from_html(
 }
 
 /**
- * A template's parsed content and the flags that shaped it, shared by every
- * clone of one `template()` instance.
+ * A template's content and flags, shared by every clone of one `template()`
+ * instance, with the parsed node cached for the namespace it was parsed in.
  * @typedef {{
- *   content: string;
- *   is_fragment: boolean;
- *   use_import_node: boolean;
- *   use_svg_namespace: boolean;
- *   use_mathml_namespace: boolean;
- *   is_comment: boolean;
- *   has_start: boolean;
- *   node: Node | DocumentFragment | undefined;
- *   node_svg: boolean;
- *   node_mathml: boolean;
+ *   c: string;
+ *   f: number;
+ *   n: Node | DocumentFragment | undefined;
+ *   ns: string | undefined;
  * }} TemplateState
  */
 
@@ -76,24 +62,33 @@ export function create_fragment_from_html(
  * @returns {Node}
  */
 function clone_template(t) {
-	var is_fragment = t.is_fragment;
-	var is_comment = t.is_comment;
-	var node = t.node;
-	// If using runtime namespace, check active_namespace
-	var svg = !is_comment && (t.use_svg_namespace || active_namespace === 'svg');
-	var mathml = !is_comment && (t.use_mathml_namespace || active_namespace === 'mathml');
+	var flags = t.f;
+	var content = t.c;
+	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
+	// The namespace the content parses in: a static one from the flags, else
+	// the active namespace (a comment placeholder needs none).
+	var ns =
+		content === '<!>'
+			? ''
+			: (flags & TEMPLATE_SVG_NAMESPACE) !== 0 || active_namespace === 'svg'
+				? 'svg'
+				: (flags & TEMPLATE_MATHML_NAMESPACE) !== 0 || active_namespace === 'mathml'
+					? 'math'
+					: '';
+	var node = t.n;
 
-	if (node === undefined || t.node_svg !== svg || t.node_mathml !== mathml) {
-		node = create_fragment_from_html(t.has_start ? t.content : '<!>' + t.content, svg, mathml);
+	if (node === undefined || t.ns !== ns) {
+		// Content that opens with a placeholder comment gets one more in
+		// front, so the first child the compiler navigates to is the element.
+		node = create_fragment_from_html(content.startsWith('<!>') ? '<!>' + content : content, ns);
 		if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
-		t.node = node;
-		t.node_svg = svg;
-		t.node_mathml = mathml;
+		t.n = node;
+		t.ns = ns;
 	}
 
 	/** @type {DocumentFragment | Node} */
 	var clone =
-		t.use_import_node || is_firefox
+		(flags & TEMPLATE_USE_IMPORT_NODE) !== 0 || is_firefox
 			? document.importNode(/** @type {Node} */ (node), true)
 			: /** @type {Node} */ (node).cloneNode(true);
 
@@ -105,15 +100,7 @@ function clone_template(t) {
 		end = /** @type {Node} */ (/** @type {DocumentFragment} */ (clone).lastChild);
 	}
 
-	// assign_nodes, inline: every template clone records its range.
-	var block = /** @type {Block} */ (active_block);
-	var s = block.s;
-	if (s === null) {
-		block.s = { start, end };
-	} else if (s.start === null) {
-		s.start = start;
-		s.end = end;
-	}
+	assign_nodes(start, end);
 
 	return clone;
 }
@@ -127,20 +114,8 @@ function clone_template(t) {
  */
 export function template(content, flags, count = 1) {
 	var is_fragment = (flags & TEMPLATE_FRAGMENT) !== 0;
-	var is_comment = content === '<!>';
 	/** @type {TemplateState} */
-	var t = {
-		content,
-		is_fragment,
-		use_import_node: (flags & TEMPLATE_USE_IMPORT_NODE) !== 0,
-		use_svg_namespace: (flags & TEMPLATE_SVG_NAMESPACE) !== 0,
-		use_mathml_namespace: (flags & TEMPLATE_MATHML_NAMESPACE) !== 0,
-		is_comment,
-		has_start: !is_comment && !content.startsWith('<!>'),
-		node: undefined,
-		node_svg: false,
-		node_mathml: false,
-	};
+	var t = { c: content, f: flags, n: undefined, ns: undefined };
 
 	return () =>
 		hydrating

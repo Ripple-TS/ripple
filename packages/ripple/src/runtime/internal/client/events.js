@@ -23,7 +23,9 @@ import { render } from './blocks.js';
 var all_registered_events = new Set();
 
 /**
- * @typedef {{ count: number, registered_events: Set<string>, target: Element }} RootTargetRef
+ * A root delegation target: its acquire count, the event names it listens
+ * for, and the element.
+ * @typedef {{ n: number, e: Set<string>, t: Element }} RootTargetRef
  */
 
 /**
@@ -535,8 +537,8 @@ export function delegate(events) {
  * @param {Iterable<string>} events
  */
 function register_root_events(ref, events) {
-	var registered_events = ref.registered_events;
-	var target = ref.target;
+	var registered_events = ref.e;
+	var target = ref.t;
 
 	for (var event_name of events) {
 		if (registered_events.has(event_name)) continue;
@@ -558,17 +560,17 @@ export function handle_root_events(target) {
 	// Sibling portals mostly share one target, so check the last ref first.
 	/** @type {RootTargetRef | undefined} */
 	var ref =
-		last_root_ref !== null && last_root_ref.target === target
+		last_root_ref !== null && last_root_ref.t === target
 			? last_root_ref
 			: root_target_refs.get(target);
 
 	if (ref === undefined) {
-		ref = { count: 0, registered_events: new Set(), target };
+		ref = { n: 0, e: new Set(), t: target };
 		root_target_refs.set(target, ref);
 		register_root_events(ref, all_registered_events);
 	}
 
-	ref.count += 1;
+	ref.n += 1;
 	last_root_ref = ref;
 	return ref;
 }
@@ -578,18 +580,18 @@ export function handle_root_events(target) {
  * @returns {void}
  */
 export function release_root_events(ref) {
-	// The map entry for `ref.target` is always this `ref`: it is only deleted
+	// The map entry for `ref.t` is always this `ref`: it is only deleted
 	// when the count hits 0, which requires every acquirer to have released.
-	ref.count -= 1;
-	if (ref.count > 0) return;
+	ref.n -= 1;
+	if (ref.n > 0) return;
 
 	// Last caller for this target: actually tear down the shared listeners.
-	var target = ref.target;
+	var target = ref.t;
 	root_target_refs.delete(target);
 	if (last_root_ref === ref) {
 		last_root_ref = null;
 	}
-	for (var event_name of ref.registered_events) {
+	for (var event_name of ref.e) {
 		target.removeEventListener(event_name, /** @type {EventListener} */ (handle_event_propagation));
 	}
 }

@@ -82,30 +82,50 @@ export type TryPendingFunction = (anchor: Node) => void;
  * helpers are module functions that compile only when a boundary uses them.
  */
 export type TryState = {
-	anchor: Node;
-	try_fn: (anchor: Node, block?: Block) => void;
-	catch_fn: TryCatchFunction | null;
-	pending_fn: TryPendingFunction | null;
+	/** anchor */
+	a: Node;
+	/** try function */
+	fn: (anchor: Node, block?: Block) => void;
+	/** catch function */
+	c: TryCatchFunction | null;
+	/** pending function */
+	p: TryPendingFunction | null;
 	/** the catch branch's `reset` callback, created on first use */
-	reset: (() => void) | null;
-	pending_count: number;
-	request_version: number;
-	active_requests: Set<number>;
-	try_block: Block | null;
-	resolved_branch: Block | null;
-	pending_branch: Block | null;
-	catch_branch: Block | null;
-	offscreen_fragment: DocumentFragment | null;
-	has_resolved: boolean;
-	mode: 'resolved' | 'pending' | 'catch';
-	pending_deferreds: Map<number, (reason: any) => void>;
-	paused_blocks: Set<Block>;
+	r: (() => void) | null;
+	/** pending request count */
+	n: number;
+	/** request version */
+	v: number;
+	/** active request ids */
+	q: Set<number>;
+	/** the try block */
+	b: Block | null;
+	/** resolved branch */
+	rb: Block | null;
+	/** pending branch */
+	pb: Block | null;
+	/** catch branch */
+	cb: Block | null;
+	/** fragment holding the resolved branch while it is offscreen */
+	o: DocumentFragment | null;
+	/** has resolved */
+	h: boolean;
+	/** mode: 0 resolved, 1 pending, 2 catch */
+	m: 0 | 1 | 2;
+	/** deferred rejections by request id */
+	d: Map<number, (reason: any) => void>;
+	/** blocks paused on a pending read */
+	z: Set<Block>;
 	/** a streamed slot this boundary hydrated, until its chunk activates it */
-	streamed_id: string | null;
-	streamed_errored: boolean;
-	streamed_fallback: boolean;
-	slot_open: Comment | null;
-	slot_close: Comment | null;
+	si: string | null;
+	/** the streamed slot errored */
+	se: boolean;
+	/** the streamed slot carries a hydratable fallback */
+	sf: boolean;
+	/** streamed slot open marker */
+	so: Comment | null;
+	/** streamed slot close marker */
+	sc: Comment | null;
 };
 
 export type BlockWithTryBoundary = Omit<Block, 's'> & {
@@ -113,7 +133,7 @@ export type BlockWithTryBoundary = Omit<Block, 's'> & {
 };
 
 export type BlockWithTryBoundaryAndCatch = Omit<BlockWithTryBoundary, 's'> & {
-	s: TryState & { catch_fn: TryCatchFunction };
+	s: TryState & { c: TryCatchFunction };
 };
 
 export type RootBoundaryOptions = {

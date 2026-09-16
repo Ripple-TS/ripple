@@ -300,8 +300,8 @@ function try_marker(state) {
 		hydrate_streamed_slot(state, marker, data);
 	} else {
 		// Settled SSR content must not transition back to pending.
-		if (state.pending_fn !== null) {
-			state.has_resolved = true;
+		if (state.p !== null) {
+			state.h = true;
 		}
 		hydrate_next(); // consume <!--[-->
 	}
@@ -314,18 +314,18 @@ function try_marker(state) {
  */
 function hydrate_streamed_slot(state, marker, data) {
 	// live streamed slot
-	state.streamed_id = data.slice(HYDRATION_START_PENDING.length);
-	state.streamed_errored = data.startsWith(HYDRATION_START_ERRORED);
-	state.slot_open = marker;
+	state.si = data.slice(HYDRATION_START_PENDING.length);
+	state.se = data.startsWith(HYDRATION_START_ERRORED);
+	state.so = marker;
 	hydrate_next(); // consume the slot wrapper open
-	state.slot_close = /** @type {Comment} */ (skip_to_hydration_end());
+	state.sc = /** @type {Comment} */ (skip_to_hydration_end());
 	var fallback_start = /** @type {Comment} */ (hydrate_node);
-	state.streamed_fallback =
-		!state.streamed_errored &&
-		state.pending_fn !== null &&
+	state.sf =
+		!state.se &&
+		state.p !== null &&
 		fallback_start.nodeType === COMMENT_NODE &&
 		fallback_start.data === HYDRATION_START;
-	if (state.streamed_fallback) {
+	if (state.sf) {
 		hydrate_next(); // consume the fallback's <!--[-->
 	}
 }
@@ -338,11 +338,11 @@ function hydrate_streamed_slot(state, marker, data) {
  */
 function try_slot(state) {
 	// continue the outer hydration walk after the slot
-	set_hydrate_node(state.slot_close);
+	set_hydrate_node(state.sc);
 
 	var registry = (window.__RIPPLE_B__ ??= {});
-	var unit_id = /** @type {string} */ (state.streamed_id);
-	if (state.streamed_errored) {
+	var unit_id = /** @type {string} */ (state.si);
+	if (state.se) {
 		// the inline runtime already emptied the slot and marked it errored
 		// — route the error once the surrounding hydration has finished
 		queue_microtask(() => route_streamed_error(state, unit_id));
@@ -359,10 +359,10 @@ function try_slot(state) {
  * @param {TryState} state
  */
 function try_fallback(state) {
-	if (state.streamed_fallback) {
-		state.mode = 'pending';
-		state.pending_branch = boundary_branch(() => {
-			/** @type {TryPendingFunction} */ (state.pending_fn)(state.anchor);
+	if (state.sf) {
+		state.m = 1;
+		state.pb = boundary_branch(() => {
+			/** @type {TryPendingFunction} */ (state.p)(state.a);
 		});
 	}
 }
@@ -376,8 +376,8 @@ function try_fallback(state) {
  * @returns {void}
  */
 function neutralize_slot_markers(state) {
-	/** @type {Comment} */ (state.slot_open).data = '';
-	/** @type {ChildNode} */ (state.slot_close).remove();
+	/** @type {Comment} */ (state.so).data = '';
+	/** @type {ChildNode} */ (state.sc).remove();
 }
 
 /**
@@ -388,7 +388,7 @@ function neutralize_slot_markers(state) {
  * @returns {void}
  */
 function route_streamed_error(state, id) {
-	if (state.try_block === null || is_destroyed(state.try_block)) {
+	if (state.b === null || is_destroyed(state.b)) {
 		return;
 	}
 	neutralize_slot_markers(state);
@@ -403,11 +403,11 @@ function route_streamed_error(state, id) {
 		script.remove();
 	}
 	var error = new Error(message);
-	if (state.catch_fn !== null) {
+	if (state.c !== null) {
 		catch_error(state, error);
 		return;
 	}
-	var outer = get_boundary_with_catch(/** @type {Block} */ (state.try_block));
+	var outer = get_boundary_with_catch(/** @type {Block} */ (state.b));
 	if (outer === null) {
 		throw error;
 	}
@@ -423,8 +423,8 @@ function route_streamed_error(state, id) {
  */
 function clear_streamed_slot(state) {
 	destroy_pending(state);
-	var node = /** @type {ChildNode} */ (state.slot_open).nextSibling;
-	while (node !== null && node !== state.slot_close) {
+	var node = /** @type {ChildNode} */ (state.so).nextSibling;
+	while (node !== null && node !== state.sc) {
 		var next = node.nextSibling;
 		/** @type {ChildNode} */ (node).remove();
 		node = next;
@@ -442,11 +442,11 @@ function clear_streamed_slot(state) {
  * @returns {void}
  */
 function activate_streamed_chunk(state, template, errored) {
-	if (state.try_block === null || is_destroyed(state.try_block)) {
+	if (state.b === null || is_destroyed(state.b)) {
 		return;
 	}
-	var id = /** @type {string} */ (state.streamed_id);
-	state.streamed_id = null;
+	var id = /** @type {string} */ (state.si);
+	state.si = null;
 	if (errored) {
 		clear_streamed_slot(state);
 		route_streamed_error(state, id);
@@ -454,10 +454,10 @@ function activate_streamed_chunk(state, template, errored) {
 	}
 	clear_streamed_slot(state);
 	if (template !== null) {
-		/** @type {ChildNode} */ (state.slot_close).before(template.content);
+		/** @type {ChildNode} */ (state.sc).before(template.content);
 	}
-	var first = /** @type {ChildNode} */ (state.slot_open).nextSibling;
-	if (first === null || first === state.slot_close) {
+	var first = /** @type {ChildNode} */ (state.so).nextSibling;
+	if (first === null || first === state.sc) {
 		neutralize_slot_markers(state);
 		return;
 	}
@@ -465,17 +465,17 @@ function activate_streamed_chunk(state, template, errored) {
 	// node the buffered-SSR hydration path would have used) and drop the
 	// slot wrapper comments, so the resulting DOM matches buffered SSR
 	// exactly like the pre-hydration swap path does
-	if (state.anchor === state.slot_open) {
-		state.anchor = first;
+	if (state.a === state.so) {
+		state.a = first;
 	}
-	/** @type {ChildNode} */ (state.slot_open).remove();
-	/** @type {ChildNode} */ (state.slot_close).remove();
+	/** @type {ChildNode} */ (state.so).remove();
+	/** @type {ChildNode} */ (state.sc).remove();
 	var previous_hydrating = hydrating;
 	var previous_hydrate_node = hydrate_node;
 	set_hydration(true, first);
 	hydrate_next(); // consume the streamed body's <!--[-->
 	try {
-		state.has_resolved = true;
+		state.h = true;
 		render_resolved(state);
 	} finally {
 		set_hydration(previous_hydrating, previous_hydrate_node);
