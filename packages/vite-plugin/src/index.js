@@ -49,6 +49,9 @@ const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
 const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
 const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
+/** The runtime's hydration build constant, aliased away by `ssr: false`. */
+const HYDRATION_ENABLED_ID = 'ripple/internal/client/hydration-enabled';
+const RESOLVED_NO_HYDRATION_ID = '\0ripple:no-hydration';
 const RIPPLE_EXTENSIONS = ['.tsrx'];
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
 
@@ -338,7 +341,15 @@ function scanForRipplePackages(rootDir) {
  * @returns {Plugin[]}
  */
 export function ripple(inlineOptions = {}) {
-	const { excludeRippleExternalModules = false } = inlineOptions;
+	const { excludeRippleExternalModules = false, ssr: ssrOption } = inlineOptions;
+	if (ssrOption !== undefined && typeof ssrOption !== 'boolean') {
+		throw new Error('[@ripple-ts/vite-plugin] the `ssr` option must be a boolean when provided.');
+	}
+	// `ssr: false` is a client-only build: components compile without the
+	// hydration cursor, and the runtime's hydration paths are compiled out by
+	// aliasing its build constant. `ssr: true` compiles every module for the
+	// server, for an adapter that drives the build itself.
+	const clientOnly = ssrOption === false;
 	const text_types = create_text_types(inlineOptions.textTypes);
 	const api = { textTypes: text_types };
 	/** @type {ResolvedConfig['root']} */
@@ -424,6 +435,10 @@ export function ripple(inlineOptions = {}) {
 					userConfig.build?.modulePreload === undefined
 						? { modulePreload: { polyfill: false } }
 						: {};
+				/** @type {import('vite').UserConfig['resolve']} */
+				const resolve_defaults = clientOnly
+					? { alias: [{ find: HYDRATION_ENABLED_ID, replacement: RESOLVED_NO_HYDRATION_ID }] }
+					: {};
 
 				// In build mode (client build, not the SSR sub-build), configure for production
 				if (isBuild && !isSSRBuild) {
@@ -433,7 +448,12 @@ export function ripple(inlineOptions = {}) {
 						loadedRippleConfig = await loadRippleConfig(projectRoot);
 
 						if (!has_route_config(loadedRippleConfig)) {
-							return { build: build_defaults };
+							return { build: build_defaults, resolve: resolve_defaults };
+						}
+						if (clientOnly) {
+							throw new Error(
+								'[@ripple-ts/vite-plugin] `ssr: false` builds a client-only app, but ripple.config.ts declares render routes, which are server rendered and hydrated.',
+							);
 						}
 
 						const htmlInput = path.join(projectRoot, 'index.html');
@@ -499,6 +519,7 @@ export function ripple(inlineOptions = {}) {
 						return {
 							appType: 'custom',
 							build: buildConfig,
+							resolve: resolve_defaults,
 						};
 					}
 				}
@@ -508,6 +529,7 @@ export function ripple(inlineOptions = {}) {
 					const excluded = userConfig.optimizeDeps?.exclude || [];
 					return {
 						build: build_defaults,
+						resolve: resolve_defaults,
 						optimizeDeps: {
 							...dep_scan_config,
 							exclude: excluded,
@@ -543,6 +565,7 @@ export function ripple(inlineOptions = {}) {
 				// Return a config hook that will merge with user's config
 				return {
 					build: build_defaults,
+					resolve: resolve_defaults,
 					optimizeDeps: {
 						...dep_scan_config,
 						exclude: allExclude,
@@ -1166,6 +1189,9 @@ export function ripple(inlineOptions = {}) {
 				if (id === VIRTUAL_HYDRATE_ID) {
 					return RESOLVED_VIRTUAL_HYDRATE_ID;
 				}
+				if (id === RESOLVED_NO_HYDRATION_ID) {
+					return id;
+				}
 
 				// Skip non-package imports (relative/absolute paths)
 				if (id.startsWith('.') || id.startsWith('/') || id.includes(':')) {
@@ -1207,6 +1233,9 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
+				if (id === RESOLVED_NO_HYDRATION_ID) {
+					return 'export const HYDRATION = false;\n';
+				}
 				if (id === RESOLVED_ADAPTER_BROWSER_STUB_ID) {
 					return create_adapter_browser_stub_source();
 				}
@@ -1237,13 +1266,15 @@ export function ripple(inlineOptions = {}) {
 
 				async handler(source_code, id, opts) {
 					const filename = id.replace(root, '');
-					const ssr = opts?.ssr === true || this.environment.config.consumer === 'server';
+					const ssr =
+						ssrOption ?? (opts?.ssr === true || this.environment.config.consumer === 'server');
 
 					const is_dev = config?.command === 'serve';
 					let { code, css, map } = await compile(source_code, filename, {
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
+						hydration: !clientOnly,
 						textTypeFacts: await text_types.getFacts(id, source_code, filename),
 					});
 

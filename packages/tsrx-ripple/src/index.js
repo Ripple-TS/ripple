@@ -71,6 +71,7 @@ export function compile(source, filename, options = {}) {
 					false,
 					options?.minify_css ?? false,
 					options?.hmr ?? false,
+					options?.hydration ?? true,
 				);
 
 	const { ast: _ast, ...rest } = result;

@@ -14,6 +14,7 @@ import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
 import { active_block, probe_if, run_untracked } from './runtime.js';
 import { append } from './template.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * The if block renders its branch directly: the block owns the branch's DOM
@@ -225,7 +226,7 @@ export function if_block(node, fn, root_controlled, x) {
 	var boundary;
 	var anchor = node;
 
-	if (!hydrating) {
+	if (!(HYDRATION && hydrating)) {
 		// Evaluate the condition before deciding whether the if needs a block:
 		// a condition that read no tracked state has its branch rendered by the
 		// probe itself, directly under the current block, with no if block, no

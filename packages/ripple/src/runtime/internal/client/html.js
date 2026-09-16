@@ -6,6 +6,7 @@ import { get_first_child, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { assign_nodes, create_fragment_from_html } from './template.js';
 import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { COMMENT_NODE } from '../../../constants.js';
 
 /**
@@ -26,7 +27,7 @@ export function html(node, get_html, svg = false, mathml = false) {
 		// If the HTML hasn't changed, skip the update (but still hydrate on first run)
 		if (html === new_html) {
 			// During hydration, we need to skip past the content and end marker even if value hasn't changed
-			if (hydrating) {
+			if (HYDRATION && hydrating) {
 				// The anchor is the hash comment - we need to skip past it and its content
 				set_hydrate_node(anchor);
 				/** @type {Node | null} */
@@ -61,7 +62,7 @@ export function html(node, get_html, svg = false, mathml = false) {
 			block.s.start = block.s.end = null;
 		}
 
-		if (hydrating) {
+		if (HYDRATION && hydrating) {
 			set_hydrate_node(anchor);
 
 			/** @type {Node | null} */

@@ -9,6 +9,7 @@ import { active_block, active_namespace, get, untrack, with_ns } from './runtime
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @typedef {Function | string | null | undefined | false} CompositeTarget
@@ -20,7 +21,7 @@ import { render_component } from './component.js';
  * @returns {void}
  */
 export function composite(get_component, node, get_props) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		// During hydration, `node` may already point at the first real SSR node
 		// (e.g. layout children). Only skip forward when we are on an empty
 		// comment anchor from a client template placeholder.
@@ -59,7 +60,7 @@ export function composite(get_component, node, get_props) {
 
 					/** @type {Element} */
 					var element;
-					if (hydrating) {
+					if (HYDRATION && hydrating) {
 						// Claim the SSR-rendered element instead of creating a new one.
 						element = /** @type {Element} */ (hydrate_node);
 					} else {
@@ -87,7 +88,7 @@ export function composite(get_component, node, get_props) {
 					if (is_tsrx_element(props.children)) {
 						/** @type {Node} */
 						var child_anchor;
-						if (hydrating) {
+						if (HYDRATION && hydrating) {
 							// The server renders children directly inside the element with no
 							// extra markers; descend the cursor so they claim those nodes.
 							child_anchor = /** @type {Node} */ (first_child(element));
@@ -102,7 +103,7 @@ export function composite(get_component, node, get_props) {
 							props.children.render(child_anchor, block, props.children.p);
 						}
 
-						if (hydrating) {
+						if (HYDRATION && hydrating) {
 							// Reset the cursor to the claimed element so sibling traversal
 							// continues after it.
 							set_hydrate_node(element);

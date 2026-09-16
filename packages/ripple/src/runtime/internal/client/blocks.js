@@ -35,6 +35,7 @@ import {
 } from './runtime.js';
 import { is_ripple_object } from './utils.js';
 import { effect_orphan } from './errors.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @param {Function} fn
@@ -116,7 +117,7 @@ function noop() {}
  * @param {Node} anchor
  */
 export function own_anchor(node, anchor) {
-	if (anchor === node || hydrating) return;
+	if (anchor === node || (HYDRATION && hydrating)) return;
 	branch(noop, 0, { start: anchor, end: anchor });
 }
 

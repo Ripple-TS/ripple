@@ -162,3 +162,15 @@ export function hydration_mismatch(kind) {
 			: text('hydration_mismatch', ''),
 	);
 }
+
+/** @returns {never} */
+export function hydration_disabled() {
+	throw new Error(
+		DEV
+			? text(
+					'hydration_disabled',
+					'hydrate() is not available in a client-only build: this build was compiled with `ssr: false`, which leaves the hydration runtime out',
+				)
+			: text('hydration_disabled', ''),
+	);
+}

@@ -8,6 +8,7 @@ import {
 	set_hydrate_node,
 } from './hydration.js';
 import { get_descriptor } from '@tsrx/core/runtime/language-helpers';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 export { hydrate_first_child, hydrate_next_sibling };
 
@@ -76,7 +77,7 @@ export function get_last_child(node) {
  * @returns {Node | null}
  */
 export function first_child(node, is_text) {
-	if (!hydrating) {
+	if (!(HYDRATION && hydrating)) {
 		return node.firstChild;
 	}
 	return hydrate_first_child(is_text);
@@ -95,7 +96,7 @@ export function first_child(node, is_text) {
  * @returns {AppendIntoAnchor}
  */
 export function append_into(parent, tail) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		var child = get_first_child(/** @type {Node} */ (hydrate_node));
 
 		if (child === null) {
@@ -124,7 +125,7 @@ export function resolve_anchor(node) {
 	if (/** @type {AppendIntoAnchor} */ (node).into !== true) {
 		return /** @type {Node} */ (node);
 	}
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		return /** @type {Node} */ (hydrate_node);
 	}
 	return /** @type {AppendIntoAnchor} */ (node).parent.appendChild(create_text());
@@ -139,7 +140,7 @@ export function resolve_anchor(node) {
 export function first_child_frag(node, is_text) {
 	// During hydration, for fragment templates, hydrate_node is already
 	// pointing to the first element of the fragment. Don't descend into it.
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		return hydrate_node;
 	}
 	var child = /** @type {Text} */ (first_child(node, is_text));
@@ -166,7 +167,7 @@ export function get_next_sibling(node) {
  * @returns {Node | null}
  */
 export function next_sibling(node, is_text) {
-	if (!hydrating) {
+	if (!(HYDRATION && hydrating)) {
 		return node.nextSibling;
 	}
 	return hydrate_next_sibling(is_text);

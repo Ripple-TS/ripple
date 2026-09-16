@@ -2973,17 +2973,23 @@ function visit_selector_comparison(node, context) {
  * A DOM traversal read, inline so each template position has its own
  * property-read site (one inline cache per site instead of one shared,
  * megamorphic site inside a helper). While hydrating the read is replaced by
- * the hydration cursor, exactly as the `child` / `sibling` helpers do.
+ * the hydration cursor, exactly as the `child` / `sibling` helpers do; a
+ * client-only build (`hydration: false`) emits the bare read.
  * @param {'child' | 'sibling'} operation
  * @param {AST.Expression} node
  * @param {boolean | undefined} is_text
+ * @param {boolean} hydration
  * @returns {AST.Expression}
  */
-function inline_traversal(operation, node, is_text) {
+function inline_traversal(operation, node, is_text, hydration) {
+	const read = b.member(node, b.id(operation === 'child' ? 'firstChild' : 'nextSibling'));
+	if (!hydration) {
+		return read;
+	}
 	return b.conditional(
 		b.member(b.id('_$_'), b.id('hydrating')),
 		b.call(operation === 'child' ? '_$_.hydrate_child' : '_$_.hydrate_sibling', is_text && b.true),
-		b.member(node, b.id(operation === 'child' ? 'firstChild' : 'nextSibling')),
+		read,
 	);
 }
 
@@ -3141,7 +3147,11 @@ const visitors = {
 				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
 				if (i === 0) {
 					call_args.push(b.id('__block'));
-					call_args.push(b.literal(node.metadata.hash));
+					// The hash pairs a client tracked with its serialized server
+					// dependency during hydration; a client-only build has no use for it.
+					if (context.state.hydration) {
+						call_args.push(b.literal(node.metadata.hash));
+					}
 				}
 			}
 
@@ -4247,7 +4257,9 @@ const visitors = {
 					const id = state.flush_node?.();
 
 					// The cursor restore only matters while hydrating.
-					init.push(b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', id))));
+					if (state.hydration) {
+						init.push(b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', id))));
+					}
 				}
 			}
 
@@ -6962,11 +6974,13 @@ function transform_children(children, context) {
 						state.init?.push(
 							b.var(
 								id,
-								b.conditional(
-									b.member(b.id('_$_'), b.id('hydrating')),
-									b.call('_$_.hydrate_sibling', is_text && b.true),
-									current_prev(),
-								),
+								state.hydration
+									? b.conditional(
+											b.member(b.id('_$_'), b.id('hydrating')),
+											b.call('_$_.hydrate_sibling', is_text && b.true),
+											current_prev(),
+										)
+									: current_prev(),
 							),
 						);
 					} else if (append_after !== undefined) {
@@ -6974,20 +6988,26 @@ function transform_children(children, context) {
 						// the client appends into the parent instead of inserting
 						// before a placeholder.
 						current_prev();
+						const append_into =
+							node.metadata?.append_tail === true
+								? b.call('_$_.append_into', append_after, b.true)
+								: b.call('_$_.append_into', append_after);
 						state.init?.push(
 							b.var(
 								id,
-								b.conditional(
-									b.member(b.id('_$_'), b.id('hydrating')),
-									b.call('_$_.hydrate_sibling'),
-									node.metadata?.append_tail === true
-										? b.call('_$_.append_into', append_after, b.true)
-										: b.call('_$_.append_into', append_after),
-								),
+								state.hydration
+									? b.conditional(
+											b.member(b.id('_$_'), b.id('hydrating')),
+											b.call('_$_.hydrate_sibling'),
+											append_into,
+										)
+									: append_into,
 							),
 						);
 					} else {
-						state.init?.push(b.var(id, inline_traversal('sibling', current_prev(), is_text)));
+						state.init?.push(
+							b.var(id, inline_traversal('sibling', current_prev(), is_text, state.hydration)),
+						);
 					}
 					cached = id;
 					return id;
@@ -7016,7 +7036,7 @@ function transform_children(children, context) {
 						cached = /** @type {AST.Identifier} */ (parent);
 						return cached;
 					}
-					state.init?.push(b.var(id, inline_traversal('child', parent, is_text)));
+					state.init?.push(b.var(id, inline_traversal('child', parent, is_text, state.hydration)));
 					cached = id;
 					return id;
 				} else {
@@ -7170,7 +7190,9 @@ function transform_children(children, context) {
 						(has_following_renderable_sibling || is_fragment_root)
 					) {
 						state.init?.push(
-							b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', cached))),
+							...(state.hydration
+								? [b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', cached)))]
+								: []),
 						);
 					}
 				}
@@ -7324,7 +7346,7 @@ function transform_children(children, context) {
 		}
 	}
 
-	if (is_fragment_root && skipped > 1) {
+	if (is_fragment_root && skipped > 1 && state.hydration) {
 		skipped--;
 		state.init?.push(b.stmt(b.call('_$_.next', skipped !== 1 && b.literal(skipped))));
 	}
@@ -8430,9 +8452,18 @@ function create_tsx_with_typescript_support(comments) {
  * @param {boolean} hmr - Whether to emit HMR wrapper code
  * @returns {{ ast: AST.Program, code: string, map: RawSourceMap, post_processing_changes?: PostProcessingChanges, line_offsets?: LineOffsets, css: string, cssHash: string | null, errors: CompileError[] }}
  */
-export function transform_client(filename, source, analysis, to_ts, minify_css, hmr = false) {
+export function transform_client(
+	filename,
+	source,
+	analysis,
+	to_ts,
+	minify_css,
+	hmr = false,
+	hydration = true,
+) {
 	/** @type {TransformClientState} */
 	const state = {
+		hydration,
 		imports: new Set(),
 		events: new Set(),
 		template: null,

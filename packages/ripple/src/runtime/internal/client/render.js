@@ -14,6 +14,7 @@ import { event_listener } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { hydrating } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { TEXT_NODE } from '../../../constants.js';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 
@@ -31,7 +32,7 @@ import { normalize_css_property_name } from '@tsrx/core/runtime/html';
  */
 export function set_text_content(element, value, prev) {
 	var str = value == null ? '' : value + '';
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		var text = element.firstChild;
 		if (text === null) {
 			if (str !== '') {
@@ -63,7 +64,7 @@ export function set_text(text, value) {
 	// The compiled render block compares against the value it last wrote, so
 	// nothing is cached on the node. Only server-rendered text can already
 	// hold the value; a fresh template text node never does.
-	if (hydrating && text.nodeValue === str) {
+	if (HYDRATION && hydrating && text.nodeValue === str) {
 		return;
 	}
 	text.nodeValue = str;

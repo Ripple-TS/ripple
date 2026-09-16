@@ -9,6 +9,7 @@ import {
 import { H, hydrate_node, hydrating } from './hydration.js';
 import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * Assigns start and end nodes to the active block's state.
@@ -118,7 +119,7 @@ export function template(content, flags = 0, count = 1) {
 	var t = { c: content, f: flags, n: undefined, ns: undefined };
 
 	return () =>
-		hydrating
+		HYDRATION && hydrating
 			? /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(is_fragment, count)
 			: clone_template(t);
 }
@@ -129,7 +130,7 @@ export function template(content, flags = 0, count = 1) {
  * @param {Node} dom - The DOM node to append.
  */
 export function append(anchor, dom) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).a(anchor, dom);
 		return;
 	}
@@ -145,7 +146,7 @@ export function append(anchor, dom) {
 }
 
 export function text(data = '') {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		assign_nodes(/** @type {Node} */ (hydrate_node), /** @type {Node} */ (hydrate_node));
 		return /** @type {Node} */ (hydrate_node);
 	}

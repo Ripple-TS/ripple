@@ -10,6 +10,7 @@ import {
 } from './blocks.js';
 import { BRANCH_BLOCK, DIRECT_CHILD_BLOCK, TRY_BLOCK } from './constants.js';
 import { H, hydrate_node, hydrating } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { resolve_anchor } from './operations.js';
 import { append } from './template.js';
 import {
@@ -346,7 +347,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		sc: null,
 	};
 
-	if (hydrating && (pending_fn !== null || catch_fn !== null)) {
+	if (HYDRATION && hydrating && (pending_fn !== null || catch_fn !== null)) {
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
@@ -361,7 +362,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 
 	own_anchor(node, state.a);
 
-	if (hydrating && root_controlled) {
+	if (HYDRATION && hydrating && root_controlled) {
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
 	}
 }

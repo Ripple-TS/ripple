@@ -9,6 +9,7 @@ import { active_block } from './runtime.js';
 import { H, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { is_tsrx_element, TSRX_ELEMENT } from '../../element.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * Finds the nearest enclosing block that owns a DOM range (a branch or an if
@@ -58,7 +59,7 @@ export function render_value(value, anchor, block) {
  * @returns {void}
  */
 function render_tsrx_collection(value, anchor, block) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		assign_nodes(/** @type {Node} */ (hydrate_node ?? anchor), anchor);
 		render_tsrx_collection_items(value, anchor, block);
 		return;
@@ -133,7 +134,7 @@ function render_tsrx_element(value, anchor, block) {
  * @returns {void}
  */
 function render_tsrx_collection_text(value, anchor, assign = false) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).x(value, anchor, assign);
 		return;
 	}
@@ -204,7 +205,10 @@ function run_expression(s) {
 	var anchor = s.a;
 	var type = typeof next_value;
 	var is_hydration_marker =
-		hydrating && s.n === COMMENT_NODE && /** @type {Comment} */ (anchor).data === HYDRATION_START;
+		HYDRATION &&
+		hydrating &&
+		s.n === COMMENT_NODE &&
+		/** @type {Comment} */ (anchor).data === HYDRATION_START;
 
 	if (is_hydration_marker) {
 		s.m ??= /** @type {import('./hydrate.js').HydrationRuntime} */ (H).e(anchor);
@@ -236,7 +240,7 @@ function run_expression(s) {
 				restore_parent_start(s);
 			}
 
-			if (end !== null && (s.i || !hydrating)) {
+			if (end !== null && (s.i || !(HYDRATION && hydrating))) {
 				clear_expression_range(anchor, end);
 			}
 
@@ -388,7 +392,7 @@ export function clear_expression_range(anchor, end) {
  * @returns {void}
  */
 function settle_hydration(end) {
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		set_hydrate_node(end);
 	}
 }

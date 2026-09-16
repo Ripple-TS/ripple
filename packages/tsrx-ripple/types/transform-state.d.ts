@@ -51,6 +51,8 @@ declare module '@tsrx/core/types' {
 	}
 
 	interface TransformClientState {
+		/** the output can hydrate server HTML (see `CompileOptions.hydration`) */
+		hydration: boolean;
 		/**
 		 * Set by an element for its children: flips to true when the element's
 		 * only child is a text node hydrated in place (`hydrate_text`), which

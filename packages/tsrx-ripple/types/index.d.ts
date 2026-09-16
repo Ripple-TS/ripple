@@ -41,6 +41,13 @@ export interface TextTypeFacts {
 export interface CompileOptions extends CoreCompileOptions {
 	/** Use the same facts for client and server compilation. */
 	textTypeFacts?: TextTypeFacts;
+	/**
+	 * Whether the client output can hydrate server-rendered HTML. `false`
+	 * compiles a client-only module: bare DOM reads instead of the hydration
+	 * cursor, and no serialization hashes on `track()` calls.
+	 * @default true
+	 */
+	hydration?: boolean;
 }
 
 /**

@@ -9,6 +9,7 @@ import {
 	set_hydrating,
 	set_hydration,
 } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @param {string} hash
@@ -19,12 +20,12 @@ export function head(hash, render_fn) {
 	// The head function may be called after the first hydration pass and ssr comment nodes may still be present,
 	// therefore we need to skip that when we detect that we're not in hydration mode.
 	let previous_hydrate_node = null;
-	let was_hydrating = hydrating;
+	let was_hydrating = HYDRATION && hydrating;
 
 	/** @type {Comment | Text} */
 	var anchor;
 
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		previous_hydrate_node = hydrate_node;
 
 		var head_anchor = get_first_child(document.head);
@@ -50,7 +51,7 @@ export function head(hash, render_fn) {
 		}
 	}
 
-	if (!hydrating) {
+	if (!(HYDRATION && hydrating)) {
 		anchor = document.head.appendChild(create_text());
 	}
 

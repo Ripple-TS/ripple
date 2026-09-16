@@ -107,6 +107,16 @@ export type RouteHandler = (context: Context) => Response | Promise<Response>;
 
 export interface RipplePluginOptions {
 	/**
+	 * Override the build's rendering side. `false` builds a client-only app:
+	 * components compile without the hydration cursor or serialization hashes,
+	 * the runtime's hydration paths are compiled out, and `hydrate()` throws.
+	 * `true` compiles every module for the server, for an adapter that drives
+	 * the build itself. Leave unset to let Vite's environment decide, which is
+	 * what a `ripple.config.ts` app with render routes needs.
+	 */
+	ssr?: boolean;
+
+	/**
 	 * Opt-in primitive DOM text proofs from TypeScript. Requires TypeScript and
 	 * strictNullChecks. Active only in one-shot production builds; development,
 	 * HMR, and watch builds use local inference. Resolve tsconfig from Vite root.

@@ -7,6 +7,7 @@ import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
 import { remove_styles } from './internal/client/css.js';
 import { install_hydration } from './internal/client/hydrate.js';
+import { hydration_disabled } from './internal/client/errors.js';
 import { normalize_children } from './element.js';
 import {
 	hydrate_next,
@@ -83,7 +84,7 @@ export function mount(component, options) {
 	// Requesting a frame otherwise makes the browser attach layout to the
 	// mounted tree before the app's next update, which slows a teardown that
 	// would have preceded the first paint.
-	if (document.querySelector('style[data-ripple-ssr]') !== null) {
+	if (HYDRATION && document.querySelector('style[data-ripple-ssr]') !== null) {
 		requestAnimationFrame(remove_styles);
 	}
 
@@ -145,6 +146,9 @@ export function mount(component, options) {
  * @returns {() => void}
  */
 export function hydrate(component, options) {
+	if (!HYDRATION) {
+		hydration_disabled();
+	}
 	init_operations();
 	install_hydration();
 	requestAnimationFrame(remove_styles);
@@ -154,7 +158,7 @@ export function hydrate(component, options) {
 		props = normalize_props(props);
 	}
 	const target = options.target;
-	const was_hydrating = hydrating;
+	const was_hydrating = HYDRATION && hydrating;
 	const previous_hydrate_node = hydrate_node;
 	let anchor = target.firstChild;
 
@@ -274,3 +278,4 @@ export {
 	bindOffsetWidth,
 	bindOffsetHeight,
 } from './internal/client/bindings.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';

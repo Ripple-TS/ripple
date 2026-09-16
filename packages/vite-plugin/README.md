@@ -8,6 +8,21 @@ export default {
 };
 ```
 
+## Client-only builds
+
+An app that never hydrates server-rendered HTML can say so:
+
+```js
+ripple({ ssr: false });
+```
+
+Components then compile to bare DOM reads instead of the hydration cursor,
+`track()` calls carry no serialization hashes, and the runtime's hydration paths
+are left out of the bundle. `hydrate()` throws in such a build, and the option is
+rejected when `ripple.config.ts` declares render routes, which are server rendered
+and hydrated. `ssr: true` is the opposite override: every module compiles for the
+server, for an adapter that drives the build itself.
+
 ## Module preload polyfill
 
 Production builds leave Vite's `modulepreload` polyfill out: every current browser

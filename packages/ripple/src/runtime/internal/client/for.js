@@ -25,6 +25,7 @@ import { get_last_child, next_sibling, resolve_anchor } from './operations.js';
 import { append } from './template.js';
 import { active_block, run_block, run_branch, set, set_tracking, tracked } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @template V
@@ -359,7 +360,7 @@ function run_for(state) {
 	// Re-anchor a hydrated list: the hydrated anchor is the block's start
 	// marker; later inserts and end moves must go before the cursor, which now
 	// sits after the hydrated items.
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		state.a = /** @type {Element | Text} */ (hydrate_node);
 	}
 }
@@ -375,7 +376,7 @@ function run_for_keyed(state) {
 	reconcile_by_key(state.a, block, array);
 	set_tracking(true);
 
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		state.a = /** @type {Element | Text} */ (hydrate_node);
 	}
 }
@@ -402,7 +403,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty, 
 	var boundary;
 
 	if (is_controlled) {
-		if (hydrating) {
+		if (HYDRATION && hydrating) {
 			// The cursor sits on the list's element; the items are its children.
 			hydrate_first_child();
 		} else {
@@ -410,7 +411,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty, 
 		}
 	}
 
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
@@ -437,7 +438,7 @@ export function for_block(node, get_collection, render_fn, flags, render_empty, 
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
-	if (hydrating && root_controlled) {
+	if (HYDRATION && hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
@@ -480,7 +481,7 @@ export function for_block_keyed(
 	if (is_controlled) {
 		var parent_node = /** @type {Element} */ (node);
 
-		if (hydrating) {
+		if (HYDRATION && hydrating) {
 			hydrate_first_child();
 			anchor = /** @type {Element | Text} */ (get_last_child(parent_node));
 		} else {
@@ -488,7 +489,7 @@ export function for_block_keyed(
 		}
 	}
 
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		if (root_controlled) {
 			boundary = /** @type {Node} */ (hydrate_node);
 		}
@@ -515,7 +516,7 @@ export function for_block_keyed(
 
 	if (!is_controlled) own_anchor(node, /** @type {Node} */ (anchor));
 
-	if (hydrating && root_controlled) {
+	if (HYDRATION && hydrating && root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the
 		// cursor advance that stands in for the eliminated sibling navigation.
 		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));

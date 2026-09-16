@@ -54,6 +54,9 @@
     "./internal/client": {
       "default": "./src/runtime/internal/client/index.js"
     },
+    "./internal/client/hydration-enabled": {
+      "default": "./src/runtime/internal/client/hydration-enabled.js"
+    },
     "./internal/client-types": {
       "types": "./src/runtime/internal/client/types.d.ts"
     },

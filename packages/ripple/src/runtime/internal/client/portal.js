@@ -6,6 +6,7 @@ import { handle_root_events, release_root_events } from './events.js';
 import { active_block } from './runtime.js';
 import { hydrating, hydrate_node, set_hydration, set_hydrating } from './hydration.js';
 import { is_tsrx_element, tsrx_element } from '../../element.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @typedef {(anchor: AppendIntoAnchor, block: Block) => void} PortalRender
@@ -126,7 +127,7 @@ function create_portal(get_target, render_children, get_children) {
 		p: null,
 	};
 
-	if (!hydrating) {
+	if (!(HYDRATION && hydrating)) {
 		render(run_portal, state);
 		return;
 	}

@@ -11,6 +11,7 @@ import {
 	TRY_BLOCK,
 } from './constants.js';
 import { hydrating, track_hash_reference } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import {
 	active_block,
 	active_component,
@@ -145,7 +146,7 @@ export function track_async(fn, b, hash) {
 	/** @type {string[] | undefined} */
 	var hydration_deps;
 
-	if (hydrating) {
+	if (HYDRATION && hydrating) {
 		var script_id = get_track_async_script_id(hash);
 		var script_el = document.getElementById(script_id);
 		if (script_el) {

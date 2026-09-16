@@ -3,7 +3,11 @@ import { ripple } from '@ripple-ts/vite-plugin';
 
 export default defineConfig({
 	plugins: [
-		ripple({ excludeRippleExternalModules: true, textTypes: { tsconfig: 'tsconfig.json' } }),
+		ripple({
+			ssr: false,
+			excludeRippleExternalModules: true,
+			textTypes: { tsconfig: 'tsconfig.json' },
+		}),
 	],
 	optimizeDeps: { exclude: ['ripple'] },
 	build: {

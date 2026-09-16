@@ -44,6 +44,7 @@ import {
 	object_keys,
 } from '@tsrx/core/runtime/language-helpers';
 import { hydrating, track_hash_reference } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { create_ref_prop as create_core_ref_prop } from '@tsrx/core/runtime/ref';
 
 const FLUSH_MICROTASK = 0;
@@ -611,7 +612,7 @@ export function tracked(v, block, hash, get, set) {
 	var t = /** @type {Tracked} */ (
 		new TrackedValue(v, block || active_block, get || set ? { get, set } : empty_get_set, hash)
 	);
-	if (hydrating && hash !== undefined) {
+	if (HYDRATION && hydrating && hash !== undefined) {
 		track_hash_reference.set(hash, t);
 	}
 	return t;
@@ -642,7 +643,7 @@ export function derived(fn, block, hash, get, set) {
 			created.push(d);
 		}
 	}
-	if (hydrating && hash !== undefined) {
+	if (HYDRATION && hydrating && hash !== undefined) {
 		track_hash_reference.set(hash, d);
 	}
 	return d;
