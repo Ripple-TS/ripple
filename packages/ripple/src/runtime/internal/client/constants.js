@@ -35,6 +35,14 @@ export var CREATES_DERIVEDS = 1 << 25;
  * re-runs the body's update function.
  */
 export var ITEM_BLOCK = 1 << 26;
+/**
+ * The namespace a block was created in, so a rerun outside the `with_ns()`
+ * call that established it (a scheduled flush) creates its DOM in the same
+ * namespace. Neither bit set means HTML.
+ */
+export var SVG_BLOCK = 1 << 27;
+export var MATHML_BLOCK = 1 << 28;
+export var NAMESPACE_BLOCK = SVG_BLOCK | MATHML_BLOCK;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

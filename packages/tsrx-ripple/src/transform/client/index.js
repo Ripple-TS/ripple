@@ -89,6 +89,7 @@ import {
 	normalize_children,
 	build_getter,
 	determine_namespace_for_children,
+	is_svg_or_mathml_element,
 	index_to_key,
 	is_children_template_expression,
 	is_inside_left_side_assignment,
@@ -3753,12 +3754,16 @@ const visitors = {
 		const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
+		// A dynamic tag is only known at runtime: composite() renders the
+		// children in the namespace the tag resolves to, so they carry none.
 		const child_namespace = is_dom_element
 			? determine_namespace_for_children(
 					/** @type {AST.Identifier} */ (element_id).name,
 					state.namespace,
 				)
-			: state.namespace;
+			: is_dynamic_element(node)
+				? DEFAULT_NAMESPACE
+				: state.namespace;
 
 		/**
 		 * @param {string} name
@@ -4071,9 +4076,12 @@ const visitors = {
 				}
 			}
 
+			// Where no namespace is known, the element may still be rendered into
+			// an `<svg>` at runtime, so only a tag that is not an SVG or MathML
+			// element name takes the `className` fast path.
 			const is_html_class =
 				context.state.namespace === 'html' &&
-				/** @type {AST.Identifier} */ (element_id).name !== 'svg';
+				!is_svg_or_mathml_element(/** @type {AST.Identifier} */ (element_id).name);
 
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));
@@ -4285,6 +4293,16 @@ const visitors = {
 			}
 
 			if (init.length > 0) {
+				if (/** @type {AST.Identifier} */ (element_id).name === 'foreignObject') {
+					// The children are HTML whatever namespace the element renders
+					// in, and that namespace may only be known at runtime (children
+					// rendered into a component's `<svg>`): reset it around their
+					// setup, so the blocks created here record HTML, and restore it
+					// for the siblings that follow.
+					const ns_id = b.id(state.scope.generate('ns'));
+					init.unshift(b.var(ns_id, b.call('_$_.set_ns', b.literal(DEFAULT_NAMESPACE))));
+					init.push(b.stmt(b.call('_$_.set_ns', ns_id)));
+				}
 				state.init?.push(b.block(init));
 			}
 		} else {
@@ -5962,7 +5980,9 @@ function transform_ts_child(node, context) {
 		const child_namespace =
 			is_dom_element && element_name !== null
 				? determine_namespace_for_children(element_name, state.namespace)
-				: state.namespace;
+				: is_dynamic_element(element)
+					? DEFAULT_NAMESPACE
+					: state.namespace;
 
 		const attributes = get_element_attributes(element).map((attr) => {
 			if (attr.type === 'JSXAttribute') {

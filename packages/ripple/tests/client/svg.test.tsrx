@@ -1,7 +1,279 @@
-import { track } from 'ripple';
+import { track, flushSync } from 'ripple';
 import type { Component, PropsWithChildren, PropsWithExtras } from 'ripple';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const HTML_NS = 'http://www.w3.org/1999/xhtml';
+
+// The namespace is only known at runtime here: the component's children are
+// compiled without it and rendered into an `<svg>` the component owns, so
+// every block must keep the namespace it was created in when it reruns.
+describe('SVG namespace in runtime-only contexts', () => {
+	function SVG({ children }: PropsWithChildren<{}>) @{
+		<svg>{children}</svg>
+	}
+
+	it('parses a nested template in the SVG namespace', () => {
+		function App() @{
+			<SVG>
+				<g class="group">
+					<circle r="1" />
+				</g>
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('.group').namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('circle').namespaceURI).toBe(SVG_NS);
+	});
+
+	it('keeps the namespace when an @if in component children toggles', () => {
+		let setFlag: ((value: boolean) => void) | undefined;
+
+		function App() @{
+			const flag = track(true);
+			setFlag = (value) => {
+				flag.value = value;
+			};
+			<SVG>
+				@if (flag.value) {
+					<polygon class="a" points="0,0 1,1" />
+				} @else {
+					<g class="b">
+						<rect width="1" height="1" />
+					</g>
+				}
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('.a').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setFlag?.(false));
+		expect(container.querySelector('.b').namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('rect').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setFlag?.(true));
+		expect(container.querySelector('.a').namespaceURI).toBe(SVG_NS);
+	});
+
+	it('keeps the namespace when an @if in a leaf component toggles', () => {
+		let setFlag: ((value: boolean) => void) | undefined;
+
+		function Shape() @{
+			const flag = track(true);
+			setFlag = (value) => {
+				flag.value = value;
+			};
+			@if (flag.value) {
+				<polygon class="a" points="0,0 1,1" />
+			} @else {
+				<rect class="b" width="1" height="1" />
+			}
+		}
+
+		function App() @{
+			<svg>
+				<Shape />
+			</svg>
+		}
+
+		render(App);
+		expect(container.querySelector('.a').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setFlag?.(false));
+		expect(container.querySelector('.b').namespaceURI).toBe(SVG_NS);
+	});
+
+	it('keeps the namespace when a dynamic tag in component children changes', () => {
+		let setTag: ((value: string) => void) | undefined;
+
+		function App() @{
+			const tag = track('polygon');
+			setTag = (value) => {
+				tag.value = value;
+			};
+			<SVG>
+				<{tag.value} class="shape" />
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('.shape').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setTag?.('rect'));
+		const shape = container.querySelector('.shape');
+		expect(shape.localName).toBe('rect');
+		expect(shape.namespaceURI).toBe(SVG_NS);
+	});
+
+	it('keeps the namespace for items added to an @for in component children', () => {
+		let setItems: ((value: string[]) => void) | undefined;
+
+		function App() @{
+			const items = track(['a']);
+			setItems = (value) => {
+				items.value = value;
+			};
+			<SVG>
+				@for (const id of items.value) {
+					<circle data-id={id} r="1" />
+				}
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('[data-id=a]').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setItems?.(['a', 'b']));
+		expect(container.querySelector('[data-id=b]').namespaceURI).toBe(SVG_NS);
+	});
+
+	it('renders HTML inside a foreignObject in component children', () => {
+		let setTag: ((value: string) => void) | undefined;
+
+		function App() @{
+			const tag = track('div');
+			setTag = (value) => {
+				tag.value = value;
+			};
+			<SVG>
+				<foreignObject>
+					@if (tag.value !== 'none') {
+						<div class="static-label">
+							<span>hi</span>
+						</div>
+					}
+					<{tag.value} class="html-label">Label</{tag.value}>
+				</foreignObject>
+				<circle class="after" r="1" />
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('.static-label').namespaceURI).toBe(HTML_NS);
+		expect(container.querySelector('span').namespaceURI).toBe(HTML_NS);
+		expect(container.querySelector('.html-label').namespaceURI).toBe(HTML_NS);
+		expect(container.querySelector('.after').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setTag?.('span'));
+		const label = container.querySelector('.html-label');
+		expect(label.localName).toBe('span');
+		expect(label.namespaceURI).toBe(HTML_NS);
+	});
+
+	it('sets a dynamic class on SVG elements in component children', () => {
+		let setName: ((value: string) => void) | undefined;
+
+		function App() @{
+			const name = track('one');
+			setName = (value) => {
+				name.value = value;
+			};
+			<SVG>
+				<circle class={name.value} r="1" />
+				<a class={name.value} href="#link">
+					<text>link</text>
+				</a>
+			</SVG>
+		}
+
+		render(App);
+		expect(container.querySelector('circle').getAttribute('class')).toBe('one');
+		expect(container.querySelector('a').getAttribute('class')).toBe('one');
+		flushSync(() => setName?.('two'));
+		expect(container.querySelector('circle').getAttribute('class')).toBe('two');
+		expect(container.querySelector('a').getAttribute('class')).toBe('two');
+	});
+});
+
+describe('dynamic element namespace changes', () => {
+	it('switches a root between HTML and SVG with its children', () => {
+		let setTag: ((value: string) => void) | undefined;
+
+		function App() @{
+			const tag = track('div');
+			setTag = (value) => {
+				tag.value = value;
+			};
+			<{tag.value} class="root">
+				<g class="inner">
+					<title>t</title>
+				</g>
+			</{tag.value}>
+		}
+
+		render(App);
+		expect(container.querySelector('.root').namespaceURI).toBe(HTML_NS);
+		expect(container.querySelector('.inner').namespaceURI).toBe(HTML_NS);
+		flushSync(() => setTag?.('svg'));
+		expect(container.querySelector('.root').namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('.inner').namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('title').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setTag?.('div'));
+		expect(container.querySelector('.root').namespaceURI).toBe(HTML_NS);
+		expect(container.querySelector('.inner').namespaceURI).toBe(HTML_NS);
+	});
+
+	it('renders HTML children once the tag becomes foreignObject', () => {
+		let setTag: ((value: string) => void) | undefined;
+
+		function App() @{
+			const tag = track('g');
+			setTag = (value) => {
+				tag.value = value;
+			};
+			<svg>
+				<{tag.value} class="host">
+					<a class="content">hi</a>
+				</{tag.value}>
+			</svg>
+		}
+
+		render(App);
+		expect(container.querySelector('.host').namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('.content').namespaceURI).toBe(SVG_NS);
+		flushSync(() => setTag?.('foreignObject'));
+		const host = container.querySelector('.host');
+		expect(host.localName).toBe('foreignObject');
+		expect(host.namespaceURI).toBe(SVG_NS);
+		expect(container.querySelector('.content').namespaceURI).toBe(HTML_NS);
+		flushSync(() => setTag?.('g'));
+		expect(container.querySelector('.content').namespaceURI).toBe(SVG_NS);
+	});
+});
+
 describe('SVG namespace handling', () => {
+	it('preserves SVG and foreignObject namespaces when dynamic tags change', () => {
+		let setTags: ((svgTag: string, htmlTag: string) => void) | undefined;
+
+		function App() @{
+			const shape = track('circle');
+			const html = track('div');
+			setTags = (svgTag, htmlTag) => {
+				shape.value = svgTag;
+				html.value = htmlTag;
+			};
+			<svg>
+				<{shape.value} class="shape">
+					<title>Dynamic shape</title>
+				</{shape.value}>
+				<foreignObject>
+					<{html.value} class="html-label">Label</{html.value}>
+				</foreignObject>
+			</svg>
+		}
+
+		render(App);
+		for (const [svgTag, htmlTag] of [['circle', 'div'], ['path', 'span'], ['line', 'div']]) {
+			flushSync(() => {
+				setTags?.(svgTag, htmlTag);
+			});
+			const element = container.querySelector('.shape');
+			expect(element.localName).toBe(svgTag);
+			expect(element.namespaceURI).toBe('http://www.w3.org/2000/svg');
+			expect(element.querySelector('title').namespaceURI).toBe('http://www.w3.org/2000/svg');
+			expect(element.textContent).toBe('Dynamic shape');
+			const label = container.querySelector('.html-label');
+			expect(label.localName).toBe(htmlTag);
+			expect(label.namespaceURI).toBe('http://www.w3.org/1999/xhtml');
+			expect(label.textContent).toBe('Label');
+		}
+	});
+
 	it('should render static SVG elements with correct namespace', () => {
 		function App() @{
 			<svg

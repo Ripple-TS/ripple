@@ -6,9 +6,9 @@ import { render_spread } from './attributes.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { hydrate_node, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
 import { first_child } from './operations.js';
-import { active_block, active_namespace, get, untrack, with_ns } from './runtime.js';
+import { active_block, active_namespace, get, untrack } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
-import { install_ns_templates } from './template-ns.js';
+import { with_ns } from './template-ns.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
@@ -57,10 +57,6 @@ export function composite(get_component, node, get_props) {
 			} else if (component != null) {
 				// Custom element - only create if component is not null/undefined
 				const ns = top_element_to_ns(component, active_namespace);
-				if (ns !== DEFAULT_NAMESPACE) {
-					// Templates cloned inside the element parse in its namespace.
-					install_ns_templates();
-				}
 				var run = () => {
 					var block = /** @type {Block} */ (active_block);
 
@@ -103,8 +99,11 @@ export function composite(get_component, node, get_props) {
 							element.appendChild(child_anchor);
 						}
 
-						if (ns !== DEFAULT_NAMESPACE) {
-							with_ns(ns, () => props.children.render(child_anchor, block, props.children.p));
+						// The children of a `foreignObject` are HTML whatever namespace
+						// the element itself takes.
+						var child_ns = component === 'foreignObject' ? DEFAULT_NAMESPACE : ns;
+						if (child_ns !== active_namespace) {
+							with_ns(child_ns, () => props.children.render(child_anchor, block, props.children.p));
 						} else {
 							props.children.render(child_anchor, block, props.children.p);
 						}

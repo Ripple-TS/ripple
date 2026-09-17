@@ -15,6 +15,9 @@ import {
 	HEAD_BLOCK,
 	IF_BLOCK,
 	CREATES_DERIVEDS,
+	DEFAULT_NAMESPACE,
+	SVG_BLOCK,
+	MATHML_BLOCK,
 } from './constants.js';
 import { hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
@@ -31,6 +34,7 @@ import {
 	run_teardown,
 	schedule_update,
 	untrack,
+	active_namespace,
 } from './runtime.js';
 import { is_ripple_object } from './utils.js';
 import { effect_orphan } from './errors.js';
@@ -263,7 +267,10 @@ export function create_block(flags, fn, state = null, co) {
 		co: co || active_component,
 		d: null,
 		first: null,
-		f: flags,
+		f:
+			active_namespace === DEFAULT_NAMESPACE
+				? flags
+				: flags | (active_namespace === 'svg' ? SVG_BLOCK : MATHML_BLOCK),
 		fn,
 		i: ++block_id,
 		last: null,

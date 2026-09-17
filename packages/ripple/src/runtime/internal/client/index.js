@@ -73,7 +73,7 @@ export {
 	derived,
 	tick,
 	with_block,
-	with_ns,
+	set_ns,
 	handle_error,
 	queue_post_block_flush_callback,
 	schedule_update,
@@ -97,7 +97,7 @@ export { if_block as switch } from './if.js';
 
 export { template, template_el, append, text } from './template.js';
 
-export { template_ns } from './template-ns.js';
+export { template_ns, with_ns } from './template-ns.js';
 
 export {
 	ripple_array,

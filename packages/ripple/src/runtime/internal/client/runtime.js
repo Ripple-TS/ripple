@@ -31,6 +31,8 @@ import {
 	RELEASED,
 	RENDER_ENTRY,
 	CREATES_DERIVEDS,
+	NAMESPACE_BLOCK,
+	SVG_BLOCK,
 } from './constants.js';
 import { is_ripple_object } from './utils.js';
 import { scope_orphan, set_in_derived, track_orphan, update_depth_exceeded } from './errors.js';
@@ -442,6 +444,7 @@ export function run_block(block, first_run = false) {
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_component = active_component;
+	var previous_namespace = active_namespace;
 	/** @type {Derived[] | null} */
 	var previous_deriveds = null;
 
@@ -449,6 +452,10 @@ export function run_block(block, first_run = false) {
 		active_block = block;
 		active_reaction = block;
 		active_component = block.co;
+		// The namespace the block was created in (see `create_block`): a rerun
+		// from a flush is outside the `with_ns()` call that established it.
+		var ns = block.f & NAMESPACE_BLOCK;
+		active_namespace = ns === 0 ? DEFAULT_NAMESPACE : ns === SVG_BLOCK ? 'svg' : 'mathml';
 
 		if (!first_run) {
 			previous_deriveds = prepare_rerun(block);
@@ -478,6 +485,7 @@ export function run_block(block, first_run = false) {
 		tracking = previous_tracking;
 		active_dependency = previous_dependency;
 		active_component = previous_component;
+		active_namespace = previous_namespace;
 
 		// The previous run's deriveds, whether this run finished or threw, and
 		// after this run's dependencies replaced the old ones (so a derived the
@@ -1825,6 +1833,20 @@ export function with_ns(namespace, fn) {
 	} finally {
 		active_namespace = previous_namespace;
 	}
+}
+
+/**
+ * Sets the active namespace and returns the previous one, for setup code that
+ * switches namespace part-way through a render function (the children of a
+ * `foreignObject`), where a `with_ns()` thunk would hide its declarations.
+ * `run_block` restores the namespace after the render function either way.
+ * @param {keyof typeof NAMESPACE_URI} namespace
+ * @returns {keyof typeof NAMESPACE_URI}
+ */
+export function set_ns(namespace) {
+	var previous_namespace = active_namespace;
+	active_namespace = namespace;
+	return previous_namespace;
 }
 
 /**

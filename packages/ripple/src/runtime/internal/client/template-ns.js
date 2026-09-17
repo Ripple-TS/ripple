@@ -1,4 +1,6 @@
+/** @import { NAMESPACE_URI } from './constants.js' */
 import { get_first_child } from './operations.js';
+import { with_ns as run_with_ns } from './runtime.js';
 import { set_ns_parser, template } from './template.js';
 
 /**
@@ -26,12 +28,20 @@ function from_namespace(content, ns) {
 }
 
 /**
- * Makes namespaced template parsing available: called by every path that can
- * clone a template into the SVG or MathML namespace, so an app without one
- * never loads it.
+ * Runs `fn` with `namespace` active: content rendered inside it (children
+ * passed into an `<svg>`, a component rendered there, a dynamic element's
+ * children) creates its DOM in that namespace, and every block created
+ * inside records it (see `create_block`) so its reruns do too. Templates
+ * cloned in the namespace parse through `from_namespace`, so it is installed
+ * here: the compiler only emits this call for the SVG and MathML namespaces.
+ * @template T
+ * @param {keyof typeof NAMESPACE_URI} namespace
+ * @param {() => T} fn
+ * @returns {T}
  */
-export function install_ns_templates() {
+export function with_ns(namespace, fn) {
 	set_ns_parser(from_namespace);
+	return run_with_ns(namespace, fn);
 }
 
 /**
