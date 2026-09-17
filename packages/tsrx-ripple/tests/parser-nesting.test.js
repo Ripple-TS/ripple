@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compile } from '../src/index.js';
 
-// Every element nesting Chromium's parser rewrites (see
+// Every element nesting the parser of Chromium, WebKit or Firefox rewrites (see
 // scripts/parser-rewritten-pairs.mjs): a template holding one must be a
 // compile error or keep parsing, never be DOM-built as written.
 const pairs = /** @type {string[]} */ (
