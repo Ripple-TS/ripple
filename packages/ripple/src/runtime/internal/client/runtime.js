@@ -796,7 +796,8 @@ export function track_read_only(value, block) {
  * @returns {Tracked | Derived}
  */
 export function track(v, b, hash, get, set) {
-	// is_ripple_object(), inline: track() is on every component's cold path.
+	// is_ripple_object(), inline: track() is on every component's cold path
+	// (kept identical by tests/utils/inline-drift.test.js).
 	if (typeof v === 'object' && v !== null && typeof v.f === 'number') {
 		return v;
 	}
@@ -1862,7 +1863,8 @@ function create_deferred_effects(effects) {
 	for (var i = 0; i < length; i += 3) {
 		active_block = /** @type {Block} */ (effects[i + 1]);
 		active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
-		// effect(), inline: one function less on every component's cold path.
+		// effect(), inline: one function less on every component's cold path
+		// (kept identical by tests/utils/inline-drift.test.js).
 		block(EFFECT_BLOCK, /** @type {Function} */ (effects[i]));
 	}
 	active_block = previous_block;
