@@ -8,6 +8,6 @@ export default defineConfig({
 	plugins: [react(), reactCompiler()],
 	mode: 'production',
 	define: { 'process.env.NODE_ENV': JSON.stringify('production') },
-	build: { target: 'esnext' },
+	build: { minify: 'esbuild', target: 'esnext' },
 	server: { port: 5217, strictPort: true },
 });

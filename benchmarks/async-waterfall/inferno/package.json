@@ -13,6 +13,7 @@
     "inferno": "catalog:benchmarks"
   },
   "devDependencies": {
+    "esbuild": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }

@@ -121,3 +121,19 @@ in [#1490](https://github.com/Ripple-TS/ripple/pull/1490). This import contains
 only benchmark fixtures, harness integration, and documentation. All six
 frameworks pass the imported operation and namespace gates with identical
 canonical DOM hashes at mount and after the complete gate sequence.
+
+## Async-waterfall synchronization (2026-09-17)
+
+Compared the complete async-waterfall suite with Octane `origin/main` at
+[`de270e3b46310ffa228aea574e89b999b094dfec`](https://github.com/octanejs/octane/commit/de270e3b46310ffa228aea574e89b999b094dfec).
+The harness, data modules, and framework workloads already matched. Imported
+upstream’s explicit esbuild minification setting for all seven fixtures and
+declared esbuild through the benchmark catalog for Vite 8.
+
+Retained this repository’s dependency catalog, published Octane 0.2.6 pin, and
+workspace Ripple dependencies, TypeScript configuration, and disabled root
+boundary. The ten-level workload, 16 ms delay, cold-page sampling, and init/update
+completion contract are unchanged. Historical results and baselines are unchanged.
+
+All seven production builds and the two-iteration init/update smoke run pass.
+Smoke output is kept separately under `tmp/async-waterfall-sync-smoke/`.

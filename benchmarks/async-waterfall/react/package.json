@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "catalog:benchmarks",
+    "esbuild": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }

@@ -1,4 +1,4 @@
-import { mount } from 'ripple';
+import { flushSync, mount } from 'ripple';
 import { Main } from './Main.tsrx';
 import { LEVELS } from './data.js';
 
@@ -22,15 +22,19 @@ function waitForDeep(text, t0) {
 
 let version = 0;
 
+// Effects run in a microtask after `mount()` returns; `flushSync` runs them
+// before it does, so every level's request starts inside the mount, as the
+// Svelte fixture's `flushSync(() => mount(...))` and Inferno's synchronous
+// `componentDidMount` do.
 window.__init = () => {
 	const t0 = performance.now();
-	mount(Main, { rootBoundary: false, target });
+	flushSync(() => mount(Main, { rootBoundary: false, target }));
 	return waitForDeep(`L${LEVELS - 1}:v0`, t0);
 };
 
 window.__update = () => {
 	version += 1;
 	const t0 = performance.now();
-	window.__bump();
+	flushSync(window.__bump);
 	return waitForDeep(`L${LEVELS - 1}:v${version}`, t0);
 };

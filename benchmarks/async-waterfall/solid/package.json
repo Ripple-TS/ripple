@@ -14,6 +14,7 @@
     "@solidjs/web": "catalog:benchmarks"
   },
   "devDependencies": {
+    "esbuild": "catalog:benchmarks",
     "vite-plugin-solid": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }

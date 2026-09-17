@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "catalog:benchmarks",
+    "esbuild": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }

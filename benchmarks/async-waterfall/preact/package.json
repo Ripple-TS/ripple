@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "catalog:benchmarks",
+    "esbuild": "catalog:benchmarks",
     "vite": "catalog:benchmarks"
   }
 }
