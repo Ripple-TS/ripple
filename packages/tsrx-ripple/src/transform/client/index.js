@@ -5213,13 +5213,79 @@ const LEAF_ONLY_TAGS = new Set([
 const TABLE_MODEL_TAGS = new Set(['table', 'thead', 'tbody', 'tfoot', 'tr', 'colgroup']);
 
 /**
- * Start tags that close an open ancestor the parser has in list-item scope,
- * at any depth, so the tree written is not the tree the parser builds. The
- * other such nestings (`p`, `a`, `button`, `form`, headings) are compile
- * errors before a template is built.
+ * Table parts the parser ignores outside a table (`<div><td>x</td></div>`
+ * parses to `<div>x</div>`): built only as a template's root, where the
+ * template insertion mode creates them as written.
+ */
+const TABLE_PART_TAGS = new Set([
+	'caption',
+	'colgroup',
+	'col',
+	'thead',
+	'tbody',
+	'tfoot',
+	'tr',
+	'td',
+	'th',
+]);
+
+/**
+ * Start tags that close an open ancestor the parser has in scope, at any
+ * depth, so the tree written is not the tree the parser builds: a `p` is
+ * closed by every block-level start tag of the "in body" insertion mode,
+ * list items and descriptions by their own kind. Most of these nestings
+ * (and those of `a`, `button`, `form` and headings) are compile errors
+ * before a template is built; the table is the parser's, not the
+ * validator's, so it stays complete.
  * @type {Map<string, Set<string>>}
  */
 const CLOSED_BY_DESCENDANT = new Map([
+	[
+		'p',
+		new Set([
+			'address',
+			'article',
+			'aside',
+			'blockquote',
+			'center',
+			'dd',
+			'details',
+			'dialog',
+			'dir',
+			'div',
+			'dl',
+			'dt',
+			'fieldset',
+			'figcaption',
+			'figure',
+			'footer',
+			'form',
+			'h1',
+			'h2',
+			'h3',
+			'h4',
+			'h5',
+			'h6',
+			'header',
+			'hgroup',
+			'hr',
+			'li',
+			'listing',
+			'main',
+			'menu',
+			'nav',
+			'ol',
+			'p',
+			'plaintext',
+			'pre',
+			'search',
+			'section',
+			'summary',
+			'table',
+			'ul',
+			'xmp',
+		]),
+	],
 	['li', new Set(['li'])],
 	['dt', new Set(['dt', 'dd'])],
 	['dd', new Set(['dt', 'dd'])],
@@ -5279,7 +5345,7 @@ function decode_static_html(text) {
  * `null`: such a template is built with DOM calls instead of parsed (see
  * `template_el` in the client runtime). Every node must come out exactly as
  * the parser would create it, so the tree is refused when a tag is parsed
- * specially (`PARSED_TAGS`, `LEAF_ONLY_TAGS`), a start tag would close an open ancestor
+ * specially (`PARSED_TAGS`, `LEAF_ONLY_TAGS`, `TABLE_PART_TAGS`), a start tag would close an open ancestor
  * (`CLOSED_BY_DESCENDANT`), or the content holds a character the parser
  * rewrites. Attribute names stay lowercase ASCII and namespace-free so
  * `setAttribute` matches the parser, and the parser keeps the first of two
@@ -5318,6 +5384,7 @@ function dom_built_template(items) {
 		if (match === null) return null;
 		const tag = match[1];
 		if (PARSED_TAGS.has(tag) || ++nodes > DOM_BUILT_MAX_NODES) return null;
+		if (open.length > 0 && TABLE_PART_TAGS.has(tag)) return null;
 		if (RESOURCE_TAGS.has(tag)) inert = true;
 		for (const ancestor of open) {
 			if (CLOSED_BY_DESCENDANT.get(ancestor)?.has(tag)) return null;

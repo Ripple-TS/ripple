@@ -85,6 +85,10 @@ describe('@tsrx/ripple DOM-built templates', () => {
 		['more than eight nodes', '<div><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div>'],
 		['a list item inside a list item', '<li><span><li>x</li></span></li>'],
 		['a description inside a description', '<dt><b><dd>x</dd></b></dt>'],
+		['a block element inside a paragraph', '<p><span><dialog>x</dialog></span></p>'],
+		['a list item inside a paragraph', '<p><li>x</li></p>'],
+		['a table cell outside a table', '<div><td>x</td></div>'],
+		['a caption outside a table', '<span><caption>x</caption></span>'],
 		['a table body', '<tbody><tr><td>x</td></tr></tbody>'],
 		['a select', '<select><option>x</option></select>'],
 		['a fragment root', '<><div>a</div><div>b</div></>'],
@@ -109,6 +113,7 @@ describe('@tsrx/ripple DOM-built templates', () => {
 
 	it('builds table-model elements whose text is whitespace, which the parser keeps', () => {
 		expect(client('<tbody>{" "}</tbody>')).toContain("_$_.template_el('tbody', null, ' ')");
+		expect(client('<td>x</td>')).toContain("_$_.template_el('td', null, 'x')");
 		expect(client('<select>hello</select>')).toContain("_$_.template_el('select', null, 'hello')");
 	});
 
