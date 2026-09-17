@@ -1,0 +1,14 @@
+{
+  "name": "ripple-svg-dashboard-benchmarks",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Comparative SVG dashboard benchmark across Ripple, Octane, React, Solid, Svelte, and Inferno.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 40"
+  },
+  "dependencies": {
+    "playwright": "catalog:benchmarks"
+  }
+}

@@ -74,6 +74,7 @@ iterations. Server and byte suites build their own fixtures.
 | `streaming-ssr`          | Shell delivery and complete asynchronous server streams.                                                                     |
 | `ssr-throughput`         | Sustained news-page SSR at 50/500 cards; quick mode uses 50.                                                                 |
 | `reconcile-anchors`      | Ripple-only direct, wrapped, conditional-component, and switch-component list anchors; retained from the former local suite. |
+| `svg-dashboard`          | SVG charts, topology, dynamic icons, namespace transitions, and portal tooltip updates.                                      |
 | `weather-app`            | Weather loading, forecast expansion, search, errors, recovery, and semantic parity.                                          |
 | `weather-app-lighthouse` | Production navigation audits and simulated/observed paint metrics.                                                           |
 | `bundle-size`            | Normalized app/framework/total JS bytes for rows, TodoMVC, chat, and weather.                                                |
@@ -244,3 +245,7 @@ Bundle-size reports total, app, and framework JavaScript bytes using raw, gzip,
 and Brotli sizes. Every measured weather build must also pass the search,
 forecast, and error/recovery scenario in Chromium. Weather has no historical
 baseline; existing saved results remain unchanged.
+
+The [SVG dashboard suite](svg-dashboard/README.md) adds a twentieth default suite
+with six framework fixtures, including native Ripple. Its sample timers start
+after an explicit layout flush.

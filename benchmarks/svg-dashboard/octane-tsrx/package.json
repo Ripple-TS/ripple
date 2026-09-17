@@ -1,0 +1,19 @@
+{
+  "name": "octane-tsrx-svg-dashboard-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "svg-dashboard SVG render/update stress bench for octane authored in .tsrx - exposes window.__mount/__tick/__tickSparse/__dragFrame/__panZoomStep/__toggleSelect/__churnTopology/__labelChurn/__tooltipStep/__swapIcons/__toggleSeries/__pulseEdges for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5302 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5302 --strictPort"
+  },
+  "dependencies": {
+    "octane": "0.2.6"
+  },
+  "devDependencies": {
+    "esbuild": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

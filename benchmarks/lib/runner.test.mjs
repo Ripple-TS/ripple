@@ -87,7 +87,7 @@ test('the 1k clear diagnostic is selectable but cannot replace the default suite
 		await fs.readFile(new URL('../suites.json', import.meta.url), 'utf8'),
 	);
 	const defaults = selectSuites(manifest, []);
-	assert.equal(defaults.length, 19);
+	assert.equal(defaults.length, 20);
 	assert.ok(defaults.some((suite) => suite.name === 'js-framework'));
 	assert.ok(!defaults.some((suite) => suite.name === 'js-framework-clear-1k'));
 	const [diagnostic] = selectSuites(manifest, ['js-framework-clear-1k']);

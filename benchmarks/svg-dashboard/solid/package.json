@@ -1,0 +1,20 @@
+{
+  "name": "solid-svg-dashboard-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "svg-dashboard SVG render/update stress bench fixture for Solid 2.0 (store + reconcile) - exposes the shared window.__mount/__tick/... hook contract for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5304 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5304 --strictPort"
+  },
+  "dependencies": {
+    "solid-js": "catalog:benchmarks",
+    "@solidjs/web": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "vite-plugin-solid": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

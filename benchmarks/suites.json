@@ -1190,6 +1190,77 @@
     "operations": ["render"]
   },
   {
+    "name": "svg-dashboard",
+    "cwd": "svg-dashboard",
+    "script": "run.mjs",
+    "kind": "browser",
+    "iter": {
+      "normal": 20,
+      "quick": 3
+    },
+    "targets": [
+      {
+        "name": "octane-tsrx",
+        "url": "http://localhost:5302/",
+        "filter": "octane-tsrx-svg-dashboard-bench",
+        "port": 5302
+      },
+      {
+        "name": "ripple",
+        "url": "http://localhost:5306/",
+        "filter": "ripple-svg-dashboard-bench",
+        "port": 5306
+      },
+      {
+        "name": "react",
+        "url": "http://localhost:5303/",
+        "filter": "react-svg-dashboard-bench",
+        "port": 5303
+      },
+      {
+        "name": "solid",
+        "url": "http://localhost:5304/",
+        "filter": "solid-svg-dashboard-bench",
+        "port": 5304
+      },
+      {
+        "name": "svelte",
+        "url": "http://localhost:5305/",
+        "filter": "svelte-svg-dashboard-bench",
+        "port": 5305
+      },
+      {
+        "name": "inferno",
+        "url": "http://localhost:5324/",
+        "filter": "inferno-svg-dashboard-bench",
+        "port": 5324
+      }
+    ],
+    "operations": [
+      "mount",
+      "charts_tick",
+      "tick_sparse",
+      "drag_nodes",
+      "pan_zoom",
+      "select_toggle",
+      "topology_churn",
+      "label_churn",
+      "tooltip_swarm",
+      "icon_swap",
+      "series_toggle",
+      "style_spread_pulse",
+      "nodes_full",
+      "elements_full",
+      "text_full",
+      "comments_full",
+      "empty_text_full",
+      "whitespace_text_full",
+      "svg_elements_full",
+      "foreignobject_html_full",
+      "defs_full"
+    ]
+  },
+  {
     "name": "bundle-size",
     "cwd": "bundle-size",
     "script": "run.mjs",

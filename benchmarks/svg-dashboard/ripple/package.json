@@ -1,0 +1,19 @@
+{
+  "name": "ripple-svg-dashboard-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Native Ripple SVG dashboard benchmark fixture.",
+  "scripts": {
+    "dev": "vite --host --port 5306 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5306 --strictPort"
+  },
+  "dependencies": {
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:benchmarks"
+  }
+}

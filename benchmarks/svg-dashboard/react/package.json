@@ -1,0 +1,21 @@
+{
+  "name": "react-svg-dashboard-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "description": "svg-dashboard SVG render/update stress bench fixture for React 19 - exposes the shared window.__mount/__tick/... hook contract for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5303 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5303 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:benchmarks",
+    "react-dom": "catalog:benchmarks"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "catalog:benchmarks",
+    "esbuild": "catalog:benchmarks",
+    "vite": "catalog:benchmarks"
+  }
+}

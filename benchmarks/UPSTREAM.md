@@ -100,3 +100,24 @@ metrics from the 31 common builds matched exactly. The full Ripple runner also
 passed all 33 builds and their browser interaction checks. These checks establish
 measurement parity under the same toolchain, not equality with Octane's workspace
 runtime or its committed budget limits.
+
+## SVG dashboard synchronization (2026-09-16)
+
+Imported the SVG dashboard fixtures and comparative harness from Octane
+`origin/main` at
+[`de270e3b46310ffa228aea574e89b999b094dfec`](https://github.com/octanejs/octane/commit/de270e3b46310ffa228aea574e89b999b094dfec).
+Added native Ripple tracked state, keyed SVG updates, dynamic icon tags, and SVG
+portal tooltips. Ripple's TypeScript and Vite settings follow portal-swarm.
+
+All six fixtures participate in the identical-data gate; Inferno's comment-only
+variation is normalized. Namespace, operation replay, keyed identity, and DOM
+parity gates are retained, with uncaught browser errors made fatal. Each sample
+forces layout immediately before its timer, matching this repository's timing
+convention. Octane-only production-call instrumentation and budgets are excluded.
+See [svg-dashboard/README.md](svg-dashboard/README.md) for the runnable workload.
+
+The suite exercises namespace preservation across block reruns, fixed separately
+in [#1490](https://github.com/Ripple-TS/ripple/pull/1490). This import contains
+only benchmark fixtures, harness integration, and documentation. All six
+frameworks pass the imported operation and namespace gates with identical
+canonical DOM hashes at mount and after the complete gate sequence.

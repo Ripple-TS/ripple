@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>svg-dashboard bench — Inferno</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				background: #0b0e14;
+				color: #dde3ea;
+			}
+			svg.dash {
+				font-family: ui-monospace, monospace;
+				font-size: 10px;
+			}
+			text {
+				fill: #9ca3af;
+			}
+			.chart-frame {
+				fill: #111827;
+				stroke: #1f2937;
+			}
+			.gl {
+				stroke: #1f2937;
+			}
+			.series {
+				fill: none;
+				stroke-width: 1.5;
+			}
+			path.s-0 {
+				stroke: #60a5fa;
+			}
+			path.s-1 {
+				stroke: #34d399;
+			}
+			path.s-2 {
+				stroke: #fbbf24;
+			}
+			path.s-3 {
+				stroke: #f87171;
+			}
+			path.s-4 {
+				stroke: #a78bfa;
+			}
+			.swatch {
+				stroke: none;
+			}
+			rect.s-0 {
+				fill: #60a5fa;
+			}
+			rect.s-1 {
+				fill: #34d399;
+			}
+			rect.s-2 {
+				fill: #fbbf24;
+			}
+			rect.s-3 {
+				fill: #f87171;
+			}
+			rect.s-4 {
+				fill: #a78bfa;
+			}
+			.edge {
+				fill: none;
+				stroke: #334155;
+			}
+			.edge.active {
+				stroke: #93c5fd;
+			}
+			.node-body {
+				fill: #1e293b;
+				stroke: #475569;
+			}
+			.node.selected .node-body {
+				stroke: #facc15;
+			}
+			.status-ring {
+				fill: none;
+				stroke: #1f2937;
+			}
+			.node.st-warn .status-ring {
+				stroke: #f59e0b;
+			}
+			.node.st-err .status-ring {
+				stroke: #ef4444;
+			}
+			.node-sym {
+				color: #94a3b8;
+			}
+			.icon {
+				color: #94a3b8;
+			}
+			.label {
+				font:
+					9px ui-monospace,
+					monospace;
+				color: #9ca3af;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+			.spark-line {
+				fill: none;
+				stroke: #38bdf8;
+			}
+			.spark-dot {
+				fill: #38bdf8;
+			}
+			.tick line {
+				stroke: #374151;
+			}
+			.tick text {
+				fill: #6b7280;
+			}
+			.legend-item text {
+				fill: #9ca3af;
+			}
+			.tooltip-bg {
+				fill: #111827;
+				stroke: #374151;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main"></div>
+		<script type="module" src="/src/main.jsx"></script>
+	</body>
+</html>
