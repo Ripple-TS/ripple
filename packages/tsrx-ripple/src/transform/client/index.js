@@ -4919,6 +4919,13 @@ const NON_FLAT_TAGS = new Set([
 	'image',
 ]);
 
+/**
+ * Elements whose text the HTML parser foster-parents out of the element
+ * (`<table>text</table>` puts the text before the table) unless it is all
+ * whitespace, which is inserted as written.
+ */
+const TABLE_MODEL_TAGS = new Set(['table', 'thead', 'tbody', 'tfoot', 'tr', 'colgroup']);
+
 const FLAT_TEMPLATE =
 	/^<([a-z][a-z0-9]*)((?: [a-z][a-z0-9-]*(?:=(?:[^\s"'<>=`&]+|"[^"<]*"))?)*)>([^<\r\0]*)$/;
 const FLAT_ATTRIBUTE = / ([a-z][a-z0-9-]*)(?:=("[^"]*"|[^\s"]+))?/g;
@@ -4963,6 +4970,7 @@ function flat_element_template(items) {
 	if (match === null) return null;
 	const tag = match[1];
 	if (NON_FLAT_TAGS.has(tag)) return null;
+	if (TABLE_MODEL_TAGS.has(tag) && match[3].trim() !== '') return null;
 	/** @type {string[]} */
 	const attributes = [];
 	for (const attribute of match[2].matchAll(FLAT_ATTRIBUTE)) {

@@ -144,13 +144,22 @@ export function template(content, flags = 0, count = 1) {
 }
 
 /**
+ * The document that owns parsed template content: it has no browsing
+ * context, so an element created in it does not load its `src` (an image,
+ * a video) until a clone is adopted into the page, exactly like a node
+ * parsed from a `<template>`.
+ * @type {Document | undefined}
+ */
+var inert_document;
+
+/**
  * A template that is one HTML element with static attributes and at most one
  * text child, built with DOM calls instead of parsed: a `<template>` parse
  * has a fixed cost that dwarfs the element itself, and an app's first render
  * pays it once per distinct template. The compiler decides which templates
  * qualify (`template_el` in the client transform); every other shape still
- * parses. The element is created in the active namespace, as a parsed
- * template would be.
+ * parses. The element is created in the inert template document and in the
+ * active namespace, as a parsed template would be.
  * @param {string} tag
  * @param {string[] | null} [attributes] - flat name/value pairs
  * @param {string} [text]
@@ -168,10 +177,11 @@ export function template_el(tag, attributes = null, text = '') {
 		}
 		var ns = active_namespace;
 		if (node === undefined || node_ns !== ns) {
+			var doc = (inert_document ??= document.createElement('template').content.ownerDocument);
 			node =
 				ns === DEFAULT_NAMESPACE
-					? document.createElement(tag)
-					: document.createElementNS(NAMESPACE_URI[ns], tag);
+					? doc.createElement(tag)
+					: doc.createElementNS(NAMESPACE_URI[ns], tag);
 			if (attributes !== null) {
 				for (var i = 0; i < attributes.length; i += 2) {
 					node.setAttribute(attributes[i], attributes[i + 1]);
@@ -182,7 +192,7 @@ export function template_el(tag, attributes = null, text = '') {
 			}
 			node_ns = ns;
 		}
-		var clone = node.cloneNode(true);
+		var clone = is_firefox ? document.importNode(node, true) : node.cloneNode(true);
 		assign_nodes(clone, clone);
 		return clone;
 	};

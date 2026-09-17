@@ -61,10 +61,23 @@ describe('@tsrx/ripple flat element templates', () => {
 		['an svg root', '<svg viewBox="0 0 1 1" />'],
 		['a custom element', '<my-widget>x</my-widget>'],
 		['a customized built-in', '<button is="fancy-button">x</button>'],
+		['text the parser foster-parents out of a table', '<table>hello</table>'],
+		['text the parser foster-parents out of a row', '<tr>hello</tr>'],
 	])('parses a template with %s', (_, template) => {
 		const code = client(template);
 		expect(code).toContain('_$_.template(');
 		expect(code).not.toContain('_$_.template_el(');
+	});
+
+	it('builds an image with its source, which the runtime creates in the inert document', () => {
+		expect(client('<img src="/logo.png" alt="Logo" />')).toContain(
+			"_$_.template_el('img', ['src', '/logo.png', 'alt', 'Logo'])",
+		);
+	});
+
+	it('builds table-model elements whose text is whitespace, which the parser keeps', () => {
+		expect(client('<tbody>{" "}</tbody>')).toContain("_$_.template_el('tbody', null, ' ')");
+		expect(client('<select>hello</select>')).toContain("_$_.template_el('select', null, 'hello')");
 	});
 
 	it('keeps the SVG namespace entry for namespaced content', () => {
