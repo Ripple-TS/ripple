@@ -41,6 +41,14 @@ function if_1(show) {
 
 var root_2 = _$_.template(`<div class=container><button class=toggle>Toggle`);
 
+function render(__prev) {
+	var __a = if_1(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function ConditionalPortal_render(__anchor, __block) {
 	const show = _$_.track(true, __block, 'm1ectw');
 	var div_2 = root_2();
@@ -51,11 +59,12 @@ function ConditionalPortal_render(__anchor, __block) {
 		button.__click = () => show.value = !show.value;
 
 		var node_1 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_2, true);
+		var ifs = _$_.if_static(node_1, if_1, 0, show);
 
-		_$_.if(node_1, if_1, false, show);
 		_$_.hydrating && _$_.pop(div_2);
 	}
 
+	_$_.render(render, { a: _$_.UNINITIALIZED, _a: show, _b: ifs });
 	_$_.append(__anchor, div_2);
 }
 

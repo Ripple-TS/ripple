@@ -58,13 +58,17 @@ shared icon tuples, and `Portal` into the SVG overlay. State is separated into
 topology, charts, and viewport/UI domains. Dashboard markup stays under an
 explicit `<svg>` so namespace context is available to the compiler. Every window
 operation uses `flushSync`, and mounting disables the default root boundary as in
-the other synchronous benchmarks.
+the other synchronous benchmarks. The icon's outer `<svg>` carries the shared
+`ICON_SVG_ATTRS` values as static markup, as the Svelte and Solid fixtures do, and
+its two shape positions are unrolled as in Solid: each is a dynamic tag over the
+shared `[tag, attrs]` tuple read from `ICONS[name]`.
 
 The `tsconfig.json` and Vite plugin settings match the existing portal-swarm
 Ripple fixture: strict checking, `textTypes`, `rootBoundary: false`, excluded
-external Ripple modules, and esbuild production output. Only the preview port
-changes to 5306. All six copies of `data.js` and `ops.js` are identical; Inferno's
-upstream comment-only variation is normalized to the shared copy.
+external Ripple modules, and esbuild production output, plus `ssr: false` for a
+client-only build as in the todomvc and signal-favoring fixtures. Only the preview
+port changes to 5306. All six copies of `data.js` and `ops.js` are identical;
+Inferno's upstream comment-only variation is normalized to the shared copy.
 
 ## Run
 

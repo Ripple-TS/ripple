@@ -81,6 +81,20 @@ function if_3(muzes) {
 
 var root_4 = _$_.template(`<!><!><!>`, 1, 3);
 
+function render(__prev) {
+	var __a = if_2(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+
+	var __b = if_3(__prev._a);
+
+	if (__prev.b !== __b) {
+		_$_.if_update(__prev._c, __prev.b = __b);
+	}
+}
+
 function consequent_3(__anchor, { a: hasLoaded, b: muzes }) {
 	var fragment_1 = root_4();
 	var node_3 = _$_.first_child_frag(fragment_1);
@@ -105,12 +119,18 @@ function consequent_3(__anchor, { a: hasLoaded, b: muzes }) {
 	);
 
 	var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_3.nextSibling;
-
-	_$_.if(node_4, if_2, false, muzes);
-
+	var ifs = _$_.if_static(node_4, if_2, 0, muzes);
 	var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_4.nextSibling;
+	var ifs_1 = _$_.if_static(node_5, if_3, 0, muzes);
 
-	_$_.if(node_5, if_3, false, muzes);
+	_$_.render(render, {
+		a: _$_.UNINITIALIZED,
+		b: _$_.UNINITIALIZED,
+		_a: muzes,
+		_b: ifs,
+		_c: ifs_1
+	});
+
 	_$_.append(__anchor, fragment_1);
 }
 

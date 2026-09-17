@@ -4,6 +4,7 @@ import { ripple } from '@ripple-ts/vite-plugin';
 export default defineConfig({
 	plugins: [
 		ripple({
+			ssr: false,
 			rootBoundary: false,
 			excludeRippleExternalModules: true,
 			textTypes: { tsconfig: 'tsconfig.json' },

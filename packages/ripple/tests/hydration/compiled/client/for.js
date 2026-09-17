@@ -663,6 +663,15 @@ function if_1({ a: showList, b: items }) {
 }
 
 var root_31 = _$_.template(`<button class=toggle>Toggle List</button><button class=add>Add Item</button><!>`, 1, 3);
+
+function render_7(__prev) {
+	var __a = if_1({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
 var root_30 = _$_.template(`<!>`, 1, 1);
 
 function ForLoopInsideIf_render(__anchor, __block) {
@@ -686,8 +695,9 @@ function ForLoopInsideIf_render(__anchor, __block) {
 		};
 
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
+		var ifs = _$_.if_static(node_5, if_1, 0, { a: showList, b: items });
 
-		_$_.if(node_5, if_1, false, { a: showList, b: items });
+		_$_.render(render_7, { a: _$_.UNINITIALIZED, _a: showList, _b: items, _c: ifs });
 		_$_.append(__anchor, fragment_11);
 	}));
 
@@ -793,7 +803,7 @@ ForLoopPopulatedToEmpty[_$_.$r] = ForLoopPopulatedToEmpty_render;
 
 var root_42 = _$_.template_el('span', null, ' ');
 
-function render_7(__prev) {
+function render_8(__prev) {
 	var __a = `cell-${__prev._a.value}-${__prev._b.value}`;
 
 	if (__prev.a !== __a) {
@@ -801,7 +811,7 @@ function render_7(__prev) {
 	}
 }
 
-function render_8(__prev) {
+function render_9(__prev) {
 	var __a = `row-${__prev._a.value}`;
 
 	if (__prev.a !== __a) {
@@ -860,7 +870,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 							},
 							12,
 							void 0,
-							render_7
+							render_8
 						);
 
 						_$_.hydrating && _$_.pop(div_9);
@@ -871,7 +881,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 				},
 				12,
 				void 0,
-				render_8
+				render_9
 			);
 
 			_$_.hydrating && _$_.pop(div_8);
@@ -886,7 +896,7 @@ NestedForLoopReactive[_$_.$r] = NestedForLoopReactive_render;
 var root_46 = _$_.template_el('li', ['class', 'member'], ' ');
 var root_45 = _$_.template(`<div><h3 class=team-name> </h3><ul>`);
 
-function render_9(__prev) {
+function render_10(__prev) {
 	var __a = `team-${_$_.get(__prev._a).id}`;
 
 	if (__prev.a !== __a) {
@@ -896,7 +906,7 @@ function render_9(__prev) {
 
 var root_44 = _$_.template(`<div><h2 class=dept-name> `);
 
-function render_10(__prev) {
+function render_11(__prev) {
 	var __a = `dept-${_$_.get(__prev._a).id}`;
 
 	if (__prev.a !== __a) {
@@ -993,7 +1003,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 						(pattern_5) => pattern_5.id,
 						void 0,
 						void 0,
-						render_9
+						render_10
 					);
 
 					_$_.hydrating && _$_.pop(div_11);
@@ -1006,7 +1016,7 @@ function ForLoopDeeplyNested_render(__anchor, __block) {
 			(pattern_4) => pattern_4.id,
 			void 0,
 			void 0,
-			render_10
+			render_11
 		);
 
 		_$_.hydrating && _$_.pop(div_10);
@@ -1019,7 +1029,7 @@ ForLoopDeeplyNested[_$_.$r] = ForLoopDeeplyNested_render;
 
 var root_49 = _$_.template_el('li');
 
-function render_11(__prev) {
+function render_12(__prev) {
 	var __a = `[${__prev._a.value}] ${__prev._b}`;
 
 	if (__prev.a !== __a) {
@@ -1064,7 +1074,7 @@ function ForLoopIndexUpdate_render(__anchor, __block) {
 				},
 				12,
 				void 0,
-				render_11
+				render_12
 			);
 
 			_$_.hydrating && _$_.pop(ul_12);
@@ -1080,7 +1090,7 @@ ForLoopIndexUpdate[_$_.$r] = ForLoopIndexUpdate_render;
 
 var root_52 = _$_.template_el('li');
 
-function render_12(__prev) {
+function render_13(__prev) {
 	var __pattern_6 = _$_.get(__prev._a);
 	var __a = `[${__prev._b.value}] ${__pattern_6.id}: ${__pattern_6.value}`;
 
@@ -1151,7 +1161,7 @@ function KeyedForLoopWithIndex_render(__anchor, __block) {
 				(pattern_6, i) => pattern_6.id,
 				void 0,
 				void 0,
-				render_12
+				render_13
 			);
 
 			_$_.hydrating && _$_.pop(ul_13);
@@ -1251,7 +1261,7 @@ ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 
 var root_57 = _$_.template(`<div><input type=checkbox class=checkbox><span>`);
 
-function render_13(__prev) {
+function render_14(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1292,7 +1302,7 @@ function TodoItem_render(__anchor, __block, props) {
 		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : input.nextSibling;
 	}
 
-	_$_.render(render_13, {
+	_$_.render(render_14, {
 		a: void 0,
 		b: '',
 		c: _$_.UNINITIALIZED,
@@ -1501,7 +1511,7 @@ ForLoopRemoveFromMiddle[_$_.$r] = ForLoopRemoveFromMiddle_render;
 
 var root_70 = _$_.template_el('li', null, ' ');
 
-function render_14(__prev) {
+function render_15(__prev) {
 	var __a = `item-${__prev._a.value}`;
 
 	if (__prev.a !== __a) {
@@ -1534,7 +1544,7 @@ function ForLoopLargeList_render(__anchor, __block) {
 			},
 			12,
 			void 0,
-			render_14
+			render_15
 		);
 
 		_$_.hydrating && _$_.pop(ul_18);
@@ -1703,7 +1713,7 @@ KeyedForLoopAppendAndRotate[_$_.$r] = KeyedForLoopAppendAndRotate_render;
 
 var root_79 = _$_.template_el('span', ['class', 'item']);
 
-function render_15(__prev) {
+function render_16(__prev) {
 	var __a = __prev.$item;
 
 	if (__prev.a !== __a) {
@@ -1726,7 +1736,7 @@ function RootKeyedList_render(__anchor, __block, props) {
 		void 0,
 		void 0,
 		void 0,
-		render_15
+		render_16
 	);
 }
 

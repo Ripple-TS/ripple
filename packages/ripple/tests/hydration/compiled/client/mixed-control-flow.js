@@ -115,6 +115,14 @@ function if_1(pattern) {
 	if (_$_.get(pattern).enabled) return consequent;
 }
 
+function render_4(__prev) {
+	var __a = if_1(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root = _$_.template_el('section', ['class', 'mixed-static']);
 
 function MixedControlFlowStatic_render(__anchor, __block) {
@@ -131,10 +139,15 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 			section,
 			() => rows,
 			(__anchor, pattern) => {
-				_$_.if(__anchor, if_1, true, pattern);
+				var ifs = _$_.if_static(__anchor, if_1, 3, pattern);
+
+				_$_.item({ a: _$_.UNINITIALIZED, _a: pattern, _b: ifs });
 			},
 			4,
-			(pattern) => pattern.id
+			(pattern) => pattern.id,
+			void 0,
+			void 0,
+			render_4
 		);
 
 		_$_.hydrating && _$_.pop(section);
@@ -147,7 +160,7 @@ MixedControlFlowStatic[_$_.$r] = MixedControlFlowStatic_render;
 
 var root_8 = _$_.template_el('p');
 
-function render_4(__prev) {
+function render_5(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._a);
 	var __a = `A:${__pattern_1_1.label}`;
 
@@ -166,7 +179,7 @@ function render_4(__prev) {
 var root_9 = _$_.template_el('p', ['class', 'pending'], 'pending a');
 var root_10 = _$_.template_el('p');
 
-function render_5(__prev) {
+function render_6(__prev) {
 	var __pattern_1_2 = _$_.get(__prev._a);
 	var __a = `B:${__pattern_1_2.label}`;
 
@@ -190,7 +203,7 @@ function switch_case_0_1(__anchor, { a: mode, b: pattern_1 }) {
 		(__anchor) => {
 			var p = root_8();
 
-			_$_.render(render_4, { a: '', b: _$_.UNINITIALIZED, _a: pattern_1, _b: p });
+			_$_.render(render_5, { a: '', b: _$_.UNINITIALIZED, _a: pattern_1, _b: p });
 			_$_.append(__anchor, p);
 		},
 		null,
@@ -209,7 +222,7 @@ function switch_case_default_1(__anchor, { a: mode, b: pattern_1 }) {
 		(__anchor) => {
 			var p_2 = root_10();
 
-			_$_.render(render_5, { a: '', b: _$_.UNINITIALIZED, _a: pattern_1, _b: p_2 });
+			_$_.render(render_6, { a: '', b: _$_.UNINITIALIZED, _a: pattern_1, _b: p_2 });
 			_$_.append(__anchor, p_2);
 		},
 		null,
@@ -259,6 +272,15 @@ function if_2({ a: show, b: items, c: mode }) {
 }
 
 var root_6 = _$_.template(`<button class=toggle-show>Toggle Show</button><button class=toggle-mode>Toggle Mode</button><button class=add-item>Add Item</button><!>`, 1, 4);
+
+function render_7(__prev) {
+	var __a = if_2({ a: __prev._a, b: __prev._b, c: __prev._c });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._d, __prev.a = __a);
+	}
+}
+
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function MixedControlFlowReactive_render(__anchor, __block) {
@@ -289,8 +311,16 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 		};
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button_2.nextSibling;
+		var ifs_1 = _$_.if_static(node, if_2, 0, { a: show, b: items, c: mode });
 
-		_$_.if(node, if_2, false, { a: show, b: items, c: mode });
+		_$_.render(render_7, {
+			a: _$_.UNINITIALIZED,
+			_a: show,
+			_b: items,
+			_c: mode,
+			_d: ifs_1
+		});
+
 		_$_.append(__anchor, fragment_1);
 	}));
 

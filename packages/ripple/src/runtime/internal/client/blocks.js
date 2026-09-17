@@ -15,6 +15,7 @@ import {
 	HEAD_BLOCK,
 	IF_BLOCK,
 	CREATES_DERIVEDS,
+	COMPOSITE_BLOCK,
 	DEFAULT_NAMESPACE,
 	SVG_BLOCK,
 	MATHML_BLOCK,
@@ -456,8 +457,8 @@ export function remove_block_dom(node, end) {
 export function move_block(block, target) {
 	var f = block.f;
 
-	// Only branch and if blocks (excluding TRY_BLOCK) can have DOM state to move
-	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
+	// Only branch, if and composite blocks (excluding TRY_BLOCK) can have DOM state to move
+	if ((f & (BRANCH_BLOCK | IF_BLOCK | COMPOSITE_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			var node = s.start;
@@ -500,7 +501,7 @@ export function move_block(block, target) {
  */
 export function get_first_node(block) {
 	var f = block.f;
-	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
+	if ((f & (BRANCH_BLOCK | IF_BLOCK | COMPOSITE_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			return s.start;
@@ -524,7 +525,7 @@ export function get_first_node(block) {
  */
 export function get_last_node(block) {
 	var f = block.f;
-	if ((f & (BRANCH_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
+	if ((f & (BRANCH_BLOCK | IF_BLOCK | COMPOSITE_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) {
 		var s = block.s;
 		if (s !== null && s.start !== null) {
 			// An if's materialized anchor is its last node.
@@ -558,7 +559,9 @@ export function destroy_block(block, remove_dom = true) {
 	}
 
 	if (
-		(remove_dom && (f & (BRANCH_BLOCK | ROOT_BLOCK | IF_BLOCK)) !== 0 && (f & TRY_BLOCK) === 0) ||
+		(remove_dom &&
+			(f & (BRANCH_BLOCK | ROOT_BLOCK | IF_BLOCK | COMPOSITE_BLOCK)) !== 0 &&
+			(f & TRY_BLOCK) === 0) ||
 		(f & HEAD_BLOCK) !== 0
 	) {
 		var s = block.s;

@@ -38,3 +38,9 @@ export const ELEMENT_NODE = 1;
 export const TEXT_NODE = 3;
 export const COMMENT_NODE = 8;
 export const DOCUMENT_FRAGMENT_NODE = 11;
+
+// `if_static` flags (see the runtime's if module): the if renders directly
+// before the component's `__anchor`, and the compiler proved its condition
+// reads tracked state.
+export const IF_ROOT_CONTROLLED = 1;
+export const IF_TRACKED = 1 << 1;

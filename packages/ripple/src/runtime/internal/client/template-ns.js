@@ -1,6 +1,6 @@
 /** @import { NAMESPACE_URI } from './constants.js' */
 import { get_first_child } from './operations.js';
-import { with_ns as run_with_ns } from './runtime.js';
+import { render_component, set_ns, with_ns as run_with_ns } from './runtime.js';
 import { set_ns_parser, template } from './template.js';
 
 /**
@@ -54,4 +54,35 @@ export function with_ns(namespace, fn) {
 export function template_ns(content, flags, count) {
 	set_ns_parser(from_namespace);
 	return template(content, flags, count);
+}
+
+/**
+ * Enters `namespace` for the rest of a setup function, as `with_ns` does for
+ * a thunk: the compiler emits this where the content that follows is a
+ * dynamic element or a component called inside an `<svg>` or `<math>`
+ * template. Returns the namespace to restore with `set_ns`.
+ * @param {keyof typeof NAMESPACE_URI} namespace
+ * @returns {keyof typeof NAMESPACE_URI}
+ */
+export function push_ns(namespace) {
+	set_ns_parser(from_namespace);
+	return set_ns(namespace);
+}
+
+/**
+ * `render_component` for a component called inside an `<svg>` or `<math>`
+ * template: its content renders in that namespace.
+ * @param {keyof typeof NAMESPACE_URI} namespace
+ * @param {Function} fn
+ * @param {Node | import('#client').AppendIntoAnchor} anchor
+ * @param {Record<string, any>} props
+ * @returns {void}
+ */
+export function render_component_ns(namespace, fn, anchor, props) {
+	var previous = push_ns(namespace);
+	try {
+		render_component(fn, anchor, props);
+	} finally {
+		set_ns(previous);
+	}
 }

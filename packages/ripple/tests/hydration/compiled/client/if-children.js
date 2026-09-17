@@ -22,6 +22,14 @@ function if_1({ a: expanded, b: children }) {
 
 var root = _$_.template(`<div class=container><div role=button class=header>Toggle`);
 
+function render(__prev) {
+	var __a = if_1({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
 function IfWithChildren_render(__anchor, __block, { children }) {
 	const expanded = _$_.track(true, __block, '1j0jg6p');
 	var div = root();
@@ -32,11 +40,12 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 		div_1.__click = () => expanded.value = !expanded.value;
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div, true);
+		var ifs = _$_.if_static(node, if_1, 0, { a: expanded, b: children });
 
-		_$_.if(node, if_1, false, { a: expanded, b: children });
 		_$_.hydrating && _$_.pop(div);
 	}
 
+	_$_.render(render, { a: _$_.UNINITIALIZED, _a: expanded, _b: children, _c: ifs });
 	_$_.append(__anchor, div);
 }
 
@@ -90,6 +99,14 @@ function if_2(expanded) {
 
 var root_4 = _$_.template(`<div class=container><div role=button class=header>Toggle`);
 
+function render_1(__prev) {
+	var __a = if_2(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function IfWithStaticChildren_render(__anchor, __block) {
 	const expanded = _$_.track(true, __block, 'gkm3jr');
 	var div_4 = root_4();
@@ -100,11 +117,12 @@ function IfWithStaticChildren_render(__anchor, __block) {
 		div_5.__click = () => expanded.value = !expanded.value;
 
 		var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_4, true);
+		var ifs_1 = _$_.if_static(node_3, if_2, 0, expanded);
 
-		_$_.if(node_3, if_2, false, expanded);
 		_$_.hydrating && _$_.pop(div_4);
 	}
 
+	_$_.render(render_1, { a: _$_.UNINITIALIZED, _a: expanded, _b: ifs_1 });
 	_$_.append(__anchor, div_4);
 }
 
@@ -131,6 +149,14 @@ function if_3({ a: expanded, b: children }) {
 
 var root_6 = _$_.template(`<section class=group><div role=button class=item><div class=indicator></div><h2 class=text>Title</h2><div class=caret><svg xmlns=http://www.w3.org/2000/svg width=18 height=18 viewBox="0 0 24 24"><path d="m9 18 6-6-6-6">`);
 
+function render_2(__prev) {
+	var __a = if_3({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
 function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
 	const expanded = _$_.track(true, __block, '18vegr0');
 	var section = root_6();
@@ -145,10 +171,12 @@ function IfWithSiblingsAndChildren_render(__anchor, __block, { children }) {
 			? _$_.hydrate_sibling()
 			: _$_.append_into(section, true);
 
-		_$_.if(node_4, if_3, false, { a: expanded, b: children });
+		var ifs_2 = _$_.if_static(node_4, if_3, 0, { a: expanded, b: children });
+
 		_$_.hydrating && _$_.pop(section);
 	}
 
+	_$_.render(render_2, { a: _$_.UNINITIALIZED, _a: expanded, _b: children, _c: ifs_2 });
 	_$_.append(__anchor, section);
 }
 
@@ -187,6 +215,15 @@ function if_4(show) {
 }
 
 var root_10 = _$_.template(`<div class=wrapper><div class=nested-parent><div class=nested-child><span class=deep>Deep content</span></div></div></div><button class=toggle>Toggle`, 1, 2);
+
+function render_3(__prev) {
+	var __a = if_4(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function ElementWithChildrenThenIf_render(__anchor, __block) {
@@ -201,14 +238,15 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 		{
 			var div_10 = _$_.hydrating ? _$_.hydrate_child() : div_9.firstChild;
 			var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_9, true);
+			var ifs_3 = _$_.if_static(node_7, if_4, 0, show);
 
-			_$_.if(node_7, if_4, false, show);
 			_$_.hydrating && _$_.pop(div_9);
 		}
 
 		var button = _$_.hydrating ? _$_.hydrate_sibling() : div_9.nextSibling;
 
 		button.__click = () => show.value = !show.value;
+		_$_.render(render_3, { a: _$_.UNINITIALIZED, _a: show, _b: ifs_3 });
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -230,6 +268,15 @@ function if_5(visible) {
 }
 
 var root_13 = _$_.template(`<section class=outer><article class=middle><div class=inner><p class=leaf><strong>Bold</strong><em>Italic</em></p></div></article></section><button class=btn>Toggle`, 1, 2);
+
+function render_4(__prev) {
+	var __a = if_5(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function DeepNestingThenIf_render(__anchor, __block) {
@@ -248,13 +295,15 @@ function DeepNestingThenIf_render(__anchor, __block) {
 				? _$_.hydrate_sibling()
 				: _$_.append_into(section_1, true);
 
-			_$_.if(node_9, if_5, false, visible);
+			var ifs_4 = _$_.if_static(node_9, if_5, 0, visible);
+
 			_$_.hydrating && _$_.pop(section_1);
 		}
 
 		var button_1 = _$_.hydrating ? _$_.hydrate_sibling() : section_1.nextSibling;
 
 		button_1.__click = () => visible.value = !visible.value;
+		_$_.render(render_4, { a: _$_.UNINITIALIZED, _a: visible, _b: ifs_4 });
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -284,7 +333,7 @@ function if_6(activeTab) {
 
 var root_15 = _$_.template(`<div class=tabs><div class=tab-list><button class=tab>Code</button><button class=tab>Preview</button></div><div class=panel><!>`);
 
-function render(__prev) {
+function render_5(__prev) {
 	var __a = __prev._a.value === 'code' ? 'true' : 'false';
 
 	if (__prev.a !== __a) {
@@ -295,6 +344,12 @@ function render(__prev) {
 
 	if (__prev.b !== __b) {
 		_$_.set_attribute(__prev._c, 'aria-selected', __prev.b = __b);
+	}
+
+	var __c = if_6(__prev._a);
+
+	if (__prev.c !== __c) {
+		_$_.if_update(__prev._d, __prev.c = __c);
 	}
 }
 
@@ -321,18 +376,20 @@ function DomElementChildrenThenSibling_render(__anchor, __block) {
 
 		{
 			var node_11 = _$_.hydrating ? _$_.hydrate_child() : div_14.firstChild;
+			var ifs_5 = _$_.if_static(node_11, if_6, 0, activeTab);
 
-			_$_.if(node_11, if_6, false, activeTab);
 			_$_.hydrating && _$_.pop(div_14);
 		}
 	}
 
-	_$_.render(render, {
+	_$_.render(render_5, {
 		a: void 0,
 		b: void 0,
+		c: _$_.UNINITIALIZED,
 		_a: activeTab,
 		_b: button_2,
-		_c: button_3
+		_c: button_3,
+		_d: ifs_5
 	});
 
 	_$_.append(__anchor, div_12);
@@ -342,7 +399,7 @@ DomElementChildrenThenSibling[_$_.$r] = DomElementChildrenThenSibling_render;
 
 var root_19 = _$_.template(`<div class=container><ul class=list><li class=item></li><li class=item>Another item</li></ul><h2 class=heading>Static Heading</h2><p class=para>Static paragraph</p></div><button class=inc>Increment`, 1, 2);
 
-function render_1(__prev) {
+function render_6(__prev) {
 	var __a = 'Item count: ' + String(__prev._a.value ?? '');
 
 	if (__prev.a !== __a) {
@@ -377,7 +434,7 @@ function DomChildrenThenStaticSiblings_render(__anchor, __block) {
 		var button_4 = _$_.hydrating ? _$_.hydrate_sibling() : div_16.nextSibling;
 
 		button_4.__click = () => count.value++;
-		_$_.render(render_1, { a: '', _a: count, _b: li });
+		_$_.render(render_6, { a: '', _a: count, _b: li });
 		_$_.append(__anchor, fragment_7);
 	}));
 
@@ -415,15 +472,25 @@ function if_7(props) {
 	if (props.on.value) return consequent_6; else return alternate_1;
 }
 
+function render_7(__prev) {
+	var __a = if_7(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function RootIfChild_render(__anchor, __block, props) {
-	_$_.if(__anchor, if_7, true, props);
+	var ifs_6 = _$_.if_static(__anchor, if_7, 1, props);
+
+	_$_.render(render_7, { a: _$_.UNINITIALIZED, _a: props, _b: ifs_6 });
 }
 
 RootIfChild[_$_.$r] = RootIfChild_render;
 
 var root_23 = _$_.template_el('span', ['class', 'root-for']);
 
-function render_2(__prev) {
+function render_8(__prev) {
 	var __a = __prev.$item;
 
 	if (__prev.a !== __a) {
@@ -446,7 +513,7 @@ function RootForChild_render(__anchor, __block, props) {
 		void 0,
 		void 0,
 		void 0,
-		render_2
+		render_8
 	);
 }
 

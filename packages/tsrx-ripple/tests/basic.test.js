@@ -197,7 +197,14 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).toContain('function consequent(__anchor, { a: show, b: div, c: clicks })');
 		expect(code).toContain('_$_.ref(div_1, () => div.v, (v) => div.v = v);');
 		expect(code).toContain('clicks.v++');
-		expect(code).toContain('_$_.if(__anchor, if_1, true, { a: show, b: div, c: clicks });');
+		// The condition reads tracked state: the enclosing render function
+		// evaluates it and drives the if.
+		expect(code).toContain(
+			'var ifs = _$_.if_static(__anchor, if_1, 1, { a: show, b: div, c: clicks });',
+		);
+		expect(code).toContain('var __a = if_1({ a: __prev._a, b: __prev._b, c: __prev._c });');
+		expect(code).toContain('_$_.if_update(__prev._d, __prev.a = __a);');
+		expect(code).not.toContain('_$_.if(');
 	});
 
 	it('boxes rebound parameters, nested pattern names, catch parameters and pattern targets', () => {
@@ -319,7 +326,11 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 			'App.tsrx',
 		);
 		expect(code).toContain('function if_1(props)');
-		expect(code).toContain('_$_.if(__anchor, if_1, true, props);');
+		// A prop may be tracked: the render function drives the if, and the
+		// runtime probes the condition once for a plain value.
+		expect(code).toContain('var ifs = _$_.if_static(__anchor, if_1, 1, props);');
+		expect(code).toContain('var __a = if_1(__prev._a);');
+		expect(code).toContain('_$_.if_update(__prev._b, __prev.a = __a);');
 	});
 });
 

@@ -353,6 +353,15 @@ function if_1(n) {
 }
 
 var root_26 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+
+function render_5(__prev) {
+	var __a = if_1(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_25 = _$_.template(`<!>`, 1, 1);
 
 function IfThenStatic_render(__anchor, __block) {
@@ -363,9 +372,10 @@ function IfThenStatic_render(__anchor, __block) {
 	_$_.expression(node_13, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_25 = root_26();
 		var node_12 = _$_.first_child_frag(fragment_25);
+		var ifs = _$_.if_static(node_12, if_1, 0, n);
 
-		_$_.if(node_12, if_1, false, n);
 		_$_.next(2);
+		_$_.render(render_5, { a: _$_.UNINITIALIZED, _a: n, _b: ifs });
 		_$_.append(__anchor, fragment_25);
 	}));
 
@@ -387,6 +397,15 @@ function if_2(n) {
 }
 
 var root_29 = _$_.template(`<div class=a>a</div><div class=b>b</div><!>`, 1, 3);
+
+function render_6(__prev) {
+	var __a = if_2(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_28 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenIf_render(__anchor, __block) {
@@ -399,8 +418,9 @@ function StaticThenIf_render(__anchor, __block) {
 		var div_12 = _$_.first_child_frag(fragment_27);
 		var div_11 = _$_.hydrating ? _$_.hydrate_sibling() : div_12.nextSibling;
 		var node_14 = _$_.hydrating ? _$_.hydrate_sibling() : div_11.nextSibling;
+		var ifs_1 = _$_.if_static(node_14, if_2, 0, n);
 
-		_$_.if(node_14, if_2, false, n);
+		_$_.render(render_6, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_1 });
 		_$_.append(__anchor, fragment_27);
 	}));
 
@@ -478,7 +498,7 @@ SiblingComps[_$_.$r] = SiblingComps_render;
 
 var root_37 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_5(__prev) {
+function render_7(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -503,7 +523,7 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_15);
 	}
 
-	_$_.render(render_5, { a: '', _a: n, _b: span });
+	_$_.render(render_7, { a: '', _a: n, _b: span });
 	_$_.append(__anchor, div_15);
 }
 
@@ -511,7 +531,7 @@ WrapTrailingNavigatedElements[_$_.$r] = WrapTrailingNavigatedElements_render;
 
 var root_38 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_6(__prev) {
+function render_8(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -536,7 +556,7 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_16);
 	}
 
-	_$_.render(render_6, { a: '', _a: n, _b: span_1 });
+	_$_.render(render_8, { a: '', _a: n, _b: span_1 });
 	_$_.append(__anchor, div_16);
 }
 
@@ -544,7 +564,7 @@ WrapTrailingStaticNavigatedElements[_$_.$r] = WrapTrailingStaticNavigatedElement
 
 var root_39 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_7(__prev) {
+function render_9(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -569,7 +589,7 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_17);
 	}
 
-	_$_.render(render_7, { a: '', _a: n, _b: span_2 });
+	_$_.render(render_9, { a: '', _a: n, _b: span_2 });
 	_$_.append(__anchor, div_17);
 }
 
@@ -577,7 +597,7 @@ WrapNavigatedThenStatic[_$_.$r] = WrapNavigatedThenStatic_render;
 
 var root_40 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_8(__prev) {
+function render_10(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -602,7 +622,7 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_18);
 	}
 
-	_$_.render(render_8, { a: '', _a: n, _b: span_3 });
+	_$_.render(render_10, { a: '', _a: n, _b: span_3 });
 	_$_.append(__anchor, div_18);
 }
 
@@ -610,7 +630,7 @@ WrapLeadingNavigatedThenStatic[_$_.$r] = WrapLeadingNavigatedThenStatic_render;
 
 var root_41 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_9(__prev) {
+function render_11(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -635,7 +655,7 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_19);
 	}
 
-	_$_.render(render_9, { a: '', _a: n, _b: span_4 });
+	_$_.render(render_11, { a: '', _a: n, _b: span_4 });
 	_$_.append(__anchor, div_19);
 }
 
@@ -643,7 +663,7 @@ WrapTrailingNestedNavigated[_$_.$r] = WrapTrailingNestedNavigated_render;
 
 var root_42 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_10(__prev) {
+function render_12(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -668,7 +688,7 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_20);
 	}
 
-	_$_.render(render_10, { a: '', _a: n, _b: span_5 });
+	_$_.render(render_12, { a: '', _a: n, _b: span_5 });
 	_$_.append(__anchor, div_20);
 }
 
@@ -676,7 +696,7 @@ WrapNestedNavigatedThenStatic[_$_.$r] = WrapNestedNavigatedThenStatic_render;
 
 var root_43 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_11(__prev) {
+function render_13(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -701,7 +721,7 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_21);
 	}
 
-	_$_.render(render_11, { a: '', _a: n, _b: span_6 });
+	_$_.render(render_13, { a: '', _a: n, _b: span_6 });
 	_$_.append(__anchor, div_21);
 }
 
@@ -709,7 +729,7 @@ WrapTrackedTextThenStatic[_$_.$r] = WrapTrackedTextThenStatic_render;
 
 var root_44 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_12(__prev) {
+function render_14(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -734,7 +754,7 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_22);
 	}
 
-	_$_.render(render_12, { a: '', _a: n, _b: span_7 });
+	_$_.render(render_14, { a: '', _a: n, _b: span_7 });
 	_$_.append(__anchor, div_22);
 }
 
@@ -742,7 +762,7 @@ WrapStaticThenTrackedText[_$_.$r] = WrapStaticThenTrackedText_render;
 
 var root_45 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_13(__prev) {
+function render_15(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -767,7 +787,7 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_23);
 	}
 
-	_$_.render(render_13, { a: '', _a: n, _b: span_8 });
+	_$_.render(render_15, { a: '', _a: n, _b: span_8 });
 	_$_.append(__anchor, div_23);
 }
 
@@ -775,7 +795,7 @@ WrapStaticNestedThenStatic[_$_.$r] = WrapStaticNestedThenStatic_render;
 
 var root_46 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_14(__prev) {
+function render_16(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -800,7 +820,7 @@ function WrapAllStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_24);
 	}
 
-	_$_.render(render_14, { a: '', _a: n, _b: span_9 });
+	_$_.render(render_16, { a: '', _a: n, _b: span_9 });
 	_$_.append(__anchor, div_24);
 }
 
@@ -808,7 +828,7 @@ WrapAllStatic[_$_.$r] = WrapAllStatic_render;
 
 var root_47 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_15(__prev) {
+function render_17(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -833,7 +853,7 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_25);
 	}
 
-	_$_.render(render_15, { a: '', _a: n, _b: span_10 });
+	_$_.render(render_17, { a: '', _a: n, _b: span_10 });
 	_$_.append(__anchor, div_25);
 }
 
@@ -841,7 +861,7 @@ WrapTrailingDynamicChild[_$_.$r] = WrapTrailingDynamicChild_render;
 
 var root_48 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_16(__prev) {
+function render_18(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -866,7 +886,7 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_26);
 	}
 
-	_$_.render(render_16, { a: '', _a: n, _b: span_11 });
+	_$_.render(render_18, { a: '', _a: n, _b: span_11 });
 	_$_.append(__anchor, div_26);
 }
 
@@ -874,7 +894,7 @@ WrapDynamicChildThenStatic[_$_.$r] = WrapDynamicChildThenStatic_render;
 
 var root_49 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_17(__prev) {
+function render_19(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -899,7 +919,7 @@ function WrapIfThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_27);
 	}
 
-	_$_.render(render_17, { a: '', _a: n, _b: span_12 });
+	_$_.render(render_19, { a: '', _a: n, _b: span_12 });
 	_$_.append(__anchor, div_27);
 }
 
@@ -907,7 +927,7 @@ WrapIfThenStatic[_$_.$r] = WrapIfThenStatic_render;
 
 var root_50 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_18(__prev) {
+function render_20(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -932,7 +952,7 @@ function WrapStaticThenIf_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_28);
 	}
 
-	_$_.render(render_18, { a: '', _a: n, _b: span_13 });
+	_$_.render(render_20, { a: '', _a: n, _b: span_13 });
 	_$_.append(__anchor, div_28);
 }
 
@@ -940,7 +960,7 @@ WrapStaticThenIf[_$_.$r] = WrapStaticThenIf_render;
 
 var root_51 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_19(__prev) {
+function render_21(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -965,7 +985,7 @@ function WrapCompThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_29);
 	}
 
-	_$_.render(render_19, { a: '', _a: n, _b: span_14 });
+	_$_.render(render_21, { a: '', _a: n, _b: span_14 });
 	_$_.append(__anchor, div_29);
 }
 
@@ -973,7 +993,7 @@ WrapCompThenStatic[_$_.$r] = WrapCompThenStatic_render;
 
 var root_52 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_20(__prev) {
+function render_22(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -998,7 +1018,7 @@ function WrapStaticThenComp_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_30);
 	}
 
-	_$_.render(render_20, { a: '', _a: n, _b: span_15 });
+	_$_.render(render_22, { a: '', _a: n, _b: span_15 });
 	_$_.append(__anchor, div_30);
 }
 
@@ -1006,7 +1026,7 @@ WrapStaticThenComp[_$_.$r] = WrapStaticThenComp_render;
 
 var root_53 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_21(__prev) {
+function render_23(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1031,7 +1051,7 @@ function WrapSiblingComps_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_31);
 	}
 
-	_$_.render(render_21, { a: '', _a: n, _b: span_16 });
+	_$_.render(render_23, { a: '', _a: n, _b: span_16 });
 	_$_.append(__anchor, div_31);
 }
 
@@ -1091,7 +1111,7 @@ NestedFragmentThenStatic[_$_.$r] = NestedFragmentThenStatic_render;
 var root_61 = _$_.template(`<span class=x>x</span><button class=inc>inc`, 1, 2);
 var root_60 = _$_.template(`<div class=count></div><!>`, 1, 2);
 
-function render_22(__prev) {
+function render_24(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1121,7 +1141,7 @@ function TrailingNestedFragment_render(__anchor, __block) {
 			_$_.append(__anchor, fragment_41);
 		}));
 
-		_$_.render(render_22, { a: '', _a: n, _b: div_33 });
+		_$_.render(render_24, { a: '', _a: n, _b: div_33 });
 		_$_.append(__anchor, fragment_40);
 	}));
 
@@ -1341,7 +1361,7 @@ InlineElementThenStatic[_$_.$r] = InlineElementThenStatic_render;
 
 var root_81 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_23(__prev) {
+function render_25(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1366,7 +1386,7 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_34);
 	}
 
-	_$_.render(render_23, { a: '', _a: n, _b: span_18 });
+	_$_.render(render_25, { a: '', _a: n, _b: span_18 });
 	_$_.append(__anchor, div_34);
 }
 
@@ -1374,7 +1394,7 @@ WrapUntrackedTextThenStatic[_$_.$r] = WrapUntrackedTextThenStatic_render;
 
 var root_82 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_24(__prev) {
+function render_26(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1399,7 +1419,7 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_35);
 	}
 
-	_$_.render(render_24, { a: '', _a: n, _b: span_19 });
+	_$_.render(render_26, { a: '', _a: n, _b: span_19 });
 	_$_.append(__anchor, div_35);
 }
 
@@ -1407,7 +1427,7 @@ WrapNestedFragmentThenStatic[_$_.$r] = WrapNestedFragmentThenStatic_render;
 
 var root_83 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_25(__prev) {
+function render_27(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1432,7 +1452,7 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_36);
 	}
 
-	_$_.render(render_25, { a: '', _a: n, _b: span_20 });
+	_$_.render(render_27, { a: '', _a: n, _b: span_20 });
 	_$_.append(__anchor, div_36);
 }
 
@@ -1440,7 +1460,7 @@ WrapTrailingNestedFragment[_$_.$r] = WrapTrailingNestedFragment_render;
 
 var root_84 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_26(__prev) {
+function render_28(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1465,7 +1485,7 @@ function WrapForThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_37);
 	}
 
-	_$_.render(render_26, { a: '', _a: n, _b: span_21 });
+	_$_.render(render_28, { a: '', _a: n, _b: span_21 });
 	_$_.append(__anchor, div_37);
 }
 
@@ -1473,7 +1493,7 @@ WrapForThenStatic[_$_.$r] = WrapForThenStatic_render;
 
 var root_85 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_27(__prev) {
+function render_29(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1498,7 +1518,7 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_38);
 	}
 
-	_$_.render(render_27, { a: '', _a: n, _b: span_22 });
+	_$_.render(render_29, { a: '', _a: n, _b: span_22 });
 	_$_.append(__anchor, div_38);
 }
 
@@ -1506,7 +1526,7 @@ WrapSwitchThenStatic[_$_.$r] = WrapSwitchThenStatic_render;
 
 var root_86 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_28(__prev) {
+function render_30(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1531,7 +1551,7 @@ function WrapTryThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_39);
 	}
 
-	_$_.render(render_28, { a: '', _a: n, _b: span_23 });
+	_$_.render(render_30, { a: '', _a: n, _b: span_23 });
 	_$_.append(__anchor, div_39);
 }
 
@@ -1539,7 +1559,7 @@ WrapTryThenStatic[_$_.$r] = WrapTryThenStatic_render;
 
 var root_87 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_29(__prev) {
+function render_31(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1564,7 +1584,7 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_40);
 	}
 
-	_$_.render(render_29, { a: '', _a: n, _b: span_24 });
+	_$_.render(render_31, { a: '', _a: n, _b: span_24 });
 	_$_.append(__anchor, div_40);
 }
 
@@ -1572,7 +1592,7 @@ WrapStyleThenStatic[_$_.$r] = WrapStyleThenStatic_render;
 
 var root_88 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_30(__prev) {
+function render_32(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1597,7 +1617,7 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_41);
 	}
 
-	_$_.render(render_30, { a: '', _a: n, _b: span_25 });
+	_$_.render(render_32, { a: '', _a: n, _b: span_25 });
 	_$_.append(__anchor, div_41);
 }
 
@@ -1605,7 +1625,7 @@ WrapCollectionThenStatic[_$_.$r] = WrapCollectionThenStatic_render;
 
 var root_89 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_31(__prev) {
+function render_33(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1630,7 +1650,7 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_42);
 	}
 
-	_$_.render(render_31, { a: '', _a: n, _b: span_26 });
+	_$_.render(render_33, { a: '', _a: n, _b: span_26 });
 	_$_.append(__anchor, div_42);
 }
 
@@ -1648,6 +1668,14 @@ function if_3(n) {
 	if (n.value >= 0) return consequent_2;
 }
 
+function render_34(__prev) {
+	var __a = if_3(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_90 = _$_.template(`<!>`, 1, 1);
 
 function IfOnly_render(__anchor, __block) {
@@ -1656,7 +1684,9 @@ function IfOnly_render(__anchor, __block) {
 	var node_63 = _$_.first_child_frag(fragment_54);
 
 	_$_.expression(node_63, () => _$_.tsrx_element((__anchor, __block) => {
-		_$_.if(__anchor, if_3, true, n);
+		var ifs_2 = _$_.if_static(__anchor, if_3, 1, n);
+
+		_$_.render(render_34, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_2 });
 	}));
 
 	_$_.append(__anchor, fragment_54);
@@ -1677,6 +1707,15 @@ function if_4(n) {
 }
 
 var root_93 = _$_.template(`<!><div class=a>a`, 1, 2);
+
+function render_35(__prev) {
+	var __a = if_4(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_92 = _$_.template(`<!>`, 1, 1);
 
 function IfThenOne_render(__anchor, __block) {
@@ -1687,9 +1726,10 @@ function IfThenOne_render(__anchor, __block) {
 	_$_.expression(node_65, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_56 = root_93();
 		var node_64 = _$_.first_child_frag(fragment_56);
+		var ifs_3 = _$_.if_static(node_64, if_4, 0, n);
 
-		_$_.if(node_64, if_4, false, n);
 		_$_.next();
+		_$_.render(render_35, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_3 });
 		_$_.append(__anchor, fragment_56);
 	}));
 
@@ -1712,17 +1752,26 @@ function if_5(n) {
 
 var root_95 = _$_.template(`<div class=root><!>`);
 
+function render_36(__prev) {
+	var __a = if_5(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function SingleRootWithIf_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'rpd5nn');
 	var div_43 = root_95();
 
 	{
 		var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
+		var ifs_4 = _$_.if_static(node_66, if_5, 0, n);
 
-		_$_.if(node_66, if_5, false, n);
 		_$_.hydrating && _$_.pop(div_43);
 	}
 
+	_$_.render(render_36, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_4 });
 	_$_.append(__anchor, div_43);
 }
 
@@ -1730,7 +1779,7 @@ SingleRootWithIf[_$_.$r] = SingleRootWithIf_render;
 
 var root_97 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_32(__prev) {
+function render_37(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1755,7 +1804,7 @@ function WrapIfOnly_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_44);
 	}
 
-	_$_.render(render_32, { a: '', _a: n, _b: span_27 });
+	_$_.render(render_37, { a: '', _a: n, _b: span_27 });
 	_$_.append(__anchor, div_44);
 }
 
@@ -1763,7 +1812,7 @@ WrapIfOnly[_$_.$r] = WrapIfOnly_render;
 
 var root_98 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_33(__prev) {
+function render_38(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1788,7 +1837,7 @@ function WrapIfThenOne_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_45);
 	}
 
-	_$_.render(render_33, { a: '', _a: n, _b: span_28 });
+	_$_.render(render_38, { a: '', _a: n, _b: span_28 });
 	_$_.append(__anchor, div_45);
 }
 
@@ -1796,7 +1845,7 @@ WrapIfThenOne[_$_.$r] = WrapIfThenOne_render;
 
 var root_99 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_34(__prev) {
+function render_39(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1821,7 +1870,7 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_46);
 	}
 
-	_$_.render(render_34, { a: '', _a: n, _b: span_29 });
+	_$_.render(render_39, { a: '', _a: n, _b: span_29 });
 	_$_.append(__anchor, div_46);
 }
 
@@ -1829,7 +1878,7 @@ WrapSingleRootWithIf[_$_.$r] = WrapSingleRootWithIf_render;
 
 var root_100 = _$_.template(`<div class=outer><!><span class=after></span><button class=outer-inc>outer`);
 
-function render_35(__prev) {
+function render_40(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1855,7 +1904,7 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_47);
 	}
 
-	_$_.render(render_35, { a: '', _a: n, _b: span_30 });
+	_$_.render(render_40, { a: '', _a: n, _b: span_30 });
 	_$_.append(__anchor, div_47);
 }
 
@@ -1875,6 +1924,15 @@ function if_6(n) {
 }
 
 var root_102 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+
+function render_41(__prev) {
+	var __a = if_6(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_101 = _$_.template(`<!>`, 1, 1);
 
 function IfTwoThenStatic_render(__anchor, __block) {
@@ -1885,9 +1943,10 @@ function IfTwoThenStatic_render(__anchor, __block) {
 	_$_.expression(node_71, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_58 = root_102();
 		var node_70 = _$_.first_child_frag(fragment_58);
+		var ifs_5 = _$_.if_static(node_70, if_6, 0, n);
 
-		_$_.if(node_70, if_6, false, n);
 		_$_.next(2);
+		_$_.render(render_41, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_5 });
 		_$_.append(__anchor, fragment_58);
 	}));
 
@@ -1911,12 +1970,18 @@ function if_7(n) {
 
 var root_104 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_36(__prev) {
-	var __a = __prev._a.value;
+function render_42(__prev) {
+	var __a = if_7(__prev._a);
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._b, __a, __prev.a);
-		__prev.a = __a;
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+
+	var __b = __prev._a.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_text_content(__prev._c, __b, __prev.b);
+		__prev.b = __b;
 	}
 }
 
@@ -1926,9 +1991,7 @@ function IfTwoInDiv_render(__anchor, __block) {
 
 	{
 		var node_72 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
-
-		_$_.if(node_72, if_7, false, n);
-
+		var ifs_6 = _$_.if_static(node_72, if_7, 0, n);
 		var span_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_72;
 		var button_39 = _$_.hydrating ? _$_.hydrate_sibling() : span_31.nextSibling;
 
@@ -1936,7 +1999,7 @@ function IfTwoInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_48);
 	}
 
-	_$_.render(render_36, { a: '', _a: n, _b: span_31 });
+	_$_.render(render_42, { a: _$_.UNINITIALIZED, b: '', _a: n, _b: ifs_6, _c: span_31 });
 	_$_.append(__anchor, div_48);
 }
 
@@ -1944,7 +2007,7 @@ IfTwoInDiv[_$_.$r] = IfTwoInDiv_render;
 
 var root_106 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_37(__prev) {
+function render_43(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -1969,7 +2032,7 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_49);
 	}
 
-	_$_.render(render_37, { a: '', _a: n, _b: span_32 });
+	_$_.render(render_43, { a: '', _a: n, _b: span_32 });
 	_$_.append(__anchor, div_49);
 }
 
@@ -2068,7 +2131,7 @@ StaticThenStyleThenStatic[_$_.$r] = StaticThenStyleThenStatic_render;
 
 var root_114 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_38(__prev) {
+function render_44(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2093,7 +2156,7 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_52);
 	}
 
-	_$_.render(render_38, { a: '', _a: n, _b: span_33 });
+	_$_.render(render_44, { a: '', _a: n, _b: span_33 });
 	_$_.append(__anchor, div_52);
 }
 
@@ -2101,7 +2164,7 @@ WrapStaticCallThenStatic[_$_.$r] = WrapStaticCallThenStatic_render;
 
 var root_115 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_39(__prev) {
+function render_45(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2126,7 +2189,7 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_53);
 	}
 
-	_$_.render(render_39, { a: '', _a: n, _b: span_34 });
+	_$_.render(render_45, { a: '', _a: n, _b: span_34 });
 	_$_.append(__anchor, div_53);
 }
 
@@ -2134,7 +2197,7 @@ WrapStaticThenStyleThenStatic[_$_.$r] = WrapStaticThenStyleThenStatic_render;
 
 var root_116 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_40(__prev) {
+function render_46(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2159,7 +2222,7 @@ function CompThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_54);
 	}
 
-	_$_.render(render_40, { a: '', _a: n, _b: span_35 });
+	_$_.render(render_46, { a: '', _a: n, _b: span_35 });
 	_$_.append(__anchor, div_54);
 }
 
@@ -2167,7 +2230,7 @@ CompThenStaticInDiv[_$_.$r] = CompThenStaticInDiv_render;
 
 var root_117 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_41(__prev) {
+function render_47(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2196,7 +2259,7 @@ function SiblingCompsInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_55);
 	}
 
-	_$_.render(render_41, { a: '', _a: n, _b: span_36 });
+	_$_.render(render_47, { a: '', _a: n, _b: span_36 });
 	_$_.append(__anchor, div_55);
 }
 
@@ -2223,12 +2286,18 @@ function if_8(n) {
 
 var root_118 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_42(__prev) {
-	var __a = __prev._a.value;
+function render_48(__prev) {
+	var __a = if_8(__prev._a);
 
 	if (__prev.a !== __a) {
-		_$_.set_text_content(__prev._b, __a, __prev.a);
-		__prev.a = __a;
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+
+	var __b = __prev._a.value;
+
+	if (__prev.b !== __b) {
+		_$_.set_text_content(__prev._c, __b, __prev.b);
+		__prev.b = __b;
 	}
 }
 
@@ -2238,9 +2307,7 @@ function IfSwapThenStaticInDiv_render(__anchor, __block) {
 
 	{
 		var node_82 = _$_.hydrating ? _$_.hydrate_child() : div_56.firstChild;
-
-		_$_.if(node_82, if_8, false, n);
-
+		var ifs_7 = _$_.if_static(node_82, if_8, 0, n);
 		var span_37 = _$_.hydrating ? _$_.hydrate_sibling() : node_82;
 		var button_45 = _$_.hydrating ? _$_.hydrate_sibling() : span_37.nextSibling;
 
@@ -2248,7 +2315,7 @@ function IfSwapThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_56);
 	}
 
-	_$_.render(render_42, { a: '', _a: n, _b: span_37 });
+	_$_.render(render_48, { a: _$_.UNINITIALIZED, b: '', _a: n, _b: ifs_7, _c: span_37 });
 	_$_.append(__anchor, div_56);
 }
 
@@ -2257,7 +2324,7 @@ IfSwapThenStaticInDiv[_$_.$r] = IfSwapThenStaticInDiv_render;
 var root_122 = _$_.template_el('b', ['class', 'item'], ' ');
 var root_121 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_43(__prev) {
+function render_49(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2299,7 +2366,7 @@ function ForThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_57);
 	}
 
-	_$_.render(render_43, { a: '', _a: n, _b: span_38 });
+	_$_.render(render_49, { a: '', _a: n, _b: span_38 });
 	_$_.append(__anchor, div_57);
 }
 
@@ -2307,7 +2374,7 @@ ForThenStaticInDiv[_$_.$r] = ForThenStaticInDiv_render;
 
 var root_123 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
-function render_44(__prev) {
+function render_50(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -2338,7 +2405,7 @@ function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
 		_$_.hydrating && _$_.pop(div_58);
 	}
 
-	_$_.render(render_44, { a: '', _a: n, _b: span_39 });
+	_$_.render(render_50, { a: '', _a: n, _b: span_39 });
 	_$_.append(__anchor, div_58);
 }
 

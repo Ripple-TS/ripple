@@ -40,7 +40,7 @@ export {
 	RENDER_ENTRY as $r,
 } from './constants.js';
 export { event, render_event, delegate, listen } from './events.js';
-export { set_style, set_attribute, render_spread } from './attributes.js';
+export { set_style, set_attribute, render_spread, spread } from './attributes.js';
 export { portal } from './portal.js';
 
 export {
@@ -89,7 +89,7 @@ export { for_block as for, for_block_keyed as for_keyed, item } from './for.js';
 
 export { selector, selector_match } from './selector.js';
 
-export { if_block as if } from './if.js';
+export { if_block as if, if_static, if_update } from './if.js';
 
 export { try_block as try, get_pending_boundary } from './try.js';
 
@@ -97,7 +97,7 @@ export { if_block as switch } from './if.js';
 
 export { template, template_el, append, text } from './template.js';
 
-export { template_ns, with_ns } from './template-ns.js';
+export { template_ns, with_ns, render_component_ns } from './template-ns.js';
 
 export {
 	ripple_array,

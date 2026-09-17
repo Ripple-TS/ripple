@@ -340,6 +340,14 @@ function if_3(toc) {
 
 var root_14 = _$_.template(`<div class=layout><div class=content-container><article><div><!></div></article></div><aside><!>`);
 
+function render_5(__prev) {
+	var __a = if_3(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function DocLayout_render(
 	__anchor,
 	__block,
@@ -384,12 +392,13 @@ function DocLayout_render(
 
 		{
 			var node_8 = _$_.hydrating ? _$_.hydrate_child() : aside.firstChild;
+			var ifs = _$_.if_static(node_8, if_3, 0, toc);
 
-			_$_.if(node_8, if_3, false, toc);
 			_$_.hydrating && _$_.pop(aside);
 		}
 	}
 
+	_$_.render(render_5, { a: _$_.UNINITIALIZED, _a: toc, _b: ifs });
 	_$_.append(__anchor, div_13);
 }
 
@@ -848,6 +857,14 @@ function if_6({ a: expanded, b: children }) {
 
 var root_40 = _$_.template(`<section class=sidebar-section><div class=section-header><h2></h2><button>Toggle`);
 
+function render_6(__prev) {
+	var __a = if_6({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
 function SidebarSection_render(__anchor, __block, { title, children }) {
 	const expanded = _$_.track(true, __block, 'tmjvjj');
 	var section_1 = root_40();
@@ -873,10 +890,12 @@ function SidebarSection_render(__anchor, __block, { title, children }) {
 			? _$_.hydrate_sibling()
 			: _$_.append_into(section_1, true);
 
-		_$_.if(node_20, if_6, false, { a: expanded, b: children });
+		var ifs_1 = _$_.if_static(node_20, if_6, 0, { a: expanded, b: children });
+
 		_$_.hydrating && _$_.pop(section_1);
 	}
 
+	_$_.render(render_6, { a: _$_.UNINITIALIZED, _a: expanded, _b: children, _c: ifs_1 });
 	_$_.append(__anchor, section_1);
 }
 
@@ -1275,7 +1294,7 @@ function if_12(editPath) {
 
 var root_65 = _$_.template(`<nav class=prev-next><a> `);
 
-function render_5(__prev) {
+function render_7(__prev) {
 	var __a = __prev._a.href;
 
 	if (__prev.a !== __a) {
@@ -1297,7 +1316,7 @@ function consequent_12(__anchor, nextLink) {
 		}
 	}
 
-	_$_.render(render_5, { a: void 0, _a: nextLink, _b: a_4 });
+	_$_.render(render_7, { a: void 0, _a: nextLink, _b: a_4 });
 	_$_.append(__anchor, nav_3);
 }
 
@@ -1437,7 +1456,7 @@ function if_14(editPath) {
 
 var root_71 = _$_.template(`<a class="pager prev"><span class=title> `);
 
-function render_6(__prev) {
+function render_8(__prev) {
 	var __a = __prev._a.href;
 
 	if (__prev.a !== __a) {
@@ -1461,7 +1480,7 @@ function consequent_14(__anchor, prevLink) {
 		}
 	}
 
-	_$_.render(render_6, { a: void 0, _a: prevLink, _b: a_6 });
+	_$_.render(render_8, { a: void 0, _a: prevLink, _b: a_6 });
 	_$_.append(__anchor, a_6);
 }
 
@@ -1477,7 +1496,7 @@ function if_15(prevLink) {
 
 var root_73 = _$_.template(`<a class="pager next"><span class=title> `);
 
-function render_7(__prev) {
+function render_9(__prev) {
 	var __a = __prev._a.href;
 
 	if (__prev.a !== __a) {
@@ -1499,7 +1518,7 @@ function consequent_15(__anchor, nextLink) {
 		}
 	}
 
-	_$_.render(render_7, { a: void 0, _a: nextLink, _b: a_7 });
+	_$_.render(render_9, { a: void 0, _a: nextLink, _b: a_7 });
 	_$_.append(__anchor, a_7);
 }
 
@@ -1532,7 +1551,7 @@ function if_17({ a: prevLink, b: nextLink }) {
 
 var root_75 = _$_.template_el('a');
 
-function render_8(__prev) {
+function render_10(__prev) {
 	var __a = __prev._a.text;
 
 	if (__prev.a !== __a) {
@@ -1567,7 +1586,7 @@ function consequent_17(__anchor, toc) {
 				},
 				4,
 				void 0,
-				render_8
+				render_10
 			);
 
 			_$_.hydrating && _$_.pop(nav_5);
@@ -1582,6 +1601,14 @@ function if_18(toc) {
 }
 
 var root_68 = _$_.template(`<div class=layout><div class=docs-wrapper><main class=docs-main><div class=docs-container><div class=content><div class=content-container><article class=doc-content><div><!></div></article></div></div><aside class=aside><!>`);
+
+function render_11(__prev) {
+	var __a = if_18(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
 
 function DocsLayoutExact_render(
 	__anchor,
@@ -1656,8 +1683,8 @@ function DocsLayoutExact_render(
 
 					{
 						var node_50 = _$_.hydrating ? _$_.hydrate_child() : aside_3.firstChild;
+						var ifs_2 = _$_.if_static(node_50, if_18, 0, toc);
 
-						_$_.if(node_50, if_18, false, toc);
 						_$_.hydrating && _$_.pop(aside_3);
 					}
 				}
@@ -1669,6 +1696,7 @@ function DocsLayoutExact_render(
 		_$_.hydrating && _$_.pop(div_56);
 	}
 
+	_$_.render(render_11, { a: _$_.UNINITIALIZED, _a: toc, _b: ifs_2 });
 	_$_.append(__anchor, div_56);
 }
 
@@ -1726,7 +1754,7 @@ DocsLayoutExactWithoutData[_$_.$r] = DocsLayoutExactWithoutData_render;
 
 var root_78 = _$_.template(`<div><template id=t1></template><p class=content>Main content`);
 
-function render_9(__prev) {
+function render_12(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
@@ -1742,7 +1770,7 @@ function TemplateWithHtmlContent_render(__anchor, __block) {
 		var template = _$_.hydrating ? _$_.hydrate_child() : div_66.firstChild;
 	}
 
-	_$_.render(render_9, { a: template.innerHTML, _a: __block, _b: data, _c: template });
+	_$_.render(render_12, { a: template.innerHTML, _a: __block, _b: data, _c: template });
 	_$_.append(__anchor, div_66);
 }
 
@@ -1750,7 +1778,7 @@ TemplateWithHtmlContent[_$_.$r] = TemplateWithHtmlContent_render;
 
 var root_79 = _$_.template(`<div class=wrapper><h1>Title</h1><template id=data-template></template><p class=after-template>Content after template`);
 
-function render_10(__prev) {
+function render_13(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
@@ -1767,7 +1795,7 @@ function TemplateWithHtmlAndSiblings_render(__anchor, __block) {
 		var template_1 = _$_.hydrating ? _$_.hydrate_sibling() : h1_3.nextSibling;
 	}
 
-	_$_.render(render_10, {
+	_$_.render(render_13, {
 		a: template_1.innerHTML,
 		_a: __block,
 		_b: data,
@@ -1781,7 +1809,7 @@ TemplateWithHtmlAndSiblings[_$_.$r] = TemplateWithHtmlAndSiblings_render;
 
 var root_80 = _$_.template(`<div class=layout><template id=page-data></template><main><!>`);
 
-function render_11(__prev) {
+function render_14(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
@@ -1804,7 +1832,7 @@ function LayoutWithTemplate_render(__anchor, __block, { children, data }) {
 		}
 	}
 
-	_$_.render(render_11, {
+	_$_.render(render_14, {
 		a: template_2.innerHTML,
 		_a: __block,
 		_b: data,
@@ -1818,7 +1846,7 @@ LayoutWithTemplate[_$_.$r] = LayoutWithTemplate_render;
 
 var root_81 = _$_.template_el('div', ['class', 'doc-content']);
 
-function render_12(__prev) {
+function render_15(__prev) {
 	var __a = __prev._a.html;
 
 	if (__prev.a !== __a) {
@@ -1834,7 +1862,7 @@ function NestedTemplateInLayout_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_69 = root_81();
 
-			_$_.render(render_12, { a: div_69.innerHTML, _a: doc, _b: div_69 });
+			_$_.render(render_15, { a: div_69.innerHTML, _a: doc, _b: div_69 });
 			_$_.append(__anchor, div_69);
 		})
 	});

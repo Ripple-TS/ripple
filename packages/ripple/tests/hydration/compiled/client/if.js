@@ -81,6 +81,15 @@ function if_4(show) {
 }
 
 var root_5 = _$_.template(`<button class=toggle>Toggle</button><!>`, 1, 2);
+
+function render(__prev) {
+	var __a = if_4(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIf_render(__anchor, __block) {
@@ -97,8 +106,9 @@ function ReactiveIf_render(__anchor, __block) {
 		};
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : button.nextSibling;
+		var ifs = _$_.if_static(node, if_4, 0, show);
 
-		_$_.if(node, if_4, false, show);
+		_$_.render(render, { a: _$_.UNINITIALIZED, _a: show, _b: ifs });
 		_$_.append(__anchor, fragment_1);
 	}));
 
@@ -127,6 +137,15 @@ function if_5(isOn) {
 }
 
 var root_8 = _$_.template(`<button class=toggle>Toggle</button><!>`, 1, 2);
+
+function render_1(__prev) {
+	var __a = if_5(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveIfElse_render(__anchor, __block) {
@@ -143,8 +162,9 @@ function ReactiveIfElse_render(__anchor, __block) {
 		};
 
 		var node_2 = _$_.hydrating ? _$_.hydrate_sibling() : button_1.nextSibling;
+		var ifs_1 = _$_.if_static(node_2, if_5, 0, isOn);
 
-		_$_.if(node_2, if_5, false, isOn);
+		_$_.render(render_1, { a: _$_.UNINITIALIZED, _a: isOn, _b: ifs_1 });
 		_$_.append(__anchor, fragment_3);
 	}));
 
@@ -167,17 +187,26 @@ function if_6(inner) {
 
 var root_13 = _$_.template_el('div', ['class', 'outer-content'], 'Outer');
 
+function render_2(__prev) {
+	var __a = if_6(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function consequent_6(__anchor, { a: outer, b: inner }) {
 	var div_7 = root_13();
 
 	{
 		var expression = _$_.hydrating ? _$_.hydrate_child() : div_7.firstChild;
 		var node_5 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_7, true);
+		var ifs_2 = _$_.if_static(node_5, if_6, 0, inner);
 
-		_$_.if(node_5, if_6, false, inner);
 		_$_.hydrating && _$_.pop(div_7);
 	}
 
+	_$_.render(render_2, { a: _$_.UNINITIALIZED, _a: inner, _b: ifs_2 });
 	_$_.append(__anchor, div_7);
 }
 
@@ -186,6 +215,15 @@ function if_7({ a: outer, b: inner }) {
 }
 
 var root_12 = _$_.template(`<button class=outer-toggle>Outer</button><button class=inner-toggle>Inner</button><!>`, 1, 3);
+
+function render_3(__prev) {
+	var __a = if_7({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
 var root_11 = _$_.template(`<!>`, 1, 1);
 
 function NestedIf_render(__anchor, __block) {
@@ -209,8 +247,9 @@ function NestedIf_render(__anchor, __block) {
 		};
 
 		var node_4 = _$_.hydrating ? _$_.hydrate_sibling() : button_3.nextSibling;
+		var ifs_3 = _$_.if_static(node_4, if_7, 0, { a: outer, b: inner });
 
-		_$_.if(node_4, if_7, false, { a: outer, b: inner });
+		_$_.render(render_3, { a: _$_.UNINITIALIZED, _a: outer, _b: inner, _c: ifs_3 });
 		_$_.append(__anchor, fragment_5);
 	}));
 
@@ -247,6 +286,14 @@ function if_8(status) {
 
 var root_15 = _$_.template(`<div><button class=success>Success</button><button class=error>Error</button><button class=loading>Loading`);
 
+function render_4(__prev) {
+	var __a = if_8(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function IfElseIfChain_render(__anchor, __block) {
 	const status = _$_.track('loading', __block, 'l79qh6');
 	var div_8 = root_15();
@@ -271,11 +318,12 @@ function IfElseIfChain_render(__anchor, __block) {
 		};
 
 		var node_7 = _$_.hydrating ? _$_.hydrate_sibling() : _$_.append_into(div_8, true);
+		var ifs_4 = _$_.if_static(node_7, if_8, 0, status);
 
-		_$_.if(node_7, if_8, false, status);
 		_$_.hydrating && _$_.pop(div_8);
 	}
 
+	_$_.render(render_4, { a: _$_.UNINITIALIZED, _a: status, _b: ifs_4 });
 	_$_.append(__anchor, div_8);
 }
 

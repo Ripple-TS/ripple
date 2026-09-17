@@ -37,17 +37,26 @@ function if_1(visible) {
 
 var root_1 = _$_.template(`<div class=content><!>`);
 
+function render(__prev) {
+	var __a = if_1(__prev._a);
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._b, __prev.a = __a);
+	}
+}
+
 function Content_render(__anchor, __block) {
 	const visible = _$_.track(true, __block, '3af9q8');
 	var div_1 = root_1();
 
 	{
 		var node = _$_.hydrating ? _$_.hydrate_child() : div_1.firstChild;
+		var ifs = _$_.if_static(node, if_1, 0, visible);
 
-		_$_.if(node, if_1, false, visible);
 		_$_.hydrating && _$_.pop(div_1);
 	}
 
+	_$_.render(render, { a: _$_.UNINITIALIZED, _a: visible, _b: ifs });
 	_$_.append(__anchor, div_1);
 }
 
