@@ -197,6 +197,8 @@ export function composite(get_component, node, get_props, namespace) {
  *   b: Block | null;
  *   t: CompositeTarget | typeof UNINITIALIZED;
  *   s: SpreadState | undefined;
+ *   g: (() => CompositeTarget) | null;
+ *   p: (() => Record<string, any>) | null;
  * }} DynamicState
  */
 
@@ -206,9 +208,15 @@ export function composite(get_component, node, get_props, namespace) {
  * compiles to `__prev.x = _$_.dynamic(__prev.x, anchor, tag, props)`, so the
  * tag and the props are read by that render function, and a run whose tag is
  * unchanged only diffs the attributes. The element sits in the enclosing
- * template's range, which owns it; a component target renders in a branch
- * block of the render function, which a rerun keeps and a tag change destroys.
- * @param {DynamicState | null | undefined} state null while hydrating (see `dynamic_init`)
+ * template's range, which owns it. A component target is handed to a
+ * composite block of its own (in a branch the render function keeps), which
+ * reads the tag and the props through the thunks kept since creation and so
+ * remounts the component with fresh props whenever the tag expression
+ * re-evaluates, exactly as `<{expr}>` did before; from then on the slot is
+ * null and the calls are no-ops.
+ * @param {DynamicState | null | undefined} state null once a composite block
+ *   owns the content (a component target, or the hydration claim, see
+ *   `dynamic_init`)
  * @param {Node | AppendIntoAnchor} anchor
  * @param {CompositeTarget} tag
  * @param {Record<string, any> | null | undefined} props
@@ -225,7 +233,7 @@ export function dynamic(state, anchor, tag, props, namespace) {
 	/** @type {DynamicState} */
 	var s;
 	if (state === undefined) {
-		s = { e: null, b: null, t: UNINITIALIZED, s: undefined };
+		s = { e: null, b: null, t: UNINITIALIZED, s: undefined, g: null, p: null };
 	} else {
 		s = state;
 		if (tag === s.t) {
@@ -251,6 +259,14 @@ export function dynamic(state, anchor, tag, props, namespace) {
 			old.remove();
 			s.e = null;
 		}
+		const get_component = s.g;
+		const get_props = s.p;
+		if (get_component !== null && get_props !== null) {
+			branch(() => composite(get_component, anchor, get_props, namespace));
+			return null;
+		}
+		// No thunks (a call site compiled without `dynamic_init`): the
+		// component renders once with these props.
 		s.b = branch(() => {
 			render_component(tag, /** @type {Node} */ (anchor), props ?? {});
 		});
@@ -287,20 +303,21 @@ export function dynamic(state, anchor, tag, props, namespace) {
 }
 
 /**
- * The initial state of a `dynamic` slot in a build that can hydrate: while
- * hydrating, the element is rendered here by a composite block of its own,
- * which claims its server nodes in document order and owns the element from
- * then on, so the render function's `dynamic` calls are no-ops (null).
+ * The initial state of a `dynamic` slot: the tag and props thunks a
+ * component target is handed over with. While hydrating, the element is
+ * rendered here by a composite block of its own, which claims its server
+ * nodes in document order and owns the content from then on, so the render
+ * function's `dynamic` calls are no-ops (null).
  * @param {Node | AppendIntoAnchor} node
  * @param {() => CompositeTarget} get_component
  * @param {() => Record<string, any>} get_props
  * @param {keyof typeof NAMESPACE_URI} [namespace]
- * @returns {DynamicState | null | undefined}
+ * @returns {DynamicState | null}
  */
 export function dynamic_init(node, get_component, get_props, namespace) {
 	if (HYDRATION && hydrating) {
 		composite(get_component, node, get_props, namespace);
 		return null;
 	}
-	return undefined;
+	return { e: null, b: null, t: UNINITIALIZED, s: undefined, g: get_component, p: get_props };
 }

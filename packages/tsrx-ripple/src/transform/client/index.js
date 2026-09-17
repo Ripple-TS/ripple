@@ -4708,17 +4708,17 @@ const visitors = {
 							),
 						expression: sole_spread ?? object_props,
 						identity: node,
-						// A build that can hydrate lets a composite block claim the
-						// server element while hydrating (see `dynamic_init`).
-						initial: state.hydration
-							? b.call(
-									'_$_.dynamic_init',
-									id,
-									b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
-									b.thunk(sole_spread ?? object_props),
-									...namespace_args,
-								)
-							: b.void0,
+						// The slot starts with the tag and props thunks a component
+						// target is handed over with; a build that can hydrate lets a
+						// composite block claim the server element while hydrating (see
+						// `dynamic_init`).
+						initial: b.call(
+							'_$_.dynamic_init',
+							id,
+							b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
+							b.thunk(sole_spread ?? object_props),
+							...namespace_args,
+						),
 						unguarded: true,
 					};
 					state.update.push(dynamic_update);

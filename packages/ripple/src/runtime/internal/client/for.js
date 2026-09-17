@@ -2,7 +2,6 @@
 
 import { IS_CONTROLLED, IS_INDEXED, LOCAL_ITEMS, ROOT_CONTROLLED } from '../../../constants.js';
 import {
-	block as create_block,
 	create_block as allocate_block,
 	branch,
 	destroy_block,
@@ -60,21 +59,10 @@ function create_item(anchor, value, index, key, state) {
 		p: null,
 	};
 
-	// An item without a tracked of its own (a plain list's, or a local one)
-	// renders in place: allocated, linked and run through `run_branch`, with
-	// none of the first-run bookkeeping a block that may re-run needs.
-	if (tracked_value === value && tracked_index === undefined) {
-		var lean = allocate_block(BRANCH_BLOCK, run_item, item_state);
-		run_branch(lean, render_fn, anchor, value, key);
-		lean.f ^= BLOCK_HAS_RUN;
-		return lean;
-	}
-
-	// Passed through module state rather than a per-item closure; run_item
-	// reads them before rendering, so nested loops cannot observe a stale pair.
-	item_anchor = anchor;
-	item_render_fn = render_fn;
-	var b = create_block(BRANCH_BLOCK, run_item, item_state);
+	// The item renders in place: allocated, linked and run through
+	// `run_branch`, with none of the first-run bookkeeping a block that may
+	// re-run needs (a rerun is `run_item`'s, through `run_block`).
+	var b = allocate_block(BRANCH_BLOCK, run_item, item_state);
 
 	// The item's tracked value and index are owned by the item block itself.
 	if (tracked_value !== value) {
@@ -83,6 +71,8 @@ function create_item(anchor, value, index, key, state) {
 	if (tracked_index !== undefined) {
 		/** @type {Tracked} */ (tracked_index).b = b;
 	}
+	run_branch(b, render_fn, anchor, tracked_value, tracked_index, key);
+	b.f ^= BLOCK_HAS_RUN;
 	return b;
 }
 
@@ -118,32 +108,17 @@ function controlled_anchor(parent) {
 	return { parent, into: true, tail: false };
 }
 
-/** @type {Node | AppendIntoAnchor | null} */
-var item_anchor = null;
-/** @type {((anchor: Node, value: any, index?: any, key?: any) => Block) | null} */
-var item_render_fn = null;
-
 /**
+ * A re-run of an item that carries its render block (see `item`): only the
+ * body's update function, tracked. The first run is `run_branch`'s, in
+ * `create_item`; an item block with no render block of its own never re-runs.
  * @param {{ i: Tracked | undefined, v: any, k: any, p: any }} state
  */
 function run_item(state) {
-	var p = state.p;
-	if (p !== null) {
-		// A re-run of an item that carries its render block: only the body's
-		// update function, tracked (see `item`).
-		set_tracking(true);
-		/** @type {(prev: any) => void} */ (
-			/** @type {ListState} */ (/** @type {Block} */ (/** @type {Block} */ (active_block).p).s).u
-		)(p);
-		return;
-	}
-	var render_fn = /** @type {(anchor: Node, value: any, index?: any, key?: any) => Block} */ (
-		item_render_fn
-	);
-	var anchor = /** @type {Node} */ (item_anchor);
-	item_render_fn = null;
-	item_anchor = null;
-	render_fn(anchor, state.v, state.i, state.k);
+	set_tracking(true);
+	/** @type {(prev: any) => void} */ (
+		/** @type {ListState} */ (/** @type {Block} */ (/** @type {Block} */ (active_block).p).s).u
+	)(state.p);
 }
 
 /**

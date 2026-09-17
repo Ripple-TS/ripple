@@ -397,17 +397,18 @@ function register_teardown(block, teardown) {
 
 /**
  * Runs the body of a branch block that was just created, in place of a first
- * `run_block`: a branch renders untracked and never re-runs, so the only
- * bookkeeping its first run needs is the globals the body reads and the
- * dependencies a nested `item` records on it. Errors are handled as
- * `run_block` handles them.
+ * `run_block`: a branch renders untracked, so the only bookkeeping its first
+ * run needs is the globals the body reads and the dependencies a nested
+ * `item` records on it (a list item re-runs through `run_block`, see
+ * `run_item`). Errors are handled as `run_block` handles them.
  * @param {Block} block
  * @param {(anchor: any, value: any, index?: any, key?: any) => void} fn
  * @param {any} anchor
- * @param {any} value
- * @param {any} [key] a keyed list item's key (see `create_item`)
+ * @param {any} value a list item's value, or its tracked
+ * @param {any} [index] a list item's tracked index (see `create_item`)
+ * @param {any} [key] a keyed list item's key
  */
-export function run_branch(block, fn, anchor, value, key) {
+export function run_branch(block, fn, anchor, value, index, key) {
 	var previous_block = active_block;
 	var previous_reaction = active_reaction;
 	var previous_tracking = tracking;
@@ -420,7 +421,7 @@ export function run_branch(block, fn, anchor, value, key) {
 		active_component = block.co;
 		tracking = false;
 		active_dependency = null;
-		fn(anchor, value, undefined, key);
+		fn(anchor, value, index, key);
 		if (active_dependency !== null) {
 			block.d = active_dependency;
 		}

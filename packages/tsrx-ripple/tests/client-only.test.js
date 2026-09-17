@@ -97,8 +97,7 @@ export function App({ attrs }) @{
 		expect(code).toContain(
 			"__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b.value, __prev._c, 'svg');",
 		);
-		expect(code).toContain('a: void 0,');
-		expect(code).not.toContain('_$_.dynamic_init(');
+		expect(code).toContain("a: _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg'),");
 		// Children keep the composite block, which owns them.
 		expect(code).toContain('_$_.composite(');
 		expect(code).toMatch(/_\$_\.composite\(\s*\(\) => tag\.value,\s*node_1,/);

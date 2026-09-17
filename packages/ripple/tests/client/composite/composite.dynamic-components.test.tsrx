@@ -76,6 +76,46 @@ describe('composite > dynamic components', () => {
 		expect(container.textContent).toBe('hidden');
 	});
 
+	it(
+		'remounts a childless dynamic component with fresh props when its tag expression re-evaluates',
+		() => {
+			let bump: () => void = () => {};
+			let poke: () => void = () => {};
+
+			function Child(props: { n: number }) @{
+				<span>{props.n}</span>
+			}
+
+			function App() @{
+				const n = track(0);
+				const flag = track(true);
+				bump = () => {
+					n.value++;
+				};
+				poke = () => {
+					flag.value = !flag.value;
+				};
+				// The tag expression reads `flag`, but always resolves to `Child`.
+				<{flag.value || !flag.value ? Child : null} n={n.value} />
+			}
+
+			render(App);
+			flushSync();
+			const span = () => container.querySelector('span');
+			expect(span()?.textContent).toBe('0');
+
+			// A prop is a value: the instance keeps the number it got.
+			bump();
+			flushSync();
+			expect(span()?.textContent).toBe('0');
+
+			// The tag expression re-evaluated: a new instance reads the literal again.
+			poke();
+			flushSync();
+			expect(span()?.textContent).toBe('1');
+		},
+	);
+
 	it('handles dynamic component switching', () => {
 		function Child1() @{
 			<div>{'I am child 1'}</div>
