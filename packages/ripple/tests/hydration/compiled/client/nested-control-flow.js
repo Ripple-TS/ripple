@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<li> `);
+var root_1 = _$_.template_el('li', null, ' ');
 
 function render(__prev) {
 	var __a = `item item-${_$_.get(__prev._a).id}`;
@@ -29,7 +29,7 @@ function if_1(pattern) {
 	if (_$_.get(pattern).show) return consequent;
 }
 
-var root = _$_.template(`<ul class=for-if>`);
+var root = _$_.template_el('ul', ['class', 'for-if']);
 
 function ForIf_render(__anchor, __block) {
 	const items = [
@@ -59,7 +59,7 @@ function ForIf_render(__anchor, __block) {
 
 ForIf[_$_.$r] = ForIf_render;
 
-var root_3 = _$_.template(`<li>`);
+var root_3 = _$_.template_el('li');
 
 function render_1(__prev) {
 	var __pattern_1 = _$_.get(__prev._a);
@@ -77,7 +77,7 @@ function render_1(__prev) {
 	}
 }
 
-var root_4 = _$_.template(`<li>`);
+var root_4 = _$_.template_el('li');
 
 function render_2(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._a);
@@ -119,7 +119,7 @@ function switch_1(pattern_1) {
 	}
 }
 
-var root_2 = _$_.template(`<ul class=for-switch>`);
+var root_2 = _$_.template_el('ul', ['class', 'for-switch']);
 
 function ForSwitch_render(__anchor, __block) {
 	const items = [
@@ -149,8 +149,8 @@ function ForSwitch_render(__anchor, __block) {
 
 ForSwitch[_$_.$r] = ForSwitch_render;
 
-var root_6 = _$_.template(`<p class=case-a>Case A`);
-var root_7 = _$_.template(`<p class=case-default>Default`);
+var root_6 = _$_.template_el('p', ['class', 'case-a'], 'Case A');
+var root_7 = _$_.template_el('p', ['class', 'case-default'], 'Default');
 
 function switch_case_0_1(__anchor, kind) {
 	var p = root_6();
@@ -201,8 +201,8 @@ function IfSwitch_render(__anchor, __block) {
 
 IfSwitch[_$_.$r] = IfSwitch_render;
 
-var root_9 = _$_.template(`<p class=case-a>Case A`);
-var root_10 = _$_.template(`<p class=case-default>Default`);
+var root_9 = _$_.template_el('p', ['class', 'case-a'], 'Case A');
+var root_10 = _$_.template_el('p', ['class', 'case-default'], 'Default');
 
 function switch_case_0_2(__anchor, kind) {
 	var p_2 = root_9();
@@ -253,7 +253,7 @@ function IfSwitchHidden_render(__anchor, __block) {
 
 IfSwitchHidden[_$_.$r] = IfSwitchHidden_render;
 
-var root_12 = _$_.template(`<li>`);
+var root_12 = _$_.template_el('li');
 
 function render_3(__prev) {
 	var __pattern_2 = _$_.get(__prev._a);
@@ -271,7 +271,7 @@ function render_3(__prev) {
 	}
 }
 
-var root_13 = _$_.template(`<li>`);
+var root_13 = _$_.template_el('li');
 
 function render_4(__prev) {
 	var __pattern_2_1 = _$_.get(__prev._a);
@@ -321,7 +321,7 @@ function if_4(pattern_2) {
 	if (_$_.get(pattern_2).show) return consequent_3;
 }
 
-var root_11 = _$_.template(`<ul class=for-if-switch-single>`);
+var root_11 = _$_.template_el('ul', ['class', 'for-if-switch-single']);
 
 function ForIfSwitchSingle_render(__anchor, __block) {
 	const items = [{ id: 1, kind: 'a', show: true }];
@@ -346,7 +346,7 @@ function ForIfSwitchSingle_render(__anchor, __block) {
 
 ForIfSwitchSingle[_$_.$r] = ForIfSwitchSingle_render;
 
-var root_15 = _$_.template(`<li>`);
+var root_15 = _$_.template_el('li');
 
 function render_5(__prev) {
 	var __pattern_3 = _$_.get(__prev._a);
@@ -364,7 +364,7 @@ function render_5(__prev) {
 	}
 }
 
-var root_16 = _$_.template(`<li>`);
+var root_16 = _$_.template_el('li');
 
 function render_6(__prev) {
 	var __pattern_3_1 = _$_.get(__prev._a);
@@ -414,7 +414,7 @@ function if_5(pattern_3) {
 	if (_$_.get(pattern_3).show) return consequent_4;
 }
 
-var root_14 = _$_.template(`<ul class=for-if-switch-multi>`);
+var root_14 = _$_.template_el('ul', ['class', 'for-if-switch-multi']);
 
 function ForIfSwitchMulti_render(__anchor, __block) {
 	const items = [
@@ -443,7 +443,7 @@ function ForIfSwitchMulti_render(__anchor, __block) {
 
 ForIfSwitchMulti[_$_.$r] = ForIfSwitchMulti_render;
 
-var root_18 = _$_.template(`<li>`);
+var root_18 = _$_.template_el('li');
 
 function render_7(__prev) {
 	var __pattern_4 = _$_.get(__prev._a);
@@ -461,7 +461,7 @@ function render_7(__prev) {
 	}
 }
 
-var root_19 = _$_.template(`<li>`);
+var root_19 = _$_.template_el('li');
 
 function render_8(__prev) {
 	var __pattern_4_1 = _$_.get(__prev._a);
@@ -511,7 +511,7 @@ function if_6(pattern_4) {
 	if (_$_.get(pattern_4).show) return consequent_5;
 }
 
-var root_17 = _$_.template(`<ul class=for-if-switch-disabled>`);
+var root_17 = _$_.template_el('ul', ['class', 'for-if-switch-disabled']);
 
 function ForIfSwitchWithDisabled_render(__anchor, __block) {
 	const items = [
@@ -541,9 +541,9 @@ function ForIfSwitchWithDisabled_render(__anchor, __block) {
 
 ForIfSwitchWithDisabled[_$_.$r] = ForIfSwitchWithDisabled_render;
 
-var root_21 = _$_.template(`<p class=resolved-a>A resolved`);
-var root_22 = _$_.template(`<p class=pending-a>A pending`);
-var root_23 = _$_.template(`<p class=default>Default`);
+var root_21 = _$_.template_el('p', ['class', 'resolved-a'], 'A resolved');
+var root_22 = _$_.template_el('p', ['class', 'pending-a'], 'A pending');
+var root_23 = _$_.template_el('p', ['class', 'default'], 'Default');
 
 function switch_case_0_6(__anchor, kind) {
 	_$_.try(
@@ -597,7 +597,7 @@ function SwitchTry_render(__anchor, __block) {
 
 SwitchTry[_$_.$r] = SwitchTry_render;
 
-var root_25 = _$_.template(`<li>`);
+var root_25 = _$_.template_el('li');
 
 function render_9(__prev) {
 	var __pattern_5 = _$_.get(__prev._a);
@@ -615,7 +615,7 @@ function render_9(__prev) {
 	}
 }
 
-var root_26 = _$_.template(`<li>`);
+var root_26 = _$_.template_el('li');
 
 function render_10(__prev) {
 	var __pattern_5_1 = _$_.get(__prev._a);
@@ -633,7 +633,7 @@ function render_10(__prev) {
 	}
 }
 
-var root_27 = _$_.template(`<li>`);
+var root_27 = _$_.template_el('li');
 
 function render_11(__prev) {
 	var __pattern_5_2 = _$_.get(__prev._a);
@@ -651,7 +651,7 @@ function render_11(__prev) {
 	}
 }
 
-var root_28 = _$_.template(`<li>`);
+var root_28 = _$_.template_el('li');
 
 function render_12(__prev) {
 	var __pattern_5_3 = _$_.get(__prev._a);
@@ -719,7 +719,7 @@ function switch_8(pattern_5) {
 	}
 }
 
-var root_24 = _$_.template(`<ul class=for-switch-try>`);
+var root_24 = _$_.template_el('ul', ['class', 'for-switch-try']);
 
 function ForSwitchTry_render(__anchor, __block) {
 	const items = [{ id: 1, kind: 'a' }, { id: 2, kind: 'b' }];
@@ -744,7 +744,7 @@ function ForSwitchTry_render(__anchor, __block) {
 
 ForSwitchTry[_$_.$r] = ForSwitchTry_render;
 
-var root_30 = _$_.template(`<li>`);
+var root_30 = _$_.template_el('li');
 
 function render_13(__prev) {
 	var __pattern_6 = _$_.get(__prev._a);
@@ -762,7 +762,7 @@ function render_13(__prev) {
 	}
 }
 
-var root_31 = _$_.template(`<li>`);
+var root_31 = _$_.template_el('li');
 
 function render_14(__prev) {
 	var __pattern_6_1 = _$_.get(__prev._a);
@@ -804,7 +804,7 @@ function if_7(pattern_6) {
 	if (_$_.get(pattern_6).show) return consequent_6;
 }
 
-var root_29 = _$_.template(`<ul class=for-if-try>`);
+var root_29 = _$_.template_el('ul', ['class', 'for-if-try']);
 
 function ForIfTry_render(__anchor, __block) {
 	const items = [{ id: 1, show: true }, { id: 2, show: true }];
@@ -829,7 +829,7 @@ function ForIfTry_render(__anchor, __block) {
 
 ForIfTry[_$_.$r] = ForIfTry_render;
 
-var root_33 = _$_.template(`<li>`);
+var root_33 = _$_.template_el('li');
 
 function render_15(__prev) {
 	var __pattern_7 = _$_.get(__prev._a);
@@ -847,7 +847,7 @@ function render_15(__prev) {
 	}
 }
 
-var root_34 = _$_.template(`<li>`);
+var root_34 = _$_.template_el('li');
 
 function render_16(__prev) {
 	var __pattern_7_1 = _$_.get(__prev._a);
@@ -865,7 +865,7 @@ function render_16(__prev) {
 	}
 }
 
-var root_35 = _$_.template(`<li>`);
+var root_35 = _$_.template_el('li');
 
 function render_17(__prev) {
 	var __pattern_7_2 = _$_.get(__prev._a);
@@ -883,7 +883,7 @@ function render_17(__prev) {
 	}
 }
 
-var root_36 = _$_.template(`<li>`);
+var root_36 = _$_.template_el('li');
 
 function render_18(__prev) {
 	var __pattern_7_3 = _$_.get(__prev._a);
@@ -959,7 +959,7 @@ function if_8(pattern_7) {
 	if (_$_.get(pattern_7).show) return consequent_7;
 }
 
-var root_32 = _$_.template(`<ul class=for-if-switch-try-single>`);
+var root_32 = _$_.template_el('ul', ['class', 'for-if-switch-try-single']);
 
 function ForIfSwitchTrySingle_render(__anchor, __block) {
 	const items = [{ id: 1, kind: 'a', show: true }];
@@ -984,7 +984,7 @@ function ForIfSwitchTrySingle_render(__anchor, __block) {
 
 ForIfSwitchTrySingle[_$_.$r] = ForIfSwitchTrySingle_render;
 
-var root_38 = _$_.template(`<li>`);
+var root_38 = _$_.template_el('li');
 
 function render_19(__prev) {
 	var __pattern_8 = _$_.get(__prev._a);
@@ -1002,7 +1002,7 @@ function render_19(__prev) {
 	}
 }
 
-var root_39 = _$_.template(`<li>`);
+var root_39 = _$_.template_el('li');
 
 function render_20(__prev) {
 	var __pattern_8_1 = _$_.get(__prev._a);
@@ -1020,7 +1020,7 @@ function render_20(__prev) {
 	}
 }
 
-var root_40 = _$_.template(`<li>`);
+var root_40 = _$_.template_el('li');
 
 function render_21(__prev) {
 	var __pattern_8_2 = _$_.get(__prev._a);
@@ -1038,7 +1038,7 @@ function render_21(__prev) {
 	}
 }
 
-var root_41 = _$_.template(`<li>`);
+var root_41 = _$_.template_el('li');
 
 function render_22(__prev) {
 	var __pattern_8_3 = _$_.get(__prev._a);
@@ -1114,7 +1114,7 @@ function if_9(pattern_8) {
 	if (_$_.get(pattern_8).show) return consequent_8;
 }
 
-var root_37 = _$_.template(`<ul class=for-if-switch-try-multi>`);
+var root_37 = _$_.template_el('ul', ['class', 'for-if-switch-try-multi']);
 
 function ForIfSwitchTryMulti_render(__anchor, __block) {
 	const items = [

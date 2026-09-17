@@ -185,7 +185,7 @@ function ToggleButton_render(__anchor, __block) {
 
 ToggleButton[_$_.$r] = ToggleButton_render;
 
-var root_5 = _$_.template(`<button class=child-btn>`);
+var root_5 = _$_.template_el('button', ['class', 'child-btn']);
 
 function render_5(__prev) {
 	var __a = __prev._a.label;

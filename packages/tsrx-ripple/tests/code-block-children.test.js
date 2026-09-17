@@ -86,7 +86,7 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		// components wrapped in synthetic fragments, and the whole chain runs
 		// synchronously inside a single scope wrapper.
 		expect(code.match(/_\$_\.tsrx_element\(/g)).toHaveLength(3);
-		expect(code.match(/_\$_\.template\(/g)).toHaveLength(3);
+		expect(code.match(/_\$_\.template(?:_el)?\(/g)).toHaveLength(3);
 		expect(code.match(/with_scope/g)).toHaveLength(1);
 		// The scope chain is the with_scope callback itself — no nested IIFEs.
 		expect(code).not.toContain('(() => {');

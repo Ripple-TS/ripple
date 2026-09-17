@@ -645,8 +645,10 @@ export function Precedence() @{
 			// block is written after the nested scope.
 			expect(black).toBeLessThan(italic);
 			expect(italic).toBeLessThan(blue);
+			// The outer div shares a fragment template with the placeholder that
+			// follows it; the inner div is a flat element template of its own.
 			expect(code).toContain(`class="outer ${outer} ${theme_hash}"`);
-			expect(code).toContain(`class="inner ${outer} ${inner} ${theme_hash}"`);
+			expect(code).toContain(`'class', 'inner ${outer} ${inner} ${theme_hash}'`);
 		},
 	);
 });

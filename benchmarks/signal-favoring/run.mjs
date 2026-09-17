@@ -197,6 +197,10 @@ async function measureMount(browser, url) {
 		const { ctx, page } = await freshPage(browser, url);
 		const dt = await page.evaluate(async () => {
 			(window.gc || (() => {}))();
+			// Time from a laid-out tree: nodes with layout boxes cost more to move or
+			// remove, and whether a frame ran before the timer is otherwise up to the
+			// browser (#1451).
+			void document.body?.offsetHeight;
 			const t0 = performance.now();
 			const result = window.__mount();
 			if (result && typeof result.then === 'function') await result;
@@ -231,6 +235,7 @@ async function measureBump(browser, url, idx) {
 			const out = [];
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				for (let k = 0; k < REPS; k++) {
 					const r = fn();
@@ -278,6 +283,7 @@ async function measureSweep(browser, url, batchFn) {
 				// A single sweep is sub-millisecond, so the OS timer quantizes it to
 				// the ~0.1ms floor. Time REPEAT sweeps and divide — the per-sweep cost
 				// escapes quantization while each sweep still does identical work.
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				for (let k = 0; k < REPEAT; k++) {
 					if (sweep) {
@@ -320,6 +326,7 @@ async function measureUnmount(browser, url) {
 				if (mounted && typeof mounted.then === 'function') await mounted;
 				await new Promise((r) => setTimeout(r, YIELD_MS));
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				const unmounted = window.__unmount();
 				if (unmounted && typeof unmounted.then === 'function') await unmounted;

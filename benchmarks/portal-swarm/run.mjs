@@ -230,6 +230,10 @@ async function measureMountClosed(browser, url) {
 		const { ctx, page } = await freshPage(browser, url);
 		const dt = await page.evaluate(async () => {
 			(window.gc || (() => {}))();
+			// Time from a laid-out tree: nodes with layout boxes cost more to move or
+			// remove, and whether a frame ran before the timer is otherwise up to the
+			// browser (#1451).
+			void document.body?.offsetHeight;
 			const t0 = performance.now();
 			const r = window.__mount();
 			if (r && typeof r.then === 'function') await r;
@@ -255,6 +259,7 @@ async function measureOpenAll(browser, url) {
 				window.__closeAll();
 				await new Promise((r) => setTimeout(r, YIELD_MS));
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				const r = window.__openAll();
 				if (r && typeof r.then === 'function') await r;
@@ -293,6 +298,7 @@ async function measureRerender(browser, url, sec, tipSel) {
 			const out = [];
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				// Async-commit targets await the flush BETWEEN reps — without it the
 				// REPS tick bumps would coalesce into a single commit.
@@ -330,6 +336,7 @@ async function measureCycle(browser, url, distinct) {
 			const out = [];
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				// Async-commit targets await after EACH half of the pair — an open
 				// and close coalesced into one flush would be a no-op commit.
@@ -373,6 +380,7 @@ async function measureDispatch(browser, url) {
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
 				const before = window.__hits;
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				for (let k = 0; k < N; k++) btns[k].click();
 				const dt = (performance.now() - t0) / N;

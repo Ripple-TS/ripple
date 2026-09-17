@@ -1516,7 +1516,7 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 		);
 
 		expect(code).toContain('_$_.try(');
-		expect(code).toContain('template(`<div>content`');
+		expect(code).toContain("template_el('div', null, 'content')");
 	});
 
 	it('prints pending blocks as valid TypeScript in Volar output', () => {
@@ -1976,14 +1976,14 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('const test = _$_.tsrx_element');
-		expect(code).toContain('template(`<button>Hello`');
+		expect(code).toContain("template_el('button', null, 'Hello')");
 	});
 
 	it('lowers bare native element expression statements outside components', () => {
 		const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('_$_.tsrx_element');
-		expect(code).toContain('template(`<button>Hello`');
+		expect(code).toContain("template_el('button', null, 'Hello')");
 	});
 
 	it('renders native element values assigned inside returned templates on the server', () => {
@@ -2004,7 +2004,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('keeps direct arrow component returns on the render path', () => {
 		const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
-		expect(code).toContain('template(`<button>Hello`');
+		expect(code).toContain("template_el('button', null, 'Hello')");
 		expect(code).toContain('_$_.append(__anchor, button)');
 		expect(code).not.toContain('template(``');
 	});
@@ -2017,7 +2017,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('template(`<div>Commented`');
+		expect(code).toContain("template_el('div', null, 'Commented')");
 		expect(code).toContain('_$_.append(__anchor, div)');
 	});
 
@@ -2101,7 +2101,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('template(`<div> `');
+		expect(code).toContain("template_el('div', null, ' ')");
 		expect(code).toContain('_$_.hydrating ? _$_.hydrate_child() : div.firstChild');
 		expect(code).not.toContain('_$_.hydrate_child(true) : div.firstChild');
 		expect(code).toContain('_$_.expression(');

@@ -4899,6 +4899,82 @@ function strip_trailing_end_tags(items) {
 }
 
 /**
+ * Elements the HTML parser does not create as written: raw-text and
+ * escapable-raw-text content (their end tags are kept, so they never match),
+ * a dropped leading newline (`pre`, `listing`, `textarea`), template contents,
+ * document structure, foreign roots, and `image` (parsed as `img`).
+ */
+const NON_FLAT_TAGS = new Set([
+	'pre',
+	'listing',
+	'textarea',
+	'template',
+	'html',
+	'head',
+	'body',
+	'frameset',
+	'frame',
+	'svg',
+	'math',
+	'image',
+]);
+
+const FLAT_TEMPLATE =
+	/^<([a-z][a-z0-9]*)((?: [a-z][a-z0-9-]*(?:=(?:[^\s"'<>=`&]+|"[^"<]*"))?)*)>([^<\r\0]*)$/;
+const FLAT_ATTRIBUTE = / ([a-z][a-z0-9-]*)(?:=("[^"]*"|[^\s"]+))?/g;
+const STATIC_ENTITY = /&(amp|lt|quot);/g;
+
+/**
+ * Decodes the character references `escape_html` produces.
+ * @param {string} text
+ * @returns {string}
+ */
+function decode_static_html(text) {
+	return text.replace(STATIC_ENTITY, (_, name) =>
+		name === 'amp' ? '&' : name === 'lt' ? '<' : '"',
+	);
+}
+
+/**
+ * A static HTML template that is exactly one element with static attributes
+ * and at most one text child, as `{ tag, attributes, text }`, or `null`:
+ * such a template is built with DOM calls instead of parsed (see
+ * `template_el` in the client runtime). Attribute names stay lowercase ASCII
+ * and namespace-free so `setAttribute` matches the parser; `is` would need
+ * `createElement` to know about it; a custom element (a hyphenated tag) is
+ * only upgraded when the template is parsed in the inert document.
+ * @param {(string | AST.Expression)[]} items
+ * @returns {{ tag: string, attributes: string[], text: string } | null}
+ */
+function flat_element_template(items) {
+	let content = '';
+	for (const item of items) {
+		if (typeof item === 'string') {
+			content += item;
+		} else if (item.type === 'Literal' && typeof item.value === 'string') {
+			content += item.value;
+		} else if (item.type === 'TemplateLiteral' && item.expressions.length === 0) {
+			content += item.quasis[0].value.cooked;
+		} else {
+			return null;
+		}
+	}
+	const match = FLAT_TEMPLATE.exec(content);
+	if (match === null) return null;
+	const tag = match[1];
+	if (NON_FLAT_TAGS.has(tag)) return null;
+	/** @type {string[]} */
+	const attributes = [];
+	for (const attribute of match[2].matchAll(FLAT_ATTRIBUTE)) {
+		const name = attribute[1];
+		if (name === 'is') return null;
+		const value = attribute[2] ?? '';
+		attributes.push(name, decode_static_html(value.startsWith('"') ? value.slice(1, -1) : value));
+	}
+	return { tag, attributes, text: decode_static_html(match[3]) };
+}
+
+/**
  * Whether an expression always evaluates to a string: a string literal or
  * template, a `+` with a string operand, a conditional with string branches,
  * a `String()` coercion, or a text-typed expression the checker proved.
@@ -7038,8 +7114,9 @@ function transform_children(children, context) {
 					} else if (append_after !== undefined) {
 						// The earlier siblings are navigated for the hydration cursor;
 						// the client appends into the parent instead of inserting
-						// before a placeholder.
-						current_prev();
+						// before a placeholder, and a client-only build never reads
+						// them.
+						if (state.hydration) current_prev();
 						const append_into =
 							node.metadata?.append_tail === true
 								? b.call('_$_.append_into', append_after, b.true)
@@ -7416,35 +7493,50 @@ function transform_children(children, context) {
 		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
 			state.template
 		);
-		/** @type {AST.Expression[]} */
-		const template_args = [
-			join_template(
-				template_namespace === 'html' ? strip_trailing_end_tags(template_array) : template_array,
-			),
-		];
-		// The runtime defaults the flags to 0.
-		if (flags !== 0) {
-			template_args.push(b.literal(flags));
-		}
+		const template_items =
+			template_namespace === 'html' ? strip_trailing_end_tags(template_array) : template_array;
+		const flat = flags === 0 ? flat_element_template(template_items) : null;
+		/** @type {AST.CallExpression} */
+		let template_call;
+		if (flat !== null) {
+			// One element with static attributes and at most a text child is
+			// built with DOM calls; a parse would cost more than the element.
+			/** @type {AST.Expression[]} */
+			const template_args = [b.literal(flat.tag)];
+			if (flat.attributes.length > 0 || flat.text !== '') {
+				template_args.push(
+					flat.attributes.length > 0
+						? b.array(flat.attributes.map((value) => b.literal(value)))
+						: b.literal(null),
+				);
+			}
+			if (flat.text !== '') {
+				template_args.push(b.literal(flat.text));
+			}
+			template_call = b.call('_$_.template_el', ...template_args);
+		} else {
+			/** @type {AST.Expression[]} */
+			const template_args = [join_template(template_items)];
+			// The runtime defaults the flags to 0.
+			if (flags !== 0) {
+				template_args.push(b.literal(flags));
+			}
 
-		// For fragments, add the pre-calculated hop count as a third argument.
-		// This count reflects emitted top-level positions.
-		if (is_fragment) {
-			const node_count = fragment_hop_count || 1;
-			template_args.push(b.literal(node_count));
-		}
+			// For fragments, add the pre-calculated hop count as a third argument.
+			// This count reflects emitted top-level positions.
+			if (is_fragment) {
+				const node_count = fragment_hop_count || 1;
+				template_args.push(b.literal(node_count));
+			}
 
-		// A template in the SVG or MathML namespace parses through the
-		// namespace-aware entry, which an HTML-only bundle never loads.
-		state.hoisted.push(
-			b.var(
-				template_id,
-				b.call(
-					template_namespace === 'html' ? '_$_.template' : '_$_.template_ns',
-					...template_args,
-				),
-			),
-		);
+			// A template in the SVG or MathML namespace parses through the
+			// namespace-aware entry, which an HTML-only bundle never loads.
+			template_call = b.call(
+				template_namespace === 'html' ? '_$_.template' : '_$_.template_ns',
+				...template_args,
+			);
+		}
+		state.hoisted.push(b.var(template_id, template_call));
 		register_hoisted(state.hoisted, template_id);
 	}
 }

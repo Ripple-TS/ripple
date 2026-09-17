@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_2 = _$_.template(`<p class=muze> `);
+var root_2 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_1 = _$_.template(`<!><span class=after>after`, 1, 2);
 
 function consequent(__anchor, { a: hasLoaded, b: muzes }) {
@@ -54,8 +54,8 @@ function IfFragmentForElement_render(__anchor, __block) {
 
 IfFragmentForElement[_$_.$r] = IfFragmentForElement_render;
 
-var root_5 = _$_.template(`<p class=muze> `);
-var root_6 = _$_.template(`<span class=has-items>has items`);
+var root_5 = _$_.template_el('p', ['class', 'muze'], ' ');
+var root_6 = _$_.template_el('span', ['class', 'has-items'], 'has items');
 
 function consequent_1(__anchor, muzes) {
 	var span = root_6();
@@ -67,7 +67,7 @@ function if_2(muzes) {
 	if (muzes.length > 0) return consequent_1;
 }
 
-var root_7 = _$_.template(`<span class=empty>empty`);
+var root_7 = _$_.template_el('span', ['class', 'empty'], 'empty');
 
 function consequent_2(__anchor, muzes) {
 	var span_1 = root_7();
@@ -168,7 +168,7 @@ function IfFragmentElements_render(__anchor, __block) {
 
 IfFragmentElements[_$_.$r] = IfFragmentElements_render;
 
-var root_12 = _$_.template(`<p class=muze> `);
+var root_12 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_11 = _$_.template(`<!><span class=after>after`, 1, 2);
 var root_10 = _$_.template(`<!>`, 1, 1);
 
@@ -209,7 +209,7 @@ function ComponentBodyFragmentControlFlow_render(__anchor, __block) {
 
 ComponentBodyFragmentControlFlow[_$_.$r] = ComponentBodyFragmentControlFlow_render;
 
-var root_14 = _$_.template(`<p class=muze> `);
+var root_14 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_15 = _$_.template(`<!><span class=after>after`, 1, 2);
 var root_13 = _$_.template(`<!>`, 1, 1);
 
@@ -254,7 +254,7 @@ function ComponentBodyCodeBlockControlFlow_render(__anchor, __block) {
 
 ComponentBodyCodeBlockControlFlow[_$_.$r] = ComponentBodyCodeBlockControlFlow_render;
 
-var root_17 = _$_.template(`<p class=muze> `);
+var root_17 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_18 = _$_.template(`<!><span class=after>after`, 1, 2);
 
 function consequent_5(__anchor, { a: hasLoaded, b: muzes }) {
@@ -311,8 +311,8 @@ function IfCodeBlockControlFlow_render(__anchor, __block) {
 
 IfCodeBlockControlFlow[_$_.$r] = IfCodeBlockControlFlow_render;
 
-var root_20 = _$_.template(`<span class=loading>loading`);
-var root_22 = _$_.template(`<p class=muze> `);
+var root_20 = _$_.template_el('span', ['class', 'loading'], 'loading');
+var root_22 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_21 = _$_.template(`<!><span class=after>after`, 1, 2);
 
 function consequent_6(__anchor, { a: hasLoaded, b: muzes }) {
@@ -371,7 +371,7 @@ function IfElseFragment_render(__anchor, __block) {
 
 IfElseFragment[_$_.$r] = IfElseFragment_render;
 
-var root_25 = _$_.template(`<p class=muze> `);
+var root_25 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_24 = _$_.template(`<section><span class=after>after`);
 
 function consequent_7(__anchor, { a: hasLoaded, b: muzes }) {

@@ -38,6 +38,10 @@ async function measureMount(browser, shape) {
 		const { ctx, page } = await freshPage(browser, url);
 		const dt = await page.evaluate(() => {
 			(window.gc || (() => {}))();
+			// Time from a laid-out tree: nodes with layout boxes cost more to move or
+			// remove, and whether a frame ran before the timer is otherwise up to the
+			// browser (#1451).
+			void document.body?.offsetHeight;
 			const t0 = performance.now();
 			window.__mount();
 			return performance.now() - t0;
@@ -65,6 +69,7 @@ async function measureReorder(browser, shape, op) {
 			const out = [];
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				fn();
 				const dt = performance.now() - t0;

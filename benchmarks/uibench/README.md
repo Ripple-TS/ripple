@@ -55,27 +55,28 @@ during setup, warmup, or timing writes a failed JSON payload and exits non-zero.
 
 ## Measurement
 
-Each sample first commits the case's `before` snapshot, yields so rendering and
-layout from setup settle, requests exposed browser GC, and times only synchronous
-commits of the `after` snapshot. The sub-0.1 ms cases repeat that forward
-transition inside each sample, with every reset commit outside its inner timer;
-the harness reports the mean milliseconds per forward commit. The case-sized
-repetition count overcomes Chromium's timer granularity without mixing the inverse
-transition into the result. This matches UIbench's default JavaScript-time mode;
-it does not request style/layout/paint timing. React uses React 19, `flushSync`,
-and the repository's production React Compiler integration. Preact uses native
-hooks and keyed JSX; its queued microtask commit is awaited inside the timing
-window. Solid uses the pinned Solid 2 beta production renderer, keyed
-`createStore`/`reconcile`, and `flush()`; private copies of both Solid endpoints
-are prepared outside the timer so reconciliation cannot mutate shared workload
-snapshots. Vue uses the production Vue Vapor 3.6 renderer, a keyed `v-for`, and an
-awaited `nextTick()` inside the timing window. Ripple uses the production `.tsrx`
-compiler, a tracked snapshot, keyed `@for` blocks, and `flushSync`. Inferno uses
-its native class state and public `rerender()` flush. Octane uses the production
-`.tsrx` compiler and `flushSync`. All seven previews send COOP/COEP headers, and
-the harness rejects a page that is not cross-origin isolated, so sub-millisecond
-cases retain the browser's high-resolution timer rather than collapsing to 0.1 ms
-buckets.
+Each sample first commits the case's `before` snapshot, yields a task, requests
+exposed browser GC, and times only synchronous commits of the `after` snapshot.
+The sub-0.1 ms cases repeat that forward transition inside each sample, with every
+reset commit outside its inner timer; the harness reports the mean milliseconds
+per forward commit. Like every browser harness here, it forces style and layout
+before each timed commit, so the commit starts from a laid-out tree. The
+case-sized repetition count overcomes Chromium's timer granularity without mixing
+the inverse transition into the result. This matches UIbench's default
+JavaScript-time mode; it does not request style/layout/paint timing. React uses
+React 19, `flushSync`, and the repository's production React Compiler integration.
+Preact uses native hooks and keyed JSX; its queued microtask commit is awaited
+inside the timing window. Solid uses the pinned Solid 2 beta production renderer,
+keyed `createStore`/`reconcile`, and `flush()`; private copies of both Solid
+endpoints are prepared outside the timer so reconciliation cannot mutate shared
+workload snapshots. Vue uses the production Vue Vapor 3.6 renderer, a keyed
+`v-for`, and an awaited `nextTick()` inside the timing window. Ripple uses the
+production `.tsrx` compiler, a tracked snapshot, keyed `@for` blocks, and
+`flushSync`. Inferno uses its native class state and public `rerender()` flush.
+Octane uses the production `.tsrx` compiler and `flushSync`. All seven previews
+send COOP/COEP headers, and the harness rejects a page that is not cross-origin
+isolated, so sub-millisecond cases retain the browser's high-resolution timer
+rather than collapsing to 0.1 ms buckets.
 
 The suite keeps React Compiler and Preact as distinct VDOM controls and Solid as a
 fine-grained reactive control. Its purpose is a faithful, compact extraction of

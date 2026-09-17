@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div>Content`);
+var root_1 = _$_.template_el('div', null, 'Content');
 var root = _$_.template(`<!>`, 1, 1);
 
 function StaticTitle_render(__anchor, __block) {
@@ -60,7 +60,7 @@ function ReactiveTitle_render(__anchor, __block) {
 ReactiveTitle[_$_.$r] = ReactiveTitle_render;
 
 var root_6 = _$_.template(`<meta name=description content="Page description"><link rel=stylesheet href=/styles.css>`, 1, 2);
-var root_5 = _$_.template(`<div>Page content`);
+var root_5 = _$_.template_el('div', null, 'Page content');
 var root_4 = _$_.template(`<!>`, 1, 1);
 
 function MultipleHeadElements_render(__anchor, __block) {
@@ -86,8 +86,8 @@ function MultipleHeadElements_render(__anchor, __block) {
 
 MultipleHeadElements[_$_.$r] = MultipleHeadElements_render;
 
-var root_9 = _$_.template(`<meta name=description>`);
-var root_8 = _$_.template(`<div> `);
+var root_9 = _$_.template_el('meta', ['name', 'description']);
+var root_8 = _$_.template_el('div', null, ' ');
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveMetaTags_render(__anchor, __block) {
@@ -121,7 +121,7 @@ function ReactiveMetaTags_render(__anchor, __block) {
 
 ReactiveMetaTags[_$_.$r] = ReactiveMetaTags_render;
 
-var root_11 = _$_.template(`<div> `);
+var root_11 = _$_.template_el('div', null, ' ');
 var root_10 = _$_.template(`<!>`, 1, 1);
 
 function TitleWithTemplate_render(__anchor, __block) {
@@ -153,7 +153,7 @@ function TitleWithTemplate_render(__anchor, __block) {
 
 TitleWithTemplate[_$_.$r] = TitleWithTemplate_render;
 
-var root_13 = _$_.template(`<div>Empty title test`);
+var root_13 = _$_.template_el('div', null, 'Empty title test');
 var root_12 = _$_.template(`<!>`, 1, 1);
 
 function EmptyTitle_render(__anchor, __block) {
@@ -175,7 +175,7 @@ function EmptyTitle_render(__anchor, __block) {
 
 EmptyTitle[_$_.$r] = EmptyTitle_render;
 
-var root_15 = _$_.template(`<div> `);
+var root_15 = _$_.template_el('div', null, ' ');
 var root_14 = _$_.template(`<!>`, 1, 1);
 
 function ConditionalTitle_render(__anchor, __block) {
@@ -249,8 +249,8 @@ function ComputedTitle_render(__anchor, __block) {
 
 ComputedTitle[_$_.$r] = ComputedTitle_render;
 
-var root_20 = _$_.template(`<meta name=author content="Test Author">`);
-var root_19 = _$_.template(`<div>Content`);
+var root_20 = _$_.template_el('meta', ['name', 'author', 'content', 'Test Author']);
+var root_19 = _$_.template_el('div', null, 'Content');
 var root_18 = _$_.template(`<!>`, 1, 1);
 
 function MultipleHeadBlocks_render(__anchor, __block) {
@@ -278,7 +278,7 @@ function MultipleHeadBlocks_render(__anchor, __block) {
 
 MultipleHeadBlocks[_$_.$r] = MultipleHeadBlocks_render;
 
-var root_22 = _$_.template(`<div>Styled content`);
+var root_22 = _$_.template_el('div', null, 'Styled content');
 var root_21 = _$_.template(`<!>`, 1, 1);
 
 function HeadWithStyle_render(__anchor, __block) {

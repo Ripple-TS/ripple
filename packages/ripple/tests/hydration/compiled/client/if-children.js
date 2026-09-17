@@ -42,7 +42,7 @@ function IfWithChildren_render(__anchor, __block, { children }) {
 
 IfWithChildren[_$_.$r] = IfWithChildren_render;
 
-var root_2 = _$_.template(`<div class=item>`);
+var root_2 = _$_.template_el('div', ['class', 'item']);
 
 function ChildItem_render(__anchor, __block, { text: label }) {
 	var div_3 = root_2();
@@ -174,7 +174,7 @@ function TestIfWithSiblingsAndChildren_render(__anchor, __block) {
 
 TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
 
-var root_11 = _$_.template(`<div class=conditional>Conditional content`);
+var root_11 = _$_.template_el('div', ['class', 'conditional'], 'Conditional content');
 
 function consequent_3(__anchor, show) {
 	var div_11 = root_11();
@@ -217,7 +217,7 @@ function ElementWithChildrenThenIf_render(__anchor, __block) {
 
 ElementWithChildrenThenIf[_$_.$r] = ElementWithChildrenThenIf_render;
 
-var root_14 = _$_.template(`<footer class=footer>Footer`);
+var root_14 = _$_.template_el('footer', ['class', 'footer'], 'Footer');
 
 function consequent_4(__anchor, visible) {
 	var footer = root_14();
@@ -264,7 +264,7 @@ function DeepNestingThenIf_render(__anchor, __block) {
 DeepNestingThenIf[_$_.$r] = DeepNestingThenIf_render;
 
 var root_16 = _$_.template(`<pre class=code>const x = 1;`);
-var root_17 = _$_.template(`<div class=preview>Preview content`);
+var root_17 = _$_.template_el('div', ['class', 'preview'], 'Preview content');
 
 function consequent_5(__anchor, activeTab) {
 	var pre = root_16();
@@ -396,8 +396,8 @@ function StaticListThenStaticSiblings_render(__anchor, __block) {
 
 StaticListThenStaticSiblings[_$_.$r] = StaticListThenStaticSiblings_render;
 
-var root_21 = _$_.template(`<span class=root-if>on`);
-var root_22 = _$_.template(`<span class=root-if>off`);
+var root_21 = _$_.template_el('span', ['class', 'root-if'], 'on');
+var root_22 = _$_.template_el('span', ['class', 'root-if'], 'off');
 
 function consequent_6(__anchor, props) {
 	var span = root_21();
@@ -421,7 +421,7 @@ function RootIfChild_render(__anchor, __block, props) {
 
 RootIfChild[_$_.$r] = RootIfChild_render;
 
-var root_23 = _$_.template(`<span class=root-for>`);
+var root_23 = _$_.template_el('span', ['class', 'root-for']);
 
 function render_2(__prev) {
 	var __a = __prev.$item;
@@ -452,7 +452,7 @@ function RootForChild_render(__anchor, __block, props) {
 
 RootForChild[_$_.$r] = RootForChild_render;
 
-var root_24 = _$_.template(`<span class=trailing>end`);
+var root_24 = _$_.template_el('span', ['class', 'trailing'], 'end');
 
 function TrailingChild_render(__anchor, __block) {
 	var span_3 = root_24();

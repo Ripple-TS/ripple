@@ -132,8 +132,9 @@ function normalize(code) {
 
 /**
  * The text forms the compiled code may use for an element's class: a static
- * chain on a static value lands in the HTML (`class="…"`) or, for a dynamic
- * `<{tag}>`, in its props (`class: '…'`); anything with a runtime part is set
+ * chain on a static value lands in the HTML (`class="…"`), in a flat element
+ * template's attributes (`'class', '…'`) or, for a dynamic `<{tag}>`, in its
+ * props (`class: '…'`); anything with a runtime part is set
  * at render time from the authored value and the chain expression, which
  * both the client (`_$_.set_class(el, value, chain)`) and the server
  * (`_$_.attr('class', [value, chain])`) spell as `value, chain`.
@@ -147,8 +148,14 @@ function class_candidates(key, chain, hashes) {
 	if (!is_expression) {
 		if (!has_runtime) {
 			const value = [key, ...chain.map((label) => hash_of(label, hashes))].join(' ');
-			// A template attribute is unquoted when its value is a single token.
-			return [[`class="${value}"`], [`class=${value}`], [`class: '${value}'`]];
+			// A template attribute is unquoted when its value is a single token;
+			// a flat element template carries it as a name/value pair.
+			return [
+				[`class="${value}"`],
+				[`class=${value}`],
+				[`'class', '${value}'`],
+				[`class: '${value}'`],
+			];
 		}
 		return [[`'${key}', ${chain_text(chain, hashes)}`]];
 	}

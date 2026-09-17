@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class=portal-content>Portal content`);
+var root_1 = _$_.template_el('div', ['class', 'portal-content'], 'Portal content');
 var root = _$_.template(`<div class=container><h1>Main Content`);
 
 function SimplePortal_render(__anchor, __block) {
@@ -25,7 +25,7 @@ function SimplePortal_render(__anchor, __block) {
 
 SimplePortal[_$_.$r] = SimplePortal_render;
 
-var root_3 = _$_.template(`<div class=portal-content>Portal is visible`);
+var root_3 = _$_.template_el('div', ['class', 'portal-content'], 'Portal is visible');
 
 function consequent(__anchor, show) {
 	_$_.portal(__anchor, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
@@ -61,7 +61,7 @@ function ConditionalPortal_render(__anchor, __block) {
 
 ConditionalPortal[_$_.$r] = ConditionalPortal_render;
 
-var root_5 = _$_.template(`<div class=portal-content>Modal content`);
+var root_5 = _$_.template_el('div', ['class', 'portal-content'], 'Modal content');
 var root_4 = _$_.template(`<div><div class=main-content>Main page content</div><div class=footer>Footer`);
 
 function PortalWithMainContent_render(__anchor, __block) {
@@ -85,7 +85,7 @@ function PortalWithMainContent_render(__anchor, __block) {
 
 PortalWithMainContent[_$_.$r] = PortalWithMainContent_render;
 
-var root_7 = _$_.template(`<div class=portal-content>Portal content`);
+var root_7 = _$_.template_el('div', ['class', 'portal-content'], 'Portal content');
 var root_6 = _$_.template(`<div class=outer><div class=inner><span>Nested content`);
 
 function NestedContentWithPortal_render(__anchor, __block) {

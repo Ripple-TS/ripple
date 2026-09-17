@@ -36,7 +36,7 @@ function TextWrappedLayout_render(__anchor, __block, { children }) {
 
 TextWrappedLayout[_$_.$r] = TextWrappedLayout_render;
 
-var root_2 = _$_.template(`<div class=single>single`);
+var root_2 = _$_.template_el('div', ['class', 'single'], 'single');
 
 function SingleChild_render(__anchor, __block) {
 	var div_2 = root_2();

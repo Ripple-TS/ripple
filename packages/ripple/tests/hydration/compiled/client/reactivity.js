@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=count>`);
+var root = _$_.template_el('div', ['class', 'count']);
 
 function render(__prev) {
 	var __a = __prev._a.value;
@@ -50,7 +50,7 @@ function CounterWrapper_render(__anchor, __block) {
 
 CounterWrapper[_$_.$r] = CounterWrapper_render;
 
-var root_2 = _$_.template(`<div class=sum> `);
+var root_2 = _$_.template_el('div', ['class', 'sum'], ' ');
 
 function ComputedValues_render(__anchor, __block) {
 	const a = _$_.track(2, __block, '1ex10ij');
@@ -124,7 +124,7 @@ function MultipleTracked_render(__anchor, __block) {
 
 MultipleTracked[_$_.$r] = MultipleTracked_render;
 
-var root_4 = _$_.template(`<div class=name> `);
+var root_4 = _$_.template_el('div', ['class', 'name'], ' ');
 
 function DerivedState_render(__anchor, __block) {
 	const firstName = _$_.track('John', __block, 'qnrtu2');

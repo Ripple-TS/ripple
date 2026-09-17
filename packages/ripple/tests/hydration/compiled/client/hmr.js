@@ -23,7 +23,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_2 = _$_.template(`<p class=text>Hello world`);
+var root_2 = _$_.template_el('p', ['class', 'text'], 'Hello world');
 
 function consequent(__anchor, visible) {
 	var p = root_2();

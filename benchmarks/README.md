@@ -115,6 +115,13 @@ failures. `results/summary.json` records the invocation outcome. Failed or missi
 measurements cannot produce a successful baseline. Build and preview logs are
 saved beside results. The runner exits nonzero if any selected suite fails.
 
+Browser operations are timed from a laid-out tree: every timing site forces style
+and layout (`void document.body?.offsetHeight`) between the exposed `gc()` call
+and `performance.now()`. Moving or removing nodes that own layout boxes costs up
+to several times more than on a tree the browser has not laid out yet, and whether
+a frame ran during a settle sleep was otherwise up to the browser, which split
+samples into two modes.
+
 Timing scores are milliseconds, generally the mean of an upstream-selected stable
 sample window, with median/min/p95 and uncertainty diagnostics. Short runs fall
 back to the upstream median policy. SSR throughput also exposes operations per

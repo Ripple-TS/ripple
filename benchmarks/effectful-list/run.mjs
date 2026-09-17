@@ -218,6 +218,10 @@ async function measureOp(page, op) {
 					await yieldTask();
 				}
 				gc();
+				// Time from a laid-out tree: nodes with layout boxes cost more to move or
+				// remove, and whether a frame ran before the timer is otherwise up to the
+				// browser (#1451).
+				void document.body?.offsetHeight;
 				const t0 = performance.now();
 				for (let k = 0; k < inner; k++) {
 					const r = fn();

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div>`);
+var root_1 = _$_.template_el('div');
 
 function render(__prev) {
 	var __pattern = _$_.get(__prev._a);
@@ -19,7 +19,7 @@ function render(__prev) {
 	}
 }
 
-var root_2 = _$_.template(`<div>pending a`);
+var root_2 = _$_.template_el('div', null, 'pending a');
 
 function render_1(__prev) {
 	var __a = `pending pending-${_$_.get(__prev._a).id}`;
@@ -29,7 +29,7 @@ function render_1(__prev) {
 	}
 }
 
-var root_3 = _$_.template(`<div>`);
+var root_3 = _$_.template_el('div');
 
 function render_2(__prev) {
 	var __pattern_1 = _$_.get(__prev._a);
@@ -47,7 +47,7 @@ function render_2(__prev) {
 	}
 }
 
-var root_4 = _$_.template(`<div>pending b`);
+var root_4 = _$_.template_el('div', null, 'pending b');
 
 function render_3(__prev) {
 	var __a = `pending pending-${_$_.get(__prev._a).id}`;
@@ -115,7 +115,7 @@ function if_1(pattern) {
 	if (_$_.get(pattern).enabled) return consequent;
 }
 
-var root = _$_.template(`<section class=mixed-static>`);
+var root = _$_.template_el('section', ['class', 'mixed-static']);
 
 function MixedControlFlowStatic_render(__anchor, __block) {
 	const rows = [
@@ -145,7 +145,7 @@ function MixedControlFlowStatic_render(__anchor, __block) {
 
 MixedControlFlowStatic[_$_.$r] = MixedControlFlowStatic_render;
 
-var root_8 = _$_.template(`<p>`);
+var root_8 = _$_.template_el('p');
 
 function render_4(__prev) {
 	var __pattern_1_1 = _$_.get(__prev._a);
@@ -163,8 +163,8 @@ function render_4(__prev) {
 	}
 }
 
-var root_9 = _$_.template(`<p class=pending>pending a`);
-var root_10 = _$_.template(`<p>`);
+var root_9 = _$_.template_el('p', ['class', 'pending'], 'pending a');
+var root_10 = _$_.template_el('p');
 
 function render_5(__prev) {
 	var __pattern_1_2 = _$_.get(__prev._a);
@@ -182,7 +182,7 @@ function render_5(__prev) {
 	}
 }
 
-var root_11 = _$_.template(`<p class=pending>pending b`);
+var root_11 = _$_.template_el('p', ['class', 'pending'], 'pending b');
 
 function switch_case_0_1(__anchor, { a: mode, b: pattern_1 }) {
 	_$_.try(
@@ -232,7 +232,7 @@ function switch_2({ a: mode, b: pattern_1 }) {
 	}
 }
 
-var root_7 = _$_.template(`<div class=mixed-reactive-list>`);
+var root_7 = _$_.template_el('div', ['class', 'mixed-reactive-list']);
 
 function consequent_1(__anchor, { a: show, b: items, c: mode }) {
 	var div_4 = root_7();
@@ -299,8 +299,8 @@ function MixedControlFlowReactive_render(__anchor, __block) {
 
 MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 
-var root_14 = _$_.template(`<div>`);
-var root_15 = _$_.template(`<div class=unexpected>unexpected`);
+var root_14 = _$_.template_el('div');
+var root_15 = _$_.template_el('div', ['class', 'unexpected'], 'unexpected');
 
 function switch_case_0_2(__anchor, { a: state, b: row }) {
 	_$_.try(
@@ -379,7 +379,7 @@ function MixedControlFlowAsyncPending_render(__anchor, __block) {
 
 MixedControlFlowAsyncPending[_$_.$r] = MixedControlFlowAsyncPending_render;
 
-var root_16 = _$_.template(`<div class=resolved-row> `);
+var root_16 = _$_.template_el('div', ['class', 'resolved-row'], ' ');
 
 function AsyncRow_render(__anchor, __block, { label }) {
 	const value = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '4nsq00');

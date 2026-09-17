@@ -25,7 +25,7 @@ function TemplateWithJSON_render(__anchor, __block) {
 
 TemplateWithJSON[_$_.$r] = TemplateWithJSON_render;
 
-var root_3 = _$_.template(`<span class=inside>inside`);
+var root_3 = _$_.template_el('span', ['class', 'inside'], 'inside');
 
 function consequent(__anchor, show) {
 	var span = root_3();

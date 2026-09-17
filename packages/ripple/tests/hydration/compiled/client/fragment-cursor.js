@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<i class=leaf>leaf`);
+var root = _$_.template_el('i', ['class', 'leaf'], 'leaf');
 
 function Leaf_render(__anchor, __block) {
 	var i = root();
@@ -340,7 +340,7 @@ function DynamicChildThenStatic_render(__anchor, __block) {
 
 DynamicChildThenStatic[_$_.$r] = DynamicChildThenStatic_render;
 
-var root_27 = _$_.template(`<b class=if>x`);
+var root_27 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent(__anchor, n) {
 	var b = root_27();
@@ -374,7 +374,7 @@ function IfThenStatic_render(__anchor, __block) {
 
 IfThenStatic[_$_.$r] = IfThenStatic_render;
 
-var root_30 = _$_.template(`<b class=if>x`);
+var root_30 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_1(__anchor, n) {
 	var b_1 = root_30();
@@ -1130,7 +1130,7 @@ function TrailingNestedFragment_render(__anchor, __block) {
 
 TrailingNestedFragment[_$_.$r] = TrailingNestedFragment_render;
 
-var root_64 = _$_.template(`<b class=item> `);
+var root_64 = _$_.template_el('b', ['class', 'item'], ' ');
 var root_63 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_62 = _$_.template(`<!>`, 1, 1);
 
@@ -1170,8 +1170,8 @@ function ForThenStatic_render(__anchor, __block) {
 
 ForThenStatic[_$_.$r] = ForThenStatic_render;
 
-var root_67 = _$_.template(`<b class=zero>zero`);
-var root_68 = _$_.template(`<b class=other>other`);
+var root_67 = _$_.template_el('b', ['class', 'zero'], 'zero');
+var root_68 = _$_.template_el('b', ['class', 'other'], 'other');
 
 function switch_case_0(__anchor, n) {
 	var b_3 = root_67();
@@ -1217,8 +1217,8 @@ function SwitchThenStatic_render(__anchor, __block) {
 
 SwitchThenStatic[_$_.$r] = SwitchThenStatic_render;
 
-var root_71 = _$_.template(`<b class=try>try`);
-var root_72 = _$_.template(`<b class=catch>catch`);
+var root_71 = _$_.template_el('b', ['class', 'try'], 'try');
+var root_72 = _$_.template_el('b', ['class', 'catch'], 'catch');
 var root_70 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_69 = _$_.template(`<!>`, 1, 1);
 
@@ -1277,7 +1277,7 @@ function StyleThenStatic_render(__anchor, __block) {
 
 StyleThenStatic[_$_.$r] = StyleThenStatic_render;
 
-var root_76 = _$_.template(`<b class=item> `);
+var root_76 = _$_.template_el('b', ['class', 'item'], ' ');
 var root_77 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_75 = _$_.template(`<!>`, 1, 1);
 
@@ -1312,7 +1312,7 @@ function CollectionThenStatic_render(__anchor, __block) {
 
 CollectionThenStatic[_$_.$r] = CollectionThenStatic_render;
 
-var root_79 = _$_.template(`<b class=inline>inline`);
+var root_79 = _$_.template_el('b', ['class', 'inline'], 'inline');
 var root_80 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_78 = _$_.template(`<!>`, 1, 1);
 
@@ -1636,7 +1636,7 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 
 WrapInlineElementThenStatic[_$_.$r] = WrapInlineElementThenStatic_render;
 
-var root_91 = _$_.template(`<b class=if>x`);
+var root_91 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_2(__anchor, n) {
 	var b_9 = root_91();
@@ -1664,7 +1664,7 @@ function IfOnly_render(__anchor, __block) {
 
 IfOnly[_$_.$r] = IfOnly_render;
 
-var root_94 = _$_.template(`<b class=if>x`);
+var root_94 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_3(__anchor, n) {
 	var b_10 = root_94();
@@ -1698,7 +1698,7 @@ function IfThenOne_render(__anchor, __block) {
 
 IfThenOne[_$_.$r] = IfThenOne_render;
 
-var root_96 = _$_.template(`<b class=if>x`);
+var root_96 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_4(__anchor, n) {
 	var b_11 = root_96();
@@ -2013,7 +2013,7 @@ function ForTwoNodeItems_render(__anchor, __block) {
 
 ForTwoNodeItems[_$_.$r] = ForTwoNodeItems_render;
 
-var root_109 = _$_.template(`<b class=made>made`);
+var root_109 = _$_.template_el('b', ['class', 'made'], 'made');
 var root_111 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 var root_110 = _$_.template(`<!>`, 1, 1);
 
@@ -2202,8 +2202,8 @@ function SiblingCompsInDiv_render(__anchor, __block) {
 
 SiblingCompsInDiv[_$_.$r] = SiblingCompsInDiv_render;
 
-var root_119 = _$_.template(`<b class=even>even`);
-var root_120 = _$_.template(`<i class=odd>odd`);
+var root_119 = _$_.template_el('b', ['class', 'even'], 'even');
+var root_120 = _$_.template_el('i', ['class', 'odd'], 'odd');
 
 function consequent_7(__anchor, n) {
 	var b_14 = root_119();
@@ -2254,7 +2254,7 @@ function IfSwapThenStaticInDiv_render(__anchor, __block) {
 
 IfSwapThenStaticInDiv[_$_.$r] = IfSwapThenStaticInDiv_render;
 
-var root_122 = _$_.template(`<b class=item> `);
+var root_122 = _$_.template_el('b', ['class', 'item'], ' ');
 var root_121 = _$_.template(`<div class=outer><span class=after></span><button class=outer-inc>outer`);
 
 function render_43(__prev) {

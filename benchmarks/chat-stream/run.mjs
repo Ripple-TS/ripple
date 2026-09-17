@@ -193,6 +193,10 @@ async function timeOp(page, op) {
 	return await page.evaluate(`(async () => {
 		${HELPERS}
 		(window.gc || (() => {}))();
+		// Time from a laid-out tree: nodes with layout boxes cost more to move or
+		// remove, and whether a frame ran before the timer is otherwise up to the
+		// browser (#1451).
+		void document.body?.offsetHeight;
 		const t0 = performance.now();
 		${op.body}
 		const dt = performance.now() - t0;

@@ -137,6 +137,10 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 	// cost. (An earlier version awaited rAF + setTimeout inside the timer, but
 	// that ~6–7 ms of frame-scheduling latency dominated and masked the signal.)
 	const dt = await page.evaluate(() => {
+		// Time from a laid-out tree: nodes with layout boxes cost more to move or
+		// remove, and whether a frame ran before the timer is otherwise up to the
+		// browser (#1451).
+		void document.body?.offsetHeight;
 		const t0 = performance.now();
 		window.__hydrate();
 		return performance.now() - t0;

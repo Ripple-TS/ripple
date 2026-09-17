@@ -9,6 +9,7 @@ import {
 import { H, hydrate_node, hydrating } from './hydration.js';
 import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
+import { DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
@@ -140,6 +141,51 @@ export function template(content, flags = 0, count = 1) {
 		HYDRATION && hydrating
 			? /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(is_fragment, count)
 			: clone_template(t);
+}
+
+/**
+ * A template that is one HTML element with static attributes and at most one
+ * text child, built with DOM calls instead of parsed: a `<template>` parse
+ * has a fixed cost that dwarfs the element itself, and an app's first render
+ * pays it once per distinct template. The compiler decides which templates
+ * qualify (`template_el` in the client transform); every other shape still
+ * parses. The element is created in the active namespace, as a parsed
+ * template would be.
+ * @param {string} tag
+ * @param {string[] | null} [attributes] - flat name/value pairs
+ * @param {string} [text]
+ * @returns {() => Node}
+ */
+export function template_el(tag, attributes = null, text = '') {
+	/** @type {Element | undefined} */
+	var node;
+	/** @type {string | undefined} */
+	var node_ns;
+
+	return () => {
+		if (HYDRATION && hydrating) {
+			return /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(false, 1);
+		}
+		var ns = active_namespace;
+		if (node === undefined || node_ns !== ns) {
+			node =
+				ns === DEFAULT_NAMESPACE
+					? document.createElement(tag)
+					: document.createElementNS(NAMESPACE_URI[ns], tag);
+			if (attributes !== null) {
+				for (var i = 0; i < attributes.length; i += 2) {
+					node.setAttribute(attributes[i], attributes[i + 1]);
+				}
+			}
+			if (text !== '') {
+				node.textContent = text;
+			}
+			node_ns = ns;
+		}
+		var clone = node.cloneNode(true);
+		assign_nodes(clone, clone);
+		return clone;
+	};
 }
 
 /**

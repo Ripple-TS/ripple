@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div>`);
+var root = _$_.template_el('div');
 
 function StaticHtml_render(__anchor, __block) {
 	const html = '<p><strong>Bold</strong> text</p>';
@@ -13,7 +13,7 @@ function StaticHtml_render(__anchor, __block) {
 
 StaticHtml[_$_.$r] = StaticHtml_render;
 
-var root_1 = _$_.template(`<div>`);
+var root_1 = _$_.template_el('div');
 
 function DynamicHtml_render(__anchor, __block) {
 	const content = '<p>Dynamic <span>HTML</span> content</p>';
@@ -25,7 +25,7 @@ function DynamicHtml_render(__anchor, __block) {
 
 DynamicHtml[_$_.$r] = DynamicHtml_render;
 
-var root_2 = _$_.template(`<div>`);
+var root_2 = _$_.template_el('div');
 
 function EmptyHtml_render(__anchor, __block) {
 	const html = '';
@@ -37,7 +37,7 @@ function EmptyHtml_render(__anchor, __block) {
 
 EmptyHtml[_$_.$r] = EmptyHtml_render;
 
-var root_3 = _$_.template(`<section>`);
+var root_3 = _$_.template_el('section');
 
 function ComplexHtml_render(__anchor, __block) {
 	const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
@@ -116,7 +116,7 @@ function HtmlWrapper_render(__anchor, __block, { children }) {
 
 HtmlWrapper[_$_.$r] = HtmlWrapper_render;
 
-var root_7 = _$_.template(`<div class=vp-doc>`);
+var root_7 = _$_.template_el('div', ['class', 'vp-doc']);
 
 function HtmlInChildren_render(__anchor, __block) {
 	const content = '<p><strong>Bold</strong> text</p>';
@@ -182,7 +182,7 @@ function MultipleHtmlInChildren_render(__anchor, __block) {
 
 MultipleHtmlInChildren[_$_.$r] = MultipleHtmlInChildren_render;
 
-var root_10 = _$_.template(`<div>`);
+var root_10 = _$_.template_el('div');
 
 function HtmlWithComments_render(__anchor, __block) {
 	const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
@@ -194,7 +194,7 @@ function HtmlWithComments_render(__anchor, __block) {
 
 HtmlWithComments[_$_.$r] = HtmlWithComments_render;
 
-var root_11 = _$_.template(`<div>`);
+var root_11 = _$_.template_el('div');
 
 function HtmlWithEmptyComment_render(__anchor, __block) {
 	const content = '<p>Before</p><!----><p>After</p>';
@@ -206,7 +206,7 @@ function HtmlWithEmptyComment_render(__anchor, __block) {
 
 HtmlWithEmptyComment[_$_.$r] = HtmlWithEmptyComment_render;
 
-var root_12 = _$_.template(`<div class=vp-doc>`);
+var root_12 = _$_.template_el('div', ['class', 'vp-doc']);
 
 function HtmlWithCommentsInChildren_render(__anchor, __block) {
 	const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
@@ -223,7 +223,7 @@ function HtmlWithCommentsInChildren_render(__anchor, __block) {
 
 HtmlWithCommentsInChildren[_$_.$r] = HtmlWithCommentsInChildren_render;
 
-var root_13 = _$_.template(`<footer class=doc-footer>Footer content`);
+var root_13 = _$_.template_el('footer', ['class', 'doc-footer'], 'Footer content');
 
 function DocFooter_render(__anchor, __block) {
 	var footer = root_13();
@@ -395,7 +395,7 @@ function DocLayout_render(
 
 DocLayout[_$_.$r] = DocLayout_render;
 
-var root_19 = _$_.template(`<div class=vp-doc>`);
+var root_19 = _$_.template_el('div', ['class', 'vp-doc']);
 
 function HtmlWithServerData_render(__anchor, __block) {
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
@@ -419,7 +419,7 @@ function HtmlWithServerData_render(__anchor, __block) {
 
 HtmlWithServerData[_$_.$r] = HtmlWithServerData_render;
 
-var root_20 = _$_.template(`<div class=vp-doc>`);
+var root_20 = _$_.template_el('div', ['class', 'vp-doc']);
 
 function HtmlWithClientDefaults_render(__anchor, __block) {
 	const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
@@ -436,7 +436,7 @@ function HtmlWithClientDefaults_render(__anchor, __block) {
 
 HtmlWithClientDefaults[_$_.$r] = HtmlWithClientDefaults_render;
 
-var root_21 = _$_.template(`<div class=vp-doc>`);
+var root_21 = _$_.template_el('div', ['class', 'vp-doc']);
 
 function HtmlWithUndefinedContent_render(__anchor, __block) {
 	const content = undefined;
@@ -636,7 +636,7 @@ function HtmlAfterIfInChildren_render(__anchor, __block) {
 
 HtmlAfterIfInChildren[_$_.$r] = HtmlAfterIfInChildren_render;
 
-var root_30 = _$_.template(`<span class=for-item>`);
+var root_30 = _$_.template_el('span', ['class', 'for-item']);
 
 function ForList_render(__anchor, __block, { items }) {
 	_$_.for(
@@ -679,8 +679,8 @@ function HtmlAfterForInChildren_render(__anchor, __block) {
 
 HtmlAfterForInChildren[_$_.$r] = HtmlAfterForInChildren_render;
 
-var root_32 = _$_.template(`<div class=try-box>`);
-var root_33 = _$_.template(`<span>error`);
+var root_32 = _$_.template_el('div', ['class', 'try-box']);
+var root_33 = _$_.template_el('span', null, 'error');
 
 function TryBox_render(__anchor, __block, { value }) {
 	_$_.try(
@@ -783,7 +783,7 @@ function HtmlAfterComponentInChildren_render(__anchor, __block) {
 
 HtmlAfterComponentInChildren[_$_.$r] = HtmlAfterComponentInChildren_render;
 
-var root_39 = _$_.template(`<div class=indicator>`);
+var root_39 = _$_.template_el('div', ['class', 'indicator']);
 
 function consequent_4(__anchor, active) {
 	var div_28 = root_39();
@@ -1049,7 +1049,7 @@ function ArticleWrapper_render(__anchor, __block, { children }) {
 
 ArticleWrapper[_$_.$r] = ArticleWrapper_render;
 
-var root_49 = _$_.template(`<footer class=doc-footer>Footer`);
+var root_49 = _$_.template_el('footer', ['class', 'doc-footer'], 'Footer');
 
 function SimpleFooter_render(__anchor, __block) {
 	var footer_1 = root_49();
@@ -1120,7 +1120,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 
 ArticleWithChildrenThenSibling[_$_.$r] = ArticleWithChildrenThenSibling_render;
 
-var root_55 = _$_.template(`<div class=doc-content>`);
+var root_55 = _$_.template_el('div', ['class', 'doc-content']);
 var root_56 = _$_.template(`<div class=edit-link><a href=/edit>Edit`);
 
 function consequent_9(__anchor) {
@@ -1214,7 +1214,7 @@ function InlineArticleLayout_render(__anchor, __block, { children }) {
 
 InlineArticleLayout[_$_.$r] = InlineArticleLayout_render;
 
-var root_59 = _$_.template(`<div class=doc-content>`);
+var root_59 = _$_.template_el('div', ['class', 'doc-content']);
 
 function InlineArticleWithHtmlChild_render(__anchor, __block) {
 	const htmlContent = '<pre><code>const x = 1;</code></pre>';
@@ -1231,7 +1231,7 @@ function InlineArticleWithHtmlChild_render(__anchor, __block) {
 
 InlineArticleWithHtmlChild[_$_.$r] = InlineArticleWithHtmlChild_render;
 
-var root_60 = _$_.template(`<header class=header>Header`);
+var root_60 = _$_.template_el('header', ['class', 'header'], 'Header');
 
 function HeaderStub_render(__anchor, __block) {
 	var header_1 = root_60();
@@ -1241,7 +1241,7 @@ function HeaderStub_render(__anchor, __block) {
 
 HeaderStub[_$_.$r] = HeaderStub_render;
 
-var root_61 = _$_.template(`<aside class=sidebar>Sidebar`);
+var root_61 = _$_.template_el('aside', ['class', 'sidebar'], 'Sidebar');
 
 function SidebarStub_render(__anchor, __block) {
 	var aside_2 = root_61();
@@ -1251,7 +1251,7 @@ function SidebarStub_render(__anchor, __block) {
 
 SidebarStub[_$_.$r] = SidebarStub_render;
 
-var root_62 = _$_.template(`<footer class=footer>Footer`);
+var root_62 = _$_.template_el('footer', ['class', 'footer'], 'Footer');
 
 function FooterStub_render(__anchor, __block) {
 	var footer_2 = root_62();
@@ -1381,7 +1381,7 @@ function DocsLayoutInner_render(
 
 DocsLayoutInner[_$_.$r] = DocsLayoutInner_render;
 
-var root_66 = _$_.template(`<div class=doc-content>`);
+var root_66 = _$_.template_el('div', ['class', 'doc-content']);
 
 function DocsLayoutWithData_render(__anchor, __block) {
 	const htmlContent = '<h1>Title</h1><p>Content</p>';
@@ -1400,7 +1400,7 @@ function DocsLayoutWithData_render(__anchor, __block) {
 
 DocsLayoutWithData[_$_.$r] = DocsLayoutWithData_render;
 
-var root_67 = _$_.template(`<div class=doc-content>`);
+var root_67 = _$_.template_el('div', ['class', 'doc-content']);
 
 function DocsLayoutWithoutData_render(__anchor, __block) {
 	const htmlContent = undefined;
@@ -1445,7 +1445,7 @@ function render_6(__prev) {
 	}
 }
 
-var root_72 = _$_.template(`<span>`);
+var root_72 = _$_.template_el('span');
 
 function consequent_14(__anchor, prevLink) {
 	var a_6 = root_71();
@@ -1530,7 +1530,7 @@ function if_17({ a: prevLink, b: nextLink }) {
 	if (prevLink || nextLink) return consequent_16;
 }
 
-var root_75 = _$_.template(`<a>`);
+var root_75 = _$_.template_el('a');
 
 function render_8(__prev) {
 	var __a = __prev._a.text;
@@ -1674,7 +1674,7 @@ function DocsLayoutExact_render(
 
 DocsLayoutExact[_$_.$r] = DocsLayoutExact_render;
 
-var root_76 = _$_.template(`<div class=doc-content>`);
+var root_76 = _$_.template_el('div', ['class', 'doc-content']);
 
 function DocsLayoutExactWithData_render(__anchor, __block) {
 	const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
@@ -1699,7 +1699,7 @@ function DocsLayoutExactWithData_render(__anchor, __block) {
 
 DocsLayoutExactWithData[_$_.$r] = DocsLayoutExactWithData_render;
 
-var root_77 = _$_.template(`<div class=doc-content>`);
+var root_77 = _$_.template_el('div', ['class', 'doc-content']);
 
 function DocsLayoutExactWithoutData_render(__anchor, __block) {
 	const htmlContent = undefined;
@@ -1816,7 +1816,7 @@ function LayoutWithTemplate_render(__anchor, __block, { children, data }) {
 
 LayoutWithTemplate[_$_.$r] = LayoutWithTemplate_render;
 
-var root_81 = _$_.template(`<div class=doc-content>`);
+var root_81 = _$_.template_el('div', ['class', 'doc-content']);
 
 function render_12(__prev) {
 	var __a = __prev._a.html;

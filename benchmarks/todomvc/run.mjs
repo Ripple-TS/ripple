@@ -246,6 +246,10 @@ async function timeOp(page, op) {
 		${HELPERS}
 		const flush = window.__benchFlush;
 		(window.gc || (() => {}))();
+		// Time from a laid-out tree: nodes with layout boxes cost more to move or
+		// remove, and whether a frame ran before the timer is otherwise up to the
+		// browser (#1451).
+		void document.body?.offsetHeight;
 		const t0 = performance.now();
 		${op.body}
 		const dt = performance.now() - t0;

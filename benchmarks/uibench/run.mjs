@@ -238,6 +238,10 @@ async function timeCase(page, name) {
 						const prepared = window.__prepare(caseName);
 						if (prepared && typeof prepared.then === 'function') await prepared;
 					}
+					// Time from a laid-out tree: nodes with layout boxes cost more to move or
+					// remove, and whether a frame ran before the timer is otherwise up to the
+					// browser (#1451).
+					void document.body?.offsetHeight;
 					const start = performance.now();
 					const committed = window.__run(caseName);
 					if (committed && typeof committed.then === 'function') await committed;

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "jsxImportSource": "ripple",
+    "types": []
+  },
+  "include": ["src"]
+}

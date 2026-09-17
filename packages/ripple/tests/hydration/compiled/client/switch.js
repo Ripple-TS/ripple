@@ -1,9 +1,9 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=status-success>Success`);
-var root_1 = _$_.template(`<div class=status-error>Error`);
-var root_2 = _$_.template(`<div class=status-unknown>Unknown`);
+var root = _$_.template_el('div', ['class', 'status-success'], 'Success');
+var root_1 = _$_.template_el('div', ['class', 'status-error'], 'Error');
+var root_2 = _$_.template_el('div', ['class', 'status-unknown'], 'Unknown');
 
 function switch_case_0(__anchor, status) {
 	var div = root();
@@ -44,9 +44,9 @@ function SwitchStatic_render(__anchor, __block) {
 
 SwitchStatic[_$_.$r] = SwitchStatic_render;
 
-var root_5 = _$_.template(`<div class=case-a>Case A`);
-var root_6 = _$_.template(`<div class=case-b>Case B`);
-var root_7 = _$_.template(`<div class=case-c>Case C`);
+var root_5 = _$_.template_el('div', ['class', 'case-a'], 'Case A');
+var root_6 = _$_.template_el('div', ['class', 'case-b'], 'Case B');
+var root_7 = _$_.template_el('div', ['class', 'case-c'], 'Case C');
 
 function switch_case_0_1(__anchor, status) {
 	var div_3 = root_5();
@@ -106,8 +106,8 @@ function SwitchReactive_render(__anchor, __block) {
 
 SwitchReactive[_$_.$r] = SwitchReactive_render;
 
-var root_8 = _$_.template(`<div class=case-1-2>1 or 2`);
-var root_9 = _$_.template(`<div class=case-other>Other`);
+var root_8 = _$_.template_el('div', ['class', 'case-1-2'], '1 or 2');
+var root_9 = _$_.template_el('div', ['class', 'case-other'], 'Other');
 
 function switch_case_0_2(__anchor, val) {
 	var div_6 = root_8();
@@ -142,9 +142,9 @@ function SwitchFallthrough_render(__anchor, __block) {
 
 SwitchFallthrough[_$_.$r] = SwitchFallthrough_render;
 
-var root_12 = _$_.template(`<div class=level-1>Level 1`);
-var root_13 = _$_.template(`<div class=level-2>Level 2`);
-var root_14 = _$_.template(`<div class=level-3>Level 3`);
+var root_12 = _$_.template_el('div', ['class', 'level-1'], 'Level 1');
+var root_13 = _$_.template_el('div', ['class', 'level-2'], 'Level 2');
+var root_14 = _$_.template_el('div', ['class', 'level-3'], 'Level 3');
 
 function switch_case_0_3(__anchor, level) {
 	var div_8 = root_12();
@@ -204,9 +204,9 @@ function SwitchNumericLevels_render(__anchor, __block) {
 
 SwitchNumericLevels[_$_.$r] = SwitchNumericLevels_render;
 
-var root_17 = _$_.template(`<div class=block-1>Block 1`);
-var root_18 = _$_.template(`<div class=block-2>Block 2`);
-var root_19 = _$_.template(`<div class=block-3>Block 3`);
+var root_17 = _$_.template_el('div', ['class', 'block-1'], 'Block 1');
+var root_18 = _$_.template_el('div', ['class', 'block-2'], 'Block 2');
+var root_19 = _$_.template_el('div', ['class', 'block-3'], 'Block 3');
 
 function switch_case_0_4(__anchor, level) {
 	var div_11 = root_17();
@@ -266,9 +266,9 @@ function SwitchBlockScoped_render(__anchor, __block) {
 
 SwitchBlockScoped[_$_.$r] = SwitchBlockScoped_render;
 
-var root_22 = _$_.template(`<div class=nobreak-1>NoBreak 1`);
-var root_23 = _$_.template(`<div class=nobreak-2>NoBreak 2`);
-var root_24 = _$_.template(`<div class=nobreak-3>NoBreak 3`);
+var root_22 = _$_.template_el('div', ['class', 'nobreak-1'], 'NoBreak 1');
+var root_23 = _$_.template_el('div', ['class', 'nobreak-2'], 'NoBreak 2');
+var root_24 = _$_.template_el('div', ['class', 'nobreak-3'], 'NoBreak 3');
 
 function switch_case_0_5(__anchor, level) {
 	var div_14 = root_22();
