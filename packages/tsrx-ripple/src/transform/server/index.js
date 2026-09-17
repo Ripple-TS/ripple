@@ -2374,7 +2374,7 @@ const visitors = {
 							: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
 
 					if (scope_class !== null) {
-						// Pass array to clsx so it can handle objects properly
+						// Let attr compose object and array classes with the scope class.
 						expression = b.array([expression, scope_class]);
 					}
 
@@ -3119,7 +3119,7 @@ function build_concat(args) {
 // — safe to leave inside an accumulated run. Anything else under the `_$_.`
 // namespace (render_component, regular_block, try_block, set_output_target, the
 // serialized-push helpers, …) may branch/emit and forces a flush before it.
-const PURE_RUNTIME_CALLS = new Set(['_$_.escape', '_$_.attr', '_$_.clsx']);
+const PURE_RUNTIME_CALLS = new Set(['_$_.escape', '_$_.attr']);
 
 /**
  * True if `node` contains a runtime call that may create a child block or emit

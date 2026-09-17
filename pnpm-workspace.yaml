@@ -108,7 +108,6 @@ catalogs:
     '@vercel/nft': ^1.3.2
     '@volar/language-core': ~2.4.28
     babel-preset-solid: '2.0.0-beta.15'
-    clsx: ^2.1.1
     csstype: ^3.2.3
     commander: ^14.0.3
     degit: ^2.8.4

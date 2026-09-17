@@ -142,9 +142,8 @@ validated as CSS syntax by TypeScript.
 ## Dynamic Classes
 
 The `class` attribute accepts more than a string: objects and arrays work too.
-Truthy values are included as class names and falsy values are omitted, powered
-by the `clsx` library. The scope's hash class is added after whatever the value
-produces.
+Truthy values are included as class names and falsy values are omitted. The
+scope's hash class is added after whatever the value produces.
 
 ```tsrx
 import { track } from 'ripple';

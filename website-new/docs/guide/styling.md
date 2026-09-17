@@ -40,7 +40,7 @@ runtime values.
 
 In Ripple, the `class` attribute can accept more than just a string — it also
 supports objects and arrays. Truthy values are included as class names, while
-falsy values are omitted. This behavior is powered by the `clsx` library.
+falsy values are omitted.
 
 Examples:
 
