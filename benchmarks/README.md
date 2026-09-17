@@ -149,9 +149,10 @@ Octane's historical thresholds. See `baselines/README.md` for the refresh policy
 Bytes are deterministic, so the bundle-size recording is one full-matrix run,
 saved under `benchmarks/results/bundle-size-baseline`, with its operation-level
 report in `benchmarks/results/bundle-size-report.md`. The Ripple fixtures build
-with the plugin's `ssr: false` option, the client-only footing every competitor
-fixture already has, and the `bundle-size` guards in `baselines/ratios.json` are
-recomputed from that run under the 32-byte policy. Refresh it with:
+with the plugin's `ssr: false` and `rootBoundary: false` options, the client-only,
+boundary-free footing every competitor fixture already has, and the `bundle-size`
+guards in `baselines/ratios.json` are recomputed from that run under the 32-byte
+policy. Refresh it with:
 
 ```sh
 pnpm bench --results-dir=benchmarks/results/bundle-size-baseline bundle-size
