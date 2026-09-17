@@ -334,13 +334,14 @@ function if_6(activeTab) {
 var root_15 = _$_.template(`<div class=tabs><div class=tab-list><button class=tab>Code</button><button class=tab>Preview</button></div><div class=panel><!>`);
 
 function render_5(__prev) {
-	var __a = __prev._a.value === 'code' ? 'true' : 'false';
+	var __activeTab_value = __prev._a.value;
+	var __a = __activeTab_value === 'code' ? 'true' : 'false';
 
 	if (__prev.a !== __a) {
 		__prev._b.setAttribute('aria-selected', __prev.a = __a);
 	}
 
-	var __b = __prev._a.value === 'preview' ? 'true' : 'false';
+	var __b = __activeTab_value === 'preview' ? 'true' : 'false';
 
 	if (__prev.b !== __b) {
 		__prev._c.setAttribute('aria-selected', __prev.b = __b);

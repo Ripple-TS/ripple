@@ -4,13 +4,14 @@ import * as _$_ from 'ripple/internal/client';
 var root_1 = _$_.template(`<div class=typed-run> <span>tail</span></div><p class=typed-number></p><button>update`, 1, 3);
 
 function render(__prev) {
-	var __a = 'value: ' + (__prev._a.value.label + String(__prev._a.value.count ?? ''));
+	var __row_value = __prev._a.value;
+	var __a = 'value: ' + (__row_value.label + String(__row_value.count ?? ''));
 
 	if (__prev.a !== __a) {
 		_$_.set_text(__prev._b, __prev.a = __a);
 	}
 
-	var __b = (0, __prev._a.value.count);
+	var __b = (0, __row_value.count);
 
 	if (__prev.b !== __b) {
 		_$_.set_text_content(__prev._c, __b, __prev.b);

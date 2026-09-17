@@ -1299,10 +1299,41 @@ function hoist_repeated_tracked_reads(statements, state) {
 	/** @type {Map<string, { unconditional: number; total: number }>} */
 	const counts = new Map();
 
+	/**
+	 * The key of a read the render body may hoist: a `_$_.get(x)` call, or the
+	 * `.value` of a parameter (a tracked or derived prop) or of a const made
+	 * by a call (`track(…)`), unwrapped as often as the template reads it.
+	 * The key of a `.value` read carries a suffix no identifier has.
+	 * @param {AST.Node} node
+	 * @returns {string | null}
+	 */
+	const read_key = (node) => {
+		const name = get_tracked_read_name(node);
+		if (name !== null) return name;
+		if (
+			node.type === 'MemberExpression' &&
+			!node.computed &&
+			!node.optional &&
+			node.object.type === 'Identifier' &&
+			node.property.type === 'Identifier' &&
+			node.property.name === 'value'
+		) {
+			const binding = state.scope.get(node.object.name);
+			if (
+				binding !== null &&
+				(binding.declaration_kind === 'param' ||
+					(binding.declaration_kind === 'const' && binding.initial?.type === 'CallExpression'))
+			) {
+				return node.object.name + '.value';
+			}
+		}
+		return null;
+	};
+
 	/** @type {Visitors<AST.Node, { conditional: boolean }>} */
 	const counting_visitors = {
 		_(node, { state, next }) {
-			const name = get_tracked_read_name(node);
+			const name = read_key(node);
 			if (name !== null) {
 				let count = counts.get(name);
 				if (count === undefined) {
@@ -1329,6 +1360,12 @@ function hoist_repeated_tracked_reads(statements, state) {
 			visit(node.consequent, { conditional: true });
 			if (node.alternate) visit(node.alternate, { conditional: true });
 		},
+		// A written `.value` is not a read; the render body never writes one,
+		// but the rule is kept explicit.
+		AssignmentExpression(node, { state, visit }) {
+			visit(node.right, state);
+		},
+		UpdateExpression() {},
 		ArrowFunctionExpression() {},
 		FunctionExpression() {},
 		FunctionDeclaration() {},
@@ -1342,7 +1379,7 @@ function hoist_repeated_tracked_reads(statements, state) {
 	const hoisted = new Map();
 	for (const [name, count] of counts) {
 		if (count.total > 1 && count.unconditional > 0) {
-			hoisted.set(name, b.id(state.scope.generate('__' + name)));
+			hoisted.set(name, b.id(state.scope.generate('__' + name.replace('.', '_'))));
 		}
 	}
 	if (hoisted.size === 0) {
@@ -1352,12 +1389,22 @@ function hoist_repeated_tracked_reads(statements, state) {
 	/** @type {Visitors<AST.Node, null>} */
 	const replacing_visitors = {
 		_(node, { next }) {
-			const name = get_tracked_read_name(node);
+			const name = read_key(node);
 			if (name !== null) {
 				const id = hoisted.get(name);
 				return id === undefined ? node : id;
 			}
 			return next();
+		},
+		AssignmentExpression(node, { next }) {
+			// The left side stays as written.
+			const right = /** @type {AST.Expression} */ (
+				walk(/** @type {AST.Node} */ (node.right), null, replacing_visitors)
+			);
+			return right === node.right ? node : { ...node, right };
+		},
+		UpdateExpression(node) {
+			return node;
 		},
 		ArrowFunctionExpression(node) {
 			return node;
@@ -1376,7 +1423,14 @@ function hoist_repeated_tracked_reads(statements, state) {
 
 	const declarations = [];
 	for (const [name, id] of hoisted) {
-		declarations.push(b.var(id, b.call('_$_.get', b.id(name))));
+		declarations.push(
+			b.var(
+				id,
+				name.endsWith('.value')
+					? b.member(b.id(name.slice(0, -'.value'.length)), 'value')
+					: b.call('_$_.get', b.id(name)),
+			),
+		);
 	}
 	statements.unshift(...declarations);
 }

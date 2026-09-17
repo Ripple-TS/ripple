@@ -1262,7 +1262,8 @@ ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 var root_57 = _$_.template(`<div><input type=checkbox class=checkbox><span>`);
 
 function render_14(__prev) {
-	var __a = __prev._a.value;
+	var __done_value = __prev._a.value;
+	var __a = __done_value;
 
 	if (__prev.a !== __a) {
 		_$_.set_checked(__prev._b, __prev.a = __a);
@@ -1275,7 +1276,7 @@ function render_14(__prev) {
 		__prev.b = __b;
 	}
 
-	var __c = __prev._a.value ? 'completed' : 'pending';
+	var __c = __done_value ? 'completed' : 'pending';
 
 	if (__prev.c !== __c) {
 		_$_.set_class(__prev._d, __prev.c = __c);

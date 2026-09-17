@@ -110,3 +110,21 @@ export function App({ attrs }) @{
 		expect(code).toContain("a: _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg'),");
 	});
 });
+
+describe('@tsrx/ripple hoisted tracked reads in a render function', () => {
+	it('reads a prop or tracked const `.value` once per run', () => {
+		const { code } = compile(
+			`import { track, type Derived } from 'ripple';
+export function Icon({ name }: { name: Derived<string> }) @{
+	const local = track(1);
+	<svg class={'i-' + name.value} data-a={name.value} data-b={local.value} data-c={local.value}></svg>
+}`,
+			'App.tsrx',
+			{ hydration: false },
+		);
+		expect(code).toContain('var __name_value = __prev._a.value;');
+		expect(code).toContain('var __local_value = __prev._b.value;');
+		expect(code).toContain("var __d = 'i-' + __name_value;");
+		expect(code).not.toMatch(/__prev\._a\.value[^;]*__prev\._a\.value/);
+	});
+});

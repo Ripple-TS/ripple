@@ -1119,7 +1119,8 @@ FragmentLeadsWithPrimitiveCall[_$_.$r] = FragmentLeadsWithPrimitiveCall_render;
 var root_83 = _$_.template(`<div class=primitive-calls></div><button>update`, 1, 2);
 
 function render_5(__prev) {
-	var __a = "sum: " + (String(Number(__prev._a.value) + Number(__prev._a.value) ?? '') + ("; big: " + String(_$_.with_scope(__prev._b, () => BigInt(__prev._a.value)) ?? '')));
+	var __count_value = __prev._a.value;
+	var __a = "sum: " + (String(Number(__count_value) + Number(__count_value) ?? '') + ("; big: " + String(_$_.with_scope(__prev._b, () => BigInt(__prev._a.value)) ?? '')));
 
 	if (__prev.a !== __a) {
 		_$_.set_text_content(__prev._c, __a, __prev.a);
