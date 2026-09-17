@@ -97,6 +97,13 @@ server; it is meant for an adapter that drives the build itself. Leave the
 option unset for an app with render routes so Vite's client and server
 environments each get the output they need.
 
+The default root try/pending/catch boundary can be left out the same way. An
+app that mounts with `rootBoundary: false` never uses it, so
+`ripple({ rootBoundary: false })` drops the boundary runtime from the bundle; a
+`rootBoundary` option on `mount()` or `hydrate()` then throws, the plugin
+option is rejected when `ripple.config.ts` configures a root boundary, and
+`trackAsync()` must sit inside a user `@try` block.
+
 ### Server-Side Rendering
 
 On the server, use `render()` from `ripple/server`. It is asynchronous — the

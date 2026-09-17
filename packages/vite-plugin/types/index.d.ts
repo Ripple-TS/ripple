@@ -127,6 +127,15 @@ export interface RipplePluginOptions {
 	ssr?: boolean;
 
 	/**
+	 * Whether the app renders under the default root try/pending/catch
+	 * boundary. `false` leaves the boundary runtime out of the build: `mount()`
+	 * and `hydrate()` render without one, a `rootBoundary` option on either
+	 * throws, and `trackAsync()` must sit inside a user `@try` block.
+	 * @default true
+	 */
+	rootBoundary?: boolean;
+
+	/**
 	 * Opt-in primitive DOM text proofs from TypeScript. Requires TypeScript and
 	 * strictNullChecks. Active only in one-shot production builds; development,
 	 * HMR, and watch builds use local inference. Resolve tsconfig from Vite root.

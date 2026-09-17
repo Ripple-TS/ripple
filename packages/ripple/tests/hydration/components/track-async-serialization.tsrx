@@ -1,4 +1,4 @@
-import { track, trackAsync } from 'ripple';
+import { track, trackAsync, trackReadOnly } from 'ripple';
 import { Money } from '../fixtures/money.js';
 
 export const transport = {
@@ -170,7 +170,7 @@ export function AsyncWithReadOnlyDependency() @{
 			}}
 		>{'increment'}</button>
 		@try {
-			<ReactiveDependencyResult count={count.readOnly()} />
+			<ReactiveDependencyResult count={trackReadOnly(count)} />
 		} @pending {
 			<p class="loading">{'loading...'}</p>
 		}

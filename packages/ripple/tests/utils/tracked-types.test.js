@@ -44,7 +44,7 @@ function create_service(source) {
 describe('Ripple tracked types', () => {
 	it('shows public names in value property hovers', () => {
 		const source = `
-			import { track } from 'ripple';
+			import { track, trackReadOnly } from 'ripple';
 			const count = track(0);
 			const derived = track(() => count.value * 2);
 			const writable = track(() => count.value, undefined, true);
@@ -75,12 +75,12 @@ describe('Ripple tracked types', () => {
 
 	it('preserves writes, read-only views, and tracked component props', () => {
 		const source = `
-			import { track, type Component, type Derived, type Tracked } from 'ripple';
+			import { track, type Component, type Derived, type Tracked, trackReadOnly } from 'ripple';
 			const count = track(0);
 			count.value = 1;
 			const tracked: Tracked<number> = track(count);
 			const derived: Derived<number> = tracked;
-			const view = count.readOnly();
+			const view = trackReadOnly(count);
 			// @ts-expect-error Read-only views reject writes.
 			view.value = 2;
 			const computed = track(() => count.value * 2);

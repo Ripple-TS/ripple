@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { track, trackReadOnly } from 'ripple';
 import type {
 	Derived,
 	Tracked,
@@ -9,7 +9,7 @@ import type {
 } from 'ripple';
 
 describe('basic server > components & composition', () => {
-	it('renders a read-only view passed through readOnly()', async () => {
+	it('renders a read-only view passed through trackReadOnly()', async () => {
 		function Child({ count }: { count: Derived<number> }) @{
 			<span>{count.value}</span>
 		}
@@ -17,7 +17,7 @@ describe('basic server > components & composition', () => {
 		function App() @{
 			const count = track(5);
 			<div>
-				<Child count={count.readOnly()} />
+				<Child count={trackReadOnly(count)} />
 			</div>
 		}
 

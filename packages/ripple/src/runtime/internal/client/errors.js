@@ -174,3 +174,15 @@ export function hydration_disabled() {
 			: text('hydration_disabled', ''),
 	);
 }
+
+/** @returns {never} */
+export function root_boundary_disabled() {
+	throw new Error(
+		DEV
+			? text(
+					'root_boundary_disabled',
+					'A root boundary is not available in this build: it was compiled with `rootBoundary: false`, which leaves the boundary runtime out, so `mount()` and `hydrate()` cannot take `rootBoundary` options',
+				)
+			: text('root_boundary_disabled', ''),
+	);
+}

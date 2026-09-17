@@ -33,3 +33,50 @@ describe('@tsrx/ripple client-only output (hydration: false)', () => {
 		expect(code).toMatch(/_\$_\.track\(0, __block, '[0-9a-z]+'\)/);
 	});
 });
+
+describe('@tsrx/ripple class and template helpers by shape', () => {
+	it('uses the string-only set_class for a class it can prove is a string', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+export function App() @{
+	const on = track(false);
+	<>
+		<div class={(on.value ? 'a' : '') + ' b'} />
+		<span class={\`x \${on.value}\`} />
+	</>
+}`,
+			'App.tsrx',
+		);
+		expect(code).toContain('_$_.set_class(');
+		expect(code).not.toContain('_$_.set_class_value(');
+	});
+
+	it('uses set_class_value for an array or object class', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+export function App() @{
+	const on = track(false);
+	<div class={['a', { b: on.value }]} />
+}`,
+			'App.tsrx',
+		);
+		expect(code).toContain('_$_.set_class_value(');
+	});
+
+	it('parses a template in the SVG namespace through template_ns', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+export function App() @{
+	const on = track(false);
+	<svg>
+		@if (on.value) {
+			<circle r="1" />
+		}
+	</svg>
+}`,
+			'App.tsrx',
+		);
+		expect(code).toContain('_$_.template_ns(');
+		expect(code).toContain('_$_.template(`<svg>');
+	});
+});

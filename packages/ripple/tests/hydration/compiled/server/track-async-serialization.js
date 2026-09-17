@@ -2,7 +2,7 @@
 import * as _$_ from 'ripple/internal/server';
 
 import { Money as _$_Money__ } from '../fixtures/money.js';
-import { track, trackAsync } from 'ripple/server';
+import { track, trackAsync, trackReadOnly } from 'ripple/server';
 import { Money } from '../fixtures/money.js';
 
 export const transport = {
@@ -659,7 +659,7 @@ export function AsyncWithReadOnlyDependency() {
 
 					{
 						const comp = ReactiveDependencyResult;
-						const args = [{ count: count.readOnly() }];
+						const args = [{ count: _$_.track_read_only(count) }];
 
 						_$_.output_push(__out);
 						__out = '';

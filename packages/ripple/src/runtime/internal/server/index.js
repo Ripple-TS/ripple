@@ -60,7 +60,7 @@ import {
 	is_boolean_attribute,
 	normalize_css_property_name,
 } from '@tsrx/core/runtime/html';
-import { clsx } from 'clsx';
+import { class_name } from '../../../utils/class-name.js';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import {
 	BLOCK_CLOSE,
@@ -1599,7 +1599,7 @@ export function attr(name, value, is_boolean = false) {
 	}
 	if (value == null || (!value && is_boolean)) return '';
 	const normalized = (name in replacements && replacements[name].get(value)) || value;
-	let value_to_escape = name === 'class' ? clsx(normalized) : normalized;
+	let value_to_escape = name === 'class' ? class_name(normalized) : normalized;
 	value_to_escape =
 		name === 'style'
 			? typeof value !== 'string'
@@ -1719,15 +1719,6 @@ class TrackedValue {
 	set value(v) {
 		set(/** @type {Tracked} */ (this), v);
 	}
-	/**
-	 * A read-only view: a derived over this value, for a receiver that should
-	 * read but not write it. Equivalent to `track(() => tracked.value)`. The
-	 * view has no hash of its own: it is not a serialized value.
-	 * @returns {Derived}
-	 */
-	readOnly() {
-		return derived(() => get_tracked(/** @type {Tracked} */ (this)));
-	}
 }
 
 class DerivedValue {
@@ -1765,17 +1756,6 @@ class DerivedValue {
 	set value(v) {
 		set(/** @type {Derived} */ (this), v);
 	}
-	/**
-	 * A read-only view (see `TrackedValue#readOnly`). A derived without a
-	 * setter is already read-only and is returned as is; a writable one is
-	 * wrapped in a derived that follows it.
-	 * @returns {Derived}
-	 */
-	readOnly() {
-		return this.a.set === undefined
-			? /** @type {Derived} */ (this)
-			: derived(() => get_derived(/** @type {Derived} */ (this)));
-	}
 }
 
 /**
@@ -1802,6 +1782,25 @@ function derived(v, hash, get, set) {
 	return /** @type {Derived} */ (
 		new DerivedValue(v, get || set ? { get, set } : empty_get_set, hash)
 	);
+}
+
+/**
+ * A read-only view of a tracked or derived value (see the client runtime's
+ * `track_read_only`). The view has no hash of its own: it is not a serialized
+ * value.
+ * @param {any} value
+ * @returns {any}
+ */
+export function track_read_only(value) {
+	if (!is_ripple_object(value)) {
+		return value;
+	}
+	if ((value.f & DERIVED) !== 0) {
+		var d = /** @type {Derived} */ (value);
+		return d.a.set === undefined ? d : derived(() => get_derived(d));
+	}
+	var t = /** @type {Tracked} */ (value);
+	return derived(() => get_tracked(t));
 }
 
 /**
@@ -2278,7 +2277,7 @@ function run_track_async(t, fn, block, dr, dj) {
 /**
  * The hashes of the compile-time tracked values a trackAsync read, recorded
  * in its hydration envelope so the client re-subscribes to them. A dependency
- * without a hash that is itself a derived (a `readOnly()` view, a derived made
+ * without a hash that is itself a derived (a `trackReadOnly()` view, a derived made
  * outside a compiled call) stands for what it read: its own dependencies are
  * recorded in its place.
  * @param {Dependency | null} head

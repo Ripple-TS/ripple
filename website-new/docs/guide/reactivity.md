@@ -196,7 +196,7 @@ export function App() @{
 </Code>
 
 Passing the `Tracked<T>` object lets the receiver write to it as well as read it.
-To share a value read-only, pass `count.readOnly()` instead: it produces a
+To share a value read-only, pass `trackReadOnly(count)` instead: it produces a
 `Derived<T>` whose `value` can be read but not written (a write warns in
 development), the same as `track(() => count.value)`. The same applies to
 component props:
@@ -212,7 +212,7 @@ export function App() @{
   const count = track(0);
 
   <>
-    <Child count={count.readOnly()} />
+    <Child count={trackReadOnly(count)} />
     <button onClick={() => count.value++}>Increment Count</button>
   </>
 }

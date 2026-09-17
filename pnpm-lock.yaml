@@ -151,9 +151,6 @@ catalogs:
     '@volar/language-core':
       specifier: ~2.4.28
       version: 2.4.28
-    clsx:
-      specifier: ^2.1.1
-      version: 2.1.1
     commander:
       specifier: ^14.0.3
       version: 14.0.3
@@ -2199,9 +2196,6 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
-      clsx:
-        specifier: catalog:default
-        version: 2.1.1
       csstype:
         specifier: catalog:default
         version: 3.2.3

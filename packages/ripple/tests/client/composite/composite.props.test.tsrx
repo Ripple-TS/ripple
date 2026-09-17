@@ -1,8 +1,8 @@
 import type { Derived, Tracked, Props } from 'ripple';
-import { effect, flushSync, track } from 'ripple';
+import { effect, flushSync, track, trackReadOnly } from 'ripple';
 
 describe('composite > props', () => {
-	it('hands a child a read-only view through readOnly()', () => {
+	it('hands a child a read-only view through trackReadOnly()', () => {
 		function Child({ count }: { count: Derived<number> }) @{
 			<span class="child">{count.value}</span>
 		}
@@ -10,7 +10,7 @@ describe('composite > props', () => {
 		function App() @{
 			const count = track(0);
 			<>
-				<Child count={count.readOnly()} />
+				<Child count={trackReadOnly(count)} />
 				<button onClick={() => count.value++}>{'inc'}</button>
 			</>
 		}
@@ -24,13 +24,13 @@ describe('composite > props', () => {
 		expect(container.querySelector('.child').textContent).toBe('1');
 	});
 
-	it('returns a read-only derived from readOnly() as is and wraps a writable one', () => {
+	it('returns a read-only derived from trackReadOnly() as is and wraps a writable one', () => {
 		function App() @{
 			const count = track(1);
 			const double = track(() => count.value * 2);
 			const draft = track(() => count.value, undefined, true);
-			const double_view = double.readOnly();
-			const draft_view = draft.readOnly();
+			const double_view = trackReadOnly(double);
+			const draft_view = trackReadOnly(draft);
 			expect(double_view).toBe(double);
 			expect(draft_view).not.toBe(draft);
 			<>
@@ -51,7 +51,7 @@ describe('composite > props', () => {
 		expect(container.querySelector('.view').textContent).toBe('42');
 	});
 
-	it('releases a readOnly() view with the block that created it', () => {
+	it('releases a trackReadOnly() view with the block that created it', () => {
 		let set_rows: (rows: number[]) => void = () => {};
 		let bump: () => void = () => {};
 		let source: Tracked<number> | undefined;
@@ -73,7 +73,7 @@ describe('composite > props', () => {
 			<ul>
 				@for (const row of rows.value; key row) {
 					<li>
-						<Child count={count.readOnly()} />
+						<Child count={trackReadOnly(count)} />
 					</li>
 				}
 			</ul>
@@ -106,12 +106,12 @@ describe('composite > props', () => {
 		expect(subscribers()).toBe(0);
 	});
 
-	it('keeps a readOnly() view from writing through to its source', () => {
+	it('keeps a trackReadOnly() view from writing through to its source', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		try {
 			function App() @{
 				const count = track(1);
-				const view = count.readOnly();
+				const view = trackReadOnly(count);
 				const write = () => {
 					view.value = 99;
 				};

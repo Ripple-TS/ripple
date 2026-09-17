@@ -32,6 +32,7 @@ import { walk } from 'zimmerframe';
  */
 const LOCAL_ITEMS = 1 << 7;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
+import { has_text_type_fact } from '../../text-type-facts.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -3137,7 +3138,12 @@ const visitors = {
 
 		const matched_track_call = !context.state.to_ts ? is_ripple_track_call(callee, context) : null;
 		if (matched_track_call) {
-			const track_method_name = matched_track_call === 'trackAsync' ? 'track_async' : 'track';
+			const track_method_name =
+				matched_track_call === 'trackAsync'
+					? 'track_async'
+					: matched_track_call === 'trackReadOnly'
+						? 'track_read_only'
+						: 'track';
 			/** @type {(AST.Expression | AST.SpreadElement)[]} */
 			const call_args = [];
 			const source_args = node.arguments.length === 0 ? [b.void0] : node.arguments;
@@ -3147,6 +3153,10 @@ const visitors = {
 				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
 				if (i === 0) {
 					call_args.push(b.id('__block'));
+					// A read-only view is not a serialized value: no hash.
+					if (matched_track_call === 'trackReadOnly') {
+						continue;
+					}
 					// The hash pairs a client tracked with its serialized server
 					// dependency during hydration; a client-only build has no use for it.
 					if (context.state.hydration) {
@@ -4106,12 +4116,18 @@ const visitors = {
 					const expression = /** @type {AST.Expression} */ (
 						visit(attr_value, { ...state, metadata, selector_root: attr_value })
 					);
+					// A class the compiler can prove to be a string writes through the
+					// string-only helper; any other shape needs the clsx-style joiner,
+					// which then ships only with a bundle that has such a class.
+					const set_class_fn = is_string_expression(attr_value, state)
+						? '_$_.set_class'
+						: '_$_.set_class_value';
 
 					if (metadata.tracking) {
 						local_updates.push({
 							operation: (key) =>
 								b.stmt(
-									b.call('_$_.set_class', id, key, ...set_class_args(scope_class, is_html_class)),
+									b.call(set_class_fn, id, key, ...set_class_args(scope_class, is_html_class)),
 								),
 							expression,
 							identity: attr_value,
@@ -4120,12 +4136,7 @@ const visitors = {
 					} else {
 						state.init?.push(
 							b.stmt(
-								b.call(
-									'_$_.set_class',
-									id,
-									expression,
-									...set_class_args(scope_class, is_html_class),
-								),
+								b.call(set_class_fn, id, expression, ...set_class_args(scope_class, is_html_class)),
 							),
 						);
 					}
@@ -4885,6 +4896,47 @@ function strip_trailing_end_tags(items) {
 		}
 	}
 	return stripped;
+}
+
+/**
+ * Whether an expression always evaluates to a string: a string literal or
+ * template, a `+` with a string operand, a conditional with string branches,
+ * a `String()` coercion, or a text-typed expression the checker proved.
+ * @param {AST.Node} node
+ * @param {TransformClientState} state
+ * @returns {boolean}
+ */
+function is_string_expression(node, state) {
+	switch (node.type) {
+		case 'JSXExpressionContainer':
+			return is_string_expression(/** @type {any} */ (node).expression, state);
+		case 'Literal':
+			return typeof node.value === 'string';
+		case 'TemplateLiteral':
+			return true;
+		case 'BinaryExpression':
+			return (
+				node.operator === '+' &&
+				(is_string_expression(node.left, state) || is_string_expression(node.right, state))
+			);
+		case 'ConditionalExpression':
+			return (
+				is_string_expression(node.consequent, state) && is_string_expression(node.alternate, state)
+			);
+		case 'TSAsExpression':
+		case 'TSNonNullExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSTypeAssertion':
+			return is_string_expression(/** @type {any} */ (node).expression, state);
+		case 'CallExpression':
+			return (
+				node.callee.type === 'Identifier' &&
+				node.callee.name === 'String' &&
+				state.scope.get('String') === null
+			);
+		default:
+			return has_text_type_fact(/** @type {AST.Expression} */ (node), state.scope, true);
+	}
 }
 
 /**
@@ -7382,7 +7434,17 @@ function transform_children(children, context) {
 			template_args.push(b.literal(node_count));
 		}
 
-		state.hoisted.push(b.var(template_id, b.call('_$_.template', ...template_args)));
+		// A template in the SVG or MathML namespace parses through the
+		// namespace-aware entry, which an HTML-only bundle never loads.
+		state.hoisted.push(
+			b.var(
+				template_id,
+				b.call(
+					template_namespace === 'html' ? '_$_.template' : '_$_.template_ns',
+					...template_args,
+				),
+			),
+		);
 		register_hoisted(state.hoisted, template_id);
 	}
 }

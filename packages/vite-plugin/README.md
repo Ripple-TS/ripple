@@ -39,6 +39,20 @@ rejected when `ripple.config.ts` declares render routes, which are server render
 and hydrated. `ssr: true` is the opposite override: every module compiles for the
 server, for an adapter that drives the build itself.
 
+## Root boundary
+
+`mount()` and `hydrate()` render the app under a default try/pending/catch
+boundary. An app that renders without one, passing `rootBoundary: false` to
+`mount()`, can leave the boundary runtime out of its bundle:
+
+```js
+ripple({ rootBoundary: false });
+```
+
+A `rootBoundary` option on `mount()` or `hydrate()` then throws, the option is
+rejected when `ripple.config.ts` configures a root boundary, and `trackAsync()`
+must sit inside a user `@try` block.
+
 ## Module preload polyfill
 
 Production builds leave Vite's `modulepreload` polyfill out: every current browser

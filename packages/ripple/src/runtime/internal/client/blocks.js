@@ -18,7 +18,6 @@ import {
 } from './constants.js';
 import { hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
-import { apply_element_spread } from './render.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	active_block,
@@ -83,15 +82,6 @@ export function render(fn, state, flags = 0) {
 	run_block(block, true);
 	block.f ^= BLOCK_HAS_RUN;
 	return block;
-}
-
-/**
- * @param {any} element
- * @param {any} fn
- * @param {number} [flags]
- */
-export function render_spread(element, fn, flags = 0) {
-	return block(RENDER_BLOCK | flags, apply_element_spread(element, fn));
 }
 
 /**

@@ -1727,7 +1727,12 @@ const visitors = {
 
 		const track_call_name = is_ripple_track_call(callee, context);
 		if (track_call_name) {
-			const track_method_name = track_call_name === 'trackAsync' ? 'track_async' : 'track';
+			const track_method_name =
+				track_call_name === 'trackAsync'
+					? 'track_async'
+					: track_call_name === 'trackReadOnly'
+						? 'track_read_only'
+						: 'track';
 
 			/** @type {AST.BaseCallExpression['arguments']} */
 			const call_args = [];
@@ -1736,7 +1741,8 @@ const visitors = {
 			for (let i = 0; i < track_args.length; i++) {
 				const arg = track_args[i];
 				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
-				if (i === 0) {
+				// A read-only view is not a serialized value: no hash.
+				if (i === 0 && track_call_name !== 'trackReadOnly') {
 					call_args.push(b.literal(node.metadata.hash));
 				}
 			}

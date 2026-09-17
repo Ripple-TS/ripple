@@ -1,5 +1,5 @@
 import type { Derived, Tracked } from 'ripple';
-import { effect, flushSync, track } from 'ripple';
+import { effect, flushSync, track, trackReadOnly } from 'ripple';
 
 /** The runtime's own subscriber list of a tracked value (`sb` / `sn`). */
 function subscribers(source: Tracked<number>) {
@@ -34,7 +34,7 @@ describe('derived release', () => {
 					const label = track(() => 'n=' + count.value);
 					<>
 						<span class="label">{label.value}</span>
-						<Child count={count.readOnly()} />
+						<Child count={trackReadOnly(count)} />
 					</>
 				}
 			</>
@@ -73,7 +73,7 @@ describe('derived release', () => {
 			<ul>
 				@for (const row of rows.value; key row) {
 					<li>
-						<Child count={count.readOnly()} />
+						<Child count={trackReadOnly(count)} />
 					</li>
 				}
 			</ul>

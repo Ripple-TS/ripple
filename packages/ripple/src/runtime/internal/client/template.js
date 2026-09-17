@@ -31,6 +31,21 @@ export function assign_nodes(start, end) {
 }
 
 /**
+ * Parses content that belongs in the SVG or MathML namespace. Installed by
+ * `template-ns.js` when a template or a dynamic element needs it, so an app
+ * with HTML templates only ships neither.
+ * @type {((html: string, ns: 'svg' | 'math') => DocumentFragment) | null}
+ */
+var parse_ns = null;
+
+/**
+ * @param {(html: string, ns: 'svg' | 'math') => DocumentFragment} fn
+ */
+export function set_ns_parser(fn) {
+	parse_ns = fn;
+}
+
+/**
  * Creates a DocumentFragment from an HTML string.
  * @param {string} html - The HTML string.
  * @param {string} ns - `'svg'`, `'math'`, or `''` for HTML.
@@ -38,7 +53,10 @@ export function assign_nodes(start, end) {
  */
 export function create_fragment_from_html(html, ns = '') {
 	if (ns !== '') {
-		return from_namespace(html, /** @type {'svg' | 'math'} */ (ns));
+		return /** @type {NonNullable<typeof parse_ns>} */ (parse_ns)(
+			html,
+			/** @type {'svg' | 'math'} */ (ns),
+		);
 	}
 	var elem = document.createElement('template');
 	elem.innerHTML = html;
@@ -153,28 +171,4 @@ export function text(data = '') {
 	var node = create_text(data);
 	assign_nodes(node, node);
 	return node;
-}
-
-/**
- * Create fragment with proper namespace using Svelte's wrapping approach
- * @param {string} content
- * @param {'svg' | 'math'} ns
- * @returns {DocumentFragment}
- */
-function from_namespace(content, ns = 'svg') {
-	var wrapped = `<${ns}>${content}</${ns}>`;
-
-	var elem = document.createElement('template');
-	elem.innerHTML = wrapped;
-	var fragment = elem.content;
-
-	var root = /** @type {Element} */ (get_first_child(fragment));
-	var result = document.createDocumentFragment();
-
-	var first;
-	while ((first = get_first_child(root))) {
-		result.appendChild(/** @type {Node} */ (first));
-	}
-
-	return result;
 }

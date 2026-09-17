@@ -55,7 +55,8 @@ type NullableStyleProperties<T> = { [Property in keyof T]: T[Property] | null };
 
 /** JSX attributes live under Ripple so editor hovers identify their framework. */
 declare namespace Ripple {
-	type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
+	type ClassValue =
+		string | number | boolean | null | undefined | ClassValue[] | { [key: string]: unknown };
 
 	/** Inline CSS styles. Values keep their units; null and undefined remove a property. */
 	interface CSSProperties

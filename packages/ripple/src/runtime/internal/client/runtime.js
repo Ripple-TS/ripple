@@ -527,17 +527,6 @@ class TrackedValue {
 	set value(v) {
 		set(this, v);
 	}
-	/**
-	 * A read-only view: a derived over this value, for a receiver that should
-	 * read but not write it. Equivalent to `track(() => tracked.value)`. The
-	 * view is owned by the block that creates it, not by this value's block, so
-	 * a view made in a component is released with that component even when the
-	 * value outlives it.
-	 * @returns {Derived}
-	 */
-	readOnly() {
-		return derived(() => get_tracked(this), /** @type {Block} */ (active_block));
-	}
 }
 
 class DerivedValue {
@@ -580,17 +569,6 @@ class DerivedValue {
 	/** @param {any} v */
 	set value(v) {
 		set(this, v);
-	}
-	/**
-	 * A read-only view (see `TrackedValue#readOnly`). A derived without a
-	 * setter is already read-only and is returned as is; a writable one is
-	 * wrapped in a derived that follows it.
-	 * @returns {Derived}
-	 */
-	readOnly() {
-		return this.a.set === undefined
-			? this
-			: derived(() => get_derived(this), /** @type {Block} */ (active_block));
 	}
 }
 
@@ -735,6 +713,30 @@ function keep_deriveds(block, kept) {
 	}
 	created_deriveds.set(block, kept);
 	block.f |= CREATES_DERIVEDS;
+}
+
+/**
+ * A read-only view of a tracked or derived value, for a receiver that should
+ * read but not write it: a derived over a tracked (or a writable derived),
+ * equivalent to `track(() => value.value)`; a read-only derived as it is; a
+ * plain value as it is, like `get`. The view is owned by the block that
+ * creates it, not by the value's block, so a view made in a component is
+ * released with that component even when the value outlives it.
+ * @param {any} value
+ * @param {Block} [block]
+ * @returns {any}
+ */
+export function track_read_only(value, block) {
+	if (!is_ripple_object(value)) {
+		return value;
+	}
+	var owner = block || /** @type {Block} */ (active_block);
+	if ((value.f & DERIVED) !== 0) {
+		var d = /** @type {Derived} */ (value);
+		return d.a.set === undefined ? d : derived(() => get_derived(d), owner);
+	}
+	var t = /** @type {Tracked} */ (value);
+	return derived(() => get_tracked(t), owner);
 }
 
 /**

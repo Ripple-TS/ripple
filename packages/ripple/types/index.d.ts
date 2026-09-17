@@ -225,12 +225,6 @@ export const SUSPENSE_REJECTED: unique symbol;
 export interface Tracked<V> extends TrackedCallable<V> {
 	'#v': V;
 	value: V;
-	/**
-	 * A read-only view of this value: a `Derived<V>` that follows it, for a
-	 * receiver that should read but not write it. Equivalent to
-	 * `track(() => tracked.value)`.
-	 */
-	readOnly(): Derived<V>;
 }
 // Augment Tracked to be callable when V is a Component.
 // This allows tracked component values to continue flowing through JSX checks.
@@ -242,8 +236,6 @@ interface TrackedCallable<V> {
 export interface Derived<V> extends TrackedCallable<V> {
 	'#v': V;
 	readonly value: V;
-	/** A derived is already read-only: returns itself. */
-	readOnly(): Derived<V>;
 }
 // A computed value created with a setter (`track(fn, get, set)`) or with
 // `true` in the setter position: writes land as a temporary value until the
@@ -283,6 +275,14 @@ export function track<V>(
 ): WritableDerived<InferComponent<V>>;
 // Overload for non-function values
 export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) => V): Tracked<V>;
+
+/**
+ * A read-only view of a tracked or derived value, for a receiver that should
+ * read but not write it: a `Derived<V>` that follows a `Tracked<V>` or a
+ * writable derived (equivalent to `track(() => value.value)`), or a read-only
+ * derived as it is.
+ */
+export function trackReadOnly<V>(value: Tracked<V> | Derived<V>): Derived<V>;
 
 export function trackAsync<V>(
 	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },

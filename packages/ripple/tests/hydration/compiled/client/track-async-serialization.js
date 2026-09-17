@@ -449,7 +449,7 @@ function AsyncWithReadOnlyDependency_render(__anchor, __block) {
 		_$_.try(
 			node_6,
 			(__anchor) => {
-				_$_.render_component(ReactiveDependencyResult, __anchor, { count: _$_.with_scope(__block, () => count.readOnly()) });
+				_$_.render_component(ReactiveDependencyResult, __anchor, { count: _$_.track_read_only(count, __block) });
 			},
 			null,
 			(__anchor) => {
@@ -467,7 +467,7 @@ function AsyncWithReadOnlyDependency_render(__anchor, __block) {
 
 AsyncWithReadOnlyDependency[_$_.$r] = AsyncWithReadOnlyDependency_render;
 
-import { track, trackAsync } from 'ripple';
+import { track, trackAsync, trackReadOnly } from 'ripple';
 import { Money } from '../fixtures/money.js';
 
 export const transport = {

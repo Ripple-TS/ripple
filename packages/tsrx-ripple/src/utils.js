@@ -1463,13 +1463,16 @@ export function is_ripple_portal(id, context) {
  * Returns the matched Ripple tracking call name
  * @param {AST.Expression | AST.Super} callee
  * @param {{ state: { scope: ScopeInterface } }} context
- * @returns {'track' | 'trackAsync' | null}
+ * @returns {'track' | 'trackAsync' | 'trackReadOnly' | null}
  */
 export function is_ripple_track_call(callee, context) {
 	// Super expressions cannot be Ripple track calls
 	if (callee.type === 'Super') return null;
 
-	if (callee.type === 'Identifier' && (callee.name === 'track' || callee.name === 'trackAsync')) {
+	if (
+		callee.type === 'Identifier' &&
+		(callee.name === 'track' || callee.name === 'trackAsync' || callee.name === 'trackReadOnly')
+	) {
 		return is_ripple_import(callee, context) ? callee.name : null;
 	}
 
@@ -1477,7 +1480,9 @@ export function is_ripple_track_call(callee, context) {
 		callee.type === 'MemberExpression' &&
 		callee.object.type === 'Identifier' &&
 		callee.property.type === 'Identifier' &&
-		(callee.property.name === 'track' || callee.property.name === 'trackAsync') &&
+		(callee.property.name === 'track' ||
+			callee.property.name === 'trackAsync' ||
+			callee.property.name === 'trackReadOnly') &&
 		!callee.computed &&
 		is_ripple_import(callee, context)
 	) {

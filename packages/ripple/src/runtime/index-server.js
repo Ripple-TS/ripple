@@ -6,6 +6,7 @@ export { Context } from './internal/server/context.js';
 export {
 	untrack,
 	track,
+	track_read_only as trackReadOnly,
 	track_async as trackAsync,
 	is_tracked_pending as trackPending,
 	peek_tracked as peek,

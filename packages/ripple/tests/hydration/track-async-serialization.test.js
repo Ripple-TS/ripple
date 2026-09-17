@@ -145,7 +145,7 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('.result')?.textContent).toBe('count-1');
 	});
 
-	it('reruns trackAsync when a dependency read through readOnly() changes after hydration', async () => {
+	it('reruns trackAsync when a dependency read through trackReadOnly() changes after hydration', async () => {
 		await hydrateComponent(
 			ServerComponents.AsyncWithReadOnlyDependency,
 			ClientComponents.AsyncWithReadOnlyDependency,

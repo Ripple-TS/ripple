@@ -50,9 +50,28 @@ const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
 const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
 const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
-/** The runtime's hydration build constant, aliased away by `ssr: false`. */
-const HYDRATION_ENABLED_ID = 'ripple/internal/client/hydration-enabled';
-const RESOLVED_NO_HYDRATION_ID = '\0ripple:no-hydration';
+/**
+ * The runtime's build constants. A runtime module reads each through one
+ * import statement; `ssr: false` and `rootBoundary: false` drop that statement
+ * and write the literal `false` at every use, which the bundler folds while
+ * tree-shaking, so the code the constant guards drops out before it is
+ * emitted. An aliased module (or a local `const`) folds only in a minifier's
+ * own dead-code pass, which Vite's esbuild minifier does not run.
+ */
+const BUILD_CONSTANTS = [
+	{
+		option: 'ssr',
+		statement: "import { HYDRATION } from 'ripple/internal/client/hydration-enabled';",
+		identifier: /\bHYDRATION\b/g,
+	},
+	{
+		option: 'rootBoundary',
+		statement: "import { ROOT_BOUNDARY } from 'ripple/internal/client/root-boundary-enabled';",
+		identifier: /\bROOT_BOUNDARY\b/g,
+	},
+];
+/** A module of the client runtime, from the workspace or an installed copy. */
+const RUNTIME_MODULE_PATTERN = /[\\/]ripple[\\/](?:src|dist)[\\/]runtime[\\/][^?]*\.js(?:\?|$)/;
 const RIPPLE_EXTENSIONS = ['.tsrx'];
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
 
@@ -342,10 +361,19 @@ function scanForRipplePackages(rootDir) {
  * @returns {Plugin[]}
  */
 export function ripple(inlineOptions = {}) {
-	const { excludeRippleExternalModules = false, ssr: ssrOption } = inlineOptions;
+	const { excludeRippleExternalModules = false, ssr: ssrOption, rootBoundary } = inlineOptions;
 	if (ssrOption !== undefined && typeof ssrOption !== 'boolean') {
 		throw new Error('[@ripple-ts/vite-plugin] the `ssr` option must be a boolean when provided.');
 	}
+	if (rootBoundary !== undefined && typeof rootBoundary !== 'boolean') {
+		throw new Error(
+			'[@ripple-ts/vite-plugin] the `rootBoundary` option must be a boolean when provided.',
+		);
+	}
+	// `rootBoundary: false` builds an app that renders without the default
+	// try/pending/catch boundary: the runtime's boundary constant is aliased
+	// to false and the boundary runtime is compiled out.
+	const noRootBoundary = rootBoundary === false;
 	// `ssr: false` is a client-only build: components compile without the
 	// hydration cursor, and the runtime's hydration paths are compiled out by
 	// aliasing its build constant. `ssr: true` compiles every module for the
@@ -415,6 +443,35 @@ export function ripple(inlineOptions = {}) {
 		},
 	};
 
+	/** The build constants this build turns off (see `BUILD_CONSTANTS`). */
+	const disabled_constants = BUILD_CONSTANTS.filter(
+		(constant) =>
+			(constant.option === 'ssr' && clientOnly) ||
+			(constant.option === 'rootBoundary' && noRootBoundary),
+	);
+	/** @type {Plugin[]} */
+	const constant_plugins =
+		disabled_constants.length === 0
+			? []
+			: [
+					{
+						name: 'vite-plugin-ripple:build-constants',
+						transform: {
+							filter: { id: RUNTIME_MODULE_PATTERN },
+							handler(code) {
+								let output = code;
+								for (const constant of disabled_constants) {
+									if (!output.includes(constant.statement)) continue;
+									output = output
+										.replace(constant.statement, '')
+										.replace(constant.identifier, 'false');
+								}
+								return output === code ? null : { code: output, map: null };
+							},
+						},
+					},
+				];
+
 	/** @type {[RipplePlugin, ...Plugin[]]} */
 	const plugins = [
 		{
@@ -436,10 +493,6 @@ export function ripple(inlineOptions = {}) {
 					userConfig.build?.modulePreload === undefined
 						? { modulePreload: { polyfill: false } }
 						: {};
-				/** @type {import('vite').UserConfig['resolve']} */
-				const resolve_defaults = clientOnly
-					? { alias: [{ find: HYDRATION_ENABLED_ID, replacement: RESOLVED_NO_HYDRATION_ID }] }
-					: {};
 
 				// In build mode (client build, not the SSR sub-build), configure for production
 				if (isBuild && !isSSRBuild) {
@@ -449,11 +502,16 @@ export function ripple(inlineOptions = {}) {
 						loadedRippleConfig = await loadRippleConfig(projectRoot);
 
 						if (!has_route_config(loadedRippleConfig)) {
-							return { build: build_defaults, resolve: resolve_defaults };
+							return { build: build_defaults };
 						}
 						if (clientOnly) {
 							throw new Error(
 								'[@ripple-ts/vite-plugin] `ssr: false` builds a client-only app, but ripple.config.ts declares render routes, which are server rendered and hydrated.',
+							);
+						}
+						if (noRootBoundary && Object.keys(loadedRippleConfig.rootBoundary).length > 0) {
+							throw new Error(
+								'[@ripple-ts/vite-plugin] `rootBoundary: false` leaves the root boundary out of the build, but ripple.config.ts configures one.',
 							);
 						}
 
@@ -520,7 +578,6 @@ export function ripple(inlineOptions = {}) {
 						return {
 							appType: 'custom',
 							build: buildConfig,
-							resolve: resolve_defaults,
 						};
 					}
 				}
@@ -530,7 +587,6 @@ export function ripple(inlineOptions = {}) {
 					const excluded = userConfig.optimizeDeps?.exclude || [];
 					return {
 						build: build_defaults,
-						resolve: resolve_defaults,
 						optimizeDeps: {
 							...dep_scan_config,
 							exclude: excluded,
@@ -566,7 +622,6 @@ export function ripple(inlineOptions = {}) {
 				// Return a config hook that will merge with user's config
 				return {
 					build: build_defaults,
-					resolve: resolve_defaults,
 					optimizeDeps: {
 						...dep_scan_config,
 						exclude: allExclude,
@@ -1215,9 +1270,6 @@ export function ripple(inlineOptions = {}) {
 				if (id === VIRTUAL_HYDRATE_ID) {
 					return RESOLVED_VIRTUAL_HYDRATE_ID;
 				}
-				if (id === RESOLVED_NO_HYDRATION_ID) {
-					return id;
-				}
 
 				// Skip non-package imports (relative/absolute paths)
 				if (id.startsWith('.') || id.startsWith('/') || id.includes(':')) {
@@ -1259,9 +1311,6 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
-				if (id === RESOLVED_NO_HYDRATION_ID) {
-					return 'export const HYDRATION = false;\n';
-				}
 				if (id === RESOLVED_ADAPTER_BROWSER_STUB_ID) {
 					return create_adapter_browser_stub_source();
 				}
@@ -1319,6 +1368,7 @@ export function ripple(inlineOptions = {}) {
 				},
 			},
 		},
+		...constant_plugins,
 	];
 
 	return plugins;

@@ -5,6 +5,7 @@
   "author": "Dominic Gannaway",
   "version": "0.4.2",
   "type": "module",
+  "sideEffects": false,
   "module": "src/runtime/index-client.js",
   "main": "src/runtime/index-client.js",
   "repository": {
@@ -57,6 +58,9 @@
     "./internal/client/hydration-enabled": {
       "default": "./src/runtime/internal/client/hydration-enabled.js"
     },
+    "./internal/client/root-boundary-enabled": {
+      "default": "./src/runtime/internal/client/root-boundary-enabled.js"
+    },
     "./internal/client-types": {
       "types": "./src/runtime/internal/client/types.d.ts"
     },
@@ -79,7 +83,6 @@
     "#public": "./types/index.d.ts"
   },
   "dependencies": {
-    "clsx": "catalog:default",
     "csstype": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",

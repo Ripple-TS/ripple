@@ -5,7 +5,7 @@ const value_message = /Accessing a tracked object directly is not allowed, use `
 describe('Compiler: Tracked Object Direct Access Checks', () => {
 	it('should error on direct access to __v of a tracked object', () => {
 		const code = `
-import { track } from 'ripple';
+import { track, trackReadOnly } from 'ripple';
             export default function App() @{
                 let count = track(0);
                 console.log(count.__v);
@@ -200,12 +200,12 @@ import { track } from 'ripple';
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should allow .readOnly() on a tracked object', () => {
+	it('should allow .trackReadOnly() on a tracked object', () => {
 		const code = `
 import { track } from 'ripple';
             export default function App() @{
                 let count = track(0);
-                const view = count.readOnly();
+                const view = trackReadOnly(count);
                 <>{view.value}</>
             }
         `;

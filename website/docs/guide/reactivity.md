@@ -62,7 +62,7 @@ export function App() @{
 }
 ```
 
-`count.readOnly()`, equivalent to `track(() => count.value)`, is how you hand a
+`trackReadOnly(count)`, equivalent to `track(() => count.value)`, is how you hand a
 tracked value to a component, function, or context that should only read it:
 the receiver types it `Derived<T>` and follows every change, while a
 `Tracked<T>` lets the receiver write `.value` too.
@@ -147,7 +147,7 @@ the `get` parameter must be set to `undefined`.
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can
 simply be passed by reference between boundaries. Pass a read-only view,
-`count.readOnly()`, instead when the receiver should only read it:
+`trackReadOnly(count)`, instead when the receiver should only read it:
 
 <Code console>
 

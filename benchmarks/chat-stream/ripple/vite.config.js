@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { ripple } from '@ripple-ts/vite-plugin';
 
 export default defineConfig({
-	plugins: [ripple({ ssr: false, excludeRippleExternalModules: true })],
+	plugins: [ripple({ rootBoundary: false, ssr: false, excludeRippleExternalModules: true })],
 	optimizeDeps: { exclude: ['ripple'] },
 	build: {
 		target: 'esnext',

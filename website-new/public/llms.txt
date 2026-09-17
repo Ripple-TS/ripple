@@ -213,8 +213,9 @@ write to it warns in development. Pass a setter, or `true` in the setter
 position, when the derived is meant to accept writes
 (`track(() => draft, undefined, true)` is a `WritableDerived`); a write then
 holds until the next recompute. A `Tracked` satisfies `Derived` where only reads
-are needed, so `count.readOnly()` (equivalent to `track(() => count.value)`) is
-the read-only way to hand tracked state to a child.
+are needed, so `trackReadOnly(count)` (equivalent to `track(() => count.value)`;
+a read-only derived is returned as it is) is the read-only way to hand tracked
+state to a child.
 
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.
@@ -793,6 +794,11 @@ Components then compile to bare DOM reads instead of the hydration cursor,
 `track()` calls carry no serialization hashes, and the runtime's hydration
 paths stay out of the bundle. `hydrate()` throws in such a build, and the
 option is rejected when `ripple.config.ts` declares render routes.
+
+An app that renders without the default root boundary (`mount(App, { target,
+rootBoundary: false })`) can leave the boundary runtime out of its bundle with
+`ripple({ rootBoundary: false })`; a `rootBoundary` option on `mount()` or
+`hydrate()` then throws, and `trackAsync()` must sit inside a user `@try`.
 
 ### Custom Serialization
 

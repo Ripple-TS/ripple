@@ -1410,9 +1410,7 @@ const visitors = {
 
 			if (is_known_tracked_binding(binding, context)) {
 				const is_allowed_tracked_access =
-					!node.computed &&
-					node.property.type === 'Identifier' &&
-					(node.property.name === 'value' || node.property.name === 'readOnly');
+					!node.computed && node.property.type === 'Identifier' && node.property.name === 'value';
 
 				if (is_allowed_tracked_access) {
 					// pass through

@@ -7,7 +7,8 @@ import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
 import { remove_styles } from './internal/client/css.js';
 import { install_hydration } from './internal/client/hydrate.js';
-import { hydration_disabled } from './internal/client/errors.js';
+import { hydration_disabled, root_boundary_disabled } from './internal/client/errors.js';
+import { ROOT_BOUNDARY } from 'ripple/internal/client/root-boundary-enabled';
 import { normalize_children } from './element.js';
 import {
 	hydrate_next,
@@ -84,8 +85,10 @@ export function mount(component, options) {
 	// Requesting a frame otherwise makes the browser attach layout to the
 	// mounted tree before the app's next update, which slows a teardown that
 	// would have preceded the first paint.
-	if (HYDRATION && document.querySelector('style[data-ripple-ssr]') !== null) {
-		requestAnimationFrame(remove_styles);
+	if (HYDRATION) {
+		if (document.querySelector('style[data-ripple-ssr]') !== null) {
+			requestAnimationFrame(remove_styles);
+		}
 	}
 
 	let props = options.props ?? {};
@@ -108,9 +111,12 @@ export function mount(component, options) {
 	let events_ref = handle_root_events(target);
 
 	const root_boundary = options.rootBoundary;
+	if (!ROOT_BOUNDARY && root_boundary != null && root_boundary !== false) {
+		root_boundary_disabled();
+	}
 
 	const _root = root(() => {
-		if (root_boundary === false) {
+		if (!ROOT_BOUNDARY || root_boundary === false) {
 			render_component(component, anchor, props);
 			return;
 		}
@@ -182,9 +188,12 @@ export function hydrate(component, options) {
 
 		const root_boundary = options.rootBoundary;
 		const marker = /** @type {Comment} */ (anchor);
+		if (!ROOT_BOUNDARY && root_boundary != null && root_boundary !== false) {
+			root_boundary_disabled();
+		}
 
 		_root = root(() => {
-			if (root_boundary === false && marker.data === HYDRATION_START) {
+			if ((!ROOT_BOUNDARY || root_boundary === false) && marker.data === HYDRATION_START) {
 				// The root boundary's own hydration walk: consume the `<!--[-->`
 				// marker and render against it, as `try_block` does for the root.
 				hydrate_next();
@@ -221,6 +230,7 @@ export { Context } from './internal/client/context.js';
 export {
 	flush_sync as flushSync,
 	track,
+	track_read_only as trackReadOnly,
 	untrack,
 	tick,
 	is_tracked_pending as trackPending,

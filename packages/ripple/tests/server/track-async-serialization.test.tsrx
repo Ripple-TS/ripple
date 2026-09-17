@@ -1,5 +1,5 @@
 import { DEV } from 'esm-env';
-import { setTransport, track, trackAsync } from 'ripple';
+import { setTransport, track, trackAsync, trackReadOnly } from 'ripple';
 import * as devalue from 'devalue';
 
 const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
@@ -147,7 +147,7 @@ describe('trackAsync serialization (server)', () => {
 		async function deps_for(read: 'direct' | 'view') {
 			function App() @{
 				const count = track(3);
-				const view = count.readOnly();
+				const view = trackReadOnly(count);
 				@try {
 					const data = trackAsync(
 						() => Promise.resolve(`count-${read === 'view' ? view.value : count.value}`),
@@ -170,7 +170,7 @@ describe('trackAsync serialization (server)', () => {
 			expect(await deps_for('direct')).toHaveLength(1);
 		});
 
-		it('records the tracked behind a readOnly() view a trackAsync read', async () => {
+		it('records the tracked behind a trackReadOnly() view a trackAsync read', async () => {
 			// The view itself has no hash; the client must still re-subscribe to
 			// the source after hydration, so its hash is what gets recorded.
 			expect(await deps_for('view')).toEqual(await deps_for('direct'));
