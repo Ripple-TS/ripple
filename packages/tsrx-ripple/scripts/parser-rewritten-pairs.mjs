@@ -17,15 +17,17 @@ const playwright = require('playwright');
 const out = new URL('../tests/fixtures/parser-rewritten-pairs.json', import.meta.url);
 
 const tags = [
-	...HTML_TAGS,
-	'center',
-	'dir',
-	'listing',
-	'xmp',
-	'nobr',
-	'plaintext',
-	'image',
-	'search',
+	...new Set([
+		...HTML_TAGS,
+		'center',
+		'dir',
+		'listing',
+		'xmp',
+		'nobr',
+		'plaintext',
+		'image',
+		'search',
+	]),
 ]
 	.filter((tag) => !['html', 'head', 'body', 'frameset', 'frame'].includes(tag))
 	.sort();
