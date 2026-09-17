@@ -1,5 +1,20 @@
 # @ripple-ts/adapter
 
+## 0.4.4
+
+### Patch Changes
+
+- [#1494](https://github.com/Ripple-TS/ripple/pull/1494)
+  [`2702373`](https://github.com/Ripple-TS/ripple/commit/27023731ee8da64bba45b245a4fa0b33444e40b8)
+  Thanks [@Dev-next-gen](https://github.com/Dev-next-gen)! - Apply the `init`
+  argument when a same-origin `fetch(request, init)` made during server rendering
+  is routed straight to the handler. The method, body and headers passed in `init`
+  were dropped, so a `POST` reached the route as the original `GET`.
+
+  Reject URL-rewriting errors instead of throwing synchronously, and reject
+  request-construction and handler errors instead of retrying same-origin requests
+  over the network.
+
 ## 0.4.3
 
 No changes in this release.

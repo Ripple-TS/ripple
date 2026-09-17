@@ -1,5 +1,56 @@
 # @tsrx/ripple
 
+## 0.2.3
+
+### Patch Changes
+
+- [#1496](https://github.com/Ripple-TS/ripple/pull/1496)
+  [`0473e93`](https://github.com/Ripple-TS/ripple/commit/0473e93006e53cd15fcf6d851443d427ccf13e8b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to ^0.2.3
+  and use its SVG and MathML tag-name predicates for dynamic class handling,
+  removing the compiler's duplicate tag-name list.
+
+- [#1488](https://github.com/Ripple-TS/ripple/pull/1488)
+  [`b3bf787`](https://github.com/Ripple-TS/ripple/commit/b3bf78756d9235412a2af264e42897652e8f911e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Build a template that is one
+  element with static attributes and at most a text child with DOM calls instead
+  of parsing it. Parsing a `<template>` has a fixed cost that dwarfs such an
+  element, and an app's first render pays it once per distinct template; a chain
+  of 100 single-element components mounts about 35% faster.
+
+- [#1495](https://github.com/Ripple-TS/ripple/pull/1495)
+  [`1b8381f`](https://github.com/Ripple-TS/ripple/commit/1b8381f31f98f84049764ca56676fc320721e844)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Faster element spreads,
+  dynamic elements and list items. An element spread is applied from the element's
+  own render function instead of a render block of its own, and a spread object
+  identical to the one applied last is skipped without a diff (a spread of a
+  tracked object or of tracked values is always diffed). A dynamic element
+  (`<{tag}>`) is one block that owns its element and applies its attributes
+  itself; a tag that does not change keeps its element and diffs the attributes,
+  so a swap between variants with the same tag no longer recreates the element. An
+  `@if` whose condition reads tracked state is evaluated by the render function of
+  the enclosing content (a list item's, an element's), so the if keeps a block for
+  its branch but not one that runs the condition. A dynamic element or component
+  called inside an `<svg>` or `<math>` template receives the namespace as an
+  argument instead of a `with_ns` closure. A dynamic element without children is
+  driven by the render function of the content it sits in, with no block or
+  closures of its own (`_$_.dynamic`); a build that can hydrate lets a composite
+  block claim the server element while hydrating. With `textTypes`, an attribute
+  value TypeScript proves to be a string is set with a direct `setAttribute` call,
+  and a proven `class` takes the string-only path. On the SVG dashboard benchmark,
+  mounting is about 20% faster and swapping 150 dynamic icons 40% faster.
+
+- [#1490](https://github.com/Ripple-TS/ripple/pull/1490)
+  [`ff3a26a`](https://github.com/Ripple-TS/ripple/commit/ff3a26acef0c9584cf41d32bc8cbcc39d863d74c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Namespace fixes for elements
+  whose namespace is only known at runtime. The children of a `foreignObject`
+  reset the active namespace to HTML during setup, so control flow and dynamic
+  tags inside one render HTML even when the surrounding `<svg>` belongs to another
+  component. A dynamic element's children take their namespace from the tag the
+  runtime resolves instead of the static parent. A dynamic `class` on an SVG or
+  MathML tag name is set as an attribute rather than through `className`, which
+  threw on an SVG element rendered into a component's `<svg>`.
+
 ## 0.2.2
 
 ### Patch Changes

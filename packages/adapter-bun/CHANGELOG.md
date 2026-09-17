@@ -1,5 +1,19 @@
 # @ripple-ts/adapter-bun
 
+## 0.4.4
+
+### Patch Changes
+
+- [#1493](https://github.com/Ripple-TS/ripple/pull/1493)
+  [`3258f98`](https://github.com/Ripple-TS/ripple/commit/3258f980a476468236ab915e02a7360c0b32a840)
+  Thanks [@Dev-next-gen](https://github.com/Dev-next-gen)! - The Bun static
+  middleware now serves a prerendered page's `index.html` for a directory request.
+  `Bun.file().exists()` is false for a directory, so these requests always fell
+  through to the server render.
+- Updated dependencies
+  [[`2702373`](https://github.com/Ripple-TS/ripple/commit/27023731ee8da64bba45b245a4fa0b33444e40b8)]:
+  - @ripple-ts/adapter@0.4.4
+
 ## 0.4.3
 
 ### Patch Changes
