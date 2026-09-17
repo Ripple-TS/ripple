@@ -1,5 +1,29 @@
 # ripple
 
+## 0.4.5
+
+### Patch Changes
+
+- [#1497](https://github.com/Ripple-TS/ripple/pull/1497)
+  [`2469ccf`](https://github.com/Ripple-TS/ripple/commit/2469ccfba1a6afad4af6658a777dc735767c5625)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Trim the cold path of a first
+  mount: `template_el` builds nested templates and builds a master in the document
+  itself unless the compiler flagged a resource-loading element; Firefox is
+  detected without reading `navigator` (about 0.1 ms on a fresh page);
+  `Event.prototype.__root` is declared with the first delegated listener instead
+  of at mount; `set_attribute` skips the property-setter walk for `data-` and
+  `aria-` names; the first flush of a mounted app's effects runs in one phase;
+  `track()` and deferred component effects call one function less each; and a
+  mount before any delegated event is registered attaches no listeners.
+
+  New `set_attribute_value` and `set_property_value` helpers write an attribute
+  the compiler classified with the Web IDL setter table, so a standard element
+  never triggers the descriptor walk of `set_attribute`.
+
+- Updated dependencies
+  [[`2469ccf`](https://github.com/Ripple-TS/ripple/commit/2469ccfba1a6afad4af6658a777dc735767c5625)]:
+  - @tsrx/ripple@0.2.4
+
 ## 0.4.4
 
 ### Patch Changes
