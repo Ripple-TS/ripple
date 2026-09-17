@@ -1,5 +1,77 @@
 # @ripple-ts/vite-plugin
 
+## 0.4.3
+
+### Patch Changes
+
+- [#1487](https://github.com/Ripple-TS/ripple/pull/1487)
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - perf: smaller production
+  bundles without a runtime cost. The compiler lowers a static `onBlur`-style
+  handler (an event its name keeps off delegation) to a direct `listen` call with
+  the DOM name and phase resolved at compile time, packs the locals a hoisted
+  `@if`/`@switch` captures under positional keys, writes template strings without
+  attribute quotes or implied end tags where the parser reads them back the same,
+  gives a plain function no `_$_.scope()` call when its body never reads the
+  block, and omits `set_class`'s default trailing arguments. The runtime keeps its
+  hydration paths (template adoption, expression text, append cursor, streamed
+  boundaries) in a module `hydrate()` installs and its `trackAsync` machinery in a
+  module that registers with the runtime on first use, and the catch routing is
+  registered by the first boundary, so a client-only mount without `trackAsync`
+  ships neither and the core runtime no longer imports the boundary module; the
+  try boundary state, the root event ref and the template cache use short keys,
+  the keyed and reference list diffs share one patch helper, and symbol constants
+  carry no descriptions. The runtime's errors are thrown as in Svelte: the message
+  and a link to `https://ripple-ts.com/e/<code>` in development, the link alone in
+  production, so the message text stays out of production bundles; `set_class`
+  composes non-string values with its own clsx-style joiner instead of importing
+  `clsx`; hoisted render blocks store captured locals under positional keys; a
+  `template()` with no flags passes none; and the hash a `track()` call carries
+  encodes the same 32 bits in base 36. The Vite plugin leaves Vite's modulepreload
+  polyfill out of production builds unless `build.modulePreload` is configured.
+
+- [#1487](https://github.com/Ripple-TS/ripple/pull/1487)
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - feat: build shapes.
+  `ripple({ ssr: false })` builds a client-only app: components compile without
+  the hydration cursor or `track()` serialization hashes (`hydration: false` on
+  the compiler), the runtime's hydration paths are compiled out through its
+  `HYDRATION` build constant, and `hydrate()` throws; `ssr: true` compiles every
+  module for the server. `prerender()` on `ripple/server` renders a component to
+  static HTML with every boundary settled and the CSS as text, and a `RenderRoute`
+  marked `prerender: true` is rendered through the built server entry at build
+  time into `<outDir>/client<path>/index.html`, which the node and bun adapters
+  now serve for a directory request before the server renders. The client build's
+  `index.html` template moves to the server output so a static handler never
+  serves its placeholders.
+
+- [#1487](https://github.com/Ripple-TS/ripple/pull/1487)
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - perf: a `class` expression
+  the compiler can prove to be a string writes through a string-only `set_class`,
+  so the clsx-style joiner ships only with a bundle that composes classes from
+  arrays or objects; templates in the SVG or MathML namespace parse through a
+  `template_ns` entry that an HTML-only bundle never loads; and the class joiner
+  is one module shared by the client and server renderers, so `ripple` no longer
+  depends on `clsx`. `ripple({ rootBoundary: false })` builds an app that renders
+  without the default root try/pending/catch boundary and leaves the boundary
+  runtime out of the bundle; a `rootBoundary` option on `mount()` or `hydrate()`
+  then throws. The `ripple` package declares `sideEffects: false`, and dynamic
+  attribute, style and spread helpers live in their own runtime module, so a
+  bundle that never sets an attribute dynamically drops them along with the
+  attribute tables they consult. The plugin's `ssr: false` and
+  `rootBoundary: false` rewrite the runtime's build-constant imports to literals
+  at transform time, which every bundler folds while tree-shaking.
+- Updated dependencies
+  [[`304ba6c`](https://github.com/Ripple-TS/ripple/commit/304ba6c2d9098752396fff6c2545e3ef2546381c),
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1),
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1),
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1),
+  [`1ea71f1`](https://github.com/Ripple-TS/ripple/commit/1ea71f14fcee5a976ea81e2bedf5010251eaa70c),
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1)]:
+  - @tsrx/ripple@0.2.2
+  - @ripple-ts/adapter@0.4.3
+
 ## 0.4.2
 
 ### Patch Changes

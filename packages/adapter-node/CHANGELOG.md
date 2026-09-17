@@ -1,5 +1,26 @@
 # @ripple-ts/adapter-node
 
+## 0.4.3
+
+### Patch Changes
+
+- [#1487](https://github.com/Ripple-TS/ripple/pull/1487)
+  [`b4abea0`](https://github.com/Ripple-TS/ripple/commit/b4abea0ab4830eed99adf14dc95a0ef214b24af1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - feat: build shapes.
+  `ripple({ ssr: false })` builds a client-only app: components compile without
+  the hydration cursor or `track()` serialization hashes (`hydration: false` on
+  the compiler), the runtime's hydration paths are compiled out through its
+  `HYDRATION` build constant, and `hydrate()` throws; `ssr: true` compiles every
+  module for the server. `prerender()` on `ripple/server` renders a component to
+  static HTML with every boundary settled and the CSS as text, and a `RenderRoute`
+  marked `prerender: true` is rendered through the built server entry at build
+  time into `<outDir>/client<path>/index.html`, which the node and bun adapters
+  now serve for a directory request before the server renders. The client build's
+  `index.html` template moves to the server output so a static handler never
+  serves its placeholders.
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.4.3
+
 ## 0.4.2
 
 ### Patch Changes
