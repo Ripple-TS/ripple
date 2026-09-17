@@ -2149,6 +2149,7 @@ const visitors = {
 				if (attr.type === 'JSXAttribute') {
 					const attr_name = get_attribute_name_node(attr);
 					const attr_value = get_attribute_value(attr);
+					record_attribute_expression(attr, attr_value, state);
 					if (attr_value && attr_value.type === 'JSXEmptyExpression') {
 						const value = /** @type {ESTreeJSX.JSXEmptyExpression & AST.NodeWithLocation} */ (
 							attr_value
@@ -2489,6 +2490,10 @@ export function analyze(ast, filename, options = {}) {
 			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)
 				? new Map()
 				: undefined,
+		attributeExpressions:
+			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)
+				? new Map()
+				: undefined,
 	});
 
 	walk(
@@ -2529,4 +2534,27 @@ export function analyze(ast, filename, options = {}) {
 	prepare_style_scopes(ast, analysis, filename, collect);
 
 	return analysis;
+}
+
+/**
+ * Records a DOM element attribute's `{ … }` value for the text type project,
+ * which proves string-typed ones (see `register_text_type_facts`).
+ * @param {ESTreeJSX.JSXAttribute} attr
+ * @param {AST.Expression | null} attr_value
+ * @param {AnalysisState} state
+ */
+function record_attribute_expression(attr, attr_value, state) {
+	const attributes = /** @type {AnalysisResult} */ (state.analysis).attributeExpressions;
+	if (
+		attributes &&
+		attr_value !== null &&
+		attr.shorthand !== true &&
+		attr.value?.type === 'JSXExpressionContainer' &&
+		attr_value.type !== 'JSXEmptyExpression'
+	) {
+		attributes.set(`${attr_value.start}:${attr_value.end}`, {
+			expression: attr_value,
+			container: attr.value,
+		});
+	}
 }

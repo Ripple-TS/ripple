@@ -4109,9 +4109,20 @@ const visitors = {
 										),
 								});
 							} else {
+								// A value proved to be a string is never removed and never
+								// a property: the DOM call goes straight to the element.
+								const direct = is_string_expression(attr_value, state);
 								local_updates.push({
 									operation: (key) =>
-										b.stmt(b.call('_$_.set_attribute', id, b.literal(attribute), key)),
+										b.stmt(
+											direct
+												? b.call(
+														b.member(/** @type {AST.Identifier} */ (id), 'setAttribute'),
+														b.literal(attribute),
+														/** @type {AST.Expression} */ (key),
+													)
+												: b.call('_$_.set_attribute', id, b.literal(attribute), key),
+										),
 									expression,
 									identity: attr_value,
 									initial: b.void0,
@@ -4126,6 +4137,16 @@ const visitors = {
 										b.assignment(
 											'=',
 											b.member(/** @type {AST.Identifier} */ (id), name),
+											expression,
+										),
+									),
+								);
+							} else if (is_string_expression(attr_value, state)) {
+								state.init?.push(
+									b.stmt(
+										b.call(
+											b.member(/** @type {AST.Identifier} */ (id), 'setAttribute'),
+											b.literal(name),
 											expression,
 										),
 									),
@@ -4600,17 +4621,66 @@ const visitors = {
 				// against the one it applied last, and skips an identical one.
 				const sole_spread =
 					props.length === 1 && props[0].type === 'SpreadElement' ? props[0].argument : null;
-				state.init?.push(
-					b.stmt(
-						b.call(
-							'_$_.composite',
-							b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
-							id,
-							b.thunk(sole_spread ?? object_props),
-							...(is_with_ns ? [b.literal(state.namespace)] : []),
+				const namespace_args = is_with_ns ? [b.literal(state.namespace)] : [];
+
+				// Without children, and anchored inside a template (not a root
+				// the block would have to own), the element is driven by the
+				// enclosing render function: no block, no closures, and a run
+				// whose tag is unchanged only diffs the attributes.
+				if (
+					children_filtered.length === 0 &&
+					children_prop === null &&
+					!root_controlled &&
+					!append_into &&
+					state.update !== null &&
+					!state.inside_head
+				) {
+					/** @type {UpdateEntry} */
+					const dynamic_update = {
+						operation: (next, prev) =>
+							b.stmt(
+								b.assignment(
+									'=',
+									/** @type {AST.MemberExpression} */ (prev),
+									b.call(
+										'_$_.dynamic',
+										/** @type {AST.Expression} */ (prev),
+										id,
+										/** @type {AST.Expression} */ (visit(element_id, state)),
+										/** @type {AST.Expression} */ (next),
+										...namespace_args,
+									),
+								),
+							),
+						expression: sole_spread ?? object_props,
+						identity: node,
+						// A build that can hydrate lets a composite block claim the
+						// server element while hydrating (see `dynamic_init`).
+						initial: state.hydration
+							? b.call(
+									'_$_.dynamic_init',
+									id,
+									b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
+									b.thunk(sole_spread ?? object_props),
+									...namespace_args,
+								)
+							: b.void0,
+						unguarded: true,
+					};
+					state.update.push(dynamic_update);
+				} else {
+					state.init?.push(
+						b.stmt(
+							b.call(
+								'_$_.composite',
+								b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
+								id,
+								b.thunk(sole_spread ?? object_props),
+								...namespace_args,
+							),
 						),
-					),
-				);
+					);
+				}
 			} else {
 				state.init?.push(
 					b.stmt(

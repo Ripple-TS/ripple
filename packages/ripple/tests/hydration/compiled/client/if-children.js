@@ -337,13 +337,13 @@ function render_5(__prev) {
 	var __a = __prev._a.value === 'code' ? 'true' : 'false';
 
 	if (__prev.a !== __a) {
-		_$_.set_attribute(__prev._b, 'aria-selected', __prev.a = __a);
+		__prev._b.setAttribute('aria-selected', __prev.a = __a);
 	}
 
 	var __b = __prev._a.value === 'preview' ? 'true' : 'false';
 
 	if (__prev.b !== __b) {
-		_$_.set_attribute(__prev._c, 'aria-selected', __prev.b = __b);
+		__prev._c.setAttribute('aria-selected', __prev.b = __b);
 	}
 
 	var __c = if_6(__prev._a);

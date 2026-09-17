@@ -45,7 +45,46 @@ function expressions(source, facts) {
 	};
 }
 
+function attribute_strings(source, facts) {
+	return facts.stringAttributeRanges.map(([start, end]) => source.slice(start, end));
+}
+
 describe('TypeScript text project', () => {
+	it('proves string attribute values, which set the attribute directly', () => {
+		const source = `import type { Row } from './types';
+			import { track } from 'ripple';
+			export function App(props: { row: Row }) @{
+				const label = track('a');
+				<svg>
+					<path d={props.row.d} class={props.row.cls} data-n={props.row.n} aria-label={label.value} />
+				</svg>
+			}`;
+		const { project, filename } = fixture(
+			source,
+			`export interface Row { d: string; cls: string; n: number | string; }`,
+		);
+		const facts = project.getTextTypeFacts(filename, source);
+		// A tracked read has no one-to-one mapping in the TypeScript view yet.
+		expect(attribute_strings(source, facts)).toEqual(['props.row.d', 'props.row.cls']);
+		expect(expressions(source, facts)).toEqual({ strings: [], primitives: [] });
+		const { code } = compile(source, filename, { textTypeFacts: facts, hydration: false });
+		expect(code).toContain("__prev._b.setAttribute('d', __prev.a = __a);");
+		expect(code).toContain("_$_.set_attribute(__prev._b, 'aria-label', ");
+		expect(code).toContain("_$_.set_attribute(__prev._b, 'data-n', ");
+		expect(code).toContain('_$_.set_class(');
+		expect(code).not.toContain('_$_.set_class_value(');
+		const without = compile(source, filename, { hydration: false }).code;
+		expect(without).toContain("_$_.set_attribute(__prev._b, 'd', ");
+		expect(without).toContain('_$_.set_class_value(');
+		// A child proof cannot stand in for an attribute, nor the reverse.
+		expect(() =>
+			compile(source, filename, {
+				textTypeFacts: { ...facts, stringChildRanges: facts.stringAttributeRanges },
+			}),
+		).toThrow('Invalid textTypeFacts');
+		project.assertUnchanged();
+	});
+
 	it('proves imported aliases, member reads, destructuring, calls, and primitive unions', () => {
 		const source = `import type { Props } from './types';
 			import { count } from './types';

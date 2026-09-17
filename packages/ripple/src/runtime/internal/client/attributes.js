@@ -376,6 +376,30 @@ function release_ref_props(state, refs) {
 }
 
 /**
+ * Releases what a spread owns when its element is dropped by something other
+ * than its block (a dynamic element replaced by a tag change): its ref
+ * effects, so refs receive null, and its listeners.
+ * @param {SpreadState | undefined} state
+ */
+export function release_spread(state) {
+	if (state === undefined) return;
+	var blocks = state.b;
+	if (blocks !== null) {
+		release_ref_props(state, null);
+	}
+	var listeners = state.l;
+	if (listeners !== null) {
+		for (var key in listeners) {
+			var remove = listeners[key];
+			if (remove !== undefined) {
+				remove();
+				listeners[key] = undefined;
+			}
+		}
+	}
+}
+
+/**
  * Keep spread refs in a branch block so ordinary spread updates do not destroy
  * and recreate the ref block before `spread` can compare the previous and
  * current ref values.

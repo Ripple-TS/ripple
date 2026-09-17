@@ -50,6 +50,7 @@ export function compile(source, filename, options = {}) {
 	);
 	register_text_type_facts(
 		analysis.textChildExpressions,
+		analysis.attributeExpressions,
 		source,
 		filename,
 		analysis.scope,
@@ -140,5 +141,6 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 			errors: transformed.errors,
 		}),
 		textChildExpressions: analysis.textChildExpressions ?? new Map(),
+		attributeExpressions: analysis.attributeExpressions ?? new Map(),
 	};
 }

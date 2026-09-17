@@ -80,3 +80,33 @@ export function App() @{
 		expect(code).toContain('_$_.template(`<svg>');
 	});
 });
+
+describe('@tsrx/ripple dynamic elements by shape', () => {
+	const source = `import { track } from 'ripple';
+export function App({ attrs }) @{
+	const tag = track('circle');
+	<svg>
+		<{tag.value} {...attrs} />
+		<{tag.value} r="1">{'child'}</{tag.value}>
+	</svg>
+}`;
+
+	it('drives a childless dynamic element from the render function', () => {
+		const { code } = compile(source, 'App.tsrx', { hydration: false });
+		// No block, no thunks: the tag and the props are read by the render function.
+		expect(code).toContain(
+			"__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b.value, __prev._c, 'svg');",
+		);
+		expect(code).toContain('a: void 0,');
+		expect(code).not.toContain('_$_.dynamic_init(');
+		// Children keep the composite block, which owns them.
+		expect(code).toContain('_$_.composite(');
+		expect(code).toMatch(/_\$_\.composite\(\s*\(\) => tag\.value,\s*node_1,/);
+	});
+
+	it('lets a composite block claim the server element while hydrating', () => {
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).toContain("_$_.dynamic(__prev.a, __prev._a, __prev._b.value, __prev._c, 'svg')");
+		expect(code).toContain("a: _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg'),");
+	});
+});

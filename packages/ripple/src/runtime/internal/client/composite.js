@@ -2,8 +2,8 @@
 /** @import { SpreadState } from './attributes.js' */
 import { component_invalid } from './errors.js';
 
-import { branch, destroy_block_children, render } from './blocks.js';
-import { spread } from './attributes.js';
+import { branch, destroy_block, destroy_block_children, render } from './blocks.js';
+import { release_spread, spread } from './attributes.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI, UNINITIALIZED } from './constants.js';
 import { hydrate_node, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
 import { first_child } from './operations.js';
@@ -186,4 +186,121 @@ export function composite(get_component, node, get_props, namespace) {
 	} finally {
 		set_ns(previous);
 	}
+}
+
+/**
+ * The state of a dynamic element the enclosing render function drives (see
+ * `dynamic`): the element rendered for a tag, or the branch rendered for a
+ * component, and the tag or component itself.
+ * @typedef {{
+ *   e: Element | null;
+ *   b: Block | null;
+ *   t: CompositeTarget | typeof UNINITIALIZED;
+ *   s: SpreadState | undefined;
+ * }} DynamicState
+ */
+
+/**
+ * A dynamic element without children, applied from the render function of
+ * the content it sits in instead of a block of its own: `<{tag} {...attrs} />`
+ * compiles to `__prev.x = _$_.dynamic(__prev.x, anchor, tag, props)`, so the
+ * tag and the props are read by that render function, and a run whose tag is
+ * unchanged only diffs the attributes. The element sits in the enclosing
+ * template's range, which owns it; a component target renders in a branch
+ * block of the render function, which a rerun keeps and a tag change destroys.
+ * @param {DynamicState | null | undefined} state null while hydrating (see `dynamic_init`)
+ * @param {Node | AppendIntoAnchor} anchor
+ * @param {CompositeTarget} tag
+ * @param {Record<string, any> | null | undefined} props
+ * @param {keyof typeof NAMESPACE_URI} [namespace] the namespace of the
+ *   template the call site sits in, when it is not HTML
+ * @returns {DynamicState | null}
+ */
+export function dynamic(state, anchor, tag, props, namespace) {
+	if (state === null) {
+		return null;
+	}
+	// @ts-ignore — get() handles non-tracked values via is_ripple_object() check
+	tag = get(tag);
+	/** @type {DynamicState} */
+	var s;
+	if (state === undefined) {
+		s = { e: null, b: null, t: UNINITIALIZED, s: undefined };
+	} else {
+		s = state;
+		if (tag === s.t) {
+			if (s.e !== null) {
+				s.s = spread(s.e, props, s.s);
+			}
+			return s;
+		}
+	}
+
+	var old = s.e;
+	if (s.b !== null) {
+		destroy_block(s.b);
+		s.b = null;
+	}
+	// The previous element's refs and listeners go with it.
+	release_spread(s.s);
+	s.t = tag;
+	s.s = undefined;
+
+	if (typeof tag === 'function') {
+		if (old !== null) {
+			old.remove();
+			s.e = null;
+		}
+		s.b = branch(() => {
+			render_component(tag, /** @type {Node} */ (anchor), props ?? {});
+		});
+		return s;
+	}
+	if (is_tsrx_element(tag)) {
+		component_invalid(true);
+	}
+	if (tag == null || tag === false) {
+		if (old !== null) {
+			old.remove();
+			s.e = null;
+		}
+		return s;
+	}
+
+	var ns = top_element_to_ns(
+		/** @type {Parameters<typeof top_element_to_ns>[0]} */ (tag),
+		namespace === undefined ? active_namespace : namespace,
+	);
+	var element =
+		ns !== DEFAULT_NAMESPACE
+			? document.createElementNS(NAMESPACE_URI[ns], /** @type {string} */ (tag))
+			: document.createElement(/** @type {string} */ (tag));
+	if (old !== null) {
+		old.before(element);
+		old.remove();
+	} else {
+		append(/** @type {ChildNode | AppendIntoAnchor} */ (anchor), element);
+	}
+	s.e = element;
+	s.s = spread(element, props, undefined);
+	return s;
+}
+
+/**
+ * The initial state of a `dynamic` slot in a build that can hydrate: while
+ * hydrating, the element is rendered here by a composite block of its own,
+ * which claims its server nodes in document order and owns the element from
+ * then on, so the render function's `dynamic` calls are no-ops (null).
+ * @param {Node | AppendIntoAnchor} node
+ * @param {() => CompositeTarget} get_component
+ * @param {() => Record<string, any>} get_props
+ * @param {keyof typeof NAMESPACE_URI} [namespace]
+ * @returns {DynamicState | null | undefined}
+ */
+export function dynamic_init(node, get_component, get_props, namespace) {
+	if (HYDRATION && hydrating) {
+		composite(get_component, node, get_props, namespace);
+		return null;
+	}
+	return undefined;
 }

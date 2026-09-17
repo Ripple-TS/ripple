@@ -272,8 +272,10 @@ export function if_block(node, fn, root_controlled, x) {
  * with the branch the condition selected whenever that changes. As
  * `if_block` does, a condition that read no tracked state has its branch
  * rendered by the probe, with no block at all: null is returned and the
- * updates are no-ops. While hydrating, the branch is rendered here, so it
- * claims its server nodes in document order.
+ * updates are no-ops. While hydrating, the if keeps a block of its own that
+ * runs the condition, exactly as `if_block` creates: the branch claims its
+ * server nodes in document order, and that block owns the condition's
+ * subscription and a pending read it throws; null is returned then too.
  * @param {Node | AppendIntoAnchor} node
  * @param {IfState['fn']} fn
  * @param {number} [flags] `IF_ROOT_CONTROLLED` (see `if_block`) and
@@ -283,18 +285,13 @@ export function if_block(node, fn, root_controlled, x) {
  * @returns {Block | null}
  */
 export function if_static(node, fn, flags = 0, x) {
-	/** @type {Node | undefined} */
-	var boundary;
-	var anchor = node;
 	var root_controlled = (flags & IF_ROOT_CONTROLLED) !== 0;
 
 	if (HYDRATION && hydrating) {
-		if (root_controlled) {
-			anchor = resolve_anchor(node);
-			boundary = /** @type {Node} */ (hydrate_node);
-		}
-		hydrate_next();
-	} else if ((flags & IF_TRACKED) === 0) {
+		if_block(node, fn, root_controlled, x);
+		return null;
+	}
+	if ((flags & IF_TRACKED) === 0) {
 		var rendered;
 		try {
 			rendered = probe_if(fn, x, node);
@@ -306,16 +303,7 @@ export function if_static(node, fn, flags = 0, x) {
 		}
 	}
 
-	var block = create_block(IF_BLOCK, noop, if_block_state(anchor, fn, x));
-
-	if (HYDRATION && hydrating) {
-		if_update(block, fn(x));
-		if (root_controlled) {
-			append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
-		}
-	}
-
-	return block;
+	return create_block(IF_BLOCK, noop, if_block_state(node, fn, x));
 }
 
 /**

@@ -25,12 +25,13 @@ export function get_text_type_range(expression) {
 /**
  * Validate externally supplied facts before either transform can consume them.
  * @param {Map<string, { expression: AST.Expression }> | undefined} children
+ * @param {Map<string, { expression: AST.Expression }> | undefined} attributes
  * @param {string} source
  * @param {string} filename
  * @param {ScopeInterface} scope
  * @param {TextTypeFacts | undefined} facts
  */
-export function register_text_type_facts(children, source, filename, scope, facts) {
+export function register_text_type_facts(children, attributes, source, filename, scope, facts) {
 	if (facts === undefined) return;
 	const invalid = () => {
 		throw new Error(`Invalid textTypeFacts for ${JSON.stringify(filename)}`);
@@ -44,15 +45,24 @@ export function register_text_type_facts(children, source, filename, scope, fact
 		!facts.projectVersion
 	)
 		invalid();
-	const child_ranges = new Set();
-	for (const { expression } of children?.values() ?? []) {
-		const range = get_text_type_range(expression);
-		if (range) child_ranges.add(`${range[0]}:${range[1]}`);
-	}
-	/** @param {readonly (readonly [number, number])[]} ranges */
-	const validate = (ranges) => {
+	/** @param {Map<string, { expression: AST.Expression }> | undefined} expressions */
+	const ranges_of = (expressions) => {
+		const ranges = new Set();
+		for (const { expression } of expressions?.values() ?? []) {
+			const range = get_text_type_range(expression);
+			if (range) ranges.add(`${range[0]}:${range[1]}`);
+		}
+		return ranges;
+	};
+	const child_ranges = ranges_of(children);
+	const attribute_ranges = ranges_of(attributes);
+	/**
+	 * @param {readonly (readonly [number, number])[]} ranges
+	 * @param {Set<string>} authored the ranges a proof may name
+	 * @param {Set<string>} [into]
+	 */
+	const validate = (ranges, authored, into = new Set()) => {
 		if (!Array.isArray(ranges)) return invalid();
-		const keys = new Set();
 		for (const range of ranges) {
 			if (
 				!Array.isArray(range) ||
@@ -61,16 +71,20 @@ export function register_text_type_facts(children, source, filename, scope, fact
 				range[0] < 0 ||
 				range[1] <= range[0] ||
 				range[1] > source.length ||
-				!child_ranges.has(`${range[0]}:${range[1]}`)
+				!authored.has(`${range[0]}:${range[1]}`)
 			)
 				invalid();
-			keys.add(`${range[0]}:${range[1]}`);
+			into.add(`${range[0]}:${range[1]}`);
 		}
-		return keys;
+		return into;
 	};
+	// A string attribute value is read like a string child: the compiler asks
+	// `has_text_type_fact` for the expression either way.
+	const strings = validate(facts.stringChildRanges, child_ranges);
+	validate(facts.stringAttributeRanges ?? [], attribute_ranges, strings);
 	facts_by_root.set(scope.root, {
-		strings: validate(facts.stringChildRanges),
-		primitives: validate(facts.primitiveTextChildRanges),
+		strings,
+		primitives: validate(facts.primitiveTextChildRanges, child_ranges),
 	});
 }
 

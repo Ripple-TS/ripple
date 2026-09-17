@@ -241,7 +241,7 @@ function consequent(__anchor, editPath) {
 	{
 		var a = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
-		_$_.set_attribute(a, 'href', `https://github.com/edit/${editPath}`);
+		a.setAttribute('href', `https://github.com/edit/${editPath}`);
 	}
 
 	_$_.append(__anchor, div_16);
@@ -1444,7 +1444,7 @@ function consequent_13(__anchor, editPath) {
 	{
 		var a_5 = _$_.hydrating ? _$_.hydrate_child() : div_62.firstChild;
 
-		_$_.set_attribute(a_5, 'href', `/edit/${editPath}`);
+		a_5.setAttribute('href', `/edit/${editPath}`);
 	}
 
 	_$_.append(__anchor, div_62);

@@ -81,7 +81,7 @@ export {
 
 export { track_async } from './track-async.js';
 
-export { composite } from './composite.js';
+export { composite, dynamic, dynamic_init } from './composite.js';
 
 export { render_component } from './component.js';
 

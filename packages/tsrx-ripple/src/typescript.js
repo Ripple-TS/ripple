@@ -151,14 +151,16 @@ function create_text_type_project({ tsconfig }) {
 		const checker = current.getTypeChecker();
 		/** @type {Map<string, ts.Expression[]>} */
 		const expressions = new Map();
-		// This visits the TypeScript tree, not the TSRX AST. Authored child
-		// ranges were collected by Ripple's existing analysis visitors.
+		// This visits the TypeScript tree, not the TSRX AST. Authored child and
+		// attribute ranges were collected by Ripple's existing analysis visitors.
 		/** @param {ts.Node} node */
 		function visit(node) {
 			if (
 				ts.isJsxExpression(node) &&
 				node.expression &&
-				(ts.isJsxElement(node.parent) || ts.isJsxFragment(node.parent))
+				(ts.isJsxElement(node.parent) ||
+					ts.isJsxFragment(node.parent) ||
+					ts.isJsxAttribute(node.parent))
 			) {
 				const expression = node.expression;
 				const key = `${expression.getStart(file)}:${expression.end}`;
@@ -178,18 +180,30 @@ function create_text_type_project({ tsconfig }) {
 			projectVersion: project_version,
 			stringChildRanges: [],
 			primitiveTextChildRanges: [],
+			stringAttributeRanges: [],
 		};
 		/** @type {[number, number][]} */
 		const strings = [];
 		/** @type {[number, number][]} */
 		const primitives = [];
+		/** @type {[number, number][]} */
+		const attribute_strings = [];
 		const diagnostics = current.getSyntacticDiagnostics(file);
 		if (!mapped.errors.length && !diagnostics.length) {
 			// Only exact expression mappings qualify. Ambiguous/generated mappings
 			// must not grant a proof to a different authored expression.
 			const candidates = new Map();
 			const source_ranges = new Map();
+			/** @type {Set<string>} */
+			const attribute_keys = new Set();
 			for (const [key, { container }] of mapped.textChildExpressions) {
+				source_ranges.set(key, key);
+				if (container?.type === 'JSXExpressionContainer') {
+					source_ranges.set(`${container.start}:${container.end}`, key);
+				}
+			}
+			for (const [key, { container }] of mapped.attributeExpressions) {
+				attribute_keys.add(key);
 				source_ranges.set(key, key);
 				if (container?.type === 'JSXExpressionContainer') {
 					source_ranges.set(`${container.start}:${container.end}`, key);
@@ -214,6 +228,12 @@ function create_text_type_project({ tsconfig }) {
 			for (const [key, nodes] of candidates) {
 				if (nodes.size !== 1) continue;
 				const type = checker.getTypeAtLocation([...nodes][0]);
+				if (attribute_keys.has(key)) {
+					const attribute = mapped.attributeExpressions.get(key)?.expression;
+					const attribute_range = attribute && get_text_type_range(attribute);
+					if (attribute_range && is_primitive(type, true)) attribute_strings.push(attribute_range);
+					continue;
+				}
 				const expression = mapped.textChildExpressions.get(key)?.expression;
 				const range = expression && get_text_type_range(expression);
 				if (!range) continue;
@@ -223,6 +243,7 @@ function create_text_type_project({ tsconfig }) {
 		}
 		result.stringChildRanges = strings;
 		result.primitiveTextChildRanges = primitives;
+		result.stringAttributeRanges = attribute_strings;
 		facts.set(filename, result);
 		return result;
 	}

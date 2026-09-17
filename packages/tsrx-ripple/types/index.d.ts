@@ -36,6 +36,8 @@ export interface TextTypeFacts {
 	projectVersion: string;
 	stringChildRanges: readonly (readonly [number, number])[];
 	primitiveTextChildRanges: readonly (readonly [number, number])[];
+	/** Attribute value expressions proved to be strings. */
+	stringAttributeRanges?: readonly (readonly [number, number])[];
 }
 
 export interface CompileOptions extends CoreCompileOptions {
@@ -66,6 +68,8 @@ export interface AnalysisResult extends CoreAnalysisResult {
 	stylesheets: AST.CSS.StyleSheet[];
 	/** Authored JSX child expressions collected during analysis. */
 	textChildExpressions?: Map<string, { expression: AST.Expression; container: AST.Node }>;
+	/** Authored JSX attribute value expressions collected during analysis. */
+	attributeExpressions?: Map<string, { expression: AST.Expression; container: AST.Node }>;
 	/**
 	 * `let` declarators, functions and catch clauses of a client build, whose
 	 * written, template-read bindings are boxed after the walk.

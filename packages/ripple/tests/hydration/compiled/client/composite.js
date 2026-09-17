@@ -141,6 +141,10 @@ DynamicTagElement[_$_.$r] = DynamicTagElement_render;
 
 var root_7 = _$_.template(`<!>`, 1, 1);
 
+function render(__prev) {
+	__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b, {});
+}
+
 function DynamicTagComponent_render(__anchor, __block) {
 	const Comp = SingleChild;
 
@@ -149,7 +153,12 @@ function DynamicTagComponent_render(__anchor, __block) {
 			var fragment_4 = root_7();
 			var node_3 = _$_.first_child_frag(fragment_4);
 
-			_$_.composite(() => Comp, node_3, () => ({}));
+			_$_.render(render, {
+				a: _$_.dynamic_init(node_3, () => Comp, () => ({})),
+				_a: node_3,
+				_b: Comp
+			});
+
 			_$_.append(__anchor, fragment_4);
 		})
 	});
