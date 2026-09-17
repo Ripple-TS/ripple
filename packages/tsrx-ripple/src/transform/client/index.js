@@ -67,6 +67,8 @@ import {
 	isCaptureEvent,
 	isEventAttribute,
 	isNonDelegated,
+	isSvgTagName,
+	isMathmlTagName,
 	isEmptyJsxFragment as is_empty_jsx_fragment,
 	isInsideComponent as is_inside_component,
 	normalizeEventName,
@@ -96,7 +98,6 @@ import {
 	normalize_children,
 	build_getter,
 	determine_namespace_for_children,
-	is_svg_or_mathml_element,
 	index_to_key,
 	is_children_template_expression,
 	is_inside_left_side_assignment,
@@ -4224,7 +4225,8 @@ const visitors = {
 			// element name takes the `className` fast path.
 			const is_html_class =
 				context.state.namespace === 'html' &&
-				!is_svg_or_mathml_element(/** @type {AST.Identifier} */ (element_id).name);
+				!isSvgTagName(element_name) &&
+				!isMathmlTagName(element_name);
 
 			if (class_attribute !== null) {
 				const attr_value = /** @type {AST.Expression} */ (get_attribute_value(class_attribute));

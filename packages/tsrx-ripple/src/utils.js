@@ -2478,31 +2478,6 @@ export function build_getter(node, context) {
 }
 
 /**
- * Tag names of SVG and MathML elements, including the few (`a`, `title`,
- * `script`, `style`) that HTML shares. Where the compiler sees no namespace (a
- * component's children, which may be rendered into an `<svg>`), an element
- * with one of these names may still be an SVG or MathML element at runtime, so
- * its class is set as an attribute rather than through `className`.
- *
- * The same two lists as `@tsrx/core`'s private `SVG_REF_TAG_NAMES` and
- * `MATHML_REF_TAG_NAMES` (transform/jsx); replace this with a core export once
- * one exists.
- */
-const SVG_MATHML_ELEMENTS = new Set(
-	'a animate animateMotion animateTransform circle clipPath defs desc ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter foreignObject g image line linearGradient marker mask metadata mpath path pattern polygon polyline radialGradient rect script set stop style svg switch symbol text textPath title tspan use view annotation annotation-xml maction math merror mfrac mi mmultiscripts mn mo mover mpadded mphantom mprescripts mroot mrow ms mspace msqrt mstyle msub msubsup msup mtable mtd mtext mtr munder munderover semantics'.split(
-		' ',
-	),
-);
-
-/**
- * @param {string} name
- * @returns {boolean}
- */
-export function is_svg_or_mathml_element(name) {
-	return SVG_MATHML_ELEMENTS.has(name);
-}
-
-/**
  * Determines the namespace for child elements
  * @param {string} element_name
  * @param {NameSpace} current_namespace
