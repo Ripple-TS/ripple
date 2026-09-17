@@ -4,7 +4,7 @@
 /** @typedef {DerivedValue} Derived */
 
 import { DEV } from 'esm-env';
-import { destroy_block, destroy_non_branch_children, effect } from './blocks.js';
+import { block, destroy_block, destroy_non_branch_children } from './blocks.js';
 import {
 	ASYNC_DERIVED_READ_THROWN,
 	BLOCK_HAS_RUN,
@@ -796,7 +796,8 @@ export function track_read_only(value, block) {
  * @returns {Tracked | Derived}
  */
 export function track(v, b, hash, get, set) {
-	if (is_ripple_object(v)) {
+	// is_ripple_object(), inline: track() is on every component's cold path.
+	if (typeof v === 'object' && v !== null && typeof v.f === 'number') {
 		return v;
 	}
 	if (b === null) {
@@ -1126,21 +1127,29 @@ function flush_queue(pending) {
 			blocks.sort(by_block_id);
 		}
 
-		var has_effects = false;
+		var effect_kinds = 0;
+		var has_render_blocks = false;
 
 		for (var i = 0; i < length; i++) {
 			var block = blocks[i];
 			var flags = block.f;
 			block.f = flags & ~SCHEDULED;
-			if ((flags & (PRE_EFFECT_BLOCK | EFFECT_BLOCK)) !== 0) {
-				has_effects = true;
+			var kind = flags & (PRE_EFFECT_BLOCK | EFFECT_BLOCK);
+			if (kind !== 0) {
+				effect_kinds |= kind;
+			} else {
+				has_render_blocks = true;
 			}
 		}
 
 		// New schedules land in the queue that replaced `pending`, so the array
-		// can be run in place. Effects need the three-phase ordering; a queue of
-		// only render blocks (the common flush) runs straight through.
-		if (has_effects) {
+		// can be run in place. A queue mixing kinds needs the three-phase
+		// ordering; one of a single kind (the common flush of render blocks,
+		// the first flush of a mounted app's effects) runs straight through.
+		if (
+			effect_kinds === (PRE_EFFECT_BLOCK | EFFECT_BLOCK) ||
+			(effect_kinds !== 0 && has_render_blocks)
+		) {
 			run_phases(blocks, length);
 		} else {
 			run_phase(blocks);
@@ -1853,7 +1862,8 @@ function create_deferred_effects(effects) {
 	for (var i = 0; i < length; i += 3) {
 		active_block = /** @type {Block} */ (effects[i + 1]);
 		active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
-		effect(/** @type {Function} */ (effects[i]));
+		// effect(), inline: one function less on every component's cold path.
+		block(EFFECT_BLOCK, /** @type {Function} */ (effects[i]));
 	}
 	active_block = previous_block;
 	active_reaction = previous_reaction;

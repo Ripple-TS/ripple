@@ -1,7 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=layout><nav class=nav>Navigation</nav><main class=main><!>`);
+var root = _$_.template_el('div', ['class', 'layout'], [
+	['nav', ['class', 'nav'], 'Navigation'],
+	['main', ['class', 'main'], [null]]
+]);
 
 function Layout_render(__anchor, __block, { children }) {
 	var div = root();
@@ -35,7 +38,7 @@ function if_1(visible) {
 	if (visible.value) return consequent;
 }
 
-var root_1 = _$_.template(`<div class=content><!>`);
+var root_1 = _$_.template_el('div', ['class', 'content'], [null]);
 
 function render(__prev) {
 	var __a = if_1(__prev._a);

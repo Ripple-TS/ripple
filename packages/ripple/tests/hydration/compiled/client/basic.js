@@ -30,7 +30,13 @@ function MultipleElements_render(__anchor, __block) {
 
 MultipleElements[_$_.$r] = MultipleElements_render;
 
-var root_3 = _$_.template(`<div class=outer><div class=inner><span>Nested content`);
+var root_3 = _$_.template_el('div', ['class', 'outer'], [
+	[
+		'div',
+		['class', 'inner'],
+		[['span', null, 'Nested content']]
+	]
+]);
 
 function NestedElements_render(__anchor, __block) {
 	var div_1 = root_3();
@@ -239,7 +245,7 @@ function NestedTsxTsrxFragment_render(__anchor, __block, { label }) {
 NestedTsxTsrxFragment[_$_.$r] = NestedTsxTsrxFragment_render;
 
 var root_19 = _$_.template_el('div', ['class', 'app-item'], ' ');
-var root_18 = _$_.template(`<div class=nested-expression-values><!>`);
+var root_18 = _$_.template_el('div', ['class', 'nested-expression-values'], [null]);
 
 function NestedTsxTsrxExpressionValues_render(__anchor, __block) {
 	var div_8 = root_18();
@@ -279,7 +285,7 @@ NestedTsxTsrxExpressionValues[_$_.$r] = NestedTsxTsrxExpressionValues_render;
 var root_20 = _$_.template_el('strong', ['class', 'middle'], 'beta');
 var root_21 = _$_.template_el('em', ['class', 'tail'], 'epsilon');
 var root_22 = _$_.template(` `, 1, 1);
-var root_23 = _$_.template(`<div class=mixed-collection><!>`);
+var root_23 = _$_.template_el('div', ['class', 'mixed-collection'], [null]);
 
 function MixedTsrxCollectionText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -325,7 +331,7 @@ MixedTsrxCollectionText[_$_.$r] = MixedTsrxCollectionText_render;
 var root_24 = _$_.template_el('strong', ['class', 'middle'], 'beta');
 var root_25 = _$_.template_el('em', ['class', 'tail'], 'epsilon');
 var root_26 = _$_.template(` `, 1, 1);
-var root_27 = _$_.template(`<div class=mixed-collection-split><!>`);
+var root_27 = _$_.template_el('div', ['class', 'mixed-collection-split'], [null]);
 
 function MixedTsrxCollectionSplitServerText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -371,7 +377,7 @@ MixedTsrxCollectionSplitServerText[_$_.$r] = MixedTsrxCollectionSplitServerText_
 var root_28 = _$_.template_el('strong', ['class', 'middle'], 'beta');
 var root_29 = _$_.template_el('em', ['class', 'tail'], 'epsilon');
 var root_30 = _$_.template(` `, 1, 1);
-var root_31 = _$_.template(`<div class=mixed-collection-split><!>`);
+var root_31 = _$_.template_el('div', ['class', 'mixed-collection-split'], [null]);
 
 function MixedTsrxCollectionSplitClientText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -416,7 +422,7 @@ MixedTsrxCollectionSplitClientText[_$_.$r] = MixedTsrxCollectionSplitClientText_
 
 var root_32 = _$_.template_el('span', ['class', 'primitive-tail'], ' ok');
 var root_33 = _$_.template(` `, 1, 1);
-var root_34 = _$_.template(`<div class=mixed-collection-primitive><!>`);
+var root_34 = _$_.template_el('div', ['class', 'mixed-collection-primitive'], [null]);
 
 function MixedTsrxCollectionPrimitiveServerText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -454,7 +460,7 @@ MixedTsrxCollectionPrimitiveServerText[_$_.$r] = MixedTsrxCollectionPrimitiveSer
 
 var root_35 = _$_.template_el('span', ['class', 'primitive-tail'], ' ok');
 var root_36 = _$_.template(` `, 1, 1);
-var root_37 = _$_.template(`<div class=mixed-collection-primitive><!>`);
+var root_37 = _$_.template_el('div', ['class', 'mixed-collection-primitive'], [null]);
 
 function MixedTsrxCollectionPrimitiveClientText_render(__anchor, __block) {
 	const content = _$_.tsrx_element((__anchor, __block) => {
@@ -568,7 +574,7 @@ function DynamicArrayFromLogical_render(__anchor, __block) {
 
 DynamicArrayFromLogical[_$_.$r] = DynamicArrayFromLogical_render;
 
-var root_42 = _$_.template(`<section class=outer><div class=inner>from tsrx`);
+var root_42 = _$_.template_el('section', ['class', 'outer'], [['div', ['class', 'inner'], 'from tsrx']]);
 var root_44 = _$_.template(`<!>`, 1, 1);
 var root_43 = _$_.template(`<!>`, 1, 1);
 
@@ -595,7 +601,14 @@ function NestedTsrxInsideTopLevelTsxExpression_render(__anchor, __block) {
 
 NestedTsrxInsideTopLevelTsxExpression[_$_.$r] = NestedTsrxInsideTopLevelTsxExpression_render;
 
-var root_45 = _$_.template(`<div class=wrapper><section class=native><span class=nested-tsrx>inside nested tsrx`);
+var root_45 = _$_.template_el('div', ['class', 'wrapper'], [
+	[
+		'section',
+		['class', 'native'],
+		[['span', ['class', 'nested-tsrx'], 'inside nested tsrx']]
+	]
+]);
+
 var root_47 = _$_.template(`<!>`, 1, 1);
 var root_46 = _$_.template(`<!>`, 1, 1);
 
@@ -827,7 +840,21 @@ function Header_render(__anchor, __block) {
 Header[_$_.$r] = Header_render;
 
 var root_65 = _$_.template_el('a', ['href', '/playground', 'class', 'playground-link'], 'Playground');
-var root_64 = _$_.template(`<div class=social-links><a href=https://github.com class=github-link>GitHub</a><a href=https://discord.com class=discord-link>Discord</a><!>`);
+
+var root_64 = _$_.template_el('div', ['class', 'social-links'], [
+	[
+		'a',
+		['href', 'https://github.com', 'class', 'github-link'],
+		'GitHub'
+	],
+
+	[
+		'a',
+		['href', 'https://discord.com', 'class', 'discord-link'],
+		'Discord'
+	],
+	null
+]);
 
 function Actions_render(__anchor, __block, { playgroundVisible = false }) {
 	var div_23 = root_64();
@@ -853,7 +880,7 @@ function Actions_render(__anchor, __block, { playgroundVisible = false }) {
 
 Actions[_$_.$r] = Actions_render;
 
-var root_66 = _$_.template(`<main><div class=container><!>`);
+var root_66 = _$_.template_el('main', null, [['div', ['class', 'container'], [null]]]);
 
 function Layout_render(__anchor, __block, { children }) {
 	var main = root_66();
@@ -874,7 +901,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_67 = _$_.template(`<div class=content><p>Some content here`);
+var root_67 = _$_.template_el('div', ['class', 'content'], [['p', null, 'Some content here']]);
 
 function Content_render(__anchor, __block) {
 	var div_25 = root_67();
@@ -922,7 +949,7 @@ function LastChild_render(__anchor, __block) {
 
 LastChild[_$_.$r] = LastChild_render;
 
-var root_70 = _$_.template(`<div class=wrapper><h1>Header</h1><p>Some content`);
+var root_70 = _$_.template_el('div', ['class', 'wrapper'], [['h1', null, 'Header'], ['p', null, 'Some content']]);
 
 function ComponentAsLastSibling_render(__anchor, __block) {
 	var div_26 = root_70();
@@ -941,7 +968,7 @@ function ComponentAsLastSibling_render(__anchor, __block) {
 
 ComponentAsLastSibling[_$_.$r] = ComponentAsLastSibling_render;
 
-var root_71 = _$_.template(`<div class=inner><span>Inner text`);
+var root_71 = _$_.template_el('div', ['class', 'inner'], [['span', null, 'Inner text']]);
 
 function InnerContent_render(__anchor, __block) {
 	var div_27 = root_71();
@@ -959,7 +986,7 @@ function InnerContent_render(__anchor, __block) {
 
 InnerContent[_$_.$r] = InnerContent_render;
 
-var root_72 = _$_.template(`<section class=outer><h2>Section title`);
+var root_72 = _$_.template_el('section', ['class', 'outer'], [['h2', null, 'Section title']]);
 
 function NestedComponentAsLastSibling_render(__anchor, __block) {
 	var section_1 = root_72();
@@ -1017,7 +1044,7 @@ function FragmentTailExpression_render(__anchor, __block) {
 
 FragmentTailExpression[_$_.$r] = FragmentTailExpression_render;
 
-var root_75 = _$_.template(`<div>frag-<span>tail`);
+var root_75 = _$_.template_el('div', null, ['frag-', ['span', null, 'tail']]);
 
 function FragmentChildOnly_render(__anchor, __block) {
 	var div_30 = root_75();

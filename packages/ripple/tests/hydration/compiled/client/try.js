@@ -11,7 +11,10 @@ function RootPending_render(__anchor, __block) {
 
 RootPending[_$_.$r] = RootPending_render;
 
-var root_1 = _$_.template(`<section class=root-catch><p class=root-error> </p><button class=root-reset>retry`);
+var root_1 = _$_.template_el('section', ['class', 'root-catch'], [
+	['p', ['class', 'root-error'], ' '],
+	['button', ['class', 'root-reset'], 'retry']
+]);
 
 function RootCatch_render(__anchor, __block, { error, reset }) {
 	var section = root_1();

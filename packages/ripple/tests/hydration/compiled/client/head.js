@@ -23,7 +23,7 @@ function StaticTitle_render(__anchor, __block) {
 
 StaticTitle[_$_.$r] = StaticTitle_render;
 
-var root_3 = _$_.template(`<div><span> `);
+var root_3 = _$_.template_el('div', null, [['span', null, ' ']]);
 var root_2 = _$_.template(`<!>`, 1, 1);
 
 function ReactiveTitle_render(__anchor, __block) {
@@ -109,7 +109,7 @@ function ReactiveMetaTags_render(__anchor, __block) {
 			var meta = root_9();
 
 			_$_.document.title = 'My Page';
-			_$_.set_attribute(meta, 'content');
+			_$_.set_property_value(meta, 'content');
 			_$_.append(__anchor, meta);
 		});
 
@@ -208,7 +208,7 @@ function ConditionalTitle_render(__anchor, __block) {
 
 ConditionalTitle[_$_.$r] = ConditionalTitle_render;
 
-var root_17 = _$_.template(`<div><span>`);
+var root_17 = _$_.template_el('div', null, [['span']]);
 
 function render(__prev) {
 	var __a = __prev._a.value;

@@ -32,9 +32,12 @@ export var is_firefox;
 export function init_operations() {
 	var node_prototype = Node.prototype;
 	var element_prototype = Element.prototype;
-	var event_target_prototype = Event.prototype;
 
-	is_firefox = /Firefox/.test(navigator.userAgent);
+	// Firefox prefers `importNode` for template content (see `template.js`).
+	// Its Firefox-only `window` property is the test: the first read of
+	// `navigator` creates its wrapper, about 0.1 ms on a fresh page, paid by
+	// the first mount.
+	is_firefox = 'mozInnerScreenX' in window;
 	document = window.document;
 
 	first_child_getter = /** @type {(() => Node | null)} */ (
@@ -47,9 +50,11 @@ export function init_operations() {
 		get_descriptor(node_prototype, 'lastChild')?.get
 	);
 
-	// the following assignments improve perf of lookups on DOM nodes
+	// Declared on the prototype so a delegated handler lookup on an element
+	// stops at Element instead of walking to Object. `Event.prototype.__root`
+	// is declared with the first delegated listener (`events.js`): touching
+	// `Event.prototype` costs about 0.05 ms on a fresh page.
 	element_prototype.__click = undefined;
-	event_target_prototype.__root = undefined;
 }
 
 /**

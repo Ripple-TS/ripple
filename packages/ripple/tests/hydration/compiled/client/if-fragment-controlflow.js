@@ -35,7 +35,7 @@ function if_1({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent;
 }
 
-var root = _$_.template(`<div class=feed-c><!>`);
+var root = _$_.template_el('div', ['class', 'feed-c'], [null]);
 
 function IfFragmentForElement_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -138,7 +138,7 @@ function if_4({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_3;
 }
 
-var root_3 = _$_.template(`<div class=feed><!>`);
+var root_3 = _$_.template_el('div', ['class', 'feed'], [null]);
 
 function IfFragmentForIfIf_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -170,7 +170,7 @@ function if_5(hasLoaded) {
 	if (hasLoaded) return consequent_4;
 }
 
-var root_8 = _$_.template(`<div class=feed-b><!>`);
+var root_8 = _$_.template_el('div', ['class', 'feed-b'], [null]);
 
 function IfFragmentElements_render(__anchor, __block) {
 	const hasLoaded = true;
@@ -312,7 +312,7 @@ function if_6({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_5;
 }
 
-var root_16 = _$_.template(`<div class=feed-f><!>`);
+var root_16 = _$_.template_el('div', ['class', 'feed-f'], [null]);
 
 function IfCodeBlockControlFlow_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -372,7 +372,7 @@ function if_7({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_6; else return alternate;
 }
 
-var root_19 = _$_.template(`<div class=feed-d><!>`);
+var root_19 = _$_.template_el('div', ['class', 'feed-d'], [null]);
 
 function IfElseFragment_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
@@ -392,7 +392,7 @@ function IfElseFragment_render(__anchor, __block) {
 IfElseFragment[_$_.$r] = IfElseFragment_render;
 
 var root_25 = _$_.template_el('p', ['class', 'muze'], ' ');
-var root_24 = _$_.template(`<section><span class=after>after`);
+var root_24 = _$_.template_el('section', null, [['span', ['class', 'after'], 'after']]);
 
 function consequent_7(__anchor, { a: hasLoaded, b: muzes }) {
 	var section = root_24();
@@ -429,7 +429,7 @@ function if_8({ a: hasLoaded, b: muzes }) {
 	if (hasLoaded) return consequent_7;
 }
 
-var root_23 = _$_.template(`<div class=feed-e><!>`);
+var root_23 = _$_.template_el('div', ['class', 'feed-e'], [null]);
 
 function IfDivFragment_render(__anchor, __block) {
 	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];

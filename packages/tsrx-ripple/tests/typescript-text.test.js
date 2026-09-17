@@ -49,6 +49,10 @@ function attribute_strings(source, facts) {
 	return facts.stringAttributeRanges.map(([start, end]) => source.slice(start, end));
 }
 
+function attribute_primitives(source, facts) {
+	return facts.primitiveAttributeRanges.map(([start, end]) => source.slice(start, end));
+}
+
 describe('TypeScript text project', () => {
 	it('proves string attribute values, which set the attribute directly', () => {
 		const source = `import type { Row } from './types';
@@ -66,15 +70,18 @@ describe('TypeScript text project', () => {
 		const facts = project.getTextTypeFacts(filename, source);
 		// A tracked read has no one-to-one mapping in the TypeScript view yet.
 		expect(attribute_strings(source, facts)).toEqual(['props.row.d', 'props.row.cls']);
+		expect(attribute_primitives(source, facts)).toEqual(['props.row.n']);
 		expect(expressions(source, facts)).toEqual({ strings: [], primitives: [] });
 		const { code } = compile(source, filename, { textTypeFacts: facts, hydration: false });
 		expect(code).toContain("__prev._b.setAttribute('d', __prev.a = __a);");
 		expect(code).toContain("_$_.set_attribute(__prev._b, 'aria-label', ");
-		expect(code).toContain("_$_.set_attribute(__prev._b, 'data-n', ");
+		// A primitive on a `data-` name has no property to set: written directly.
+		expect(code).toContain("__prev._b.setAttribute('data-n', ");
 		expect(code).toContain('_$_.set_class(');
 		expect(code).not.toContain('_$_.set_class_value(');
 		const without = compile(source, filename, { hydration: false }).code;
 		expect(without).toContain("_$_.set_attribute(__prev._b, 'd', ");
+		expect(without).toContain("_$_.set_attribute(__prev._b, 'data-n', ");
 		expect(without).toContain('_$_.set_class_value(');
 		// A child proof cannot stand in for an attribute, nor the reverse.
 		expect(() =>

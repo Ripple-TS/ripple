@@ -536,6 +536,8 @@ export function delegate(events) {
 	}
 }
 
+var event_prototype_prepared = false;
+
 /**
  * @param {RootTargetRef} ref
  * @param {Iterable<string>} events
@@ -546,6 +548,14 @@ function register_root_events(ref, events) {
 
 	for (var event_name of events) {
 		if (registered_events.has(event_name)) continue;
+		if (!event_prototype_prepared) {
+			event_prototype_prepared = true;
+			// `__root` is read on every delegated event: declared on the
+			// prototype, the read stops at Event instead of walking to Object.
+			// Done with the first listener, so a mount before any delegated
+			// event is registered never touches `Event.prototype`.
+			Event.prototype.__root = undefined;
+		}
 		registered_events.add(event_name);
 
 		target.addEventListener(event_name, handle_event_propagation, {
@@ -571,7 +581,11 @@ export function handle_root_events(target) {
 	if (ref === undefined) {
 		ref = { n: 0, e: new Set(), t: target };
 		root_target_refs.set(target, ref);
-		register_root_events(ref, all_registered_events);
+		// Before any delegated event is registered (a first mount) there is
+		// nothing to attach.
+		if (all_registered_events.size > 0) {
+			register_root_events(ref, all_registered_events);
+		}
 	}
 
 	ref.n += 1;

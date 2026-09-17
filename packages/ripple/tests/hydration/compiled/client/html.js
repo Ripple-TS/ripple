@@ -49,7 +49,7 @@ function ComplexHtml_render(__anchor, __block) {
 
 ComplexHtml[_$_.$r] = ComplexHtml_render;
 
-var root_4 = _$_.template(`<div><!><!>`);
+var root_4 = _$_.template_el('div', null, [null, null]);
 
 function render(__prev) {
 	_$_.html(__prev._a, () => __prev._b);
@@ -74,7 +74,7 @@ function MultipleHtml_render(__anchor, __block) {
 
 MultipleHtml[_$_.$r] = MultipleHtml_render;
 
-var root_5 = _$_.template(`<div><!><button>Increment`);
+var root_5 = _$_.template_el('div', null, [null, ['button', null, 'Increment']]);
 
 function render_1(__prev) {
 	_$_.html(__prev._a, () => "<p>Count: 0</p>");
@@ -95,7 +95,7 @@ function HtmlWithReactivity_render(__anchor, __block) {
 
 HtmlWithReactivity[_$_.$r] = HtmlWithReactivity_render;
 
-var root_6 = _$_.template(`<div class=wrapper><div class=inner><!>`);
+var root_6 = _$_.template_el('div', ['class', 'wrapper'], [['div', ['class', 'inner'], [null]]]);
 
 function HtmlWrapper_render(__anchor, __block, { children }) {
 	var div_5 = root_6();
@@ -152,7 +152,7 @@ function HtmlInChildrenWithSiblings_render(__anchor, __block) {
 
 HtmlInChildrenWithSiblings[_$_.$r] = HtmlInChildrenWithSiblings_render;
 
-var root_9 = _$_.template(`<div class=doc><!><!>`);
+var root_9 = _$_.template_el('div', ['class', 'doc'], [null, null]);
 
 function render_2(__prev) {
 	_$_.html(__prev._a, () => __prev._b);
@@ -233,7 +233,7 @@ function DocFooter_render(__anchor, __block) {
 
 DocFooter[_$_.$r] = DocFooter_render;
 
-var root_15 = _$_.template(`<div class=edit-link><a>Edit`);
+var root_15 = _$_.template_el('div', ['class', 'edit-link'], [['a', null, 'Edit']]);
 
 function consequent(__anchor, editPath) {
 	var div_16 = root_15();
@@ -251,7 +251,7 @@ function if_1(editPath) {
 	if (editPath) return consequent;
 }
 
-var root_16 = _$_.template(`<nav class=prev-next><a> `);
+var root_16 = _$_.template_el('nav', ['class', 'prev-next'], [['a', null, ' ']]);
 
 function render_3(__prev) {
 	var __a = __prev._a.href;
@@ -283,7 +283,7 @@ function if_2(nextLink) {
 	if (nextLink) return consequent_1;
 }
 
-var root_18 = _$_.template(`<li><a>`);
+var root_18 = _$_.template_el('li', null, [['a']]);
 
 function render_4(__prev) {
 	var __a = __prev._a.text;
@@ -300,7 +300,7 @@ function render_4(__prev) {
 	}
 }
 
-var root_17 = _$_.template(`<div class=toc><ul>`);
+var root_17 = _$_.template_el('div', ['class', 'toc'], [['ul']]);
 
 function consequent_2(__anchor, toc) {
 	var div_17 = root_17();
@@ -338,7 +338,14 @@ function if_3(toc) {
 	if (toc.length > 0) return consequent_2;
 }
 
-var root_14 = _$_.template(`<div class=layout><div class=content-container><article><div><!></div></article></div><aside><!>`);
+var root_14 = _$_.template_el('div', ['class', 'layout'], [
+	[
+		'div',
+		['class', 'content-container'],
+		[['article', null, [['div', null, [null]]]]]
+	],
+	['aside', null, [null]]
+]);
 
 function render_5(__prev) {
 	var __a = if_3(__prev._a);
@@ -462,8 +469,8 @@ function HtmlWithUndefinedContent_render(__anchor, __block) {
 
 HtmlWithUndefinedContent[_$_.$r] = HtmlWithUndefinedContent_render;
 
-var root_22 = _$_.template(`<h1 class=heading><!>`);
-var root_23 = _$_.template(`<h2 class=heading><!>`);
+var root_22 = _$_.template_el('h1', ['class', 'heading'], [null]);
+var root_23 = _$_.template_el('h2', ['class', 'heading'], [null]);
 
 function switch_case_0(__anchor, { a: level, b: children }) {
 	var h1_1 = root_22();
@@ -507,7 +514,14 @@ function DynamicHeading_render(__anchor, __block, { level, children }) {
 
 DynamicHeading[_$_.$r] = DynamicHeading_render;
 
-var root_24 = _$_.template(`<div class=code-block><div class=header><button>Copy</button><span class=lang>js</span></div><div class=content>`);
+var root_24 = _$_.template_el('div', ['class', 'code-block'], [
+	[
+		'div',
+		['class', 'header'],
+		[['button', null, 'Copy'], ['span', ['class', 'lang'], 'js']]
+	],
+	['div', ['class', 'content']]
+]);
 
 function CodeBlock_render(__anchor, __block, { code }) {
 	const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
@@ -525,7 +539,7 @@ function CodeBlock_render(__anchor, __block, { code }) {
 
 CodeBlock[_$_.$r] = CodeBlock_render;
 
-var root_25 = _$_.template(`<div class=wrapper><div class=inner><!>`);
+var root_25 = _$_.template_el('div', ['class', 'wrapper'], [['div', ['class', 'inner'], [null]]]);
 
 function ContentWrapper_render(__anchor, __block, { children }) {
 	var div_24 = root_25();
@@ -576,8 +590,8 @@ function HtmlAfterSwitchInChildren_render(__anchor, __block) {
 
 HtmlAfterSwitchInChildren[_$_.$r] = HtmlAfterSwitchInChildren_render;
 
-var root_27 = _$_.template(`<h1 class=heading><!>`);
-var root_28 = _$_.template(`<h2 class=heading><!>`);
+var root_27 = _$_.template_el('h1', ['class', 'heading'], [null]);
+var root_28 = _$_.template_el('h2', ['class', 'heading'], [null]);
 
 function consequent_3(__anchor, { a: primary, b: children }) {
 	var h1_2 = root_27();
@@ -737,7 +751,7 @@ function HtmlAfterTryInChildren_render(__anchor, __block) {
 
 HtmlAfterTryInChildren[_$_.$r] = HtmlAfterTryInChildren_render;
 
-var root_35 = _$_.template(`<span class=boxed><!>`);
+var root_35 = _$_.template_el('span', ['class', 'boxed'], [null]);
 
 function Boxed_render(__anchor, __block, { children }) {
 	var span_2 = root_35();
@@ -804,7 +818,7 @@ function if_5(active) {
 	if (active) return consequent_4;
 }
 
-var root_38 = _$_.template(`<div><a><span>`);
+var root_38 = _$_.template_el('div', null, [['a', null, [['span']]]]);
 
 function NavItem_render(__anchor, __block, { href, text: label, active = false }) {
 	var div_27 = root_38();
@@ -836,7 +850,7 @@ function NavItem_render(__anchor, __block, { href, text: label, active = false }
 
 NavItem[_$_.$r] = NavItem_render;
 
-var root_41 = _$_.template(`<div class=section-items><!>`);
+var root_41 = _$_.template_el('div', ['class', 'section-items'], [null]);
 
 function consequent_5(__anchor, { a: expanded, b: children }) {
 	var div_30 = root_41();
@@ -855,7 +869,13 @@ function if_6({ a: expanded, b: children }) {
 	if (expanded.value) return consequent_5;
 }
 
-var root_40 = _$_.template(`<section class=sidebar-section><div class=section-header><h2></h2><button>Toggle`);
+var root_40 = _$_.template_el('section', ['class', 'sidebar-section'], [
+	[
+		'div',
+		['class', 'section-header'],
+		[['h2'], ['button', null, 'Toggle']]
+	]
+]);
 
 function render_6(__prev) {
 	var __a = if_6({ a: __prev._a, b: __prev._b });
@@ -903,7 +923,14 @@ SidebarSection[_$_.$r] = SidebarSection_render;
 
 var root_43 = _$_.template(`<!><!>`, 1, 2);
 var root_44 = _$_.template(`<!><!>`, 1, 2);
-var root_42 = _$_.template(`<aside class=sidebar><nav><div class=group></div><div class=group>`);
+
+var root_42 = _$_.template_el('aside', ['class', 'sidebar'], [
+	[
+		'nav',
+		null,
+		[['div', ['class', 'group']], ['div', ['class', 'group']]]
+	]
+]);
 
 function SideNav_render(__anchor, __block, { currentPath }) {
 	var aside_1 = root_42();
@@ -983,7 +1010,7 @@ function SideNav_render(__anchor, __block, { currentPath }) {
 
 SideNav[_$_.$r] = SideNav_render;
 
-var root_45 = _$_.template(`<header class=page-header><div class=logo>MyApp`);
+var root_45 = _$_.template_el('header', ['class', 'page-header'], [['div', ['class', 'logo'], 'MyApp']]);
 
 function PageHeader_render(__anchor, __block) {
 	var header = root_45();
@@ -993,7 +1020,7 @@ function PageHeader_render(__anchor, __block) {
 
 PageHeader[_$_.$r] = PageHeader_render;
 
-var root_47 = _$_.template(`<div class=edit-link><a href=/edit>Edit`);
+var root_47 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit']]);
 
 function consequent_6(__anchor) {
 	var div_36 = root_47();
@@ -1047,7 +1074,7 @@ function LayoutWithSidebarAndMain_render(__anchor, __block) {
 
 LayoutWithSidebarAndMain[_$_.$r] = LayoutWithSidebarAndMain_render;
 
-var root_48 = _$_.template(`<article class=doc-content><div><!>`);
+var root_48 = _$_.template_el('article', ['class', 'doc-content'], [['div', null, [null]]]);
 
 function ArticleWrapper_render(__anchor, __block, { children }) {
 	var article_1 = root_48();
@@ -1079,7 +1106,7 @@ function SimpleFooter_render(__anchor, __block) {
 SimpleFooter[_$_.$r] = SimpleFooter_render;
 
 var root_51 = _$_.template(`<h1>Title</h1><p>Content goes here.`, 1, 2);
-var root_52 = _$_.template(`<div class=edit-link><a href=/edit>Edit`);
+var root_52 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit']]);
 
 function consequent_7(__anchor) {
 	var div_39 = root_52();
@@ -1091,7 +1118,7 @@ function if_8() {
 	if (true) return consequent_7;
 }
 
-var root_53 = _$_.template(`<nav class=prev-next><a href=/prev>Previous`);
+var root_53 = _$_.template_el('nav', ['class', 'prev-next'], [['a', ['href', '/prev'], 'Previous']]);
 
 function consequent_8(__anchor) {
 	var nav_2 = root_53();
@@ -1103,7 +1130,7 @@ function if_9() {
 	if (true) return consequent_8;
 }
 
-var root_50 = _$_.template(`<div class=content-container><!><!><!><!>`);
+var root_50 = _$_.template_el('div', ['class', 'content-container'], [null, null, null, null]);
 
 function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 	var div_38 = root_50();
@@ -1140,7 +1167,7 @@ function ArticleWithChildrenThenSibling_render(__anchor, __block) {
 ArticleWithChildrenThenSibling[_$_.$r] = ArticleWithChildrenThenSibling_render;
 
 var root_55 = _$_.template_el('div', ['class', 'doc-content']);
-var root_56 = _$_.template(`<div class=edit-link><a href=/edit>Edit`);
+var root_56 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit']]);
 
 function consequent_9(__anchor) {
 	var div_42 = root_56();
@@ -1152,7 +1179,7 @@ function if_10() {
 	if (true) return consequent_9;
 }
 
-var root_54 = _$_.template(`<div class=content-container><!><!><!>`);
+var root_54 = _$_.template_el('div', ['class', 'content-container'], [null, null, null]);
 
 function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 	const htmlContent = '<pre><code>const x = 1;</code></pre>';
@@ -1185,7 +1212,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 
 ArticleWithHtmlChildThenSibling[_$_.$r] = ArticleWithHtmlChildThenSibling_render;
 
-var root_58 = _$_.template(`<div class=edit-link><a href=/edit>Edit`);
+var root_58 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit']]);
 
 function consequent_10(__anchor) {
 	var div_45 = root_58();
@@ -1197,7 +1224,9 @@ function if_11() {
 	if (true) return consequent_10;
 }
 
-var root_57 = _$_.template(`<div class=content-container><article class=doc-content><div><!>`);
+var root_57 = _$_.template_el('div', ['class', 'content-container'], [
+	['article', ['class', 'doc-content'], [['div', null, [null]]]]
+]);
 
 function InlineArticleLayout_render(__anchor, __block, { children }) {
 	var div_43 = root_57();
@@ -1280,7 +1309,7 @@ function FooterStub_render(__anchor, __block) {
 
 FooterStub[_$_.$r] = FooterStub_render;
 
-var root_64 = _$_.template(`<div class=edit-link><a href=/edit>Edit on GitHub`);
+var root_64 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit on GitHub']]);
 
 function consequent_11(__anchor, editPath) {
 	var div_53 = root_64();
@@ -1292,7 +1321,7 @@ function if_12(editPath) {
 	if (editPath) return consequent_11;
 }
 
-var root_65 = _$_.template(`<nav class=prev-next><a> `);
+var root_65 = _$_.template_el('nav', ['class', 'prev-next'], [['a', null, ' ']]);
 
 function render_7(__prev) {
 	var __a = __prev._a.href;
@@ -1436,7 +1465,7 @@ function DocsLayoutWithoutData_render(__anchor, __block) {
 
 DocsLayoutWithoutData[_$_.$r] = DocsLayoutWithoutData_render;
 
-var root_69 = _$_.template(`<div class=edit-link><a>Edit on GitHub`);
+var root_69 = _$_.template_el('div', ['class', 'edit-link'], [['a', null, 'Edit on GitHub']]);
 
 function consequent_13(__anchor, editPath) {
 	var div_62 = root_69();
@@ -1454,7 +1483,7 @@ function if_14(editPath) {
 	if (editPath) return consequent_13;
 }
 
-var root_71 = _$_.template(`<a class="pager prev"><span class=title> `);
+var root_71 = _$_.template_el('a', ['class', 'pager prev'], [['span', ['class', 'title'], ' ']]);
 
 function render_8(__prev) {
 	var __a = __prev._a.href;
@@ -1494,7 +1523,7 @@ function if_15(prevLink) {
 	if (prevLink) return consequent_14; else return alternate_1;
 }
 
-var root_73 = _$_.template(`<a class="pager next"><span class=title> `);
+var root_73 = _$_.template_el('a', ['class', 'pager next'], [['span', ['class', 'title'], ' ']]);
 
 function render_9(__prev) {
 	var __a = __prev._a.href;
@@ -1526,7 +1555,7 @@ function if_16(nextLink) {
 	if (nextLink) return consequent_15;
 }
 
-var root_70 = _$_.template(`<nav class=prev-next><!><!>`);
+var root_70 = _$_.template_el('nav', ['class', 'prev-next'], [null, null]);
 
 function consequent_16(__anchor, { a: prevLink, b: nextLink }) {
 	var nav_4 = root_70();
@@ -1566,7 +1595,7 @@ function render_10(__prev) {
 	}
 }
 
-var root_74 = _$_.template(`<div class=aside-content><nav class=outline>`);
+var root_74 = _$_.template_el('div', ['class', 'aside-content'], [['nav', ['class', 'outline']]]);
 
 function consequent_17(__anchor, toc) {
 	var div_63 = root_74();

@@ -5,6 +5,9 @@
   "author": "Dominic Gannaway",
   "version": "0.2.3",
   "type": "module",
+  "scripts": {
+    "generate:dom-setters": "node scripts/generate-dom-setters.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ripple-TS/ripple.git",

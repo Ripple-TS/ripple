@@ -2,7 +2,7 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template_el('div', ['class', 'portal-content'], 'Portal content');
-var root = _$_.template(`<div class=container><h1>Main Content`);
+var root = _$_.template_el('div', ['class', 'container'], [['h1', null, 'Main Content']]);
 
 function SimplePortal_render(__anchor, __block) {
 	var div = root();
@@ -39,7 +39,7 @@ function if_1(show) {
 	if (show.value) return consequent;
 }
 
-var root_2 = _$_.template(`<div class=container><button class=toggle>Toggle`);
+var root_2 = _$_.template_el('div', ['class', 'container'], [['button', ['class', 'toggle'], 'Toggle']]);
 
 function render(__prev) {
 	var __a = if_1(__prev._a);
@@ -71,7 +71,11 @@ function ConditionalPortal_render(__anchor, __block) {
 ConditionalPortal[_$_.$r] = ConditionalPortal_render;
 
 var root_5 = _$_.template_el('div', ['class', 'portal-content'], 'Modal content');
-var root_4 = _$_.template(`<div><div class=main-content>Main page content</div><div class=footer>Footer`);
+
+var root_4 = _$_.template_el('div', null, [
+	['div', ['class', 'main-content'], 'Main page content'],
+	['div', ['class', 'footer'], 'Footer']
+]);
 
 function PortalWithMainContent_render(__anchor, __block) {
 	var div_4 = root_4();
@@ -95,7 +99,14 @@ function PortalWithMainContent_render(__anchor, __block) {
 PortalWithMainContent[_$_.$r] = PortalWithMainContent_render;
 
 var root_7 = _$_.template_el('div', ['class', 'portal-content'], 'Portal content');
-var root_6 = _$_.template(`<div class=outer><div class=inner><span>Nested content`);
+
+var root_6 = _$_.template_el('div', ['class', 'outer'], [
+	[
+		'div',
+		['class', 'inner'],
+		[['span', null, 'Nested content']]
+	]
+]);
 
 function NestedContentWithPortal_render(__anchor, __block) {
 	var div_7 = root_6();

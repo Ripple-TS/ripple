@@ -40,6 +40,7 @@ const IF_ROOT_CONTROLLED = 1;
 const IF_TRACKED = 1 << 1;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
 import { has_text_type_fact } from '../../text-type-facts.js';
+import { HTML_ELEMENT_SETTERS, HTML_TAG_SETTERS } from '../../dom-setters.js';
 import path from 'node:path';
 import { print } from 'esrap';
 import tsx from 'esrap/languages/tsx';
@@ -4164,9 +4165,11 @@ const visitors = {
 										),
 								});
 							} else {
+								const kind = attribute_kind(element_name, attribute, state);
 								// A value proved to be a string is never removed and never
-								// a property: the DOM call goes straight to the element.
-								const direct = is_string_expression(attr_value, state);
+								// a property: the DOM call goes straight to the element. So
+								// is a primitive on a name that is not a property.
+								const direct = is_direct_attribute_value(attribute, attr_value, state, kind);
 								local_updates.push({
 									operation: (key) =>
 										b.stmt(
@@ -4176,7 +4179,7 @@ const visitors = {
 														b.literal(attribute),
 														/** @type {AST.Expression} */ (key),
 													)
-												: b.call('_$_.set_attribute', id, b.literal(attribute), key),
+												: b.call(attribute_helper(kind), id, b.literal(attribute), key),
 										),
 									expression,
 									identity: attr_value,
@@ -4196,20 +4199,23 @@ const visitors = {
 										),
 									),
 								);
-							} else if (is_string_expression(attr_value, state)) {
-								state.init?.push(
-									b.stmt(
-										b.call(
-											b.member(/** @type {AST.Identifier} */ (id), 'setAttribute'),
-											b.literal(name),
-											expression,
-										),
-									),
-								);
 							} else {
-								state.init?.push(
-									b.stmt(b.call('_$_.set_attribute', id, b.literal(name), expression)),
-								);
+								const kind = attribute_kind(element_name, name, state);
+								if (is_direct_attribute_value(name, attr_value, state, kind)) {
+									state.init?.push(
+										b.stmt(
+											b.call(
+												b.member(/** @type {AST.Identifier} */ (id), 'setAttribute'),
+												b.literal(name),
+												expression,
+											),
+										),
+									);
+								} else {
+									state.init?.push(
+										b.stmt(b.call(attribute_helper(kind), id, b.literal(name), expression)),
+									);
+								}
 							}
 						}
 					}
@@ -5146,15 +5152,25 @@ function strip_trailing_end_tags(items) {
 }
 
 /**
- * Elements the HTML parser does not create as written: raw-text and
- * escapable-raw-text content (their end tags are kept, so they never match),
- * a dropped leading newline (`pre`, `listing`, `textarea`), template contents,
- * document structure, foreign roots, and `image` (parsed as `img`).
+ * Elements the HTML parser does not create as written, so a template holding
+ * one is parsed: raw-text and escapable-raw-text content, `noscript` (raw
+ * text while scripting is on), a dropped leading newline (`pre`, `listing`,
+ * `textarea`), template contents, document structure, foreign roots, and
+ * `image` (parsed as `img`).
  */
-const NON_FLAT_TAGS = new Set([
+const PARSED_TAGS = new Set([
+	'script',
+	'style',
+	'title',
+	'textarea',
+	'xmp',
+	'iframe',
+	'noembed',
+	'noframes',
+	'plaintext',
+	'noscript',
 	'pre',
 	'listing',
-	'textarea',
 	'template',
 	'html',
 	'head',
@@ -5167,15 +5183,77 @@ const NON_FLAT_TAGS = new Set([
 ]);
 
 /**
- * Elements whose text the HTML parser foster-parents out of the element
- * (`<table>text</table>` puts the text before the table) unless it is all
- * whitespace, which is inserted as written.
+ * Elements whose children the parser rearranges: the table model (an
+ * implied `tbody`, text foster-parented out unless it is all whitespace,
+ * which is inserted as written), `select` and its options (children are
+ * filtered, options close each other), and ruby annotations (implied end
+ * tags). Built only as a leaf, with text the parser keeps in place.
  */
+const LEAF_ONLY_TAGS = new Set([
+	'table',
+	'caption',
+	'colgroup',
+	'col',
+	'thead',
+	'tbody',
+	'tfoot',
+	'tr',
+	'td',
+	'th',
+	'select',
+	'option',
+	'optgroup',
+	'rb',
+	'rt',
+	'rtc',
+	'rp',
+]);
+
+/** Text the parser foster-parents out of these unless it is whitespace. */
 const TABLE_MODEL_TAGS = new Set(['table', 'thead', 'tbody', 'tfoot', 'tr', 'colgroup']);
 
-const FLAT_TEMPLATE =
-	/^<([a-z][a-z0-9]*)((?: [a-z][a-z0-9-]*(?:=(?:[^\s"'<>=`&]+|"[^"<]*"))?)*)>([^<\r\0]*)$/;
-const FLAT_ATTRIBUTE = / ([a-z][a-z0-9-]*)(?:=("[^"]*"|[^\s"]+))?/g;
+/**
+ * Start tags that close an open ancestor the parser has in list-item scope,
+ * at any depth, so the tree written is not the tree the parser builds. The
+ * other such nestings (`p`, `a`, `button`, `form`, headings) are compile
+ * errors before a template is built.
+ * @type {Map<string, Set<string>>}
+ */
+const CLOSED_BY_DESCENDANT = new Map([
+	['li', new Set(['li'])],
+	['dt', new Set(['dt', 'dd'])],
+	['dd', new Set(['dt', 'dd'])],
+	['nobr', new Set(['nobr'])],
+]);
+
+/**
+ * Elements that may fetch a resource from an attribute as soon as it is set,
+ * even while detached: a template holding one builds its master in the inert
+ * template document, as a parse would (`template_el` in the client runtime).
+ */
+const RESOURCE_TAGS = new Set([
+	'img',
+	'picture',
+	'source',
+	'track',
+	'video',
+	'audio',
+	'iframe',
+	'embed',
+	'object',
+	'input',
+	'link',
+	'base',
+	'frame',
+]);
+
+/** Past this many nodes a parse is the cheaper way to build a template. */
+const DOM_BUILT_MAX_NODES = 8;
+
+const START_TAG = /<([a-z][a-z0-9]*)((?: [a-z][a-z0-9-]*(?:=(?:[^\s"'<>=`&]+|"[^"<]*"))?)*)>/y;
+const END_TAG = /<\/([a-z][a-z0-9]*)>/y;
+const TEXT = /[^<]+/y;
+const STATIC_ATTRIBUTE = / ([a-z][a-z0-9-]*)(?:=("[^"]*"|[^\s"]+))?/g;
 const STATIC_ENTITY = /&(amp|lt|quot);/g;
 
 /**
@@ -5190,17 +5268,28 @@ function decode_static_html(text) {
 }
 
 /**
- * A static HTML template that is exactly one element with static attributes
- * and at most one text child, as `{ tag, attributes, text }`, or `null`:
- * such a template is built with DOM calls instead of parsed (see
- * `template_el` in the client runtime). Attribute names stay lowercase ASCII
- * and namespace-free so `setAttribute` matches the parser; `is` would need
- * `createElement` to know about it; a custom element (a hyphenated tag) is
- * only upgraded when the template is parsed in the inert document.
- * @param {(string | AST.Expression)[]} items
- * @returns {{ tag: string, attributes: string[], text: string } | null}
+ * @typedef {{ tag: string, attributes: string[], children: string | DomBuiltChild[] }} DomBuiltElement
+ * @typedef {DomBuiltElement | string | null} DomBuiltChild
+ * @typedef {{ root: DomBuiltElement, inert: boolean }} DomBuiltTemplate
  */
-function flat_element_template(items) {
+
+/**
+ * A static HTML template of one element with static attributes and at most
+ * a few nested elements, text nodes and placeholder comments, as a tree, or
+ * `null`: such a template is built with DOM calls instead of parsed (see
+ * `template_el` in the client runtime). Every node must come out exactly as
+ * the parser would create it, so the tree is refused when a tag is parsed
+ * specially (`PARSED_TAGS`, `LEAF_ONLY_TAGS`), a start tag would close an open ancestor
+ * (`CLOSED_BY_DESCENDANT`), or the content holds a character the parser
+ * rewrites. Attribute names stay lowercase ASCII and namespace-free so
+ * `setAttribute` matches the parser, and the parser keeps the first of two
+ * same-named attributes; `is` would need `createElement` to know about it;
+ * a custom element (a hyphenated tag) is only upgraded when the template is
+ * parsed in the inert document.
+ * @param {(string | AST.Expression)[]} items
+ * @returns {DomBuiltTemplate | null}
+ */
+function dom_built_template(items) {
 	let content = '';
 	for (const item of items) {
 		if (typeof item === 'string') {
@@ -5213,20 +5302,188 @@ function flat_element_template(items) {
 			return null;
 		}
 	}
-	const match = FLAT_TEMPLATE.exec(content);
-	if (match === null) return null;
-	const tag = match[1];
-	if (NON_FLAT_TAGS.has(tag)) return null;
-	if (TABLE_MODEL_TAGS.has(tag) && match[3].trim() !== '') return null;
+	// A carriage return is normalized and a NUL replaced before the tree is built.
+	if (/[\r\0]/.test(content)) return null;
+
+	let pos = 0;
+	let nodes = 0;
+	let inert = false;
 	/** @type {string[]} */
-	const attributes = [];
-	for (const attribute of match[2].matchAll(FLAT_ATTRIBUTE)) {
-		const name = attribute[1];
-		if (name === 'is') return null;
-		const value = attribute[2] ?? '';
-		attributes.push(name, decode_static_html(value.startsWith('"') ? value.slice(1, -1) : value));
+	const open = [];
+
+	/** @returns {DomBuiltElement | null} */
+	const parse_element = () => {
+		START_TAG.lastIndex = pos;
+		const match = START_TAG.exec(content);
+		if (match === null) return null;
+		const tag = match[1];
+		if (PARSED_TAGS.has(tag) || ++nodes > DOM_BUILT_MAX_NODES) return null;
+		if (RESOURCE_TAGS.has(tag)) inert = true;
+		for (const ancestor of open) {
+			if (CLOSED_BY_DESCENDANT.get(ancestor)?.has(tag)) return null;
+		}
+		/** @type {string[]} */
+		const attributes = [];
+		/** @type {Set<string>} */
+		const names = new Set();
+		for (const attribute of match[2].matchAll(STATIC_ATTRIBUTE)) {
+			const name = attribute[1];
+			if (name === 'is' || names.has(name)) return null;
+			names.add(name);
+			const value = attribute[2] ?? '';
+			attributes.push(name, decode_static_html(value.startsWith('"') ? value.slice(1, -1) : value));
+		}
+		pos = START_TAG.lastIndex;
+		if (is_void_element(tag)) {
+			return { tag, attributes, children: '' };
+		}
+		open.push(tag);
+		/** @type {DomBuiltChild[]} */
+		const children = [];
+		while (pos < content.length) {
+			if (content.startsWith('</', pos)) {
+				END_TAG.lastIndex = pos;
+				const end = END_TAG.exec(content);
+				if (end === null || end[1] !== tag) return null;
+				pos = END_TAG.lastIndex;
+				break;
+			}
+			if (content.startsWith('<!>', pos)) {
+				if (++nodes > DOM_BUILT_MAX_NODES) return null;
+				children.push(null);
+				pos += 3;
+			} else if (content.charCodeAt(pos) === 60 /* < */) {
+				const child = parse_element();
+				if (child === null) return null;
+				children.push(child);
+			} else {
+				TEXT.lastIndex = pos;
+				const text = /** @type {RegExpExecArray} */ (TEXT.exec(content));
+				if (++nodes > DOM_BUILT_MAX_NODES) return null;
+				children.push(decode_static_html(text[0]));
+				pos = TEXT.lastIndex;
+			}
+		}
+		open.pop();
+		// One text child is written through `textContent`.
+		const text = children.length === 1 && typeof children[0] === 'string' ? children[0] : null;
+		if (LEAF_ONLY_TAGS.has(tag)) {
+			if (children.length > 0 && text === null) return null;
+			if (TABLE_MODEL_TAGS.has(tag) && text !== null && text.trim() !== '') return null;
+		}
+		return { tag, attributes, children: text ?? children };
+	};
+
+	const root = parse_element();
+	return root !== null && pos === content.length ? { root, inert } : null;
+}
+
+/**
+ * The `tag, attributes, children` arguments of a DOM-built element, trailing
+ * absences left out unless `inert` follows them.
+ * @param {DomBuiltElement} element
+ * @param {boolean} [inert]
+ * @returns {AST.Expression[]}
+ */
+function dom_built_arguments(element, inert = false) {
+	const { tag, attributes, children } = element;
+	/** @type {AST.Expression[]} */
+	const args = [b.literal(tag)];
+	const has_children = typeof children === 'string' ? children !== '' : children.length > 0;
+	if (attributes.length > 0 || has_children || inert) {
+		args.push(
+			attributes.length > 0
+				? b.array(attributes.map((value) => b.literal(value)))
+				: b.literal(null),
+		);
 	}
-	return { tag, attributes, text: decode_static_html(match[3]) };
+	if (has_children || inert) {
+		args.push(
+			typeof children === 'string'
+				? b.literal(children)
+				: b.array(
+						children.map((child) =>
+							child === null
+								? b.literal(null)
+								: typeof child === 'string'
+									? b.literal(child)
+									: b.array(dom_built_arguments(child)),
+						),
+					),
+		);
+	}
+	if (inert) {
+		args.push(b.literal(1));
+	}
+	return args;
+}
+
+/**
+ * How a non-event attribute of an element is written: `'property'` for a
+ * settable property of the element per Web IDL (`dom-setters.js`), so a
+ * non-string value is assigned; `'attribute'` for any other name of an HTML
+ * element, written with `setAttribute` alone; `null` when only the runtime
+ * can tell (a custom element, a tag that is also an SVG or MathML element,
+ * namespaced content), which keeps `set_attribute` and its setter walk. An
+ * unlisted HTML tag is an `HTMLUnknownElement`, with `HTMLElement`'s setters.
+ * @param {string} element_name
+ * @param {string} name
+ * @param {TransformClientState} state
+ * @returns {'property' | 'attribute' | null}
+ */
+function attribute_kind(element_name, name, state) {
+	if (
+		state.namespace !== 'html' ||
+		element_name.includes('-') ||
+		isSvgTagName(element_name) ||
+		isMathmlTagName(element_name)
+	) {
+		return null;
+	}
+	return HTML_ELEMENT_SETTERS.has(name) || HTML_TAG_SETTERS[element_name]?.includes(name)
+		? 'property'
+		: 'attribute';
+}
+
+/**
+ * The runtime helper that writes an attribute of the given kind (see
+ * {@link attribute_kind}).
+ * @param {'property' | 'attribute' | null} kind
+ * @returns {string}
+ */
+function attribute_helper(kind) {
+	return kind === 'property'
+		? '_$_.set_property_value'
+		: kind === 'attribute'
+			? '_$_.set_attribute_value'
+			: '_$_.set_attribute';
+}
+
+/**
+ * Whether an attribute value can be written with `setAttribute` alone: a
+ * string (never removed, never a property), or on a name that is not a
+ * property (`kind`, or a `data-` or `aria-` name of any element), a value
+ * the checker proved to be a primitive (a string, number or bigint, never
+ * `null` or `undefined`).
+ * @param {string} name
+ * @param {AST.Node} node
+ * @param {TransformClientState} state
+ * @param {'property' | 'attribute' | null} kind
+ * @returns {boolean}
+ */
+function is_direct_attribute_value(name, node, state, kind) {
+	if (is_string_expression(node, state)) return true;
+	if (kind !== 'attribute' && !(name.startsWith('data-') || name.startsWith('aria-'))) return false;
+	while (
+		node.type === 'JSXExpressionContainer' ||
+		node.type === 'TSAsExpression' ||
+		node.type === 'TSNonNullExpression' ||
+		node.type === 'TSSatisfiesExpression' ||
+		node.type === 'TSTypeAssertion'
+	) {
+		node = /** @type {any} */ (node).expression;
+	}
+	return has_text_type_fact(/** @type {AST.Expression} */ (node), state.scope, false);
 }
 
 /**
@@ -7752,25 +8009,13 @@ function transform_children(children, context) {
 		);
 		const template_items =
 			template_namespace === 'html' ? strip_trailing_end_tags(template_array) : template_array;
-		const flat = flags === 0 ? flat_element_template(template_items) : null;
+		const built = flags === 0 ? dom_built_template(template_items) : null;
 		/** @type {AST.CallExpression} */
 		let template_call;
-		if (flat !== null) {
-			// One element with static attributes and at most a text child is
-			// built with DOM calls; a parse would cost more than the element.
-			/** @type {AST.Expression[]} */
-			const template_args = [b.literal(flat.tag)];
-			if (flat.attributes.length > 0 || flat.text !== '') {
-				template_args.push(
-					flat.attributes.length > 0
-						? b.array(flat.attributes.map((value) => b.literal(value)))
-						: b.literal(null),
-				);
-			}
-			if (flat.text !== '') {
-				template_args.push(b.literal(flat.text));
-			}
-			template_call = b.call('_$_.template_el', ...template_args);
+		if (built !== null) {
+			// A few static elements are built with DOM calls; a parse would
+			// cost more than the elements.
+			template_call = b.call('_$_.template_el', ...dom_built_arguments(built.root, built.inert));
 		} else {
 			/** @type {AST.Expression[]} */
 			const template_args = [join_template(template_items)];

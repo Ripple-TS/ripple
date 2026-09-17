@@ -22,7 +22,7 @@ function TrackedState_render(__anchor, __block) {
 
 TrackedState[_$_.$r] = TrackedState_render;
 
-var root_1 = _$_.template(`<div><span class=count> `);
+var root_1 = _$_.template_el('div', null, [['span', ['class', 'count'], ' ']]);
 
 function CounterWithInitial_render(__anchor, __block, props) {
 	const count = _$_.track(props.initial, __block, '133ubs');
@@ -70,7 +70,11 @@ function ComputedValues_render(__anchor, __block) {
 
 ComputedValues[_$_.$r] = ComputedValues_render;
 
-var root_3 = _$_.template(`<div class=multiple-tracked><div class=x></div><div class=y></div><div class=z>`);
+var root_3 = _$_.template_el('div', ['class', 'multiple-tracked'], [
+	['div', ['class', 'x']],
+	['div', ['class', 'y']],
+	['div', ['class', 'z']]
+]);
 
 function render_1(__prev) {
 	var __a = __prev._a.value;

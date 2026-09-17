@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=layout><!>`);
+var root = _$_.template_el('div', ['class', 'layout'], [null]);
 
 function Layout_render(__anchor, __block, { children }) {
 	var div = root();
@@ -18,7 +18,7 @@ function Layout_render(__anchor, __block, { children }) {
 
 Layout[_$_.$r] = Layout_render;
 
-var root_1 = _$_.template(`<div class=layout>before<!>after`);
+var root_1 = _$_.template_el('div', ['class', 'layout'], ['before', null, 'after']);
 
 function TextWrappedLayout_render(__anchor, __block, { children }) {
 	var div_1 = root_1();

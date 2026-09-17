@@ -1,7 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div><button class=increment>Increment</button><span class=count>`);
+var root = _$_.template_el('div', null, [
+	['button', ['class', 'increment'], 'Increment'],
+	['span', ['class', 'count']]
+]);
 
 function render(__prev) {
 	var __a = __prev._a.value;
@@ -32,7 +35,11 @@ function ClickCounter_render(__anchor, __block) {
 
 ClickCounter[_$_.$r] = ClickCounter_render;
 
-var root_1 = _$_.template(`<div><button class=decrement>-</button><span class=count></span><button class=increment>+`);
+var root_1 = _$_.template_el('div', null, [
+	['button', ['class', 'decrement'], '-'],
+	['span', ['class', 'count']],
+	['button', ['class', 'increment'], '+']
+]);
 
 function render_1(__prev) {
 	var __a = __prev._a.value;
@@ -68,7 +75,11 @@ function IncrementDecrement_render(__anchor, __block) {
 
 IncrementDecrement[_$_.$r] = IncrementDecrement_render;
 
-var root_2 = _$_.template(`<div><button class=target>Target</button><span class=clicks></span><span class=hovers>`);
+var root_2 = _$_.template_el('div', null, [
+	['button', ['class', 'target'], 'Target'],
+	['span', ['class', 'clicks']],
+	['span', ['class', 'hovers']]
+]);
 
 function render_2(__prev) {
 	var __a = __prev._a.value;
@@ -112,7 +123,11 @@ function MultipleEvents_render(__anchor, __block) {
 
 MultipleEvents[_$_.$r] = MultipleEvents_render;
 
-var root_3 = _$_.template(`<div><button class=btn>Click</button><span class=count></span><span class=action> `);
+var root_3 = _$_.template_el('div', null, [
+	['button', ['class', 'btn'], 'Click'],
+	['span', ['class', 'count']],
+	['span', ['class', 'action'], ' ']
+]);
 
 function render_3(__prev) {
 	var __a = __prev._a.value;
@@ -156,7 +171,7 @@ function MultiStateUpdate_render(__anchor, __block) {
 
 MultiStateUpdate[_$_.$r] = MultiStateUpdate_render;
 
-var root_4 = _$_.template(`<div><button class=toggle>`);
+var root_4 = _$_.template_el('div', null, [['button', ['class', 'toggle']]]);
 
 function render_4(__prev) {
 	var __a = __prev._a.value ? 'ON' : 'OFF';
@@ -206,7 +221,7 @@ function ChildButton_render(__anchor, __block, props) {
 
 ChildButton[_$_.$r] = ChildButton_render;
 
-var root_6 = _$_.template(`<div><span class=count>`);
+var root_6 = _$_.template_el('div', null, [['span', ['class', 'count']]]);
 
 function render_6(__prev) {
 	var __a = __prev._a.value;

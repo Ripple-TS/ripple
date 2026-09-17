@@ -153,19 +153,74 @@ export function template(content, flags = 0, count = 1) {
 var inert_document;
 
 /**
- * A template that is one HTML element with static attributes and at most one
- * text child, built with DOM calls instead of parsed: a `<template>` parse
- * has a fixed cost that dwarfs the element itself, and an app's first render
- * pays it once per distinct template. The compiler decides which templates
- * qualify (`template_el` in the client transform); every other shape still
- * parses. The element is created in the inert template document and in the
- * active namespace, as a parsed template would be.
+ * A nested element of a DOM-built template: its tag, attributes and children,
+ * trailing absences left out.
+ * @typedef {[string, (string[] | null)?, (string | TemplateChildren)?]} TemplateElementSpec
+ */
+
+/**
+ * The children of a DOM-built template element in order: a nested element,
+ * a text string, or `null` for a placeholder comment.
+ * @typedef {Array<string | null | TemplateElementSpec>} TemplateChildren
+ */
+
+/**
+ * Builds one element of a DOM-built template, in the inert document and
+ * the active namespace, as a parsed template would create it.
+ * @param {Document} doc
+ * @param {keyof typeof NAMESPACE_URI} ns
+ * @param {string} tag
+ * @param {string[] | null | undefined} attributes
+ * @param {string | TemplateChildren | undefined} children
+ * @returns {Element}
+ */
+function build_template_element(doc, ns, tag, attributes, children) {
+	var node =
+		ns === DEFAULT_NAMESPACE ? doc.createElement(tag) : doc.createElementNS(NAMESPACE_URI[ns], tag);
+	if (attributes != null) {
+		for (var i = 0; i < attributes.length; i += 2) {
+			node.setAttribute(attributes[i], attributes[i + 1]);
+		}
+	}
+	if (children === undefined || typeof children === 'string') {
+		if (children !== undefined && children !== '') {
+			node.textContent = children;
+		}
+	} else {
+		for (var j = 0; j < children.length; j++) {
+			var child = children[j];
+			node.appendChild(
+				child === null
+					? doc.createComment('')
+					: typeof child === 'string'
+						? doc.createTextNode(child)
+						: build_template_element(doc, ns, child[0], child[1], child[2]),
+			);
+		}
+	}
+	return node;
+}
+
+/**
+ * A template of a few HTML elements with static attributes, built with DOM
+ * calls instead of parsed: a `<template>` parse has a fixed cost that dwarfs
+ * the elements themselves, and an app's first render pays it once per
+ * distinct template, plus the parser's own start-up on a fresh page. The
+ * compiler decides which templates qualify (`dom_built_template` in the
+ * client transform); every other shape still parses. The nodes are created
+ * in the active namespace, as a parsed template would be, and in the inert
+ * template document when one of them could load a resource (`inert`), also
+ * as parsed; any other master is built in the document itself, which skips
+ * creating the inert document on a fresh page.
  * @param {string} tag
  * @param {string[] | null} [attributes] - flat name/value pairs
- * @param {string} [text]
+ * @param {string | TemplateChildren} [children] - one text child, or the
+ *   child nodes in order
+ * @param {number} [inert] - 1 when an element could load a resource from an
+ *   attribute the master carries
  * @returns {() => Node}
  */
-export function template_el(tag, attributes = null, text = '') {
+export function template_el(tag, attributes = null, children = '', inert = 0) {
 	/** @type {Element | undefined} */
 	var node;
 	/** @type {string | undefined} */
@@ -177,19 +232,11 @@ export function template_el(tag, attributes = null, text = '') {
 		}
 		var ns = active_namespace;
 		if (node === undefined || node_ns !== ns) {
-			var doc = (inert_document ??= document.createElement('template').content.ownerDocument);
-			node =
-				ns === DEFAULT_NAMESPACE
-					? doc.createElement(tag)
-					: doc.createElementNS(NAMESPACE_URI[ns], tag);
-			if (attributes !== null) {
-				for (var i = 0; i < attributes.length; i += 2) {
-					node.setAttribute(attributes[i], attributes[i + 1]);
-				}
-			}
-			if (text !== '') {
-				node.textContent = text;
-			}
+			var doc =
+				inert === 0
+					? document
+					: (inert_document ??= document.createElement('template').content.ownerDocument);
+			node = build_template_element(doc, ns, tag, attributes, children);
 			node_ns = ns;
 		}
 		var clone = is_firefox ? document.importNode(node, true) : node.cloneNode(true);

@@ -165,3 +165,40 @@ export function set_selected(element, selected) {
 		element.removeAttribute('selected');
 	}
 }
+
+/**
+ * Writes an attribute the compiler proved is not a property of its element
+ * (`dom-setters.js` in the compiler), so no setter is looked for: `null` and
+ * `undefined` remove it.
+ * @param {Element} element
+ * @param {string} attribute
+ * @param {any} value
+ * @returns {void}
+ */
+export function set_attribute_value(element, attribute, value) {
+	if (value == null) {
+		element.removeAttribute(attribute);
+	} else {
+		element.setAttribute(attribute, value);
+	}
+}
+
+/**
+ * Writes a name the compiler proved is a settable property of its element:
+ * a string sets the attribute, any other value the property, and `null` or
+ * `undefined` remove the attribute, as `set_attribute` decides at runtime
+ * after discovering the element's setters.
+ * @param {Element} element
+ * @param {string} attribute
+ * @param {any} value
+ * @returns {void}
+ */
+export function set_property_value(element, attribute, value) {
+	if (value == null) {
+		element.removeAttribute(attribute);
+	} else if (typeof value !== 'string') {
+		/** @type {any} */ (element)[attribute] = value;
+	} else {
+		element.setAttribute(attribute, value);
+	}
+}

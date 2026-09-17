@@ -179,7 +179,11 @@ function AsyncNumericValue_render(__anchor, __block) {
 
 AsyncNumericValue[_$_.$r] = AsyncNumericValue_render;
 
-var root_12 = _$_.template(`<div class=user><span class=name> </span><span class=age> `);
+var root_12 = _$_.template_el('div', ['class', 'user'], [
+	['span', ['class', 'name'], ' '],
+	['span', ['class', 'age'], ' ']
+]);
+
 var root_13 = _$_.template_el('div', ['class', 'loading'], 'loading user...');
 
 function AsyncObjectValue_render(__anchor, __block) {
@@ -223,7 +227,11 @@ function AsyncObjectValue_render(__anchor, __block) {
 
 AsyncObjectValue[_$_.$r] = AsyncObjectValue_render;
 
-var root_14 = _$_.template(`<div class=multi><span class=first> </span><span class=second> `);
+var root_14 = _$_.template_el('div', ['class', 'multi'], [
+	['span', ['class', 'first'], ' '],
+	['span', ['class', 'second'], ' ']
+]);
+
 var root_15 = _$_.template_el('div', ['class', 'loading'], 'loading...');
 
 function AsyncMultipleValues_render(__anchor, __block) {

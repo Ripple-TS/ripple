@@ -80,7 +80,14 @@ export function set_style(element, value, prev = {}) {
 export function set_attribute(element, attribute, value) {
 	if (value == null) {
 		element.removeAttribute(attribute);
-	} else if (typeof value !== 'string' && get_setters(element).includes(attribute)) {
+	} else if (
+		typeof value !== 'string' &&
+		// A `data-` or `aria-` name is never a property: the setter walk it
+		// would trigger reads every descriptor of the element's prototypes.
+		!attribute.startsWith('data-') &&
+		!attribute.startsWith('aria-') &&
+		get_setters(element).includes(attribute)
+	) {
 		/** @type {any} */ (element)[attribute] = value;
 	} else {
 		element.setAttribute(attribute, value);

@@ -284,7 +284,11 @@ function if_8(status) {
 	if (status.value === 'loading') return consequent_7; else if (status.value === 'success') return consequent_8; else return alternate_2;
 }
 
-var root_15 = _$_.template(`<div><button class=success>Success</button><button class=error>Error</button><button class=loading>Loading`);
+var root_15 = _$_.template_el('div', null, [
+	['button', ['class', 'success'], 'Success'],
+	['button', ['class', 'error'], 'Error'],
+	['button', ['class', 'loading'], 'Loading']
+]);
 
 function render_4(__prev) {
 	var __a = if_8(__prev._a);

@@ -1021,7 +1021,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span>a`');
+		expect(code).toContain("_$_.template_el('div', null, [['span', null, 'a']])");
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : _\$_\.append_into\(div\);/,
 		);
@@ -1037,7 +1037,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> `');
+		expect(code).toContain("_$_.template_el('div', null, [['span', null, ' ']])");
 		expect(code).not.toContain('_$_.append_into(');
 		// The client's `node` is the span itself; only hydration steps to it.
 		expect(code).toMatch(
@@ -1054,7 +1054,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><i> </i><span> `');
+		expect(code).toContain("_$_.template_el('div', null, [['i', null, ' '], ['span', null, ' ']])");
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_sibling\(\) : i\.nextSibling;/,
 		);
@@ -1075,7 +1075,9 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> </span><em> `');
+		expect(code).toContain(
+			"_$_.template_el('div', null, [['span', null, ' '], ['em', null, ' ']])",
+		);
 		expect(code).toContain('_$_.if(node, if_1, false, show);');
 		expect(code).toMatch(/_\$_\.for\(\s*node_1,/);
 		expect(code).toMatch(
@@ -1101,7 +1103,7 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		);
-		expect(code).toContain('_$_.template(`<div><span> `');
+		expect(code).toContain("_$_.template_el('div', null, [['span', null, ' ']])");
 		expect(code).toMatch(
 			/var node = _\$_\.hydrating \? _\$_\.hydrate_child\(\) : div\.firstChild;/,
 		);
@@ -1138,14 +1140,14 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 			'App.tsrx',
 			{ mode: 'client' },
 		).code;
-		expect(text).toContain('_$_.template(`<div><!>a`');
+		expect(text).toContain("_$_.template_el('div', null, [null, 'a'])");
 		const dynamic = compile(
 			`function Item() @{ <b>item</b> }
 			function App({ tag }) @{ <div><Item /><{tag}>{'a'}</{tag}></div> }`,
 			'App.tsrx',
 			{ mode: 'client' },
 		).code;
-		expect(dynamic).toContain('<!>');
+		expect(dynamic).toContain("_$_.template_el('div', null, [null, null])");
 	});
 
 	it('@for keyed by the item itself passes no key callback', () => {
@@ -2511,7 +2513,7 @@ describe('@tsrx/ripple fragment children flatten', () => {
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');
-		expect(code).toContain('`<div>ab<span>c</span>d`');
+		expect(code).toContain("_$_.template_el('div', null, ['ab', ['span', null, 'c'], 'd'])");
 		expect(code).not.toContain('<!>');
 		expect(code).not.toContain('_$_.expression');
 
@@ -2525,7 +2527,7 @@ describe('@tsrx/ripple fragment children flatten', () => {
 			}`;
 
 		const { code } = compile(source, 'App.tsrx');
-		expect(code).toContain('`<div>abc<span>d`');
+		expect(code).toContain("_$_.template_el('div', null, ['abc', ['span', null, 'd']])");
 		expect(code).not.toContain('<!>');
 
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -2539,9 +2541,9 @@ describe('@tsrx/ripple fragment children flatten', () => {
 
 		const { code } = compile(source, 'App.tsrx');
 		// The directive anchors directly in the parent template — exactly one
-		// comment anchor, no fragment wrapper expression around it.
+		// placeholder comment, no fragment wrapper expression around it.
 		expect(code).toContain('_$_.if(');
-		expect((code.match(/<!>/g) || []).length).toBe(1);
+		expect(code).toContain("_$_.template_el('div', null, ['a', null, 'z'])");
 		expect(code).not.toContain('_$_.expression(');
 
 		const server = compile(source, 'App.tsrx', { mode: 'server' });

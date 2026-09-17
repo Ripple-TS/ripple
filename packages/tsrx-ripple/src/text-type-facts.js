@@ -79,13 +79,13 @@ export function register_text_type_facts(children, attributes, source, filename,
 		return into;
 	};
 	// A string attribute value is read like a string child: the compiler asks
-	// `has_text_type_fact` for the expression either way.
+	// `has_text_type_fact` for the expression either way. Primitive proofs
+	// the same, with attributes and children kept to their own ranges.
 	const strings = validate(facts.stringChildRanges, child_ranges);
 	validate(facts.stringAttributeRanges ?? [], attribute_ranges, strings);
-	facts_by_root.set(scope.root, {
-		strings,
-		primitives: validate(facts.primitiveTextChildRanges, child_ranges),
-	});
+	const primitives = validate(facts.primitiveTextChildRanges, child_ranges);
+	validate(facts.primitiveAttributeRanges ?? [], attribute_ranges, primitives);
+	facts_by_root.set(scope.root, { strings, primitives });
 }
 
 /**

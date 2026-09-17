@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_1 = _$_.template(`<div class=content><!>`);
+var root_1 = _$_.template_el('div', ['class', 'content'], [null]);
 
 function consequent(__anchor, { a: expanded, b: children }) {
 	var div_2 = root_1();
@@ -20,7 +20,7 @@ function if_1({ a: expanded, b: children }) {
 	if (expanded.value) return consequent;
 }
 
-var root = _$_.template(`<div class=container><div role=button class=header>Toggle`);
+var root = _$_.template_el('div', ['class', 'container'], [['div', ['role', 'button', 'class', 'header'], 'Toggle']]);
 
 function render(__prev) {
 	var __a = if_1({ a: __prev._a, b: __prev._b });
@@ -85,7 +85,10 @@ function TestIfWithChildren_render(__anchor, __block) {
 
 TestIfWithChildren[_$_.$r] = TestIfWithChildren_render;
 
-var root_5 = _$_.template(`<div class=content><span>Static child 1</span><span>Static child 2`);
+var root_5 = _$_.template_el('div', ['class', 'content'], [
+	['span', null, 'Static child 1'],
+	['span', null, 'Static child 2']
+]);
 
 function consequent_1(__anchor, expanded) {
 	var div_6 = root_5();
@@ -97,7 +100,7 @@ function if_2(expanded) {
 	if (expanded.value) return consequent_1;
 }
 
-var root_4 = _$_.template(`<div class=container><div role=button class=header>Toggle`);
+var root_4 = _$_.template_el('div', ['class', 'container'], [['div', ['role', 'button', 'class', 'header'], 'Toggle']]);
 
 function render_1(__prev) {
 	var __a = if_2(__prev._a);
@@ -128,7 +131,7 @@ function IfWithStaticChildren_render(__anchor, __block) {
 
 IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
-var root_7 = _$_.template(`<div class=items><!>`);
+var root_7 = _$_.template_el('div', ['class', 'items'], [null]);
 
 function consequent_2(__anchor, { a: expanded, b: children }) {
 	var div_8 = root_7();
@@ -331,7 +334,17 @@ function if_6(activeTab) {
 	if (activeTab.value === 'code') return consequent_5; else return alternate;
 }
 
-var root_15 = _$_.template(`<div class=tabs><div class=tab-list><button class=tab>Code</button><button class=tab>Preview</button></div><div class=panel><!>`);
+var root_15 = _$_.template_el('div', ['class', 'tabs'], [
+	[
+		'div',
+		['class', 'tab-list'],
+		[
+			['button', ['class', 'tab'], 'Code'],
+			['button', ['class', 'tab'], 'Preview']
+		]
+	],
+	['div', ['class', 'panel'], [null]]
+]);
 
 function render_5(__prev) {
 	var __activeTab_value = __prev._a.value;
@@ -530,7 +543,11 @@ function TrailingChild_render(__anchor, __block) {
 
 TrailingChild[_$_.$r] = TrailingChild_render;
 
-var root_25 = _$_.template(`<div class=wrapper><div class=host></div><button class=toggle>Toggle</button><button class=rotate>Rotate`);
+var root_25 = _$_.template_el('div', ['class', 'wrapper'], [
+	['div', ['class', 'host']],
+	['button', ['class', 'toggle'], 'Toggle'],
+	['button', ['class', 'rotate'], 'Rotate']
+]);
 
 function ComponentChildrenWithControlFlowRoots_render(__anchor, __block) {
 	const on = _$_.track(true, __block, '1vo6ory');

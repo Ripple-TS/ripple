@@ -213,7 +213,10 @@ function ReactiveForLoopRemove_render(__anchor, __block) {
 
 ReactiveForLoopRemove[_$_.$r] = ReactiveForLoopRemove_render;
 
-var root_13 = _$_.template(`<div><span class=value> </span><button class=increment>+`);
+var root_13 = _$_.template_el('div', null, [
+	['span', ['class', 'value'], ' '],
+	['button', ['class', 'increment'], '+']
+]);
 
 function render_1(__prev) {
 	var __a = `item-${__prev._a.value}`;
@@ -376,7 +379,10 @@ function EmptyForLoop_render(__anchor, __block) {
 
 EmptyForLoop[_$_.$r] = EmptyForLoop_render;
 
-var root_20 = _$_.template(`<div><span class=name> </span><span class=role> `);
+var root_20 = _$_.template_el('div', null, [
+	['span', ['class', 'name'], ' '],
+	['span', ['class', 'role'], ' ']
+]);
 
 function render_4(__prev) {
 	var __a = `user-${_$_.get(__prev._a).id}`;
@@ -820,7 +826,12 @@ function render_9(__prev) {
 }
 
 var root_41 = _$_.template_el('div');
-var root_40 = _$_.template(`<div class=nested-for-reactive><button class=add-row>Add Row</button><button class=update-cell>Update Cell</button><div class=grid>`);
+
+var root_40 = _$_.template_el('div', ['class', 'nested-for-reactive'], [
+	['button', ['class', 'add-row'], 'Add Row'],
+	['button', ['class', 'update-cell'], 'Update Cell'],
+	['div', ['class', 'grid']]
+]);
 
 function NestedForLoopReactive_render(__anchor, __block) {
 	const grid = _$_.track([[1, 2], [3, 4]], __block, '197p4tv');
@@ -894,7 +905,7 @@ function NestedForLoopReactive_render(__anchor, __block) {
 NestedForLoopReactive[_$_.$r] = NestedForLoopReactive_render;
 
 var root_46 = _$_.template_el('li', ['class', 'member'], ' ');
-var root_45 = _$_.template(`<div><h3 class=team-name> </h3><ul>`);
+var root_45 = _$_.template_el('div', null, [['h3', ['class', 'team-name'], ' '], ['ul']]);
 
 function render_10(__prev) {
 	var __a = `team-${_$_.get(__prev._a).id}`;
@@ -904,7 +915,7 @@ function render_10(__prev) {
 	}
 }
 
-var root_44 = _$_.template(`<div><h2 class=dept-name> `);
+var root_44 = _$_.template_el('div', null, [['h2', ['class', 'dept-name'], ' ']]);
 
 function render_11(__prev) {
 	var __a = `dept-${_$_.get(__prev._a).id}`;
@@ -1102,7 +1113,7 @@ function render_13(__prev) {
 	var __b = __prev._b.value;
 
 	if (__prev.b !== __b) {
-		_$_.set_attribute(__prev._c, 'data-index', __prev.b = __b);
+		_$_.set_attribute_value(__prev._c, 'data-index', __prev.b = __b);
 	}
 
 	var __c = `item-${__pattern_6.id}`;
@@ -1259,7 +1270,15 @@ function ForLoopItemState_render(__anchor, __block) {
 
 ForLoopItemState[_$_.$r] = ForLoopItemState_render;
 
-var root_57 = _$_.template(`<div><input type=checkbox class=checkbox><span>`);
+var root_57 = _$_.template_el(
+	'div',
+	null,
+	[
+		['input', ['type', 'checkbox', 'class', 'checkbox']],
+		['span']
+	],
+	1
+);
 
 function render_14(__prev) {
 	var __done_value = __prev._a.value;
@@ -1662,7 +1681,12 @@ function ForLoopReverse_render(__anchor, __block) {
 ForLoopReverse[_$_.$r] = ForLoopReverse_render;
 
 var root_78 = _$_.template_el('span', ['class', 'item'], ' ');
-var root_77 = _$_.template(`<div class=wrapper><div class=host><p class=tail>p</p></div><button class=push>Push</button><button class=rotate>Rotate`);
+
+var root_77 = _$_.template_el('div', ['class', 'wrapper'], [
+	['div', ['class', 'host'], [['p', ['class', 'tail'], 'p']]],
+	['button', ['class', 'push'], 'Push'],
+	['button', ['class', 'rotate'], 'Rotate']
+]);
 
 function KeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, '1at4qo4');
@@ -1743,7 +1767,11 @@ function RootKeyedList_render(__anchor, __block, props) {
 
 RootKeyedList[_$_.$r] = RootKeyedList_render;
 
-var root_80 = _$_.template(`<div class=wrapper><div class=host><p class=tail>p</p></div><button class=push>Push</button><button class=rotate>Rotate`);
+var root_80 = _$_.template_el('div', ['class', 'wrapper'], [
+	['div', ['class', 'host'], [['p', ['class', 'tail'], 'p']]],
+	['button', ['class', 'push'], 'Push'],
+	['button', ['class', 'rotate'], 'Rotate']
+]);
 
 function RootKeyedForLoopAppendAndRotate_render(__anchor, __block) {
 	const items = _$_.track([1, 2, 3], __block, 'mdp2e8');

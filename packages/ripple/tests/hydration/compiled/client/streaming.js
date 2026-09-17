@@ -1,7 +1,10 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class=resolved><span class=value></span><button class=inc>inc`);
+var root = _$_.template_el('div', ['class', 'resolved'], [
+	['span', ['class', 'value']],
+	['button', ['class', 'inc'], 'inc']
+]);
 
 function render(__prev) {
 	var __a = __prev._a.value + ':' + __prev._b.value;

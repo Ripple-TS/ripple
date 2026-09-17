@@ -181,6 +181,7 @@ function create_text_type_project({ tsconfig }) {
 			stringChildRanges: [],
 			primitiveTextChildRanges: [],
 			stringAttributeRanges: [],
+			primitiveAttributeRanges: [],
 		};
 		/** @type {[number, number][]} */
 		const strings = [];
@@ -188,6 +189,8 @@ function create_text_type_project({ tsconfig }) {
 		const primitives = [];
 		/** @type {[number, number][]} */
 		const attribute_strings = [];
+		/** @type {[number, number][]} */
+		const attribute_primitives = [];
 		const diagnostics = current.getSyntacticDiagnostics(file);
 		if (!mapped.errors.length && !diagnostics.length) {
 			// Only exact expression mappings qualify. Ambiguous/generated mappings
@@ -231,7 +234,10 @@ function create_text_type_project({ tsconfig }) {
 				if (attribute_keys.has(key)) {
 					const attribute = mapped.attributeExpressions.get(key)?.expression;
 					const attribute_range = attribute && get_text_type_range(attribute);
-					if (attribute_range && is_primitive(type, true)) attribute_strings.push(attribute_range);
+					if (attribute_range) {
+						if (is_primitive(type, true)) attribute_strings.push(attribute_range);
+						else if (is_primitive(type, false)) attribute_primitives.push(attribute_range);
+					}
 					continue;
 				}
 				const expression = mapped.textChildExpressions.get(key)?.expression;
@@ -244,6 +250,7 @@ function create_text_type_project({ tsconfig }) {
 		result.stringChildRanges = strings;
 		result.primitiveTextChildRanges = primitives;
 		result.stringAttributeRanges = attribute_strings;
+		result.primitiveAttributeRanges = attribute_primitives;
 		facts.set(filename, result);
 		return result;
 	}

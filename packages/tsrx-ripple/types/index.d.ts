@@ -38,6 +38,8 @@ export interface TextTypeFacts {
 	primitiveTextChildRanges: readonly (readonly [number, number])[];
 	/** Attribute value expressions proved to be strings. */
 	stringAttributeRanges?: readonly (readonly [number, number])[];
+	/** Attribute value expressions proved to be primitives that are not strings. */
+	primitiveAttributeRanges?: readonly (readonly [number, number])[];
 }
 
 export interface CompileOptions extends CoreCompileOptions {

@@ -18,6 +18,8 @@ export {
 	set_value,
 	set_checked,
 	set_selected,
+	set_attribute_value,
+	set_property_value,
 } from './render.js';
 
 export {

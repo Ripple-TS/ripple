@@ -195,7 +195,7 @@ function if_2({ a: show, b: kind }) {
 	if (show) return consequent_1;
 }
 
-var root_5 = _$_.template(`<div class=if-switch><!>`);
+var root_5 = _$_.template_el('div', ['class', 'if-switch'], [null]);
 
 function IfSwitch_render(__anchor, __block) {
 	const show = true;
@@ -247,7 +247,7 @@ function if_3({ a: show, b: kind }) {
 	if (show) return consequent_2;
 }
 
-var root_8 = _$_.template(`<div class=if-switch-hidden><p class=after>after`);
+var root_8 = _$_.template_el('div', ['class', 'if-switch-hidden'], [['p', ['class', 'after'], 'after']]);
 
 function IfSwitchHidden_render(__anchor, __block) {
 	const show = false;
@@ -631,7 +631,7 @@ function switch_7(kind) {
 	}
 }
 
-var root_20 = _$_.template(`<div class=switch-try><!>`);
+var root_20 = _$_.template_el('div', ['class', 'switch-try'], [null]);
 
 function SwitchTry_render(__anchor, __block) {
 	const kind = 'a';

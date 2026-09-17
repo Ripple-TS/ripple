@@ -15,7 +15,7 @@ function client(template, setup = '') {
 	return code;
 }
 
-describe('@tsrx/ripple flat element templates', () => {
+describe('@tsrx/ripple DOM-built templates', () => {
 	it('builds one element with static attributes and a text child with DOM calls', () => {
 		const code = client('<div class="c">99</div>');
 		expect(code).toContain("_$_.template_el('div', ['class', 'c'], '99')");
@@ -25,7 +25,18 @@ describe('@tsrx/ripple flat element templates', () => {
 	it('omits absent attributes and text', () => {
 		expect(client('<br />')).toContain("_$_.template_el('br')");
 		expect(client('<span>x</span>')).toContain("_$_.template_el('span', null, 'x')");
-		expect(client('<input type="text" />')).toContain("_$_.template_el('input', ['type', 'text'])");
+		expect(client('<input type="text" />')).toContain(
+			"_$_.template_el('input', ['type', 'text'], '', 1)",
+		);
+	});
+
+	it('flags a tree holding an element that could load a resource', () => {
+		expect(client('<figure><img src="a.png" /><figcaption>a</figcaption></figure>')).toContain(
+			"_$_.template_el('figure', null, [['img', ['src', 'a.png']], ['figcaption', null, 'a']], 1)",
+		);
+		expect(client('<div class="c">x</div>')).toContain(
+			"_$_.template_el('div', ['class', 'c'], 'x')",
+		);
 	});
 
 	it('keeps the text placeholder of an expression child', () => {
@@ -52,9 +63,30 @@ describe('@tsrx/ripple flat element templates', () => {
 		);
 	});
 
+	it('builds nested elements, text nodes and placeholder comments', () => {
+		expect(client('<div><span>a</span></div>')).toContain(
+			"_$_.template_el('div', null, [['span', null, 'a']])",
+		);
+		expect(client('<div class="c"><span class="s">a</span><b></b></div>')).toContain(
+			"_$_.template_el('div', ['class', 'c'], [['span', ['class', 's'], 'a'], ['b']])",
+		);
+		expect(client('<div>{props.a}<b>x</b></div>')).toContain(
+			"_$_.template_el('div', null, [null, ['b', null, 'x']])",
+		);
+		expect(client('<ul><li>a<br />b</li></ul>')).toContain(
+			"_$_.template_el('ul', null, [['li', null, ['a', ['br'], 'b']]])",
+		);
+		expect(client('<p>a <em>b</em> c</p>')).toContain(
+			"_$_.template_el('p', null, ['a ', ['em', null, 'b'], ' c'])",
+		);
+	});
+
 	it.each([
-		['nested elements', '<div><span>a</span></div>'],
-		['a placeholder comment', '<div>{props.a}<b>x</b></div>'],
+		['more than eight nodes', '<div><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div>'],
+		['a list item inside a list item', '<li><span><li>x</li></span></li>'],
+		['a description inside a description', '<dt><b><dd>x</dd></b></dt>'],
+		['a table body', '<tbody><tr><td>x</td></tr></tbody>'],
+		['a select', '<select><option>x</option></select>'],
 		['a fragment root', '<><div>a</div><div>b</div></>'],
 		['a dropped leading newline', '<pre>\n  code</pre>'],
 		['a raw text element', '<textarea>hello</textarea>'],
@@ -71,7 +103,7 @@ describe('@tsrx/ripple flat element templates', () => {
 
 	it('builds an image with its source, which the runtime creates in the inert document', () => {
 		expect(client('<img src="/logo.png" alt="Logo" />')).toContain(
-			"_$_.template_el('img', ['src', '/logo.png', 'alt', 'Logo'])",
+			"_$_.template_el('img', ['src', '/logo.png', 'alt', 'Logo'], '', 1)",
 		);
 	});
 

@@ -113,7 +113,7 @@ describe('trailing control flow appending into its parent', () => {
 		// The list is followed by the if, so it keeps its placeholder; the if
 		// is last and appends into the div, as its tail: it never needs an
 		// anchor of its own.
-		expect(code).toContain('_$_.template(`<div><b>head</b><!>`');
+		expect(code).toContain("_$_.template_el('div', null, [['b', null, 'head'], null])");
 		expect(code).toContain('_$_.append_into(div, true)');
 	});
 
@@ -157,7 +157,7 @@ describe('trailing control flow appending into its parent', () => {
 			}
 		`);
 
-		expect(code).toContain('_$_.template(`<div><b>head</b><!>`');
+		expect(code).toContain("_$_.template_el('div', null, [['b', null, 'head'], null])");
 	});
 });
 
