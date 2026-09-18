@@ -1,5 +1,17 @@
 # ripple
 
+## 0.4.6
+
+### Patch Changes
+
+- [#1501](https://github.com/Ripple-TS/ripple/pull/1501)
+  [`fa676f4`](https://github.com/Ripple-TS/ripple/commit/fa676f48da58f6fa0cc969013b3eae0722fa5d52)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update devalue to 5.9.4 and
+  refresh the patched `stringify` fast paths to the current state of
+  sveltejs/devalue#190: error paths are recorded without per-entry work, Map
+  entries no longer allocate, quoted property names are cached, and the `tagOf`
+  shortcut is gone.
+
 ## 0.4.5
 
 ### Patch Changes

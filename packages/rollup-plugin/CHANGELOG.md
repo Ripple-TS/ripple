@@ -1,5 +1,16 @@
 # @ripple-ts/rollup-plugin
 
+## 0.4.6
+
+### Patch Changes
+
+- [#1499](https://github.com/Ripple-TS/ripple/pull/1499)
+  [`cd1995e`](https://github.com/Ripple-TS/ripple/commit/cd1995e8a10c0b422c03a0e344efd648e6175f67)
+  Thanks [@Dev-next-gen](https://github.com/Dev-next-gen)! - Pass
+  `compilerOptions` to the compiler instead of the raw file id. This fixes a
+  `TypeError` when compiling `.tsrx` files and ensures options such as `mode`,
+  `dev`, `hmr`, and `hydration` are respected.
+
 ## 0.4.5
 
 ### Patch Changes
