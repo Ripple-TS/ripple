@@ -585,29 +585,71 @@ Use `new Context(defaultValue?)`, `set(value)`, and `get()` to share state throu
 the component tree. Set a tracked object so consumers see updates; set a derived
 (`track(() => theme.value)`) when consumers should only read it.
 
-```tsrx
-import { Context, track, type Tracked } from 'ripple';
+Export one context instance from a shared module and import it in providers and
+consumers. Each `new Context()` creates a separate context, even if the type or
+default value matches. A shared module avoids circular imports between components.
 
-const ThemeContext = new Context<Tracked<string>>();
+```ts
+// theme-context.ts
+import { Context, type Tracked } from 'ripple';
+
+export const ThemeContext = new Context<Tracked<string>>();
+```
+
+```tsrx
+// App.tsrx
+import { track } from 'ripple';
+import { ThemeContext } from './theme-context';
+import { Button } from './Button.tsrx';
 
 export function App() @{
 	const theme = track('light');
 	ThemeContext.set(theme);
 
 	<>
-		<ThemeLabel />
-		<button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
-			Toggle theme
-		</button>
+		<p>Theme in App: {theme.value}</p>
+		<Button />
 	</>
 }
+```
 
-function ThemeLabel() @{
+```tsrx
+// Button.tsrx
+import { ThemeContext } from './theme-context';
+
+export function Button() @{
 	const theme = ThemeContext.get();
 
-	<p>Theme: {theme.value}</p>
+	<button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
+		Toggle theme: {theme.value}
+	</button>
 }
 ```
+
+Both components share the tracked value: the button updates `.value`, and both
+displays update. Call `.set()` and `.get()` during component initialization, not
+at module scope or inside event handlers. A child's `.set()` provides an override
+for its descendants; it does not update the value held by ancestors. Reactive
+reads of `.value` subscribe to updates; importing or passing the context alone
+does not subscribe a component.
+
+Alternatively, keep the provider setup in `App` and pass the same instance with
+`<Button context={ThemeContext} />`. The component in `Button.tsrx` can then use:
+
+```tsrx
+import type { Context, Tracked } from 'ripple';
+
+export function Button({ context }: { context: Context<Tracked<string>> }) @{
+	const theme = context.get();
+
+	<button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
+		Toggle theme: {theme.value}
+	</button>
+}
+```
+
+Context lookup follows component ancestry, including when the instance is passed
+as a prop. File boundaries do not change which provider a component reads.
 
 ## Portals
 

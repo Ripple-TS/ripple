@@ -101,6 +101,11 @@ pnpm rules:generate
   children lists with blocks are nested scopes. Assign a block to a variable for a
   theme (`theme.$class`, `<style apply={theme} />`) or class map; raw CSS in a
   `<style>` inside a plain `return <div />` function is an error.
+- Share context across files by exporting one `Context` instance from a shared
+  module and importing it in providers and consumers, or passing the same instance
+  as a prop. Call `.set()` and `.get()` during component initialization; event
+  handlers can mutate the returned tracked values. See
+  `website/docs/guide/state-management.md` for examples.
 - Use `pnpm` for all package management and workspace scripts.
 - Follow the conventions of the package you are changing. This repo mixes plain
   JavaScript, JSDoc-typed JavaScript, and TypeScript depending on package.

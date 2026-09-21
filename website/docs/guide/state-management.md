@@ -94,3 +94,80 @@ export function Parent() {
 ```
 
 </Code>
+
+### Sharing context across files
+
+Create and export a context instance from a shared module, then import that same
+instance in the components that provide or consume it. Each `new Context()`
+creates a separate context, even if its type or default value is the same.
+Keeping the instance in a shared module also avoids circular imports between
+components.
+
+```ts
+// theme-context.ts
+import { Context, type Tracked } from 'ripple';
+
+export const ThemeContext = new Context<Tracked<string>>();
+```
+
+```tsrx
+// App.tsrx
+import { track } from 'ripple';
+import { ThemeContext } from './theme-context';
+import { Button } from './Button.tsrx';
+
+export function App() @{
+  const theme = track('light');
+  ThemeContext.set(theme);
+
+  <>
+    <p>Theme in App: {theme.value}</p>
+    <Button />
+  </>
+}
+```
+
+```tsrx
+// Button.tsrx
+import { ThemeContext } from './theme-context';
+
+export function Button() @{
+  const theme = ThemeContext.get();
+
+  <button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
+    Toggle theme: {theme.value}
+  </button>
+}
+```
+
+`App` provides the tracked value before rendering `Button`. Both components read
+the same tracked value, so clicking the button updates the theme displayed in
+both. The button changes `.value`; it does not replace the context with `.set()`.
+Context lookup follows the component tree regardless of which files define the
+components, so descendants can import and read `ThemeContext` without intermediate
+components passing it along.
+
+### Passing a context as a prop
+
+You can also pass the same context instance to a component in another file. In
+the example above, keep `ThemeContext.set(theme)` in `App` and change the button
+usage to `<Button context={ThemeContext} />`. Then `Button.tsrx` can receive the
+context as a prop instead of importing the instance:
+
+```tsrx
+// Button.tsrx
+import type { Context, Tracked } from 'ripple';
+
+export function Button({ context }: { context: Context<Tracked<string>> }) @{
+  const theme = context.get();
+
+  <button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
+    Toggle theme: {theme.value}
+  </button>
+}
+```
+
+Passing the instance does not change context lookup: the component still reads
+the nearest value provided for that instance in its component ancestry. Call
+`.get()` during component initialization, then use the returned tracked value in
+event handlers.
