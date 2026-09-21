@@ -107,7 +107,11 @@ components.
 // theme-context.ts
 import { Context, type Tracked } from 'ripple';
 
-export const ThemeContext = new Context<Tracked<string>>();
+export type ThemeStore = {
+  theme: Tracked<string>;
+};
+
+export const ThemeContext = new Context<ThemeStore>();
 ```
 
 ```tsrx
@@ -117,11 +121,11 @@ import { ThemeContext } from './theme-context';
 import { Button } from './Button.tsrx';
 
 export function App() @{
-  const theme = track('light');
-  ThemeContext.set(theme);
+  const store = { theme: track('light') };
+  ThemeContext.set(store);
 
   <>
-    <p>Theme in App: {theme.value}</p>
+    <p>Theme in App: {store.theme.value}</p>
     <Button />
   </>
 }
@@ -132,17 +136,20 @@ export function App() @{
 import { ThemeContext } from './theme-context';
 
 export function Button() @{
-  const theme = ThemeContext.get();
+  const store = ThemeContext.get();
 
-  <button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
-    Toggle theme: {theme.value}
+  <button onClick={() => {
+    store.theme.value = store.theme.value === 'light' ? 'dark' : 'light';
+  }}>
+    Toggle theme: {store.theme.value}
   </button>
 }
 ```
 
-`App` provides the tracked value before rendering `Button`. Both components read
-the same tracked value, so clicking the button updates the theme displayed in
-both. The button changes `.value`; it does not replace the context with `.set()`.
+`App` provides a store object whose `theme` property is a tracked value before
+rendering `Button`. Both components read the same `store.theme.value`, so
+clicking the button updates the theme displayed in both. The button changes
+`store.theme.value`; it does not replace the store with `.set()`.
 Context lookup follows the component tree regardless of which files define the
 components, so descendants can import and read `ThemeContext` without intermediate
 components passing it along.
@@ -150,24 +157,27 @@ components passing it along.
 ### Passing a context as a prop
 
 You can also pass the same context instance to a component in another file. In
-the example above, keep `ThemeContext.set(theme)` in `App` and change the button
+the example above, keep `ThemeContext.set(store)` in `App` and change the button
 usage to `<Button context={ThemeContext} />`. Then `Button.tsrx` can receive the
 context as a prop instead of importing the instance:
 
 ```tsrx
 // Button.tsrx
-import type { Context, Tracked } from 'ripple';
+import type { Context } from 'ripple';
+import type { ThemeStore } from './theme-context';
 
-export function Button({ context }: { context: Context<Tracked<string>> }) @{
-  const theme = context.get();
+export function Button({ context }: { context: Context<ThemeStore> }) @{
+  const store = context.get();
 
-  <button onClick={() => (theme.value = theme.value === 'light' ? 'dark' : 'light')}>
-    Toggle theme: {theme.value}
+  <button onClick={() => {
+    store.theme.value = store.theme.value === 'light' ? 'dark' : 'light';
+  }}>
+    Toggle theme: {store.theme.value}
   </button>
 }
 ```
 
 Passing the instance does not change context lookup: the component still reads
 the nearest value provided for that instance in its component ancestry. Call
-`.get()` during component initialization, then use the returned tracked value in
-event handlers.
+`.get()` during component initialization, then update the returned store's
+tracked properties in event handlers.
