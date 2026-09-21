@@ -17,9 +17,20 @@ the context of a component. A good strategy is to assign the contents of a conte
 to a variable via the `.get()` method during the component initialization and use
 this variable for reading and writing.
 
-When Child components overwrite a context's value via `.set()`, this new value
-will only be seen by its descendants. Components higher up in the tree will
-continue to see the original value.
+When a child calls `.set(newValue)`, it overrides the context's provided value
+for itself and its descendants. Ancestors and sibling branches continue to use
+their existing value. This applies to replacing the provided value with `.set()`,
+not to updating reactive state within a shared object.
+
+To share updates across the component tree, call `.set(store)` once in a common
+ancestor with an object containing reactive properties. Descendants can retrieve
+the same object with `.get()` and update those properties, such as
+`store.theme.value = 'dark'`, instead of calling `.set()` again. Every reactive
+consumer of that property, including ancestors, sees the update. Use `.set()` in
+a child when you intentionally want a separate value for its subtree.
+
+Use tracked properties or a reactive object for values the UI should follow;
+assigning to an ordinary property of a plain object does not trigger an update.
 
 Example with tracked / reactive contents:
 

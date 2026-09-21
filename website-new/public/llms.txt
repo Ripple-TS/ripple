@@ -636,10 +636,21 @@ export function Button() @{
 Both components share the store object: the button updates `store.theme.value`,
 and both displays update. The store itself is a plain object; its `theme`
 property holds the tracked value. Call `.set()` and `.get()` during component
-initialization, not at module scope or inside event handlers. A child's `.set()`
-provides an override for its descendants; it does not update the value held by
-ancestors. Reactive reads of `.value` subscribe to updates; importing or passing
-the context alone does not subscribe a component.
+initialization, not at module scope or inside event handlers.
+
+A child's `.set(newValue)` overrides the context's provided value for itself and
+its descendants; ancestors and sibling branches retain their existing value.
+This restriction applies to replacing the provided value with `.set()`, not to
+updating reactive properties of a shared object. For shared updates, call
+`.set(store)` once in a common ancestor and have consumers mutate its reactive
+properties, such as `store.theme.value = 'dark'`, instead of calling `.set()`
+again. All reactive consumers of that property, including ancestors, see the
+update. Use a child's `.set()` for an intentional subtree override.
+
+Reactive reads of `.value` subscribe to updates; importing or passing the context
+alone does not subscribe a component. Assigning to an ordinary property of a
+plain object does not trigger an update; use tracked properties or a reactive
+object for values the UI should follow.
 
 Alternatively, keep the provider setup in `App` and pass the same instance with
 `<Button context={ThemeContext} />`. The component in `Button.tsrx` can then use:
