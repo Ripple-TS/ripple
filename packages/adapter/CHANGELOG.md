@@ -1,5 +1,9 @@
 # @ripple-ts/adapter
 
+## 0.4.7
+
+No changes in this release.
+
 ## 0.4.6
 
 No changes in this release.

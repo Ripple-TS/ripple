@@ -1,5 +1,15 @@
 # ripple
 
+## 0.4.7
+
+### Patch Changes
+
+- [#1503](https://github.com/Ripple-TS/ripple/pull/1503)
+  [`81e1859`](https://github.com/Ripple-TS/ripple/commit/81e185994c5196ed44281517f49c59001a0ee30f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Upgrade devalue to 6.0.1 and
+  remove the local performance patch now included in the upstream release. Devalue
+  now requires Node.js 22.17 or newer.
+
 ## 0.4.6
 
 ### Patch Changes
