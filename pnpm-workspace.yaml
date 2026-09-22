@@ -14,7 +14,7 @@ minimumReleaseAgeExclude:
   - '@tsrx/vite-plugin-react@0.0.108'
   - '@tsrx/vite-plugin-solid@0.0.105'
   - '@tsrx/ripple@0.2.2'
-  - devalue@5.9.4
+  - devalue@6.0.1
 minimumReleaseAgeIgnoreMissingTime: true
 minimumReleaseAgeStrict: false
 trustPolicy: no-downgrade
@@ -112,7 +112,7 @@ catalogs:
     csstype: ^3.2.3
     commander: ^14.0.3
     degit: ^2.8.4
-    devalue: ^5.9.4
+    devalue: ^6.0.1
     eslint: ^10.3.0
     esm-env: ^1.2.2
     esrap: ^2.3.2
@@ -166,6 +166,3 @@ peerDependencyRules:
     '@tsrx/solid>@solidjs/web': '2.0.0-rc.7'
     '@tsrx/solid-runtime>solid-js': '2.0.0-rc.7'
     '@tsrx/solid-runtime>@solidjs/web': '2.0.0-rc.7'
-
-patchedDependencies:
-  devalue@5.9.4: patches/devalue@5.9.4.patch
