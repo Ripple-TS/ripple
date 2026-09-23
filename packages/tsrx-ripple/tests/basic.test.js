@@ -1,5 +1,6 @@
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
+import ts from 'typescript';
 import { check_types, find_exact_mapping } from './test-utils.js';
 
 describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
@@ -51,6 +52,38 @@ describe('@tsrx/ripple deferred imports', () => {
 			expect(code).toContain("import defer * as feature from './feature.js';");
 			expect(code).toContain("import.defer('./lazy.js', { with: { type: 'json' } })");
 		}
+	});
+});
+
+describe('@tsrx/ripple exported import aliases', () => {
+	it('keeps `export` on `export import X = Y` in client, server, and Volar output', () => {
+		const source = `namespace Foo { export const answer = 42; }
+			export import Alias = Foo;
+			export import Reader = require('./reader.js');
+			import Local = Foo;
+			export const local = Local.answer;`;
+		const outputs = [
+			compile(source, 'App.tsrx').code,
+			compile(source, 'App.tsrx', { mode: 'server' }).code,
+			compile_to_volar_mappings(source, 'App.tsrx', { loose: true }).code,
+		];
+
+		for (const code of outputs) {
+			expect(code).toContain('export import Alias = Foo');
+			expect(code).toContain("export import Reader = require('./reader.js')");
+			expect(code).toMatch(/(^|[^\w])import Local = Foo/);
+			expect(code).not.toContain('export import Local');
+		}
+
+		// The alias must actually be exported once TypeScript lowers the module.
+		const js = ts.transpileModule(outputs[0], {
+			compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+		}).outputText;
+		const module = { exports: {} };
+		new Function('module', 'exports', 'require', js)(module, module.exports, () => ({}));
+		expect(Object.keys(module.exports).sort()).toEqual(['Alias', 'Reader', 'local']);
+		expect(module.exports.Alias).toEqual({ answer: 42 });
+		expect(module.exports.local).toBe(42);
 	});
 });
 

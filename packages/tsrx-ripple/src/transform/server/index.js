@@ -80,6 +80,7 @@ import {
 	build_scope_class_expression,
 	is_template_if,
 	sole_template_if,
+	with_exported_import_equals,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -3562,7 +3563,9 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	const { code, map } = print(
 		program,
-		/** @type {Visitors<AST.Node, TransformServerState>} */ (withDeferredImports(ts())),
+		/** @type {Visitors<AST.Node, TransformServerState>} */ (
+			with_exported_import_equals(withDeferredImports(ts()))
+		),
 		{
 			sourceMapContent: source,
 			sourceMapSource: path.basename(filename),

@@ -3,6 +3,7 @@
 /**
 @import * as AST from 'estree';
 @import * as ESTreeJSX from 'estree-jsx';
+@import * as ESRap from 'esrap';
 @import { CommonContext, NameSpace, ScopeInterface, Binding } from '../types/index';
  */
 
@@ -3958,4 +3959,42 @@ function is_number_expression(expression, state, visited) {
 		unwrap_type_annotation(get_expression_type_annotation(expression, state, visited))?.type ===
 		'TSNumberKeyword'
 	);
+}
+
+/**
+ * Keep the `export` on `export import Alias = Foo;`. acorn-typescript does not
+ * wrap an exported `TSImportEqualsDeclaration` in an `ExportNamedDeclaration`;
+ * it sets `isExport` on the node itself, which esrap's printer ignores, so the
+ * compiled module would silently stop exporting the alias.
+ *
+ * @template {ESRap.Visitors} T
+ * @param {T} visitors
+ * @returns {T}
+ */
+export function with_exported_import_equals(visitors) {
+	const print_import_equals = visitors.TSImportEqualsDeclaration;
+	if (typeof print_import_equals !== 'function') {
+		throw new TypeError('Exported import aliases require a complete esrap TS or TSX visitor set.');
+	}
+
+	return /** @type {T} */ ({
+		...visitors,
+		/**
+		 * @param {AST.TSImportEqualsDeclaration & { isExport?: boolean }} node
+		 * @param {ESRap.Context} context
+		 */
+		TSImportEqualsDeclaration(node, context) {
+			if (!node.isExport) {
+				print_import_equals(node, context);
+				return;
+			}
+
+			// Mark both ends of the statement so the `export` keyword and the whole
+			// declaration map back to the source, as other exports do.
+			if (node.loc) context.location(node.loc.start.line, node.loc.start.column);
+			context.write('export ');
+			print_import_equals(node, context);
+			if (node.loc) context.location(node.loc.end.line, node.loc.end.column);
+		},
+	});
 }

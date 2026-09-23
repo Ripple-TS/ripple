@@ -139,6 +139,7 @@ import {
 	is_flattenable_template_fragment,
 	get_scope_class_chain,
 	build_scope_class_expression,
+	with_exported_import_equals,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -8218,7 +8219,7 @@ function create_tsx_with_typescript_support(comments) {
 	// boundaryTokens: this language only prints the to_ts (volar) view — maps
 	// are consumed positionally by the language tooling, never shipped.
 	const base_tsx = /** @type {Visitors<AST.Node, TransformClientState>} */ (
-		withDeferredImports(tsx({ boundaryTokens: true }))
+		with_exported_import_equals(withDeferredImports(tsx({ boundaryTokens: true })))
 	);
 
 	// Track which comments have been written (by index)
@@ -9325,7 +9326,9 @@ export function transform_client(
 
 	const language_handler = to_ts
 		? create_tsx_with_typescript_support(analysis.comments)
-		: /** @type {Visitors<AST.Node, TransformClientState>} */ (withDeferredImports(tsx()));
+		: /** @type {Visitors<AST.Node, TransformClientState>} */ (
+				with_exported_import_equals(withDeferredImports(tsx()))
+			);
 
 	const printed = print(program, language_handler, {
 		sourceMapContent: source,
