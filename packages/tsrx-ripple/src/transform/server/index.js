@@ -60,6 +60,7 @@ import {
 	simple_hash,
 	strong_hash,
 	flatten_switch_consequent,
+	scope_switch_case_body,
 	get_ripple_namespace_call_name,
 	get_ripple_namespace_static_call_name,
 	strip_class_typescript_syntax,
@@ -1363,8 +1364,7 @@ const visit_switch_statement = (node, context) => {
 
 		if (switch_case.consequent.length !== 0) {
 			const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
-			const consequent_scope =
-				context.state.scopes.get(switch_case.consequent) || context.state.scope;
+			const consequent_scope = context.state.scopes.get(switch_case) || context.state.scope;
 			const consequent = b.block(
 				transform_body(flattened_consequent, {
 					...context,
@@ -1375,7 +1375,7 @@ const visit_switch_statement = (node, context) => {
 					},
 				}),
 			);
-			case_body.push(...consequent.body);
+			case_body.push(...scope_switch_case_body(consequent.body));
 		}
 		case_body.push(b.break);
 

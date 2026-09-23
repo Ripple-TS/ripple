@@ -2673,6 +2673,38 @@ export function flatten_switch_consequent(consequent) {
 }
 
 /**
+ * Wraps a lowered `@switch` arm in its own block when it declares a
+ * block-scoped name. Each arm is its own template block, but the cases of a JS
+ * `switch` share one lexical scope, so two arms that declare the same name
+ * would otherwise redeclare it.
+ * @param {AST.Statement[]} body
+ * @returns {AST.Statement[]}
+ */
+export function scope_switch_case_body(body) {
+	return body.some(declares_block_scoped_name) ? [b.block(body)] : body;
+}
+
+/**
+ * @param {AST.Node} statement
+ * @returns {boolean}
+ */
+function declares_block_scoped_name(statement) {
+	switch (statement.type) {
+		case 'VariableDeclaration':
+			return statement.kind !== 'var';
+		case 'ClassDeclaration':
+		case 'FunctionDeclaration':
+		case 'TSTypeAliasDeclaration':
+		case 'TSInterfaceDeclaration':
+		case 'TSEnumDeclaration':
+		case 'TSModuleDeclaration':
+			return true;
+		default:
+			return false;
+	}
+}
+
+/**
  * @param {string | null | undefined} name
  * @returns {string | null}
  */

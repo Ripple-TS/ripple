@@ -405,4 +405,34 @@ describe('switch statements', () => {
 		expect(container.querySelector('.level').textContent).toBe('Level 1');
 		expect(container.querySelectorAll('.level').length).toBe(1);
 	});
+
+	it('keeps setup locals with the same name in separate cases', () => {
+		function App() @{
+			const kind = track('a');
+			<>
+				<button onClick={() => (kind.value = kind.value === 'a' ? 'b' : 'a')}>{'Toggle'}</button>
+				@switch (kind.value) {
+					@case 'a': {
+						const label = 'Alpha';
+						<div class="label">{label}</div>
+					}
+					@case 'b': {
+						const label = 'Beta';
+						<div class="label">{label}</div>
+					}
+				}
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('.label').textContent).toBe('Alpha');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('Beta');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('Alpha');
+	});
 });

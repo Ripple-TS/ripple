@@ -104,6 +104,7 @@ import {
 	is_inside_left_side_assignment,
 	strong_hash,
 	flatten_switch_consequent,
+	scope_switch_case_body,
 	get_ripple_namespace_call_name,
 	get_ripple_namespace_static_call_name,
 	is_ripple_import,
@@ -1895,7 +1896,7 @@ const visit_switch_statement = (node, context) => {
 
 		if (consequent.length !== 0) {
 			const flattened_consequent = flatten_switch_consequent(consequent);
-			const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
+			const consequent_scope = context.state.scopes.get(switch_case) || context.state.scope;
 			const block = b.block(
 				transform_body(flattened_consequent, {
 					...context,
@@ -6132,8 +6133,7 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 
 	if (node.type === 'SwitchStatement' || node.type === 'JSXSwitchExpression') {
 		const cases = node.cases.map((switch_case) => {
-			const consequent_scope =
-				context.state.scopes.get(switch_case.consequent) || context.state.scope;
+			const consequent_scope = context.state.scopes.get(switch_case) || context.state.scope;
 			const body = transform_tsrx_ts_render_children(
 				flatten_switch_consequent(switch_case.consequent),
 				{
@@ -6154,7 +6154,7 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 
 			return b.switch_case(
 				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
-				body,
+				scope_switch_case_body(body),
 			);
 		});
 
@@ -6436,7 +6436,9 @@ function build_tsrx_ts_directive_value(node, context) {
 		const cases = node.cases.map((sc) =>
 			b.switch_case(
 				sc.test ? /** @type {AST.Expression} */ (context.visit(sc.test)) : null,
-				branch_returning_body(flatten_switch_consequent(sc.consequent), sc.consequent),
+				scope_switch_case_body(
+					branch_returning_body(flatten_switch_consequent(sc.consequent), sc.consequent),
+				),
 			),
 		);
 		const switch_stmt = b.switch(
@@ -6744,8 +6746,7 @@ function transform_ts_child(node, context) {
 		const cases = [];
 
 		for (const switch_case of node.cases) {
-			const consequent_scope =
-				context.state.scopes.get(switch_case.consequent) || context.state.scope;
+			const consequent_scope = context.state.scopes.get(switch_case) || context.state.scope;
 			const consequent_body = transform_body(flatten_switch_consequent(switch_case.consequent), {
 				...context,
 				state: { ...context.state, scope: consequent_scope },
@@ -6761,7 +6762,9 @@ function transform_ts_child(node, context) {
 									/** @type {AST.NodeWithLocation} */ (switch_case.consequent[0]),
 								),
 							]
-						: consequent_body,
+						: node.type === 'JSXSwitchExpression'
+							? scope_switch_case_body(consequent_body)
+							: consequent_body,
 				),
 			);
 		}

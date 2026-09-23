@@ -1,3 +1,4 @@
+import { acorn } from '@tsrx/core';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { check_types, find_exact_mapping } from './test-utils.js';
@@ -542,6 +543,55 @@ describe('@tsrx/ripple @switch to_ts', () => {
 		for (const body of bodies) {
 			expect(body).toMatch(/^return\b/);
 		}
+	});
+});
+
+describe('@tsrx/ripple @switch arm scopes', () => {
+	// Each arm is its own block, so arms may declare the same local, both in a component
+	// and in a `@switch` value outside one.
+	const source = `export function App({ kind }: { kind: string }) @{
+		@switch (kind) {
+			@case 'a': {
+				const label = 'Alpha';
+				<div>{label}</div>
+			}
+			@case 'b': {
+				const label = 'Beta';
+				<div>{label}</div>
+			}
+		}
+	}
+
+	export function view(kind: string) {
+		return @switch (kind) {
+			@case 'a': {
+				const label = 'Alpha';
+				<div>{label}</div>
+			}
+			@case 'b': {
+				const label = 'Beta';
+				<div>{label}</div>
+			}
+		};
+	}`;
+
+	it('keeps same-name arm locals apart in the client and server output', () => {
+		for (const mode of /** @type {const} */ (['client', 'server'])) {
+			const { code } = compile(source, 'App.tsrx', { mode });
+			// acorn tracks lexical scopes, so a redeclared `label` throws.
+			expect(
+				() => acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' }),
+				mode,
+			).not.toThrow();
+		}
+	});
+
+	it('gives each declaring arm its own block in to_ts', () => {
+		const { code, errors } = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(errors).toEqual([]);
+		expect(code.match(/case 'a':\s*\{\s*const label = 'Alpha';/g)).toHaveLength(2);
+		expect(code.match(/case 'b':\s*\{\s*const label = 'Beta';/g)).toHaveLength(2);
 	});
 });
 

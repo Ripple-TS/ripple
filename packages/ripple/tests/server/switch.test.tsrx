@@ -123,4 +123,29 @@ describe('SSR: switch statements', () => {
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div><span>before</span>Case A</div>');
 	});
+
+	it('keeps setup locals with the same name in separate cases', async () => {
+		function Label({ kind }: { kind: string }) @{
+			@switch (kind) {
+				@case 'a': {
+					const label = 'Alpha';
+					<div>{label}</div>
+				}
+				@case 'b': {
+					const label = 'Beta';
+					<div>{label}</div>
+				}
+			}
+		}
+
+		function App() @{
+			<>
+				<Label kind="a" />
+				<Label kind="b" />
+			</>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div>Alpha</div><div>Beta</div>');
+	});
 });
