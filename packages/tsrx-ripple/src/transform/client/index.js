@@ -6266,6 +6266,7 @@ function build_tsrx_ts_directive_value(node, context) {
 	const branch_returning_body = (
 		/** @type {AST.Node[]} */ body,
 		/** @type {AST.Node | AST.Node[]} */ scope_node,
+		/** @type {AST.Node | AST.Node[] | null} */ loc_node = scope_node,
 	) => {
 		const ctx = scoped(scope_node);
 		/** @type {AST.Statement[]} */
@@ -6290,7 +6291,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		const value = build_tsrx_ts_return_expression(
 			renders,
 			false,
-			/** @type {AST.NodeWithLocation} */ (scope_node),
+			/** @type {AST.NodeWithLocation} */ (loc_node),
 		);
 		return [...setup, b.return(/** @type {AST.Expression} */ (value))];
 	};
@@ -6436,8 +6437,10 @@ function build_tsrx_ts_directive_value(node, context) {
 		const cases = node.cases.map((sc) =>
 			b.switch_case(
 				sc.test ? /** @type {AST.Expression} */ (context.visit(sc.test)) : null,
+				// The arm's scope lives on its `SwitchCase`. An arm has no block node, so
+				// its value keeps no location of its own.
 				scope_switch_case_body(
-					branch_returning_body(flatten_switch_consequent(sc.consequent), sc.consequent),
+					branch_returning_body(flatten_switch_consequent(sc.consequent), sc, null),
 				),
 			),
 		);
