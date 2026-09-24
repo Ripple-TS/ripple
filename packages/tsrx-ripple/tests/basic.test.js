@@ -60,6 +60,10 @@ describe('@tsrx/ripple namespaces written with `module`', () => {
 			'a `module server` inside a declare namespace',
 			'declare namespace A {\n\tmodule server {\n\t\tconst x: number;\n\t}\n\n\tconst y: typeof server.x;\n}',
 		],
+		[
+			'two merged module blocks inside a declare namespace',
+			'declare namespace A {\n\tmodule B {\n\t\tconst x: number;\n\t}\n\n\tmodule B {\n\t\tconst y: number;\n\t}\n}',
+		],
 	])('compiles %s as a namespace', (_, source) => {
 		const { type_output, runtime_outputs } = compile_all(source);
 

@@ -8299,7 +8299,7 @@ function create_tsx_with_typescript_support(comments) {
 			}
 			if (node.declare) context.write('declare ');
 			context.visit(node.id);
-			context.visit(node.body);
+			if (node.body) context.visit(node.body);
 		},
 		TSImportEqualsDeclaration(node, context) {
 			// acorn-typescript marks `export import A = B` with `isExport` instead of

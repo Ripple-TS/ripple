@@ -39,6 +39,7 @@ import {
 	validateTsrxUnsupportedLoopStatement,
 	isTemplateValuePosition,
 	isFunctionOrClassNode as is_function_or_class_boundary,
+	isSubmoduleDeclaration as is_submodule_declaration,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -140,40 +141,6 @@ function get_module_declaration_name(node) {
 	}
 	const id = /** @type {AST.TSModuleDeclaration} */ (node).id;
 	return id?.type === 'Identifier' ? id.name : null;
-}
-
-/**
- * A `module X { … }` declaration that Ripple reads as a submodule. Ambient
- * declarations stay TypeScript namespaces, including every declaration nested
- * in a `declare` block. So do the inner parts of a dotted name: `module A.B`
- * parses as `A` whose `body` is the declaration for `B`.
- *
- * @param {AST.Node} node
- * @param {AST.Node[]} path
- * @returns {node is AST.TSModuleDeclaration}
- */
-function is_submodule_declaration(node, path) {
-	return (
-		node.type === 'TSModuleDeclaration' &&
-		node.kind === 'module' &&
-		path.at(-1)?.type !== 'TSModuleDeclaration' &&
-		![node, ...path].some(
-			(ancestor) => ancestor.type === 'TSModuleDeclaration' && ancestor.declare === true,
-		)
-	);
-}
-
-/**
- * Whether `binding` names a submodule. The scope builder declares a `module`
- * binding for every non-`declare` `module X`, including one nested in a
- * `declare` block, but only a top-level declaration can be a submodule.
- *
- * @param {Binding | null} binding
- * @param {ScopeInterface} module_scope
- * @returns {binding is Binding}
- */
-function is_submodule_binding(binding, module_scope) {
-	return binding?.declaration_kind === 'module' && binding.scope === module_scope;
 }
 
 /**
@@ -1350,7 +1317,7 @@ const visitors = {
 		if (
 			!is_import_source &&
 			is_reference(node, /** @type {AST.Node} */ (parent)) &&
-			is_submodule_binding(binding, context.state.analysis.scope) &&
+			binding?.declaration_kind === 'module' &&
 			binding.node !== node
 		) {
 			error(
@@ -1413,7 +1380,7 @@ const visitors = {
 	MemberExpression(node, context) {
 		if (node.object.type === 'Identifier' && node.object.name === 'server') {
 			const binding = context.state.scope.get('server');
-			if (is_submodule_binding(binding, context.state.analysis.scope)) {
+			if (binding?.declaration_kind === 'module') {
 				error(
 					'Import server exports before using them, e.g. `import { foo } from server; foo()`.',
 					context.state.analysis.module.filename,

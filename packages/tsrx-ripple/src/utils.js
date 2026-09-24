@@ -1715,7 +1715,7 @@ export function sole_template_if(branch) {
  * the TypeScript namespaces they parse as.
  * @param {AST.Node} node
  * @param {AST.Node | undefined} parent
- * @returns {node is AST.TSModuleDeclaration}
+ * @returns {node is AST.TSModuleDeclaration & { body: AST.TSModuleBlock }}
  */
 export function is_server_module_declaration(node, parent) {
 	return (
