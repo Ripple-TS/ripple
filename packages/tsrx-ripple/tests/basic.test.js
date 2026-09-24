@@ -34,6 +34,73 @@ describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
 	});
 });
 
+describe('@tsrx/ripple namespaces written with `module`', () => {
+	/** @param {string} source */
+	function compile_all(source) {
+		return {
+			type_output: compile_to_volar_mappings(source, 'App.tsrx', { loose: true }),
+			runtime_outputs: [
+				compile(source, 'App.tsrx', { loose: true }),
+				compile(source, 'App.tsrx', { loose: true, mode: 'server' }),
+			],
+		};
+	}
+
+	it.each([
+		['a dotted ambient module', 'declare module A.B {\n\tconst x: number;\n}'],
+		[
+			'a module inside a declare namespace',
+			'declare namespace A {\n\tmodule B {\n\t\tconst x: number;\n\t}\n\n\tconst y: typeof B.x;\n}',
+		],
+		[
+			'an ambient module with a `server` name part',
+			'declare module A.server {\n\tconst x: number;\n}',
+		],
+		[
+			'a `module server` inside a declare namespace',
+			'declare namespace A {\n\tmodule server {\n\t\tconst x: number;\n\t}\n\n\tconst y: typeof server.x;\n}',
+		],
+	])('compiles %s as a namespace', (_, source) => {
+		const { type_output, runtime_outputs } = compile_all(source);
+
+		expect(type_output.errors).toEqual([]);
+		expect(type_output.code).toBe(source);
+		for (const result of runtime_outputs) {
+			expect(result.errors).toEqual([]);
+			expect(result.code).not.toContain('declare');
+			expect(result.code).not.toContain('_$_server_$_');
+		}
+	});
+
+	it.each([
+		[
+			'a dotted `module server` name',
+			'module server.api {\n\texport function f() {}\n}',
+			'`module server` cannot have a dotted name such as `module server.api`.',
+		],
+		[
+			'a `module server` inside a namespace',
+			'namespace A {\n\tmodule server {\n\t\texport function f() {}\n\t}\n}',
+			'`module server` can only be declared at the module level.',
+		],
+		[
+			'another module name inside a namespace',
+			'namespace A {\n\tmodule B {\n\t\texport function f() {}\n\t}\n}',
+			'Ripple only supports `module server` submodules, found `module B`.',
+		],
+	])('reports %s once and leaves it as a namespace', (_, source, message) => {
+		const { type_output, runtime_outputs } = compile_all(source);
+
+		expect(type_output.errors.map((error) => error.message)).toEqual([message]);
+		expect(type_output.code).toBe(source);
+		for (const result of runtime_outputs) {
+			expect(result.errors.map((error) => error.message)).toEqual([message]);
+			expect(result.code).not.toContain('_$_server_$_');
+		}
+		expect(() => compile(source, 'App.tsrx')).toThrow(message);
+	});
+});
+
 describe('@tsrx/ripple deferred imports', () => {
 	it('preserves deferred imports in client, server, and Volar output', () => {
 		const source = `import defer * as feature from './feature.js';

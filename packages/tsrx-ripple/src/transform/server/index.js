@@ -81,6 +81,7 @@ import {
 	build_scope_class_expression,
 	is_template_if,
 	sole_template_if,
+	is_server_module_declaration,
 } from '../../utils.js';
 import {
 	get_attribute_name,
@@ -511,21 +512,6 @@ function is_template_value_binding(expression, scope) {
 function get_submodule_import_source_name(node) {
 	const source = node.source;
 	return source.type === 'Identifier' ? source.name : null;
-}
-
-/**
- * @param {AST.Node} node
- * @returns {boolean}
- */
-function is_server_module_declaration(node) {
-	return (
-		node.type === 'TSModuleDeclaration' &&
-		/** @type {AST.TSModuleDeclaration} */ (node).declare !== true &&
-		/** @type {AST.TSModuleDeclaration} */ (node).kind === 'module' &&
-		/** @type {AST.TSModuleDeclaration} */ (node).id?.type === 'Identifier' &&
-		/** @type {AST.Identifier} */ (/** @type {AST.TSModuleDeclaration} */ (node).id).name ===
-			'server'
-	);
 }
 
 /**
@@ -2905,7 +2891,7 @@ const visitors = {
 		if (node.declare) {
 			return b.empty;
 		}
-		if (!is_server_module_declaration(node)) {
+		if (!is_server_module_declaration(node, context.path.at(-1))) {
 			return context.next();
 		}
 

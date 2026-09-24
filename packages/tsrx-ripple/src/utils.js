@@ -1709,6 +1709,27 @@ export function sole_template_if(branch) {
 }
 
 /**
+ * The `module server { … }` block the client and server transforms lower: a
+ * top-level, non-ambient `module server` with a block body. The analyzer
+ * reports the other `module server` forms, and the transforms leave those as
+ * the TypeScript namespaces they parse as.
+ * @param {AST.Node} node
+ * @param {AST.Node | undefined} parent
+ * @returns {node is AST.TSModuleDeclaration}
+ */
+export function is_server_module_declaration(node, parent) {
+	return (
+		node.type === 'TSModuleDeclaration' &&
+		parent?.type === 'Program' &&
+		node.declare !== true &&
+		node.kind === 'module' &&
+		node.id.type === 'Identifier' &&
+		node.id.name === 'server' &&
+		node.body?.type === 'TSModuleBlock'
+	);
+}
+
+/**
  * Returns true if node is a function declared within a component
  * @param {AST.Node} node
  * @param {CommonContext} context

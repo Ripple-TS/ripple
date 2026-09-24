@@ -143,11 +143,37 @@ function get_module_declaration_name(node) {
 }
 
 /**
+ * A `module X { … }` declaration that Ripple reads as a submodule. Ambient
+ * declarations stay TypeScript namespaces, including every declaration nested
+ * in a `declare` block. So do the inner parts of a dotted name: `module A.B`
+ * parses as `A` whose `body` is the declaration for `B`.
+ *
  * @param {AST.Node} node
- * @returns {boolean}
+ * @param {AST.Node[]} path
+ * @returns {node is AST.TSModuleDeclaration}
  */
-function is_submodule_declaration(node) {
-	return node.type === 'TSModuleDeclaration' && node.declare !== true && node.kind === 'module';
+function is_submodule_declaration(node, path) {
+	return (
+		node.type === 'TSModuleDeclaration' &&
+		node.kind === 'module' &&
+		path.at(-1)?.type !== 'TSModuleDeclaration' &&
+		![node, ...path].some(
+			(ancestor) => ancestor.type === 'TSModuleDeclaration' && ancestor.declare === true,
+		)
+	);
+}
+
+/**
+ * Whether `binding` names a submodule. The scope builder declares a `module`
+ * binding for every non-`declare` `module X`, including one nested in a
+ * `declare` block, but only a top-level declaration can be a submodule.
+ *
+ * @param {Binding | null} binding
+ * @param {ScopeInterface} module_scope
+ * @returns {binding is Binding}
+ */
+function is_submodule_binding(binding, module_scope) {
+	return binding?.declaration_kind === 'module' && binding.scope === module_scope;
 }
 
 /**
@@ -1251,7 +1277,7 @@ const visitors = {
 	},
 
 	TSModuleDeclaration(node, context) {
-		if (!is_submodule_declaration(node)) {
+		if (!is_submodule_declaration(node, context.path)) {
 			return context.next();
 		}
 
@@ -1260,20 +1286,34 @@ const visitors = {
 			return context.next();
 		}
 
-		const parent = context.path.at(-1);
-		if (parent?.type !== 'Program') {
-			// fatal since we don't have a transformation defined for this case
-			error(
-				'`module server` can only be declared at the module level.',
-				context.state.analysis.module.filename,
-				node,
-			);
-		}
 		if (name !== 'server') {
 			error(
 				`Ripple only supports \`module server\` submodules, found \`module ${name}\`.`,
 				context.state.analysis.module.filename,
 				node.id,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return context.next();
+		}
+		// The transforms only lower a top-level `module server` with a block
+		// body (`is_server_module_declaration`) and leave these forms as the
+		// namespaces they parse as.
+		if (node.body?.type !== 'TSModuleBlock') {
+			error(
+				'`module server` cannot have a dotted name such as `module server.api`.',
+				context.state.analysis.module.filename,
+				node.id,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return context.next();
+		}
+		if (context.path.at(-1)?.type !== 'Program') {
+			error(
+				'`module server` can only be declared at the module level.',
+				context.state.analysis.module.filename,
+				node,
 				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
@@ -1310,7 +1350,7 @@ const visitors = {
 		if (
 			!is_import_source &&
 			is_reference(node, /** @type {AST.Node} */ (parent)) &&
-			binding?.declaration_kind === 'module' &&
+			is_submodule_binding(binding, context.state.analysis.scope) &&
 			binding.node !== node
 		) {
 			error(
@@ -1373,7 +1413,7 @@ const visitors = {
 	MemberExpression(node, context) {
 		if (node.object.type === 'Identifier' && node.object.name === 'server') {
 			const binding = context.state.scope.get('server');
-			if (binding?.declaration_kind === 'module') {
+			if (is_submodule_binding(binding, context.state.analysis.scope)) {
 				error(
 					'Import server exports before using them, e.g. `import { foo } from server; foo()`.',
 					context.state.analysis.module.filename,
