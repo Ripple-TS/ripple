@@ -1,5 +1,34 @@
 # ripple
 
+## 0.5.0
+
+### Patch Changes
+
+- [#1512](https://github.com/Ripple-TS/ripple/pull/1512)
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.3. Two `module B { … }` blocks in the same `declare namespace` now merge as
+  they do in TypeScript instead of failing with
+  `'B' has already been declared in the current scope`. The editor now reports
+  TypeScript errors on a class whose base is a call, a parenthesized expression,
+  or an array literal, such as `class Model extends createBase() {}`.
+
+- [#1508](https://github.com/Ripple-TS/ripple/pull/1508)
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.2, where each `@switch` arm (`@case x: { … }` or `@default: { … }`) is its
+  own block scope. Two arms can now declare the same local: the server output and
+  the TypeScript output give an arm that declares a name its own block inside the
+  generated `switch`, so the names no longer collide. `@import` inside a `<style>`
+  block is now the `tsrx-css-import` compile error.
+- Updated dependencies
+  [[`5bad2e1`](https://github.com/Ripple-TS/ripple/commit/5bad2e1b7f953578aa6cb49e346106e937354fdb),
+  [`9604b1b`](https://github.com/Ripple-TS/ripple/commit/9604b1b30c022e96249c5750e547de35aae7a8af),
+  [`504434b`](https://github.com/Ripple-TS/ripple/commit/504434ba8300d30495b1c74c338bc3c07d4d3a1e),
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11),
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)]:
+  - @tsrx/ripple@0.2.5
+
 ## 0.4.7
 
 ### Patch Changes
