@@ -253,16 +253,17 @@ logs a warning.
 
 Root boundaries are configured the same way — set `rootBoundary` in
 `ripple.config.ts` and the plugin applies it to the server render and to
-client hydration for every render route:
+client hydration for every render route. Name each component by module, like a
+route `entry`: a path uses the module's default export (or else its first
+capitalized function export), and an `[exportName, path]` tuple picks a named
+export. The browser imports these modules directly; `ripple.config.ts` stays
+on the server with the adapter and middlewares.
 
 ```ts
-import { LoadingScreen } from './src/LoadingScreen.tsrx';
-import { ErrorScreen } from './src/ErrorScreen.tsrx';
-
 export default {
   rootBoundary: {
-    pending: LoadingScreen,
-    catch: ErrorScreen,
+    pending: '/src/LoadingScreen.tsrx',
+    catch: ['ErrorScreen', '/src/screens.tsrx'],
   },
   ssr: {
     streaming: true,
@@ -277,21 +278,34 @@ returns a custom type. Each named handler encodes values for devalue and decodes
 them back into application values. Hydration and RPC share these handlers, and
 RPC uses them for both arguments and return values.
 
+Define the handlers in their own module and name it in the config: a path uses
+the module's default export, and an `[exportName, path]` tuple picks a named
+export. The browser imports that module directly, never `ripple.config.ts`.
+
 ```ts
+// src/transport.ts
+import type { Transport } from 'ripple';
+import { Money } from './money';
+
+export const transport: Transport = {
+  Money: {
+    encode: (value) => value instanceof Money && [value.amount, value.currency],
+    decode: ([amount, currency]) => new Money(amount, currency),
+  },
+};
+```
+
+```ts
+// ripple.config.ts
 import { defineConfig } from '@ripple-ts/vite-plugin';
-import { Money } from './src/money';
 
 export default defineConfig({
-  transport: {
-    Money: {
-      encode: (value) => value instanceof Money && [value.amount, value.currency],
-      decode: ([amount, currency]) => new Money(amount, currency),
-    },
-  },
+  transport: ['transport', '/src/transport.ts'],
 });
 ```
 
-Both handlers must be synchronous and browser compatible. `encode` returns
+Both handlers must be synchronous, and the module and its imports must be
+browser compatible. `encode` returns
 truthy serializable data for a value it recognizes, or `false`/`undefined` to
 leave it to other handlers and devalue's built-in types. Wrap falsy encoded data
 in an array or object. `decode` reconstructs the value from the encoded data.

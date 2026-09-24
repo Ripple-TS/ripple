@@ -8,11 +8,14 @@ import {
 	get_route_entry_export_name,
 	get_route_entry_path,
 } from '../routes.js';
+import { resolveRootBoundary } from '../load-config.js';
 
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Context} Context
  * @typedef {import('@ripple-ts/vite-plugin').RenderRoute} RenderRoute
  * @typedef {import('@ripple-ts/vite-plugin').ResolvedRippleConfig} ResolvedRippleConfig
+ * @typedef {import('@ripple-ts/vite-plugin').RootBoundaryConfig} RootBoundaryConfig
+ * @typedef {import('@ripple-ts/vite-plugin').RootBoundaryOptions} RootBoundaryOptions
  * @typedef {import('vite').ViteDevServer} ViteDevServer
  */
 
@@ -88,11 +91,13 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 		template = template.replace('</body>', `${hydrationScript}\n</body>`);
 
 		const routeData = JSON.stringify({
-			entry: entryPath,
-			routeIndex: getRenderRouteIndex(rippleConfig, route),
+			entry: route.entry,
+			layout: route.layout,
 			params: context.params,
 		});
 		const routeDataScript = `<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`;
+		const rootBoundary =
+			rippleConfig && (await load_root_boundary(vite, rippleConfig.rootBoundary));
 
 		if (rippleConfig?.ssr?.streaming) {
 			// SSR head content and CSS travel in the stream itself; only the
@@ -103,7 +108,7 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 					render,
 					createSsrStream: createStream,
 					component: RootComponent,
-					rootBoundary: rippleConfig?.rootBoundary,
+					rootBoundary,
 					streamTemplate,
 				});
 			}
@@ -115,7 +120,7 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 		// Render to HTML
 		/** @type {RenderResult} */
 		const { head, body, css } = await render(RootComponent, {
-			rootBoundary: rippleConfig?.rootBoundary,
+			rootBoundary,
 		});
 
 		// Generate CSS tags
@@ -153,17 +158,20 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 }
 
 /**
- * @param {ResolvedRippleConfig | undefined} config
- * @param {RenderRoute} route
- * @returns {number | undefined}
+ * @param {ViteDevServer} vite
+ * @param {RootBoundaryConfig} boundary
+ * @returns {Promise<RootBoundaryOptions>}
  */
-function getRenderRouteIndex(config, route) {
-	if (!config) {
-		return undefined;
+async function load_root_boundary(vite, boundary) {
+	/** @type {Partial<Record<keyof RootBoundaryConfig, Record<string, unknown>>>} */
+	const modules = {};
+	if (boundary.pending) {
+		modules.pending = await vite.ssrLoadModule(get_route_entry_path(boundary.pending));
 	}
-	var renderRoutes = config.router.routes.filter((r) => r.type === 'render');
-	var index = renderRoutes.indexOf(route);
-	return index === -1 ? undefined : index;
+	if (boundary.catch) {
+		modules.catch = await vite.ssrLoadModule(get_route_entry_path(boundary.catch));
+	}
+	return resolveRootBoundary(boundary, modules);
 }
 
 /**

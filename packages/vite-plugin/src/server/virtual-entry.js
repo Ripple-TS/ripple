@@ -8,7 +8,7 @@
  * - Wires routes, middlewares, RPC, and boots the HTTP server
  */
 
-/** @import { Route } from '@ripple-ts/vite-plugin' */
+/** @import { ModuleEntry, RootBoundaryConfig, Route } from '@ripple-ts/vite-plugin' */
 
 import {
 	get_route_entry_export_name,
@@ -29,7 +29,8 @@ import {
  * @property {string} htmlTemplatePath - Path to the processed index.html template
  * @property {string[]} [rpcModulePaths] - Paths (relative to root) of .tsrx modules with `module server` declarations
  * @property {Record<string, ClientAssetEntry>} [clientAssetMap] - Map of route entry paths to built JS/CSS asset paths
- * @property {boolean} [transport] - Whether the app configures custom serializers
+ * @property {ModuleEntry} [transport] - Module exporting the app's custom serializers
+ * @property {RootBoundaryConfig} [rootBoundary] - Modules exporting the root boundary components
  */
 
 /**
@@ -39,7 +40,8 @@ import {
  * 1. Imports ripple SSR utilities (render, getCss, executeServerFunction)
  * 2. Imports createHandler from @ripple-ts/vite-plugin/production
  * 3. Imports ripple.config.ts to get adapter, middlewares, and routes
- * 4. Imports each RenderRoute's entry (and layout) as SSR components
+ * 4. Imports each RenderRoute's entry (and layout) as SSR components, and the
+ *    transport and root boundary modules the config names
  * 5. Builds a ServerManifest and creates the fetch handler
  * 6. Reads the HTML template from disk
  * 7. Boots the adapter with the handler
@@ -54,6 +56,8 @@ export function generateServerEntry(options) {
 		htmlTemplatePath,
 		rpcModulePaths = [],
 		clientAssetMap = {},
+		transport,
+		rootBoundary = {},
 	} = options;
 
 	// Collect unique component entries and layouts
@@ -100,6 +104,21 @@ export function generateServerEntry(options) {
 	for (const [rpcPath, varName] of rpc_imports) {
 		import_lines.push(`import * as ${varName} from ${JSON.stringify(rpcPath)};`);
 	}
+	if (transport) {
+		import_lines.push(
+			`import * as _transport from ${JSON.stringify(get_route_entry_path(transport))};`,
+		);
+	}
+	/** @type {string[]} */
+	const root_boundary_modules = [];
+	for (const key of /** @type {const} */ (['pending', 'catch'])) {
+		const entry = rootBoundary[key];
+		if (entry === undefined) continue;
+		import_lines.push(
+			`import * as _root_${key} from ${JSON.stringify(get_route_entry_path(entry))};`,
+		);
+		root_boundary_modules.push(`${key}: _root_${key}`);
+	}
 
 	// --- Dynamic map entries ---
 
@@ -145,8 +164,8 @@ export function generateServerEntry(options) {
 // Auto-generated server entry for production build
 // Do not edit — regenerated on each build
 
-import { render, getCss, createStream, executeServerFunction${options.transport ? ', setTransport' : ''} } from 'ripple/server';
-import { createHandler, prerenderRoutes, resolveRippleConfig } from '@ripple-ts/vite-plugin/production';
+import { render, getCss, createStream, executeServerFunction${transport ? ', setTransport' : ''} } from 'ripple/server';
+import { createHandler, prerenderRoutes, resolveRippleConfig, resolveRootBoundary${transport ? ', resolveTransport' : ''} } from '@ripple-ts/vite-plugin/production';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
@@ -156,13 +175,16 @@ import _rawRippleConfig from ${JSON.stringify(rippleConfigPath)};
 ${import_lines.join('\n')}
 
 let rippleConfig;
+let rootBoundary;
 try {
-  rippleConfig = resolveRippleConfig(_rawRippleConfig, { requireAdapter: true });
+  rippleConfig = resolveRippleConfig(_rawRippleConfig, { requireAdapter: true });${
+		transport ? `\n  setTransport(resolveTransport(${JSON.stringify(transport)}, _transport));` : ''
+	}
+  rootBoundary = resolveRootBoundary(${JSON.stringify(rootBoundary)}, {${root_boundary_modules.map((module) => ` ${module}`).join(',')} });
 } catch (e) {
   console.error(e.message);
   process.exit(1);
 }
-${options.transport ? '\nsetTransport(rippleConfig.transport);\n' : ''}
 
 function getComponentExport(mod, exportName) {
   if (exportName && typeof mod[exportName] === 'function') return mod[exportName];
@@ -200,7 +222,7 @@ const manifest = {
     middlewares: rippleConfig.middlewares,
     rpcModules,
     trustProxy: rippleConfig.server.trustProxy,
-    rootBoundary: rippleConfig.rootBoundary,
+    rootBoundary,
     streaming: rippleConfig.ssr.streaming,
     runtime: rippleConfig.adapter.runtime,
     clientAssets,

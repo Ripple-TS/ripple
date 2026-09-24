@@ -139,8 +139,7 @@ describe('render route SSR props', () => {
 			params: { slug: 'echo-api' },
 		});
 		expect(parseRippleData(html)).toEqual({
-			entry: '/src/ToolPage.tsrx',
-			routeIndex: 0,
+			entry: ['NamedToolPage', '/src/ToolPage.tsrx'],
 			params: { slug: 'echo-api' },
 		});
 	});
@@ -192,7 +191,6 @@ describe('render route SSR props', () => {
 		expect(renderOptions).toEqual({ rootBoundary });
 		expect(parseRippleData(html)).toEqual({
 			entry: '/src/ToolPage.tsrx',
-			routeIndex: 0,
 			params: { slug: 'echo-api' },
 		});
 	});
@@ -327,6 +325,9 @@ describe('render route SSR props', () => {
 		function Page(props) {
 			pageProps = props;
 		}
+		function Layout({ children }) {
+			children.render();
+		}
 		const rootBoundary = {
 			pending() {},
 			catch() {},
@@ -335,6 +336,7 @@ describe('render route SSR props', () => {
 			type: 'render',
 			path: '/tool/:slug',
 			entry: '/src/ToolPage.tsrx',
+			layout: '/src/Layout.tsrx',
 			before: [],
 		};
 
@@ -355,6 +357,15 @@ describe('render route SSR props', () => {
 				if (id === '/src/ToolPage.tsrx') {
 					return { default: Page };
 				}
+				if (id === '/src/Layout.tsrx') {
+					return { default: Layout };
+				}
+				if (id === '/src/Loading.tsrx') {
+					return { default: rootBoundary.pending };
+				}
+				if (id === '/src/screens.tsrx') {
+					return { Loading() {}, ErrorScreen: rootBoundary.catch };
+				}
 				throw new Error(`Unexpected module: ${id}`);
 			}),
 		};
@@ -371,7 +382,10 @@ describe('render route SSR props', () => {
 				vite,
 				{
 					router: { routes: [route] },
-					rootBoundary,
+					rootBoundary: {
+						pending: '/src/Loading.tsrx',
+						catch: ['ErrorScreen', '/src/screens.tsrx'],
+					},
 				},
 			);
 			const html = await response.text();
@@ -381,13 +395,14 @@ describe('render route SSR props', () => {
 				fromRender: true,
 				params: { slug: 'echo-api' },
 			});
-			expect(renderOptions).toEqual({ rootBoundary });
+			expect(renderOptions.rootBoundary.pending).toBe(rootBoundary.pending);
+			expect(renderOptions.rootBoundary.catch).toBe(rootBoundary.catch);
 			expect(parseRippleData(html)).toEqual({
 				entry: '/src/ToolPage.tsrx',
-				routeIndex: 0,
+				layout: '/src/Layout.tsrx',
 				params: { slug: 'echo-api' },
 			});
-			expect(vite.ssrLoadModule).toHaveBeenCalledTimes(2);
+			expect(vite.ssrLoadModule).toHaveBeenCalledTimes(5);
 			expect(vite.ssrLoadModule).toHaveBeenCalledWith('ripple/server');
 			expect(vite.ssrLoadModule).toHaveBeenCalledWith('/src/ToolPage.tsrx');
 		} finally {

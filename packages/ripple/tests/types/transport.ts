@@ -15,15 +15,15 @@ const money: Transporter<Money, [number, string]> = {
 	decode: ([amount, currency]) => new Money(amount, currency),
 };
 const transport: Transport = { Money: money };
-defineConfig({ transport });
+defineConfig({ transport: ['transport', '/src/transport.ts'] });
+defineConfig({ transport: '/src/transport.ts' });
 defineConfig({
-	transport: {
-		Money: {
-			encode: (value) => value instanceof Money && [value.amount, value.currency],
-			decode: ([amount, currency]) => new Money(amount, currency),
-		},
-	},
+	rootBoundary: { pending: '/src/Loading.tsrx', catch: ['ErrorScreen', '/src/screens.tsrx'] },
 });
+// @ts-expect-error The config names the transport module; the browser imports it.
+defineConfig({ transport });
+// @ts-expect-error The config names each root boundary component's module.
+defineConfig({ rootBoundary: { pending: () => {} } });
 setTransport(transport);
 setServerTransport(transport);
 registerTransport(transport);
@@ -31,7 +31,7 @@ setTransport();
 setServerTransport({});
 
 // @ts-expect-error Every handler needs both directions.
-defineConfig({ transport: { Money: { encode: () => false } } });
+setTransport({ Money: { encode: () => false } });
 const invalid: Transporter<Money, [number, string]> = {
 	...money,
 	// @ts-expect-error A decoder must accept the encoded representation.

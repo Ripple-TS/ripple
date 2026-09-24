@@ -797,10 +797,13 @@ return new Response(stream, { headers: { 'Content-Type': 'text/html; charset=utf
 ```
 
 Apps built on `@ripple-ts/vite-plugin` enable streaming for render routes in
-`ripple.config.ts` instead of calling `render` directly:
+`ripple.config.ts` instead of calling `render` directly. A root boundary there
+names its components by module, like a route `entry` (path, or
+`[exportName, path]`), so the browser never imports the config:
 
 ```ts
 export default {
+	rootBoundary: { pending: '/src/Loading.tsrx' },
 	ssr: {
 		streaming: true,
 	},
@@ -867,20 +870,25 @@ rootBoundary: false })`) can leave the boundary runtime out of its bundle with
 ### Custom Serialization
 
 Set `transport` in `ripple.config.ts` to serialize custom types in `trackAsync`
-hydration results and RPC arguments/results in both directions:
+hydration results and RPC arguments/results in both directions. The handlers
+live in their own module, which the config names by path (default export) or
+`[exportName, path]` tuple; the browser imports that module, never
+`ripple.config.ts`:
 
 ```ts
-import { defineConfig } from '@ripple-ts/vite-plugin';
-import { Money } from './src/money';
+// src/transport.ts
+import type { Transport } from 'ripple';
+import { Money } from './money';
 
-export default defineConfig({
-	transport: {
-		Money: {
-			encode: (value) => value instanceof Money && [value.amount, value.currency],
-			decode: ([amount, currency]) => new Money(amount, currency),
-		},
+export const transport: Transport = {
+	Money: {
+		encode: (value) => value instanceof Money && [value.amount, value.currency],
+		decode: ([amount, currency]) => new Money(amount, currency),
 	},
-});
+};
+
+// ripple.config.ts
+export default defineConfig({ transport: ['transport', '/src/transport.ts'] });
 ```
 
 Handlers are synchronous and browser compatible. `encode` returns truthy

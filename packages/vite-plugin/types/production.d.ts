@@ -2,9 +2,12 @@ import type { RuntimePrimitives } from '@ripple-ts/adapter';
 import type {
 	Route,
 	Middleware,
+	ModuleEntry,
 	ResolvedRippleConfig,
 	RippleConfigOptions,
+	RootBoundaryConfig,
 	RootBoundaryOptions,
+	Transport,
 } from '@ripple-ts/vite-plugin';
 
 /**
@@ -21,6 +24,15 @@ export function resolveRippleConfig(
 	raw: RippleConfigOptions,
 	options?: { requireAdapter?: boolean },
 ): ResolvedRippleConfig;
+
+/** The transport a config's `transport` entry names, read from its loaded module. */
+export function resolveTransport(entry: ModuleEntry, module: Record<string, unknown>): Transport;
+
+/** The root boundary components a config's `rootBoundary` entries name, read from their loaded modules. */
+export function resolveRootBoundary(
+	boundary: RootBoundaryConfig,
+	modules: Partial<Record<keyof RootBoundaryConfig, Record<string, unknown>>>,
+): RootBoundaryOptions;
 
 export interface ClientAssetEntry {
 	/** Path to the built JS file (relative to client output dir) */

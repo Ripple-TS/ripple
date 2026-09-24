@@ -21,7 +21,7 @@ import {
 	handle_rpc_request,
 } from '@ripple-ts/adapter/rpc';
 
-export { resolveRippleConfig } from '../load-config.js';
+export { resolveRippleConfig, resolveRootBoundary, resolveTransport } from '../load-config.js';
 
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Route} Route
@@ -240,8 +240,8 @@ async function handleRenderRoute(
 
 		// Build head content with hydration data
 		const routeData = JSON.stringify({
-			entry: entryPath,
-			routeIndex: getRenderRouteIndex(manifest.routes, route),
+			entry: route.entry,
+			layout: route.layout,
 			params: context.params,
 		});
 		const routeDataScript = `<script id="__ripple_data" type="application/json">${escapeScript(routeData)}</script>`;
@@ -297,17 +297,6 @@ async function handleRenderRoute(
 	};
 
 	return runMiddlewareChain(context, globalMiddlewares, route.before || [], renderHandler, []);
-}
-
-/**
- * @param {Route[]} routes
- * @param {RenderRoute} route
- * @returns {number | undefined}
- */
-function getRenderRouteIndex(routes, route) {
-	const renderRoutes = routes.filter((r) => r.type === 'render');
-	const index = renderRoutes.indexOf(route);
-	return index === -1 ? undefined : index;
 }
 
 // ============================================================================

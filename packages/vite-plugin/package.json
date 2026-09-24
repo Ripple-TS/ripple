@@ -13,7 +13,6 @@
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
-      "browser": "./src/config.js",
       "import": "./src/index.js",
       "default": "./src/index.js"
     },

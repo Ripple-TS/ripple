@@ -97,31 +97,44 @@ inference boundaries and the direct compiler API.
 
 ## Custom serialization
 
-Define `transport` in `ripple.config.ts` to share custom types between the server
-and browser. The same handlers serialize `trackAsync` hydration results and RPC
-arguments/results in both directions:
+Define `transport` handlers in a module and name it in `ripple.config.ts` to share
+custom types between the server and browser. The same handlers serialize
+`trackAsync` hydration results and RPC arguments/results in both directions:
 
 ```ts
+// src/transport.ts
+import type { Transport } from 'ripple';
+import { Money } from './money';
+
+export const transport: Transport = {
+  Money: {
+    encode: (value) => value instanceof Money && [value.amount, value.currency],
+    decode: ([amount, currency]) => new Money(amount, currency),
+  },
+};
+```
+
+```ts
+// ripple.config.ts
 import { defineConfig } from '@ripple-ts/vite-plugin';
-import { Money } from './src/money';
 
 export default defineConfig({
-  transport: {
-    Money: {
-      encode: (value) => value instanceof Money && [value.amount, value.currency],
-      decode: ([amount, currency]) => new Money(amount, currency),
-    },
-  },
+  transport: ['transport', '/src/transport.ts'],
 });
 ```
 
-Handlers are synchronous and must run in both environments, so their imports must
-be browser compatible. `encode` returns truthy serializable data when it
-recognizes a value, or `false`/`undefined` otherwise. Wrap falsy encoded data in
-an array or object. `decode` reconstructs the value from that data. Encoders can
-also recognize plain objects by shape.
+A path alone uses the module's default export. The browser's hydration entry
+imports this module (and the `rootBoundary` component modules) directly, never
+`ripple.config.ts`, so the config's adapter, middlewares and their imports stay on
+the server.
 
-Without a transport, or with `transport: {}`, plain data in hydration payloads
+Handlers are synchronous and must run in both environments, so the module's
+imports must be browser compatible. `encode` returns truthy serializable data when
+it recognizes a value, or `false`/`undefined` otherwise. Wrap falsy encoded data
+in an array or object. `decode` reconstructs the value from that data. Encoders
+can also recognize plain objects by shape.
+
+Without a transport, or with an empty one, plain data in hydration payloads
 travels as raw JSON; values requiring devalue retain its built-in encoding. A
 nonempty transport uses devalue for all hydration payloads so every value can be
 offered to the encoders. RPC always uses devalue. The plugin registers the

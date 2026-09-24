@@ -15,14 +15,34 @@
  * and the generated production server entry.
  */
 
-/** @import { RippleConfigOptions, ResolvedRippleConfig } from '@ripple-ts/vite-plugin' */
+/** @import { RippleConfigOptions, ResolvedRippleConfig, ModuleEntry, RootBoundaryConfig, RootBoundaryOptions, Transport } from '@ripple-ts/vite-plugin' */
 
 import path from 'node:path';
 import fs from 'node:fs';
 import { compile } from '@tsrx/ripple';
 import { DEFAULT_OUTDIR } from './constants.js';
+import {
+	get_component_export,
+	get_route_entry_export_name,
+	get_route_entry_path,
+} from './routes.js';
 
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
+const ROOT_BOUNDARY_KEYS = /** @type {const} */ (['pending', 'catch']);
+
+/**
+ * @param {unknown} entry
+ * @returns {entry is ModuleEntry}
+ */
+function is_module_entry(entry) {
+	return (
+		typeof entry === 'string' ||
+		(Array.isArray(entry) &&
+			entry.length === 2 &&
+			typeof entry[0] === 'string' &&
+			typeof entry[1] === 'string')
+	);
+}
 
 /**
  * @param {unknown} route
@@ -41,14 +61,7 @@ function validate_render_route(route) {
 		/** @type {{ path?: unknown, entry?: unknown, layout?: unknown, prerender?: unknown }} */ (
 			route
 		);
-	const has_entry =
-		typeof render_route.entry === 'string' ||
-		(Array.isArray(render_route.entry) &&
-			render_route.entry.length === 2 &&
-			typeof render_route.entry[0] === 'string' &&
-			typeof render_route.entry[1] === 'string');
-
-	if (!has_entry) {
+	if (!is_module_entry(render_route.entry)) {
 		throw new Error('[@ripple-ts/vite-plugin] RenderRoute requires a string/tuple `entry`.');
 	}
 
@@ -88,11 +101,12 @@ function validate_root_boundary(rootBoundary) {
 	}
 
 	const boundary = /** @type {{ pending?: unknown, catch?: unknown }} */ (rootBoundary);
-	if (boundary.pending !== undefined && typeof boundary.pending !== 'function') {
-		throw new Error('[@ripple-ts/vite-plugin] rootBoundary.pending must be a component function.');
-	}
-	if (boundary.catch !== undefined && typeof boundary.catch !== 'function') {
-		throw new Error('[@ripple-ts/vite-plugin] rootBoundary.catch must be a component function.');
+	for (const key of ROOT_BOUNDARY_KEYS) {
+		if (boundary[key] !== undefined && !is_module_entry(boundary[key])) {
+			throw new Error(
+				`[@ripple-ts/vite-plugin] rootBoundary.${key} must be a module path or an [exportName, path] tuple, such as '/src/Loading.tsrx'. The browser imports that module instead of ripple.config.ts.`,
+			);
+		}
 	}
 }
 
@@ -101,9 +115,27 @@ function validate_root_boundary(rootBoundary) {
  * @returns {void}
  */
 function validate_transport(transport) {
-	if (transport === undefined) return;
+	if (transport !== undefined && !is_module_entry(transport)) {
+		throw new Error(
+			"[@ripple-ts/vite-plugin] transport must be a module path or an [exportName, path] tuple, such as ['transport', '/src/transport.ts']. The browser imports that module instead of ripple.config.ts.",
+		);
+	}
+}
+
+/**
+ * The transport a config's `transport` entry names, read from its loaded module.
+ * A path alone names the default export.
+ *
+ * @param {ModuleEntry} entry
+ * @param {Record<string, unknown>} module
+ * @returns {Transport}
+ */
+export function resolveTransport(entry, module) {
+	const export_name = get_route_entry_export_name(entry) ?? 'default';
+	const source = `${get_route_entry_path(entry)} export \`${export_name}\``;
+	const transport = module[export_name];
 	if (!transport || typeof transport !== 'object' || Array.isArray(transport)) {
-		throw new Error('[@ripple-ts/vite-plugin] transport must be an object when provided.');
+		throw new Error(`[@ripple-ts/vite-plugin] transport: ${source} must be an object.`);
 	}
 	for (const [name, handler] of Object.entries(transport)) {
 		if (
@@ -114,10 +146,51 @@ function validate_transport(transport) {
 			typeof handler.decode !== 'function'
 		) {
 			throw new Error(
-				`[@ripple-ts/vite-plugin] transport.${name} must be an object with encode and decode functions.`,
+				`[@ripple-ts/vite-plugin] transport.${name} (${source}) must be an object with encode and decode functions.`,
 			);
 		}
 	}
+	return /** @type {Transport} */ (transport);
+}
+
+/**
+ * @param {RootBoundaryConfig} boundary
+ * @param {keyof RootBoundaryConfig} key
+ * @param {Record<string, unknown> | undefined} module
+ * @returns {Function | undefined}
+ */
+function get_root_boundary_component(boundary, key, module) {
+	const entry = boundary[key];
+	if (entry === undefined) return undefined;
+	const component = get_component_export(module ?? {}, get_route_entry_export_name(entry));
+	if (!component) {
+		throw new Error(
+			`[@ripple-ts/vite-plugin] rootBoundary.${key}: no component export found in ${get_route_entry_path(entry)}.`,
+		);
+	}
+	return component;
+}
+
+/**
+ * The root boundary components a config's `rootBoundary` entries name, read
+ * from their loaded modules.
+ *
+ * @param {RootBoundaryConfig} boundary
+ * @param {Partial<Record<keyof RootBoundaryConfig, Record<string, unknown>>>} modules
+ * @returns {RootBoundaryOptions}
+ */
+export function resolveRootBoundary(boundary, modules) {
+	/** @type {RootBoundaryOptions} */
+	const components = {};
+	const pending = get_root_boundary_component(boundary, 'pending', modules.pending);
+	if (pending) {
+		components.pending = /** @type {NonNullable<RootBoundaryOptions['pending']>} */ (pending);
+	}
+	const error = get_root_boundary_component(boundary, 'catch', modules.catch);
+	if (error) {
+		components.catch = /** @type {NonNullable<RootBoundaryOptions['catch']>} */ (error);
+	}
+	return components;
 }
 
 /**
@@ -186,7 +259,7 @@ export function resolveRippleConfig(raw, options = {}) {
 			routes: raw.router?.routes ?? [],
 		},
 		rootBoundary: raw.rootBoundary ?? {},
-		transport: raw.transport ?? {},
+		transport: raw.transport,
 		ssr: {
 			streaming: raw.ssr?.streaming ?? false,
 		},

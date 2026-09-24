@@ -10,6 +10,16 @@
  */
 
 /**
+ * @overload
+ * @param {RenderRouteEntry} entry
+ * @returns {string}
+ */
+/**
+ * @overload
+ * @param {RenderRouteEntry | undefined} entry
+ * @returns {string | undefined}
+ */
+/**
  * @param {RenderRouteEntry | undefined} entry
  * @returns {string | undefined}
  */

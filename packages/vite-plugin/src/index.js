@@ -1,6 +1,6 @@
 /** @import {PackageJson} from 'type-fest' */
 /** @import {Plugin, ResolvedConfig, ViteDevServer} from 'vite' */
-/** @import {RipplePlugin, RipplePluginOptions, RippleConfigOptions, ResolvedRippleConfig, Route, RenderRoute} from '@ripple-ts/vite-plugin' */
+/** @import {RipplePlugin, RipplePluginOptions, RippleConfigOptions, ResolvedRippleConfig, Route, RenderRoute, Transport} from '@ripple-ts/vite-plugin' */
 
 /// <reference types="@tsrx/ripple/types/rpc" />
 
@@ -22,29 +22,30 @@ import {
 	getRippleConfigPath,
 	loadRippleConfig,
 	resolveRippleConfig,
+	resolveTransport,
 	rippleConfigExists,
 } from './load-config.js';
 import { ENTRY_FILENAME } from './constants.js';
-import {
-	RESOLVED_ADAPTER_BROWSER_STUB_ID,
-	SERVER_ONLY_ADAPTER_IDS,
-	create_adapter_browser_stub_source,
-	create_client_entry_source,
-	to_vite_root_import,
-	write_project_generated_file,
-} from './project-codegen.js';
+import { create_client_entry_source, write_project_generated_file } from './project-codegen.js';
 
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 import { get_route_entry_path } from './routes.js';
 
-// Re-export browser-compatible config helpers
-export { defineConfig, RenderRoute, ServerRoute } from './config.js';
+export { RenderRoute, ServerRoute } from './routes.js';
 export {
 	getRippleConfigPath,
 	loadRippleConfig,
 	resolveRippleConfig,
 	rippleConfigExists,
 } from './load-config.js';
+
+/**
+ * @param {RippleConfigOptions} options
+ * @returns {RippleConfigOptions}
+ */
+export function defineConfig(options) {
+	return options;
+}
 
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
@@ -390,6 +391,8 @@ export function ripple(inlineOptions = {}) {
 
 	/** @type {ResolvedRippleConfig | null} */
 	let rippleConfig = null;
+	/** @type {ViteDevServer | null} */
+	let devServer = null;
 	/** @type {ReturnType<typeof createRouter> | null} */
 	let router = null;
 
@@ -410,8 +413,9 @@ export function ripple(inlineOptions = {}) {
 	 */
 	async function get_current_ripple_config() {
 		if (loadedRippleConfig) return loadedRippleConfig;
-		if (rippleConfig) return rippleConfig;
 		if (!root || !rippleConfigExists(root)) return null;
+		// The dev server's SSR graph reloads the config after edits.
+		if (devServer) return loadRippleConfig(root, { vite: devServer });
 
 		loadedRippleConfig = await loadRippleConfig(root);
 		return loadedRippleConfig;
@@ -680,6 +684,7 @@ export function ripple(inlineOptions = {}) {
 			 * @param {ViteDevServer} vite
 			 */
 			configureServer(vite) {
+				devServer = vite;
 				// Deferred config initialisation — resolved on first request
 				// that finds a ripple.config.ts. The promise is cleared after
 				// every attempt so that "config missing" is never cached
@@ -689,17 +694,23 @@ export function ripple(inlineOptions = {}) {
 				let initPromise = null;
 				/** @type {number} */
 				let lastConfigErrorMtimeMs = 0;
-				/** @type {ResolvedRippleConfig['transport'] | undefined} */
+				/** @type {Transport | undefined} */
 				let registeredTransport;
 
 				// Use the same SSR module graph as pages and RPC, including after
-				// config dependency changes. Production registers in its entry once.
+				// config or transport module changes. Production registers in its
+				// entry once.
 				async function loadDevConfig() {
 					const nextConfig = await loadRippleConfig(root, { vite });
-					if (nextConfig.transport !== registeredTransport) {
+					const entry = nextConfig.transport;
+					const transport =
+						entry === undefined
+							? undefined
+							: resolveTransport(entry, await vite.ssrLoadModule(get_route_entry_path(entry)));
+					if (transport !== registeredTransport) {
 						const { setTransport } = await vite.ssrLoadModule('ripple/server');
-						setTransport(nextConfig.transport);
-						registeredTransport = nextConfig.transport;
+						setTransport(transport);
+						registeredTransport = transport;
 					}
 					return nextConfig;
 				}
@@ -975,6 +986,13 @@ export function ripple(inlineOptions = {}) {
 						ssr.moduleGraph.invalidateModule(mod);
 					}
 
+					// The hydration entry is generated from ripple.config.ts, which
+					// only the SSR graph imports.
+					const hydrate_module = this.environment.moduleGraph.getModuleById(
+						RESOLVED_VIRTUAL_HYDRATE_ID,
+					);
+					if (hydrate_module) this.environment.moduleGraph.invalidateModule(hydrate_module);
+
 					this.environment.hot.send({ type: 'full-reload' });
 					return [];
 				},
@@ -1137,7 +1155,8 @@ export function ripple(inlineOptions = {}) {
 						htmlTemplatePath: './index.html',
 						rpcModulePaths: [...serverModuleModules],
 						clientAssetMap,
-						transport: Object.keys(loadedRippleConfig.transport).length > 0,
+						transport: loadedRippleConfig.transport,
+						rootBoundary: loadedRippleConfig.rootBoundary,
 					});
 					const serverEntryFile = write_project_generated_file(
 						config,
@@ -1262,10 +1281,6 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async resolveId(id, importer, options) {
-				if (!options?.ssr && SERVER_ONLY_ADAPTER_IDS.has(id)) {
-					return RESOLVED_ADAPTER_BROWSER_STUB_ID;
-				}
-
 				// Handle virtual hydrate module
 				if (id === VIRTUAL_HYDRATE_ID) {
 					return RESOLVED_VIRTUAL_HYDRATE_ID;
@@ -1311,21 +1326,16 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
-				if (id === RESOLVED_ADAPTER_BROWSER_STUB_ID) {
-					return create_adapter_browser_stub_source();
-				}
-
 				// Handle virtual hydrate module
 				if (id === RESOLVED_VIRTUAL_HYDRATE_ID) {
+					const current = await get_current_ripple_config();
 					const file = write_project_generated_file(
 						config,
 						'client-entry.js',
 						create_client_entry_source({
-							configPath: to_vite_root_import(getRippleConfigPath(root), root),
 							staticEntries: isBuild ? renderRouteEntries : [],
-							transport:
-								!isBuild ||
-								Object.keys((await get_current_ripple_config())?.transport ?? {}).length > 0,
+							transport: current?.transport,
+							rootBoundary: current?.rootBoundary,
 						}),
 					);
 					return fs.readFileSync(file, 'utf-8');

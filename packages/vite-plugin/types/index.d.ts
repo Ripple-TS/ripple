@@ -147,11 +147,27 @@ export interface RipplePluginOptions {
 
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-export type RenderRouteEntry = string | readonly [exportName: string, path: string];
+/**
+ * A module in the app, by root-relative path (`'/src/Loading.tsrx'`), optionally
+ * naming the export to use (`['Loading', '/src/screens.tsrx']`).
+ */
+export type ModuleEntry = string | readonly [exportName: string, path: string];
+
+export type RenderRouteEntry = ModuleEntry;
 
 export interface RootBoundaryOptions {
 	pending?: Component<Record<string, never>>;
 	catch?: Component<{ error: unknown; reset: () => void }>;
+}
+
+/**
+ * The root boundary's components, by module. A path without an export name
+ * uses the module's default export, or else its first capitalized function
+ * export, as route entries do.
+ */
+export interface RootBoundaryConfig {
+	pending?: ModuleEntry;
+	catch?: ModuleEntry;
 }
 
 export interface RippleConfigOptions {
@@ -177,10 +193,18 @@ export interface RippleConfigOptions {
 	router?: {
 		routes: Route[];
 	};
-	/** Global root pending/catch UI used by client and SSR render roots */
-	rootBoundary?: RootBoundaryOptions;
-	/** Custom serializers shared by trackAsync hydration and RPC in both directions. */
-	transport?: Transport;
+	/**
+	 * Global root pending/catch UI used by client and SSR render roots. The
+	 * browser imports these modules, never ripple.config.ts itself.
+	 */
+	rootBoundary?: RootBoundaryConfig;
+	/**
+	 * Module exporting the custom serializers ({@link Transport}) shared by
+	 * trackAsync hydration and RPC in both directions. A path alone uses the
+	 * module's default export. The browser imports this module, never
+	 * ripple.config.ts itself.
+	 */
+	transport?: ModuleEntry;
 	ssr?: {
 		/**
 		 * Stream render-route responses: the synchronous shell (with pending
@@ -233,9 +257,9 @@ export interface ResolvedRippleConfig {
 	router: {
 		routes: Route[];
 	};
-	rootBoundary: RootBoundaryOptions;
 	/** @default {} */
-	transport: Transport;
+	rootBoundary: RootBoundaryConfig;
+	transport?: ModuleEntry;
 	ssr: {
 		/** @default false */
 		streaming: boolean;

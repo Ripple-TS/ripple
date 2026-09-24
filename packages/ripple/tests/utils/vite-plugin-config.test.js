@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { RenderRoute, resolveRippleConfig } from '@ripple-ts/vite-plugin';
+import { resolveRootBoundary, resolveTransport } from '@ripple-ts/vite-plugin/production';
 
 describe('vite-plugin-ripple config resolution', () => {
 	it('preserves routes and applies defaults', () => {
@@ -18,7 +19,7 @@ describe('vite-plugin-ripple config resolution', () => {
 		expect(config.platform.env).toEqual({});
 		expect(config.server.trustProxy).toBe(false);
 		expect(config.rootBoundary).toEqual({});
-		expect(config.transport).toEqual({});
+		expect(config.transport).toBeUndefined();
 		expect(config.build.outDir).toBe('dist');
 	});
 
@@ -79,25 +80,65 @@ describe('vite-plugin-ripple config resolution', () => {
 		).toThrow('router.routes must be an array');
 	});
 
-	it('preserves transport functions when resolving a config again', () => {
-		const transport = {
-			Money: { encode: () => false, decode: (data) => data },
-		};
-		const config = resolveRippleConfig({ transport });
-		expect(config.transport).toBe(transport);
-		expect(resolveRippleConfig(config).transport).toBe(transport);
+	it.each([['transport', '/src/money.ts'], '/src/transport.ts'])(
+		'preserves the transport module %s when resolving a config again',
+		(transport) => {
+			const config = resolveRippleConfig({ transport });
+			expect(config.transport).toBe(transport);
+			expect(resolveRippleConfig(config).transport).toBe(transport);
+		},
+	);
+
+	it.each([
+		null,
+		false,
+		[],
+		['transport'],
+		{ Money: { encode: () => false, decode: (data) => data } },
+		() => {},
+	])('rejects transport %s that is not a module entry', (transport) => {
+		expect(() => resolveRippleConfig({ transport })).toThrow(
+			'transport must be a module path or an [exportName, path] tuple',
+		);
 	});
 
-	it.each([null, false, [], 'Money', () => {}])('rejects invalid transport %s', (transport) => {
-		expect(() => resolveRippleConfig({ transport })).toThrow('transport must be an object');
+	it('reads the transport from its module', () => {
+		const transport = { Money: { encode: () => false, decode: (data) => data } };
+		expect(resolveTransport(['transport', '/src/money.ts'], { transport })).toBe(transport);
+		expect(resolveTransport('/src/transport.ts', { default: transport })).toBe(transport);
+		expect(() => resolveTransport('/src/money.ts', { transport })).toThrow(
+			'transport: /src/money.ts export `default` must be an object.',
+		);
 	});
 
 	it.each([null, [], false, {}, { encode() {} }, { decode() {} }, { encode: true, decode() {} }])(
 		'rejects invalid transport handler %s',
 		(Money) => {
-			expect(() => resolveRippleConfig({ transport: { Money } })).toThrow(
-				'transport.Money must be an object with encode and decode functions',
+			expect(() => resolveTransport('/src/transport.ts', { default: { Money } })).toThrow(
+				'transport.Money (/src/transport.ts export `default`) must be an object with encode and decode functions',
 			);
 		},
 	);
+
+	it('rejects root boundary components that are not module entries', () => {
+		expect(() => resolveRippleConfig({ rootBoundary: { pending: () => {} } })).toThrow(
+			'rootBoundary.pending must be a module path or an [exportName, path] tuple',
+		);
+	});
+
+	it('reads root boundary components from their modules', () => {
+		function Loading() {}
+		function ErrorScreen() {}
+		const boundary = { pending: '/src/Loading.tsrx', catch: ['ErrorScreen', '/src/screens.tsrx'] };
+		expect(resolveRippleConfig({ rootBoundary: boundary }).rootBoundary).toBe(boundary);
+		expect(
+			resolveRootBoundary(boundary, {
+				pending: { default: Loading },
+				catch: { Loading, ErrorScreen },
+			}),
+		).toEqual({ pending: Loading, catch: ErrorScreen });
+		expect(() => resolveRootBoundary({ catch: '/src/screens.tsrx' }, { catch: {} })).toThrow(
+			'rootBoundary.catch: no component export found in /src/screens.tsrx.',
+		);
+	});
 });

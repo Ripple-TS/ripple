@@ -4,6 +4,7 @@ import { ripple } from '@ripple-ts/vite-plugin';
 import {
 	mkdtempSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	realpathSync,
 	rmSync,
@@ -55,14 +56,32 @@ export const transport = {
   },
 };`,
 	);
+	// Server-only: the browser would fail at load on the externalized node:crypto.
+	writeFileSync(
+		path.join(root, 'auth.ts'),
+		`import { createHash } from 'node:crypto';
+const secret = createHash('sha256').update('server-only-auth').digest('hex');
+export async function auth(context: { state: Map<string, unknown> }, next: () => Promise<Response>) {
+  context.state.set('secret', secret);
+  return next();
+}`,
+	);
+	writeFileSync(
+		path.join(root, 'screens.tsrx'),
+		`export function ErrorScreen() {
+  return <p>{'root-catch-screen'}</p>;
+}`,
+	);
 	writeFileSync(
 		path.join(root, 'ripple.config.ts'),
 		`import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';
 import * as adapter from '@ripple-ts/adapter-node';
-import { transport } from './money';
+import { auth } from './auth';
 export default defineConfig({
   adapter,
-  transport,
+  middlewares: [auth],
+  transport: ['transport', '/money.ts'],
+  rootBoundary: { catch: ['ErrorScreen', '/screens.tsrx'] },
   router: { routes: [new RenderRoute({ path: '/', entry: '/App.tsrx' })] },
 });`,
 	);
@@ -190,17 +209,24 @@ export async function run() {
 		const url = server.resolvedUrls.local[0];
 		const request = (pathname, init) => fetch(new URL(pathname, url), init);
 		await verify_requests(request);
-		const config_helpers =
-			await server.environments.client.pluginContainer.resolveId('@ripple-ts/vite-plugin');
-		expect(config_helpers.id).toMatch(/\/src\/config\.js$/);
 
-		// A changed config must be picked up even when the next request is RPC.
+		// The browser imports the modules the config names, never the config.
+		const client_entry = async () => (await request('/@id/virtual:ripple-hydrate')).text();
+		const source = await client_entry();
+		expect(source).not.toContain('ripple.config');
+		expect(source).toContain('import * as transportModule from "/money.ts";');
+		expect(source).toContain('import * as catchModule from "/screens.tsrx');
+
+		// Editing the config regenerates the client entry, and a changed config
+		// must be picked up even when the next request is RPC.
 		const configPath = path.join(root, 'ripple.config.ts');
 		writeFileSync(
 			configPath,
-			readFileSync(configPath, 'utf8').replace('  transport,', '  transport: {},'),
+			readFileSync(configPath, 'utf8').replace("  transport: ['transport', '/money.ts'],\n", ''),
 		);
-		server.moduleGraph.invalidateAll();
+		await vi.waitFor(async () => expect(await client_entry()).not.toContain('setTransport'), {
+			timeout: 10_000,
+		});
 		const response = await request(rpc_path, { method: 'POST', body: args });
 		expect(response.status).toBe(500);
 		expect(await response.text()).toContain('Unknown type Money');
@@ -209,6 +235,12 @@ export async function run() {
 	it('registers in the generated production entry before SSR and adapter RPC', async () => {
 		const root = fixture();
 		await build({ root });
+		const assets = path.join(root, 'dist/client/assets');
+		const client = readdirSync(assets)
+			.map((file) => readFileSync(path.join(assets, file), 'utf8'))
+			.join('\n');
+		expect(client).toContain('root-catch-screen');
+		expect(client).not.toContain('server-only-auth');
 		const { handler } = await import(pathToFileURL(path.join(root, 'dist/server/entry.js')).href);
 		await verify_requests((pathname, init) =>
 			handler(new Request('http://localhost' + pathname, init)),
