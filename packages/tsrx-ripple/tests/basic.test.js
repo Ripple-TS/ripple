@@ -55,6 +55,46 @@ describe('@tsrx/ripple deferred imports', () => {
 	});
 });
 
+describe('@tsrx/ripple exported import aliases', () => {
+	it('keeps `export` on `export import X = Y` in Volar output and maps the statement', () => {
+		const source = `namespace Foo { export const answer = 42; }
+export import Alias = Foo;
+export import Reader = require('./reader.js');
+namespace Outer { export import Inner = Foo; }
+import Local = Foo;`;
+		const { code, mappings, errors } = compile_to_volar_mappings(source, 'App.tsrx', {
+			loose: true,
+		});
+
+		expect(errors).toEqual([]);
+		expect(code).toContain('import Local = Foo');
+		expect(code).not.toContain('export import Local');
+
+		for (const statement of [
+			'export import Alias = Foo',
+			"export import Reader = require('./reader.js')",
+			'export import Inner = Foo',
+		]) {
+			const source_offset = source.indexOf(statement);
+			const generated_offset = code.indexOf(statement);
+			const statement_mapping = mappings.find(
+				(mapping) =>
+					mapping.sourceOffsets.length === 2 && mapping.sourceOffsets[0] === source_offset,
+			);
+
+			expect(generated_offset).toBeGreaterThan(-1);
+			expect(
+				find_exact_mapping(mappings, source_offset, generated_offset, 'export'.length),
+			).toBeDefined();
+			expect(statement_mapping?.sourceOffsets).toEqual([
+				source_offset,
+				source_offset + `${statement};`.length,
+			]);
+			expect(statement_mapping?.generatedOffsets[0]).toBe(generated_offset);
+		}
+	});
+});
+
 describe('@tsrx/ripple faithful text output', () => {
 	it("keeps a single `@` text child as `<>@</>` instead of `{'@'}` in type-only output", () => {
 		const { code, errors } = compile_to_volar_mappings(

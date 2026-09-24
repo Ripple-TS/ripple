@@ -8315,6 +8315,21 @@ function create_tsx_with_typescript_support(comments) {
 			context.visit(node.id);
 			context.visit(node.body);
 		},
+		TSImportEqualsDeclaration(node, context) {
+			// acorn-typescript marks `export import A = B` with `isExport` instead of
+			// wrapping it in an ExportNamedDeclaration, and esrap ignores the flag.
+			// Mark both ends, as for an ExportNamedDeclaration, so the whole exported
+			// statement maps back to its source.
+			if (!node.isExport) {
+				base_tsx.TSImportEqualsDeclaration?.(node, context);
+				return;
+			}
+			const loc = /** @type {AST.SourceLocation} */ (node.loc);
+			context.location(loc.start.line, loc.start.column);
+			context.write('export ');
+			base_tsx.TSImportEqualsDeclaration?.(node, context);
+			context.location(loc.end.line, loc.end.column);
+		},
 		AssignmentPattern(node, context) {
 			// We need to make sure that the whole AssignmentPattern has a start and end mapping
 			// Acorn only maps pieces but not the whole thing
