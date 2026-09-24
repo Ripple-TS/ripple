@@ -435,4 +435,34 @@ describe('switch statements', () => {
 		flushSync();
 		expect(container.querySelector('.label').textContent).toBe('Alpha');
 	});
+
+	it('lets a case declare a local named like one the selector or another case reads', () => {
+		function App() @{
+			const kind = track('a');
+			const label = track('outer');
+			<>
+				<button onClick={() => (kind.value = kind.value === 'a' ? 'b' : 'a')}>{'Toggle'}</button>
+				@switch (label.value && kind.value) {
+					@case 'a': {
+						const label = 'Alpha';
+						<div class="label">{label}</div>
+					}
+					@default: {
+						<div class="label">{label.value}</div>
+					}
+				}
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('.label').textContent).toBe('Alpha');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('outer');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('Alpha');
+	});
 });

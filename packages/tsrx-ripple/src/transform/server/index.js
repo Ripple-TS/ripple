@@ -1088,14 +1088,7 @@ function transform_children(children, context) {
 			node.type === 'ReturnStatement' ||
 			is_native_tsrx_function_node(node)
 		) {
-			state.init?.push(
-				node.type === 'VariableDeclaration'
-					? transform_variable_declaration(node, {
-							...context,
-							state: local_state,
-						})
-					: /** @type {AST.Statement} */ (visit(node, local_state)),
-			);
+			state.init?.push(/** @type {AST.Statement} */ (visit(node, local_state)));
 		} else {
 			visit(node, { ...local_state, template_child: true });
 		}

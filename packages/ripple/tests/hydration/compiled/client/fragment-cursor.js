@@ -342,7 +342,7 @@ DynamicChildThenStatic[_$_.$r] = DynamicChildThenStatic_render;
 
 var root_27 = _$_.template_el('b', ['class', 'if'], 'x');
 
-function consequent(__anchor, n) {
+function consequent(__anchor) {
 	var b = root_27();
 
 	_$_.append(__anchor, b);
@@ -386,7 +386,7 @@ IfThenStatic[_$_.$r] = IfThenStatic_render;
 
 var root_30 = _$_.template_el('b', ['class', 'if'], 'x');
 
-function consequent_1(__anchor, n) {
+function consequent_1(__anchor) {
 	var b_1 = root_30();
 
 	_$_.append(__anchor, b_1);
@@ -1244,13 +1244,13 @@ ForThenStatic[_$_.$r] = ForThenStatic_render;
 var root_67 = _$_.template_el('b', ['class', 'zero'], 'zero');
 var root_68 = _$_.template_el('b', ['class', 'other'], 'other');
 
-function switch_case_0(__anchor, n) {
+function switch_case_0(__anchor) {
 	var b_3 = root_67();
 
 	_$_.append(__anchor, b_3);
 }
 
-function switch_case_default(__anchor, n) {
+function switch_case_default(__anchor) {
 	var b_4 = root_68();
 
 	_$_.append(__anchor, b_4);
@@ -1736,7 +1736,7 @@ WrapInlineElementThenStatic[_$_.$r] = WrapInlineElementThenStatic_render;
 
 var root_91 = _$_.template_el('b', ['class', 'if'], 'x');
 
-function consequent_2(__anchor, n) {
+function consequent_2(__anchor) {
 	var b_9 = root_91();
 
 	_$_.append(__anchor, b_9);
@@ -1774,7 +1774,7 @@ IfOnly[_$_.$r] = IfOnly_render;
 
 var root_94 = _$_.template_el('b', ['class', 'if'], 'x');
 
-function consequent_3(__anchor, n) {
+function consequent_3(__anchor) {
 	var b_10 = root_94();
 
 	_$_.append(__anchor, b_10);
@@ -1818,7 +1818,7 @@ IfThenOne[_$_.$r] = IfThenOne_render;
 
 var root_96 = _$_.template_el('b', ['class', 'if'], 'x');
 
-function consequent_4(__anchor, n) {
+function consequent_4(__anchor) {
 	var b_11 = root_96();
 
 	_$_.append(__anchor, b_11);
@@ -2003,7 +2003,7 @@ ExprThenSiblingInDiv[_$_.$r] = ExprThenSiblingInDiv_render;
 
 var root_103 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
 
-function consequent_5(__anchor, n) {
+function consequent_5(__anchor) {
 	var fragment_59 = root_103();
 
 	_$_.next();
@@ -2048,7 +2048,7 @@ IfTwoThenStatic[_$_.$r] = IfTwoThenStatic_render;
 
 var root_105 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
 
-function consequent_6(__anchor, n) {
+function consequent_6(__anchor) {
 	var fragment_60 = root_105();
 
 	_$_.next();
@@ -2377,13 +2377,13 @@ SiblingCompsInDiv[_$_.$r] = SiblingCompsInDiv_render;
 var root_119 = _$_.template_el('b', ['class', 'even'], 'even');
 var root_120 = _$_.template_el('i', ['class', 'odd'], 'odd');
 
-function consequent_7(__anchor, n) {
+function consequent_7(__anchor) {
 	var b_14 = root_119();
 
 	_$_.append(__anchor, b_14);
 }
 
-function alternate(__anchor, n) {
+function alternate(__anchor) {
 	var i_1 = root_120();
 
 	_$_.append(__anchor, i_1);

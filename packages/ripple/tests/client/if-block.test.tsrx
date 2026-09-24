@@ -77,4 +77,49 @@ describe('if block', () => {
 		expect(container.querySelector('i')?.textContent).toBe('on');
 		expect(container.querySelector('b')?.textContent).toBe('fixed');
 	});
+
+	it('lets a branch declare a local named like one its condition or sibling reads', () => {
+		let toggle: () => void = () => {};
+
+		function App() @{
+			const show = track(true);
+			const label = track('outer');
+			toggle = () => {
+				show.value = !show.value;
+			};
+			@if (show.value && label.value !== '') {
+				const label = 'inner';
+				<span>{label}</span>
+			} @else {
+				<span>{label.value}</span>
+			}
+		}
+
+		render(App);
+		expect(container.querySelector('span')?.textContent).toBe('inner');
+
+		toggle();
+		flushSync();
+		expect(container.querySelector('span')?.textContent).toBe('outer');
+
+		toggle();
+		flushSync();
+		expect(container.querySelector('span')?.textContent).toBe('inner');
+	});
+
+	it('reads an outer local beside a nested declaration of the same name', () => {
+		function App() @{
+			const show = track(true);
+			const label = track('outer');
+			const parts = ['a', 'b'];
+			@if (show.value) {
+				let joined = '';
+				for (const label of parts) joined += label;
+				<span>{label.value + ':' + joined}</span>
+			}
+		}
+
+		render(App);
+		expect(container.querySelector('span')?.textContent).toBe('outer:ab');
+	});
 });

@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template_el('div', ['class', 'content'], [null]);
 
-function consequent(__anchor, { a: expanded, b: children }) {
+function consequent(__anchor, { b: children }) {
 	var div_2 = root_1();
 
 	{
@@ -16,7 +16,7 @@ function consequent(__anchor, { a: expanded, b: children }) {
 	_$_.append(__anchor, div_2);
 }
 
-function if_1({ a: expanded, b: children }) {
+function if_1({ a: expanded }) {
 	if (expanded.value) return consequent;
 }
 
@@ -90,7 +90,7 @@ var root_5 = _$_.template_el('div', ['class', 'content'], [
 	['span', null, 'Static child 2']
 ]);
 
-function consequent_1(__anchor, expanded) {
+function consequent_1(__anchor) {
 	var div_6 = root_5();
 
 	_$_.append(__anchor, div_6);
@@ -133,7 +133,7 @@ IfWithStaticChildren[_$_.$r] = IfWithStaticChildren_render;
 
 var root_7 = _$_.template_el('div', ['class', 'items'], [null]);
 
-function consequent_2(__anchor, { a: expanded, b: children }) {
+function consequent_2(__anchor, { b: children }) {
 	var div_8 = root_7();
 
 	{
@@ -146,7 +146,7 @@ function consequent_2(__anchor, { a: expanded, b: children }) {
 	_$_.append(__anchor, div_8);
 }
 
-function if_3({ a: expanded, b: children }) {
+function if_3({ a: expanded }) {
 	if (expanded.value) return consequent_2;
 }
 
@@ -207,7 +207,7 @@ TestIfWithSiblingsAndChildren[_$_.$r] = TestIfWithSiblingsAndChildren_render;
 
 var root_11 = _$_.template_el('div', ['class', 'conditional'], 'Conditional content');
 
-function consequent_3(__anchor, show) {
+function consequent_3(__anchor) {
 	var div_11 = root_11();
 
 	_$_.append(__anchor, div_11);
@@ -260,7 +260,7 @@ ElementWithChildrenThenIf[_$_.$r] = ElementWithChildrenThenIf_render;
 
 var root_14 = _$_.template_el('footer', ['class', 'footer'], 'Footer');
 
-function consequent_4(__anchor, visible) {
+function consequent_4(__anchor) {
 	var footer = root_14();
 
 	_$_.append(__anchor, footer);
@@ -318,13 +318,13 @@ DeepNestingThenIf[_$_.$r] = DeepNestingThenIf_render;
 var root_16 = _$_.template(`<pre class=code>const x = 1;`);
 var root_17 = _$_.template_el('div', ['class', 'preview'], 'Preview content');
 
-function consequent_5(__anchor, activeTab) {
+function consequent_5(__anchor) {
 	var pre = root_16();
 
 	_$_.append(__anchor, pre);
 }
 
-function alternate(__anchor, activeTab) {
+function alternate(__anchor) {
 	var div_15 = root_17();
 
 	_$_.append(__anchor, div_15);
@@ -470,13 +470,13 @@ StaticListThenStaticSiblings[_$_.$r] = StaticListThenStaticSiblings_render;
 var root_21 = _$_.template_el('span', ['class', 'root-if'], 'on');
 var root_22 = _$_.template_el('span', ['class', 'root-if'], 'off');
 
-function consequent_6(__anchor, props) {
+function consequent_6(__anchor) {
 	var span = root_21();
 
 	_$_.append(__anchor, span);
 }
 
-function alternate_1(__anchor, props) {
+function alternate_1(__anchor) {
 	var span_1 = root_22();
 
 	_$_.append(__anchor, span_1);

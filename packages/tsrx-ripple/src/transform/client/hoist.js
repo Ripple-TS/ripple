@@ -141,49 +141,100 @@ function collect_pattern_names(pattern, into) {
 }
 
 /**
- * Collects the names a function declares for its body: parameters, `var`,
- * `let`, `const`, function and class declarations anywhere inside it.
- * @param {AST.Function} fn
- * @returns {Set<string>}
+ * Collects the names a statement list declares lexically: `let`, `const`,
+ * function and class declarations.
+ * @param {AST.Node[]} statements
+ * @param {Set<string>} into
  */
-function local_names(fn) {
-	/** @type {Set<string>} */
-	const names = new Set();
-	for (const param of fn.params) {
-		collect_pattern_names(param, names);
-	}
-	/** @param {AST.Node} node */
-	const collect = (node) => {
-		switch (node.type) {
-			case 'VariableDeclarator':
-				collect_pattern_names(node.id, names);
-				break;
-			case 'FunctionDeclaration':
-			case 'ClassDeclaration':
-				if (node.id) names.add(node.id.name);
-				return;
-			case 'FunctionExpression':
-			case 'ArrowFunctionExpression':
-			case 'ClassExpression':
-				return;
-			case 'CatchClause':
-				if (node.param) collect_pattern_names(node.param, names);
-				break;
+function collect_lexical_names(statements, into) {
+	for (const statement of statements) {
+		if (statement.type === 'VariableDeclaration') {
+			if (statement.kind === 'var') continue;
+			for (const declarator of statement.declarations) {
+				collect_pattern_names(declarator.id, into);
+			}
+		} else if (
+			(statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration') &&
+			statement.id
+		) {
+			into.add(statement.id.name);
 		}
-		for (const key in node) {
-			if (SKIPPED_KEYS.has(key)) continue;
-			const value = /** @type {any} */ (node)[key];
-			if (Array.isArray(value)) {
-				for (const item of value) {
-					if (is_node(item)) collect(item);
-				}
-			} else if (is_node(value)) {
-				collect(value);
+	}
+}
+
+/**
+ * Collects the `var` names declared anywhere under `node` outside nested
+ * functions.
+ * @param {AST.Node} node
+ * @param {Set<string>} into
+ */
+function collect_var_names(node, into) {
+	if (node.type === 'VariableDeclaration' && node.kind === 'var') {
+		for (const declarator of node.declarations) {
+			collect_pattern_names(declarator.id, into);
+		}
+	}
+	for (const key in node) {
+		if (SKIPPED_KEYS.has(key)) continue;
+		const value = /** @type {any} */ (node)[key];
+		for (const item of Array.isArray(value) ? value : [value]) {
+			if (
+				is_node(item) &&
+				item.type !== 'FunctionDeclaration' &&
+				item.type !== 'FunctionExpression' &&
+				item.type !== 'ArrowFunctionExpression'
+			) {
+				collect_var_names(item, into);
 			}
 		}
-	};
-	collect(fn.body);
-	return names;
+	}
+}
+
+/**
+ * The names bound for the code under `node`: `shadowed` plus, when `node`
+ * opens a scope, what it declares (a function's name, parameters and `var`s;
+ * the lexical declarations of a block, a `switch` body or a `for` head; a
+ * `catch` parameter). A name declared in a nested block shadows only that
+ * block, so a read of the same name beside the block stays free.
+ * @param {AST.Node} node
+ * @param {Set<string>} shadowed
+ * @returns {Set<string>}
+ */
+function inner_scope(node, shadowed) {
+	/** @type {Set<string>} */
+	const names = new Set();
+	switch (node.type) {
+		case 'FunctionDeclaration':
+		case 'FunctionExpression':
+		case 'ArrowFunctionExpression':
+			if (node.type !== 'ArrowFunctionExpression' && node.id) names.add(node.id.name);
+			for (const param of node.params) {
+				collect_pattern_names(param, names);
+			}
+			collect_var_names(node.body, names);
+			break;
+		case 'BlockStatement':
+		case 'StaticBlock':
+			collect_lexical_names(node.body, names);
+			break;
+		case 'SwitchStatement':
+			collect_lexical_names(
+				node.cases.flatMap((switch_case) => switch_case.consequent),
+				names,
+			);
+			break;
+		case 'ForStatement':
+			if (node.init) collect_lexical_names([node.init], names);
+			break;
+		case 'ForInStatement':
+		case 'ForOfStatement':
+			collect_lexical_names([node.left], names);
+			break;
+		case 'CatchClause':
+			if (node.param) collect_pattern_names(node.param, names);
+			break;
+	}
+	return names.size === 0 ? shadowed : new Set([...shadowed, ...names]);
 }
 
 /**
@@ -247,15 +298,22 @@ function scan(node, references, shadowed) {
 		case 'FunctionExpression':
 		case 'ArrowFunctionExpression':
 		case 'FunctionDeclaration': {
-			const inner = new Set(shadowed);
-			if (node.type !== 'ArrowFunctionExpression' && node.id) inner.add(node.id.name);
-			for (const name of local_names(node)) inner.add(name);
+			const inner = inner_scope(node, shadowed);
 			for (const param of node.params) {
 				if (param.type === 'AssignmentPattern' && !scan(param.right, references, inner)) {
 					return false;
 				}
 			}
 			return scan(node.body, references, inner);
+		}
+		case 'SwitchStatement': {
+			// The discriminant is read outside the scope of the cases.
+			if (!scan(node.discriminant, references, shadowed)) return false;
+			const inner = inner_scope(node, shadowed);
+			for (const switch_case of node.cases) {
+				if (!scan(switch_case, references, inner)) return false;
+			}
+			return true;
 		}
 		case 'VariableDeclarator':
 			return node.init === null || node.init === undefined
@@ -275,14 +333,15 @@ function scan(node, references, shadowed) {
 		return is_node(expression) ? scan(expression, references, shadowed) : true;
 	}
 
+	const inner = inner_scope(node, shadowed);
 	for (const key in node) {
 		if (SKIPPED_KEYS.has(key)) continue;
 		const value = /** @type {any} */ (node)[key];
 		if (Array.isArray(value)) {
 			for (const item of value) {
-				if (is_node(item) && !scan(item, references, shadowed)) return false;
+				if (is_node(item) && !scan(item, references, inner)) return false;
 			}
-		} else if (is_node(value) && !scan(value, references, shadowed)) {
+		} else if (is_node(value) && !scan(value, references, inner)) {
 			return false;
 		}
 	}
@@ -371,21 +430,27 @@ export function rewrite(node, replace, shadowed) {
 		node.type === 'ArrowFunctionExpression' ||
 		node.type === 'FunctionDeclaration'
 	) {
-		const inner = new Set(shadowed);
-		if (node.type !== 'ArrowFunctionExpression' && node.id) inner.add(node.id.name);
-		for (const name of local_names(node)) inner.add(name);
+		const inner = inner_scope(node, shadowed);
 		copy.params = node.params.map((param) => rewrite(param, replace, inner));
 		copy.body = rewrite(node.body, replace, inner);
 		return copy;
 	}
 
+	if (node.type === 'SwitchStatement') {
+		copy.discriminant = rewrite(node.discriminant, replace, shadowed);
+		const inner = inner_scope(node, shadowed);
+		copy.cases = node.cases.map((switch_case) => rewrite(switch_case, replace, inner));
+		return copy;
+	}
+
+	const inner = inner_scope(node, shadowed);
 	for (const key in node) {
 		if (SKIPPED_KEYS.has(key)) continue;
 		const value = /** @type {any} */ (node)[key];
 		if (Array.isArray(value)) {
-			copy[key] = value.map((item) => (is_node(item) ? rewrite(item, replace, shadowed) : item));
+			copy[key] = value.map((item) => (is_node(item) ? rewrite(item, replace, inner) : item));
 		} else if (is_node(value)) {
-			copy[key] = rewrite(value, replace, shadowed);
+			copy[key] = rewrite(value, replace, inner);
 		}
 	}
 
@@ -422,28 +487,35 @@ export function is_hoisted(hoisted, name) {
 
 /**
  * The locals a set of compiled functions would have to capture to live at
- * module level, or null when one of them cannot (it reads a reassigned local,
- * `this`, `arguments` or a class).
+ * module level, and the ones each function reads (`reads[i]` for
+ * `functions[i]`), or null when one of them cannot (it reads a reassigned
+ * local, `this`, `arguments` or a class).
  * @param {AST.Function[]} functions
  * @param {ScopeInterface} scope
  * @param {AST.Statement[]} hoisted
  * @param {Iterable<string>} [own] names the functions define among themselves
- * @returns {string[] | null}
+ * @returns {{ captures: string[]; reads: Set<string>[] } | null}
  */
 export function captured_locals(functions, scope, hoisted, own = []) {
-	/** @type {Set<string>} */
-	const references = new Set();
+	/** @type {Set<string>[]} */
+	const references = [];
 	for (const fn of functions) {
-		if (!scan(fn, references, new Set())) return null;
+		/** @type {Set<string>} */
+		const names = new Set();
+		if (!scan(fn, names, new Set())) return null;
+		references.push(names);
 	}
 	const owned = new Set(own);
 	/** @type {string[]} */
 	const captures = [];
-	for (const name of references) {
+	for (const name of new Set(references.flatMap((names) => [...names]))) {
 		if (owned.has(name) || is_hoisted(hoisted, name)) continue;
 		const kind = classify(name, scope);
 		if (kind === 'bail') return null;
 		if (kind === 'capture') captures.push(name);
 	}
-	return captures;
+	return {
+		captures,
+		reads: references.map((names) => new Set(captures.filter((name) => names.has(name)))),
+	};
 }

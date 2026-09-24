@@ -397,4 +397,52 @@ export function App() @{
 			expect(css).toContain(`.card.${cssHash}`);
 		});
 	});
+
+	it('reads style blocks declared inside control-flow branches', async () => {
+		function App() @{
+			const show = true;
+			const mode: string = 'a';
+			const items = ['one', 'two'];
+			<>
+				@if (show) {
+					const styles = <style>
+						.label {
+							color: red;
+						}
+					</style>;
+					<span class={styles.label}>{'if'}</span>
+				}
+				@switch (mode) {
+					@case 'a': {
+						const styles = <style>
+							.label {
+								color: green;
+							}
+						</style>;
+						<span class={styles.label}>{'switch'}</span>
+					}
+				}
+				@for (const item of items) {
+					const styles = <style>
+						.label {
+							color: blue;
+						}
+					</style>;
+					<span class={styles.label}>{item}</span>
+				}
+			</>
+		}
+
+		const { body, css } = await render(App);
+		const { document } = parseHtml(body);
+
+		const spans = Array.from(document.querySelectorAll('span'));
+		expect(spans.map((span: Element) => span.textContent)).toEqual(['if', 'switch', 'one', 'two']);
+		for (const span of spans) {
+			const [hash, name] = Array.from(span.classList) as string[];
+			expect(name).toBe('label');
+			expect(hash).toMatch(/^tsrx-/);
+			expect(css.has(hash)).toBe(true);
+		}
+	});
 });

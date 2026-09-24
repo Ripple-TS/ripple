@@ -27,7 +27,7 @@ SimplePortal[_$_.$r] = SimplePortal_render;
 
 var root_3 = _$_.template_el('div', ['class', 'portal-content'], 'Portal is visible');
 
-function consequent(__anchor, show) {
+function consequent(__anchor) {
 	_$_.portal(__anchor, () => typeof document !== 'undefined' ? document.body : null, (__anchor, __block) => {
 		var div_3 = root_3();
 

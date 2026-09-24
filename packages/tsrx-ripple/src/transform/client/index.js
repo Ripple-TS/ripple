@@ -1074,7 +1074,9 @@ function visit_head_element(node, index, context) {
  */
 function emit_render_block(init, body, initial, state) {
 	const fn = b.arrow([b.id('__prev')], b.block(body));
-	const captures = state.to_ts ? null : captured_locals([fn], state.scope, state.hoisted);
+	const captures = state.to_ts
+		? null
+		: (captured_locals([fn], state.scope, state.hoisted)?.captures ?? null);
 
 	if (captures === null) {
 		init.push(
@@ -1809,36 +1811,33 @@ function build_jsx_to_tsrx_element(node, context) {
 /**
  * How hoisted control-flow functions receive the locals they capture through
  * the runtime's single context argument: one local as itself, several as one
- * object literal built at the call (`{ depth, path }`, the values at that
- * moment) and destructured in each hoisted signature, so the hoisted code
- * reads the names it was written with.
+ * object literal built at the call (`{ a: depth, b: path }`, the values at that
+ * moment). Each hoisted signature takes apart only the locals its function
+ * reads, under the names it was written with, so a branch may declare a local
+ * named like one its condition or a sibling branch reads.
  * @param {string[]} captures
- * @returns {{ params: AST.Pattern[]; args: AST.Expression[] }}
+ * @returns {{ args: AST.Expression[]; params: (reads: Set<string>) => AST.Pattern[] }}
  */
 function capture_context(captures) {
 	if (captures.length <= 1) {
-		return { params: captures.map((name) => b.id(name)), args: captures.map((name) => b.id(name)) };
+		return {
+			args: captures.map((name) => b.id(name)),
+			params: (reads) => captures.filter((name) => reads.has(name)).map((name) => b.id(name)),
+		};
 	}
 	// The keys are positional (`a`, `b`, …): the object is built at the call
-	// and taken apart in the signature, so the names it carries are never
+	// and taken apart in the signatures, so the names it carries are never
 	// read, and short keys keep both sites small.
-	const pattern = captures.map(
-		(name, index) =>
-			/** @type {AST.AssignmentProperty} */ ({
-				type: 'Property',
-				kind: 'init',
-				key: b.id(capture_key(index)),
-				value: b.id(name),
-				computed: false,
-				shorthand: false,
-				method: false,
-			}),
-	);
 	return {
-		params: [b.object_pattern(pattern)],
 		args: [
 			b.object(captures.map((name, index) => b.prop('init', b.id(capture_key(index)), b.id(name)))),
 		],
+		params: (reads) => {
+			const pattern = captures.flatMap((name, index) =>
+				reads.has(name) ? [b.assignment_prop(b.id(capture_key(index)), b.id(name))] : [],
+			);
+			return pattern.length === 0 ? [] : [b.object_pattern(pattern)];
+		},
 	};
 }
 
@@ -1937,23 +1936,27 @@ const visit_switch_statement = (node, context) => {
 	// Same hoisting as `@if`: module-level selector and cases, their captured
 	// locals passed through the runtime.
 	const hoisted = context.state.hoisted;
-	const captures = captured_locals(
+	const captured = captured_locals(
 		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
 		context.state.scope,
 		hoisted,
 		branches.map((branch) => branch.id.name),
 	);
 
-	if (captures !== null) {
-		const { params: context_params, args: context_args } = capture_context(captures);
+	if (captured !== null) {
+		const { params: context_params, args: context_args } = capture_context(captured.captures);
 		const switch_id = b.id(context.state.scope.generate('switch'));
-		for (const branch of branches) {
+		branches.forEach((branch, index) => {
 			hoisted.push(
-				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+				b.function_declaration(
+					branch.id,
+					[b.id('__anchor'), ...context_params(captured.reads[index + 1])],
+					branch.body,
+				),
 			);
 			register_hoisted(hoisted, branch.id.name);
-		}
-		hoisted.push(b.function_declaration(switch_id, context_params, callback));
+		});
+		hoisted.push(b.function_declaration(switch_id, context_params(captured.reads[0]), callback));
 		register_hoisted(hoisted, switch_id.name);
 		context.state.init?.push(
 			b.stmt(
@@ -2136,23 +2139,27 @@ const visit_if_statement = (node, context) => {
 	// there are more (see `capture_context`), so no closures are created per
 	// instantiation of the enclosing component.
 	const hoisted = context.state.hoisted;
-	const captures = captured_locals(
+	const captured = captured_locals(
 		[b.arrow([], callback), ...branches.map((branch) => b.arrow([b.id('__anchor')], branch.body))],
 		context.state.scope,
 		hoisted,
 		branches.map((branch) => branch.id.name),
 	);
 
-	if (captures !== null) {
-		const { params: context_params, args: context_args } = capture_context(captures);
+	if (captured !== null) {
+		const { params: context_params, args: context_args } = capture_context(captured.captures);
 		const if_id = b.id(context.state.scope.generate('if'));
-		for (const branch of branches) {
+		branches.forEach((branch, index) => {
 			hoisted.push(
-				b.function_declaration(branch.id, [b.id('__anchor'), ...context_params], branch.body),
+				b.function_declaration(
+					branch.id,
+					[b.id('__anchor'), ...context_params(captured.reads[index + 1])],
+					branch.body,
+				),
 			);
 			register_hoisted(hoisted, branch.id.name);
-		}
-		hoisted.push(b.function_declaration(if_id, context_params, callback));
+		});
+		hoisted.push(b.function_declaration(if_id, context_params(captured.reads[0]), callback));
 		register_hoisted(hoisted, if_id.name);
 		const context_arguments =
 			context_args.length > 0

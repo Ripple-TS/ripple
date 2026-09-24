@@ -197,7 +197,7 @@ function render_6(__prev) {
 
 var root_11 = _$_.template_el('p', ['class', 'pending'], 'pending b');
 
-function switch_case_0_1(__anchor, { a: mode, b: pattern_1 }) {
+function switch_case_0_1(__anchor, { b: pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -216,7 +216,7 @@ function switch_case_0_1(__anchor, { a: mode, b: pattern_1 }) {
 	);
 }
 
-function switch_case_default_1(__anchor, { a: mode, b: pattern_1 }) {
+function switch_case_default_1(__anchor, { b: pattern_1 }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -235,7 +235,7 @@ function switch_case_default_1(__anchor, { a: mode, b: pattern_1 }) {
 	);
 }
 
-function switch_2({ a: mode, b: pattern_1 }) {
+function switch_2({ a: mode }) {
 	switch (mode.value) {
 		case 'a':
 			return switch_case_0_1;
@@ -247,7 +247,7 @@ function switch_2({ a: mode, b: pattern_1 }) {
 
 var root_7 = _$_.template_el('div', ['class', 'mixed-reactive-list']);
 
-function consequent_1(__anchor, { a: show, b: items, c: mode }) {
+function consequent_1(__anchor, { b: items, c: mode }) {
 	var div_4 = root_7();
 
 	{
@@ -267,7 +267,7 @@ function consequent_1(__anchor, { a: show, b: items, c: mode }) {
 	_$_.append(__anchor, div_4);
 }
 
-function if_2({ a: show, b: items, c: mode }) {
+function if_2({ a: show }) {
 	if (show.value) return consequent_1;
 }
 
@@ -332,7 +332,7 @@ MixedControlFlowReactive[_$_.$r] = MixedControlFlowReactive_render;
 var root_14 = _$_.template_el('div');
 var root_15 = _$_.template_el('div', ['class', 'unexpected'], 'unexpected');
 
-function switch_case_0_2(__anchor, { a: state, b: row }) {
+function switch_case_0_2(__anchor, { b: row }) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -354,13 +354,13 @@ function switch_case_0_2(__anchor, { a: state, b: row }) {
 	);
 }
 
-function switch_case_default_2(__anchor, { a: state, b: row }) {
+function switch_case_default_2(__anchor) {
 	var div_7 = root_15();
 
 	_$_.append(__anchor, div_7);
 }
 
-function switch_3({ a: state, b: row }) {
+function switch_3({ a: state }) {
 	switch (state) {
 		case 'slow':
 			return switch_case_0_2;
@@ -374,7 +374,7 @@ function consequent_2(__anchor, { a: row, b: state }) {
 	_$_.switch(__anchor, switch_3, true, { a: state, b: row });
 }
 
-function if_3({ a: row, b: state }) {
+function if_3({ a: row }) {
 	if (row === 1) return consequent_2;
 }
 

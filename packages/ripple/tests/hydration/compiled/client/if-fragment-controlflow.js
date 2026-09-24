@@ -4,7 +4,7 @@ import * as _$_ from 'ripple/internal/client';
 var root_2 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_1 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent(__anchor, { a: hasLoaded, b: muzes }) {
+function consequent(__anchor, { b: muzes }) {
 	var fragment = root_1();
 	var node_1 = _$_.first_child_frag(fragment);
 
@@ -31,7 +31,7 @@ function consequent(__anchor, { a: hasLoaded, b: muzes }) {
 	_$_.append(__anchor, fragment);
 }
 
-function if_1({ a: hasLoaded, b: muzes }) {
+function if_1({ a: hasLoaded }) {
 	if (hasLoaded) return consequent;
 }
 
@@ -57,7 +57,7 @@ IfFragmentForElement[_$_.$r] = IfFragmentForElement_render;
 var root_5 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_6 = _$_.template_el('span', ['class', 'has-items'], 'has items');
 
-function consequent_1(__anchor, muzes) {
+function consequent_1(__anchor) {
 	var span = root_6();
 
 	_$_.append(__anchor, span);
@@ -69,7 +69,7 @@ function if_2(muzes) {
 
 var root_7 = _$_.template_el('span', ['class', 'empty'], 'empty');
 
-function consequent_2(__anchor, muzes) {
+function consequent_2(__anchor) {
 	var span_1 = root_7();
 
 	_$_.append(__anchor, span_1);
@@ -95,7 +95,7 @@ function render(__prev) {
 	}
 }
 
-function consequent_3(__anchor, { a: hasLoaded, b: muzes }) {
+function consequent_3(__anchor, { b: muzes }) {
 	var fragment_1 = root_4();
 	var node_3 = _$_.first_child_frag(fragment_1);
 
@@ -134,7 +134,7 @@ function consequent_3(__anchor, { a: hasLoaded, b: muzes }) {
 	_$_.append(__anchor, fragment_1);
 }
 
-function if_4({ a: hasLoaded, b: muzes }) {
+function if_4({ a: hasLoaded }) {
 	if (hasLoaded) return consequent_3;
 }
 
@@ -159,7 +159,7 @@ IfFragmentForIfIf[_$_.$r] = IfFragmentForIfIf_render;
 
 var root_9 = _$_.template(`<p class=muze>b</p><p class=muze>c`, 1, 2);
 
-function consequent_4(__anchor, hasLoaded) {
+function consequent_4(__anchor) {
 	var fragment_2 = root_9();
 
 	_$_.next();
@@ -277,7 +277,7 @@ ComponentBodyCodeBlockControlFlow[_$_.$r] = ComponentBodyCodeBlockControlFlow_re
 var root_17 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_18 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent_5(__anchor, { a: hasLoaded, b: muzes }) {
+function consequent_5(__anchor, { b: muzes }) {
 	var fragment_7 = root_18();
 	var expression_6 = _$_.first_child_frag(fragment_7);
 
@@ -308,7 +308,7 @@ function consequent_5(__anchor, { a: hasLoaded, b: muzes }) {
 	_$_.append(__anchor, fragment_7);
 }
 
-function if_6({ a: hasLoaded, b: muzes }) {
+function if_6({ a: hasLoaded }) {
 	if (hasLoaded) return consequent_5;
 }
 
@@ -335,13 +335,13 @@ var root_20 = _$_.template_el('span', ['class', 'loading'], 'loading');
 var root_22 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_21 = _$_.template(`<!><span class=after>after`, 1, 2);
 
-function consequent_6(__anchor, { a: hasLoaded, b: muzes }) {
+function consequent_6(__anchor) {
 	var span_2 = root_20();
 
 	_$_.append(__anchor, span_2);
 }
 
-function alternate(__anchor, { a: hasLoaded, b: muzes }) {
+function alternate(__anchor, { b: muzes }) {
 	var fragment_8 = root_21();
 	var node_12 = _$_.first_child_frag(fragment_8);
 
@@ -368,7 +368,7 @@ function alternate(__anchor, { a: hasLoaded, b: muzes }) {
 	_$_.append(__anchor, fragment_8);
 }
 
-function if_7({ a: hasLoaded, b: muzes }) {
+function if_7({ a: hasLoaded }) {
 	if (hasLoaded) return consequent_6; else return alternate;
 }
 
@@ -394,7 +394,7 @@ IfElseFragment[_$_.$r] = IfElseFragment_render;
 var root_25 = _$_.template_el('p', ['class', 'muze'], ' ');
 var root_24 = _$_.template_el('section', null, [['span', ['class', 'after'], 'after']]);
 
-function consequent_7(__anchor, { a: hasLoaded, b: muzes }) {
+function consequent_7(__anchor, { b: muzes }) {
 	var section = root_24();
 
 	{
@@ -425,7 +425,7 @@ function consequent_7(__anchor, { a: hasLoaded, b: muzes }) {
 	_$_.append(__anchor, section);
 }
 
-function if_8({ a: hasLoaded, b: muzes }) {
+function if_8({ a: hasLoaded }) {
 	if (hasLoaded) return consequent_7;
 }
 

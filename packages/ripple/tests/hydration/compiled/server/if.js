@@ -152,3 +152,51 @@ export function IfElseIfChain() {
 		});
 	});
 }
+
+export function IfBranchDeclarations() {
+	return _$_.tsrx_element(() => {
+		const show = _$_.track(true, '1b7i975');
+		const label = _$_.track('outer', '5t2ya3');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button class="branch-toggle">Toggle</button><!--[-->';
+
+			if (show.value) {
+				const label = 'inner';
+
+				const styles = {
+					get '$class'() {
+						_$_.output_register_css('tsrx-35357fa0');
+
+						return 'tsrx-35357fa0';
+					},
+
+					get 'styled'() {
+						_$_.output_register_css('tsrx-35357fa0');
+
+						return 'tsrx-35357fa0 styled';
+					}
+				};
+
+				__out += '<span' + _$_.attr('class', styles.styled) + '>' + _$_.escape(label) + '</span>';
+			} else {
+				__out += '<span class="plain">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(label.value);
+				}
+
+				__out += '</span>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+_$_.register_css('tsrx-35357fa0', '\n				.styled.tsrx-35357fa0 {\n					color: red;\n				}\n			');

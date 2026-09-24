@@ -165,13 +165,13 @@ ForSwitch[_$_.$r] = ForSwitch_render;
 var root_6 = _$_.template_el('p', ['class', 'case-a'], 'Case A');
 var root_7 = _$_.template_el('p', ['class', 'case-default'], 'Default');
 
-function switch_case_0_1(__anchor, kind) {
+function switch_case_0_1(__anchor) {
 	var p = root_6();
 
 	_$_.append(__anchor, p);
 }
 
-function switch_case_default_1(__anchor, kind) {
+function switch_case_default_1(__anchor) {
 	var p_1 = root_7();
 
 	_$_.append(__anchor, p_1);
@@ -187,11 +187,11 @@ function switch_2(kind) {
 	}
 }
 
-function consequent_1(__anchor, { a: show, b: kind }) {
+function consequent_1(__anchor, { b: kind }) {
 	_$_.switch(__anchor, switch_2, true, kind);
 }
 
-function if_2({ a: show, b: kind }) {
+function if_2({ a: show }) {
 	if (show) return consequent_1;
 }
 
@@ -217,13 +217,13 @@ IfSwitch[_$_.$r] = IfSwitch_render;
 var root_9 = _$_.template_el('p', ['class', 'case-a'], 'Case A');
 var root_10 = _$_.template_el('p', ['class', 'case-default'], 'Default');
 
-function switch_case_0_2(__anchor, kind) {
+function switch_case_0_2(__anchor) {
 	var p_2 = root_9();
 
 	_$_.append(__anchor, p_2);
 }
 
-function switch_case_default_2(__anchor, kind) {
+function switch_case_default_2(__anchor) {
 	var p_3 = root_10();
 
 	_$_.append(__anchor, p_3);
@@ -239,11 +239,11 @@ function switch_3(kind) {
 	}
 }
 
-function consequent_2(__anchor, { a: show, b: kind }) {
+function consequent_2(__anchor, { b: kind }) {
 	_$_.switch(__anchor, switch_3, true, kind);
 }
 
-function if_3({ a: show, b: kind }) {
+function if_3({ a: show }) {
 	if (show) return consequent_2;
 }
 
@@ -597,7 +597,7 @@ var root_21 = _$_.template_el('p', ['class', 'resolved-a'], 'A resolved');
 var root_22 = _$_.template_el('p', ['class', 'pending-a'], 'A pending');
 var root_23 = _$_.template_el('p', ['class', 'default'], 'Default');
 
-function switch_case_0_6(__anchor, kind) {
+function switch_case_0_6(__anchor) {
 	_$_.try(
 		__anchor,
 		(__anchor) => {
@@ -615,7 +615,7 @@ function switch_case_0_6(__anchor, kind) {
 	);
 }
 
-function switch_case_default_6(__anchor, kind) {
+function switch_case_default_6(__anchor) {
 	var p_6 = root_23();
 
 	_$_.append(__anchor, p_6);

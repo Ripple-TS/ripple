@@ -5,19 +5,19 @@ var root = _$_.template_el('div', ['class', 'status-success'], 'Success');
 var root_1 = _$_.template_el('div', ['class', 'status-error'], 'Error');
 var root_2 = _$_.template_el('div', ['class', 'status-unknown'], 'Unknown');
 
-function switch_case_0(__anchor, status) {
+function switch_case_0(__anchor) {
 	var div = root();
 
 	_$_.append(__anchor, div);
 }
 
-function switch_case_1(__anchor, status) {
+function switch_case_1(__anchor) {
 	var div_1 = root_1();
 
 	_$_.append(__anchor, div_1);
 }
 
-function switch_case_default(__anchor, status) {
+function switch_case_default(__anchor) {
 	var div_2 = root_2();
 
 	_$_.append(__anchor, div_2);
@@ -48,19 +48,19 @@ var root_5 = _$_.template_el('div', ['class', 'case-a'], 'Case A');
 var root_6 = _$_.template_el('div', ['class', 'case-b'], 'Case B');
 var root_7 = _$_.template_el('div', ['class', 'case-c'], 'Case C');
 
-function switch_case_0_1(__anchor, status) {
+function switch_case_0_1(__anchor) {
 	var div_3 = root_5();
 
 	_$_.append(__anchor, div_3);
 }
 
-function switch_case_1_1(__anchor, status) {
+function switch_case_1_1(__anchor) {
 	var div_4 = root_6();
 
 	_$_.append(__anchor, div_4);
 }
 
-function switch_case_default_1(__anchor, status) {
+function switch_case_default_1(__anchor) {
 	var div_5 = root_7();
 
 	_$_.append(__anchor, div_5);
@@ -109,13 +109,13 @@ SwitchReactive[_$_.$r] = SwitchReactive_render;
 var root_8 = _$_.template_el('div', ['class', 'case-1-2'], '1 or 2');
 var root_9 = _$_.template_el('div', ['class', 'case-other'], 'Other');
 
-function switch_case_0_2(__anchor, val) {
+function switch_case_0_2(__anchor) {
 	var div_6 = root_8();
 
 	_$_.append(__anchor, div_6);
 }
 
-function switch_case_default_2(__anchor, val) {
+function switch_case_default_2(__anchor) {
 	var div_7 = root_9();
 
 	_$_.append(__anchor, div_7);
@@ -146,19 +146,19 @@ var root_12 = _$_.template_el('div', ['class', 'level-1'], 'Level 1');
 var root_13 = _$_.template_el('div', ['class', 'level-2'], 'Level 2');
 var root_14 = _$_.template_el('div', ['class', 'level-3'], 'Level 3');
 
-function switch_case_0_3(__anchor, level) {
+function switch_case_0_3(__anchor) {
 	var div_8 = root_12();
 
 	_$_.append(__anchor, div_8);
 }
 
-function switch_case_1_2(__anchor, level) {
+function switch_case_1_2(__anchor) {
 	var div_9 = root_13();
 
 	_$_.append(__anchor, div_9);
 }
 
-function switch_case_2(__anchor, level) {
+function switch_case_2(__anchor) {
 	var div_10 = root_14();
 
 	_$_.append(__anchor, div_10);
@@ -208,19 +208,19 @@ var root_17 = _$_.template_el('div', ['class', 'block-1'], 'Block 1');
 var root_18 = _$_.template_el('div', ['class', 'block-2'], 'Block 2');
 var root_19 = _$_.template_el('div', ['class', 'block-3'], 'Block 3');
 
-function switch_case_0_4(__anchor, level) {
+function switch_case_0_4(__anchor) {
 	var div_11 = root_17();
 
 	_$_.append(__anchor, div_11);
 }
 
-function switch_case_1_3(__anchor, level) {
+function switch_case_1_3(__anchor) {
 	var div_12 = root_18();
 
 	_$_.append(__anchor, div_12);
 }
 
-function switch_case_2_1(__anchor, level) {
+function switch_case_2_1(__anchor) {
 	var div_13 = root_19();
 
 	_$_.append(__anchor, div_13);
@@ -270,19 +270,19 @@ var root_22 = _$_.template_el('div', ['class', 'nobreak-1'], 'NoBreak 1');
 var root_23 = _$_.template_el('div', ['class', 'nobreak-2'], 'NoBreak 2');
 var root_24 = _$_.template_el('div', ['class', 'nobreak-3'], 'NoBreak 3');
 
-function switch_case_0_5(__anchor, level) {
+function switch_case_0_5(__anchor) {
 	var div_14 = root_22();
 
 	_$_.append(__anchor, div_14);
 }
 
-function switch_case_1_4(__anchor, level) {
+function switch_case_1_4(__anchor) {
 	var div_15 = root_23();
 
 	_$_.append(__anchor, div_15);
 }
 
-function switch_case_2_2(__anchor, level) {
+function switch_case_2_2(__anchor) {
 	var div_16 = root_24();
 
 	_$_.append(__anchor, div_16);

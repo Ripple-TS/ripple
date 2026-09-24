@@ -168,11 +168,12 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 			'App.tsrx',
 		);
 
-		// Condition and branches are module-level and destructure the packed
-		// captures; the call builds the object from the locals at that moment.
-		expect(code).toContain('function if_1({ a: depth, b: path })');
-		expect(code).toContain('function consequent(__anchor, { a: depth, b: path })');
-		expect(code).toContain('function alternate(__anchor, { a: depth, b: path })');
+		// Condition and branches are module-level and each destructures the packed
+		// captures it reads; the call builds the object from the locals at that
+		// moment.
+		expect(code).toContain('function if_1({ a: depth })');
+		expect(code).toContain('function consequent(__anchor, { b: path })');
+		expect(code).toContain('function alternate(__anchor, { b: path })');
 		expect(code).toContain('_$_.if(__anchor, if_1, true, { a: depth, b: path });');
 		expect(code).not.toContain('var consequent =');
 	});
@@ -195,7 +196,7 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		// they are boxed and the branch is hoisted with the boxes as captures.
 		expect(code).toContain('let div = { v: void 0 };');
 		expect(code).toContain('let clicks = { v: 0 };');
-		expect(code).toContain('function consequent(__anchor, { a: show, b: div, c: clicks })');
+		expect(code).toContain('function consequent(__anchor, { b: div, c: clicks })');
 		expect(code).toContain('_$_.ref(div_1, () => div.v, (v) => div.v = v);');
 		expect(code).toContain('clicks.v++');
 		// The condition reads tracked state: the enclosing render function
@@ -333,6 +334,92 @@ describe('@tsrx/ripple hoisted component entries and control flow', () => {
 		expect(code).toContain('var __a = if_1(__prev._a);');
 		expect(code).toContain('_$_.if_update(__prev._b, __prev.a = __a);');
 	});
+
+	it('lets a branch declare a local named like one its condition or a sibling reads', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function Sibling({ show }) @{
+				const label = track('outer');
+				@if (show) {
+					const label = 'inner';
+					<div>{label}</div>
+				} @else {
+					<div>{label.value}</div>
+				}
+			}
+			export function Condition() @{
+				const label = track(true);
+				@if (label.value) {
+					const label = 'inner';
+					<div>{label}</div>
+				}
+			}
+			export function Arms({ mode }) @{
+				const label = track('outer');
+				@switch (mode) {
+					@case 'a': {
+						const label = 'inner';
+						<div>{label}</div>
+					}
+					@default: {
+						<div>{label.value}</div>
+					}
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Each hoisted signature takes apart only the captures its function reads.
+		expect(() => acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' })).not.toThrow();
+		expect(code).toContain("function consequent(__anchor) {\n\tconst label = 'inner';");
+		expect(code).toContain('function alternate(__anchor, { b: label })');
+		expect(code).toContain('function if_1({ a: show })');
+		expect(code).toContain("function consequent_1(__anchor) {\n\tconst label = 'inner';");
+		expect(code).toContain('function if_2(label)');
+		expect(code).toContain("function switch_case_0(__anchor) {\n\tconst label = 'inner';");
+		expect(code).toContain('function switch_case_default(__anchor, { b: label })');
+		expect(code).toContain('function switch_1({ a: mode })');
+	});
+
+	it('captures a local read beside a nested declaration of the same name', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function App({ show, list }) @{
+				const label = track('outer');
+				@if (show) {
+					const out = [];
+					for (const label of list) out.push(label);
+					<div>{label.value}{out.join()}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// The loop's `label` shadows only the loop, so the branch still reads the
+		// outer one and has to capture it.
+		const [, key] = code.match(/function consequent\(__anchor, \{[^}]*\b(\w+): label \}\)/) ?? [];
+		expect(key).toBeDefined();
+		expect(code).toContain(`${key}: label });`);
+	});
+
+	it('rewrites a render block read beside a nested declaration of the same name', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			export function App() @{
+				const label = track('outer');
+				const parts = ['a', 'b'];
+				<div title={parts.map((part) => {
+					for (const label of [part]) void label;
+					return label.value + part;
+				}).join()}>{'x'}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('for (const label of [part]) void label;');
+		expect(code).toMatch(/return __prev\._\w+\.value \+ part;/);
+		expect(code).toMatch(/_\$_\.render\(render, \{[^}]*_\w+: label[,\s]/);
+	});
 });
 
 describe('@tsrx/ripple keyed @for pattern reads', () => {
@@ -432,8 +519,9 @@ describe('@tsrx/ripple @switch client lowering', () => {
 		expect(code).toContain("case 'busy':\n\t\t\treturn switch_case_0;");
 		expect(code).toContain("case 'off':\n\t\t\treturn;");
 		expect(code).toContain('default:\n\t\t\treturn switch_case_default;');
-		// Cases and selector are module-level, with the one capture passed through.
-		expect(code).toContain('function switch_case_0(__anchor, props)');
+		// Cases and selector are module-level, with the one capture passed through
+		// to the selector, which alone reads it.
+		expect(code).toContain('function switch_case_0(__anchor) {');
 		expect(code).toContain('function switch_1(props)');
 		expect(code).toContain('_$_.switch(node, switch_1, false, props);');
 		expect(code).toContain('function switch_2(n)');
@@ -2550,6 +2638,49 @@ describe('@tsrx/ripple server expression classification', () => {
 
 		expect(code).toContain('_$_.escape(props.anything)');
 		expect(code).not.toContain('_$_.render_expression');
+	});
+
+	it('lowers a template value declared in a control-flow branch', () => {
+		const style = `<style>
+			.x {
+				color: red;
+			}
+		</style>`;
+		const body = `const theme = ${style};
+			const el = <span>{'hi'}</span>;
+			<div class={theme.x}>{el}</div>`;
+		const { code } = compile(
+			`export function App({ show, items, mode }) @{
+				<>
+					@if (show) {
+						${body}
+					} @else {
+						${body}
+					}
+					@switch (mode) {
+						@case 'a': {
+							${body}
+						}
+					}
+					@for (const item of items) {
+						${body}
+					}
+					@try {
+						${body}
+					} @catch (error) {
+						<p>{'error'}</p>
+					}
+				</>
+			}`,
+			'App.tsrx',
+			{ mode: 'server' },
+		);
+
+		// A declaration's value is a value position in a branch as it is in the
+		// component body: a class map of getters and a template element.
+		expect(() => acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' })).not.toThrow();
+		expect(code.match(/const theme = \{\n\s*get '\$class'\(\)/g)).toHaveLength(5);
+		expect(code.match(/const el = _\$_\.tsrx_element\(/g)).toHaveLength(5);
 	});
 });
 

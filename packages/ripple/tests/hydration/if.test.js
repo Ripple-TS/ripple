@@ -83,4 +83,25 @@ describe('hydration > if blocks', () => {
 		flushSync();
 		expect(container.querySelector('.state')?.textContent).toBe('Error occurred');
 	});
+
+	it('hydrates a branch that declares a style block and shadows an outer local', async () => {
+		await hydrateComponent(
+			ServerComponents.IfBranchDeclarations,
+			ClientComponents.IfBranchDeclarations,
+		);
+		const server_class = container.querySelector('.styled')?.className;
+		expect(server_class).toMatch(/^tsrx-\S+ styled$/);
+		expect(container.querySelector('.styled')?.textContent).toBe('inner');
+
+		container.querySelector('.branch-toggle')?.click();
+		flushSync();
+		expect(container.querySelector('.styled')).toBeNull();
+		expect(container.querySelector('.plain')?.textContent).toBe('outer');
+
+		// The client renders the branch with the class the server rendered.
+		container.querySelector('.branch-toggle')?.click();
+		flushSync();
+		expect(container.querySelector('.styled')?.className).toBe(server_class);
+		expect(container.querySelector('.styled')?.textContent).toBe('inner');
+	});
 });

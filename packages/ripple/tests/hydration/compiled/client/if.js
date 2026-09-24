@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template_el('div', ['class', 'shown'], 'Visible');
 
-function consequent(__anchor, show) {
+function consequent(__anchor) {
 	var div = root();
 
 	_$_.append(__anchor, div);
@@ -23,7 +23,7 @@ IfTruthy[_$_.$r] = IfTruthy_render;
 
 var root_1 = _$_.template_el('div', ['class', 'shown'], 'Visible');
 
-function consequent_1(__anchor, show) {
+function consequent_1(__anchor) {
 	var div_1 = root_1();
 
 	_$_.append(__anchor, div_1);
@@ -44,13 +44,13 @@ IfFalsy[_$_.$r] = IfFalsy_render;
 var root_2 = _$_.template_el('div', ['class', 'logged-in'], 'Welcome back!');
 var root_3 = _$_.template_el('div', ['class', 'logged-out'], 'Please log in');
 
-function consequent_2(__anchor, isLoggedIn) {
+function consequent_2(__anchor) {
 	var div_2 = root_2();
 
 	_$_.append(__anchor, div_2);
 }
 
-function alternate(__anchor, isLoggedIn) {
+function alternate(__anchor) {
 	var div_3 = root_3();
 
 	_$_.append(__anchor, div_3);
@@ -70,7 +70,7 @@ IfElse[_$_.$r] = IfElse_render;
 
 var root_6 = _$_.template_el('div', ['class', 'content'], 'Content visible');
 
-function consequent_3(__anchor, show) {
+function consequent_3(__anchor) {
 	var div_4 = root_6();
 
 	_$_.append(__anchor, div_4);
@@ -120,13 +120,13 @@ ReactiveIf[_$_.$r] = ReactiveIf_render;
 var root_9 = _$_.template_el('div', ['class', 'on'], 'ON');
 var root_10 = _$_.template_el('div', ['class', 'off'], 'OFF');
 
-function consequent_4(__anchor, isOn) {
+function consequent_4(__anchor) {
 	var div_5 = root_9();
 
 	_$_.append(__anchor, div_5);
 }
 
-function alternate_1(__anchor, isOn) {
+function alternate_1(__anchor) {
 	var div_6 = root_10();
 
 	_$_.append(__anchor, div_6);
@@ -175,7 +175,7 @@ ReactiveIfElse[_$_.$r] = ReactiveIfElse_render;
 
 var root_14 = _$_.template_el('span', ['class', 'inner-content'], 'Inner');
 
-function consequent_5(__anchor, inner) {
+function consequent_5(__anchor) {
 	var span = root_14();
 
 	_$_.append(__anchor, span);
@@ -195,7 +195,7 @@ function render_2(__prev) {
 	}
 }
 
-function consequent_6(__anchor, { a: outer, b: inner }) {
+function consequent_6(__anchor, { b: inner }) {
 	var div_7 = root_13();
 
 	{
@@ -210,7 +210,7 @@ function consequent_6(__anchor, { a: outer, b: inner }) {
 	_$_.append(__anchor, div_7);
 }
 
-function if_7({ a: outer, b: inner }) {
+function if_7({ a: outer }) {
 	if (outer.value) return consequent_6;
 }
 
@@ -262,19 +262,19 @@ var root_16 = _$_.template_el('div', ['class', 'state'], 'Loading...');
 var root_17 = _$_.template_el('div', ['class', 'state'], 'Success!');
 var root_18 = _$_.template_el('div', ['class', 'state'], 'Error occurred');
 
-function consequent_7(__anchor, status) {
+function consequent_7(__anchor) {
 	var div_9 = root_16();
 
 	_$_.append(__anchor, div_9);
 }
 
-function consequent_8(__anchor, status) {
+function consequent_8(__anchor) {
 	var div_10 = root_17();
 
 	_$_.append(__anchor, div_10);
 }
 
-function alternate_2(__anchor, status) {
+function alternate_2(__anchor) {
 	var div_11 = root_18();
 
 	_$_.append(__anchor, div_11);
@@ -333,6 +333,84 @@ function IfElseIfChain_render(__anchor, __block) {
 
 IfElseIfChain[_$_.$r] = IfElseIfChain_render;
 
+var root_21 = _$_.template_el('span');
+
+function render_5(__prev) {
+	var __a = __prev._a.styled;
+
+	if (__prev.a !== __a) {
+		_$_.set_class_value(__prev._b, __prev.a = __a);
+	}
+}
+
+var root_22 = _$_.template_el('span', ['class', 'plain'], ' ');
+
+function consequent_9(__anchor) {
+	const label = 'inner';
+	const styles = { '$class': 'tsrx-35357fa0', 'styled': 'tsrx-35357fa0 styled' };
+	var span_1 = root_21();
+
+	{
+		span_1.textContent = label;
+	}
+
+	_$_.render(render_5, { a: _$_.UNINITIALIZED, _a: styles, _b: span_1 });
+	_$_.append(__anchor, span_1);
+}
+
+function alternate_3(__anchor, { b: label }) {
+	var span_2 = root_22();
+
+	{
+		var expression_2 = _$_.hydrating ? _$_.hydrate_child() : span_2.firstChild;
+
+		_$_.expression(expression_2, () => label.value);
+		_$_.hydrating && _$_.pop(span_2);
+	}
+
+	_$_.append(__anchor, span_2);
+}
+
+function if_9({ a: show }) {
+	if (show.value) return consequent_9; else return alternate_3;
+}
+
+var root_20 = _$_.template(`<button class=branch-toggle>Toggle</button><!>`, 1, 2);
+
+function render_6(__prev) {
+	var __a = if_9({ a: __prev._a, b: __prev._b });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._c, __prev.a = __a);
+	}
+}
+
+var root_19 = _$_.template(`<!>`, 1, 1);
+
+function IfBranchDeclarations_render(__anchor, __block) {
+	const show = _$_.track(true, __block, '1b7i975');
+	const label = _$_.track('outer', __block, '5t2ya3');
+	var fragment_6 = root_19();
+	var node_9 = _$_.first_child_frag(fragment_6);
+
+	_$_.expression(node_9, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_7 = root_20();
+		var button_7 = _$_.first_child_frag(fragment_7);
+
+		button_7.__click = () => show.value = !show.value;
+
+		var node_8 = _$_.hydrating ? _$_.hydrate_sibling() : button_7.nextSibling;
+		var ifs_5 = _$_.if_static(node_8, if_9, 0, { a: show, b: label });
+
+		_$_.render(render_6, { a: _$_.UNINITIALIZED, _a: show, _b: label, _c: ifs_5 });
+		_$_.append(__anchor, fragment_7);
+	}));
+
+	_$_.append(__anchor, fragment_6);
+}
+
+IfBranchDeclarations[_$_.$r] = IfBranchDeclarations_render;
+
 import { track } from 'ripple';
 
 export function IfTruthy() {
@@ -361,6 +439,10 @@ export function NestedIf() {
 
 export function IfElseIfChain() {
 	return _$_.tsrx_element(IfElseIfChain_render);
+}
+
+export function IfBranchDeclarations() {
+	return _$_.tsrx_element(IfBranchDeclarations_render);
 }
 
 _$_.delegate(['click']);

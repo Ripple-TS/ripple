@@ -472,7 +472,7 @@ HtmlWithUndefinedContent[_$_.$r] = HtmlWithUndefinedContent_render;
 var root_22 = _$_.template_el('h1', ['class', 'heading'], [null]);
 var root_23 = _$_.template_el('h2', ['class', 'heading'], [null]);
 
-function switch_case_0(__anchor, { a: level, b: children }) {
+function switch_case_0(__anchor, { b: children }) {
 	var h1_1 = root_22();
 
 	{
@@ -485,7 +485,7 @@ function switch_case_0(__anchor, { a: level, b: children }) {
 	_$_.append(__anchor, h1_1);
 }
 
-function switch_case_1(__anchor, { a: level, b: children }) {
+function switch_case_1(__anchor, { b: children }) {
 	var h2 = root_23();
 
 	{
@@ -498,7 +498,7 @@ function switch_case_1(__anchor, { a: level, b: children }) {
 	_$_.append(__anchor, h2);
 }
 
-function switch_1({ a: level, b: children }) {
+function switch_1({ a: level }) {
 	switch (level) {
 		case 1:
 			return switch_case_0;
@@ -593,7 +593,7 @@ HtmlAfterSwitchInChildren[_$_.$r] = HtmlAfterSwitchInChildren_render;
 var root_27 = _$_.template_el('h1', ['class', 'heading'], [null]);
 var root_28 = _$_.template_el('h2', ['class', 'heading'], [null]);
 
-function consequent_3(__anchor, { a: primary, b: children }) {
+function consequent_3(__anchor, { b: children }) {
 	var h1_2 = root_27();
 
 	{
@@ -606,7 +606,7 @@ function consequent_3(__anchor, { a: primary, b: children }) {
 	_$_.append(__anchor, h1_2);
 }
 
-function alternate(__anchor, { a: primary, b: children }) {
+function alternate(__anchor, { b: children }) {
 	var h2_1 = root_28();
 
 	{
@@ -619,7 +619,7 @@ function alternate(__anchor, { a: primary, b: children }) {
 	_$_.append(__anchor, h2_1);
 }
 
-function if_4({ a: primary, b: children }) {
+function if_4({ a: primary }) {
 	if (primary) return consequent_3; else return alternate;
 }
 
@@ -808,7 +808,7 @@ HtmlAfterComponentInChildren[_$_.$r] = HtmlAfterComponentInChildren_render;
 
 var root_39 = _$_.template_el('div', ['class', 'indicator']);
 
-function consequent_4(__anchor, active) {
+function consequent_4(__anchor) {
 	var div_28 = root_39();
 
 	_$_.append(__anchor, div_28);
@@ -852,7 +852,7 @@ NavItem[_$_.$r] = NavItem_render;
 
 var root_41 = _$_.template_el('div', ['class', 'section-items'], [null]);
 
-function consequent_5(__anchor, { a: expanded, b: children }) {
+function consequent_5(__anchor, { b: children }) {
 	var div_30 = root_41();
 
 	{
@@ -865,7 +865,7 @@ function consequent_5(__anchor, { a: expanded, b: children }) {
 	_$_.append(__anchor, div_30);
 }
 
-function if_6({ a: expanded, b: children }) {
+function if_6({ a: expanded }) {
 	if (expanded.value) return consequent_5;
 }
 
@@ -1311,7 +1311,7 @@ FooterStub[_$_.$r] = FooterStub_render;
 
 var root_64 = _$_.template_el('div', ['class', 'edit-link'], [['a', ['href', '/edit'], 'Edit on GitHub']]);
 
-function consequent_11(__anchor, editPath) {
+function consequent_11(__anchor) {
 	var div_53 = root_64();
 
 	_$_.append(__anchor, div_53);
@@ -1513,7 +1513,7 @@ function consequent_14(__anchor, prevLink) {
 	_$_.append(__anchor, a_6);
 }
 
-function alternate_1(__anchor, prevLink) {
+function alternate_1(__anchor) {
 	var span_5 = root_72();
 
 	_$_.append(__anchor, span_5);

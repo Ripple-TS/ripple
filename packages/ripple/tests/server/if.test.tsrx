@@ -89,4 +89,17 @@ describe('if statements in SSR', () => {
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Outer true, Inner false</div>');
 	});
+
+	it('renders a template value declared in a branch', async () => {
+		function App() @{
+			let condition = true;
+			@if (condition) {
+				const label = <b>{'bold'}</b>;
+				<div>{label}</div>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<div><b>bold</b></div>');
+	});
 });

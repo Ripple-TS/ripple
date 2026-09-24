@@ -636,7 +636,7 @@ ForLoopMixedOperations[_$_.$r] = ForLoopMixedOperations_render;
 var root_33 = _$_.template_el('li', null, ' ');
 var root_32 = _$_.template_el('ul', ['class', 'list']);
 
-function consequent(__anchor, { a: showList, b: items }) {
+function consequent(__anchor, { b: items }) {
 	var ul_8 = root_32();
 
 	{
@@ -664,7 +664,7 @@ function consequent(__anchor, { a: showList, b: items }) {
 	_$_.append(__anchor, ul_8);
 }
 
-function if_1({ a: showList, b: items }) {
+function if_1({ a: showList }) {
 	if (showList.value) return consequent;
 }
 

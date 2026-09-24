@@ -28,7 +28,7 @@ Layout[_$_.$r] = Layout_render;
 
 var root_2 = _$_.template_el('p', ['class', 'text'], 'Hello world');
 
-function consequent(__anchor, visible) {
+function consequent(__anchor) {
 	var p = root_2();
 
 	_$_.append(__anchor, p);

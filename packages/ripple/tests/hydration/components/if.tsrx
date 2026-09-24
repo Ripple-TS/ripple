@@ -114,3 +114,22 @@ export function IfElseIfChain() @{
 		}
 	</div>
 }
+
+export function IfBranchDeclarations() @{
+	const show = track(true);
+	const label = track('outer');
+	<>
+		<button class="branch-toggle" onClick={() => (show.value = !show.value)}>{'Toggle'}</button>
+		@if (show.value) {
+			const label = 'inner';
+			const styles = <style>
+				.styled {
+					color: red;
+				}
+			</style>;
+			<span class={styles.styled}>{label}</span>
+		} @else {
+			<span class="plain">{label.value}</span>
+		}
+	</>
+}
