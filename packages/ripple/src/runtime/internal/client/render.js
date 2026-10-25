@@ -110,7 +110,7 @@ export function set_class_value(dom, value, hash, is_html = true) {
 }
 
 /**
- * @param {HTMLInputElement | HTMLProgressElement | HTMLOptionElement} element
+ * @param {HTMLInputElement | HTMLTextAreaElement | HTMLProgressElement | HTMLOptionElement} element
  * @param {any} value
  * @returns {void}
  */

@@ -2210,6 +2210,7 @@ const visitors = {
 
 		if (is_dom_element) {
 			const is_void = is_void_element(/** @type {AST.Identifier} */ (element_id).name);
+			const is_textarea = /** @type {AST.Identifier} */ (element_id).name === 'textarea';
 			const use_self_closing_syntax = is_self_closing(node) && is_void;
 			const tag_name = b.literal(/** @type {AST.Identifier} */ (element_id).name);
 			// The scope hashes and applied theme classes the style pre-pass
@@ -2218,6 +2219,8 @@ const visitors = {
 			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 			/** @type {AST.Expression | null} */
 			let inner_html_expression = null;
+			/** @type {AST.Expression | null} */
+			let textarea_value = null;
 			/** @type {AST.Identifier | null} */
 			let spread_attributes_id = null;
 
@@ -2264,6 +2267,17 @@ const visitors = {
 					{
 						const name = get_attribute_name(attr);
 						const attr_value = get_attribute_value(attr);
+
+						if (is_textarea && name === 'value') {
+							const expression =
+								attr_value === null ? b.literal('') : get_attribute_value_expression(attr, context);
+							if (is_spreading) {
+								spread_attributes?.push(b.prop('init', b.literal(name), expression));
+							} else {
+								textarea_value = expression;
+							}
+							continue;
+						}
 
 						if (name === 'innerHTML') {
 							const expression =
@@ -2392,7 +2406,12 @@ const visitors = {
 					b.stmt(
 						b.call(
 							b.id('_$_.output_push'),
-							b.call('_$_.spread_attrs', spread_attributes_id, scope_class ?? undefined),
+							b.call(
+								'_$_.spread_attrs',
+								spread_attributes_id,
+								scope_class ?? (is_textarea ? b.void0 : undefined),
+								is_textarea ? b.true : undefined,
+							),
 						),
 					),
 				);
@@ -2401,6 +2420,11 @@ const visitors = {
 			state.init?.push(
 				b.stmt(b.call(b.id('_$_.output_push'), b.literal(use_self_closing_syntax ? ' />' : '>'))),
 			);
+			if (is_textarea) {
+				// HTML parsing discards the first newline after <textarea>. Supply
+				// that newline so a leading newline in the actual value survives.
+				state.init?.push(b.stmt(b.call('_$_.output_push', b.literal('\n'))));
+			}
 
 			// In dev mode, emit push_element for runtime nesting validation
 			if (state.dev) {
@@ -2431,18 +2455,40 @@ const visitors = {
 				element_id.name === 'script' &&
 				typeof script_content === 'string' &&
 				script_content.length > 0;
-			const element_children = has_raw_script_content ? [] : node.children;
+			const element_children = has_raw_script_content
+				? []
+				: is_textarea
+					? normalize_children(node.children, context, true)
+					: node.children;
 			if (has_raw_script_content) {
 				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(script_content))));
 			}
 
 			if (!is_void) {
-				if (inner_html_expression !== null) {
+				if (textarea_value !== null) {
+					state.init?.push(
+						b.stmt(
+							b.call(
+								'_$_.output_push',
+								textarea_value.type === 'Literal'
+									? b.literal(static_text(textarea_value.value, context))
+									: b.call('_$_.escape', textarea_value),
+							),
+						),
+					);
+				} else if (inner_html_expression !== null) {
 					push_inner_html_expression(inner_html_expression, state);
 				} else if (spread_attributes_id !== null) {
 					const spread_inner_html_id = b.id(state.scope.generate('spread_inner_html'));
 					state.init?.push(
-						b.const(spread_inner_html_id, b.call('_$_.spread_inner_html', spread_attributes_id)),
+						b.const(
+							spread_inner_html_id,
+							b.call(
+								'_$_.spread_inner_html',
+								spread_attributes_id,
+								is_textarea ? b.true : undefined,
+							),
+						),
 					);
 
 					/** @type {AST.Statement[]} */

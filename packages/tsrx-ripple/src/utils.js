@@ -2054,9 +2054,10 @@ export function lower_dynamic_element(node, component_id, scopes) {
  * Normalizes children nodes (merges adjacent text, removes empty)
  * @param {AST.Node[]} children
  * @param {CommonContext} context
+ * @param {boolean} [text_only] Whether expressions must form one text node, as in a textarea.
  * @returns {AST.Node[]}
  */
-export function normalize_children(children, context) {
+export function normalize_children(children, context, text_only = false) {
 	const to_ts = !!context.state.to_ts;
 	/** @type {AST.Node[]} */
 	const normalized = [];
@@ -2083,14 +2084,15 @@ export function normalize_children(children, context) {
 			// run a single text node on both client and server (required for
 			// hydration to pair static and dynamic text).
 			if (
-				(is_template_expression(child) &&
+				!text_only &&
+				((is_template_expression(child) &&
 					is_children_template_expression(child_expression, context.state.scope)) ||
-				(is_template_expression(prev_child) &&
-					is_children_template_expression(prev_expression, context.state.scope)) ||
-				(expression_contains_call(child_expression) &&
-					!is_text_primitive_expression(child_expression, context.state)) ||
-				(expression_contains_call(prev_expression) &&
-					!is_text_primitive_expression(prev_expression, context.state))
+					(is_template_expression(prev_child) &&
+						is_children_template_expression(prev_expression, context.state.scope)) ||
+					(expression_contains_call(child_expression) &&
+						!is_text_primitive_expression(child_expression, context.state)) ||
+					(expression_contains_call(prev_expression) &&
+						!is_text_primitive_expression(prev_expression, context.state)))
 			) {
 				continue;
 			}
@@ -2127,7 +2129,13 @@ export function normalize_children(children, context) {
 		}
 	}
 
-	return normalized;
+	return text_only
+		? normalized.map((node) =>
+				node.type === 'JSXExpressionContainer'
+					? { ...node, metadata: { ...node.metadata, tsrx_text: true } }
+					: node,
+			)
+		: normalized;
 }
 
 /**

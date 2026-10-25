@@ -13,7 +13,7 @@ import { event_listener } from './events.js';
 import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
-import { set_class_value } from './render.js';
+import { set_class_value, set_value } from './render.js';
 
 /**
  * Dynamic attributes, styles and spreads. Apart from `render.js`, so that an
@@ -133,6 +133,8 @@ function set_attribute_helper(element, key, value, state) {
 	if (key === 'class') {
 		const is_html = element.namespaceURI === 'http://www.w3.org/1999/xhtml';
 		set_class_value(/** @type {HTMLElement} */ (element), value, undefined, is_html);
+	} else if (key === 'value' && element.nodeName === 'TEXTAREA') {
+		set_value(/** @type {HTMLTextAreaElement} */ (element), value);
 	} else if (key === 'innerHTML') {
 		element.removeAttribute('innerhtml');
 		/** @type {HTMLElement} */ (element).innerHTML = value == null ? '' : String(value);

@@ -27,12 +27,14 @@ describe('server output keeps static markup Latin-1', () => {
 		const code = server(`export function App() @{
 	<div title="a — b">
 		<textarea>t — t</textarea>
+		<textarea value="v — v" />
 		<title>ti — tle</title>
 	</div>
 }`);
 
 		expect(code).toContain('title="a &#8212; b"');
-		expect(code).toContain('<textarea>t &#8212; t</textarea>');
+		expect(code).toContain('<textarea>\\nt &#8212; t</textarea>');
+		expect(code).toContain('<textarea>\\nv &#8212; v</textarea>');
 		expect(code).toContain('<title>ti &#8212; tle</title>');
 	});
 

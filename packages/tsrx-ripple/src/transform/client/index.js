@@ -4007,7 +4007,7 @@ const visitors = {
 							attr_value.type === 'Literal' &&
 							name !== 'class' &&
 							name !== 'style' &&
-							!(name === 'value' && element_name === 'option')
+							!(name === 'value' && (element_name === 'option' || element_name === 'textarea'))
 						) {
 							handle_static_attr(name, attr_value.value);
 							continue;
@@ -4019,6 +4019,11 @@ const visitors = {
 							const expression = /** @type {AST.Expression} */ (
 								visit(attr_value, { ...state, metadata })
 							);
+
+							if (is_spreading && element_name === 'textarea') {
+								spread_attributes?.push(b.prop('init', b.literal(name), expression));
+								continue;
+							}
 
 							if (metadata.tracking) {
 								local_updates.push({
@@ -4397,11 +4402,15 @@ const visitors = {
 
 			if (!is_void) {
 				const element_name = /** @type {AST.Identifier} */ (element_id).name;
-				const render_children = /** @type {AST.Node[]} */ (
+				let render_children = /** @type {AST.Node[]} */ (
 					inner_html_attribute === null
 						? lower_code_block_children(node.children, state.scopes)
 						: []
 				);
+				if (element_name === 'textarea') {
+					state.template?.push('\n');
+					render_children = normalize_children(render_children, context, true);
+				}
 				// Special handling for <template> elements
 				const leaf_text = { value: false };
 				if (element_name === 'template' && render_children.length > 0) {

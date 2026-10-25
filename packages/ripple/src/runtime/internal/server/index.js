@@ -1631,9 +1631,10 @@ function get_styles(styles) {
 /**
  * @param {Record<string, any>} attrs
  * @param {string | undefined} [css_hash]
+ * @param {boolean} [is_textarea]
  * @returns {string}
  */
-export function spread_attrs(attrs, css_hash) {
+export function spread_attrs(attrs, css_hash, is_textarea = false) {
 	let attr_str = '';
 	let name;
 
@@ -1647,6 +1648,7 @@ export function spread_attrs(attrs, css_hash) {
 		if (
 			name === 'children' ||
 			name === 'innerHTML' ||
+			(is_textarea && name === 'value') ||
 			name === '#class' ||
 			typeof value === 'function' ||
 			is_tsrx_element(value)
@@ -1669,9 +1671,16 @@ export function spread_attrs(attrs, css_hash) {
 
 /**
  * @param {Record<string, any>} attrs
+ * @param {boolean} [is_textarea]
  * @returns {string | undefined}
  */
-export function spread_inner_html(attrs) {
+export function spread_inner_html(attrs, is_textarea = false) {
+	// A textarea's value is serialized in its body, with the same precedence
+	// over children as the client's value property assignment.
+	if (is_textarea && Object.prototype.hasOwnProperty.call(attrs, 'value')) {
+		return escape(get(attrs.value));
+	}
+
 	if (!Object.prototype.hasOwnProperty.call(attrs, 'innerHTML')) {
 		return undefined;
 	}
