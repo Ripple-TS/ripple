@@ -1,4 +1,5 @@
 import { acorn } from '@tsrx/core';
+import ts from 'typescript';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { check_types, find_exact_mapping } from './test-utils.js';
@@ -246,6 +247,127 @@ describe('@tsrx/ripple faithful text output', () => {
 			expect(m.lengths[0]).toBe(m.generatedLengths[0]);
 			expect(m.data?.verification).toBeFalsy();
 		}
+	});
+});
+
+describe('@tsrx/ripple unused template output in the TS view', () => {
+	/** @param {string} source */
+	function ts_view(source) {
+		const { code, errors } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const file = ts.createSourceFile(
+			'App.tsx',
+			code,
+			ts.ScriptTarget.Latest,
+			true,
+			ts.ScriptKind.TSX,
+		);
+		// @ts-expect-error parseDiagnostics is internal
+		const syntax_errors = /** @type {ts.Diagnostic[]} */ (file.parseDiagnostics);
+		return {
+			code,
+			errors,
+			syntax_errors: syntax_errors.map((error) => ({
+				code: error.code,
+				message: ts.flattenDiagnosticMessageText(error.messageText, '\n'),
+			})),
+		};
+	}
+
+	it('keeps the `;` of template statements so TypeScript reports no second error', () => {
+		const { code, errors, syntax_errors } = ts_view(`export function Test() {
+	<div />;
+	<><div /></>;
+}`);
+
+		expect(errors.map((e) => e.message)).toEqual([
+			expect.stringContaining('This TSRX template output is unused'),
+			expect.stringContaining('This TSRX template output is unused'),
+		]);
+		expect(syntax_errors).toEqual([]);
+		expect(code).toContain('<div />;');
+		expect(code).toContain('<><div /></>;');
+	});
+
+	it('keeps the `;` of a template in an `if` and `else` body', () => {
+		const { code, errors, syntax_errors } = ts_view(`export function C({ x }: { x: boolean }) @{
+	if (x) <div />
+	else <b />
+	<span />
+}`);
+
+		expect(errors).toHaveLength(2);
+		expect(syntax_errors).toEqual([]);
+		expect(code).toContain('if (x) <div />; else <b />;');
+		expect(code).toContain('return <span />;');
+	});
+
+	it.each([
+		['a component body', 'export function Test() @{ BODY <span /> }', 2],
+		['a code-only body', 'export function Test() @{ BODY const x = 1; }', 2],
+		['a value body', 'const view = @{ BODY <span /> };', 0],
+		['a nested template body', 'export function Test() @{ <main>@{ BODY <span /> }</main> }', 2],
+	])('keeps template statement semicolons in %s', (_name, source, unused_count) => {
+		const { code, errors, syntax_errors } = ts_view(
+			source.replace('BODY', '<div />; <><div /></>;'),
+		);
+
+		expect(errors).toHaveLength(2 + unused_count);
+		expect(
+			errors.filter((error) => error.message.startsWith('This TSRX template output is unused')),
+		).toHaveLength(unused_count);
+		expect(syntax_errors).toEqual([]);
+		expect(code).toContain('<div />;');
+		expect(code).toContain('<><div /></>;');
+		if (source.includes('<span />')) {
+			expect(code).toContain('return <span />;');
+		}
+	});
+
+	it.each(['module server', 'namespace Test'])(
+		'keeps template statement semicolons in a %s body',
+		(declaration) => {
+			const { code, errors, syntax_errors } = ts_view(`${declaration} {
+	<div />;
+	<><div /></>;
+}`);
+
+			expect(errors).toEqual([]);
+			expect(syntax_errors).toEqual([]);
+			expect(code).toContain('<div />;');
+			expect(code).toContain('<><div /></>;');
+		},
+	);
+
+	it('keeps dynamic template statements terminated after lowering their tags', () => {
+		const { code, errors, syntax_errors } = ts_view(`export function Test(x) {
+	if (x) <{x} />
+	else <{x} />
+}`);
+
+		expect(errors.map((error) => error.message)).toEqual([
+			expect.stringContaining('This TSRX template output is unused'),
+			expect.stringContaining('This TSRX template output is unused'),
+		]);
+		expect(syntax_errors).toEqual([]);
+		expect(code.match(/<TsrxDynamic is=\{x\} \/>;/g)).toHaveLength(2);
+	});
+
+	it('leaves templates in control-flow expression slots as expressions', () => {
+		const { errors, syntax_errors } = ts_view(`export function Test(x) {
+	if (<div />) x();
+	while (<><div /></>) x();
+	do x(); while (<div />);
+	for (<div />; <><div /></>; <div />) x();
+	for (const y in <div />) x();
+	for (const y of <><div /></>) x();
+	switch (<div />) {
+		case <><div /></>: x();
+	}
+	return <div />;
+}`);
+
+		expect(errors).toEqual([]);
+		expect(syntax_errors).toEqual([]);
 	});
 });
 
