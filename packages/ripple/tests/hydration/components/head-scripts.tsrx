@@ -52,3 +52,17 @@ export function EmptyScripts() @{
 		<script type="module" src="/example.js" id="external-script" async nonce="static-nonce" />
 	</head>
 }
+
+export function OrderedExternalScripts() @{
+	<head>
+		<script src="/slow-first.js" id="first-external-script" />
+		<script src="/fast-second.js" id="second-external-script" />
+	</head>
+}
+
+export function AsyncExternalScripts() @{
+	<head>
+		<script src="/slow-first.js" id="first-external-script" async />
+		<script src="/fast-second.js" id="second-external-script" async />
+	</head>
+}

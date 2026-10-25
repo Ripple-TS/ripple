@@ -6,4 +6,5 @@
 Allow scripts with statically known data MIME types, such as `application/json`,
 outside the head. Preserve script attributes and raw text on the client, and
 adopt existing server-rendered scripts during hydration without duplicating or
-re-executing them.
+re-executing them. Mounted external scripts execute in order unless `async` is
+specified.

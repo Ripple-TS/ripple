@@ -81,3 +81,33 @@ export function EmptyScripts() {
 		_$_.output_push(__out);
 	});
 }
+
+export function OrderedExternalScripts() {
+	return _$_.tsrx_element(() => {
+		let __out = '';
+
+		_$_.output_push(__out);
+		__out = '';
+		_$_.set_output_target('head');
+		__out += '<!--91dd818a--><script src="/slow-first.js" id="first-external-script"></script><script src="/fast-second.js" id="second-external-script"></script>';
+		_$_.output_push(__out);
+		__out = '';
+		_$_.set_output_target(null);
+		_$_.output_push(__out);
+	});
+}
+
+export function AsyncExternalScripts() {
+	return _$_.tsrx_element(() => {
+		let __out = '';
+
+		_$_.output_push(__out);
+		__out = '';
+		_$_.set_output_target('head');
+		__out += '<!--99a50d6c--><script src="/slow-first.js" id="first-external-script" async></script><script src="/fast-second.js" id="second-external-script" async></script>';
+		_$_.output_push(__out);
+		__out = '';
+		_$_.set_output_target(null);
+		_$_.output_push(__out);
+	});
+}

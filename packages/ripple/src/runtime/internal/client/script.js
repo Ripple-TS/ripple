@@ -15,6 +15,9 @@ export function script(node) {
 	if (HYDRATION && hydrating) return node;
 
 	var script = document.createElement('script');
+	// Newly created scripts are force-async. Clear that flag so external
+	// scripts run in order unless a static or dynamic async attribute opts in.
+	script.async = false;
 	for (var attribute of node.attributes) {
 		script.setAttribute(attribute.name, attribute.value);
 	}

@@ -137,3 +137,18 @@ it('mounts head scripts once when hydrating a body without SSR head content', as
 	}
 	expect(document.head.querySelectorAll('script')).toHaveLength(0);
 });
+
+it('keeps external scripts without async in the ordered execution queue', () => {
+	const unmount = mount(client.OrderedExternalScripts, { target: container });
+	try {
+		flushSync();
+		const scripts = Array.from(document.head.querySelectorAll('script'));
+		expect(scripts).toHaveLength(2);
+		for (const script of scripts) {
+			expect(script.hasAttribute('async')).toBe(false);
+			expect(script.async).toBe(false);
+		}
+	} finally {
+		unmount();
+	}
+});

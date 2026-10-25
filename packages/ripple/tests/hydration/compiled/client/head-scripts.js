@@ -131,6 +131,42 @@ function EmptyScripts_render(__anchor, __block) {
 
 EmptyScripts[_$_.$r] = EmptyScripts_render;
 
+var root_6 = _$_.template(`<script src=/slow-first.js id=first-external-script></script><script src=/fast-second.js id=second-external-script></script>`, 1, 2);
+
+function OrderedExternalScripts_render(__anchor, __block) {
+	_$_.head('91dd818a', (__anchor) => {
+		var fragment_3 = root_6();
+		var script_7 = _$_.first_child_frag(fragment_3);
+
+		script_7 = _$_.script(script_7);
+
+		var script_8 = _$_.hydrating ? _$_.hydrate_sibling() : script_7.nextSibling;
+
+		script_8 = _$_.script(script_8);
+		_$_.append(__anchor, fragment_3);
+	});
+}
+
+OrderedExternalScripts[_$_.$r] = OrderedExternalScripts_render;
+
+var root_7 = _$_.template(`<script src=/slow-first.js id=first-external-script async></script><script src=/fast-second.js id=second-external-script async></script>`, 1, 2);
+
+function AsyncExternalScripts_render(__anchor, __block) {
+	_$_.head('99a50d6c', (__anchor) => {
+		var fragment_4 = root_7();
+		var script_9 = _$_.first_child_frag(fragment_4);
+
+		script_9 = _$_.script(script_9);
+
+		var script_10 = _$_.hydrating ? _$_.hydrate_sibling() : script_9.nextSibling;
+
+		script_10 = _$_.script(script_10);
+		_$_.append(__anchor, fragment_4);
+	});
+}
+
+AsyncExternalScripts[_$_.$r] = AsyncExternalScripts_render;
+
 import { track } from 'ripple';
 
 export function Scripts(__props) {
@@ -147,6 +183,14 @@ export function SpreadAttributes(__props) {
 
 export function EmptyScripts() {
 	return _$_.tsrx_element(EmptyScripts_render);
+}
+
+export function OrderedExternalScripts() {
+	return _$_.tsrx_element(OrderedExternalScripts_render);
+}
+
+export function AsyncExternalScripts() {
+	return _$_.tsrx_element(AsyncExternalScripts_render);
 }
 
 _$_.delegate(['click']);
