@@ -7002,7 +7002,11 @@ function is_ts_statement_slot(path, node) {
 	switch (parent?.type) {
 		case 'BlockStatement':
 		case 'Program':
+		case 'TSModuleBlock':
 			return true;
+		case 'JSXCodeBlock':
+			// Only setup entries are statements; the separate render slot is a value.
+			return parent.body.includes(node);
 		case 'SwitchCase':
 			return parent.consequent.includes(node);
 		case 'IfStatement':
