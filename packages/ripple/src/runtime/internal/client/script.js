@@ -18,6 +18,9 @@ export function script(node) {
 	for (var attribute of node.attributes) {
 		script.setAttribute(attribute.name, attribute.value);
 	}
+	// createElement sets force-async, so a src script with no async attribute
+	// would load out of order. Parser-inserted scripts leave the flag unset.
+	if (!script.hasAttribute('async')) script.async = false;
 	script.textContent = node.textContent;
 	node.replaceWith(script);
 
