@@ -85,20 +85,31 @@ function read_document_links(html) {
 	/** @type {string | undefined} */
 	let base;
 	let i = 0;
+	let template_depth = 0;
 	while ((i = html.indexOf('<', i)) !== -1) {
 		if (html.startsWith('<!--', i)) {
 			const end = html.indexOf('-->', i + 4);
 			i = end === -1 ? html.length : end + 3;
 			continue;
 		}
-		const name_match = /^[a-zA-Z][^\s/>]*/.exec(html.slice(i + 1, i + 64));
+		const closing = html[i + 1] === '/';
+		const name_start = i + (closing ? 2 : 1);
+		const name_match = /^[a-zA-Z][^\s/>]*/.exec(html.slice(name_start));
 		if (!name_match) {
 			i += 1;
 			continue;
 		}
 		const name = name_match[0].toLowerCase();
-		const tag = read_start_tag(html, i + 1 + name.length);
+		const tag = read_start_tag(html, name_start + name.length);
 		i = tag.end;
+		if (closing) {
+			if (name === 'template' && template_depth > 0) template_depth -= 1;
+			continue;
+		}
+		if (name === 'template') {
+			template_depth += 1;
+			continue;
+		}
 		if (RAW_TEXT_ELEMENTS.has(name)) {
 			// `plaintext` has no end tag: the rest of the document is text.
 			if (name === 'plaintext') break;
@@ -110,6 +121,9 @@ function read_document_links(html) {
 			i = match ? match.index : html.length;
 			continue;
 		}
+		// Template contents are inert; their anchors and base URLs do not
+		// participate in the containing document, including nested templates.
+		if (template_depth > 0) continue;
 		if (name === 'a') {
 			const href = tag.attributes.get('href');
 			if (href !== undefined) hrefs.push(href);
@@ -159,7 +173,7 @@ function read_start_tag(html, from) {
 				i = value_end;
 			}
 		}
-		attributes.set(name, decode_character_references(value));
+		if (!attributes.has(name)) attributes.set(name, decode_character_references(value));
 	}
 	return { attributes, end: html.length };
 }

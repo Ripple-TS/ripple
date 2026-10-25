@@ -585,6 +585,37 @@ describe('prerenderRoutes with entries', () => {
 		).rejects.toThrow(/\/posts/);
 	});
 
+	it.each(['render', 'server'])(
+		'does not prerender a shadowing %s route without opt-in',
+		async (type) => {
+			const handler = vi.fn(() => new Response('per-request data'));
+			const shadow =
+				type === 'render'
+					? new RenderRoute({
+							path: '/posts/private',
+							entry: './src/Private.tsrx',
+							before: [handler],
+						})
+					: new ServerRoute({ path: '/posts/private', handler });
+			const routes = [
+				new RenderRoute({
+					path: '/posts/:slug',
+					entry: ENTRY,
+					prerender: true,
+					entries: [{ slug: 'private' }],
+				}),
+				shadow,
+			];
+			await expect(
+				prerenderRoutes(
+					createManifest(routes, { [ENTRY]: pageComponent() }),
+					createHandlerOptions(),
+				),
+			).rejects.toThrow(/\/posts\/private.*prerender/);
+			expect(handler).not.toHaveBeenCalled();
+		},
+	);
+
 	it('fails the way serving the page would when rendering it throws', async () => {
 		const fromPage = [
 			new RenderRoute({
@@ -645,6 +676,22 @@ describe('prerenderRoutes with entries', () => {
 });
 
 describe('prerenderRoutes crawling', () => {
+	it('crawls routes with an explicit trailing slash', async () => {
+		const routes = [
+			new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true, crawl: true }),
+			new RenderRoute({ path: '/posts/:slug/', entry: ENTRY, prerender: true, entries: [] }),
+		];
+		const pages = await prerenderRoutes(
+			createManifest(routes, {
+				'./src/Home.tsrx': pageComponent('<a href="/posts/one/">one</a>'),
+				[ENTRY]: pageComponent(),
+			}),
+			createHandlerOptions(),
+		);
+		expect([...pages.keys()]).toEqual(['/', '/posts/one/']);
+		expect(parseRippleData(pages.get('/posts/one/')).params).toEqual({ slug: 'one' });
+	});
+
 	it('follows same-origin anchors into prerenderable routes and ignores the rest', async () => {
 		const Home = pageComponent(
 			'<nav>' +

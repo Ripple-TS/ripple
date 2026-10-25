@@ -88,7 +88,8 @@ export interface RenderRouteOptions {
 	 * only allowed there. A value goes into the pathname as written, so one
 	 * that percent-encoding would change is a configuration error, and only a
 	 * `*` value may span segments. Every resulting pathname is matched like a
-	 * request, so a more specific route renders the pathnames it claims.
+	 * request, so a more specific prerendered route renders the pathnames it
+	 * claims. A listed pathname matching no prerendered render route fails the build.
 	 */
 	entries?: RenderRouteEntries;
 	/**

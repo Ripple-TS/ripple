@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { prerenderRoutes } from '../src/server/production.js';
+import { createHandler, prerenderRoutes } from '../src/server/production.js';
 import { resolveRippleConfig } from '../src/load-config.js';
 import { RenderRoute } from '../src/routes.js';
 
@@ -31,6 +31,32 @@ function createHandlerOptions() {
 }
 
 describe('prerenderRoutes', () => {
+	it.each(['/café', '/hello world', '/café/:slug'])(
+		'uses the request pathname when matching %s',
+		async (path) => {
+			const route = new RenderRoute({
+				path,
+				entry: './src/Page.tsrx',
+				prerender: true,
+				...(path.includes(':slug') ? { entries: [{ slug: 'intro' }] } : {}),
+			});
+			const manifest = {
+				routes: [route],
+				components: { './src/Page.tsrx': () => {} },
+				layouts: {},
+				middlewares: [],
+				runtime: createRuntime(),
+			};
+			const options = createHandlerOptions();
+			const url = new URL(path.replace(':slug', 'intro'), 'http://localhost');
+			const pages = await prerenderRoutes(manifest, options);
+			const response = await createHandler(manifest, options)(new Request(url));
+			expect(response.status).toBe(200);
+			expect([...pages.keys()]).toEqual([url.pathname]);
+			expect(pages.get(url.pathname)).toBe(await response.text());
+		},
+	);
+
 	it('renders only the marked static routes, buffered, into full documents', async () => {
 		const Home = () => {};
 		const About = () => {};

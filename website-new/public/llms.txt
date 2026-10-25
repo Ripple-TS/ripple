@@ -837,7 +837,9 @@ a string, or a function returning them at build time; a value goes in as
 written, so a value percent-encoding would change is a configuration error and
 only a `*` value may span segments. `crawl` on a
 prerendered route follows its pages' same-origin links into other prerendered
-routes. Every pathname is matched like a request and rendered once.
+routes. Every pathname is matched like a request and rendered once. Listed
+pathnames must resolve to a render route marked `prerender: true`. Output
+filenames are percent-decoded; unsafe paths and output collisions fail the build.
 
 ```ts
 import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';

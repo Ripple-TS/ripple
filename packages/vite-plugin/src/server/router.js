@@ -57,7 +57,11 @@ function compilePath(path) {
 
 			// Static segment
 			specificity += 100; // Highest specificity
-			return escapeRegex(segment);
+			// Requests carry URL-encoded pathnames. Encode literal route text
+			// the same way, preserving existing escapes and literal dot segments.
+			const url = new URL('http://localhost');
+			url.pathname = `/${segment}a`;
+			return escapeRegex(url.pathname.slice(1, -1));
 		})
 		.join('/');
 

@@ -7,6 +7,7 @@
 import { compile } from '@tsrx/ripple';
 import { pathToFileURL } from 'node:url';
 import { create_text_types } from './text-types.js';
+import { write_prerendered_pages } from './prerender-output.js';
 import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -1253,11 +1254,7 @@ export function ripple(inlineOptions = {}) {
 							/** @type {{ prerender: (origin?: string) => Promise<Map<string, string>> }} */
 							const serverEntry = await import(/* @vite-ignore */ `${entryUrl}?t=${Date.now()}`);
 							const pages = await serverEntry.prerender();
-							for (const [routePath, html] of pages) {
-								const file = path.join(clientOutDir, routePath, 'index.html');
-								fs.mkdirSync(path.dirname(file), { recursive: true });
-								fs.writeFileSync(file, html);
-							}
+							write_prerendered_pages(clientOutDir, pages);
 							console.log(
 								`[@ripple-ts/vite-plugin] Prerendered ${pages.size} page${pages.size === 1 ? '' : 's'}`,
 							);

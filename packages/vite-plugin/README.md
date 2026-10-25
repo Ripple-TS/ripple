@@ -55,8 +55,12 @@ new RenderRoute({
 
 Crawled links resolve as a browser reading the page would, including through a
 `<base>` element. Each pathname is normalized and matched like a request URL, and
-rendered once. `prerender()` from `ripple/server` does the same for a component
-outside the plugin.
+rendered once. A listed pathname must resolve to a render route marked
+`prerender: true`; matching a per-request page or API endpoint fails the build.
+Output filenames are percent-decoded for the adapters' static lookup. Unsafe paths
+and pathnames that would overwrite the same output file fail the build.
+`prerender()` from `ripple/server` does the same for a component outside the
+plugin.
 
 ## Client-only builds
 

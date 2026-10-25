@@ -133,14 +133,14 @@ export function createHandler(manifest, options) {
 }
 
 /**
- * Whether a pathname carries an empty segment, which the entry values a build
- * may name never produce. The root is the one pathname that is only a
- * separator.
+ * Whether a pathname carries an empty interior segment. An explicit trailing
+ * slash in a route pattern is allowed; empty parameter segments are checked
+ * after matching the route.
  * @param {string} pathname
  * @returns {boolean}
  */
 function has_empty_segment(pathname) {
-	return pathname !== '/' && pathname.split('/').slice(1).includes('');
+	return pathname !== '/' && pathname.replace(/\/$/, '').split('/').slice(1).includes('');
 }
 
 /**
@@ -224,13 +224,26 @@ export async function prerenderRoutes(manifest, options, origin = 'http://localh
 		} catch (error) {
 			throw new Error(`[ripple] Prerendering ${pathname} failed`, { cause: error });
 		}
+		// A trailing slash may belong to the pattern, but not to a catch-all
+		// value: crawled parameters follow the same segment rules as entries.
+		if (
+			!listed &&
+			match &&
+			Object.values(match.params).some((value) => value.split('/').includes(''))
+		)
+			continue;
 		const route =
 			match && match.route.type === 'render' && match.route.prerender
 				? /** @type {RenderRoute} */ (match.route)
 				: null;
-		// A link can point at anything; a page `entries` named is answered
-		// whatever it now resolves to, so a page it silently loses is a failure.
-		if (route === null && !listed) continue;
+		// Routing precedence must not opt a per-request page or API endpoint
+		// into static generation. Listed pages fail instead of being lost.
+		if (route === null) {
+			if (!listed) continue;
+			throw new Error(
+				`[ripple] Prerendering ${pathname} failed: no matching render route has \`prerender: true\`.`,
+			);
+		}
 
 		const url = to_url(pathname);
 		let response;

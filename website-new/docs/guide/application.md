@@ -369,7 +369,7 @@ written, so it has to be one a path can hold: a value percent-encoding would
 change is a configuration error, and only a `*` value may span segments. Each
 pathname is then normalized like a request URL, with dot segments
 collapsed, and routed like a request,
-so a more specific route renders the pathnames it claims and every pathname
+so a more specific prerendered route renders the pathnames it claims and every pathname
 renders once. `crawl` follows
 the same-origin links of a route's prerendered pages into any other prerendered
 route, and keeps going through routes that also set `crawl`, so a blog index
@@ -387,7 +387,10 @@ new RenderRoute({ path: '/', entry: './src/Home.tsrx', prerender: true, crawl: t
 
 A prerendered parameterized route without `entries`, or `entries` or `crawl` on
 a route that does not fit them, is a configuration error, and a page that does
-not render with status 200 fails the build with its pathname.
+not render with status 200 fails the build with its pathname. A listed pathname
+must match a render route marked `prerender: true`; matching a per-request page
+or API endpoint fails the build. Output filenames are percent-decoded for static
+lookup, and unsafe paths or two pathnames sharing an output file fail the build.
 
 ### Cleanup
 
