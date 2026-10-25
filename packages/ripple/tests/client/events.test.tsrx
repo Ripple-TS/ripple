@@ -2,6 +2,62 @@ import type { OnEventListenerRemover } from 'ripple';
 import { effect, flushSync, mount, on, Portal, track } from 'ripple';
 
 describe('on() event handler', () => {
+	it('only invokes supplied optional zero-argument callbacks', () => {
+		let calls = 0;
+
+		function Action({ done }: { done?: (() => void) | null }) @{
+			<div>
+				<button
+					onClick={() => {
+						done?.();
+					}}
+				>block</button>
+				<button onClick={() => done?.()}>expression</button>
+				<button
+					onScroll={() => {
+						done?.();
+					}}
+				>scroll</button>
+			</div>
+		}
+
+		function App() @{
+			<>
+				<Action />
+				<Action done={undefined} />
+				<Action done={null} />
+				<Action
+					done={() => {
+						calls++;
+					}}
+				/>
+			</>
+		}
+
+		render(App);
+
+		const errors: unknown[] = [];
+		const onError = (event: ErrorEvent) => {
+			errors.push(event.error);
+			event.preventDefault();
+		};
+		window.addEventListener('error', onError);
+		try {
+			for (const action of container.querySelectorAll('div')) {
+				const [block, expression, scroll] = action.querySelectorAll('button');
+				block.click();
+				expression.click();
+				scroll.dispatchEvent(new Event('scroll'));
+				flushSync();
+			}
+		} finally {
+			window.removeEventListener('error', onError);
+		}
+
+		expect(errors).toEqual([]);
+		expect(calls).toBe(3);
+	});
+
 	it('should attach multiple handlers via onClick attribute (delegated)', () => {
 		function Basic() @{
 			const count1 = track(0);

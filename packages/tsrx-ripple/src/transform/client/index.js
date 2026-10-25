@@ -3381,7 +3381,12 @@ const visitors = {
 			return b.call('_$_.with_scope', b.id('__block'), visited_call.callee);
 		}
 
-		return b.call('_$_.with_scope', b.id('__block'), b.thunk(visited_call));
+		// The shared thunk builder unwraps zero-argument identifier calls, which
+		// would discard an optional call's nullish guard.
+		const callback = /** @type {AST.SimpleCallExpression} */ (node).optional
+			? b.arrow([], visited_call)
+			: b.thunk(visited_call);
+		return b.call('_$_.with_scope', b.id('__block'), callback);
 	},
 
 	TSTypeAliasDeclaration(_, context) {
