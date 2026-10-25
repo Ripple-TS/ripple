@@ -85,6 +85,59 @@ describe('refs', () => {
 		expect(div?.textContent).toBe('Hello World');
 	});
 
+	it('mounts and cleans up const callbacks on hosts, components, and ref arrays', () => {
+		const mounted: Element[] = [];
+		const cleaned: Element[] = [];
+		let show: Tracked<boolean>;
+		let tracker: Tracked<HTMLSpanElement | null>;
+		let slot: HTMLSpanElement | null | undefined;
+
+		function Child(props: PropsWithExtras<{}>) @{
+			<span {...props} />
+		}
+
+		function App() @{
+			const visible = track(true);
+			const tracked = track<HTMLSpanElement | null>(null);
+			show = visible;
+			tracker = tracked;
+			const attach = (node: HTMLSpanElement) => {
+				node.textContent = 'ready';
+				mounted.push(node);
+				return () => {
+					cleaned.push(node);
+				};
+			};
+			@if (visible.value) {
+				<>
+					<span ref={attach} />
+					<Child ref={attach} />
+					<span ref={[attach, tracked, slot]} />
+					<Child ref={[attach]} />
+				</>
+			}
+		}
+
+		render(App);
+		flushSync();
+		const spans = Array.from(container.querySelectorAll('span'));
+		expect(spans).toHaveLength(4);
+		expect(mounted).toEqual(spans);
+		expect(spans.map((node) => node.textContent)).toEqual(['ready', 'ready', 'ready', 'ready']);
+		expect(tracker!.value).toBe(spans[2]);
+		expect(slot).toBe(spans[2]);
+		expect(cleaned).toEqual([]);
+
+		show!.value = false;
+		flushSync();
+		expect(container.querySelectorAll('span')).toHaveLength(0);
+		expect(cleaned).toHaveLength(4);
+		expect(cleaned).toEqual(expect.arrayContaining(spans));
+		expect(mounted).toEqual(spans);
+		expect(tracker!.value).toBeNull();
+		expect(slot).toBeNull();
+	});
+
 	it('works with spreading from composite component', () => {
 		let _node: HTMLPreElement | undefined;
 

@@ -1513,7 +1513,7 @@ function create_ref_value_call(source_argument, context) {
 	/** @type {AST.Expression[]} */
 	const args = [b.thunk(argument)];
 	if (add_setter) {
-		add_ref_setter_arg(args, source, argument);
+		add_ref_setter_arg(args, source, argument, state.scope);
 	}
 
 	const call = b.call(
@@ -1555,14 +1555,24 @@ function get_ref_source_argument(source_argument) {
  * @param {AST.Expression[]} args
  * @param {ESTreeJSX.JSXExpressionContainer | AST.Expression} source_argument
  * @param {AST.Expression} argument
+ * @param {ScopeInterface} scope
  * @returns {void}
  */
-function add_ref_setter_arg(args, source_argument, argument) {
+function add_ref_setter_arg(args, source_argument, argument, scope) {
 	const source =
 		source_argument.type === 'JSXExpressionContainer'
 			? source_argument.expression
 			: source_argument;
 	const arg_type = source?.type;
+
+	if (arg_type === 'Identifier') {
+		const binding = scope.get(source.name);
+		// Callbacks and tracked refs do not need a setter. Never emit an
+		// assignment to an immutable binding, even if the runtime would skip it.
+		if (binding?.declaration_kind === 'const' || binding?.declaration_kind === 'import') {
+			return;
+		}
+	}
 
 	if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
 		args.push(
@@ -3982,7 +3992,7 @@ const visitors = {
 									: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
 							const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(ref_value)];
 							if (source.type !== 'ArrayExpression') {
-								add_ref_setter_arg(ref_args, attr_value, ref_value);
+								add_ref_setter_arg(ref_args, attr_value, ref_value, state.scope);
 							}
 							state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
 							continue;
