@@ -53,10 +53,7 @@ describe('hydration > head', () => {
 		await hydrateComponent(ServerComponents.ReactiveMetaTags, ClientComponents.ReactiveMetaTags);
 		expect(document.title).toBe('My Page');
 
-		// Note: Reactive attributes in head elements are not fully supported yet during hydration
-		// The meta tag is created but the content attribute may not be set correctly during hydration
-		// This is a known limitation that will be addressed in future updates
-
+		expect(document.querySelector('meta[name="description"]').content).toBe('Initial description');
 		expect(container.querySelector('div')?.textContent).toBe('Initial description');
 	});
 

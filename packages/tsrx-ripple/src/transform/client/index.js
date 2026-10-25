@@ -40,6 +40,7 @@ const IF_ROOT_CONTROLLED = 1;
 const IF_TRACKED = 1 << 1;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
 import { has_text_type_fact } from '../../text-type-facts.js';
+import { is_data_script } from '../../script.js';
 import { HTML_ELEMENT_SETTERS, HTML_TAG_SETTERS } from '../../dom-setters.js';
 import path from 'node:path';
 import { print } from 'esrap';
@@ -1024,6 +1025,9 @@ function visit_head_element(node, index, context) {
 	);
 
 	if (init.length > 0 || update.length > 0 || final.length > 0) {
+		if (update.length > 0) {
+			apply_updates(init, update, state);
+		}
 		// Generate a hash for this head element based on filename and index
 		// Use both filename and index to ensure uniqueness across multiple head blocks
 		const hash_source = `${state.filename}:head:${index}:${node.start ?? 0}`;
@@ -1034,14 +1038,7 @@ function visit_head_element(node, index, context) {
 				b.call(
 					'_$_.head',
 					b.literal(hash_value),
-					b.arrow(
-						[b.id('__anchor')],
-						b.block([
-							...init,
-							.../** @type {AST.Statement[]} */ (update.map((u) => u.operation())),
-							...final,
-						]),
-					),
+					b.arrow([b.id('__anchor')], b.block([...init, ...final])),
 				),
 			),
 		);
@@ -3855,26 +3852,6 @@ const visitors = {
 			return;
 		}
 
-		if (context.state.inside_head) {
-			// Inline scripts (`<script>…raw JS/TS…</script>`) are raw-text elements: the
-			// body is captured verbatim on `node.content` (see the parser's
-			// `#parseScriptElement`) and injected as the script's text content. Scripts
-			// with no inline body (e.g. `<script src={...} />`) carry their behavior in
-			// attributes, so they fall through to generic element handling instead.
-			const script_content = /** @type {AST.TSRXJSXElement} */ (node).content;
-			if (
-				element_id.type === 'Identifier' &&
-				element_id.name === 'script' &&
-				typeof script_content === 'string' &&
-				script_content.length > 0
-			) {
-				const id = state.flush_node?.();
-				state.template?.push('<!>');
-				context.state.init?.push(b.stmt(b.call('_$_.script', id, b.literal(script_content))));
-				return;
-			}
-		}
-
 		const is_dom_element = is_element_dom_element(node);
 		const is_spreading = element_attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
@@ -3923,6 +3900,14 @@ const visitors = {
 			// when an imported theme's `$class` is part of it.
 			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 			const inner_html_attribute = get_inner_html_attribute(node);
+
+			if (element_name === 'script' && !is_data_script(node)) {
+				// Parsed template scripts are inert. Prepare a fresh element before
+				// applying attributes/refs, then let normal insertion execute it.
+				// Hydration returns the existing server element unchanged.
+				const id = /** @type {AST.Identifier} */ (state.flush_node?.());
+				state.init?.push(b.stmt(b.assignment('=', id, b.call('_$_.script', id))));
+			}
 
 			state.template?.push(`<${element_name}`);
 
@@ -4402,11 +4387,17 @@ const visitors = {
 
 			if (!is_void) {
 				const element_name = /** @type {AST.Identifier} */ (element_id).name;
+				const script_content = element_name === 'script' ? node.content : undefined;
 				let render_children = /** @type {AST.Node[]} */ (
-					inner_html_attribute === null
+					inner_html_attribute === null && typeof script_content !== 'string'
 						? lower_code_block_children(node.children, state.scopes)
 						: []
 				);
+				if (typeof script_content === 'string' && inner_html_attribute === null) {
+					// Preserve raw text (including entities and whitespace), as the
+					// server does, without also rendering the mirrored JSXText child.
+					state.template?.push(script_content);
+				}
 				if (element_name === 'textarea') {
 					state.template?.push('\n');
 					render_children = normalize_children(render_children, context, true);

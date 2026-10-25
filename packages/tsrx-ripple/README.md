@@ -3,6 +3,17 @@
 Ripple's compiler target for the published `@tsrx/core` language infrastructure.
 Use `compile(source, filename, options)` to produce client or server JavaScript.
 
+## Script elements
+
+Scripts with a literal data MIME type, such as `type="application/json"` or
+`type="application/ld+json"`, can appear beside body content. The type must be
+unambiguous: dynamic types, duplicate type attributes, and attribute spreads
+require the script to be inside `<head>`, as do executable scripts.
+
+Script bodies are raw text. Write JSON directly inside the tag, without a JSX
+expression wrapper. Attributes and raw content are preserved, and hydration adopts
+the existing script instead of inserting or executing another copy.
+
 ## Primitive text inference
 
 Ripple uses direct text updates for locally proven primitives, including typed

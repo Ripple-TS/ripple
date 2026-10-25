@@ -86,6 +86,7 @@ import {
 } from '../template-ast.js';
 import is_reference from 'is-reference';
 import { prepare_style_scopes } from '../style-scopes.js';
+import { is_data_script } from '../script.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
@@ -2130,7 +2131,7 @@ const visitors = {
 					);
 				}
 			} else {
-				if (/** @type {AST.Identifier} */ (element_id).name === 'script') {
+				if (/** @type {AST.Identifier} */ (element_id).name === 'script' && !is_data_script(node)) {
 					const err_msg = '<script> cannot be used outside of <head>.';
 					error(
 						err_msg,

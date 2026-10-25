@@ -87,6 +87,15 @@ function MultipleHeadElements_render(__anchor, __block) {
 MultipleHeadElements[_$_.$r] = MultipleHeadElements_render;
 
 var root_9 = _$_.template_el('meta', ['name', 'description']);
+
+function render(__prev) {
+	var __a = __prev._a.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_property_value(__prev._b, 'content', __prev.a = __a);
+	}
+}
+
 var root_8 = _$_.template_el('div', null, ' ');
 var root_7 = _$_.template(`<!>`, 1, 1);
 
@@ -109,7 +118,7 @@ function ReactiveMetaTags_render(__anchor, __block) {
 			var meta = root_9();
 
 			_$_.document.title = 'My Page';
-			_$_.set_property_value(meta, 'content');
+			_$_.render(render, { a: void 0, _a: description, _b: meta });
 			_$_.append(__anchor, meta);
 		});
 
@@ -210,7 +219,7 @@ ConditionalTitle[_$_.$r] = ConditionalTitle_render;
 
 var root_17 = _$_.template_el('div', null, [['span']]);
 
-function render(__prev) {
+function render_1(__prev) {
 	var __a = __prev._a.value;
 
 	if (__prev.a !== __a) {
@@ -240,7 +249,7 @@ function ComputedTitle_render(__anchor, __block) {
 			});
 		});
 
-		_$_.render(render, { a: '', _a: count, _b: span_1 });
+		_$_.render(render_1, { a: '', _a: count, _b: span_1 });
 		_$_.append(__anchor, div_7);
 	}));
 

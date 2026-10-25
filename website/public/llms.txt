@@ -911,6 +911,15 @@ RPC, and from `ripple` in the browser before `hydrate`, `mount`, or RPC calls.
 Registration is application-wide; use the same definitions on both sides.
 `setTransport()` or `setTransport({})` restores built-in serialization.
 
+## Script Elements
+
+Executable scripts belong in `<head>`. Data scripts with a literal MIME type,
+such as `<script type="application/json" id="card-data">{"count":1}</script>`,
+can appear beside body content. Body data scripts cannot use dynamic types,
+duplicate type attributes, or attribute spreads. Script bodies are raw text:
+write JSON directly, without a JSX expression wrapper. Attributes are preserved
+and hydration adopts existing scripts without inserting or executing a copy.
+
 ## Raw HTML
 
 Use `innerHTML={trustedHtml}` for trusted markup. Do not pass untrusted strings to
