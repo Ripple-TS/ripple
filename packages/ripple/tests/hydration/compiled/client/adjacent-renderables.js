@@ -24,9 +24,8 @@ Pair[_$_.$r] = Pair_render;
 
 var root_1 = _$_.template_el('i', null, 'one');
 var root_2 = _$_.template_el('b', null, 'two');
-var root_5 = _$_.template_el('em', null, 'four');
-var root_4 = _$_.template(`<!><button>update`, 1, 2);
-var root_3 = _$_.template(`<!>`, 1, 1);
+var root_4 = _$_.template_el('em', null, 'four');
+var root_3 = _$_.template(`<!><button>update`, 1, 2);
 
 function AdjacentRenderableProps_render(__anchor, __block) {
 	const first = _$_.track(
@@ -50,56 +49,49 @@ function AdjacentRenderableProps_render(__anchor, __block) {
 	);
 
 	var fragment = root_3();
-	var node_1 = _$_.first_child_frag(fragment);
+	var node = _$_.first_child_frag(fragment);
 
-	_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_1 = root_4();
-		var node = _$_.first_child_frag(fragment_1);
+	_$_.render_component(Pair, node, { first, second });
 
-		_$_.render_component(Pair, node, { first, second });
+	var button = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
 
-		var button = _$_.hydrating ? _$_.hydrate_sibling() : node.nextSibling;
+	button.__click = () => {
+		first.value = null;
 
-		button.__click = () => {
-			first.value = null;
+		second.value = [
+			'three',
+			_$_.tsrx_element((__anchor, __block) => {
+				var em = root_4();
 
-			second.value = [
-				'three',
-				_$_.tsrx_element((__anchor, __block) => {
-					var em = root_5();
-
-					_$_.append(__anchor, em);
-				})
-			];
-		};
-
-		_$_.append(__anchor, fragment_1);
-	}));
+				_$_.append(__anchor, em);
+			})
+		];
+	};
 
 	_$_.append(__anchor, fragment);
 }
 
 AdjacentRenderableProps[_$_.$r] = AdjacentRenderableProps_render;
 
-var root_6 = _$_.template_el('i', null, 'one');
-var root_7 = _$_.template_el('b', null, 'two');
-var root_8 = _$_.template_el('section', null, ['before:', null, null, null, '<after']);
+var root_5 = _$_.template_el('i', null, 'one');
+var root_6 = _$_.template_el('b', null, 'two');
+var root_7 = _$_.template_el('section', null, ['before:', null, null, null, '<after']);
 
 function MixedRenderableValues_render(__anchor, __block) {
 	const first = _$_.tsrx_element((__anchor, __block) => {
-		var i_1 = root_6();
+		var i_1 = root_5();
 
 		_$_.append(__anchor, i_1);
 	});
 
 	const second = _$_.tsrx_element((__anchor, __block) => {
-		var b_1 = root_7();
+		var b_1 = root_6();
 
 		_$_.append(__anchor, b_1);
 	});
 
 	const values = [first, null, '&', second, undefined];
-	var section_1 = root_8();
+	var section_1 = root_7();
 
 	{
 		var text = _$_.hydrating ? _$_.hydrate_child() : section_1.firstChild;
@@ -122,17 +114,17 @@ function MixedRenderableValues_render(__anchor, __block) {
 
 MixedRenderableValues[_$_.$r] = MixedRenderableValues_render;
 
-var root_10 = _$_.template_el('button', null, 'update');
-var root_9 = _$_.template(`<!>`, 1, 1);
+var root_9 = _$_.template_el('button', null, 'update');
+var root_8 = _$_.template(`<!>`, 1, 1);
 
 function AdjacentTitleValues_render(__anchor, __block) {
 	const first = _$_.track('one', __block, 'r7v0dk');
 	const second = _$_.track(2, __block, '5c8sig');
-	var fragment_2 = root_9();
-	var node_2 = _$_.first_child_frag(fragment_2);
+	var fragment_1 = root_8();
+	var node_1 = _$_.first_child_frag(fragment_1);
 
-	_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
-		var button_1 = root_10();
+	_$_.expression(node_1, () => _$_.tsrx_element((__anchor, __block) => {
+		var button_1 = root_9();
 
 		button_1.__click = () => {
 			first.value = null;
@@ -148,7 +140,7 @@ function AdjacentTitleValues_render(__anchor, __block) {
 		_$_.append(__anchor, button_1);
 	}));
 
-	_$_.append(__anchor, fragment_2);
+	_$_.append(__anchor, fragment_1);
 }
 
 AdjacentTitleValues[_$_.$r] = AdjacentTitleValues_render;
