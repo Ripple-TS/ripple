@@ -123,6 +123,79 @@ describe('DOM property updates', () => {
 		expect(input.readOnly).toBe(true);
 	});
 
+	it(
+		'preserves a bound defaultValue while a spread updates the value attribute or live value',
+		() => {
+			function App() @{
+				const attributes = track<{ value?: string | number }>({ value: 'spread' });
+				const default_value = track('default');
+				<>
+					<button onClick={() => (attributes.value = { value: 'changed' })}>{'Attribute'}</button>
+					<button onClick={() => (attributes.value = { value: 42 })}>{'Property'}</button>
+					<button onClick={() => (attributes.value = {})}>{'Remove'}</button>
+					<input {...attributes.value} defaultValue={default_value.value} />
+				</>
+			}
+
+			render(App);
+			const input = container.querySelector('input');
+			const [attribute, property, remove] = container.querySelectorAll('button');
+			expect(input.defaultValue).toBe('default');
+			input.value = 'edited';
+
+			attribute.click();
+			flushSync();
+			expect(input.defaultValue).toBe('default');
+			expect(input.value).toBe('edited');
+
+			property.click();
+			flushSync();
+			expect(input.defaultValue).toBe('default');
+			expect(input.value).toBe('42');
+
+			remove.click();
+			flushSync();
+			expect(input.defaultValue).toBe('default');
+			expect(input.value).toBe('42');
+		},
+	);
+
+	it('preserves a bound defaultChecked while a spread controls the live checked state', () => {
+		function App() @{
+			const attributes = track<{ checked?: boolean | string }>({ checked: false });
+			const default_checked = track(true);
+			<>
+				<button onClick={() => (attributes.value = { checked: true })}>{'Check'}</button>
+				<button onClick={() => (attributes.value = { checked: false })}>{'Uncheck'}</button>
+				<button onClick={() => (attributes.value = { checked: '' })}>{'Attribute'}</button>
+				<button onClick={() => (attributes.value = {})}>{'Remove'}</button>
+				<input type="checkbox" {...attributes.value} defaultChecked={default_checked.value} />
+			</>
+		}
+
+		render(App);
+		const input = container.querySelector('input');
+		const [check, uncheck, attribute, remove] = container.querySelectorAll('button');
+		expect(input.defaultChecked).toBe(true);
+		expect(input.checked).toBe(false);
+
+		check.click();
+		flushSync();
+		expect(input.checked).toBe(true);
+		uncheck.click();
+		flushSync();
+		expect(input.checked).toBe(false);
+
+		attribute.click();
+		flushSync();
+		expect(input.defaultChecked).toBe(true);
+		expect(input.checked).toBe(false);
+		remove.click();
+		flushSync();
+		expect(input.defaultChecked).toBe(true);
+		expect(input.checked).toBe(false);
+	});
+
 	it('assigns an initial undefined property once and applies transitions back to undefined', () => {
 		const set_open = vi.spyOn(HTMLDialogElement.prototype, 'open', 'set');
 		try {

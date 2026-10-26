@@ -129,8 +129,21 @@ function apply_styles(element, new_styles, prev) {
  * @param {string} key
  * @param {any} value
  * @param {SpreadState} state
+ * @param {string[]} [excluded]
  */
-function set_attribute_helper(element, key, value, state) {
+function set_attribute_helper(element, key, value, state, excluded) {
+	if (excluded !== undefined && element.nodeName === 'INPUT') {
+		// Input defaults reflect `value`/`checked` attributes, while writes
+		// to the live properties can still be controlled by the spread.
+		var name = key.toLowerCase();
+		if (
+			(value == null || typeof value === 'string' || key !== name) &&
+			((name === 'value' && excluded.includes('defaultvalue')) ||
+				(name === 'checked' && excluded.includes('defaultchecked')))
+		) {
+			return;
+		}
+	}
 	if (key === 'class') {
 		const is_html = element.namespaceURI === 'http://www.w3.org/1999/xhtml';
 		set_class_value(/** @type {HTMLElement} */ (element), value, undefined, is_html);
@@ -249,7 +262,7 @@ export function spread(element, next, state, excluded) {
 	}
 	for (key in prev) {
 		if (key !== '#class' && (!(key in next) || is_ref_prop(next[key]))) {
-			set_attribute_helper(element, key, null, state);
+			set_attribute_helper(element, key, null, state, excluded);
 		}
 	}
 
@@ -272,7 +285,7 @@ export function spread(element, next, state, excluded) {
 		if (key !== '#class' && key in prev && prev[key] === value) {
 			continue;
 		}
-		set_attribute_helper(element, key, value, state);
+		set_attribute_helper(element, key, value, state, excluded);
 	}
 
 	if (state.r !== null) {
@@ -322,7 +335,7 @@ function apply_spread(state, next, excluded) {
 			tracked = true;
 		}
 		current[key] = value;
-		set_attribute_helper(element, key, value, state);
+		set_attribute_helper(element, key, value, state, excluded);
 	}
 
 	state.r = refs;
