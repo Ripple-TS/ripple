@@ -43,6 +43,7 @@ import {
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
+import { get_runtime_enum_diagnostic, is_lowered_enum_declaration } from '../enums.js';
 import {
 	is_delegated_event,
 	get_parent_block_node,
@@ -1245,12 +1246,10 @@ const visitors = {
 	},
 
 	TSEnumDeclaration(node, context) {
-		const ambient =
-			node.declare ||
-			context.path.some((ancestor) => ancestor.type === 'TSModuleDeclaration' && ancestor.declare);
-		if (!ambient) {
+		const diagnostic = get_runtime_enum_diagnostic(node, context.path);
+		if (diagnostic) {
 			error(
-				'Ripple does not support runtime TypeScript enums in .tsrx files. Move the enum to a .ts module and import it, or use an object with `as const` instead.',
+				diagnostic,
 				context.state.analysis.module.filename,
 				node.id,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -1513,7 +1512,11 @@ const visitors = {
 		const { state, visit } = context;
 
 		for (const declarator of node.declarations) {
-			if (is_inside_component(context) && node.kind === 'var') {
+			if (
+				is_inside_component(context) &&
+				node.kind === 'var' &&
+				!is_lowered_enum_declaration(node)
+			) {
 				error(
 					'`var` declarations are not allowed in components, use let or const instead',
 					state.analysis.module.filename,

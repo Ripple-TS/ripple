@@ -505,4 +505,18 @@ export function App() @{
 
 		expect(result).toContain('...props');
 	});
+
+	it('compiles runtime enums in components', () => {
+		const source = `export function Badge() @{
+		enum Stage { Ready = 2, Label = 'ready' }
+		<b>{Stage.Ready}:{Stage.Label}</b>
+	}`;
+
+		const { code, errors } = compile(source, 'test.tsrx', { mode: 'server' });
+
+		expect(errors).toEqual([]);
+		expect(code).not.toContain('enum Stage');
+		expect(code).toContain('var Stage');
+		expect(code).toContain('Stage.Ready');
+	});
 });

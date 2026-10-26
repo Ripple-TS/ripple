@@ -5,10 +5,12 @@ Use `compile(source, filename, options)` to produce client or server JavaScript.
 
 ## TypeScript enums
 
-Runtime `enum` and `const enum` declarations in `.tsrx` files are not supported
-and produce a compiler diagnostic. Move the enum to a `.ts` module and import it,
-or use an object with `as const` instead. Ambient `declare enum` declarations are
-preserved for type checking and erased from JavaScript output.
+Ordinary runtime `enum` declarations in `.tsrx` files are lowered for client and
+server JavaScript, including numeric reverse mappings, string and heterogeneous
+members, automatic increments, computed initializers, and references to previous
+members. `const enum`, declaration merging, and enums inside runtime namespaces or
+modules are not supported and produce compiler diagnostics. Ambient `declare enum`
+declarations are preserved for type checking and erased from JavaScript output.
 
 ## Script elements
 

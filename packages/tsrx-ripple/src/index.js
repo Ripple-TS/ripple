@@ -7,6 +7,7 @@
 import { analyzeTsrx, createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { register_text_type_facts } from './text-type-facts.js';
 import { analyze } from './analyze/index.js';
+import { lower_runtime_enums } from './enums.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
 
@@ -38,13 +39,14 @@ export function compile(source, filename, options = {}) {
 		filename,
 		collect ? { ...options, collect, errors, comments } : undefined,
 	);
-	analyzeTsrx(
+	const core_analysis = analyzeTsrx(
 		ast,
 		filename,
 		collect ? { collect, loose: !!options.loose, errors, comments } : undefined,
 	);
+	const lowered_ast = lower_runtime_enums(ast, { scopes: core_analysis.scopes });
 	const analysis = analyze(
-		ast,
+		lowered_ast,
 		filename,
 		collect ? { ...options, collect, errors, comments } : options,
 	);
