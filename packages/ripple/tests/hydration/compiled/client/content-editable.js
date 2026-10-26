@@ -338,6 +338,79 @@ function AsyncEditor_render(__anchor, __block, { promise }) {
 
 AsyncEditor[_$_.$r] = AsyncEditor_render;
 
+var root_17 = _$_.template_el('span', null, ' ');
+
+function StreamContent_render(__anchor, __block, { promise }) {
+	const value = _$_.track_async(() => promise, __block, '2e2vau');
+	var span = root_17();
+
+	{
+		var expression_9 = _$_.hydrating ? _$_.hydrate_child() : span.firstChild;
+
+		_$_.expression(expression_9, () => value.value);
+		_$_.hydrating && _$_.pop(span);
+	}
+
+	_$_.append(__anchor, span);
+}
+
+StreamContent[_$_.$r] = StreamContent_render;
+
+var root_19 = _$_.template_el('i', null, 'loading');
+var root_18 = _$_.template(`<section><article contentEditable><div data-editor contentEditable><b>before</b><!></div></article><output> `);
+
+function NestedStreamEditor_render(__anchor, __block, { promise, property = 'textContent' }) {
+	const value = _$_.track('model', __block, '15fvgx0');
+	var section_3 = root_18();
+
+	{
+		var article = _$_.hydrating ? _$_.hydrate_child() : section_3.firstChild;
+
+		{
+			var div_13 = _$_.hydrating ? _$_.hydrate_child() : article.firstChild;
+
+			_$_.ref(div_13, () => _$_.with_scope(__block, () => _$_.call_property(bindings, property, void 0, void 0, value)));
+
+			{
+				if (!_$_.hydrating || !_$_.content_editable_changed(div_13)) {
+					var b_1 = _$_.hydrating ? _$_.hydrate_child() : div_13.firstChild;
+					var node_3 = _$_.hydrating ? _$_.hydrate_sibling() : b_1.nextSibling;
+
+					_$_.try(
+						node_3,
+						(__anchor) => {
+							_$_.render_component(StreamContent, __anchor, { promise });
+						},
+						null,
+						(__anchor) => {
+							var i = root_19();
+
+							_$_.append(__anchor, i);
+						}
+					);
+
+					_$_.hydrating && _$_.pop(div_13);
+				}
+			}
+		}
+
+		_$_.hydrating && _$_.pop(article);
+
+		var output_3 = _$_.hydrating ? _$_.hydrate_sibling() : article.nextSibling;
+
+		{
+			var expression_10 = _$_.hydrating ? _$_.hydrate_child() : output_3.firstChild;
+
+			_$_.expression(expression_10, () => _$_.with_scope(__block, () => JSON.stringify(value.value)));
+			_$_.hydrating && _$_.pop(output_3);
+		}
+	}
+
+	_$_.append(__anchor, section_3);
+}
+
+NestedStreamEditor[_$_.$r] = NestedStreamEditor_render;
+
 import {
 	bindInnerHTML,
 	bindInnerText,
@@ -396,6 +469,14 @@ function Inherited({ binding, seed }) {
 
 export function AsyncEditor(__props) {
 	return _$_.tsrx_element(AsyncEditor_render, __props);
+}
+
+function StreamContent(__props) {
+	return _$_.tsrx_element(StreamContent_render, __props);
+}
+
+export function NestedStreamEditor(__props) {
+	return _$_.tsrx_element(NestedStreamEditor_render, __props);
 }
 
 _$_.delegate(['click']);

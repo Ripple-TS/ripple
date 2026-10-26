@@ -358,3 +358,103 @@ export function AsyncEditor({ promise }) {
 		});
 	});
 }
+
+function StreamContent({ promise }) {
+	return _$_.tsrx_element(() => {
+		const value = _$_.track_async(() => promise, '2e2vau');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<span>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(value.value);
+			}
+
+			__out += '</span>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function NestedStreamEditor({ promise, property = 'textContent' }) {
+	return _$_.tsrx_element(() => {
+		const value = _$_.track('model', '15fvgx0');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<section><article contentEditable=""';
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.content_editable(
+				() => {
+					let __out = '';
+
+					__out += '<div data-editor="" contentEditable=""';
+					_$_.output_push(__out);
+					__out = '';
+
+					_$_.content_editable(
+						() => {
+							let __out = '';
+
+							__out += '<b>before</b>';
+							_$_.output_push(__out);
+							__out = '';
+
+							_$_.try_block(
+								() => {
+									let __out = '';
+
+									__out += '<!--[-->';
+
+									{
+										const comp = StreamContent;
+										const args = [{ promise }];
+
+										_$_.output_push(__out);
+										__out = '';
+										_$_.render_component(comp, ...args);
+									}
+
+									__out += '<!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
+
+									__out += '<!--[--><i>loading</i><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+
+							_$_.output_push(__out);
+						},
+						true
+					);
+
+					__out += '</div>';
+					_$_.output_push(__out);
+				},
+				true
+			);
+
+			__out += '</article><output>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(JSON.stringify(value.value));
+			}
+
+			__out += '</output></section>';
+			_$_.output_push(__out);
+		});
+	});
+}

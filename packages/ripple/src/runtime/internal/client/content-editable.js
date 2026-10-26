@@ -1,7 +1,7 @@
 import { hydrating } from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
-/** @type {WeakMap<Element, string> | undefined} */
+/** @type {WeakMap<Element, { source: string, html: string }> | undefined} */
 var defaults;
 /** @type {Document | undefined} */
 var inert_document;
@@ -13,22 +13,26 @@ var inert_document;
  * @returns {boolean}
  */
 export function content_editable_changed(element) {
+	if (
+		/** @type {Element & { __ripple_content_edited?: boolean }} */ (element).__ripple_content_edited
+	)
+		return true;
 	var source = element.getAttribute('data-ripple-content');
 	if (source === null) return false;
 	var current = element.innerHTML;
 	if (source === '' || source === current) return source !== current;
 
 	var original = defaults?.get(element);
-	if (original === undefined) {
+	if (original === undefined || original.source !== source) {
 		// An inert document avoids upgrading custom elements or loading resources
 		// a second time while normalizing a rich-text snapshot.
 		inert_document ??= element.ownerDocument.implementation.createHTMLDocument();
 		var template = inert_document.createElementNS(element.namespaceURI, element.localName);
 		template.innerHTML = source;
-		original = template.innerHTML;
+		original = { source, html: template.innerHTML };
 		(defaults ??= new WeakMap()).set(element, original);
 	}
-	return current !== original;
+	return current !== original.html;
 }
 
 /**

@@ -100,3 +100,25 @@ export function AsyncEditor({ promise }) @{
 		<output>{value.value}</output>
 	</section>
 }
+
+function StreamContent({ promise }) @{
+	const value = trackAsync(() => promise);
+	<span>{value.value}</span>
+}
+
+export function NestedStreamEditor({ promise, property = 'textContent' }) @{
+	const value = track('model');
+	<section>
+		<article contentEditable={true}>
+			<div data-editor contentEditable={true} ref={bindings[property](value)}>
+				<b>before</b>
+				@try {
+					<StreamContent promise={promise} />
+				} @pending {
+					<i>loading</i>
+				}
+			</div>
+		</article>
+		<output>{JSON.stringify(value.value)}</output>
+	</section>
+}

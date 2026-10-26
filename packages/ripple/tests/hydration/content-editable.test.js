@@ -36,7 +36,74 @@ function model() {
 	return JSON.parse(container.querySelector('output').textContent);
 }
 
+function exec_stream_scripts(html) {
+	for (const [, code] of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) (0, eval)(code);
+}
+
 describe('contenteditable binding hydration', () => {
+	it.each(
+		['innerHTML', 'innerText', 'textContent'].flatMap((property) =>
+			['none', 'outside', 'inside'].map((edit) => [property, edit]),
+		),
+	)('%s handles a nested streamed fallback (edit: %s)', async (property, edit) => {
+		delete window.__RIPPLE_B__;
+		delete window.__RIPPLE_S__;
+		let resolve;
+		const promise = new Promise((done) => {
+			resolve = done;
+		});
+		const props = { promise, property };
+		const chunks = [];
+		const done = render(() => server.NestedStreamEditor(props), {
+			stream: {
+				push: (chunk) => chunks.push(chunk),
+				close() {},
+				error(error) {
+					throw error;
+				},
+			},
+		});
+		container.innerHTML = chunks[0];
+		exec_stream_scripts(chunks[0]);
+		const editor = container.querySelector('[data-editor]');
+		expect(editor.textContent).toBe('beforeloading');
+		const edited =
+			edit === 'none' ? null : editor.querySelector(edit === 'outside' ? 'b' : 'i').firstChild;
+		if (edited) {
+			edited.nodeValue = 'early';
+			document.getSelection().setBaseAndExtent(edited, 4, edited, 1);
+		}
+		resolve('resolved');
+		await done;
+		for (const chunk of chunks.slice(1)) {
+			container.insertAdjacentHTML('beforeend', chunk);
+			exec_stream_scripts(chunk);
+		}
+		expect(editor.textContent).toBe(
+			edit === 'inside' ? 'beforeearly' : edit === 'outside' ? 'earlyloading' : 'beforeresolved',
+		);
+		if (edit === 'none') {
+			for (const host of container.querySelectorAll('[data-ripple-content]')) {
+				expect(host.innerHTML).toBe(host.getAttribute('data-ripple-content'));
+			}
+		}
+		const expected = edit === 'none' ? 'model' : editor[property];
+		const unmount = hydrate(client.NestedStreamEditor, { target: container, props });
+		try {
+			flushSync();
+			expect(editor[property]).toBe(expected);
+			expect(model()).toBe(expected);
+			if (edited) {
+				expect(document.getSelection().anchorNode).toBe(edited);
+				expect(document.getSelection().anchorOffset).toBe(4);
+			}
+		} finally {
+			unmount();
+			delete window.__RIPPLE_B__;
+			delete window.__RIPPLE_S__;
+		}
+	});
+
 	for (const property of ['innerHTML', 'innerText', 'textContent']) {
 		it.each([false, true])(
 			`${property} preserves early text and backward selection (accessors: %s)`,
