@@ -35,7 +35,7 @@ function recordingSink() {
 	};
 }
 
-const SLOT_OPEN_RE = /<!--\[\?([a-f0-9-]+:\d+)-->/;
+const SLOT_OPEN_RE = /<!--\[\?([a-z0-9-]+:\d+)-->/;
 
 /**
  * Settled units stream once the current task's microtasks have drained, so
@@ -57,13 +57,13 @@ function applyStream(chunks: string[]): string {
 	let html = chunks.join('');
 	const templates = new Map<string, string>();
 	html = html.replace(
-		/<template data-ripple-chunk="([a-f0-9-]+:\d+)">([\s\S]*?)<\/template>/g,
+		/<template data-ripple-chunk="([a-z0-9-]+:\d+)">([\s\S]*?)<\/template>/g,
 		(_m, id, content) => {
 			templates.set(id, content);
 			return '';
 		},
 	);
-	html = html.replace(/<script>__RIPPLE_S__\("([a-f0-9-]+:\d+)"(,1)?\)<\/script>/g, '');
+	html = html.replace(/<script>__RIPPLE_S__\("([a-z0-9-]+:\d+)"(,1)?\)<\/script>/g, '');
 	// the inline swap runtime (serialized function, minified or not)
 	html = html.replace(/<script>\(function[\s\S]*?<\/script>/g, '');
 
@@ -107,7 +107,7 @@ function normalize(html: string): string {
 		/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>/g,
 		'',
 	).replace(/<style data-ripple-ssr>[\s\S]*?<\/style>/g, '').replace(
-		/<!--\[r:[a-f0-9-]+-->/g,
+		/<!--\[r:[a-z0-9-]+-->/g,
 		'<!--[-->',
 	);
 }
@@ -290,7 +290,7 @@ describe('streaming try/pending boundaries', () => {
 
 		expect(chunks).toHaveLength(1);
 		// no pending fallback: the slot is an empty comment pair
-		expect(chunks[0]).toMatch(/<!--\[\?([a-f0-9-]+:\d+)--><!--\]-->/);
+		expect(chunks[0]).toMatch(/<!--\[\?([a-z0-9-]+:\d+)--><!--\]-->/);
 		expect(chunks[0]).not.toContain('failed');
 
 		d.resolve('body');
@@ -730,7 +730,7 @@ describe('streaming head content', () => {
 		expect(chunks).toHaveLength(2);
 		const chunk = chunks[1];
 		expect(chunk).toMatch(
-			/<template data-ripple-head="[a-f0-9-]+:\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
+			/<template data-ripple-head="[a-z0-9-]+:\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
 		);
 		expect(chunk).toContain('<p class="has-head"><!--[-->late<!--]--></p>');
 		// the head template precedes the content template

@@ -212,8 +212,8 @@ describe('hydration > trackAsync serialization', () => {
 	it('also hydrates older server markup without a render namespace', async () => {
 		const { body } = await render(() => ServerComponents.AsyncRoot({ label: 'legacy value' }));
 		container.innerHTML = body
-			.replace(/<!--\[r:[a-f0-9-]+-->/, '<!--[-->')
-			.replace(/(__ripple_ta_)[a-f0-9-]+_/g, '$1');
+			.replace(/<!--\[r:[a-z0-9-]+-->/, '<!--[-->')
+			.replace(/(__ripple_ta_)[a-z0-9-]+_/g, '$1');
 		const unmount = hydrate(ClientComponents.AsyncRoot, {
 			target: container,
 			props: { label: 'client value' },

@@ -614,7 +614,13 @@ export class Output {
 	ensure_hydration_id() {
 		// A process-local counter would collide when roots come from different
 		// workers or separately cached renders composed into the same document.
-		return (this.#root.#hydration_id ??= crypto.randomUUID());
+		// Keep 64 random bits in at most 13 base-36 characters on the wire.
+		var root = this.#root;
+		if (root.#hydration_id === null) {
+			var random = crypto.getRandomValues(new Uint32Array(2));
+			root.#hydration_id = ((BigInt(random[0]) << 32n) | BigInt(random[1])).toString(36);
+		}
+		return root.#hydration_id;
 	}
 
 	get hydration_id() {

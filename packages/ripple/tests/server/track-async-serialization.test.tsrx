@@ -466,6 +466,7 @@ describe('trackAsync serialization (server)', () => {
 
 		const { body } = await render(App);
 		// Find all script tag IDs
+		expect(body).toMatch(/^<!--\[r:[a-z0-9]{1,13}-->/);
 		const matches = [...body.matchAll(/id="(__ripple_ta_[a-z0-9_-]+)"/g)];
 		expect(matches.length).toBe(2);
 		// Hashes should be different

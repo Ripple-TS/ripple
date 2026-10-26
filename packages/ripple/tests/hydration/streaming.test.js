@@ -356,7 +356,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		});
 
 		// the root slot IS the body: the shell starts with the slot marker
-		expect(chunks[0]).toMatch(/^(<style[\s\S]*?<\/style>)?<!--\[\?[a-f0-9-]+:\d+-->/);
+		expect(chunks[0]).toMatch(/^(<style[\s\S]*?<\/style>)?<!--\[\?[a-z0-9-]+:\d+-->/);
 		mountShell(chunks[0]);
 
 		hydrate(ClientComponents.StreamRootDirect, {
