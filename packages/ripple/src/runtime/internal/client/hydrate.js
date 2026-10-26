@@ -13,7 +13,6 @@ import { is_destroyed } from './blocks.js';
 import { hydration_mismatch } from './errors.js';
 import { clear_expression_range } from './expression.js';
 import {
-	collect_hydration_data,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
@@ -297,7 +296,6 @@ function hydrated_text(anchor, end) {
  */
 function try_marker(state) {
 	var marker = /** @type {Comment} */ (hydrate_node);
-	collect_hydration_data(marker);
 	var data = marker.nodeType === COMMENT_NODE ? marker.data : '';
 
 	// A slot at this anchor belongs to this boundary, including the root.
@@ -483,7 +481,6 @@ function activate_streamed_chunk(state, template, errored, context) {
 	set_hydration(true, first);
 	set_hydration_context(context);
 	try {
-		collect_hydration_data(first);
 		hydrate_next(); // consume the streamed body's <!--[-->
 		state.h = true;
 		render_resolved(state);

@@ -567,3 +567,52 @@ export function StreamNested() {
 		);
 	});
 }
+
+export function StreamEmptyCatch() {
+	return _$_.tsrx_element(() => {
+		_$_.try_block(
+			() => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					{
+						const comp = RejectContent;
+						const args = [{}];
+
+						_$_.render_component(comp, ...args);
+					}
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			},
+			(e) => {
+				let __out = '';
+
+				__out += '<!--[--><!--]-->';
+				_$_.output_push(__out);
+			},
+			() => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					let __out = '';
+
+					__out += '<p class="loading">loading...</p>';
+					_$_.output_push(__out);
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			}
+		);
+	});
+}

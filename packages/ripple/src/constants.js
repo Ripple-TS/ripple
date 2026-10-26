@@ -14,6 +14,7 @@ export const TEMPLATE_SVG_NAMESPACE = 1 << 5;
 export const TEMPLATE_MATHML_NAMESPACE = 1 << 6;
 
 export const HYDRATION_START = '[';
+export const HYDRATION_START_ROOT = '[r:';
 export const HYDRATION_END = ']';
 export const HYDRATION_ERROR = {};
 

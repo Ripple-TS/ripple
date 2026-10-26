@@ -147,11 +147,12 @@ export function track_async(fn, b, hash) {
 	var hydration_deps;
 
 	if (HYDRATION && hydrating) {
-		var script_id = get_track_async_script_id(hash);
+		var context = /** @type {import('./hydration.js').HydrationContext} */ (hydration_context);
+		var script_id = get_track_async_script_id(hash, context.id);
 		var selector = 'script[id="' + script_id + '"]';
 		var script_el =
-			hydration_context?.data?.querySelector(selector) ??
-			hydration_context?.target.querySelector(selector);
+			context.target.querySelector(selector) ??
+			context.target.ownerDocument.getElementById(script_id);
 		if (script_el) {
 			var envelope = JSON.parse(/** @type {string} */ (script_el.textContent));
 			script_el.remove();

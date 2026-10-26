@@ -8,7 +8,11 @@ export let hydrating = false;
 /** @type {Node | null} */
 export let hydrate_node = null;
 
-/** @typedef {{ target: HTMLElement, data: DocumentFragment | null }} HydrationContext */
+/**
+ * The target and server-render namespace of the current root. Streamed
+ * boundaries retain it for activation after the initial hydration walk.
+ * @typedef {{ target: HTMLElement, id: string }} HydrationContext
+ */
 
 /** @type {HydrationContext | null} */
 export let hydration_context = null;
@@ -16,23 +20,6 @@ export let hydration_context = null;
 /** @param {HydrationContext | null} context */
 export function set_hydration_context(context) {
 	hydration_context = context;
-}
-
-/**
- * Streamed envelopes travel on their boundary marker, outside rendered DOM.
- * Claim them when that boundary's hydration walk starts.
- * @param {Node} node
- */
-export function collect_hydration_data(node) {
-	var data = node.__ripple_async_data;
-	if (data !== undefined && hydration_context !== null) {
-		if (hydration_context.data === null) {
-			hydration_context.data = data;
-		} else {
-			hydration_context.data.appendChild(data);
-		}
-		delete node.__ripple_async_data;
-	}
 }
 
 /**

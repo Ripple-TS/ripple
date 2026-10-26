@@ -35,7 +35,7 @@ function recordingSink() {
 	};
 }
 
-const SLOT_OPEN_RE = /<!--\[\?(\d+)-->/;
+const SLOT_OPEN_RE = /<!--\[\?([a-f0-9-]+:\d+)-->/;
 
 /**
  * Settled units stream once the current task's microtasks have drained, so
@@ -57,13 +57,13 @@ function applyStream(chunks: string[]): string {
 	let html = chunks.join('');
 	const templates = new Map<string, string>();
 	html = html.replace(
-		/<template data-ripple-chunk="(\d+)">([\s\S]*?)<\/template>/g,
+		/<template data-ripple-chunk="([a-f0-9-]+:\d+)">([\s\S]*?)<\/template>/g,
 		(_m, id, content) => {
 			templates.set(id, content);
 			return '';
 		},
 	);
-	html = html.replace(/<script>__RIPPLE_S__\((\d+)(,1)?\)<\/script>/g, '');
+	html = html.replace(/<script>__RIPPLE_S__\("([a-f0-9-]+:\d+)"(,1)?\)<\/script>/g, '');
 	// the inline swap runtime (serialized function, minified or not)
 	html = html.replace(/<script>\(function[\s\S]*?<\/script>/g, '');
 
@@ -106,7 +106,10 @@ function normalize(html: string): string {
 	return html.replace(
 		/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>/g,
 		'',
-	).replace(/<style data-ripple-ssr>[\s\S]*?<\/style>/g, '');
+	).replace(/<style data-ripple-ssr>[\s\S]*?<\/style>/g, '').replace(
+		/<!--\[r:[a-f0-9-]+-->/g,
+		'<!--[-->',
+	);
 }
 
 describe('createStream', () => {
@@ -257,10 +260,10 @@ describe('streaming try/pending boundaries', () => {
 		// static markup after the suspension point belongs to the chunk
 		// (regression: it used to be lost when the boundary cleared its buffer)
 		expect(chunk).toContain('<footer>static-after</footer>');
-		expect(chunk).toContain(`<script>__RIPPLE_S__(${id})</script>`);
-		// The envelope travels inside the template into the owning hydration target.
+		expect(chunk).toContain(`<script>__RIPPLE_S__(${JSON.stringify(id)})</script>`);
+		// the trackAsync envelope ships in the same chunk, ahead of the template
 		expect(chunk).toMatch(
-			/<template data-ripple-chunk="\d+">[\s\S]*<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script><\/template>/,
+			/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>[\s\S]*<template data-ripple-chunk/,
 		);
 		await flushed();
 		expect(chunks).toHaveLength(2);
@@ -287,7 +290,7 @@ describe('streaming try/pending boundaries', () => {
 
 		expect(chunks).toHaveLength(1);
 		// no pending fallback: the slot is an empty comment pair
-		expect(chunks[0]).toMatch(/<!--\[\?(\d+)--><!--\]-->/);
+		expect(chunks[0]).toMatch(/<!--\[\?([a-f0-9-]+:\d+)--><!--\]-->/);
 		expect(chunks[0]).not.toContain('failed');
 
 		d.resolve('body');
@@ -343,10 +346,12 @@ describe('streaming try/pending boundaries', () => {
 		expect(all).toContain(`"ok":false,"error":{"message":"${message}"}`);
 		expect(all).not.toContain('"ok":true');
 		expect(chunk).toContain('<template data-ripple-chunk=');
-		// Rejected values also stay with the catch branch's template.
-		expect(chunk).toMatch(
-			/<template data-ripple-chunk="\d+">[\s\S]*<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script><\/template>/,
-		);
+		// the rejected trackAsync envelope reaches the wire before the chunk
+		// that hydrates the catch branch from it
+		const envelope_index = all.indexOf('__ripple_ta_');
+		const template_index = all.indexOf('<template data-ripple-chunk=');
+		expect(envelope_index).toBeGreaterThan(-1);
+		expect(envelope_index).toBeLessThan(template_index);
 	});
 
 	it.each(['rejection', 'serialization'])(
@@ -397,7 +402,7 @@ describe('streaming try/pending boundaries', () => {
 			expect(all).not.toContain('root caught');
 			expect(all).toContain(`<script id="__ripple_te_${id}" type="application/json">`);
 			expect(all).toContain(message);
-			expect(all).toContain(`__RIPPLE_S__(${id},1)`);
+			expect(all).toContain(`__RIPPLE_S__(${JSON.stringify(id)},1)`);
 		},
 	);
 });
@@ -725,7 +730,7 @@ describe('streaming head content', () => {
 		expect(chunks).toHaveLength(2);
 		const chunk = chunks[1];
 		expect(chunk).toMatch(
-			/<template data-ripple-head="\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
+			/<template data-ripple-head="[a-f0-9-]+:\d+">[\s\S]*?<title>title:late<\/title>[\s\S]*?<\/template>/,
 		);
 		expect(chunk).toContain('<p class="has-head"><!--[-->late<!--]--></p>');
 		// the head template precedes the content template

@@ -11,7 +11,6 @@ import { hydration_disabled, root_boundary_disabled } from './internal/client/er
 import { ROOT_BOUNDARY } from 'ripple/internal/client/root-boundary-enabled';
 import { normalize_children } from './element.js';
 import {
-	collect_hydration_data,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
@@ -20,7 +19,13 @@ import {
 	set_hydration_context,
 	track_hash_reference,
 } from './internal/client/hydration.js';
-import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
+import {
+	COMMENT_NODE,
+	HYDRATION_START,
+	HYDRATION_START_ROOT,
+	HYDRATION_START_PENDING,
+	HYDRATION_START_ERRORED,
+} from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
@@ -146,7 +151,8 @@ export function mount(component, options) {
  * `rootBoundary` works as in {@link mount}: the app hydrates under a default
  * `try` boundary, or with `false` directly under the root block. Server output
  * always carries the root boundary markers; without a boundary, `hydrate()`
- * steps over a plain `<!--[-->` itself. A streamed shell whose root suspended
+ * steps over the opening marker itself. Async roots carry their render namespace
+ * in that marker. A streamed shell whose root suspended
  * starts with a `<!--[?N-->` / `<!--[!N-->` slot instead, and only a boundary
  * can adopt its fallback and activate the chunk, so that shell hydrates under
  * the default boundary regardless.
@@ -189,19 +195,26 @@ export function hydrate(component, options) {
 		}
 
 		set_hydration(true, /** @type {Comment} */ (anchor));
-		set_hydration_context({ target, data: null });
 
 		const root_boundary = options.rootBoundary;
 		const marker = /** @type {Comment} */ (anchor);
+		const data = marker.data;
+		const streamed =
+			data.startsWith(HYDRATION_START_PENDING) || data.startsWith(HYDRATION_START_ERRORED);
+		const id = data.startsWith(HYDRATION_START_ROOT)
+			? data.slice(HYDRATION_START_ROOT.length)
+			: streamed && data.includes(':')
+				? data.slice(HYDRATION_START_PENDING.length, data.lastIndexOf(':'))
+				: '';
+		set_hydration_context({ target, id });
 		if (!ROOT_BOUNDARY && root_boundary != null && root_boundary !== false) {
 			root_boundary_disabled();
 		}
 
 		_root = root(() => {
-			if ((!ROOT_BOUNDARY || root_boundary === false) && marker.data === HYDRATION_START) {
-				// The root boundary's own hydration walk: consume the `<!--[-->`
+			if ((!ROOT_BOUNDARY || root_boundary === false) && !streamed) {
+				// The root boundary's own hydration walk: consume the opening
 				// marker and render against it, as `try_block` does for the root.
-				collect_hydration_data(marker);
 				hydrate_next();
 				render_component(component, marker, props);
 				return;

@@ -15,7 +15,7 @@ globalThis.parseAsFullHtml = parseAsFullHtml;
  * @returns {string} The HTML string without hydration markers
  */
 export function stripHydrationMarkers(html) {
-	return html.replace(/<!--\[!?-->/g, '').replace(/<!--\]-->/g, '');
+	return html.replace(/<!--\[(?:!?|r:[a-f0-9-]+)-->/g, '').replace(/<!--\]-->/g, '');
 }
 
 /**

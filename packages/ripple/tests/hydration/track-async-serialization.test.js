@@ -100,7 +100,7 @@ describe('hydration > trackAsync serialization', () => {
 			if (detached) second.remove();
 			const firstScript = first.querySelector('script');
 			const secondScript = second.querySelector('script');
-			expect(firstScript.id).toBe(secondScript.id);
+			expect(firstScript.id).not.toBe(secondScript.id);
 			const firstButton = first.querySelector('button');
 			const secondButton = second.querySelector('button');
 			const onRead = vi.fn();
@@ -187,6 +187,42 @@ describe('hydration > trackAsync serialization', () => {
 		} finally {
 			unmountFirst?.();
 			unmountSecond();
+		}
+	});
+
+	it('hydrates a root whose data script was placed in the document head', async () => {
+		const { body } = await render(() => ServerComponents.AsyncRoot({ label: 'server value' }));
+		container.innerHTML = body;
+		const script = container.querySelector('script[id^="__ripple_ta_"]');
+		document.head.appendChild(script);
+		let unmount;
+		try {
+			unmount = hydrate(ClientComponents.AsyncRoot, {
+				target: container,
+				props: { label: 'client value' },
+			});
+			expect(container.querySelector('button').textContent).toBe('server value');
+			expect(script.isConnected).toBe(false);
+		} finally {
+			unmount?.();
+			script.remove();
+		}
+	});
+
+	it('also hydrates older server markup without a render namespace', async () => {
+		const { body } = await render(() => ServerComponents.AsyncRoot({ label: 'legacy value' }));
+		container.innerHTML = body
+			.replace(/<!--\[r:[a-f0-9-]+-->/, '<!--[-->')
+			.replace(/(__ripple_ta_)[a-f0-9-]+_/g, '$1');
+		const unmount = hydrate(ClientComponents.AsyncRoot, {
+			target: container,
+			props: { label: 'client value' },
+		});
+		try {
+			expect(container.querySelector('button').textContent).toBe('legacy value');
+			expect(container.querySelector('script')).toBeNull();
+		} finally {
+			unmount();
 		}
 	});
 

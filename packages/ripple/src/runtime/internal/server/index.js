@@ -24,7 +24,7 @@
  * holes async re-runs fill in place — streams later as a framed chunk once
  * every async operation registered on the boundary settles.
  * @typedef {{
- *   id: number;
+ *   id: string;
  *   block: Block;
  *   output: Output;
  *   content: NestedArray<string>;
@@ -65,6 +65,7 @@ import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import {
 	BLOCK_CLOSE,
 	BLOCK_OPEN,
+	HYDRATION_START_ROOT,
 	HYDRATION_START_PENDING,
 	HYDRATION_START_ERRORED,
 	STREAM_CHUNK_ATTR,
@@ -595,6 +596,8 @@ export class Output {
 	#head_redirect = null;
 	// streaming state, only used on the root instance
 	#next_unit_id = 1;
+	/** @type {string | null} */
+	#hydration_id = null;
 	/** @type {FlushUnit[] | null} */
 	#units = null;
 	/** @type {WeakMap<NestedArray<string>, FlushUnit> | null} */
@@ -606,6 +609,21 @@ export class Output {
 
 	get root() {
 		return this.#root;
+	}
+
+	ensure_hydration_id() {
+		// A process-local counter would collide when roots come from different
+		// workers or separately cached renders composed into the same document.
+		return (this.#root.#hydration_id ??= crypto.randomUUID());
+	}
+
+	get hydration_id() {
+		return this.#root.#hydration_id ?? '';
+	}
+
+	get root_open() {
+		var id = this.#root.#hydration_id;
+		return id === null ? BLOCK_OPEN : '<!--' + HYDRATION_START_ROOT + id + '-->';
 	}
 
 	get body() {
@@ -698,11 +716,6 @@ export class Output {
 	push_serialized_error(str) {
 		var root = this.#root;
 		if (root.#streamOutput !== null && root.#shell_flushed) {
-			var unit = this.#nearest_unflushed_unit();
-			if (unit !== null) {
-				unit.scripts.push(str);
-				return;
-			}
 			// past the shell the root buffer is already on the wire — emit the
 			// envelope directly so it reaches the document before any chunk
 			// whose hydration depends on it
@@ -723,8 +736,8 @@ export class Output {
 		if (root.#streamOutput !== null && !root.#sync_run) {
 			var unit = this.#nearest_unflushed_unit();
 			if (unit !== null) {
-				// ships inside the unit's template so it enters the owning
-				// hydration target along with the boundary's content
+				// ships with the unit's chunk, ahead of the template, so the
+				// boundary can hydrate from it synchronously
 				unit.scripts.push(str);
 				return;
 			}
@@ -888,7 +901,7 @@ export class Output {
 		var root = this.#root;
 		/** @type {FlushUnit} */
 		var unit = {
-			id: root.#next_unit_id++,
+			id: root.ensure_hydration_id() + ':' + root.#next_unit_id++,
 			block,
 			output: this,
 			content: this.#body.splice(0, this.#body.length),
@@ -1036,7 +1049,7 @@ export class Output {
 				escape_inline_script(JSON.stringify({ message: unit.error })) +
 				'</script>' +
 				'<script>__RIPPLE_S__(' +
-				unit.id +
+				JSON.stringify(unit.id) +
 				',1)</script>'
 			);
 		}
@@ -1047,16 +1060,9 @@ export class Output {
 		if (chunk.head !== '') {
 			out += '<template ' + STREAM_HEAD_ATTR + '="' + unit.id + '">' + chunk.head + '</template>';
 		}
-		out +=
-			'<template ' +
-			STREAM_CHUNK_ATTR +
-			'="' +
-			unit.id +
-			'">' +
-			html +
-			chunk.scripts.join('') +
-			'</template>';
-		out += '<script>__RIPPLE_S__(' + unit.id + ')</script>';
+		out += chunk.scripts.join('');
+		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
+		out += '<script>__RIPPLE_S__(' + JSON.stringify(unit.id) + ')</script>';
 		return out;
 	}
 
@@ -1122,7 +1128,7 @@ export class Output {
 			// root-owned
 			out += body;
 		} else {
-			out += BLOCK_OPEN + body + BLOCK_CLOSE;
+			out += this.root_open + body + BLOCK_CLOSE;
 		}
 		var has_open_units = false;
 		var units = /** @type {FlushUnit[]} */ (this.#units);
@@ -1342,7 +1348,7 @@ export async function render(component, options = {}) {
 	 */
 	function sync_buffers_to_string(output) {
 		head = flatten_buffer(output.head);
-		body = BLOCK_OPEN + flatten_buffer(output.body) + BLOCK_CLOSE;
+		body = output.root_open + flatten_buffer(output.body) + BLOCK_CLOSE;
 		css = output.css;
 	}
 }
@@ -1951,7 +1957,7 @@ function serialize_track_async_result(output, hash, value, deps) {
 	}
 	output.push_serialized_result(
 		'<script id="' +
-			get_track_async_script_id(hash) +
+			get_track_async_script_id(hash, output.hydration_id) +
 			'" type="application/json">' +
 			escape_inline_script(envelope) +
 			'</script>',
@@ -1980,7 +1986,7 @@ export function set_track_async_transport(reducers) {
 					envelope += '}';
 					output.push_serialized_result(
 						'<script id="' +
-							get_track_async_script_id(hash) +
+							get_track_async_script_id(hash, output.hydration_id) +
 							'" type="application/json">' +
 							escape_inline_script(envelope) +
 							'</script>',
@@ -2145,7 +2151,7 @@ export function begin_stream_unit(block, pending_fn) {
 		// a user try body carries its own compiled <!--[-->…<!--]--> markers;
 		// the root boundary's content does not — add them so every unit's
 		// content hydrates (and swaps) through the same shape
-		unit.content.unshift(BLOCK_OPEN);
+		unit.content.unshift(output.root_open);
 		unit.content.push(BLOCK_CLOSE);
 	}
 	output.push('<!--' + HYDRATION_START_PENDING + unit.id + '-->');
@@ -2237,7 +2243,7 @@ function push_script_for_hydration(push_fn, hash, envelope) {
 
 	push_fn(
 		'<script id="' +
-			get_track_async_script_id(hash) +
+			get_track_async_script_id(hash, /** @type {Block} */ (active_block).o.hydration_id) +
 			'" type="application/json">' +
 			serialized_envelope +
 			'</script>',
@@ -2417,6 +2423,7 @@ export function track_async(v, hash) {
 		);
 	}
 
+	/** @type {Block} */ (active_block).o.ensure_hydration_id();
 	var t = tracked(SUSPENSE_PENDING, hash);
 	run_track_async(t, v, t.b, null, null);
 	return t;

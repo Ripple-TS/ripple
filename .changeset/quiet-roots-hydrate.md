@@ -2,4 +2,4 @@
 'ripple': patch
 ---
 
-Scope serialized `trackAsync` data to its hydration target so independently rendered roots do not consume each other's values. Keep streamed data with its owning boundary when it enters the target.
+Namespace serialized `trackAsync` data and streaming boundary identifiers per server render so independently rendered roots can hydrate and receive streamed chunks without consuming each other's data.
