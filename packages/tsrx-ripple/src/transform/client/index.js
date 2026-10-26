@@ -988,7 +988,7 @@ function transform_native_tsrx_function(node, context) {
 	}
 	const func =
 		node.type === 'FunctionDeclaration' && node_id
-			? b.function(node_id, params, component_body)
+			? b.function_declaration(node_id, params, component_body)
 			: node.type === 'ArrowFunctionExpression'
 				? b.arrow(params, component_body)
 				: b.function(node_id, params, component_body);
@@ -9323,7 +9323,6 @@ export function transform_client(
 		const exported_components = [];
 
 		// Walk the body to find native TSRX functions and inject HMR wrapping.
-		// Function declarations become FunctionExpression nodes via b.function().
 		/** @type {AST.TSRXProgram['body']} */
 		const hmr_body = [];
 
@@ -9331,11 +9330,11 @@ export function transform_client(
 			hmr_body.push(node);
 
 			if (node.type === 'ExportDefaultDeclaration') {
-				const decl = /** @type {AST.FunctionExpression} */ (node.declaration);
+				const decl = /** @type {AST.FunctionDeclaration} */ (node.declaration);
 				if (decl.metadata?.native_tsrx_function && decl.id && component_names.has(decl.id.name)) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'default' });
-					// Replace ExportDefaultDeclaration with plain FunctionExpression (printed as function declaration)
+					// Replace the export with a plain function declaration.
 					hmr_body[hmr_body.length - 1] = decl;
 					// Add: ComponentName = _$_.hmr(ComponentName);
 					hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
@@ -9343,7 +9342,7 @@ export function transform_client(
 					hmr_body.push(b.export_default(b.id(name)));
 				}
 			} else if (node.type === 'ExportNamedDeclaration') {
-				const decl = /** @type {AST.FunctionExpression | null | undefined} */ (node.declaration);
+				const decl = /** @type {AST.FunctionDeclaration | null | undefined} */ (node.declaration);
 				if (
 					decl &&
 					decl.metadata?.native_tsrx_function &&
@@ -9352,7 +9351,7 @@ export function transform_client(
 				) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'named' });
-					// Replace ExportNamedDeclaration with plain FunctionExpression (printed as function declaration)
+					// Replace the export with a plain function declaration.
 					hmr_body[hmr_body.length - 1] = decl;
 					// Add: ComponentName = _$_.hmr(ComponentName);
 					hmr_body.push(b.stmt(b.assignment('=', b.id(name), b.call('_$_.hmr', b.id(name)))));
@@ -9360,7 +9359,7 @@ export function transform_client(
 					hmr_body.push(b.export_builder(null, [b.export_specifier(name)]));
 				}
 			} else if (
-				node.type === 'FunctionExpression' &&
+				node.type === 'FunctionDeclaration' &&
 				node.metadata?.native_tsrx_function &&
 				node.id &&
 				component_names.has(node.id.name)

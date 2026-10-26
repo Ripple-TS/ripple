@@ -10,6 +10,38 @@ import { flushSync, track } from 'ripple';
 import { did_error } from '../capture-error.js';
 
 describe('basic client > components & composition', () => {
+	it('renders a component declared directly inside another component', () => {
+		function App() @{
+			function Label() @{
+				<span>{'Ready'}</span>
+			}
+			<Label />
+		}
+
+		render(App);
+		expect(container.querySelector('span').outerHTML).toBe('<span>Ready</span>');
+	});
+
+	it('hoists nested component declarations and preserves reactive captures', () => {
+		function App() @{
+			const Nested = Label;
+			const count = track(0);
+			function Label({ prefix }: { prefix: string }) @{
+				<span>{prefix + count.value}</span>
+			}
+			<>
+				<Nested prefix="Count: " />
+				<button onClick={() => count.value++}>{'Increment'}</button>
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('span').textContent).toBe('Count: 0');
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('span').textContent).toBe('Count: 1');
+	});
+
 	it('renders with component composition and children', () => {
 		function Card(props: PropsWithChildren<{}>) @{
 			<div class="card">{props.children}</div>
