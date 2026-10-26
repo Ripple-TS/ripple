@@ -168,6 +168,8 @@ declare global {
 	}
 
 	interface Element {
+		/** Preserve this live editor subtree after a streamed replacement was skipped. */
+		__ripple_content_edited?: boolean;
 		__attributes?: {
 			value?: string;
 		};

@@ -154,7 +154,7 @@ function stream_runtime(
 				original.innerHTML = source;
 				source = original.innerHTML;
 			}
-			var editor = /** @type {Element & { __ripple_content_edited?: boolean }} */ (ancestor);
+			var editor = ancestor;
 			if (editor.__ripple_content_edited || source !== current_html) {
 				editor.__ripple_content_edited = edited = true;
 			} else {
@@ -162,6 +162,12 @@ function stream_runtime(
 			}
 		}
 		if (edited) {
+			// The skipped slot also invalidates hydration inside untouched inner
+			// editors. Preserve their live subtrees instead of re-baselining them.
+			if (untouched) {
+				for (var editor of untouched) editor.__ripple_content_edited = true;
+				untouched = undefined;
+			}
 			open.remove();
 			close.remove();
 			done();

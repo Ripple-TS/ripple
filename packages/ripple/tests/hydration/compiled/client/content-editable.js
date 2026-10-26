@@ -357,7 +357,7 @@ function StreamContent_render(__anchor, __block, { promise }) {
 StreamContent[_$_.$r] = StreamContent_render;
 
 var root_19 = _$_.template_el('i', null, 'loading');
-var root_18 = _$_.template(`<section><article contentEditable><div data-editor contentEditable><b>before</b><!></div></article><output> `);
+var root_18 = _$_.template(`<section><article contentEditable><strong data-outer>outer</strong><div data-editor contentEditable><b>before</b><!></div></article><output> `);
 
 function NestedStreamEditor_render(__anchor, __block, { promise, property = 'textContent' }) {
 	const value = _$_.track('model', __block, '15fvgx0');
@@ -367,7 +367,8 @@ function NestedStreamEditor_render(__anchor, __block, { promise, property = 'tex
 		var article = _$_.hydrating ? _$_.hydrate_child() : section_3.firstChild;
 
 		{
-			var div_13 = _$_.hydrating ? _$_.hydrate_child() : article.firstChild;
+			var strong = _$_.hydrating ? _$_.hydrate_child() : article.firstChild;
+			var div_13 = _$_.hydrating ? _$_.hydrate_sibling() : strong.nextSibling;
 
 			_$_.ref(div_13, () => _$_.with_scope(__block, () => _$_.call_property(bindings, property, void 0, void 0, value)));
 

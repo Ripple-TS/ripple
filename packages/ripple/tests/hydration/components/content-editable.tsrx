@@ -110,6 +110,7 @@ export function NestedStreamEditor({ promise, property = 'textContent' }) @{
 	const value = track('model');
 	<section>
 		<article contentEditable={true}>
+			<strong data-outer>outer</strong>
 			<div data-editor contentEditable={true} ref={bindings[property](value)}>
 				<b>before</b>
 				@try {

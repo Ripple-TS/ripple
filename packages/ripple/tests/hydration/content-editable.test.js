@@ -43,7 +43,7 @@ function exec_stream_scripts(html) {
 describe('contenteditable binding hydration', () => {
 	it.each(
 		['innerHTML', 'innerText', 'textContent'].flatMap((property) =>
-			['none', 'outside', 'inside'].map((edit) => [property, edit]),
+			['none', 'outside', 'inside', 'ancestor'].map((edit) => [property, edit]),
 		),
 	)('%s handles a nested streamed fallback (edit: %s)', async (property, edit) => {
 		delete window.__RIPPLE_B__;
@@ -68,7 +68,11 @@ describe('contenteditable binding hydration', () => {
 		const editor = container.querySelector('[data-editor]');
 		expect(editor.textContent).toBe('beforeloading');
 		const edited =
-			edit === 'none' ? null : editor.querySelector(edit === 'outside' ? 'b' : 'i').firstChild;
+			edit === 'none'
+				? null
+				: edit === 'ancestor'
+					? container.querySelector('[data-outer]').firstChild
+					: editor.querySelector(edit === 'outside' ? 'b' : 'i').firstChild;
 		if (edited) {
 			edited.nodeValue = 'early';
 			document.getSelection().setBaseAndExtent(edited, 4, edited, 1);
@@ -80,7 +84,13 @@ describe('contenteditable binding hydration', () => {
 			exec_stream_scripts(chunk);
 		}
 		expect(editor.textContent).toBe(
-			edit === 'inside' ? 'beforeearly' : edit === 'outside' ? 'earlyloading' : 'beforeresolved',
+			edit === 'inside'
+				? 'beforeearly'
+				: edit === 'outside'
+					? 'earlyloading'
+					: edit === 'ancestor'
+						? 'beforeloading'
+						: 'beforeresolved',
 		);
 		if (edit === 'none') {
 			for (const host of container.querySelectorAll('[data-ripple-content]')) {

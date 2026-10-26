@@ -13,10 +13,7 @@ var inert_document;
  * @returns {boolean}
  */
 export function content_editable_changed(element) {
-	if (
-		/** @type {Element & { __ripple_content_edited?: boolean }} */ (element).__ripple_content_edited
-	)
-		return true;
+	if (element.__ripple_content_edited) return true;
 	var source = element.getAttribute('data-ripple-content');
 	if (source === null) return false;
 	var current = element.innerHTML;

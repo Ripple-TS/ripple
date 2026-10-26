@@ -395,7 +395,7 @@ export function NestedStreamEditor({ promise, property = 'textContent' }) {
 				() => {
 					let __out = '';
 
-					__out += '<div data-editor="" contentEditable=""';
+					__out += '<strong data-outer="">outer</strong><div data-editor="" contentEditable=""';
 					_$_.output_push(__out);
 					__out = '';
 
