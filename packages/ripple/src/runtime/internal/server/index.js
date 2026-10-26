@@ -80,6 +80,7 @@ import {
 	is_tag_valid_with_ancestor,
 } from '../../../html-tree-validation.js';
 import { get_async_track_result } from '../../../utils/async.js';
+import { create_random_id } from '../../../utils/random-id.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
 import {
@@ -614,13 +615,7 @@ export class Output {
 	ensure_hydration_id() {
 		// A process-local counter would collide when roots come from different
 		// workers or separately cached renders composed into the same document.
-		// Keep 64 random bits in at most 13 base-36 characters on the wire.
-		var root = this.#root;
-		if (root.#hydration_id === null) {
-			var random = crypto.getRandomValues(new Uint32Array(2));
-			root.#hydration_id = ((BigInt(random[0]) << 32n) | BigInt(random[1])).toString(36);
-		}
-		return root.#hydration_id;
+		return (this.#root.#hydration_id ??= create_random_id());
 	}
 
 	get hydration_id() {
