@@ -39,7 +39,7 @@ const LOCAL_ITEMS = 1 << 7;
 const IF_ROOT_CONTROLLED = 1;
 const IF_TRACKED = 1 << 1;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
-import { visit_awaited_call } from './awaited-calls.js';
+import { has_awaited_chain_call, visit_awaited_call } from './awaited-calls.js';
 import { has_text_type_fact } from '../../text-type-facts.js';
 import { is_data_script } from '../../script.js';
 import { HTML_ELEMENT_SETTERS, HTML_TAG_SETTERS } from '../../dom-setters.js';
@@ -3490,9 +3490,24 @@ const visitors = {
 			is_inside_component(context, true) &&
 			context.path.some((node) => is_native_tsrx_function_node(node)) &&
 			!is_inside_call_expression(context) &&
-			contains_await(node)
+			has_awaited_chain_call(node.expression)
 		) {
 			return visit_awaited_call(node.expression, context);
+		}
+		return context.next();
+	},
+
+	UnaryExpression(node, context) {
+		if (
+			node.operator === 'delete' &&
+			node.argument.type === 'ChainExpression' &&
+			!context.state.to_ts &&
+			is_inside_component(context, true) &&
+			context.path.some((node) => is_native_tsrx_function_node(node)) &&
+			!is_inside_call_expression(context) &&
+			has_awaited_chain_call(node.argument.expression)
+		) {
+			return visit_awaited_call(node.argument.expression, context, true);
 		}
 		return context.next();
 	},

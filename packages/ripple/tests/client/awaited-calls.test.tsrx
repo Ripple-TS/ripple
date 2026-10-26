@@ -130,4 +130,28 @@ describe('calls with awaited operands', () => {
 		expect(result).toBeInstanceOf(Result);
 		expect(result.values).toEqual([1, 2]);
 	});
+
+	it('preserves deletion and short-circuit results on optional chains', async () => {
+		let property: (object: any) => Promise<boolean> = async () => false;
+		let call: (object: any) => Promise<boolean> = async () => false;
+		let grouped: (object: any) => Promise<boolean> = async () => false;
+		const key = async () => 'value';
+		function Example() @{
+			property = async (object: any) => delete object?.[await key()];
+			call = async (object: any) => delete object?.method(await key()).value;
+			// prettier-ignore
+			grouped = async (object: any) => delete (object?.factory(await key()))?.(await key()).value;
+			<p>Ready</p>
+		}
+		render(Example);
+		const object = { value: 1 };
+		expect(await property(object)).toBe(true);
+		expect(object).toEqual({});
+		expect(await property(null)).toBe(true);
+		const result = { value: 2 };
+		expect(await call({ method: () => result })).toBe(true);
+		expect(result).toEqual({});
+		expect(await call(null)).toBe(true);
+		expect(await grouped(null)).toBe(true);
+	});
 });
