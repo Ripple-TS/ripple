@@ -59,6 +59,27 @@ export function App(${parameter}) { return <div sx={styles.root} data-local={${p
 		}
 	});
 
+	it.each(['client', 'server'])(
+		'avoids generated import collisions in later %s components',
+		(mode) => {
+			const source = `import { styles } from './styles';
+export function First() { return <div sx={styles.root} />; }
+export function Second(__ripple_stylex) {
+  return <div sx={styles.root} data-local={__ripple_stylex} />;
+}
+export function Third() @{
+  const __ripple_stylex_1 = 'local';
+  <div sx={styles.root} data-local={__ripple_stylex_1} />
+}`;
+			const { code } = compile(source, 'App.tsrx', { mode, stylex: true });
+			const imports = [...code.matchAll(/import \* as (\w+) from '@stylexjs\/stylex';/g)];
+			expect(imports).toHaveLength(1);
+			const name = imports[0][1];
+			expect(['__ripple_stylex', '__ripple_stylex_1']).not.toContain(name);
+			expect(code.split(`${name}.attrs(styles.root)`)).toHaveLength(4);
+		},
+	);
+
 	it('keeps component sx props and emits no unused runtime import', () => {
 		const source = `function Child(props) { return <div>{props.sx}</div>; }
 export function App() { return <Child sx="owned-by-component" />; }`;

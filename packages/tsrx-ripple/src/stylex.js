@@ -90,6 +90,8 @@ function stylex_attrs(context) {
 		}
 	}
 	if (!analysis.stylex_import) {
+		// createScopes already registered every nested declaration in root.conflicts.
+		// generate avoids those names too, including locals in later components.
 		const name = analysis.scope.generate('__ripple_stylex');
 		const declaration = b.import_all(name, '@stylexjs/stylex');
 		analysis.scope.declare(declaration.specifiers[0].local, 'normal', 'import', declaration);
