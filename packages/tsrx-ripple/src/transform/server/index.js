@@ -1004,6 +1004,7 @@ function transform_variable_declaration(node, context) {
 		...node,
 		declarations: node.declarations.map((declarator) => ({
 			...declarator,
+			definite: false,
 			id: /** @type {AST.Pattern} */ (
 				context.visit(transformed_ids.get(declarator) ?? declarator.id)
 			),

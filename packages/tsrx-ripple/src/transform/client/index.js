@@ -3570,7 +3570,8 @@ const visitors = {
 	},
 
 	VariableDeclarator(node, context) {
-		return context.next();
+		const visited = /** @type {AST.VariableDeclarator} */ (context.next() ?? node);
+		return context.state.to_ts ? visited : { ...visited, definite: false };
 	},
 
 	CatchClause(node, context) {

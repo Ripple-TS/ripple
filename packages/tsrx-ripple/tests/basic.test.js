@@ -4,6 +4,50 @@ import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { check_types, find_exact_mapping } from './test-utils.js';
 
+describe('@tsrx/ripple definite assignment assertions', () => {
+	const sources = [
+		[
+			'a function local',
+			`export function read() {
+				let count!: number;
+				count = 1;
+				return count;
+			}`,
+		],
+		[
+			'module variables and multiple declarators',
+			`export let count!: number;
+			var label!: string, suffix!: string;
+			label = 'count';
+			suffix = ':';
+			count = 1;
+			export function read() { return label + suffix + count; }`,
+		],
+		[
+			'a captured component local',
+			`export function App() @{
+				let count!: number;
+				function increment() { count++; }
+				count = 1;
+				<button onClick={increment}>{count}</button>
+			}`,
+		],
+	];
+
+	for (const mode of /** @type {const} */ (['client', 'server'])) {
+		it.each(sources)(`strips assertions from %s in ${mode} output`, (_, source) => {
+			const { code, errors } = compile(source, 'Read.tsrx', { mode });
+
+			expect(errors).toEqual([]);
+			expect(() =>
+				acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' }),
+			).not.toThrow();
+			expect(code).not.toMatch(/\b(?:count|label|suffix)!/);
+			expect(code).toMatch(/count(?:\.v)? = 1;/);
+		});
+	}
+});
+
 describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
 	it('preserves global augmentations without submodule diagnostics', () => {
 		const source =
