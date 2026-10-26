@@ -27,6 +27,7 @@
 	compare, and updates its own slot (an element spread)
 */
 
+import { transform_enum, transform_enum_reference } from '../../enums.js';
 import { walk } from 'zimmerframe';
 
 /**
@@ -3152,6 +3153,11 @@ const visitors = {
 	},
 
 	Identifier(node, context) {
+		if (!context.state.to_ts) {
+			const member = transform_enum_reference(node, context.state.scope);
+			if (member) return member;
+		}
+
 		const parent = /** @type {AST.Node} */ (context.path.at(-1));
 
 		if (is_reference(node, parent)) {
@@ -3736,7 +3742,7 @@ const visitors = {
 		if (get_code_block_render(node, context.state.scopes) != null) {
 			return context.next();
 		}
-		const body = node.body.map(
+		const body = node.body.flatMap(
 			(statement) => /** @type {AST.Statement} */ (context.visit(statement, context.state)),
 		);
 		return b.block(body);
@@ -5063,14 +5069,48 @@ const visitors = {
 		return context.next();
 	},
 
-	TSEnumDeclaration(node, context) {
-		if (!context.state.to_ts && node.declare) {
-			return b.empty;
-		}
-		return context.next();
+	TSEnumDeclaration: transform_enum,
+
+	Property(node, context) {
+		const result = /** @type {AST.Property} */ (context.next() ?? node);
+		return result.shorthand &&
+			result.value.type !== 'Identifier' &&
+			result.value.type !== 'AssignmentPattern'
+			? { ...result, shorthand: false }
+			: result;
+	},
+
+	SwitchCase(node, context) {
+		return {
+			...node,
+			test: node.test ? /** @type {AST.Expression} */ (context.visit(node.test)) : null,
+			consequent: node.consequent.flatMap(
+				(statement) => /** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+			),
+		};
+	},
+
+	StaticBlock(node, context) {
+		return {
+			...node,
+			body: node.body.flatMap(
+				(statement) => /** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+			),
+		};
 	},
 
 	ExportNamedDeclaration(node, context) {
+		const enum_declaration = /** @type {AST.Node | null} */ (node.declaration);
+		if (
+			!context.state.to_ts &&
+			enum_declaration?.type === 'TSEnumDeclaration' &&
+			!enum_declaration.declare
+		) {
+			const result = context.visit(enum_declaration);
+			if (Array.isArray(result))
+				return /** @type {any} */ ([{ ...node, declaration: result[0] }, ...result.slice(1)]);
+		}
+
 		if (!context.state.to_ts && node.exportKind === 'type') {
 			return b.empty;
 		}
@@ -7808,7 +7848,9 @@ function transform_children(children, context) {
 					regular_js: true,
 				})
 			);
-			if (regular_node && regular_node.type !== 'EmptyStatement') {
+			if (Array.isArray(regular_node)) {
+				state.init?.push(...regular_node);
+			} else if (regular_node && regular_node.type !== 'EmptyStatement') {
 				const statement =
 					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
 						? /** @type {AST.Statement} */ (regular_node)
@@ -7830,12 +7872,17 @@ function transform_children(children, context) {
 			node.type === 'FunctionDeclaration' ||
 			node.type === 'DebuggerStatement' ||
 			node.type === 'ClassDeclaration' ||
+			node.type === 'TSEnumDeclaration' ||
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
 			node.type === 'ReturnStatement' ||
 			is_native_tsrx_function_node(node)
 		) {
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, state)));
+			if (state.init)
+				push_statement(
+					/** @type {AST.Statement | AST.Statement[]} */ (visit(node, state)),
+					state.init,
+				);
 		} else if (state.to_ts) {
 			transform_ts_child(node, /** @type {VisitorClientContext} */ ({ visit, state }));
 		} else {

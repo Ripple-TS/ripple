@@ -13,6 +13,7 @@
 	ScopeInterface,
 } from '../../../types/index' */
 
+import { transform_enum, transform_enum_reference } from '../../enums.js';
 import {
 	builders,
 	escape,
@@ -1069,7 +1070,9 @@ function transform_children(children, context) {
 			const regular_node = /** @type {AST.Node} */ (
 				visit(node, { ...local_state, regular_js: true, template_child: false })
 			);
-			if (regular_node && regular_node.type !== 'EmptyStatement') {
+			if (Array.isArray(regular_node)) {
+				state.init?.push(...regular_node);
+			} else if (regular_node && regular_node.type !== 'EmptyStatement') {
 				const statement =
 					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
 						? /** @type {AST.Statement} */ (regular_node)
@@ -1095,12 +1098,17 @@ function transform_children(children, context) {
 			node.type === 'FunctionDeclaration' ||
 			node.type === 'DebuggerStatement' ||
 			node.type === 'ClassDeclaration' ||
+			node.type === 'TSEnumDeclaration' ||
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
 			node.type === 'ReturnStatement' ||
 			is_native_tsrx_function_node(node)
 		) {
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, local_state)));
+			if (state.init)
+				push_statement(
+					/** @type {AST.Statement | AST.Statement[]} */ (visit(node, local_state)),
+					state.init,
+				);
 		} else {
 			visit(node, { ...local_state, template_child: true });
 		}
@@ -1698,6 +1706,10 @@ const visitors = {
 		}
 	},
 
+	Identifier(node, context) {
+		return transform_enum_reference(node, context.state.scope) ?? context.next();
+	},
+
 	CallExpression(node, context) {
 		const { state } = context;
 
@@ -2066,14 +2078,48 @@ const visitors = {
 		context.next();
 	},
 
-	TSEnumDeclaration(node, context) {
-		if (node.declare) {
-			return b.empty;
-		}
-		return context.next();
+	TSEnumDeclaration: transform_enum,
+
+	Property(node, context) {
+		const result = /** @type {AST.Property} */ (context.next() ?? node);
+		return result.shorthand &&
+			result.value.type !== 'Identifier' &&
+			result.value.type !== 'AssignmentPattern'
+			? { ...result, shorthand: false }
+			: result;
+	},
+
+	SwitchCase(node, context) {
+		return {
+			...node,
+			test: node.test ? /** @type {AST.Expression} */ (context.visit(node.test)) : null,
+			consequent: node.consequent.flatMap(
+				(statement) => /** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+			),
+		};
+	},
+
+	StaticBlock(node, context) {
+		return {
+			...node,
+			body: node.body.flatMap(
+				(statement) => /** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+			),
+		};
 	},
 
 	ExportNamedDeclaration(node, context) {
+		const enum_declaration = /** @type {AST.Node | null} */ (node.declaration);
+		if (
+			!context.state.to_ts &&
+			enum_declaration?.type === 'TSEnumDeclaration' &&
+			!enum_declaration.declare
+		) {
+			const result = context.visit(enum_declaration);
+			if (Array.isArray(result))
+				return /** @type {any} */ ([{ ...node, declaration: result[0] }, ...result.slice(1)]);
+		}
+
 		if (!context.state.to_ts && node.exportKind === 'type') {
 			return b.empty;
 		}

@@ -6,6 +6,7 @@
 import type * as AST from 'estree';
 import type {
 	AnalysisResult as CoreAnalysisResult,
+	AnalysisState as CoreAnalysisState,
 	CompileFn,
 	CompileOptions as CoreCompileOptions,
 	CompileResult,
@@ -16,6 +17,18 @@ import type {
 } from '@tsrx/core/types';
 
 export type * from '@tsrx/core/types';
+
+export interface RuntimeEnumContext {
+	declaration: AST.TSEnumDeclaration;
+	initializer: AST.Expression;
+	parent?: RuntimeEnumContext;
+}
+
+export interface AnalysisState extends CoreAnalysisState {
+	runtime_enum?: RuntimeEnumContext;
+}
+
+export type AnalysisContext = import('@tsrx/core/types').Context<AST.Node, AnalysisState>;
 
 declare module '@tsrx/core/types' {
 	interface BaseNodeMetaData {
