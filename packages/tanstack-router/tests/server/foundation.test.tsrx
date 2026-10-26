@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'ripple/server';
 import { Probe } from '../fixtures/consumer/server.js';
+import { getStoreFactory } from '../../src/stores.js';
 import {
 	createMemoryHistory,
 	defaultParseSearch,
@@ -10,6 +11,13 @@ import {
 } from '@ripple-ts/tanstack-router';
 
 describe('server package imports', () => {
+	it('uses nonreactive stores without a component scope or browser', () => {
+		const factory = getStoreFactory({ isServer: true });
+		const value = factory.createMutableStore(1);
+		const doubled = factory.createReadonlyStore(() => value.get() * 2);
+		factory.batch(() => value.set((previous) => previous + 1));
+		expect(doubled.get()).toBe(4);
+	});
 	it('renders a source dependency without browser globals', async () => {
 		expect(typeof window).toBe('undefined');
 		const result = await render(Probe);

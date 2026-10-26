@@ -38,6 +38,20 @@ export const on = noop;
 export const tick = noop;
 export const flushSync = noop;
 
+/** @returns {import('#public').RenderObserver} */
+export function createRenderObserver() {
+	var disposed = false;
+	return {
+		dispose() {
+			disposed = true;
+		},
+		async run(update) {
+			if (!disposed) update();
+			return false;
+		},
+	};
+}
+
 export const RippleObject = globalThis.Object;
 export const RippleArray = globalThis.Array;
 export const RippleDate = globalThis.Date;

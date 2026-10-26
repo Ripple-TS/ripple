@@ -584,3 +584,22 @@ export function App() @{
 ```
 
 </Code>
+
+## Observing Render Completion
+
+`createRenderObserver()` is an integration API for coordinating work with a
+component subtree. Create it during component initialization, then call
+`await observer.run(update)` with a synchronous update function. It flushes the
+update and waits for pending `trackAsync` rendering in that subtree. Work in other
+component subtrees does not delay it.
+
+The promise resolves to `true` when rendering settles, or `false` when another run
+supersedes it, the observer is disposed, or its owning scope unmounts. Errors thrown
+by the update reject the promise. `observer.dispose()` is idempotent and prevents
+future updates through that observer; scope destruction also disposes it.
+
+This observes rendering. It does not roll back state, provide atomic concurrent
+DOM staging, wait for browser animations, or cancel the underlying async work
+when only an observation is superseded. A handled error counts as settled once
+its catch UI has rendered. On the server, `run` executes the update and resolves
+to `false`, since there is no client DOM commit to acknowledge.

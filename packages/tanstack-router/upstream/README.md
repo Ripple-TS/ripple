@@ -31,10 +31,14 @@ inherits an explicit status and reason**; no absence is interpreted as passing.
   assertions unless an intentional difference is documented.
 - `inapplicable`: explain the framework-specific behavior or excluded feature.
 
-At milestone 1, all functional adapter tests are deferred. Foundation harness
-tests are independent infrastructure checks and do not count as upstream parity.
-Upstream `skip`, `todo`, and conditional modifiers remain visible independently of
-the Ripple mapping; upstream skips do not become automatic exclusions.
+Milestone 2 ports the six render-acknowledgement tests, two provider-remount
+tests, the first three retained-pending regressions, and the cached-preload
+zero-update regression. Remaining cases stay explicitly deferred. Independent
+store and native view-transition tests add Ripple-specific coverage; they do not
+count as translated upstream cases. Solid's eager-memo execution counts need a
+separate audit because Ripple readers are lazy. Upstream `skip`, `todo`, and
+conditional modifiers remain visible independently of the Ripple mapping; upstream
+skips do not become automatic exclusions.
 
 Regenerate from a clean checkout at the pinned commit:
 

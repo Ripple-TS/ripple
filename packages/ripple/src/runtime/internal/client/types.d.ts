@@ -96,8 +96,8 @@ export type TryState = {
 	n: number;
 	/** request version */
 	v: number;
-	/** active request ids */
-	q: Set<number>;
+	/** active requests and the blocks that started/read them */
+	q: Map<number, Block | null>;
 	/** the try block */
 	b: Block | null;
 	/** resolved branch */

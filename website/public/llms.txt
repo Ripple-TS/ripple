@@ -220,6 +220,13 @@ state to a child.
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.
 
+For library integrations, create `createRenderObserver()` during component
+initialization. `await observer.run(syncUpdate)` flushes the update and waits for
+pending async rendering in that component subtree. It returns `true` on settlement
+and `false` on supersession, disposal, or unmount; updater errors reject. Call
+`observer.dispose()` to stop observation. This does not roll back state, stage DOM
+updates atomically, or wait for animations. Server runs execute and return `false`.
+
 Use `snapshot(value)` to take a plain, detached shallow copy of a reactive array
 or object. Values are read without subscribing, so it is safe to call inside an
 effect or derived. The copy is a plain array or object (not a proxy); nested

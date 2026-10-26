@@ -112,6 +112,18 @@ let queued_microtasks = [];
 let flush_count = 0;
 /** @type {(() => void)[]} */
 var queued_post_block_flush = [];
+/** @type {null | (() => void)} */
+var render_observer = null;
+
+/** @param {null | (() => void)} observer */
+export function set_render_observer(observer) {
+	render_observer = observer;
+}
+
+/** Whether all synchronous render/effect work has finished. */
+export function is_render_idle() {
+	return flush_depth === 0 && queue.blocks.length === 0 && queued_post_block_flush.length === 0;
+}
 /** @type {null | Dependency} */
 export let active_dependency = null;
 
@@ -544,14 +556,14 @@ var empty_get_set = { get: undefined, set: undefined };
 class TrackedValue {
 	/**
 	 * @param {any} v
-	 * @param {Block} block
+	 * @param {Block | null} block
 	 * @param {{ get?: Function; set?: Function | true }} a
 	 * @param {string} [hash]
 	 */
 	constructor(v, block, a, hash) {
 		/** @type {{ get?: Function; set?: Function | true }} */
 		this.a = a;
-		/** @type {Block} */
+		/** @type {Block | null} */
 		this.b = block;
 		/** @type {number} */
 		this.c = 0;
@@ -993,18 +1005,15 @@ function finish_dependencies(reaction, dependencies) {
 }
 
 /**
- * Unsubscribe a block from every tracked value it read. Dependencies on
- * values owned by an already-destroyed block are dropped without unlinking,
- * since the owner's subscriber list dies with it.
+ * Unsubscribe a block from every tracked value it read. A value may outlive
+ * its creating component, so its subscriber list still needs unlinking after
+ * that component was destroyed.
  * @param {Block} block
  */
 export function remove_dependencies(block) {
 	var dependency = block.d;
 	while (dependency !== null) {
-		var owner = dependency.t.b;
-		if (owner === null || (owner.f & DESTROYED) === 0) {
-			unlink_subscriber(dependency);
-		}
+		unlink_subscriber(dependency);
 		dependency = dependency.n;
 	}
 	block.d = null;
@@ -1266,6 +1275,7 @@ function flush_microtasks() {
 	}
 	if (flush_depth === 0) {
 		release_old_values();
+		if (is_render_idle()) render_observer?.();
 	}
 }
 
@@ -1420,7 +1430,7 @@ export function set(tracked, value) {
 	if (value !== old_value) {
 		var tracked_block = tracked.b;
 
-		if ((tracked_block.f & CONTAINS_TEARDOWN) !== 0) {
+		if (tracked_block === null || (tracked_block.f & (CONTAINS_TEARDOWN | DESTROYED)) !== 0) {
 			if (tracked.o === UNINITIALIZED) {
 				old_value_holders.push(tracked);
 			}
@@ -1516,6 +1526,7 @@ export function flush_sync(fn) {
 		flush_depth--;
 		scheduler_mode = previous_scheduler_mode;
 		queue = previous_queue;
+		if (is_render_idle()) render_observer?.();
 	}
 }
 

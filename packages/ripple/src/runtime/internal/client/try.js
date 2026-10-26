@@ -196,6 +196,9 @@ export function catch_error(state, error) {
 
 	var create_catch = () => {
 		state.cb = boundary_branch(() => {
+			// Publish the catch branch before running it so an error in its
+			// initialization can be routed to the next enclosing boundary.
+			state.cb = active_block;
 			/** @type {TryCatchFunction} */ (state.c)(
 				state.a,
 				error,
@@ -214,12 +217,13 @@ export function catch_error(state, error) {
 	}
 
 	destroy_resolved(state);
+	queue_microtask();
 }
 
 /** @param {TryState} state */
 function begin_request(state) {
 	var request_id = ++state.v;
-	state.q.add(request_id);
+	state.q.set(request_id, active_block);
 
 	if (state.n++ === 0 && state.p !== null && !state.h) {
 		queue_microtask(() => {
@@ -242,7 +246,7 @@ function replace_request(state, old_request_id) {
 	state.d.delete(old_request_id);
 	// pending_count unchanged — one out, one in
 	var request_id = ++state.v;
-	state.q.add(request_id);
+	state.q.set(request_id, active_block);
 	return request_id;
 }
 
@@ -297,6 +301,8 @@ function complete_request(state, request_id, show_resolved_branch = true) {
 
 /** @param {TryState} state */
 function run_try(state) {
+	// Make the boundary available while its first branch initializes.
+	state.b = active_block;
 	if (state.si !== null) {
 		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).f(state);
 	} else {
@@ -330,7 +336,7 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null, root_contro
 		r: null,
 		n: 0,
 		v: 0,
-		q: new Set(),
+		q: new Map(),
 		b: null,
 		rb: null,
 		pb: null,
@@ -392,12 +398,19 @@ export function get_pending_boundary(block) {
 export function get_boundary_with_catch(block) {
 	/** @type {Block | null} */
 	var current = block;
+	/** @type {Block | null} */
+	var child = null;
 
 	while (current !== null) {
 		var state = /** @type {BlockWithTryBoundary} */ (current).s;
-		if ((current.f & TRY_BLOCK) !== 0 && state.c !== null) {
+		if (
+			(current.f & TRY_BLOCK) !== 0 &&
+			state.c !== null &&
+			(child === null || state.cb !== child)
+		) {
 			return /** @type {BlockWithTryBoundaryAndCatch} */ (current);
 		}
+		child = current;
 		current = current.p;
 	}
 

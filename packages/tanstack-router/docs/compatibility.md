@@ -1,8 +1,9 @@
 # Compatibility contract
 
-This is the implementation contract for milestones 2–6, not a list of working
-exports in milestone 1. All router behavior below is currently **deferred**. Only
-the upstream helpers listed in the package README are available now.
+This tracks the target contract for milestones 2–6. Milestone 2 implements route
+factories, a provider/outlet tree, scoped data readers, store lifetime and render
+acknowledgement. The package README lists the exact current exports and limits;
+the table below includes APIs still planned for later milestones.
 
 | Surface                  | Planned API / behavior                                                                                                                                                                       | Milestone |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -32,7 +33,7 @@ upstream selection, `from`, `strict`, and `shouldThrow` semantics in the resulti
 type. `useRouter()` returns the stable router instance; `useNavigate()` returns a
 callable imperative navigation function.
 
-The following shows the **planned** API once route factories/readers exist:
+Route-scoped readers retain their inference through registered router types:
 
 ```tsrx
 function Post() @{
@@ -51,6 +52,9 @@ remounts. Returning a `Derived<T>` does not give callers permission to write
 router state.
 
 ## Link and provider inputs
+
+The following dynamic-input contract is planned for milestone 3. Milestone 2
+accepts plain provider context; it does not yet export `Link`.
 
 Component props are ordinary objects evaluated once by Ripple. For changing
 navigation inputs, accept either the normal TanStack value or a read-only Ripple
@@ -96,6 +100,8 @@ dependencies change. Leaving a route disposes its observers before they can read
 invalid match state. Provider cleanup removes its history subscription and settles
 owned pending acknowledgements.
 
-Milestone 2 proves these guarantees and determines whether public Ripple runtime
-APIs must expand. `tick()` or an arbitrary timeout is not evidence of completion
-of a suspended render. Keep any new primitives reusable and independently tested.
+Milestone 2 uses Ripple's `createRenderObserver()` to await subtree rendering and
+settle superseded/unmounted observations. It does not implement atomic concurrent
+DOM staging. `tick()` or an arbitrary timeout is not evidence of completion of a
+suspended render. TanStack core remains the sole owner of native browser view
+transitions; render completion and animation completion are separate.

@@ -1,0 +1,45 @@
+// Adapted from TanStack/solid-router at da2adec76dbe6c0da6d6a0d5640f7b9388217f45; see NOTICE.
+import type { Derived } from 'ripple';
+import type {
+	AnyRouter,
+	RegisteredRouter,
+	ResolveUseParams,
+	StrictOrFrom,
+	ThrowConstraint,
+	ThrowOrOptional,
+	UseParamsResult,
+} from '@tanstack/router-core';
+export interface UseParamsBaseOptions<
+	TRouter extends AnyRouter,
+	TFrom,
+	TStrict extends boolean,
+	TThrow extends boolean,
+	TSelected,
+> {
+	select?: (params: ResolveUseParams<TRouter, TFrom, TStrict>) => TSelected;
+	shouldThrow?: TThrow;
+}
+export type UseParamsOptions<
+	TRouter extends AnyRouter,
+	TFrom extends string | undefined,
+	TStrict extends boolean,
+	TThrow extends boolean,
+	TSelected,
+> = StrictOrFrom<TRouter, TFrom, TStrict> &
+	UseParamsBaseOptions<TRouter, TFrom, TStrict, TThrow, TSelected>;
+export type UseParamsRoute<out TFrom> = <
+	TRouter extends AnyRouter = RegisteredRouter,
+	TSelected = unknown,
+	TThrow extends boolean = true,
+>(
+	opts?: UseParamsBaseOptions<TRouter, TFrom, /* TStrict */ true, TThrow, TSelected>,
+) => Derived<ThrowOrOptional<UseParamsResult<TRouter, TFrom, true, TSelected>, TThrow>>;
+export function useParams<
+	TRouter extends AnyRouter = RegisteredRouter,
+	const TFrom extends string | undefined = undefined,
+	TStrict extends boolean = true,
+	TThrow extends boolean = true,
+	TSelected = unknown,
+>(
+	opts: UseParamsOptions<TRouter, TFrom, TStrict, ThrowConstraint<TStrict, TThrow>, TSelected>,
+): Derived<ThrowOrOptional<UseParamsResult<TRouter, TFrom, TStrict, TSelected>, TThrow>>;

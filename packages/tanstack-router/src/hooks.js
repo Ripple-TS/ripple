@@ -1,0 +1,106 @@
+import { effect, track } from 'ripple';
+import { replaceEqualDeep } from '@tanstack/router-core';
+import { routerContext, matchContext } from './context.js';
+
+/** @typedef {import('@tanstack/router-core').AnyRouteMatch} Match */
+/** @typedef {import('@tanstack/router-core').AnyRouter} AnyRouter */
+/** @template [T=unknown] @typedef {{ from?: string; strict?: boolean; shouldThrow?: boolean; select?: (value: T) => unknown }} Options */
+
+/** @returns {AnyRouter} */
+export function useRouter() {
+	var router = routerContext.get();
+	if (!router) throw new Error('Router hooks must be called inside a RouterProvider.');
+	return router;
+}
+
+/** @template T @param {() => T} read @returns {import('ripple').Derived<T>} */
+function selectValue(read) {
+	/** @type {T} */
+	var previous;
+	var initialized = false;
+	return track(() => {
+		var next = read();
+		previous = initialized ? replaceEqualDeep(previous, next) : next;
+		initialized = true;
+		return previous;
+	});
+}
+
+/** @param {{ router?: AnyRouter; select?: (state: AnyRouter['state']) => unknown }} [options] */
+export function useRouterState(options = {}) {
+	var context = routerContext.get();
+	var candidate = options.router ?? context;
+	if (!candidate) throw new Error('useRouterState() requires a router or RouterProvider.');
+	var router = candidate;
+	return selectValue(() => {
+		var state = router.stores.__store.get();
+		return options.select ? options.select(state) : state;
+	});
+}
+
+/** @param {Options<Match>} [options] */
+export function useMatch(options = {}) {
+	var router = useRouter();
+	var nearest = matchContext.get();
+	var read = () =>
+		options.from ? router.stores.getMatchStore(options.from).get() : nearest?.match.value;
+	var requireMatch = () => {
+		var match = read();
+		if (!match && (options.shouldThrow ?? true)) {
+			throw new Error(
+				`Could not find an active match${options.from ? ` from "${options.from}"` : ''}.`,
+			);
+		}
+		return match;
+	};
+	effect(() => {
+		requireMatch();
+	});
+	return selectValue(() => {
+		var match = requireMatch();
+		return match && options.select ? options.select(match) : match;
+	});
+}
+
+/** @template T @param {Options<T>} options @param {(match: Match) => T} read */
+function useMatchValue(options, read) {
+	return useMatch({
+		...options,
+		select: (match) => {
+			var value = read(match);
+			return options.select ? options.select(value) : value;
+		},
+	});
+}
+
+/** @param {Options} [options] */
+export function useParams(options = {}) {
+	return useMatchValue(options, (match) =>
+		options.strict === false ? match.params : match._strictParams,
+	);
+}
+/** @param {Options} [options] */
+export function useSearch(options = {}) {
+	return useMatchValue(options, (match) =>
+		options.strict === false ? match.search : match._strictSearch,
+	);
+}
+/** @param {Options} [options] */
+export function useLoaderData(options = {}) {
+	return useMatchValue(options, (match) => match.loaderData);
+}
+/** @param {Options} [options] */
+export function useLoaderDeps(options = {}) {
+	return useMatchValue(options, (match) => match.loaderDeps);
+}
+/** @param {Options} [options] */
+export function useRouteContext(options = {}) {
+	return useMatchValue(options, (match) => match.context);
+}
+
+/** @param {{ from?: string }} [defaults] */
+export function useNavigate(defaults = {}) {
+	var router = useRouter();
+	/** @param {import('@tanstack/router-core').NavigateOptions<AnyRouter>} options */
+	return (options) => router.navigate({ ...options, from: options.from ?? defaults.from });
+}

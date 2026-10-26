@@ -55,5 +55,5 @@ export async function advanceTimers(milliseconds = 0) {
 	flushSync();
 }
 
-export { fireEvent, waitFor } from '@testing-library/dom';
+export { fireEvent, waitFor, screen } from '@testing-library/dom';
 export { createControlledPromise } from '@ripple-ts/tanstack-router';

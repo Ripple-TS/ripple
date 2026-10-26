@@ -1,7 +1,8 @@
 {
   "name": "@ripple-ts/tanstack-router",
+  "private": true,
   "version": "0.0.1",
-  "description": "TanStack Router integration for Ripple (foundation)",
+  "description": "TanStack Router integration for Ripple (in development)",
   "type": "module",
   "license": "MIT",
   "author": "Ripple Team",
@@ -50,7 +51,8 @@
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vitest": "catalog:default",
-    "jsdom": "catalog:default"
+    "jsdom": "catalog:default",
+    "@testing-library/jest-dom": "6.9.1"
   },
   "publishConfig": {
     "access": "public"

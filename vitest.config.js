@@ -13,6 +13,7 @@ export default defineConfig({
 					environment: 'jsdom',
 					setupFiles: ['packages/tanstack-router/tests/setup-client.js'],
 					globalSetup: ['packages/tanstack-router/tests/build-fixtures.js'],
+					server: { deps: { inline: ['@tanstack/router-core', '@tanstack/history'] } },
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],
 				resolve: { conditions: ['browser'] },

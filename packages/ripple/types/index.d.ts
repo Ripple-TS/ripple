@@ -101,6 +101,19 @@ export function flushSync<T>(fn?: () => T): T;
 
 export function effect(fn: (() => void) | (() => () => void)): void;
 
+export interface RenderObserver {
+	/** Flush an update and await pending async rendering in the captured subtree.
+	 * A newer run, disposal, or unmount settles the old run with false.
+	 * Requests in other component subtrees do not delay a run. This observes rendering;
+	 * it does not roll back state or provide atomic concurrent DOM updates.
+	 */
+	run(update: () => void): Promise<boolean>;
+	dispose(): void;
+}
+
+/** Capture the current initialization scope. On the server run executes and returns false. */
+export function createRenderObserver(): RenderObserver;
+
 export interface RippleArrayStatics {
 	from: {
 		<T>(array_like: ArrayLike<T>): RippleArray<T>;

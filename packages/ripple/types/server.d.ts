@@ -9,6 +9,7 @@ export {
 	effect,
 	tick,
 	Context,
+	createRenderObserver,
 	RippleArray,
 	RippleSet,
 	RippleMap,

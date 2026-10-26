@@ -1,6 +1,6 @@
 /** @import { Block, DeferredTrackedEntry, Tracked } from '#client' */
 
-import { pause_block, pre_effect } from './blocks.js';
+import { is_destroyed, pause_block, pre_effect } from './blocks.js';
 import {
 	ASYNC_DERIVED_READ_THROWN,
 	DIRECT_CHILD_BLOCK,
@@ -199,7 +199,7 @@ export function track_async(fn, b, hash) {
 		request_id = begin_boundary_request(boundary);
 	}
 
-	pre_effect(() => {
+	var async_block = pre_effect(() => {
 		if (had_hydration_data) {
 			// First run after hydration: skip fn() entirely (the SSR already
 			// produced the resolved value) and instead register the direct
@@ -348,6 +348,13 @@ export function track_async(fn, b, hash) {
 			// Teardown: abort in-flight request when block is destroyed
 			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
 				current_abort_controller.abort(TRACKED_UPDATED);
+			}
+			if (async_block && is_destroyed(async_block)) {
+				// A removed child must release its requests in a surviving parent
+				// boundary, even when its promise never settles or cannot abort.
+				complete_deferred_boundaries(t);
+				if (request_id > 0) complete_boundary_request(boundary, request_id);
+				request_id = 0;
 			}
 		};
 	});

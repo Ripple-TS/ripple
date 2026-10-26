@@ -316,8 +316,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "milestone": 4,
+        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
         "rippleTests": []
       },
       "tests": [
@@ -716,8 +716,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "milestone": 4,
+        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
         "rippleTests": []
       },
       "tests": [
@@ -792,7 +792,23 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "101": {
+          "status": "ported",
+          "milestone": 2,
+          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
+        },
+        "140": {
+          "status": "ported",
+          "milestone": 2,
+          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
+        },
+        "178": {
+          "status": "ported",
+          "milestone": 2,
+          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/issue-8115-context.test.tsx",
@@ -2629,8 +2645,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "milestone": 4,
+        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
         "rippleTests": []
       },
       "tests": [
@@ -3709,7 +3725,7 @@
         },
         {
           "line": 330,
-          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"🚀\"",
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"\ud83d\ude80\"",
           "modifiers": []
         },
         {
@@ -3739,12 +3755,12 @@
         },
         {
           "line": 408,
-          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"🚀\"",
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"\ud83d\ude80\"",
           "modifiers": []
         },
         {
           "line": 426,
-          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"🚀\" instead of it being \"%F0%9F%9A%80\"",
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"\ud83d\ude80\" instead of it being \"%F0%9F%9A%80\"",
           "modifiers": []
         },
         {
@@ -3789,7 +3805,7 @@
         },
         {
           "line": 579,
-          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"🚀\"",
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"\ud83d\ude80\"",
           "modifiers": []
         },
         {
@@ -3824,12 +3840,12 @@
         },
         {
           "line": 676,
-          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"🚀\"",
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"\ud83d\ude80\"",
           "modifiers": []
         },
         {
           "line": 694,
-          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"🚀\" instead of it being \"%F0%9F%9A%80\"",
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"\ud83d\ude80\" instead of it being \"%F0%9F%9A%80\"",
           "modifiers": []
         },
         {
@@ -4470,8 +4486,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "milestone": 4,
+        "reason": "Link-based scenarios await milestone 3. Solid eager-memo evaluation counts require a framework-specific audit; tests/client/stores.test.tsrx validates Ripple batching, selector isolation, and lifetime in milestone 2.",
         "rippleTests": []
       },
       "tests": [
@@ -4526,7 +4542,14 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "278": {
+          "status": "ported",
+          "milestone": 2,
+          "rippleTests": ["tests/client/upstream/store-updates-during-navigation.test.tsrx"],
+          "reason": "Consume the lazy Ripple selector in an effect; omit unused Link controls. Preserve the zero-update assertion."
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/transitioner-listener-errors.test.tsx",
@@ -4534,8 +4557,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "milestone": 4,
+        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
         "rippleTests": []
       },
       "tests": [
@@ -4552,10 +4575,9 @@
       "sha256": "5baf97fd9db035541b950fcf3e959692dafab1065a1c97475688650411a53a79",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
+        "status": "ported",
         "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
-        "rippleTests": []
+        "rippleTests": ["tests/client/upstream/transitioner-remount.test.tsrx"]
       },
       "tests": [
         {
@@ -4576,10 +4598,9 @@
       "sha256": "c36468409b7ada872fe6a38c11326d9798a4b24a319aa3993171fe36b24f6d43",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
+        "status": "ported",
         "milestone": 2,
-        "reason": "Adapter behavior is scheduled for milestone 2.",
-        "rippleTests": []
+        "rippleTests": ["tests/client/upstream/transitioner-render-ack.test.tsrx"]
       },
       "tests": [
         {
