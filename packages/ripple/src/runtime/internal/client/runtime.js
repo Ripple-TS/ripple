@@ -1666,28 +1666,6 @@ export function with_scope(block, fn) {
 }
 
 /**
- * Invoke after the caller has evaluated potentially awaited arguments.
- * @param {Block} block
- * @param {Function} fn
- * @param {any} receiver
- * @param {any[]} args
- * @returns {any}
- */
-export function call_with_scope(block, fn, receiver, args) {
-	return with_scope(block, () => Reflect.apply(fn, receiver, args));
-}
-
-/**
- * @param {Block} block
- * @param {Function} fn
- * @param {any[]} args
- * @returns {any}
- */
-export function construct_with_scope(block, fn, args) {
-	return with_scope(block, () => Reflect.construct(fn, args));
-}
-
-/**
  * @returns {Block | null}
  */
 export function scope() {

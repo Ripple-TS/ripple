@@ -59,4 +59,19 @@ describe.each([false, true])('awaited calls (hydration: %s)', (hydration) => {
 		expect(errors).toEqual([]);
 		expect(() => acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' })).not.toThrow();
 	});
+
+	it('keeps awaits in nested callbacks out of the enclosing call metadata', () => {
+		const { code, errors } = compile(
+			`export function Example({ consume, read }) @{
+				const run = () => consume(async () => await read());
+				<button onClick={run}>Read</button>
+			}`,
+			'Example.tsrx',
+			{ hydration },
+		);
+		expect(errors).toEqual([]);
+		expect(code).not.toContain('var callee');
+		expect(code).not.toContain('.apply(');
+		expect(() => acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' })).not.toThrow();
+	});
 });

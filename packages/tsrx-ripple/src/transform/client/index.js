@@ -92,7 +92,6 @@ import {
 	is_dom_property,
 	is_declared_function_within_component,
 	is_inside_call_expression,
-	contains_await,
 	is_global_coercion_call,
 	unwrap_single_return_iife,
 	is_value_static,
@@ -3354,7 +3353,7 @@ const visitors = {
 			return visit_children_without(node, context, ['typeArguments']);
 		}
 
-		if (contains_await(node)) {
+		if (node.metadata.has_await) {
 			return visit_awaited_call(node, context);
 		}
 
@@ -3465,7 +3464,7 @@ const visitors = {
 			return context.next();
 		}
 
-		if (contains_await(node)) {
+		if (node.metadata.has_await) {
 			return visit_awaited_call(node, context);
 		}
 

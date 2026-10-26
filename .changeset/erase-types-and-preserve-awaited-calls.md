@@ -1,6 +1,5 @@
 ---
 '@tsrx/ripple': patch
-'ripple': patch
 ---
 
 Erase TypeScript catch binding annotations and ambient variable declarations from
