@@ -4032,6 +4032,7 @@ const visitors = {
 						if (
 							attr_value.type === 'Literal' &&
 							name !== 'class' &&
+							name !== 'className' &&
 							name !== 'style' &&
 							!(name === 'value' && (element_name === 'option' || element_name === 'textarea'))
 						) {
@@ -4065,7 +4066,7 @@ const visitors = {
 							continue;
 						}
 
-						if (name === 'class') {
+						if (name === 'class' || name === 'className') {
 							class_attribute = attr;
 
 							continue;
@@ -4186,7 +4187,7 @@ const visitors = {
 							const id = state.flush_node?.();
 
 							if (is_dom_property(attribute)) {
-								property_names.push(attribute.toLowerCase());
+								record_spread_exclusion(property_names, attribute);
 								property_updates.push({
 									operation: (key) =>
 										b.stmt(
@@ -4202,6 +4203,12 @@ const visitors = {
 								});
 							} else {
 								const kind = attribute_kind(element_name, attribute, state);
+								// `htmlFor`, `maxLength`, `acceptCharset`: the binding writes
+								// the IDL property and then skips while its value is unchanged,
+								// so a spread must not write that property under another name.
+								if (kind === 'property') {
+									record_spread_exclusion(property_names, attribute);
+								}
 								// A value proved to be a string is never removed and never
 								// a property: the DOM call goes straight to the element. So
 								// is a primitive on a name that is not a property.
@@ -4319,6 +4326,10 @@ const visitors = {
 						: '_$_.set_class_value';
 
 					if (metadata.tracking) {
+						// `class` / `className` write the same property. A spread `class`
+						// would replace it, and this update does not run again while the
+						// class string is unchanged.
+						record_spread_exclusion(property_names, 'class');
 						local_updates.push({
 							operation: (key) =>
 								b.stmt(
@@ -5568,6 +5579,18 @@ function dom_built_arguments(element, inert = false) {
 		args.push(b.literal(1));
 	}
 	return args;
+}
+
+/**
+ * Records the lowercase name of a property an explicit binding owns. The
+ * spread runtime also skips the content-attribute spelling and hyphenated
+ * forms of that name.
+ * @param {string[]} names
+ * @param {string} attribute
+ */
+function record_spread_exclusion(names, attribute) {
+	const lower = attribute.toLowerCase();
+	if (!names.includes(lower)) names.push(lower);
 }
 
 /**

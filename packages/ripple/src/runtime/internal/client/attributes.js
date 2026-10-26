@@ -194,6 +194,57 @@ export class SpreadState {
 var EMPTY = {};
 
 /**
+ * The other spelling of an IDL/content pair whose names are not the same
+ * letters (`for`/`htmlFor`, `class`/`className`, `value`/`defaultValue`).
+ * Keys are lowercase. Hyphenated attributes are collapsed before lookup, so
+ * `accept-charset` reaches `acceptcharset` without an entry here.
+ * @type {Record<string, string>}
+ */
+var spread_alias = {
+	for: 'htmlfor',
+	htmlfor: 'for',
+	class: 'classname',
+	classname: 'class',
+	value: 'defaultvalue',
+	defaultvalue: 'value',
+	checked: 'defaultchecked',
+	defaultchecked: 'checked',
+	selected: 'defaultselected',
+	defaultselected: 'selected',
+	muted: 'defaultmuted',
+	defaultmuted: 'muted',
+	char: 'ch',
+	ch: 'char',
+	charoff: 'choff',
+	choff: 'charoff',
+};
+
+/**
+ * Whether a spread key writes a property an explicit binding owns. `excluded`
+ * holds the lowercase binding names. Case variants match directly; a
+ * hyphenated attribute matches the unhyphenated IDL name (`max-length` /
+ * `maxLength`, `http-equiv` / `httpEquiv`); either spelling of an IDL/content
+ * pair matches the other.
+ * @param {string[] | undefined} excluded
+ * @param {string} key
+ * @returns {boolean}
+ */
+function spread_key_excluded(excluded, key) {
+	if (excluded === undefined) return false;
+	var name = key.toLowerCase();
+	if (excluded.includes(name)) return true;
+	var collapsed = name.indexOf('-') === -1 ? name : name.replace(/-/g, '');
+	if (collapsed !== name && excluded.includes(collapsed)) return true;
+	var alias = spread_alias[name];
+	if (alias !== undefined && excluded.includes(alias)) return true;
+	if (collapsed !== name) {
+		alias = spread_alias[collapsed];
+		if (alias !== undefined && excluded.includes(alias)) return true;
+	}
+	return false;
+}
+
+/**
  * Applies a spread of attributes to an element, diffing against what the
  * previous call applied: attributes, `class`, `style` objects, event
  * listeners and ref props. An object identical to the last one applied is
@@ -204,7 +255,7 @@ var EMPTY = {};
  * @param {Element} element
  * @param {any} next
  * @param {SpreadState | undefined} state
- * @param {string[]} [excluded] Stable lowercase names controlled by direct property bindings.
+ * @param {string[]} [excluded] Lowercase names of properties explicit bindings own.
  * @returns {SpreadState}
  */
 export function spread(element, next, state, excluded) {
@@ -254,7 +305,7 @@ export function spread(element, next, state, excluded) {
 	}
 
 	for (key in next) {
-		if (key === 'children' || excluded?.includes(key.toLowerCase())) continue;
+		if (key === 'children' || spread_key_excluded(excluded, key)) continue;
 
 		var value = next[key];
 		if (typeof value === 'function' && is_ref_prop(value)) {
@@ -310,7 +361,7 @@ function apply_spread(state, next, excluded) {
 	}
 
 	for (var key in next) {
-		if (key === 'children' || excluded?.includes(key.toLowerCase())) continue;
+		if (key === 'children' || spread_key_excluded(excluded, key)) continue;
 
 		var value = next[key];
 		if (typeof value === 'function' && is_ref_prop(value)) {

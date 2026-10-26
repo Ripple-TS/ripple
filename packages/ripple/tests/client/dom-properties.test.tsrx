@@ -157,4 +157,87 @@ describe('DOM property updates', () => {
 			set_open.mockRestore();
 		}
 	});
+
+	it('keeps an explicit binding authoritative over a spread HTML alias', () => {
+		function App() @{
+			const attributes = track({
+				for: 'spread-for',
+				maxlength: 2,
+				class: 'spread',
+				value: 'spread-value',
+				'accept-charset': 'iso-8859-1',
+				'http-equiv': 'content-type',
+				checked: '',
+				id: 'first',
+			});
+			const label_for = track('bound-for');
+			const max = track(9);
+			const class_name = track('bound');
+			const initial = track('bound-value');
+			const charset = track('utf-8');
+			const equiv = track('refresh');
+			const checked = track(true);
+			<>
+				<button
+					id="spread"
+					onClick={() => (attributes.value = {
+						for: 'next-for',
+						'max-length': 4,
+						class: 'next',
+						value: 'next-value',
+						'accept-charset': 'us-ascii',
+						'http-equiv': 'expires',
+						id: 'second',
+					})}
+				>{'Spread'}</button>
+				<button id="clear" onClick={() => (attributes.value = { id: 'cleared' })}>{'Clear'}</button>
+				<label {...attributes.value} htmlFor={label_for.value} />
+				<input {...attributes.value} maxLength={max.value} defaultValue={initial.value} />
+				<input type="checkbox" {...attributes.value} defaultChecked={checked.value} />
+				<div {...attributes.value} className={class_name.value} />
+				<form {...attributes.value} acceptCharset={charset.value} />
+				<meta {...attributes.value} httpEquiv={equiv.value} />
+			</>
+		}
+
+		render(App);
+		const label = container.querySelector('label');
+		const [text, box] = container.querySelectorAll('input');
+		const div = container.querySelector('div');
+		const form = container.querySelector('form');
+		const meta = container.querySelector('meta');
+
+		expect(label.htmlFor).toBe('bound-for');
+		expect(text.maxLength).toBe(9);
+		expect(text.defaultValue).toBe('bound-value');
+		expect(box.defaultChecked).toBe(true);
+		expect(div.className).toBe('bound');
+		expect(form.acceptCharset).toBe('utf-8');
+		expect(meta.httpEquiv).toBe('refresh');
+		expect(div.id).toBe('first');
+
+		container.querySelector('#spread').click();
+		flushSync();
+
+		expect(label.htmlFor).toBe('bound-for');
+		expect(text.maxLength).toBe(9);
+		expect(text.defaultValue).toBe('bound-value');
+		expect(box.defaultChecked).toBe(true);
+		expect(div.className).toBe('bound');
+		expect(form.acceptCharset).toBe('utf-8');
+		expect(meta.httpEquiv).toBe('refresh');
+		expect(div.id).toBe('second');
+
+		container.querySelector('#clear').click();
+		flushSync();
+
+		expect(label.htmlFor).toBe('bound-for');
+		expect(text.maxLength).toBe(9);
+		expect(text.defaultValue).toBe('bound-value');
+		expect(box.defaultChecked).toBe(true);
+		expect(div.className).toBe('bound');
+		expect(form.acceptCharset).toBe('utf-8');
+		expect(meta.httpEquiv).toBe('refresh');
+		expect(div.id).toBe('cleared');
+	});
 });

@@ -184,21 +184,39 @@ export function set_attribute_value(element, attribute, value) {
 }
 
 /**
+ * Content attributes whose names are not the IDL name in a different case.
+ * `setAttribute('htmlFor')` writes `htmlfor`, which does not reflect
+ * `htmlFor`; the content attribute is `for`.
+ * @type {Record<string, string>}
+ */
+var content_attribute_names = {
+	acceptCharset: 'accept-charset',
+	ch: 'char',
+	chOff: 'charoff',
+	defaultMuted: 'muted',
+	defaultSelected: 'selected',
+	htmlFor: 'for',
+	httpEquiv: 'http-equiv',
+};
+
+/**
  * Writes a name the compiler proved is a settable property of its element:
  * a string sets the attribute, any other value the property, and `null` or
  * `undefined` remove the attribute, as `set_attribute` decides at runtime
- * after discovering the element's setters.
+ * after discovering the element's setters. Strings and removals use the
+ * content-attribute name when it is not the IDL name.
  * @param {Element} element
  * @param {string} attribute
  * @param {any} value
  * @returns {void}
  */
 export function set_property_value(element, attribute, value) {
+	var name = content_attribute_names[attribute] || attribute;
 	if (value == null) {
-		element.removeAttribute(attribute);
+		element.removeAttribute(name);
 	} else if (typeof value !== 'string') {
 		/** @type {any} */ (element)[attribute] = value;
 	} else {
-		element.setAttribute(attribute, value);
+		element.setAttribute(name, value);
 	}
 }

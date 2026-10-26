@@ -2356,12 +2356,12 @@ const visitors = {
 							continue;
 						}
 
-						if (attr_value.type === 'Literal' && name !== 'class') {
+						if (attr_value.type === 'Literal' && name !== 'class' && name !== 'className') {
 							handle_static_attr(name, attr_value.value);
 							continue;
 						}
 
-						if (name === 'class') {
+						if (name === 'class' || name === 'className') {
 							class_attribute = attr;
 
 							continue;
