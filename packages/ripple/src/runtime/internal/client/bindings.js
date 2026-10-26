@@ -165,6 +165,26 @@ function get_option_value(option) {
 	return option.value;
 }
 
+/** @param {HTMLSelectElement} select */
+function select_has_changed(select) {
+	var default_select = /** @type {HTMLSelectElement} */ (select.cloneNode(true));
+	var options = default_select.options;
+
+	// Let the browser resolve implicit selections, disabled options, and
+	// multiple defaultSelected options just as it does for the server HTML.
+	for (var option of options) {
+		option.selected = option.defaultSelected;
+	}
+
+	for (var i = 0; i < options.length; i++) {
+		if (options[i].selected !== select.options[i].selected) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /**
  * Selects the correct option(s) (depending on whether this is a multiple select)
  * @template V
@@ -328,6 +348,19 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 				setter(value);
 			});
 
+			if (HYDRATION && hydrating_ref && select_has_changed(select)) {
+				// Read the live selection before the first effect can replace it.
+				// Unlike a change event, a cleared single select has no fallback.
+				var selected = select.options[select.selectedIndex];
+				var value = select.multiple
+					? [].map.call(select.querySelectorAll(':checked'), get_option_value)
+					: selected
+						? get_option_value(selected)
+						: null;
+				select.__value = value;
+				untrack(() => setter(value));
+			}
+
 			effect(() => {
 				var value = getter();
 				select_option(select, value, mounting);
@@ -442,6 +475,10 @@ export function bindChecked(maybe_tracked, set_func = undefined) {
 			setter(input.checked);
 		});
 
+		if (HYDRATION && hydrating_ref && input.checked !== input.defaultChecked) {
+			untrack(() => setter(input.checked));
+		}
+
 		effect(() => {
 			var value = getter();
 			input.checked = Boolean(value);
@@ -464,6 +501,16 @@ export function bindIndeterminate(maybe_tracked, set_func = undefined) {
 			setter(input.indeterminate);
 		});
 
+		if (
+			HYDRATION &&
+			hydrating_ref &&
+			(input.indeterminate || input.checked !== input.defaultChecked)
+		) {
+			// HTML has no indeterminate default. Adopt a live true value, or the
+			// false value produced when an early click toggles the checkbox.
+			untrack(() => setter(input.indeterminate));
+		}
+
 		effect(() => {
 			var value = getter();
 			input.indeterminate = Boolean(value);
@@ -484,7 +531,7 @@ export function bindGroup(maybe_tracked, set_func = undefined) {
 	return (input) => {
 		var is_checkbox = input.getAttribute('type') === 'checkbox';
 
-		var clear_event = on(input, 'change', () => {
+		var on_change = () => {
 			var value = input.value;
 			var result;
 
@@ -506,7 +553,21 @@ export function bindGroup(maybe_tracked, set_func = undefined) {
 			}
 
 			setter(result);
-		});
+		};
+
+		var clear_event = on(input, 'change', on_change);
+
+		if (
+			HYDRATION &&
+			hydrating_ref &&
+			input.checked !== input.defaultChecked &&
+			(is_checkbox || input.checked)
+		) {
+			// Merge checkbox edits before the group effects write to the DOM.
+			// Only the selected radio contributes a value; the deselected default
+			// must not overwrite the user's new choice.
+			untrack(on_change);
+		}
 
 		effect(() => {
 			var value = getter();
@@ -718,6 +779,10 @@ export function bindFiles(maybe_tracked, set_func = undefined) {
 		var clear_event = on(input, 'change', () => {
 			setter(input.files);
 		});
+
+		if (HYDRATION && hydrating_ref && input.files !== null && input.files.length > 0) {
+			untrack(() => setter(input.files));
+		}
 
 		effect(() => {
 			var value = getter();
