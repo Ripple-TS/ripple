@@ -1829,6 +1829,13 @@ const visitors = {
 		);
 
 		if (state.template_child) {
+			if (init.length === 0) {
+				// The client still creates an expression anchor for an empty fragment.
+				// Give it its own node so it cannot consume a sibling or closing marker.
+				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
+				return;
+			}
+
 			// In template position the client lowers `<>…</>` to a `<!>` placeholder +
 			// `_$_.expression(() => _$_.tsrx_element(…))`. During hydration that
 			// expression() needs a matching `<!--[-->`…`<!--]-->` boundary whenever it
@@ -1847,11 +1854,11 @@ const visitors = {
 			// markers desync the static-cursor (`next()` + skip_advance) client path.
 			const needs_boundary =
 				state.control_flow_branch_body || fragment_leads_with_control_flow(children, context);
-			if (needs_boundary && init.length > 0) {
+			if (needs_boundary) {
 				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 				state.init?.push(b.block(init));
 				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
-			} else if (init.length > 0) {
+			} else {
 				// Template body: push children statements inline
 				state.init?.push(b.block(init));
 			}
