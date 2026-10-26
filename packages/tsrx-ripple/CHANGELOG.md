@@ -1,5 +1,16 @@
 # @tsrx/ripple
 
+## 0.2.6
+
+### Patch Changes
+
+- [#1589](https://github.com/Ripple-TS/ripple/pull/1589)
+  [`f886072`](https://github.com/Ripple-TS/ripple/commit/f8860727157c1f42ccf6fa5376ea0a40eabb934c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix hydration of
+  component-leading root fragments by rendering their children directly,
+  preserving server-rendered nodes and event handlers without adding hydration
+  markers.
+
 ## 0.2.5
 
 ### Patch Changes

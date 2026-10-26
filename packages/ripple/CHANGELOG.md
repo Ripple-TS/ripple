@@ -1,5 +1,27 @@
 # ripple
 
+## 0.5.2
+
+### Patch Changes
+
+- [#1585](https://github.com/Ripple-TS/ripple/pull/1585)
+  [`73c275d`](https://github.com/Ripple-TS/ripple/commit/73c275d9c80c17785d26b50692799489d306c8d1)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Namespace serialized
+  `trackAsync` data and streaming boundary identifiers per server render so
+  independently rendered roots can hydrate and receive streamed chunks without
+  consuming each other's data.
+
+- [#1586](https://github.com/Ripple-TS/ripple/pull/1586)
+  [`a934f28`](https://github.com/Ripple-TS/ripple/commit/a934f2892a0a4cc9ffe4ec5176d5b3a93f3c595a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add `createRenderObserver()`
+  for integrations that need to await component-subtree rendering, including async
+  work, supersession, and unmounting. Keep tracked values usable across their
+  creating component's lifetime, release pending requests when async children are
+  removed, and propagate errors thrown from catch branches to the next boundary.
+- Updated dependencies
+  [[`f886072`](https://github.com/Ripple-TS/ripple/commit/f8860727157c1f42ccf6fa5376ea0a40eabb934c)]:
+  - @tsrx/ripple@0.2.6
+
 ## 0.5.1
 
 ### Patch Changes
