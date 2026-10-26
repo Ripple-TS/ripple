@@ -122,6 +122,37 @@ function MixedRenderableValues_render(__anchor, __block) {
 
 MixedRenderableValues[_$_.$r] = MixedRenderableValues_render;
 
+var root_10 = _$_.template_el('button', null, 'update');
+var root_9 = _$_.template(`<!>`, 1, 1);
+
+function AdjacentTitleValues_render(__anchor, __block) {
+	const first = _$_.track('one', __block, 'r7v0dk');
+	const second = _$_.track(2, __block, '5c8sig');
+	var fragment_2 = root_9();
+	var node_2 = _$_.first_child_frag(fragment_2);
+
+	_$_.expression(node_2, () => _$_.tsrx_element((__anchor, __block) => {
+		var button_1 = root_10();
+
+		button_1.__click = () => {
+			first.value = null;
+			second.value = 0;
+		};
+
+		_$_.head('85f21194', (__anchor) => {
+			_$_.render(() => {
+				_$_.document.title = "before:" + (String(first.value ?? '') + (String(second.value ?? '') + ":after"));
+			});
+		});
+
+		_$_.append(__anchor, button_1);
+	}));
+
+	_$_.append(__anchor, fragment_2);
+}
+
+AdjacentTitleValues[_$_.$r] = AdjacentTitleValues_render;
+
 import { track } from 'ripple';
 
 function Pair(props) {
@@ -134,6 +165,10 @@ export function AdjacentRenderableProps() {
 
 export function MixedRenderableValues() {
 	return _$_.tsrx_element(MixedRenderableValues_render);
+}
+
+export function AdjacentTitleValues() {
+	return _$_.tsrx_element(AdjacentTitleValues_render);
 }
 
 _$_.delegate(['click']);

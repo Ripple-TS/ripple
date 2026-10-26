@@ -1428,7 +1428,7 @@ function hoist_repeated_tracked_reads(statements, state) {
  * @param {TransformClientContext} context
  */
 function visit_title_element(node, context) {
-	const normalized = normalize_children(/** @type {AST.Node[]} */ (node.children), context);
+	const normalized = normalize_children(/** @type {AST.Node[]} */ (node.children), context, true);
 	const content = /** @type {ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer} */ (
 		normalized[0]
 	);

@@ -109,3 +109,24 @@ export function MixedRenderableValues() {
 		});
 	});
 }
+
+export function AdjacentTitleValues() {
+	return _$_.tsrx_element(() => {
+		const first = _$_.track('one', 'r7v0dk');
+		const second = _$_.track(2, '5c8sig');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button>update</button>';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.set_output_target('head');
+			__out += '<!--85f21194--><title>before:' + _$_.escape(first.value) + _$_.escape(second.value) + ':after</title>';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.set_output_target(null);
+			_$_.output_push(__out);
+		});
+	});
+}

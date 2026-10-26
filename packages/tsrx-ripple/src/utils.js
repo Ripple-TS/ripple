@@ -2054,7 +2054,7 @@ export function lower_dynamic_element(node, component_id, scopes) {
  * Normalizes children nodes (merges adjacent text, removes empty)
  * @param {AST.Node[]} children
  * @param {CommonContext} context
- * @param {boolean} [text_only] Whether expressions must form one text node, as in a textarea.
+ * @param {boolean} [text_only] Whether expressions must form one text node, as in a textarea or title.
  * @returns {AST.Node[]}
  */
 export function normalize_children(children, context, text_only = false) {

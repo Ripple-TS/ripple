@@ -36,3 +36,19 @@ export function MixedRenderableValues() @{
 	const values = [first, null, '&', second, undefined];
 	<section>before:{first}{second}{values}{'<after'}</section>
 }
+
+export function AdjacentTitleValues() @{
+	const first = track<unknown>('one');
+	const second = track<unknown>(2);
+	<>
+		<head>
+			<title>before:{first.value}{second.value}:after</title>
+		</head>
+		<button
+			onClick={() => {
+				first.value = null;
+				second.value = 0;
+			}}
+		>update</button>
+	</>
+}

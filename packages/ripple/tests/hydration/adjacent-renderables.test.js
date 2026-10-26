@@ -42,4 +42,28 @@ describe.each(['mount', 'hydrate'])('adjacent renderables > %s', (mode) => {
 		unmount();
 		expect(container.innerHTML).toBeHtml('');
 	});
+
+	it('keeps adjacent title expressions as one reactive text value', async () => {
+		const original_title = document.title;
+		try {
+			if (mode === 'hydrate') {
+				const { head, body } = await render(ServerComponents.AdjacentTitleValues);
+				expect(head).toBeHtml('<title>before:one2:after</title>');
+				container.innerHTML = body;
+				document.title = 'before:one2:after';
+			}
+
+			const unmount = (mode === 'hydrate' ? hydrate : mount)(ClientComponents.AdjacentTitleValues, {
+				target: container,
+			});
+			expect(document.title).toBe('before:one2:after');
+
+			container.querySelector('button').click();
+			flushSync();
+			expect(document.title).toBe('before:0:after');
+			unmount();
+		} finally {
+			document.title = original_title;
+		}
+	});
 });
