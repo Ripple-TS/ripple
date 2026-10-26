@@ -11,6 +11,7 @@ import { isServer } from '@tanstack/router-core/isServer';
 import { routerContext, matchContext } from './context.js';
 import { useRouter } from './hooks.js';
 import { resolveInput } from './inputs.js';
+import { findNotFoundBoundary } from './boundaries.js';
 
 const mounted = new WeakSet<AnyRouter>();
 
@@ -188,10 +189,8 @@ function Match({ routeId }: { routeId: string }) @{
 		const onCatch = route.options.onCatch ?? router.options.defaultOnCatch;
 		if (!notFound) onCatch?.(error);
 		@if (notFound) {
-			const target = (error as NotFoundError).routeId;
-			if (
-				target && target !== routeId || !route.options.notFoundComponent && !route.isRoot
-			) throw error;
+			const boundaryId = findNotFoundBoundary(router, routeId, error as NotFoundError);
+			if (boundaryId !== routeId && !route.isRoot) throw error;
 			<RouteNotFound {routeId} error={error as NotFoundError} />
 		} @else {
 			<Catch {error} {reset} info={{ componentStack: '' }} />

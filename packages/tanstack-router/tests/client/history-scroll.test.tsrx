@@ -269,3 +269,35 @@ it(
 		expect(view.getByText('/c')).toBeTruthy();
 	},
 );
+
+it(
+	'enables window/history scroll restoration through router options without an element hook',
+	async () => {
+		const root = createRootRoute({ component: Outlet });
+		const a = createRoute({ getParentRoute: () => root, path: '/a', component: () => <p>A</p> });
+		const b = createRoute({ getParentRoute: () => root, path: '/b', component: () => <p>B</p> });
+		const history = createMemoryHistory({ initialEntries: ['/a'] });
+		const router = createRouter({
+			routeTree: root.addChildren([a, b]),
+			history,
+			scrollRestoration: true,
+		});
+		const view = render(() => <RouterProvider {router} />);
+		await view.findByText('A');
+		await waitFor(() => expect(router.state.status).toBe('idle'));
+		vi.stubGlobal('scrollY', 246);
+		try {
+			document.dispatchEvent(new Event('scroll'));
+			await router.navigate({ to: '/b' });
+			const scroll = vi.spyOn(window, 'scrollTo');
+			scroll.mockClear();
+			history.back();
+			await view.findByText('A');
+			await waitFor(
+				() => expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ top: 246 })),
+			);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	},
+);

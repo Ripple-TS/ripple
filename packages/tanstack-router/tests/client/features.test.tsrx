@@ -385,3 +385,36 @@ it('calls the selected route onCatch with the original render error', async () =
 	expect(local).toHaveBeenCalledWith(failure);
 	expect(fallback).not.toHaveBeenCalled();
 });
+
+it.each(['root', 'default', 'ancestor'] as const)(
+	'falls back to the %s not-found UI when a scoped render error has no local boundary',
+	async (fallback) => {
+		const Missing = ({ data }: { data?: unknown }) => <p>{'Missing:' + String(data)}</p>;
+		const root = createRootRoute({
+			component: Outlet,
+			notFoundComponent: fallback === 'root' ? Missing : undefined,
+		});
+		const layout = createRoute({
+			getParentRoute: () => root,
+			path: '/layout',
+			component: Outlet,
+			notFoundComponent: fallback === 'ancestor' ? Missing : undefined,
+		});
+		const api = getRouteApi('/layout/child');
+		const page = createRoute({
+			getParentRoute: () => layout,
+			path: '/child',
+			component: () => {
+				throw api.notFound({ data: 'scoped item' });
+			},
+		});
+		const router = createRouter({
+			routeTree: root.addChildren([layout.addChildren([page])]),
+			history: createMemoryHistory({ initialEntries: ['/layout/child'] }),
+			defaultNotFoundComponent: fallback === 'default' ? Missing : undefined,
+		});
+		const view = render(() => <RouterProvider {router} />);
+		await view.findByText('Missing:scoped item');
+		expect(view.container.querySelector('pre')).toBe(null);
+	},
+);

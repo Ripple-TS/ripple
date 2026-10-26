@@ -5,6 +5,8 @@ import { getStoreFactory } from './stores.js';
 export class Router extends RouterCore {
 	/** @param {ConstructorParameters<typeof RouterCore>[0]} options */
 	constructor(options) {
+		// RouterCore also installs scroll restoration from options. Its onRendered
+		// listener runs after the provider acknowledges Ripple rendering.
 		super(options, getStoreFactory);
 	}
 }
