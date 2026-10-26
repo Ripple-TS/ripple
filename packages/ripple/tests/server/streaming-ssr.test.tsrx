@@ -258,9 +258,9 @@ describe('streaming try/pending boundaries', () => {
 		// (regression: it used to be lost when the boundary cleared its buffer)
 		expect(chunk).toContain('<footer>static-after</footer>');
 		expect(chunk).toContain(`<script>__RIPPLE_S__(${id})</script>`);
-		// the trackAsync envelope ships in the same chunk, ahead of the template
+		// The envelope travels inside the template into the owning hydration target.
 		expect(chunk).toMatch(
-			/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>[\s\S]*<template data-ripple-chunk/,
+			/<template data-ripple-chunk="\d+">[\s\S]*<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script><\/template>/,
 		);
 		await flushed();
 		expect(chunks).toHaveLength(2);
@@ -343,12 +343,10 @@ describe('streaming try/pending boundaries', () => {
 		expect(all).toContain(`"ok":false,"error":{"message":"${message}"}`);
 		expect(all).not.toContain('"ok":true');
 		expect(chunk).toContain('<template data-ripple-chunk=');
-		// the rejected trackAsync envelope reaches the wire before the chunk
-		// that hydrates the catch branch from it
-		const envelope_index = all.indexOf('__ripple_ta_');
-		const template_index = all.indexOf('<template data-ripple-chunk=');
-		expect(envelope_index).toBeGreaterThan(-1);
-		expect(envelope_index).toBeLessThan(template_index);
+		// Rejected values also stay with the catch branch's template.
+		expect(chunk).toMatch(
+			/<template data-ripple-chunk="\d+">[\s\S]*<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script><\/template>/,
+		);
 	});
 
 	it.each(['rejection', 'serialization'])(

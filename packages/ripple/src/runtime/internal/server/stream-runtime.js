@@ -71,6 +71,17 @@ function stream_runtime(
 			doc.querySelector('template[' + chunk_attr + '="' + id + '"]')
 		);
 
+		// Keep async envelopes with their boundary without inserting data scripts
+		// into rendered content (in particular, contenteditable bindings).
+		if (template && template.content.firstChild) {
+			var scripts = template.content.querySelectorAll('script[id^="__ripple_ta_"]');
+			if (scripts.length) {
+				var async_data = doc.createDocumentFragment();
+				for (var script of scripts) async_data.appendChild(script);
+				template.content.firstChild.__ripple_async_data = async_data;
+			}
+		}
+
 		/** @type {Element[] | undefined} */
 		var untouched;
 		function done() {

@@ -10,7 +10,7 @@ import {
 	TRACKED_UPDATED,
 	TRY_BLOCK,
 } from './constants.js';
-import { hydrating, track_hash_reference } from './hydration.js';
+import { hydrating, hydration_context, track_hash_reference } from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import {
 	active_block,
@@ -148,7 +148,10 @@ export function track_async(fn, b, hash) {
 
 	if (HYDRATION && hydrating) {
 		var script_id = get_track_async_script_id(hash);
-		var script_el = document.getElementById(script_id);
+		var selector = 'script[id="' + script_id + '"]';
+		var script_el =
+			hydration_context?.data?.querySelector(selector) ??
+			hydration_context?.target.querySelector(selector);
 		if (script_el) {
 			var envelope = JSON.parse(/** @type {string} */ (script_el.textContent));
 			script_el.remove();

@@ -160,6 +160,11 @@ export type StreamBoundaryActivator = (
 export type StreamBoundaryRegistry = Record<string | number, 1 | { a: StreamBoundaryActivator }>;
 
 declare global {
+	interface Node {
+		/** Serialized async data retained on a streamed boundary's opening marker. */
+		__ripple_async_data?: DocumentFragment;
+	}
+
 	interface Window {
 		/** streamed-boundary registry, see {@link StreamBoundaryRegistry} */
 		__RIPPLE_B__?: StreamBoundaryRegistry;

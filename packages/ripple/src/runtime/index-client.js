@@ -11,10 +11,13 @@ import { hydration_disabled, root_boundary_disabled } from './internal/client/er
 import { ROOT_BOUNDARY } from 'ripple/internal/client/root-boundary-enabled';
 import { normalize_children } from './element.js';
 import {
+	collect_hydration_data,
 	hydrate_next,
 	hydrate_node,
 	hydrating,
+	hydration_context,
 	set_hydration,
+	set_hydration_context,
 	track_hash_reference,
 } from './internal/client/hydration.js';
 import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
@@ -166,6 +169,7 @@ export function hydrate(component, options) {
 	const target = options.target;
 	const was_hydrating = HYDRATION && hydrating;
 	const previous_hydrate_node = hydrate_node;
+	const previous_hydration_context = hydration_context;
 	let anchor = target.firstChild;
 
 	/** @type {import('./internal/client/events.js').RootTargetRef | null} */
@@ -185,6 +189,7 @@ export function hydrate(component, options) {
 		}
 
 		set_hydration(true, /** @type {Comment} */ (anchor));
+		set_hydration_context({ target, data: null });
 
 		const root_boundary = options.rootBoundary;
 		const marker = /** @type {Comment} */ (anchor);
@@ -196,6 +201,7 @@ export function hydrate(component, options) {
 			if ((!ROOT_BOUNDARY || root_boundary === false) && marker.data === HYDRATION_START) {
 				// The root boundary's own hydration walk: consume the `<!--[-->`
 				// marker and render against it, as `try_block` does for the root.
+				collect_hydration_data(marker);
 				hydrate_next();
 				render_component(component, marker, props);
 				return;
@@ -212,6 +218,7 @@ export function hydrate(component, options) {
 		throw e;
 	} finally {
 		set_hydration(was_hydrating, previous_hydrate_node);
+		set_hydration_context(previous_hydration_context);
 		if (!was_hydrating) {
 			track_hash_reference.clear();
 		}

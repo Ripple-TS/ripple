@@ -698,6 +698,11 @@ export class Output {
 	push_serialized_error(str) {
 		var root = this.#root;
 		if (root.#streamOutput !== null && root.#shell_flushed) {
+			var unit = this.#nearest_unflushed_unit();
+			if (unit !== null) {
+				unit.scripts.push(str);
+				return;
+			}
 			// past the shell the root buffer is already on the wire — emit the
 			// envelope directly so it reaches the document before any chunk
 			// whose hydration depends on it
@@ -718,8 +723,8 @@ export class Output {
 		if (root.#streamOutput !== null && !root.#sync_run) {
 			var unit = this.#nearest_unflushed_unit();
 			if (unit !== null) {
-				// ships with the unit's chunk, ahead of the template, so the
-				// boundary can hydrate from it synchronously
+				// ships inside the unit's template so it enters the owning
+				// hydration target along with the boundary's content
 				unit.scripts.push(str);
 				return;
 			}
@@ -1042,8 +1047,15 @@ export class Output {
 		if (chunk.head !== '') {
 			out += '<template ' + STREAM_HEAD_ATTR + '="' + unit.id + '">' + chunk.head + '</template>';
 		}
-		out += chunk.scripts.join('');
-		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
+		out +=
+			'<template ' +
+			STREAM_CHUNK_ATTR +
+			'="' +
+			unit.id +
+			'">' +
+			html +
+			chunk.scripts.join('') +
+			'</template>';
 		out += '<script>__RIPPLE_S__(' + unit.id + ')</script>';
 		return out;
 	}

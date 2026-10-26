@@ -8,6 +8,33 @@ export let hydrating = false;
 /** @type {Node | null} */
 export let hydrate_node = null;
 
+/** @typedef {{ target: HTMLElement, data: DocumentFragment | null }} HydrationContext */
+
+/** @type {HydrationContext | null} */
+export let hydration_context = null;
+
+/** @param {HydrationContext | null} context */
+export function set_hydration_context(context) {
+	hydration_context = context;
+}
+
+/**
+ * Streamed envelopes travel on their boundary marker, outside rendered DOM.
+ * Claim them when that boundary's hydration walk starts.
+ * @param {Node} node
+ */
+export function collect_hydration_data(node) {
+	var data = node.__ripple_async_data;
+	if (data !== undefined && hydration_context !== null) {
+		if (hydration_context.data === null) {
+			hydration_context.data = data;
+		} else {
+			hydration_context.data.appendChild(data);
+		}
+		delete node.__ripple_async_data;
+	}
+}
+
 /**
  * Map of hash -> Tracked/Derived registered during hydration. Allows a
  * hydrating trackAsync to look up its serialized dependencies by hash and

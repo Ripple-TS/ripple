@@ -682,3 +682,32 @@ export function AsyncWithReadOnlyDependency() {
 		});
 	});
 }
+
+export function AsyncRoot(props) {
+	return _$_.tsrx_element(() => {
+		props.before?.();
+
+		const value = _$_.track_async(async () => props.label, '1og8nfo');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			if (value.value) {
+				__out += '<button>';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(value.value);
+				}
+
+				__out += '</button>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}

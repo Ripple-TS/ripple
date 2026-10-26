@@ -72,6 +72,44 @@ function receiveChunk(chunk) {
 	execInlineScripts(chunk);
 }
 
+it.each(['before', 'after'])(
+	'keeps streamed async data in its root when the chunk arrives %s hydration',
+	async (arrival) => {
+		ServerComponents.resetControls();
+		ServerComponents.controls.basic.resolve('other');
+		const { body } = await render(ServerComponents.StreamPending);
+		const { chunks, done } = startStream(ServerComponents.StreamPending);
+		const other = document.createElement('div');
+		other.innerHTML = body;
+		container.before(other);
+		const otherScript = other.querySelector('script[id^="__ripple_ta_"]');
+		mountShell(chunks[0]);
+		let unmount;
+		try {
+			if (arrival === 'after') {
+				unmount = hydrate(ClientComponents.StreamPending, { target: container });
+			}
+			ServerComponents.controls.basic.resolve('data');
+			await done;
+			receiveChunk(chunks[1]);
+			if (arrival === 'before') {
+				unmount = hydrate(ClientComponents.StreamPending, { target: container });
+			}
+			flushSync();
+			expect(container.querySelector('.value')?.textContent).toBe('data:0');
+			expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+			expect(other.querySelector('script[id^="__ripple_ta_"]')).toBe(otherScript);
+			expect(other.querySelector('.value')?.textContent).toBe('other:0');
+			container.querySelector('.inc').click();
+			flushSync();
+			expect(container.querySelector('.value')?.textContent).toBe('data:1');
+		} finally {
+			unmount?.();
+			other.remove();
+		}
+	},
+);
+
 describe('hydration > streamed boundaries (chunk before hydration)', () => {
 	it('hydrates swapped content through the normal resolved path and stays interactive', async () => {
 		const { chunks, done } = startStream(ServerComponents.StreamPending);
