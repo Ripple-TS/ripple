@@ -217,6 +217,21 @@ export function track_async(fn, b, hash) {
 			return;
 		}
 
+		/** @type {AbortController | null} */
+		var current_abort_controller = null;
+		function cleanup() {
+			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
+				current_abort_controller.abort(TRACKED_UPDATED);
+			}
+			if (async_block && is_destroyed(async_block)) {
+				// This also owns requests from computations that suspended while
+				// reading a dependency, before they could return a promise.
+				complete_deferred_boundaries(t);
+				if (request_id > 0) complete_boundary_request(boundary, request_id);
+				request_id = 0;
+			}
+		}
+
 		var current_version = ++version;
 
 		// Abort previous in-flight request
@@ -270,7 +285,7 @@ export function track_async(fn, b, hash) {
 						update_tracked_value_clock(t, SUSPENSE_REJECTED);
 					});
 				}
-				return;
+				return cleanup;
 			}
 			throw e;
 		}
@@ -295,7 +310,7 @@ export function track_async(fn, b, hash) {
 		// Capture per-invocation so async closures (rejection handler, teardown)
 		// have a stable reference. The shared abort_controller is only read
 		// synchronously at the top of the pre_effect to abort the previous request.
-		var current_abort_controller = async_result.abort_controller;
+		current_abort_controller = async_result.abort_controller;
 		abort_controller = current_abort_controller;
 
 		async_result.promise.then(
@@ -344,19 +359,7 @@ export function track_async(fn, b, hash) {
 			},
 		);
 
-		return () => {
-			// Teardown: abort in-flight request when block is destroyed
-			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
-				current_abort_controller.abort(TRACKED_UPDATED);
-			}
-			if (async_block && is_destroyed(async_block)) {
-				// A removed child must release its requests in a surviving parent
-				// boundary, even when its promise never settles or cannot abort.
-				complete_deferred_boundaries(t);
-				if (request_id > 0) complete_boundary_request(boundary, request_id);
-				request_id = 0;
-			}
-		};
+		return cleanup;
 	});
 
 	return t;

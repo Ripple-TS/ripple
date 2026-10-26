@@ -28,6 +28,34 @@ async function settle() {
 }
 
 describe('library-owned tracked values', () => {
+	it.each([false, true])(
+		'expires an unobserved write before later teardown (destroyed owner: %s)',
+		async (destroyedOwner) => {
+			let value = create_library_value(1);
+			if (destroyedOwner) {
+				function Creator() @{
+					value = create_library_value(1);
+					<></>
+				}
+				mountTest(Creator)();
+			}
+			const seen: number[] = [];
+			function Reader() @{
+				effect(() => () => seen.push(value.value));
+				<p>reader</p>
+			}
+			const unmount = mountTest(Reader);
+			// Drain the microtask already queued by mounting, so the write below
+			// cannot borrow an unrelated flush to clear its departing snapshot.
+			await Promise.resolve();
+			expect(Reflect.get(value, 'sb')).toBeNull();
+			value.value = 2;
+			await Promise.resolve();
+			unmount();
+			expect(seen).toEqual([2]);
+		},
+	);
+
 	it('can be created before mount, retain functions, and outlive the creating component', () => {
 		const callback = vi.fn(() => 1);
 		const literal = create_library_value(callback);
@@ -77,6 +105,52 @@ describe('library-owned tracked values', () => {
 });
 
 describe('render observers', () => {
+	it(
+		'releases a removed child whose async computation suspended on another tracked value',
+		async () => {
+			const visible = create_library_value(true);
+			const pending = Promise.withResolvers<string>();
+			const attempted = vi.fn();
+			let observer: RenderObserver;
+			function Child({ source }: { source: Tracked<string> }) @{
+				const data = trackAsync(() => {
+					attempted();
+					return Promise.resolve(source.value + '!');
+				});
+				<p>{data.value}</p>
+			}
+			function App() @{
+				observer = createRenderObserver();
+				@try {
+					const source = trackAsync(() => pending.promise);
+					@if (visible.value) {
+						<Child {source} />
+					} @else {
+						<p>hidden</p>
+					}
+				} @pending {
+					<p>loading</p>
+				}
+			}
+			mountTest(App);
+			await settle();
+			expect(attempted).toHaveBeenCalledTimes(1);
+			expect(container.textContent).toBe('loading');
+			const rendered = observer!.run(() => {
+				visible.value = false;
+			});
+			let completed = false;
+			void rendered.then(() => {
+				completed = true;
+			});
+			pending.resolve('ready');
+			await settle();
+			expect(completed).toBe(true);
+			expect(await rendered).toBe(true);
+			expect(container.textContent).toBe('hidden');
+		},
+	);
+
 	it('does not wait for an unrelated sibling that shares its render block', async () => {
 		const count = create_library_value(0);
 		const pending = Promise.withResolvers<string>();

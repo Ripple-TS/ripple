@@ -1433,6 +1433,9 @@ export function set(tracked, value) {
 		if (tracked_block === null || (tracked_block.f & (CONTAINS_TEARDOWN | DESTROYED)) !== 0) {
 			if (tracked.o === UNINITIALIZED) {
 				old_value_holders.push(tracked);
+				// Teardown-only readers do not subscribe, so this write might not
+				// otherwise schedule the flush that expires its old value.
+				if (flush_depth === 0) queue_microtask();
 			}
 			tracked.o = teardown ? value : old_value;
 		}
