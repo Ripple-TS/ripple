@@ -1,7 +1,70 @@
 import type { PropsWithChildren, Tracked } from 'ripple';
-import { effect, flushSync, track, untrack } from 'ripple';
+import { effect, flushSync, mount, track, untrack } from 'ripple';
 
 describe('basic client > reactivity', () => {
+	it('does not reuse an effect cleanup after a run without one', () => {
+		const events: string[] = [];
+
+		function App() @{
+			const enabled = track(true);
+
+			effect(() => {
+				if (!enabled.value) return;
+				events.push('open');
+				return () => {
+					events.push('close');
+				};
+			});
+
+			<button onClick={() => (enabled.value = !enabled.value)}>Toggle</button>
+		}
+
+		const dispose = mount(App, { target: container });
+		flushSync();
+		expect(events).toEqual(['open']);
+
+		const button = container.querySelector('button');
+		button.click();
+		flushSync();
+		expect(events).toEqual(['open', 'close']);
+
+		button.click();
+		flushSync();
+		expect(events).toEqual(['open', 'close', 'open']);
+
+		dispose();
+		expect(events).toEqual(['open', 'close', 'open', 'close']);
+	});
+
+	it('does not reuse an effect cleanup when unmounting after a run without one', () => {
+		const events: string[] = [];
+
+		function App() @{
+			const enabled = track(true);
+
+			effect(() => {
+				if (!enabled.value) return;
+				events.push('open');
+				return () => {
+					events.push('close');
+				};
+			});
+
+			<button onClick={() => (enabled.value = false)}>Disable</button>
+		}
+
+		const dispose = mount(App, { target: container });
+		flushSync();
+		expect(events).toEqual(['open']);
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(events).toEqual(['open', 'close']);
+
+		dispose();
+		expect(events).toEqual(['open', 'close']);
+	});
+
 	it(
 		'keeps the previous value for teardowns after an effect calls flushSync mid-flush',
 		async () => {
