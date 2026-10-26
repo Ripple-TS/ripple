@@ -934,7 +934,7 @@ export class Output {
 		// Units settling in the same macrotask (data arriving together, a
 		// batch of promises resolved by one timer or I/O callback) travel in
 		// one chunk: the flush runs once the current task's microtasks have
-		// drained. Closing the stream flushes whatever is still queued first.
+		// drained. Finishing the render flushes whatever is still queued first.
 		this.#flush_scheduled = true;
 		defer(() => this.#flush_settled());
 	}
@@ -1110,20 +1110,27 @@ export class Output {
 		throw new Error('_startStream() is an internal method.');
 	}
 
-	_closeStream() {
+	/**
+	 * Flushes the final chunks before render resolves, even when the caller
+	 * keeps the sink open for further writes.
+	 * @param {boolean | undefined} close
+	 */
+	_finishStream(close) {
 		if (this.#is_root) {
 			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
 				this.#sweep_units();
 				this.#stream_finished = true;
-				if (this.#stream_template !== null && this.#stream_template.after !== '') {
-					this.#streamOutput.push(this.#stream_template.after);
+				if (close) {
+					if (this.#stream_template !== null && this.#stream_template.after !== '') {
+						this.#streamOutput.push(this.#stream_template.after);
+					}
+					this.#streamOutput.close();
 				}
-				this.#streamOutput.close();
 			}
 			return;
 		}
 
-		throw new Error('_closeStream() is an internal method.');
+		throw new Error('_finishStream() is an internal method.');
 	}
 
 	/**
@@ -1235,8 +1242,8 @@ export async function render(component, options = {}) {
 	await output.promise;
 	reset_state();
 
-	if (output.isStreamMode() && ('closeStream' in options ? options.closeStream : true)) {
-		output._closeStream();
+	if (output.isStreamMode()) {
+		output._finishStream('closeStream' in options ? options.closeStream : true);
 	}
 
 	if (!output.isStreamMode()) {

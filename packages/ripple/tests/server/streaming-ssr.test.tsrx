@@ -151,6 +151,43 @@ describe('createStream', () => {
 		expect(terminal_read.done).toBe(true);
 	});
 
+	it(
+		'flushes settled boundaries before resolving while leaving the public stream open',
+		async () => {
+			const d = deferred<string>();
+
+			function Content() @{
+				const data = trackAsync(() => d.promise);
+				<span>{data.value}</span>
+			}
+
+			function App() @{
+				@try {
+					<Content />
+				} @pending {
+					<b>{'waiting'}</b>
+				}
+			}
+
+			const { stream, sink } = createStream();
+			const text = new Response(stream).text();
+			const result = render(App, { stream: sink, closeStream: false });
+
+			d.resolve('settled-content');
+			await result;
+			sink.push('<footer>custom suffix</footer>');
+			sink.close();
+
+			const html = await text;
+			expect(html).toContain('<b>waiting</b>');
+			expect(html).toContain('<template data-ripple-chunk=');
+			expect(normalize(applyStream([html]))).toBeHtml(
+				'<span>settled-content</span><footer>custom suffix</footer>',
+			);
+			expect(html.endsWith('<footer>custom suffix</footer>')).toBe(true);
+		},
+	);
+
 	it('does not emit the swap runtime for fully synchronous output', async () => {
 		function App() @{
 			<div>{'all sync'}</div>
@@ -167,7 +204,9 @@ describe('createStream', () => {
 });
 
 describe('streaming try/pending boundaries', () => {
-	it('streams the shell with the fallback, then the settled body as a framed chunk', async () => {
+	it.each([true, false])('streams the shell and settled body with closeStream=%s', async (
+		closeStream,
+	) => {
 		const d = deferred<string>();
 
 		function Content() @{
@@ -190,7 +229,7 @@ describe('streaming try/pending boundaries', () => {
 		}
 
 		const { chunks, sink, isClosed } = recordingSink();
-		const result = render(App, { stream: sink });
+		const result = render(App, { stream: sink, closeStream });
 
 		// the shell is flushed synchronously, before any async work settles
 		expect(chunks).toHaveLength(1);
@@ -206,7 +245,7 @@ describe('streaming try/pending boundaries', () => {
 		d.resolve('async-data');
 		await result;
 
-		expect(isClosed()).toBe(true);
+		expect(isClosed()).toBe(closeStream);
 		expect(chunks).toHaveLength(2);
 
 		const slot_match = shell.match(SLOT_OPEN_RE);
@@ -223,6 +262,8 @@ describe('streaming try/pending boundaries', () => {
 		expect(chunk).toMatch(
 			/<script id="__ripple_ta_[^"]+" type="application\/json">[\s\S]*?<\/script>[\s\S]*<template data-ripple-chunk/,
 		);
+		await flushed();
+		expect(chunks).toHaveLength(2);
 	});
 
 	it('emits an empty slot for a catch-only boundary with an async body', async () => {
@@ -257,7 +298,9 @@ describe('streaming try/pending boundaries', () => {
 		expect(chunk).not.toContain('failed');
 	});
 
-	it('streams the server-rendered catch into the slot when the async body rejects', async () => {
+	it.each([true, false])('streams the server-rendered catch with closeStream=%s', async (
+		closeStream,
+	) => {
 		const d = deferred<string>();
 
 		function Content() @{
@@ -275,12 +318,13 @@ describe('streaming try/pending boundaries', () => {
 			}
 		}
 
-		const { chunks, sink } = recordingSink();
-		const result = render(App, { stream: sink });
+		const { chunks, sink, isClosed } = recordingSink();
+		const result = render(App, { stream: sink, closeStream });
 
 		d.reject(new Error('boom'));
 		await result;
 
+		expect(isClosed()).toBe(closeStream);
 		const all = chunks.join('');
 		const chunk = chunks[chunks.length - 1];
 		expect(chunk).toContain('<em><!--[-->boom<!--]--></em>');
@@ -571,7 +615,9 @@ describe('streaming root boundary', () => {
 });
 
 describe('streaming with a document template', () => {
-	it('wraps the shell in the scaffold and appends the suffix on close', async () => {
+	it.each([true, false])('wraps the shell in the scaffold with closeStream=%s', async (
+		closeStream,
+	) => {
 		const d = deferred<string>();
 
 		function Content() @{
@@ -590,6 +636,7 @@ describe('streaming with a document template', () => {
 		const { chunks, sink, isClosed } = recordingSink();
 		const result = render(App, {
 			stream: sink,
+			closeStream,
 			streamTemplate: {
 				before: '<html><head><title>t</title>',
 				between: '</head><body><div id="root">',
@@ -607,10 +654,15 @@ describe('streaming with a document template', () => {
 		d.resolve('done');
 		await result;
 
-		expect(isClosed()).toBe(true);
+		expect(isClosed()).toBe(closeStream);
+		expect(chunks).toHaveLength(closeStream ? 3 : 2);
+		expect(chunks[1]).toContain('<p><!--[-->done<!--]--></p>');
 		// the suffix is the final push, after the last chunk
-		expect(chunks[chunks.length - 1]).toBe('</div></body></html>');
-		expect(chunks[chunks.length - 2]).toContain('<p><!--[-->done<!--]--></p>');
+		if (closeStream) {
+			expect(chunks[2]).toBe('</div></body></html>');
+		} else {
+			expect(chunks.join('')).not.toContain('</html>');
+		}
 	});
 });
 
