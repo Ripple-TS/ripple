@@ -1,5 +1,6 @@
 import { is_void_element } from '@tsrx/core/runtime/html';
 import {
+	content_editable,
 	escape,
 	get,
 	is_tsrx_element,
@@ -42,14 +43,15 @@ function render_element(tag, props) {
 		return;
 	}
 
-	output_push('>');
-
-	const inner_html = spread_inner_html(props);
-	if (inner_html !== undefined) {
-		output_push(inner_html);
-	} else {
-		render_child(props.children);
-	}
+	// The helper closes the opening tag after adding any hydration snapshot.
+	content_editable(() => {
+		const inner_html = spread_inner_html(props);
+		if (inner_html !== undefined) {
+			output_push(inner_html);
+		} else {
+			render_child(props.children);
+		}
+	}, props.contenteditable ?? props.contentEditable);
 
 	output_push(`</${tag}>`);
 }

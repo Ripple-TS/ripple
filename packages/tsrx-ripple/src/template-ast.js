@@ -18,6 +18,26 @@ const b = builders;
 
 export { is_template_directive };
 
+/** @param {AST.TSRXJSXElement} node */
+export function may_be_content_editable(node) {
+	return get_element_attributes(node).some((attribute) =>
+		attribute.type === 'JSXSpreadAttribute'
+			? attribute.argument.type !== 'ObjectExpression' ||
+				attribute.argument.properties.some(
+					(property) =>
+						property.type === 'SpreadElement' ||
+						property.computed ||
+						(property.key.type === 'Identifier'
+							? property.key.name
+							: property.key.type === 'Literal'
+								? String(property.key.value)
+								: ''
+						).toLowerCase() === 'contenteditable',
+				)
+			: ['contenteditable', 'ref'].includes(get_attribute_name(attribute).toLowerCase()),
+	);
+}
+
 /**
  * @param {string} value
  * @returns {string}

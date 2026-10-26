@@ -579,6 +579,12 @@ export function App() @{
 
 ## Content Editable Bindings
 
+During hydration, these bindings adopt edits made before the client starts,
+including cleared content. The edited DOM subtree and its text selection are
+preserved instead of hydrating its original template children. Untouched editors
+initialize from the bound model as usual; subsequent input and model updates stay
+synchronized.
+
 ### bindInnerHTML
 
 Binds to an element's innerHTML property, useful for rich text editors.

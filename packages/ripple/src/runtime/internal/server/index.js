@@ -86,6 +86,7 @@ import {
 	component_block,
 	get_closest_catch_block,
 	get_closest_try_block,
+	regular_block,
 	try_block,
 } from './blocks.js';
 import { COMPONENT_BLOCK, ROOT_BLOCK, TRY_BLOCK } from './constants.js';
@@ -96,6 +97,75 @@ export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { is_tsrx_element, tsrx_element, normalize_children };
 export { create_ref_prop };
+
+/** @type {WeakSet<NestedArray<string>> | undefined} */
+var editable_outputs;
+/** @type {WeakMap<Block, boolean> | undefined} */
+var editable_contexts;
+
+function inherited_editable() {
+	if (editable_contexts !== undefined) {
+		for (var parent = active_block; parent !== null; parent = parent.p) {
+			var context = editable_contexts.get(parent);
+			if (context !== undefined) return context;
+		}
+	}
+	return false;
+}
+
+/** @param {unknown} editable */
+function is_editable(editable) {
+	if (is_ripple_object(editable)) editable = get(editable);
+	if (typeof editable === 'string') editable = editable.toLowerCase();
+	if (editable === true || editable === '' || editable === 'true' || editable === 'plaintext-only')
+		return true;
+	if (editable === false || editable === 'false') return false;
+	return inherited_editable();
+}
+
+/**
+ * Fast path for empty, static, and innerHTML bodies: there is no child output
+ * tree or async work to retain, so the snapshot can be written immediately.
+ * @param {string} content
+ * @param {unknown} editable
+ */
+export function content_editable_html(content, editable) {
+	return is_editable(editable) ? editable_snapshot(content) : '>' + content;
+}
+
+/** @param {string} content */
+function editable_snapshot(content) {
+	return ' data-ripple-content="' + escape(content, true) + '">' + content;
+}
+
+/**
+ * The opener is still missing its closing `>`. Defer the snapshot until output
+ * serialization so async children and streamed fallbacks match the HTML sent.
+ * @param {() => void} render
+ * @param {unknown} editable
+ */
+export function content_editable(render, editable) {
+	var enabled = is_editable(editable);
+	if (!enabled && !inherited_editable()) {
+		output_push('>');
+		render();
+		return;
+	}
+	var block = regular_block(() => {
+		(editable_contexts ??= new WeakMap()).set(/** @type {Block} */ (active_block), enabled);
+		if (!enabled) output_push('>');
+		render();
+	});
+	if (enabled) (editable_outputs ??= new WeakSet()).add(block.o.body);
+}
+
+/**
+ * @param {NestedArray<string>} tree
+ * @param {string} content
+ */
+function with_editable_snapshot(tree, content) {
+	return editable_outputs?.has(tree) ? editable_snapshot(content) : content;
+}
 
 /** @extends Error */
 export class TrackAsyncRunError extends Error {
@@ -876,7 +946,7 @@ export class Output {
 			}
 			out += this.#serialize(item, chunk);
 		}
-		return out;
+		return with_editable_snapshot(tree, out);
 	}
 
 	/**
@@ -1175,7 +1245,7 @@ function flatten_buffer(tree) {
 		var item = tree[i];
 		out += typeof item === 'string' ? item : flatten_buffer(item);
 	}
-	return out;
+	return with_editable_snapshot(tree, out);
 }
 
 /**

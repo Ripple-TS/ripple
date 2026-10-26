@@ -236,31 +236,33 @@ function Select_render(
 		_$_.ref(select, () => _$_.with_scope(__block, () => binding(bindValue, value, accessors)));
 
 		{
-			var option = _$_.hydrating ? _$_.hydrate_child() : select.firstChild;
+			if (!_$_.hydrating || !_$_.content_editable_changed(select)) {
+				var option = _$_.hydrating ? _$_.hydrate_child() : select.firstChild;
 
-			_$_.set_value(option, 0);
+				_$_.set_value(option, 0);
 
-			var optgroup = _$_.hydrating ? _$_.hydrate_sibling() : option.nextSibling;
+				var optgroup = _$_.hydrating ? _$_.hydrate_sibling() : option.nextSibling;
 
-			{
-				var option_1 = _$_.hydrating ? _$_.hydrate_child() : optgroup.firstChild;
+				{
+					var option_1 = _$_.hydrating ? _$_.hydrate_child() : optgroup.firstChild;
 
-				_$_.set_value(option_1, -1);
+					_$_.set_value(option_1, -1);
+				}
+
+				_$_.hydrating && _$_.pop(optgroup);
+
+				var option_2 = _$_.hydrating ? _$_.hydrate_sibling() : optgroup.nextSibling;
+
+				_$_.set_value(option_2, 1);
+
+				var option_3 = _$_.hydrating ? _$_.hydrate_sibling() : option_2.nextSibling;
+
+				_$_.set_value(option_3, 2);
+
+				var option_4 = _$_.hydrating ? _$_.hydrate_sibling() : option_3.nextSibling;
+
+				_$_.set_value(option_4, 3);
 			}
-
-			_$_.hydrating && _$_.pop(optgroup);
-
-			var option_2 = _$_.hydrating ? _$_.hydrate_sibling() : optgroup.nextSibling;
-
-			_$_.set_value(option_2, 1);
-
-			var option_3 = _$_.hydrating ? _$_.hydrate_sibling() : option_2.nextSibling;
-
-			_$_.set_value(option_3, 2);
-
-			var option_4 = _$_.hydrating ? _$_.hydrate_sibling() : option_3.nextSibling;
-
-			_$_.set_value(option_4, 3);
 		}
 
 		_$_.hydrating && _$_.pop(select);
@@ -296,17 +298,19 @@ function SeededSelect_render(__anchor, __block, { initial = 'b', accessors = fal
 		_$_.ref(select_1, () => _$_.with_scope(__block, () => binding(bindValue, value, accessors)));
 
 		{
-			var option_5 = _$_.hydrating ? _$_.hydrate_child() : select_1.firstChild;
+			if (!_$_.hydrating || !_$_.content_editable_changed(select_1)) {
+				var option_5 = _$_.hydrating ? _$_.hydrate_child() : select_1.firstChild;
 
-			_$_.set_value(option_5, "a");
+				_$_.set_value(option_5, "a");
 
-			var option_6 = _$_.hydrating ? _$_.hydrate_sibling() : option_5.nextSibling;
+				var option_6 = _$_.hydrating ? _$_.hydrate_sibling() : option_5.nextSibling;
 
-			_$_.set_value(option_6, "b");
+				_$_.set_value(option_6, "b");
 
-			var option_7 = _$_.hydrating ? _$_.hydrate_sibling() : option_6.nextSibling;
+				var option_7 = _$_.hydrating ? _$_.hydrate_sibling() : option_6.nextSibling;
 
-			_$_.set_value(option_7, "c");
+				_$_.set_value(option_7, "c");
+			}
 		}
 
 		_$_.hydrating && _$_.pop(select_1);
@@ -346,17 +350,19 @@ function MultiSelect_render(
 		_$_.ref(select_2, () => _$_.with_scope(__block, () => binding(bindValue, value, accessors)));
 
 		{
-			var option_8 = _$_.hydrating ? _$_.hydrate_child() : select_2.firstChild;
+			if (!_$_.hydrating || !_$_.content_editable_changed(select_2)) {
+				var option_8 = _$_.hydrating ? _$_.hydrate_child() : select_2.firstChild;
 
-			_$_.set_value(option_8, "a");
+				_$_.set_value(option_8, "a");
 
-			var option_9 = _$_.hydrating ? _$_.hydrate_sibling() : option_8.nextSibling;
+				var option_9 = _$_.hydrating ? _$_.hydrate_sibling() : option_8.nextSibling;
 
-			_$_.set_value(option_9, "b");
+				_$_.set_value(option_9, "b");
 
-			var option_10 = _$_.hydrating ? _$_.hydrate_sibling() : option_9.nextSibling;
+				var option_10 = _$_.hydrating ? _$_.hydrate_sibling() : option_9.nextSibling;
 
-			_$_.set_value(option_10, "c");
+				_$_.set_value(option_10, "c");
+			}
 		}
 
 		_$_.hydrating && _$_.pop(select_2);

@@ -1,0 +1,42 @@
+import { hydrating } from './hydration.js';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+
+/** @type {WeakMap<Element, string> | undefined} */
+var defaults;
+/** @type {Document | undefined} */
+var inert_document;
+
+/**
+ * Compare against the server body after the browser has normalized its markup.
+ * Keep the snapshot attribute in place: nested editors may still need it.
+ * @param {Element} element
+ * @returns {boolean}
+ */
+export function content_editable_changed(element) {
+	var source = element.getAttribute('data-ripple-content');
+	if (source === null) return false;
+	var current = element.innerHTML;
+	if (source === '' || source === current) return source !== current;
+
+	var original = defaults?.get(element);
+	if (original === undefined) {
+		// An inert document avoids upgrading custom elements or loading resources
+		// a second time while normalizing a rich-text snapshot.
+		inert_document ??= element.ownerDocument.implementation.createHTMLDocument();
+		var template = inert_document.createElementNS(element.namespaceURI, element.localName);
+		template.innerHTML = source;
+		original = template.innerHTML;
+		(defaults ??= new WeakMap()).set(element, original);
+	}
+	return current !== original;
+}
+
+/**
+ * @param {Element} element
+ * @param {any} value
+ */
+export function set_inner_html(element, value) {
+	if (HYDRATION && hydrating && content_editable_changed(element)) return;
+	var html = value == null ? '' : String(value);
+	if (element.innerHTML !== html) element.innerHTML = html;
+}

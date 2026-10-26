@@ -30,7 +30,7 @@ export function DynamicType({ type, nonce, onRef }) {
 		_$_.output_push(__out);
 		__out = '';
 		_$_.set_output_target('head');
-		__out += '<!--4ddff2d1--><script' + _$_.attr('type', type, false) + ' id="dynamic-script"' + _$_.attr('nonce', nonce, false) + '>\n			window.__ripple_dynamic_script_runs = (window.__ripple_dynamic_script_runs || 0) + 1;\n		</script>';
+		__out += '<!--4ddff2d1--><script' + _$_.attr('type', type, false) + ' id="dynamic-script"' + _$_.attr('nonce', nonce, false) + _$_.content_editable_html('\n			window.__ripple_dynamic_script_runs = (window.__ripple_dynamic_script_runs || 0) + 1;\n		', void 0) + '</script>';
 		_$_.output_push(__out);
 		__out = '';
 		_$_.set_output_target(null);
@@ -49,15 +49,28 @@ export function SpreadAttributes({ attrs }) {
 
 		const spread_attrs = { ...attrs };
 
-		__out += _$_.spread_attrs(spread_attrs) + '>\n			window.__ripple_dynamic_script_runs = (window.__ripple_dynamic_script_runs || 0) + 1;\n		';
+		__out += _$_.spread_attrs(spread_attrs);
 		_$_.output_push(__out);
 		__out = '';
 
-		const spread_inner_html = _$_.spread_inner_html(spread_attrs);
+		_$_.content_editable(
+			() => {
+				let __out = '';
 
-		if (spread_inner_html !== void 0) {
-			__out += spread_inner_html;
-		}
+				__out += '\n			window.__ripple_dynamic_script_runs = (window.__ripple_dynamic_script_runs || 0) + 1;\n		';
+				_$_.output_push(__out);
+				__out = '';
+
+				const spread_inner_html = _$_.spread_inner_html(spread_attrs);
+
+				if (spread_inner_html !== void 0) {
+					__out += spread_inner_html;
+				}
+
+				_$_.output_push(__out);
+			},
+			spread_attrs.contenteditable ?? spread_attrs.contentEditable
+		);
 
 		__out += '</script>';
 		_$_.output_push(__out);

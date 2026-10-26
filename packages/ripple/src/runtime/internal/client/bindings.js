@@ -11,6 +11,7 @@ import { get, set, untrack } from './runtime.js';
 import { is_ripple_object } from './utils.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+import { content_editable_changed } from './content-editable.js';
 
 /**
  * @param {string} name
@@ -723,6 +724,10 @@ export function bind_content_editable(maybe_tracked, property, set_func = undefi
 		var clear_event = on(element, 'input', () => {
 			setter(element[property]);
 		});
+
+		if (HYDRATION && hydrating_ref && content_editable_changed(element)) {
+			untrack(() => setter(element[property]));
+		}
 
 		render(() => {
 			var value = getter();

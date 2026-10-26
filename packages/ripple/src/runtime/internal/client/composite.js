@@ -14,6 +14,7 @@ import { append } from './template.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+import { content_editable_changed } from './content-editable.js';
 
 /**
  * @typedef {Function | string | null | undefined | false} CompositeTarget
@@ -110,7 +111,10 @@ function run_composite(state) {
 	// same read.
 	var spread_state = (state.s = spread(element, state.p(), undefined));
 	var props = /** @type {Record<string, any>} */ (spread_state.n);
-	if (is_tsrx_element(props.children)) {
+	if (
+		is_tsrx_element(props.children) &&
+		!(HYDRATION && hydrating && content_editable_changed(element))
+	) {
 		/** @type {Node} */
 		var child_anchor;
 		if (HYDRATION && hydrating) {

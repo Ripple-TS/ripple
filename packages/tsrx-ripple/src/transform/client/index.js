@@ -150,6 +150,7 @@ import {
 	get_element_attributes,
 	get_element_id,
 	get_element_identifier,
+	may_be_content_editable,
 	get_style_css,
 	get_template_expression,
 	get_template_text_value,
@@ -3915,6 +3916,8 @@ const visitors = {
 			// when an imported theme's `$class` is part of it.
 			const scope_class = build_scope_class_expression(get_scope_class_chain(node));
 			const inner_html_attribute = get_inner_html_attribute(node);
+			const editable =
+				state.hydration && !is_void && element_name !== 'textarea' && may_be_content_editable(node);
 
 			if (element_name === 'script' && !is_data_script(node)) {
 				// Parsed template scripts are inert. Prepare a fresh element before
@@ -3949,14 +3952,23 @@ const visitors = {
 								local_updates.push({
 									operation: (key) =>
 										b.stmt(
-											b.assignment(
-												'=',
-												b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-												normalize_inner_html_expression(
-													/** @type {AST.Expression} */ (key),
-													/** @type {AST.Identifier} */ (id),
-												),
-											),
+											editable
+												? b.call(
+														'_$_.set_inner_html',
+														id,
+														normalize_inner_html_expression(
+															/** @type {AST.Expression} */ (key),
+															/** @type {AST.Identifier} */ (id),
+														),
+													)
+												: b.assignment(
+														'=',
+														b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+														normalize_inner_html_expression(
+															/** @type {AST.Expression} */ (key),
+															/** @type {AST.Identifier} */ (id),
+														),
+													),
 										),
 									expression,
 									identity: attr_value ?? b.literal(''),
@@ -3965,14 +3977,23 @@ const visitors = {
 							} else {
 								state.init?.push(
 									b.stmt(
-										b.assignment(
-											'=',
-											b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-											normalize_inner_html_expression(
-												expression,
-												/** @type {AST.Identifier} */ (id),
-											),
-										),
+										editable
+											? b.call(
+													'_$_.set_inner_html',
+													id,
+													normalize_inner_html_expression(
+														expression,
+														/** @type {AST.Identifier} */ (id),
+													),
+												)
+											: b.assignment(
+													'=',
+													b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+													normalize_inner_html_expression(
+														expression,
+														/** @type {AST.Identifier} */ (id),
+													),
+												),
 									),
 								);
 							}
@@ -4470,6 +4491,32 @@ const visitors = {
 						init.push(b.stmt(b.logical('&&', b.id('_$_.hydrating'), b.call('_$_.pop', id))));
 					}
 				}
+			}
+
+			if (
+				editable &&
+				state.hydration &&
+				element_attributes.some(
+					(attr) => attr.type === 'JSXSpreadAttribute' || get_attribute_name(attr) === 'ref',
+				) &&
+				(init.length > 0 || update.length > 0)
+			) {
+				// A bound editor owns edited children. Hydrating their old template
+				// would overwrite text or traverse nodes the user has removed.
+				if (update.length > 0) apply_updates(init, update, state);
+				update.length = 0;
+				const id = state.flush_node?.();
+				const content = init.splice(0);
+				init.push(
+					b.if(
+						b.logical(
+							'||',
+							b.unary('!', b.id('_$_.hydrating')),
+							b.unary('!', b.call('_$_.content_editable_changed', id)),
+						),
+						b.block(content),
+					),
+				);
 			}
 
 			update.push(...local_updates);

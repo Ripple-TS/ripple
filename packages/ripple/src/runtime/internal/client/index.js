@@ -129,6 +129,7 @@ export { head } from './head.js';
 export { script } from './script.js';
 
 export { html } from './html.js';
+export { content_editable_changed, set_inner_html } from './content-editable.js';
 
 export { expression } from './expression.js';
 

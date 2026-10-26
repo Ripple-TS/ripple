@@ -89,6 +89,7 @@ import {
 	get_element_attributes,
 	get_element_id,
 	get_element_identifier,
+	may_be_content_editable,
 	get_template_text_value,
 	is_droppable_template_text,
 	is_empty_expression_container,
@@ -939,6 +940,30 @@ function push_inner_html_expression(expression, state) {
 			),
 		),
 	);
+}
+
+/**
+ * Recognize bodies whose output is already one string, without adding a child
+ * render block. This includes the empty body used by ref-only bindings.
+ * @param {AST.Statement[]} statements
+ * @returns {AST.Expression | null}
+ */
+function editable_body_expression(statements) {
+	if (statements.length === 0) return b.literal('');
+	if (statements.length === 1) {
+		const statement = statements[0];
+		if (statement.type === 'BlockStatement') return editable_body_expression(statement.body);
+		if (
+			statement.type === 'ExpressionStatement' &&
+			statement.expression.type === 'CallExpression'
+		) {
+			const call = statement.expression;
+			if (call.callee.type === 'Identifier' && call.callee.name === '_$_.output_push') {
+				return /** @type {AST.Expression} */ (call.arguments[0]);
+			}
+		}
+	}
+	return null;
 }
 
 /**
@@ -2218,6 +2243,9 @@ const visitors = {
 		if (is_dom_element) {
 			const is_void = is_void_element(/** @type {AST.Identifier} */ (element_id).name);
 			const is_textarea = /** @type {AST.Identifier} */ (element_id).name === 'textarea';
+			const editable = !is_void && !is_textarea && may_be_content_editable(node);
+			/** @type {AST.Expression} */
+			let editable_value = b.void0;
 			const use_self_closing_syntax = is_self_closing(node) && is_void;
 			const tag_name = b.literal(/** @type {AST.Identifier} */ (element_id).name);
 			// The scope hashes and applied theme classes the style pre-pass
@@ -2274,6 +2302,24 @@ const visitors = {
 					{
 						const name = get_attribute_name(attr);
 						const attr_value = get_attribute_value(attr);
+
+						if (editable && !is_spreading && name.toLowerCase() === 'contenteditable') {
+							const expression =
+								attr_value === null ? b.true : get_attribute_value_expression(attr, context);
+							if (expression.type === 'Literal') {
+								editable_value = expression;
+								handle_static_attr(name, expression.value);
+							} else {
+								editable_value = b.id(state.scope.generate('editable'));
+								state.init?.push(b.const(editable_value, expression));
+								state.init?.push(
+									b.stmt(
+										b.call('_$_.output_push', b.call('_$_.attr', b.literal(name), editable_value)),
+									),
+								);
+							}
+							continue;
+						}
 
 						if (is_textarea && name === 'value') {
 							const expression =
@@ -2424,9 +2470,11 @@ const visitors = {
 				);
 			}
 
-			state.init?.push(
-				b.stmt(b.call(b.id('_$_.output_push'), b.literal(use_self_closing_syntax ? ' />' : '>'))),
-			);
+			if (!editable) {
+				state.init?.push(
+					b.stmt(b.call(b.id('_$_.output_push'), b.literal(use_self_closing_syntax ? ' />' : '>'))),
+				);
+			}
 			if (is_textarea) {
 				// HTML parsing discards the first newline after <textarea>. Supply
 				// that newline so a leading newline in the actual value survives.
@@ -2456,6 +2504,7 @@ const visitors = {
 			// `_$_.script` injection. The parser also mirrors the body as a JSXText
 			// child for generic consumers; skip it here so the body isn't emitted twice
 			// (and never HTML-escaped).
+			const content_start = state.init?.length ?? 0;
 			const script_content = /** @type {AST.TSRXJSXElement} */ (node).content;
 			const has_raw_script_content =
 				element_id.type === 'Identifier' &&
@@ -2534,6 +2583,37 @@ const visitors = {
 
 					if (init.length > 0) {
 						state.init?.push(b.block(init));
+					}
+				}
+
+				if (editable && state.init) {
+					if (spread_attributes_id !== null) {
+						editable_value = b.logical(
+							'??',
+							b.member(spread_attributes_id, 'contenteditable'),
+							b.member(spread_attributes_id, 'contentEditable'),
+						);
+					}
+					const content = state.init.splice(content_start);
+					const body = editable_body_expression(content);
+					if (body !== null) {
+						const known =
+							editable_value.type === 'Literal' &&
+							(editable_value.value === true ||
+								editable_value.value === '' ||
+								(typeof editable_value.value === 'string' &&
+									['true', 'plaintext-only'].includes(editable_value.value.toLowerCase())));
+						const output =
+							known && body.type === 'Literal'
+								? b.literal(
+										` data-ripple-content="${escape_html(String(body.value), true)}">${String(body.value)}`,
+									)
+								: b.call('_$_.content_editable_html', body, editable_value);
+						state.init.push(b.stmt(b.call('_$_.output_push', output)));
+					} else {
+						state.init.push(
+							b.stmt(b.call('_$_.content_editable', b.thunk(b.block(content)), editable_value)),
+						);
 					}
 				}
 

@@ -14,6 +14,7 @@ import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime
 import { get } from './runtime.js';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 import { set_class_value, set_value } from './render.js';
+import { set_inner_html } from './content-editable.js';
 
 /**
  * Dynamic attributes, styles and spreads. Apart from `render.js`, so that an
@@ -137,7 +138,7 @@ function set_attribute_helper(element, key, value, state) {
 		set_value(/** @type {HTMLTextAreaElement} */ (element), value);
 	} else if (key === 'innerHTML') {
 		element.removeAttribute('innerhtml');
-		/** @type {HTMLElement} */ (element).innerHTML = value == null ? '' : String(value);
+		set_inner_html(element, value);
 	} else if (key === 'style') {
 		set_style(element, value, state.p.style);
 	} else if (key === '#class') {

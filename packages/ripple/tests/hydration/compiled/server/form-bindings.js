@@ -139,7 +139,21 @@ export function Select({ initial = 2, size = 0, accessors = false }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><select' + _$_.attr('size', size, false) + '><option disabled value="0">Disabled</option><optgroup disabled label="Disabled group"><option' + _$_.attr('value', -1, false) + '>Disabled child</option></optgroup><option value="1">One</option><option value="2">Two</option><option value="3">Three</option></select><output>';
+			__out += '<div><select' + _$_.attr('size', size, false);
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.content_editable(
+				() => {
+					let __out = '';
+
+					__out += '<option disabled value="0">Disabled</option><optgroup disabled label="Disabled group"><option' + _$_.attr('value', -1, false) + '>Disabled child</option></optgroup><option value="1">One</option><option value="2">Two</option><option value="3">Three</option>';
+					_$_.output_push(__out);
+				},
+				void 0
+			);
+
+			__out += '</select><output>';
 
 			{
 				_$_.output_push(__out);
@@ -160,7 +174,21 @@ export function SeededSelect({ initial = 'b', accessors = false }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><select><option value="a">A</option><option selected value="b">B</option><option value="c">C</option></select><output>';
+			__out += '<div><select';
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.content_editable(
+				() => {
+					let __out = '';
+
+					__out += '<option value="a">A</option><option selected value="b">B</option><option value="c">C</option>';
+					_$_.output_push(__out);
+				},
+				void 0
+			);
+
+			__out += '</select><output>';
 
 			{
 				_$_.output_push(__out);
@@ -181,7 +209,21 @@ export function MultiSelect({ initial = ['a', 'c'], accessors = false }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><select multiple><option selected value="a">A</option><option value="b">B</option><option selected value="c">C</option></select><output>';
+			__out += '<div><select multiple';
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.content_editable(
+				() => {
+					let __out = '';
+
+					__out += '<option selected value="a">A</option><option value="b">B</option><option selected value="c">C</option>';
+					_$_.output_push(__out);
+				},
+				void 0
+			);
+
+			__out += '</select><output>';
 
 			{
 				_$_.output_push(__out);
