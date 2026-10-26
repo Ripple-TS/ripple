@@ -3,6 +3,13 @@
 Ripple's compiler target for the published `@tsrx/core` language infrastructure.
 Use `compile(source, filename, options)` to produce client or server JavaScript.
 
+## TypeScript enums
+
+Runtime `enum` and `const enum` declarations in `.tsrx` files are not supported
+and produce a compiler diagnostic. Move the enum to a `.ts` module and import it,
+or use an object with `as const` instead. Ambient `declare enum` declarations are
+preserved for type checking and erased from JavaScript output.
+
 ## Script elements
 
 Scripts with a literal data MIME type, such as `type="application/json"` or

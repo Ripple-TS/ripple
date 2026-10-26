@@ -5008,6 +5008,13 @@ const visitors = {
 		return context.next();
 	},
 
+	TSEnumDeclaration(node, context) {
+		if (!context.state.to_ts && node.declare) {
+			return b.empty;
+		}
+		return context.next();
+	},
+
 	ExportNamedDeclaration(node, context) {
 		if (!context.state.to_ts && node.exportKind === 'type') {
 			return b.empty;

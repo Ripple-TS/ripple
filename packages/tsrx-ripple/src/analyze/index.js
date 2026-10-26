@@ -1244,6 +1244,22 @@ const visitors = {
 		return context.next({ ...context.state, function_depth: 0 });
 	},
 
+	TSEnumDeclaration(node, context) {
+		const ambient =
+			node.declare ||
+			context.path.some((ancestor) => ancestor.type === 'TSModuleDeclaration' && ancestor.declare);
+		if (!ambient) {
+			error(
+				'Ripple does not support runtime TypeScript enums in .tsrx files. Move the enum to a .ts module and import it, or use an object with `as const` instead.',
+				context.state.analysis.module.filename,
+				node.id,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+		return context.next();
+	},
+
 	TSModuleDeclaration(node, context) {
 		if (!is_submodule_declaration(node, context.path)) {
 			return context.next();

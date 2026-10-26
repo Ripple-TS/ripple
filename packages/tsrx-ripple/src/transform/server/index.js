@@ -2066,6 +2066,13 @@ const visitors = {
 		context.next();
 	},
 
+	TSEnumDeclaration(node, context) {
+		if (node.declare) {
+			return b.empty;
+		}
+		return context.next();
+	},
+
 	ExportNamedDeclaration(node, context) {
 		if (!context.state.to_ts && node.exportKind === 'type') {
 			return b.empty;
