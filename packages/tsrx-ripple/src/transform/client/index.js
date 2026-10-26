@@ -3912,6 +3912,8 @@ const visitors = {
 			const local_updates = [];
 			/** @type {TransformClientState['update']} */
 			const property_updates = [];
+			/** @type {string[]} */
+			const property_names = [];
 			const element_name = /** @type {AST.Identifier} */ (element_id).name;
 			const is_void = is_void_element(element_name);
 			// The scope hashes and applied theme classes the style pre-pass
@@ -4184,6 +4186,7 @@ const visitors = {
 							const id = state.flush_node?.();
 
 							if (is_dom_property(attribute)) {
+								property_names.push(attribute.toLowerCase());
 								property_updates.push({
 									operation: (key) =>
 										b.stmt(
@@ -4403,6 +4406,16 @@ const visitors = {
 					spread_attributes.length === 1 && spread_attributes[0].type === 'SpreadElement'
 						? spread_attributes[0].argument
 						: null;
+				// A spread must not write or remove properties owned by direct
+				// bindings: those bindings skip assignments when unchanged.
+				const excluded =
+					property_names.length > 0 ? b.id(state.scope.generate('spread_excluded')) : undefined;
+				if (excluded) {
+					state.hoisted.push(
+						b.var(excluded, b.array(property_names.map((name) => b.literal(name)))),
+					);
+					register_hoisted(state.hoisted, excluded.name);
+				}
 				/** @type {UpdateEntry} */
 				const spread_update = {
 					operation: (next, prev) =>
@@ -4410,7 +4423,7 @@ const visitors = {
 							b.assignment(
 								'=',
 								/** @type {AST.MemberExpression} */ (prev),
-								b.call('_$_.spread', id, /** @type {AST.Expression} */ (next), prev),
+								b.call('_$_.spread', id, /** @type {AST.Expression} */ (next), prev, excluded),
 							),
 						),
 					expression: sole ?? b.object(spread_attributes),

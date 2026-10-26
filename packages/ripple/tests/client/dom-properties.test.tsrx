@@ -27,15 +27,45 @@ describe('DOM property updates', () => {
 		},
 	);
 
-	it('applies the initial direct property after a conflicting spread property', () => {
-		function App() @{
-			const open = track(true);
-			<dialog {...{ open: false }} open={open.value} />
-		}
+	it(
+		'keeps a direct property authoritative when a conflicting spread changes or removes it',
+		() => {
+			function App() @{
+				const attributes = track<{ open?: boolean }>({ open: false });
+				const open = track(true);
+				<>
+					<button
+						onClick={() => (attributes.value = { open: !attributes.value.open })}
+					>{'Spread'}</button>
+					<button onClick={() => (attributes.value = {})}>{'Remove'}</button>
+					<button onClick={() => (open.value = !open.value)}>{'Direct'}</button>
+					<dialog {...attributes.value} open={open.value} />
+				</>
+			}
 
-		render(App);
-		expect(container.querySelector('dialog').open).toBe(true);
-	});
+			render(App);
+			const dialog = container.querySelector('dialog');
+			const [spread, remove, direct] = container.querySelectorAll('button');
+			expect(dialog.open).toBe(true);
+
+			spread.click();
+			flushSync();
+			expect(dialog.open).toBe(true);
+			spread.click();
+			flushSync();
+			expect(dialog.open).toBe(true);
+			remove.click();
+			flushSync();
+			expect(dialog.open).toBe(true);
+
+			direct.click();
+			flushSync();
+			expect(dialog.open).toBe(false);
+			spread.click();
+			flushSync();
+			expect(dialog.open).toBe(false);
+		},
+	);
 
 	it(
 		'preserves external changes on ordinary attribute updates and applies new property values',
@@ -74,6 +104,24 @@ describe('DOM property updates', () => {
 			expect(details.open).toBe(false);
 		},
 	);
+
+	it('keeps a camelCase property binding authoritative over its spread attribute alias', () => {
+		function App() @{
+			const attributes = track<{ readonly?: boolean }>({ readonly: true });
+			const read_only = track(true);
+			<>
+				<button onClick={() => (attributes.value = {})}>{'Remove'}</button>
+				<input {...attributes.value} readOnly={read_only.value} />
+			</>
+		}
+
+		render(App);
+		const input = container.querySelector('input');
+		expect(input.readOnly).toBe(true);
+		container.querySelector('button').click();
+		flushSync();
+		expect(input.readOnly).toBe(true);
+	});
 
 	it('assigns an initial undefined property once and applies transitions back to undefined', () => {
 		const set_open = vi.spyOn(HTMLDialogElement.prototype, 'open', 'set');

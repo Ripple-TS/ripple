@@ -204,14 +204,15 @@ var EMPTY = {};
  * @param {Element} element
  * @param {any} next
  * @param {SpreadState | undefined} state
+ * @param {string[]} [excluded] Stable lowercase names controlled by direct property bindings.
  * @returns {SpreadState}
  */
-export function spread(element, next, state) {
+export function spread(element, next, state, excluded) {
 	if (next == null || (typeof next !== 'object' && typeof next !== 'function')) {
 		next = EMPTY;
 	}
 	if (state === undefined) {
-		return apply_spread(new SpreadState(element), next);
+		return apply_spread(new SpreadState(element), next, excluded);
 	}
 	if (state.n === next && !state.t) {
 		return state;
@@ -253,7 +254,7 @@ export function spread(element, next, state) {
 	}
 
 	for (key in next) {
-		if (key === 'children') continue;
+		if (key === 'children' || excluded?.includes(key.toLowerCase())) continue;
 
 		var value = next[key];
 		if (typeof value === 'function' && is_ref_prop(value)) {
@@ -289,9 +290,10 @@ export function spread(element, next, state) {
  * applied.
  * @param {SpreadState} state
  * @param {Record<string | symbol, any>} next
+ * @param {string[]} [excluded]
  * @returns {SpreadState}
  */
-function apply_spread(state, next) {
+function apply_spread(state, next, excluded) {
 	var element = state.e;
 	/** @type {Record<string, any>} */
 	var current = {};
@@ -308,7 +310,7 @@ function apply_spread(state, next) {
 	}
 
 	for (var key in next) {
-		if (key === 'children') continue;
+		if (key === 'children' || excluded?.includes(key.toLowerCase())) continue;
 
 		var value = next[key];
 		if (typeof value === 'function' && is_ref_prop(value)) {

@@ -1,10 +1,11 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
+var spread_excluded = ['open'];
 var root = _$_.template_el('dialog', null, [['button', null, 'Update'], ['button', null, 'Toggle']]);
 
 function render(__prev) {
-	__prev.a = _$_.spread(__prev._a, { class: 'v' + __prev._b.value }, __prev.a);
+	__prev.a = _$_.spread(__prev._a, { class: 'v' + __prev._b.value }, __prev.a, spread_excluded);
 
 	var __b = __prev._c ? __prev._d.value : undefined;
 
