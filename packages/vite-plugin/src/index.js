@@ -364,6 +364,10 @@ function scanForRipplePackages(rootDir) {
  */
 export function ripple(inlineOptions = {}) {
 	const { excludeRippleExternalModules = false, ssr: ssrOption, rootBoundary } = inlineOptions;
+	const { stylex = false } = inlineOptions;
+	if (typeof stylex !== 'boolean') {
+		throw new Error('[@ripple-ts/vite-plugin] the `stylex` option must be a boolean.');
+	}
 	if (ssrOption !== undefined && typeof ssrOption !== 'boolean') {
 		throw new Error('[@ripple-ts/vite-plugin] the `ssr` option must be a boolean when provided.');
 	}
@@ -441,7 +445,8 @@ export function ripple(inlineOptions = {}) {
 					// place, so the scan needs no prelude and no TS-aware module
 					// type. The scan only ever runs in dev, and the import set is
 					// identical across dev/hmr settings.
-					compile: (code, id) => compile(code, id, { mode: 'client', dev: true, hmr: false }),
+					compile: (code, id) =>
+						compile(code, id, { mode: 'client', dev: true, hmr: false, stylex }),
 					moduleType: 'js',
 				}),
 			],
@@ -1354,6 +1359,7 @@ export function ripple(inlineOptions = {}) {
 					const is_dev = config?.command === 'serve';
 					let { code, css, map } = await compile(source_code, filename, {
 						mode: ssr ? 'server' : 'client',
+						stylex,
 						dev: is_dev,
 						hmr: is_dev && !ssr,
 						hydration: !clientOnly,

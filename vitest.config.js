@@ -56,7 +56,10 @@ export default defineConfig({
 			{
 				test: {
 					name: 'vite-plugin',
-					include: ['packages/vite-plugin/tests/**/*.test.js'],
+					include: [
+						'packages/vite-plugin/tests/**/*.test.js',
+						'packages/vite-plugin/stylex/tests/**/*.test.js',
+					],
 					environment: 'node',
 					globals: true,
 				},

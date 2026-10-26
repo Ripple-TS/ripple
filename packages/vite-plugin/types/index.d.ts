@@ -158,6 +158,13 @@ export interface RipplePluginOptions {
 	rootBoundary?: boolean;
 
 	/**
+	 * Enable StyleX sx={styles} on HTML and SVG elements. Use alongside the
+	 * optional @ripple-ts/vite-plugin/stylex adapter for StyleX compilation/CSS.
+	 * @default false
+	 */
+	stylex?: boolean;
+
+	/**
 	 * Opt-in primitive DOM text proofs from TypeScript. Requires TypeScript and
 	 * strictNullChecks. Active only in one-shot production builds; development,
 	 * HMR, and watch builds use local inference. Resolve tsconfig from Vite root.

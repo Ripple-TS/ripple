@@ -120,6 +120,110 @@ reevaluates imported types and recompiles eligible cached modules.
 See [`@tsrx/ripple`](../tsrx-ripple/README.md#primitive-text-inference) for the
 inference boundaries and the direct compiler API.
 
+## StyleX
+
+The optional `@ripple-ts/vite-plugin/stylex` entry point adapts
+[`@stylexjs/unplugin`](https://stylexjs.com/docs/learn/installation/vite/) to
+Ripple's `.tsrx` files. Install StyleX separately:
+
+```sh
+pnpm add @stylexjs/stylex@^0.19.1
+pnpm add -D @stylexjs/unplugin@^0.19.1
+```
+
+```js
+import { defineConfig } from 'vite';
+import { ripple } from '@ripple-ts/vite-plugin';
+import { stylex } from '@ripple-ts/vite-plugin/stylex';
+
+export default defineConfig({
+  plugins: [ripple(), stylex({ useCSSLayers: true })],
+});
+```
+
+Use the adapter in place of the upstream StyleX Vite plugin. It runs StyleX after
+Ripple has compiled `.tsrx` to JavaScript, and also handles ordinary JavaScript
+and TypeScript style modules. Options are forwarded to StyleX. Projects that do
+not import this entry point do not need StyleX installed.
+
+Spread `stylex.attrs()` onto Ripple elements. It returns `class` and a CSS `style`
+string, including units for dynamic values:
+
+```tsrx
+import * as stylex from '@stylexjs/stylex';
+import { track } from 'ripple';
+import './global.css';
+
+const styles = stylex.create({
+  button: { color: 'white', backgroundColor: 'rebeccapurple' },
+  size: (width: number) => ({ width }),
+});
+
+export function Button() @{
+  const width = track(120);
+  <button
+    {...stylex.attrs(styles.button, styles.size(width.value))}
+    onClick={() => {
+      width.value += 20;
+    }}
+  >
+    Grow
+  </button>
+}
+```
+
+Put shared tokens in `.stylex.ts` or `.stylex.js` files, following StyleX's module
+conventions.
+
+### Optional `sx` shorthand
+
+Enable the shorthand in Vite:
+
+```js
+export default defineConfig({
+  plugins: [ripple({ stylex: true }), stylex({ useCSSLayers: true })],
+});
+```
+
+Then append the optional attribute types to your app's existing
+`compilerOptions.types` in `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "types": ["vite/client", "@ripple-ts/vite-plugin/stylex/jsx"]
+  }
+}
+```
+
+You can now write `<button sx={[styles.button, styles.size(width.value)]}>`.
+Ripple lowers the attribute on static HTML and SVG elements to a `stylex.attrs()`
+spread in its existing compiler pipeline, shared by client and server. Component
+props, including member and dynamic component tags, are left alone. Normal Ripple
+attribute precedence applies: an explicit `class` overrides the spread's class, so
+compose StyleX styles in `sx` instead of adding a separate `class` to the same
+element.
+
+The shorthand is disabled by default; `ripple({ stylex: false })` disables it
+explicitly. The optional type entry augments `Ripple.HTMLAttributes` and
+`Ripple.SVGAttributes` in `ripple/jsx-runtime`; importing the Vite plugin alone
+does not enable these types. Without that entry, Ripple's existing catch-all
+attribute type still accepts `sx`, but does not validate its value.
+
+Import a global stylesheet from the app entry or a layout shared by every route.
+StyleX appends its generated styles to a CSS asset emitted by Vite; the global
+stylesheet ensures that asset is loaded, including in production. It can contain
+your reset or base styles. Development CSS and hot updates use StyleX's virtual
+stylesheet and runtime, injected into the HTML automatically. Ripple's scoped
+`<style>` blocks can be used alongside StyleX.
+
+The integration tests cover StyleX's public API families, including composition,
+dynamic styles, variables and themes, selectors, keyframes, view transitions,
+anchor positioning, atoms, typed custom properties, CSS layers, HMR, SSR, and
+hydration. StyleX 0.19.1's experimental `unstable_createThemeNested` crashes on
+imported nested tokens even without Ripple. Define the nested theme beside its
+tokens, or use the stable `defineVars` and `createTheme` APIs.
+
 ## Custom serialization
 
 Define `transport` handlers in a module and name it in `ripple.config.ts` to share

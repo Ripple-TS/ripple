@@ -3,6 +3,15 @@
 Ripple's compiler target for the published `@tsrx/core` language infrastructure.
 Use `compile(source, filename, options)` to produce client or server JavaScript.
 
+## StyleX shorthand
+
+Pass `stylex: true` to `compile()` to lower `sx={styles}` on HTML and SVG elements
+to a StyleX `attrs()` spread. The existing analysis visitors handle this for both
+client and server output, preserving source locations and component-owned `sx`
+props. Process the resulting JavaScript with StyleX to compile the styles and
+extract CSS. Vite applications can use the
+[optional StyleX adapter](../vite-plugin/README.md#stylex).
+
 ## TypeScript enums
 
 Ordinary `enum` declarations in `.tsrx` files work at module, function, component,

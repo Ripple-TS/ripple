@@ -7,6 +7,7 @@ import type * as AST from 'estree';
 import type {
 	AnalysisResult as CoreAnalysisResult,
 	AnalysisState as CoreAnalysisState,
+	AnalyzeOptions as CoreAnalyzeOptions,
 	CompileFn,
 	CompileOptions as CoreCompileOptions,
 	CompileResult,
@@ -56,6 +57,8 @@ export interface TextTypeFacts {
 }
 
 export interface CompileOptions extends CoreCompileOptions {
+	/** Lower sx={styles} on host elements to StyleX attrs() spreads. Default false. */
+	stylex?: boolean;
 	/** Use the same facts for client and server compilation. */
 	textTypeFacts?: TextTypeFacts;
 	/**
@@ -65,6 +68,10 @@ export interface CompileOptions extends CoreCompileOptions {
 	 * @default true
 	 */
 	hydration?: boolean;
+}
+
+export interface AnalyzeOptions extends CoreAnalyzeOptions {
+	stylex?: boolean;
 }
 
 /**
@@ -79,6 +86,10 @@ export type StyleRegistration = string | AST.Expression;
  * (`src/style-scopes.js`) computed for the module.
  */
 export interface AnalysisResult extends CoreAnalysisResult {
+	/** Whether the shared analysis visitor lowers StyleX sx attributes. */
+	stylex: boolean;
+	/** Lazily generated StyleX namespace import. */
+	stylex_import?: AST.ImportDeclaration;
 	/** Every stylesheet of the module, in CSS emission order. */
 	stylesheets: AST.CSS.StyleSheet[];
 	/** Authored JSX child expressions collected during analysis. */

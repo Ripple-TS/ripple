@@ -44,6 +44,7 @@ import {
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
+import { lower_stylex } from '../stylex.js';
 import { analyze_enum, analyze_enum_reference } from '../enums.js';
 import {
 	is_delegated_event,
@@ -2059,11 +2060,15 @@ const visitors = {
 		// A raw (non-template) element — an attribute value or other JSX that
 		// never entered the template traversal.
 		if (!is_template_element(node)) {
-			return context.next();
+			const result = context.next();
+			lower_stylex(node, context);
+			return result;
 		}
 
 		if (context.state.regular_js || node.metadata?.regular_js) {
-			return context.next({ ...context.state, regular_js: true, component: undefined });
+			const result = context.next({ ...context.state, regular_js: true, component: undefined });
+			lower_stylex(node, context);
+			return result;
 		}
 
 		const { state, visit, path } = context;
@@ -2328,10 +2333,9 @@ const visitors = {
 			}
 		}
 
-		return {
-			...node,
-			children: node.children.map((child) => visit(child)),
-		};
+		const children = node.children.map((child) => visit(child));
+		lower_stylex(node, context);
+		return { ...node, children };
 	},
 
 	JSXExpressionContainer(node, context) {
@@ -2506,6 +2510,7 @@ export function analyze(ast, filename, options = {}) {
 		errors,
 		comments,
 		stylesheets: [],
+		stylex: options.stylex ?? false,
 		box_candidates: [],
 		textChildExpressions:
 			options.to_ts || ('textTypeFacts' in options && options.textTypeFacts !== undefined)

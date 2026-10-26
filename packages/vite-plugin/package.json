@@ -16,6 +16,14 @@
       "import": "./src/index.js",
       "default": "./src/index.js"
     },
+    "./stylex": {
+      "types": "./stylex/index.d.ts",
+      "import": "./stylex/index.js",
+      "default": "./stylex/index.js"
+    },
+    "./stylex/jsx": {
+      "types": "./stylex/jsx.d.ts"
+    },
     "./production": {
       "import": "./src/server/production.js",
       "default": "./src/server/production.js",
@@ -37,11 +45,26 @@
     "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
+    "@stylexjs/atoms": "catalog:default",
+    "@stylexjs/stylex": "catalog:default",
+    "@stylexjs/unplugin": "catalog:default",
     "@types/node": "catalog:default",
     "devalue": "catalog:default",
     "ripple": "workspace:*",
     "type-fest": "catalog:default",
     "vite": "catalog:default"
+  },
+  "peerDependencies": {
+    "@stylexjs/stylex": "^0.19.1",
+    "@stylexjs/unplugin": "^0.19.1"
+  },
+  "peerDependenciesMeta": {
+    "@stylexjs/stylex": {
+      "optional": true
+    },
+    "@stylexjs/unplugin": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"
