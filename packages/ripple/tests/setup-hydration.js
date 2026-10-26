@@ -66,7 +66,7 @@ export async function hydrateComponentWithRootBoundary(
  */
 export function stripHydrationMarkers(html) {
 	return html
-		.replace(/<!--\[!?-->/g, '') // Remove <!--[--> and <!--[!-->
+		.replace(/<!--\[(?:!?|r:[a-z0-9-]+)-->/g, '') // Remove <!--[--> and <!--[!-->
 		.replace(/<!--\]-->/g, '') // Remove <!--]-->
 		.replace(/<!--[a-z0-9]+-->/g, '') // Remove hash comments like <!--usbxy9-->
 		.replace(/<!---->/g, ''); // Remove empty comment end markers

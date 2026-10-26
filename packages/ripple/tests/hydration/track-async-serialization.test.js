@@ -90,6 +90,142 @@ describe('hydration > trackAsync serialization', () => {
 		expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
 	});
 
+	it.each([false, true])(
+		'keeps independently rendered roots isolated (detached: %s)',
+		async (detached) => {
+			const a = await render(() => ServerComponents.AsyncRoot({ label: 'A' }));
+			const b = await render(() => ServerComponents.AsyncRoot({ label: 'B' }));
+			container.innerHTML = `<div>${a.body}</div><div>${b.body}</div>`;
+			const [first, second] = container.children;
+			if (detached) second.remove();
+			const firstScript = first.querySelector('script');
+			const secondScript = second.querySelector('script');
+			expect(firstScript.id).not.toBe(secondScript.id);
+			const firstButton = first.querySelector('button');
+			const secondButton = second.querySelector('button');
+			const onRead = vi.fn();
+			const unmountSecond = hydrate(ClientComponents.AsyncRoot, {
+				target: second,
+				props: { label: 'client B', onRead },
+			});
+			let unmountFirst;
+			try {
+				expect(second.querySelector('button')).toBe(secondButton);
+				expect(secondButton.textContent).toBe('B');
+				secondButton.click();
+				expect(onRead).toHaveBeenLastCalledWith('B');
+				expect(first.querySelector('script')).toBe(firstScript);
+				expect(second.querySelector('script')).toBeNull();
+				expect(firstButton.textContent).toBe('A');
+
+				unmountFirst = hydrate(ClientComponents.AsyncRoot, {
+					target: first,
+					props: { label: 'client A', onRead },
+				});
+				expect(first.querySelector('button')).toBe(firstButton);
+				firstButton.click();
+				expect(onRead).toHaveBeenLastCalledWith('A');
+				expect(first.querySelector('script')).toBeNull();
+			} finally {
+				unmountFirst?.();
+				unmountSecond();
+			}
+		},
+	);
+
+	it("does not consume another root's data when its own envelope is missing", async () => {
+		const a = await render(() => ServerComponents.AsyncRoot({ label: 'A' }));
+		const b = await render(() => ServerComponents.AsyncRoot({ label: 'B' }));
+		container.innerHTML = `<div>${a.body}</div><div>${b.body}</div>`;
+		const [first, second] = container.children;
+		const firstScript = first.querySelector('script');
+		second.querySelector('script').remove();
+		const onRead = vi.fn();
+		const unmount = hydrate(ClientComponents.AsyncRoot, {
+			target: second,
+			props: { label: 'client B', onRead },
+		});
+		try {
+			await vi.waitFor(() => {
+				expect(second.querySelector('button')?.textContent).toBe('client B');
+			});
+			second.querySelector('button').click();
+			expect(onRead).toHaveBeenCalledWith('client B');
+			expect(first.querySelector('script')).toBe(firstScript);
+			expect(first.querySelector('button').textContent).toBe('A');
+		} finally {
+			unmount();
+		}
+	});
+
+	it('restores the outer root after hydrating another root during initialization', async () => {
+		const a = await render(() => ServerComponents.AsyncRoot({ label: 'A' }));
+		const b = await render(() => ServerComponents.AsyncRoot({ label: 'B' }));
+		container.innerHTML = `<div>${a.body}</div><div>${b.body}</div>`;
+		const [first, second] = container.children;
+		const onRead = vi.fn();
+		let unmountFirst;
+		const unmountSecond = hydrate(ClientComponents.AsyncRoot, {
+			target: second,
+			props: {
+				label: 'client B',
+				onRead,
+				before() {
+					unmountFirst = hydrate(ClientComponents.AsyncRoot, {
+						target: first,
+						props: { label: 'client A', onRead },
+					});
+				},
+			},
+		});
+		try {
+			second.querySelector('button').click();
+			expect(onRead).toHaveBeenLastCalledWith('B');
+			first.querySelector('button').click();
+			expect(onRead).toHaveBeenLastCalledWith('A');
+			expect(container.querySelector('script')).toBeNull();
+		} finally {
+			unmountFirst?.();
+			unmountSecond();
+		}
+	});
+
+	it('hydrates a root whose data script was placed in the document head', async () => {
+		const { body } = await render(() => ServerComponents.AsyncRoot({ label: 'server value' }));
+		container.innerHTML = body;
+		const script = container.querySelector('script[id^="__ripple_ta_"]');
+		document.head.appendChild(script);
+		let unmount;
+		try {
+			unmount = hydrate(ClientComponents.AsyncRoot, {
+				target: container,
+				props: { label: 'client value' },
+			});
+			expect(container.querySelector('button').textContent).toBe('server value');
+			expect(script.isConnected).toBe(false);
+		} finally {
+			unmount?.();
+			script.remove();
+		}
+	});
+
+	it('also hydrates older server markup without a render namespace', async () => {
+		const { body } = await render(() => ServerComponents.AsyncRoot({ label: 'legacy value' }));
+		container.innerHTML = body
+			.replace(/<!--\[r:[a-z0-9-]+-->/, '<!--[-->')
+			.replace(/(__ripple_ta_)[a-z0-9-]+_/g, '$1');
+		const unmount = hydrate(ClientComponents.AsyncRoot, {
+			target: container,
+			props: { label: 'client value' },
+		});
+		try {
+			expect(container.querySelector('button').textContent).toBe('legacy value');
+			expect(container.querySelector('script')).toBeNull();
+		} finally {
+			unmount();
+		}
+	});
+
 	it('hydrates numeric value from serialized trackAsync', async () => {
 		await hydrateComponent(ServerComponents.AsyncNumericValue, ClientComponents.AsyncNumericValue);
 

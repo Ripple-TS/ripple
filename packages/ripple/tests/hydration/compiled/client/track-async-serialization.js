@@ -475,6 +475,52 @@ function AsyncWithReadOnlyDependency_render(__anchor, __block) {
 
 AsyncWithReadOnlyDependency[_$_.$r] = AsyncWithReadOnlyDependency_render;
 
+var root_29 = _$_.template_el('button', null, ' ');
+
+function consequent(__anchor, { a: value, b: __block, c: props }) {
+	var button_4 = root_29();
+
+	button_4.__click = () => _$_.with_scope(__block, () => props.onRead?.(value.value));
+
+	{
+		var expression_13 = _$_.hydrating ? _$_.hydrate_child() : button_4.firstChild;
+
+		_$_.expression(expression_13, () => value.value);
+		_$_.hydrating && _$_.pop(button_4);
+	}
+
+	_$_.append(__anchor, button_4);
+}
+
+function if_1({ a: value }) {
+	if (value.value) return consequent;
+}
+
+function render(__prev) {
+	var __a = if_1({ a: __prev._a, b: __prev._b, c: __prev._c });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._d, __prev.a = __a);
+	}
+}
+
+function AsyncRoot_render(__anchor, __block, props) {
+	_$_.with_scope(__block, () => props.before?.());
+
+	const value = _$_.track_async(async () => props.label, __block, '1og8nfo');
+	var ifs = _$_.if_static(__anchor, if_1, 1, { a: value, b: __block, c: props });
+
+	_$_.render(render, {
+		a: _$_.UNINITIALIZED,
+		_a: value,
+		_b: __block,
+		_c: props,
+		_d: ifs
+	});
+}
+
+AsyncRoot[_$_.$r] = AsyncRoot_render;
+
 import { track, trackAsync, trackReadOnly } from 'ripple';
 import { Money } from '../fixtures/money.js';
 
@@ -547,6 +593,10 @@ export function AsyncWithReactiveDependency() {
 
 export function AsyncWithReadOnlyDependency() {
 	return _$_.tsrx_element(AsyncWithReadOnlyDependency_render);
+}
+
+export function AsyncRoot(props) {
+	return _$_.tsrx_element(AsyncRoot_render, props);
 }
 
 _$_.delegate(['click']);

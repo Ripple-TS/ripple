@@ -912,10 +912,51 @@ function transform_native_tsrx_function(node, context) {
 	// `<style ref>` class maps of the scopes inside this function (see
 	// `style-scopes.js`) are assigned before the template renders.
 	const style_ref_setup = node.metadata.tsrx_style_ref_statements ?? [];
-	const render_body = strip_tsrx_style_elements(
+	let render_body = strip_tsrx_style_elements(
 		insert_style_ref_setup_statements(raw_render_body, style_ref_setup, context.state.scopes),
 		context.state.scopes,
 	);
+	const output = render_body.at(-1);
+	// A function declared inside template control flow can inherit the server's
+	// branch boundary. Keep its fragment wrapper to consume that existing marker.
+	const inside_control_flow = context.path.some(
+		(ancestor) =>
+			is_template_directive(ancestor) ||
+			(['IfStatement', 'ForOfStatement', 'SwitchStatement', 'TryStatement'].includes(
+				ancestor.type,
+			) &&
+				!ancestor.metadata?.regular_js),
+	);
+	if (
+		!inside_control_flow &&
+		node.body?.type === 'JSXCodeBlock' &&
+		output &&
+		is_template_fragment(output)
+	) {
+		const fragment_context = {
+			...context,
+			state: { ...context.state, scope: component_scope },
+		};
+		const children = normalize_children(
+			/** @type {AST.Node[]} */ (/** @type {AST.TSRXJSXFragment} */ (output).children),
+			fragment_context,
+		);
+		const first = children[0];
+		if (
+			first &&
+			is_template_element(first) &&
+			!is_element_dom_element(first) &&
+			!is_ripple_fragment_element(first, fragment_context)
+		) {
+			// SSR emits a component-leading root fragment inline. Render its
+			// children directly too: an expression wrapper would consume a marker
+			// that belongs to the child's control flow. No extra boundary is needed.
+			for (const child of children) {
+				child.metadata = { ...child.metadata, returned_tsrx_child: true };
+			}
+			render_body = [...render_body.slice(0, -1), ...children];
+		}
+	}
 	const transformed_body = transform_body(render_body, {
 		...context,
 		state: {

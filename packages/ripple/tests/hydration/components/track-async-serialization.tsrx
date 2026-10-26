@@ -176,3 +176,15 @@ export function AsyncWithReadOnlyDependency() @{
 		}
 	</>
 }
+
+export function AsyncRoot(props: {
+	label: string;
+	onRead?: (value: string) => void;
+	before?: () => void;
+}) @{
+	props.before?.();
+	const value = trackAsync(async () => props.label);
+	@if (value.value) {
+		<button onClick={() => props.onRead?.(value.value)}>{value.value}</button>
+	}
+}

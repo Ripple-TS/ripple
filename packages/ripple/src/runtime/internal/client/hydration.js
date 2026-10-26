@@ -9,6 +9,20 @@ export let hydrating = false;
 export let hydrate_node = null;
 
 /**
+ * The target and server-render namespace of the current root. Streamed
+ * boundaries retain it for activation after the initial hydration walk.
+ * @typedef {{ target: HTMLElement, id: string }} HydrationContext
+ */
+
+/** @type {HydrationContext | null} */
+export let hydration_context = null;
+
+/** @param {HydrationContext | null} context */
+export function set_hydration_context(context) {
+	hydration_context = context;
+}
+
+/**
  * Map of hash -> Tracked/Derived registered during hydration. Allows a
  * hydrating trackAsync to look up its serialized dependencies by hash and
  * wire up reactivity without re-running the user's async fn.

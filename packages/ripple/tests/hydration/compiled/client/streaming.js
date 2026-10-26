@@ -409,6 +409,26 @@ function StreamNested_render(__anchor, __block) {
 
 StreamNested[_$_.$r] = StreamNested_render;
 
+var root_25 = _$_.template_el('p', ['class', 'loading'], 'loading...');
+
+function StreamEmptyCatch_render(__anchor, __block) {
+	_$_.try(
+		__anchor,
+		(__anchor) => {
+			_$_.render_component(RejectContent, __anchor, {});
+		},
+		(__anchor, e) => {},
+		(__anchor) => {
+			var p_14 = root_25();
+
+			_$_.append(__anchor, p_14);
+		},
+		true
+	);
+}
+
+StreamEmptyCatch[_$_.$r] = StreamEmptyCatch_render;
+
 import { track, trackAsync } from 'ripple';
 
 function make() {
@@ -500,6 +520,10 @@ function InnerContent() {
 
 export function StreamNested() {
 	return _$_.tsrx_element(StreamNested_render);
+}
+
+export function StreamEmptyCatch() {
+	return _$_.tsrx_element(StreamEmptyCatch_render);
 }
 
 _$_.delegate(['click']);

@@ -16,9 +16,11 @@ import {
 	hydrate_next,
 	hydrate_node,
 	hydrating,
+	hydration_context,
 	set_hydrate_node,
 	set_hydration,
 	set_hydration_runtime,
+	set_hydration_context,
 } from './hydration.js';
 import { create_text, get_next_sibling, next_sibling_getter } from './operations.js';
 import { active_block, queue_microtask } from './runtime.js';
@@ -348,8 +350,9 @@ function try_slot(state) {
 		// — route the error once the surrounding hydration has finished
 		queue_microtask(() => route_streamed_error(state, unit_id));
 	} else {
+		var context = hydration_context;
 		registry[unit_id] = {
-			a: (template, errored) => activate_streamed_chunk(state, template, errored),
+			a: (template, errored) => activate_streamed_chunk(state, template, errored, context),
 		};
 	}
 }
@@ -439,10 +442,11 @@ function clear_streamed_slot(state) {
  * body picks its serialized envelope up from the same chunk).
  * @param {TryState} state
  * @param {HTMLTemplateElement | null} template
- * @param {number | undefined} [errored]
+ * @param {number | undefined} errored
+ * @param {import('./hydration.js').HydrationContext | null} context
  * @returns {void}
  */
-function activate_streamed_chunk(state, template, errored) {
+function activate_streamed_chunk(state, template, errored, context) {
 	if (state.b === null || is_destroyed(state.b)) {
 		return;
 	}
@@ -473,12 +477,15 @@ function activate_streamed_chunk(state, template, errored) {
 	/** @type {ChildNode} */ (state.sc).remove();
 	var previous_hydrating = hydrating;
 	var previous_hydrate_node = hydrate_node;
+	var previous_hydration_context = hydration_context;
 	set_hydration(true, first);
-	hydrate_next(); // consume the streamed body's <!--[-->
+	set_hydration_context(context);
 	try {
+		hydrate_next(); // consume the streamed body's <!--[-->
 		state.h = true;
 		render_resolved(state);
 	} finally {
 		set_hydration(previous_hydrating, previous_hydrate_node);
+		set_hydration_context(previous_hydration_context);
 	}
 }

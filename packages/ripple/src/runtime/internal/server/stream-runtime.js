@@ -57,7 +57,7 @@ function stream_runtime(
 	var inert;
 
 	/**
-	 * @param {number} id
+	 * @param {string} id
 	 * @param {number} [errored]
 	 */
 	window.__RIPPLE_S__ = function (id, errored) {

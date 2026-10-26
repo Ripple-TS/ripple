@@ -72,6 +72,114 @@ function receiveChunk(chunk) {
 	execInlineScripts(chunk);
 }
 
+it.each(['before', 'after'])(
+	'keeps streamed async data in its root when the chunk arrives %s hydration',
+	async (arrival) => {
+		ServerComponents.resetControls();
+		ServerComponents.controls.basic.resolve('other');
+		const { body } = await render(ServerComponents.StreamPending);
+		const { chunks, done } = startStream(ServerComponents.StreamPending);
+		const other = document.createElement('div');
+		other.innerHTML = body;
+		container.before(other);
+		const otherScript = other.querySelector('script[id^="__ripple_ta_"]');
+		mountShell(chunks[0]);
+		let unmount;
+		try {
+			if (arrival === 'after') {
+				unmount = hydrate(ClientComponents.StreamPending, { target: container });
+			}
+			ServerComponents.controls.basic.resolve('data');
+			await done;
+			receiveChunk(chunks[1]);
+			if (arrival === 'before') {
+				unmount = hydrate(ClientComponents.StreamPending, { target: container });
+			}
+			flushSync();
+			expect(container.querySelector('.value')?.textContent).toBe('data:0');
+			expect(container.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+			expect(other.querySelector('script[id^="__ripple_ta_"]')).toBe(otherScript);
+			expect(other.querySelector('.value')?.textContent).toBe('other:0');
+			container.querySelector('.inc').click();
+			flushSync();
+			expect(container.querySelector('.value')?.textContent).toBe('data:1');
+		} finally {
+			unmount?.();
+			other.remove();
+		}
+	},
+);
+
+it.each(['before', 'after'])(
+	'keeps two independent streams isolated when chunks arrive %s hydration',
+	async (arrival) => {
+		const a = startStream(ServerComponents.StreamPending);
+		const firstControl = ServerComponents.controls.basic;
+		const b = startStream(ServerComponents.StreamPending);
+		const secondControl = ServerComponents.controls.basic;
+		container.innerHTML = `<div>${a.chunks[0]}</div><div>${b.chunks[0]}</div>`;
+		const [first, second] = container.children;
+		execInlineScripts(a.chunks[0]);
+		execInlineScripts(b.chunks[0]);
+		const unmounts = [];
+		function hydrateRoots() {
+			unmounts.push(hydrate(ClientComponents.StreamPending, { target: second }));
+			unmounts.push(hydrate(ClientComponents.StreamPending, { target: first }));
+		}
+		try {
+			if (arrival === 'after') hydrateRoots();
+			secondControl.resolve('B');
+			await b.done;
+			receiveChunk(b.chunks[1]);
+			flushSync();
+			expect(second.querySelector('.value')?.textContent).toBe('B:0');
+			expect(first.querySelector('.loading')).not.toBeNull();
+
+			firstControl.resolve('A');
+			await a.done;
+			receiveChunk(a.chunks[1]);
+			if (arrival === 'before') hydrateRoots();
+			flushSync();
+			expect(first.querySelector('.value')?.textContent).toBe('A:0');
+			expect(second.querySelector('.value')?.textContent).toBe('B:0');
+			first.querySelector('.inc').click();
+			second.querySelector('.inc').click();
+			flushSync();
+			expect(first.querySelector('.value')?.textContent).toBe('A:1');
+			expect(second.querySelector('.value')?.textContent).toBe('B:1');
+			expect(document.querySelector('script[id^="__ripple_ta_"]')).toBeNull();
+		} finally {
+			for (const unmount of unmounts) unmount();
+		}
+	},
+);
+
+it.each(['before', 'after'])(
+	'handles an empty streamed catch arriving %s hydration',
+	async (arrival) => {
+		const { chunks, done } = startStream(ServerComponents.StreamEmptyCatch);
+		mountShell(chunks[0]);
+		let unmount;
+		try {
+			if (arrival === 'after') {
+				unmount = hydrate(ClientComponents.StreamEmptyCatch, { target: container });
+			}
+			ServerComponents.controls.rejects.reject(new Error('empty catch'));
+			await done;
+			for (const chunk of chunks.slice(1)) receiveChunk(chunk);
+			if (arrival === 'before') {
+				unmount = hydrate(ClientComponents.StreamEmptyCatch, { target: container });
+			}
+			flushSync();
+			expect(container.querySelector('.loading')).toBeNull();
+			expect(container.querySelector('.resolved')).toBeNull();
+			expect(container.innerHTML).not.toContain('<!--[?');
+		} finally {
+			unmount?.();
+		}
+	},
+);
+
 describe('hydration > streamed boundaries (chunk before hydration)', () => {
 	it('hydrates swapped content through the normal resolved path and stays interactive', async () => {
 		const { chunks, done } = startStream(ServerComponents.StreamPending);
@@ -248,7 +356,7 @@ describe('hydration > streamed boundaries (chunk after hydration)', () => {
 		});
 
 		// the root slot IS the body: the shell starts with the slot marker
-		expect(chunks[0]).toMatch(/^(<style[\s\S]*?<\/style>)?<!--\[\?\d+-->/);
+		expect(chunks[0]).toMatch(/^(<style[\s\S]*?<\/style>)?<!--\[\?[a-z0-9-]+:\d+-->/);
 		mountShell(chunks[0]);
 
 		hydrate(ClientComponents.StreamRootDirect, {

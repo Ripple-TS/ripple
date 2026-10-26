@@ -158,3 +158,13 @@ export function StreamNested() @{
 		<p class="outer-loading">{'outer-loading'}</p>
 	}
 }
+
+export function StreamEmptyCatch() @{
+	@try {
+		<RejectContent />
+	} @pending {
+		<p class="loading">{'loading...'}</p>
+	} @catch (e) {
+		<></>
+	}
+}

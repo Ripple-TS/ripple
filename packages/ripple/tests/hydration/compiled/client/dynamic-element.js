@@ -130,35 +130,26 @@ function ComponentTarget_render(__anchor, __block) {
 
 ComponentTarget[_$_.$r] = ComponentTarget_render;
 
-var root_6 = _$_.template(`<!><p>after`, 1, 2);
+var root_5 = _$_.template(`<!><p>after`, 1, 2);
 
 function render_3(__prev) {
 	__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b, { id: "record", innerHTML: "root" });
 }
 
-var root_5 = _$_.template(`<!>`, 1, 1);
-
 function Root_render(__anchor, __block) {
 	const tag = 'div';
 	var fragment_2 = root_5();
-	var node_6 = _$_.first_child_frag(fragment_2);
+	var node_5 = _$_.first_child_frag(fragment_2);
+	var dynamic_4 = _$_.dynamic_init(node_5, () => tag, () => ({ id: "record", innerHTML: "root" }));
 
-	_$_.expression(node_6, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_3 = root_6();
-		var node_5 = _$_.first_child_frag(fragment_3);
-		var dynamic_4 = _$_.dynamic_init(node_5, () => tag, () => ({ id: "record", innerHTML: "root" }));
-
-		_$_.next();
-		_$_.render(render_3, { a: dynamic_4, _a: node_5, _b: tag });
-		_$_.append(__anchor, fragment_3);
-	}));
-
+	_$_.next();
+	_$_.render(render_3, { a: dynamic_4, _a: node_5, _b: tag });
 	_$_.append(__anchor, fragment_2);
 }
 
 Root[_$_.$r] = Root_render;
 
-var root_7 = _$_.template(`<svg><!><rect width=10 height=10>`);
+var root_6 = _$_.template(`<svg><!><rect width=10 height=10>`);
 
 function render_4(__prev) {
 	__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b, { id: "record", r: "5" }, 'svg');
@@ -166,16 +157,16 @@ function render_4(__prev) {
 
 function Svg_render(__anchor, __block) {
 	const tag = 'circle';
-	var svg = root_7();
+	var svg = root_6();
 
 	{
-		var node_7 = _$_.hydrating ? _$_.hydrate_child() : svg.firstChild;
-		var dynamic_5 = _$_.dynamic_init(node_7, () => tag, () => ({ id: "record", r: "5" }), 'svg');
+		var node_6 = _$_.hydrating ? _$_.hydrate_child() : svg.firstChild;
+		var dynamic_5 = _$_.dynamic_init(node_6, () => tag, () => ({ id: "record", r: "5" }), 'svg');
 
 		_$_.hydrating && _$_.pop(svg);
 	}
 
-	_$_.render(render_4, { a: dynamic_5, _a: node_7, _b: tag });
+	_$_.render(render_4, { a: dynamic_5, _a: node_6, _b: tag });
 	_$_.append(__anchor, svg);
 }
 

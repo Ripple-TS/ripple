@@ -429,74 +429,58 @@ function StaticThenIf_render(__anchor, __block) {
 
 StaticThenIf[_$_.$r] = StaticThenIf_render;
 
-var root_32 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_31 = _$_.template(`<!>`, 1, 1);
+var root_31 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 
 function CompThenStatic_render(__anchor, __block) {
 	var fragment_28 = root_31();
-	var node_17 = _$_.first_child_frag(fragment_28);
+	var node_16 = _$_.first_child_frag(fragment_28);
 
-	_$_.expression(node_17, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_29 = root_32();
-		var node_16 = _$_.first_child_frag(fragment_29);
-
-		_$_.render_component(Leaf, node_16, {});
-		_$_.next(2);
-		_$_.append(__anchor, fragment_29);
-	}));
-
+	_$_.render_component(Leaf, node_16, {});
+	_$_.next(2);
 	_$_.append(__anchor, fragment_28);
 }
 
 CompThenStatic[_$_.$r] = CompThenStatic_render;
 
-var root_34 = _$_.template(`<div class=a>a</div><div class=b>b</div><!>`, 1, 3);
-var root_33 = _$_.template(`<!>`, 1, 1);
+var root_33 = _$_.template(`<div class=a>a</div><div class=b>b</div><!>`, 1, 3);
+var root_32 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenComp_render(__anchor, __block) {
-	var fragment_30 = root_33();
-	var node_19 = _$_.first_child_frag(fragment_30);
+	var fragment_29 = root_32();
+	var node_18 = _$_.first_child_frag(fragment_29);
 
-	_$_.expression(node_19, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_31 = root_34();
-		var div_14 = _$_.first_child_frag(fragment_31);
+	_$_.expression(node_18, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_30 = root_33();
+		var div_14 = _$_.first_child_frag(fragment_30);
 		var div_13 = _$_.hydrating ? _$_.hydrate_sibling() : div_14.nextSibling;
-		var node_18 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
+		var node_17 = _$_.hydrating ? _$_.hydrate_sibling() : div_13.nextSibling;
 
-		_$_.render_component(Leaf, node_18, {});
-		_$_.append(__anchor, fragment_31);
+		_$_.render_component(Leaf, node_17, {});
+		_$_.append(__anchor, fragment_30);
 	}));
 
-	_$_.append(__anchor, fragment_30);
+	_$_.append(__anchor, fragment_29);
 }
 
 StaticThenComp[_$_.$r] = StaticThenComp_render;
 
-var root_36 = _$_.template(`<!><!>`, 1, 2);
-var root_35 = _$_.template(`<!>`, 1, 1);
+var root_34 = _$_.template(`<!><!>`, 1, 2);
 
 function SiblingComps_render(__anchor, __block) {
-	var fragment_32 = root_35();
-	var node_22 = _$_.first_child_frag(fragment_32);
+	var fragment_31 = root_34();
+	var node_19 = _$_.first_child_frag(fragment_31);
 
-	_$_.expression(node_22, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_33 = root_36();
-		var node_20 = _$_.first_child_frag(fragment_33);
+	_$_.render_component(Leaf, node_19, {});
 
-		_$_.render_component(Leaf, node_20, {});
+	var node_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_19.nextSibling;
 
-		var node_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_20.nextSibling;
-
-		_$_.render_component(Leaf, node_21, {});
-		_$_.append(__anchor, fragment_33);
-	}));
-
-	_$_.append(__anchor, fragment_32);
+	_$_.render_component(Leaf, node_20, {});
+	_$_.append(__anchor, fragment_31);
 }
 
 SiblingComps[_$_.$r] = SiblingComps_render;
 
-var root_37 = _$_.template_el('div', ['class', 'outer'], [
+var root_35 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -512,14 +496,14 @@ function render_7(__prev) {
 
 function WrapTrailingNavigatedElements_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '4hsxyk');
-	var div_15 = root_37();
+	var div_15 = root_35();
 
 	{
-		var node_23 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
+		var node_21 = _$_.hydrating ? _$_.hydrate_child() : div_15.firstChild;
 
-		_$_.render_component(TrailingNavigatedElements, node_23, {});
+		_$_.render_component(TrailingNavigatedElements, node_21, {});
 
-		var span = _$_.hydrating ? _$_.hydrate_sibling() : node_23;
+		var span = _$_.hydrating ? _$_.hydrate_sibling() : node_21;
 		var button_8 = _$_.hydrating ? _$_.hydrate_sibling() : span.nextSibling;
 
 		button_8.__click = () => n.value++;
@@ -532,7 +516,7 @@ function WrapTrailingNavigatedElements_render(__anchor, __block) {
 
 WrapTrailingNavigatedElements[_$_.$r] = WrapTrailingNavigatedElements_render;
 
-var root_38 = _$_.template_el('div', ['class', 'outer'], [
+var root_36 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -548,14 +532,14 @@ function render_8(__prev) {
 
 function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1i2nm0o');
-	var div_16 = root_38();
+	var div_16 = root_36();
 
 	{
-		var node_24 = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
+		var node_22 = _$_.hydrating ? _$_.hydrate_child() : div_16.firstChild;
 
-		_$_.render_component(TrailingStaticNavigatedElements, node_24, {});
+		_$_.render_component(TrailingStaticNavigatedElements, node_22, {});
 
-		var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_24;
+		var span_1 = _$_.hydrating ? _$_.hydrate_sibling() : node_22;
 		var button_9 = _$_.hydrating ? _$_.hydrate_sibling() : span_1.nextSibling;
 
 		button_9.__click = () => n.value++;
@@ -568,7 +552,7 @@ function WrapTrailingStaticNavigatedElements_render(__anchor, __block) {
 
 WrapTrailingStaticNavigatedElements[_$_.$r] = WrapTrailingStaticNavigatedElements_render;
 
-var root_39 = _$_.template_el('div', ['class', 'outer'], [
+var root_37 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -584,14 +568,14 @@ function render_9(__prev) {
 
 function WrapNavigatedThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1dy54zr');
-	var div_17 = root_39();
+	var div_17 = root_37();
 
 	{
-		var node_25 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
+		var node_23 = _$_.hydrating ? _$_.hydrate_child() : div_17.firstChild;
 
-		_$_.render_component(NavigatedThenStatic, node_25, {});
+		_$_.render_component(NavigatedThenStatic, node_23, {});
 
-		var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_25;
+		var span_2 = _$_.hydrating ? _$_.hydrate_sibling() : node_23;
 		var button_10 = _$_.hydrating ? _$_.hydrate_sibling() : span_2.nextSibling;
 
 		button_10.__click = () => n.value++;
@@ -604,7 +588,7 @@ function WrapNavigatedThenStatic_render(__anchor, __block) {
 
 WrapNavigatedThenStatic[_$_.$r] = WrapNavigatedThenStatic_render;
 
-var root_40 = _$_.template_el('div', ['class', 'outer'], [
+var root_38 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -620,14 +604,14 @@ function render_10(__prev) {
 
 function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1gya7sf');
-	var div_18 = root_40();
+	var div_18 = root_38();
 
 	{
-		var node_26 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
+		var node_24 = _$_.hydrating ? _$_.hydrate_child() : div_18.firstChild;
 
-		_$_.render_component(LeadingNavigatedThenStatic, node_26, {});
+		_$_.render_component(LeadingNavigatedThenStatic, node_24, {});
 
-		var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_26;
+		var span_3 = _$_.hydrating ? _$_.hydrate_sibling() : node_24;
 		var button_11 = _$_.hydrating ? _$_.hydrate_sibling() : span_3.nextSibling;
 
 		button_11.__click = () => n.value++;
@@ -640,7 +624,7 @@ function WrapLeadingNavigatedThenStatic_render(__anchor, __block) {
 
 WrapLeadingNavigatedThenStatic[_$_.$r] = WrapLeadingNavigatedThenStatic_render;
 
-var root_41 = _$_.template_el('div', ['class', 'outer'], [
+var root_39 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -656,14 +640,14 @@ function render_11(__prev) {
 
 function WrapTrailingNestedNavigated_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1tzwnuk');
-	var div_19 = root_41();
+	var div_19 = root_39();
 
 	{
-		var node_27 = _$_.hydrating ? _$_.hydrate_child() : div_19.firstChild;
+		var node_25 = _$_.hydrating ? _$_.hydrate_child() : div_19.firstChild;
 
-		_$_.render_component(TrailingNestedNavigated, node_27, {});
+		_$_.render_component(TrailingNestedNavigated, node_25, {});
 
-		var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_27;
+		var span_4 = _$_.hydrating ? _$_.hydrate_sibling() : node_25;
 		var button_12 = _$_.hydrating ? _$_.hydrate_sibling() : span_4.nextSibling;
 
 		button_12.__click = () => n.value++;
@@ -676,7 +660,7 @@ function WrapTrailingNestedNavigated_render(__anchor, __block) {
 
 WrapTrailingNestedNavigated[_$_.$r] = WrapTrailingNestedNavigated_render;
 
-var root_42 = _$_.template_el('div', ['class', 'outer'], [
+var root_40 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -692,14 +676,14 @@ function render_12(__prev) {
 
 function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '7qafxf');
-	var div_20 = root_42();
+	var div_20 = root_40();
 
 	{
-		var node_28 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
+		var node_26 = _$_.hydrating ? _$_.hydrate_child() : div_20.firstChild;
 
-		_$_.render_component(NestedNavigatedThenStatic, node_28, {});
+		_$_.render_component(NestedNavigatedThenStatic, node_26, {});
 
-		var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_28;
+		var span_5 = _$_.hydrating ? _$_.hydrate_sibling() : node_26;
 		var button_13 = _$_.hydrating ? _$_.hydrate_sibling() : span_5.nextSibling;
 
 		button_13.__click = () => n.value++;
@@ -712,7 +696,7 @@ function WrapNestedNavigatedThenStatic_render(__anchor, __block) {
 
 WrapNestedNavigatedThenStatic[_$_.$r] = WrapNestedNavigatedThenStatic_render;
 
-var root_43 = _$_.template_el('div', ['class', 'outer'], [
+var root_41 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -728,14 +712,14 @@ function render_13(__prev) {
 
 function WrapTrackedTextThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1651kpw');
-	var div_21 = root_43();
+	var div_21 = root_41();
 
 	{
-		var node_29 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
+		var node_27 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
 
-		_$_.render_component(TrackedTextThenStatic, node_29, {});
+		_$_.render_component(TrackedTextThenStatic, node_27, {});
 
-		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_29;
+		var span_6 = _$_.hydrating ? _$_.hydrate_sibling() : node_27;
 		var button_14 = _$_.hydrating ? _$_.hydrate_sibling() : span_6.nextSibling;
 
 		button_14.__click = () => n.value++;
@@ -748,7 +732,7 @@ function WrapTrackedTextThenStatic_render(__anchor, __block) {
 
 WrapTrackedTextThenStatic[_$_.$r] = WrapTrackedTextThenStatic_render;
 
-var root_44 = _$_.template_el('div', ['class', 'outer'], [
+var root_42 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -764,14 +748,14 @@ function render_14(__prev) {
 
 function WrapStaticThenTrackedText_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1n6t9pd');
-	var div_22 = root_44();
+	var div_22 = root_42();
 
 	{
-		var node_30 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
+		var node_28 = _$_.hydrating ? _$_.hydrate_child() : div_22.firstChild;
 
-		_$_.render_component(StaticThenTrackedText, node_30, {});
+		_$_.render_component(StaticThenTrackedText, node_28, {});
 
-		var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_30;
+		var span_7 = _$_.hydrating ? _$_.hydrate_sibling() : node_28;
 		var button_15 = _$_.hydrating ? _$_.hydrate_sibling() : span_7.nextSibling;
 
 		button_15.__click = () => n.value++;
@@ -784,7 +768,7 @@ function WrapStaticThenTrackedText_render(__anchor, __block) {
 
 WrapStaticThenTrackedText[_$_.$r] = WrapStaticThenTrackedText_render;
 
-var root_45 = _$_.template_el('div', ['class', 'outer'], [
+var root_43 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -800,14 +784,14 @@ function render_15(__prev) {
 
 function WrapStaticNestedThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'z0cect');
-	var div_23 = root_45();
+	var div_23 = root_43();
 
 	{
-		var node_31 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
+		var node_29 = _$_.hydrating ? _$_.hydrate_child() : div_23.firstChild;
 
-		_$_.render_component(StaticNestedThenStatic, node_31, {});
+		_$_.render_component(StaticNestedThenStatic, node_29, {});
 
-		var span_8 = _$_.hydrating ? _$_.hydrate_sibling() : node_31;
+		var span_8 = _$_.hydrating ? _$_.hydrate_sibling() : node_29;
 		var button_16 = _$_.hydrating ? _$_.hydrate_sibling() : span_8.nextSibling;
 
 		button_16.__click = () => n.value++;
@@ -820,7 +804,7 @@ function WrapStaticNestedThenStatic_render(__anchor, __block) {
 
 WrapStaticNestedThenStatic[_$_.$r] = WrapStaticNestedThenStatic_render;
 
-var root_46 = _$_.template_el('div', ['class', 'outer'], [
+var root_44 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -836,14 +820,14 @@ function render_16(__prev) {
 
 function WrapAllStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1f7qiqi');
-	var div_24 = root_46();
+	var div_24 = root_44();
 
 	{
-		var node_32 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
+		var node_30 = _$_.hydrating ? _$_.hydrate_child() : div_24.firstChild;
 
-		_$_.render_component(AllStatic, node_32, {});
+		_$_.render_component(AllStatic, node_30, {});
 
-		var span_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_32;
+		var span_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_30;
 		var button_17 = _$_.hydrating ? _$_.hydrate_sibling() : span_9.nextSibling;
 
 		button_17.__click = () => n.value++;
@@ -856,7 +840,7 @@ function WrapAllStatic_render(__anchor, __block) {
 
 WrapAllStatic[_$_.$r] = WrapAllStatic_render;
 
-var root_47 = _$_.template_el('div', ['class', 'outer'], [
+var root_45 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -872,14 +856,14 @@ function render_17(__prev) {
 
 function WrapTrailingDynamicChild_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'z4l3e');
-	var div_25 = root_47();
+	var div_25 = root_45();
 
 	{
-		var node_33 = _$_.hydrating ? _$_.hydrate_child() : div_25.firstChild;
+		var node_31 = _$_.hydrating ? _$_.hydrate_child() : div_25.firstChild;
 
-		_$_.render_component(TrailingDynamicChild, node_33, {});
+		_$_.render_component(TrailingDynamicChild, node_31, {});
 
-		var span_10 = _$_.hydrating ? _$_.hydrate_sibling() : node_33;
+		var span_10 = _$_.hydrating ? _$_.hydrate_sibling() : node_31;
 		var button_18 = _$_.hydrating ? _$_.hydrate_sibling() : span_10.nextSibling;
 
 		button_18.__click = () => n.value++;
@@ -892,7 +876,7 @@ function WrapTrailingDynamicChild_render(__anchor, __block) {
 
 WrapTrailingDynamicChild[_$_.$r] = WrapTrailingDynamicChild_render;
 
-var root_48 = _$_.template_el('div', ['class', 'outer'], [
+var root_46 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -908,14 +892,14 @@ function render_18(__prev) {
 
 function WrapDynamicChildThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'heyo5f');
-	var div_26 = root_48();
+	var div_26 = root_46();
 
 	{
-		var node_34 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
+		var node_32 = _$_.hydrating ? _$_.hydrate_child() : div_26.firstChild;
 
-		_$_.render_component(DynamicChildThenStatic, node_34, {});
+		_$_.render_component(DynamicChildThenStatic, node_32, {});
 
-		var span_11 = _$_.hydrating ? _$_.hydrate_sibling() : node_34;
+		var span_11 = _$_.hydrating ? _$_.hydrate_sibling() : node_32;
 		var button_19 = _$_.hydrating ? _$_.hydrate_sibling() : span_11.nextSibling;
 
 		button_19.__click = () => n.value++;
@@ -928,7 +912,7 @@ function WrapDynamicChildThenStatic_render(__anchor, __block) {
 
 WrapDynamicChildThenStatic[_$_.$r] = WrapDynamicChildThenStatic_render;
 
-var root_49 = _$_.template_el('div', ['class', 'outer'], [
+var root_47 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -944,14 +928,14 @@ function render_19(__prev) {
 
 function WrapIfThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '15jcgyl');
-	var div_27 = root_49();
+	var div_27 = root_47();
 
 	{
-		var node_35 = _$_.hydrating ? _$_.hydrate_child() : div_27.firstChild;
+		var node_33 = _$_.hydrating ? _$_.hydrate_child() : div_27.firstChild;
 
-		_$_.render_component(IfThenStatic, node_35, {});
+		_$_.render_component(IfThenStatic, node_33, {});
 
-		var span_12 = _$_.hydrating ? _$_.hydrate_sibling() : node_35;
+		var span_12 = _$_.hydrating ? _$_.hydrate_sibling() : node_33;
 		var button_20 = _$_.hydrating ? _$_.hydrate_sibling() : span_12.nextSibling;
 
 		button_20.__click = () => n.value++;
@@ -964,7 +948,7 @@ function WrapIfThenStatic_render(__anchor, __block) {
 
 WrapIfThenStatic[_$_.$r] = WrapIfThenStatic_render;
 
-var root_50 = _$_.template_el('div', ['class', 'outer'], [
+var root_48 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -980,14 +964,14 @@ function render_20(__prev) {
 
 function WrapStaticThenIf_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '8lq6wf');
-	var div_28 = root_50();
+	var div_28 = root_48();
 
 	{
-		var node_36 = _$_.hydrating ? _$_.hydrate_child() : div_28.firstChild;
+		var node_34 = _$_.hydrating ? _$_.hydrate_child() : div_28.firstChild;
 
-		_$_.render_component(StaticThenIf, node_36, {});
+		_$_.render_component(StaticThenIf, node_34, {});
 
-		var span_13 = _$_.hydrating ? _$_.hydrate_sibling() : node_36;
+		var span_13 = _$_.hydrating ? _$_.hydrate_sibling() : node_34;
 		var button_21 = _$_.hydrating ? _$_.hydrate_sibling() : span_13.nextSibling;
 
 		button_21.__click = () => n.value++;
@@ -1000,7 +984,7 @@ function WrapStaticThenIf_render(__anchor, __block) {
 
 WrapStaticThenIf[_$_.$r] = WrapStaticThenIf_render;
 
-var root_51 = _$_.template_el('div', ['class', 'outer'], [
+var root_49 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1016,14 +1000,14 @@ function render_21(__prev) {
 
 function WrapCompThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1s0t3x9');
-	var div_29 = root_51();
+	var div_29 = root_49();
 
 	{
-		var node_37 = _$_.hydrating ? _$_.hydrate_child() : div_29.firstChild;
+		var node_35 = _$_.hydrating ? _$_.hydrate_child() : div_29.firstChild;
 
-		_$_.render_component(CompThenStatic, node_37, {});
+		_$_.render_component(CompThenStatic, node_35, {});
 
-		var span_14 = _$_.hydrating ? _$_.hydrate_sibling() : node_37;
+		var span_14 = _$_.hydrating ? _$_.hydrate_sibling() : node_35;
 		var button_22 = _$_.hydrating ? _$_.hydrate_sibling() : span_14.nextSibling;
 
 		button_22.__click = () => n.value++;
@@ -1036,7 +1020,7 @@ function WrapCompThenStatic_render(__anchor, __block) {
 
 WrapCompThenStatic[_$_.$r] = WrapCompThenStatic_render;
 
-var root_52 = _$_.template_el('div', ['class', 'outer'], [
+var root_50 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1052,14 +1036,14 @@ function render_22(__prev) {
 
 function WrapStaticThenComp_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '128s6ks');
-	var div_30 = root_52();
+	var div_30 = root_50();
 
 	{
-		var node_38 = _$_.hydrating ? _$_.hydrate_child() : div_30.firstChild;
+		var node_36 = _$_.hydrating ? _$_.hydrate_child() : div_30.firstChild;
 
-		_$_.render_component(StaticThenComp, node_38, {});
+		_$_.render_component(StaticThenComp, node_36, {});
 
-		var span_15 = _$_.hydrating ? _$_.hydrate_sibling() : node_38;
+		var span_15 = _$_.hydrating ? _$_.hydrate_sibling() : node_36;
 		var button_23 = _$_.hydrating ? _$_.hydrate_sibling() : span_15.nextSibling;
 
 		button_23.__click = () => n.value++;
@@ -1072,7 +1056,7 @@ function WrapStaticThenComp_render(__anchor, __block) {
 
 WrapStaticThenComp[_$_.$r] = WrapStaticThenComp_render;
 
-var root_53 = _$_.template_el('div', ['class', 'outer'], [
+var root_51 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1088,14 +1072,14 @@ function render_23(__prev) {
 
 function WrapSiblingComps_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1ivgvli');
-	var div_31 = root_53();
+	var div_31 = root_51();
 
 	{
-		var node_39 = _$_.hydrating ? _$_.hydrate_child() : div_31.firstChild;
+		var node_37 = _$_.hydrating ? _$_.hydrate_child() : div_31.firstChild;
 
-		_$_.render_component(SiblingComps, node_39, {});
+		_$_.render_component(SiblingComps, node_37, {});
 
-		var span_16 = _$_.hydrating ? _$_.hydrate_sibling() : node_39;
+		var span_16 = _$_.hydrating ? _$_.hydrate_sibling() : node_37;
 		var button_24 = _$_.hydrating ? _$_.hydrate_sibling() : span_16.nextSibling;
 
 		button_24.__click = () => n.value++;
@@ -1108,19 +1092,48 @@ function WrapSiblingComps_render(__anchor, __block) {
 
 WrapSiblingComps[_$_.$r] = WrapSiblingComps_render;
 
-var root_55 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_54 = _$_.template(`<!>`, 1, 1);
+var root_53 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_52 = _$_.template(`<!>`, 1, 1);
 
 function UntrackedTextThenStatic_render(__anchor, __block) {
 	const label = 'label';
+	var fragment_32 = root_52();
+	var node_38 = _$_.first_child_frag(fragment_32);
+
+	_$_.expression(node_38, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_33 = root_53();
+		var expression_22 = _$_.first_child_frag(fragment_33);
+
+		_$_.expression(expression_22, () => _$_.with_scope(__block, () => label.toUpperCase()));
+		_$_.next(2);
+		_$_.append(__anchor, fragment_33);
+	}));
+
+	_$_.append(__anchor, fragment_32);
+}
+
+UntrackedTextThenStatic[_$_.$r] = UntrackedTextThenStatic_render;
+
+var root_56 = _$_.template(`<span class=x>x</span><span class=y>y`, 1, 2);
+var root_55 = _$_.template(`<div class=a>a</div><!><div class=b>b</div><div class=c>c`, 1, 4);
+var root_54 = _$_.template(`<!>`, 1, 1);
+
+function NestedFragmentThenStatic_render(__anchor, __block) {
 	var fragment_34 = root_54();
 	var node_40 = _$_.first_child_frag(fragment_34);
 
 	_$_.expression(node_40, () => _$_.tsrx_element((__anchor, __block) => {
 		var fragment_35 = root_55();
-		var expression_22 = _$_.first_child_frag(fragment_35);
+		var div_32 = _$_.first_child_frag(fragment_35);
+		var node_39 = _$_.hydrating ? _$_.hydrate_sibling() : div_32.nextSibling;
 
-		_$_.expression(expression_22, () => _$_.with_scope(__block, () => label.toUpperCase()));
+		_$_.expression(node_39, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_36 = root_56();
+
+			_$_.next();
+			_$_.append(__anchor, fragment_36);
+		}));
+
 		_$_.next(2);
 		_$_.append(__anchor, fragment_35);
 	}));
@@ -1128,39 +1141,10 @@ function UntrackedTextThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_34);
 }
 
-UntrackedTextThenStatic[_$_.$r] = UntrackedTextThenStatic_render;
-
-var root_58 = _$_.template(`<span class=x>x</span><span class=y>y`, 1, 2);
-var root_57 = _$_.template(`<div class=a>a</div><!><div class=b>b</div><div class=c>c`, 1, 4);
-var root_56 = _$_.template(`<!>`, 1, 1);
-
-function NestedFragmentThenStatic_render(__anchor, __block) {
-	var fragment_36 = root_56();
-	var node_42 = _$_.first_child_frag(fragment_36);
-
-	_$_.expression(node_42, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_37 = root_57();
-		var div_32 = _$_.first_child_frag(fragment_37);
-		var node_41 = _$_.hydrating ? _$_.hydrate_sibling() : div_32.nextSibling;
-
-		_$_.expression(node_41, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_38 = root_58();
-
-			_$_.next();
-			_$_.append(__anchor, fragment_38);
-		}));
-
-		_$_.next(2);
-		_$_.append(__anchor, fragment_37);
-	}));
-
-	_$_.append(__anchor, fragment_36);
-}
-
 NestedFragmentThenStatic[_$_.$r] = NestedFragmentThenStatic_render;
 
-var root_61 = _$_.template(`<span class=x>x</span><button class=inc>inc`, 1, 2);
-var root_60 = _$_.template(`<div class=count></div><!>`, 1, 2);
+var root_59 = _$_.template(`<span class=x>x</span><button class=inc>inc`, 1, 2);
+var root_58 = _$_.template(`<div class=count></div><!>`, 1, 2);
 
 function render_24(__prev) {
 	var __a = __prev._a.value;
@@ -1171,54 +1155,54 @@ function render_24(__prev) {
 	}
 }
 
-var root_59 = _$_.template(`<!>`, 1, 1);
+var root_57 = _$_.template(`<!>`, 1, 1);
 
 function TrailingNestedFragment_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '10ahg7z');
-	var fragment_39 = root_59();
-	var node_44 = _$_.first_child_frag(fragment_39);
+	var fragment_37 = root_57();
+	var node_42 = _$_.first_child_frag(fragment_37);
 
-	_$_.expression(node_44, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_40 = root_60();
-		var div_33 = _$_.first_child_frag(fragment_40);
-		var node_43 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
+	_$_.expression(node_42, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_38 = root_58();
+		var div_33 = _$_.first_child_frag(fragment_38);
+		var node_41 = _$_.hydrating ? _$_.hydrate_sibling() : div_33.nextSibling;
 
-		_$_.expression(node_43, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_41 = root_61();
-			var span_17 = _$_.first_child_frag(fragment_41);
+		_$_.expression(node_41, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_39 = root_59();
+			var span_17 = _$_.first_child_frag(fragment_39);
 			var button_25 = _$_.hydrating ? _$_.hydrate_sibling() : span_17.nextSibling;
 
 			button_25.__click = () => n.value++;
-			_$_.append(__anchor, fragment_41);
+			_$_.append(__anchor, fragment_39);
 		}));
 
 		_$_.render(render_24, { a: '', _a: n, _b: div_33 });
-		_$_.append(__anchor, fragment_40);
+		_$_.append(__anchor, fragment_38);
 	}));
 
-	_$_.append(__anchor, fragment_39);
+	_$_.append(__anchor, fragment_37);
 }
 
 TrailingNestedFragment[_$_.$r] = TrailingNestedFragment_render;
 
-var root_64 = _$_.template_el('b', ['class', 'item'], ' ');
-var root_63 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_62 = _$_.template(`<!>`, 1, 1);
+var root_62 = _$_.template_el('b', ['class', 'item'], ' ');
+var root_61 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_60 = _$_.template(`<!>`, 1, 1);
 
 function ForThenStatic_render(__anchor, __block) {
 	const items = [1, 2];
-	var fragment_42 = root_62();
-	var node_46 = _$_.first_child_frag(fragment_42);
+	var fragment_40 = root_60();
+	var node_44 = _$_.first_child_frag(fragment_40);
 
-	_$_.expression(node_46, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_43 = root_63();
-		var node_45 = _$_.first_child_frag(fragment_43);
+	_$_.expression(node_44, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_41 = root_61();
+		var node_43 = _$_.first_child_frag(fragment_41);
 
 		_$_.for(
-			node_45,
+			node_43,
 			() => items,
 			(__anchor, item) => {
-				var b_2 = root_64();
+				var b_2 = root_62();
 
 				{
 					var expression_24 = _$_.hydrating ? _$_.hydrate_child() : b_2.firstChild;
@@ -1233,25 +1217,25 @@ function ForThenStatic_render(__anchor, __block) {
 		);
 
 		_$_.next(2);
-		_$_.append(__anchor, fragment_43);
+		_$_.append(__anchor, fragment_41);
 	}));
 
-	_$_.append(__anchor, fragment_42);
+	_$_.append(__anchor, fragment_40);
 }
 
 ForThenStatic[_$_.$r] = ForThenStatic_render;
 
-var root_67 = _$_.template_el('b', ['class', 'zero'], 'zero');
-var root_68 = _$_.template_el('b', ['class', 'other'], 'other');
+var root_65 = _$_.template_el('b', ['class', 'zero'], 'zero');
+var root_66 = _$_.template_el('b', ['class', 'other'], 'other');
 
 function switch_case_0(__anchor) {
-	var b_3 = root_67();
+	var b_3 = root_65();
 
 	_$_.append(__anchor, b_3);
 }
 
 function switch_case_default(__anchor) {
-	var b_4 = root_68();
+	var b_4 = root_66();
 
 	_$_.append(__anchor, b_4);
 }
@@ -1266,19 +1250,55 @@ function switch_1(n) {
 	}
 }
 
-var root_66 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_65 = _$_.template(`<!>`, 1, 1);
+var root_64 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_63 = _$_.template(`<!>`, 1, 1);
 
 function SwitchThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'zj5z3n');
-	var fragment_44 = root_65();
+	var fragment_42 = root_63();
+	var node_46 = _$_.first_child_frag(fragment_42);
+
+	_$_.expression(node_46, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_43 = root_64();
+		var node_45 = _$_.first_child_frag(fragment_43);
+
+		_$_.switch(node_45, switch_1, false, n);
+		_$_.next(2);
+		_$_.append(__anchor, fragment_43);
+	}));
+
+	_$_.append(__anchor, fragment_42);
+}
+
+SwitchThenStatic[_$_.$r] = SwitchThenStatic_render;
+
+var root_69 = _$_.template_el('b', ['class', 'try'], 'try');
+var root_70 = _$_.template_el('b', ['class', 'catch'], 'catch');
+var root_68 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_67 = _$_.template(`<!>`, 1, 1);
+
+function TryThenStatic_render(__anchor, __block) {
+	var fragment_44 = root_67();
 	var node_48 = _$_.first_child_frag(fragment_44);
 
 	_$_.expression(node_48, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_45 = root_66();
+		var fragment_45 = root_68();
 		var node_47 = _$_.first_child_frag(fragment_45);
 
-		_$_.switch(node_47, switch_1, false, n);
+		_$_.try(
+			node_47,
+			(__anchor) => {
+				var b_5 = root_69();
+
+				_$_.append(__anchor, b_5);
+			},
+			(__anchor, e) => {
+				var b_6 = root_70();
+
+				_$_.append(__anchor, b_6);
+			}
+		);
+
 		_$_.next(2);
 		_$_.append(__anchor, fragment_45);
 	}));
@@ -1286,34 +1306,22 @@ function SwitchThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_44);
 }
 
-SwitchThenStatic[_$_.$r] = SwitchThenStatic_render;
+TryThenStatic[_$_.$r] = TryThenStatic_render;
 
-var root_71 = _$_.template_el('b', ['class', 'try'], 'try');
-var root_72 = _$_.template_el('b', ['class', 'catch'], 'catch');
-var root_70 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_69 = _$_.template(`<!>`, 1, 1);
+var root_72 = _$_.template(`<style>.styled { color: red; }</style><div class="styled a">a</div><div class="styled b">b`, 1, 3);
+var root_71 = _$_.template(`<!>`, 1, 1);
 
-function TryThenStatic_render(__anchor, __block) {
-	var fragment_46 = root_69();
-	var node_50 = _$_.first_child_frag(fragment_46);
+function StyleThenStatic_render(__anchor, __block) {
+	var fragment_46 = root_71();
+	var node_49 = _$_.first_child_frag(fragment_46);
 
-	_$_.expression(node_50, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_47 = root_70();
-		var node_49 = _$_.first_child_frag(fragment_47);
+	_$_.expression(node_49, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_47 = root_72();
+		var style = _$_.first_child_frag(fragment_47);
 
-		_$_.try(
-			node_49,
-			(__anchor) => {
-				var b_5 = root_71();
-
-				_$_.append(__anchor, b_5);
-			},
-			(__anchor, e) => {
-				var b_6 = root_72();
-
-				_$_.append(__anchor, b_6);
-			}
-		);
+		{
+			_$_.hydrating && _$_.pop(style);
+		}
 
 		_$_.next(2);
 		_$_.append(__anchor, fragment_47);
@@ -1322,47 +1330,23 @@ function TryThenStatic_render(__anchor, __block) {
 	_$_.append(__anchor, fragment_46);
 }
 
-TryThenStatic[_$_.$r] = TryThenStatic_render;
-
-var root_74 = _$_.template(`<style>.styled { color: red; }</style><div class="styled a">a</div><div class="styled b">b`, 1, 3);
-var root_73 = _$_.template(`<!>`, 1, 1);
-
-function StyleThenStatic_render(__anchor, __block) {
-	var fragment_48 = root_73();
-	var node_51 = _$_.first_child_frag(fragment_48);
-
-	_$_.expression(node_51, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_49 = root_74();
-		var style = _$_.first_child_frag(fragment_49);
-
-		{
-			_$_.hydrating && _$_.pop(style);
-		}
-
-		_$_.next(2);
-		_$_.append(__anchor, fragment_49);
-	}));
-
-	_$_.append(__anchor, fragment_48);
-}
-
 StyleThenStatic[_$_.$r] = StyleThenStatic_render;
 
-var root_76 = _$_.template_el('b', ['class', 'item'], ' ');
-var root_77 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_75 = _$_.template(`<!>`, 1, 1);
+var root_74 = _$_.template_el('b', ['class', 'item'], ' ');
+var root_75 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_73 = _$_.template(`<!>`, 1, 1);
 
 function CollectionThenStatic_render(__anchor, __block) {
 	const items = [1, 2];
-	var fragment_50 = root_75();
-	var node_52 = _$_.first_child_frag(fragment_50);
+	var fragment_48 = root_73();
+	var node_50 = _$_.first_child_frag(fragment_48);
 
-	_$_.expression(node_52, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_51 = root_77();
-		var expression_26 = _$_.first_child_frag(fragment_51);
+	_$_.expression(node_50, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_49 = root_75();
+		var expression_26 = _$_.first_child_frag(fragment_49);
 
 		_$_.expression(expression_26, () => _$_.with_scope(__block, () => items.map((item) => _$_.tsrx_element((__anchor, __block) => {
-			var b_7 = root_76();
+			var b_7 = root_74();
 
 			{
 				var expression_25 = _$_.hydrating ? _$_.hydrate_child() : b_7.firstChild;
@@ -1375,42 +1359,42 @@ function CollectionThenStatic_render(__anchor, __block) {
 		}))));
 
 		_$_.next(2);
+		_$_.append(__anchor, fragment_49);
+	}));
+
+	_$_.append(__anchor, fragment_48);
+}
+
+CollectionThenStatic[_$_.$r] = CollectionThenStatic_render;
+
+var root_77 = _$_.template_el('b', ['class', 'inline'], 'inline');
+var root_78 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_76 = _$_.template(`<!>`, 1, 1);
+
+function InlineElementThenStatic_render(__anchor, __block) {
+	var fragment_50 = root_76();
+	var node_51 = _$_.first_child_frag(fragment_50);
+
+	_$_.expression(node_51, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_51 = root_78();
+		var expression_27 = _$_.first_child_frag(fragment_51);
+
+		_$_.expression(expression_27, () => _$_.tsrx_element((__anchor, __block) => {
+			var b_8 = root_77();
+
+			_$_.append(__anchor, b_8);
+		}));
+
+		_$_.next(2);
 		_$_.append(__anchor, fragment_51);
 	}));
 
 	_$_.append(__anchor, fragment_50);
 }
 
-CollectionThenStatic[_$_.$r] = CollectionThenStatic_render;
-
-var root_79 = _$_.template_el('b', ['class', 'inline'], 'inline');
-var root_80 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_78 = _$_.template(`<!>`, 1, 1);
-
-function InlineElementThenStatic_render(__anchor, __block) {
-	var fragment_52 = root_78();
-	var node_53 = _$_.first_child_frag(fragment_52);
-
-	_$_.expression(node_53, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_53 = root_80();
-		var expression_27 = _$_.first_child_frag(fragment_53);
-
-		_$_.expression(expression_27, () => _$_.tsrx_element((__anchor, __block) => {
-			var b_8 = root_79();
-
-			_$_.append(__anchor, b_8);
-		}));
-
-		_$_.next(2);
-		_$_.append(__anchor, fragment_53);
-	}));
-
-	_$_.append(__anchor, fragment_52);
-}
-
 InlineElementThenStatic[_$_.$r] = InlineElementThenStatic_render;
 
-var root_81 = _$_.template_el('div', ['class', 'outer'], [
+var root_79 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1426,14 +1410,14 @@ function render_25(__prev) {
 
 function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'g81yay');
-	var div_34 = root_81();
+	var div_34 = root_79();
 
 	{
-		var node_54 = _$_.hydrating ? _$_.hydrate_child() : div_34.firstChild;
+		var node_52 = _$_.hydrating ? _$_.hydrate_child() : div_34.firstChild;
 
-		_$_.render_component(UntrackedTextThenStatic, node_54, {});
+		_$_.render_component(UntrackedTextThenStatic, node_52, {});
 
-		var span_18 = _$_.hydrating ? _$_.hydrate_sibling() : node_54;
+		var span_18 = _$_.hydrating ? _$_.hydrate_sibling() : node_52;
 		var button_26 = _$_.hydrating ? _$_.hydrate_sibling() : span_18.nextSibling;
 
 		button_26.__click = () => n.value++;
@@ -1446,7 +1430,7 @@ function WrapUntrackedTextThenStatic_render(__anchor, __block) {
 
 WrapUntrackedTextThenStatic[_$_.$r] = WrapUntrackedTextThenStatic_render;
 
-var root_82 = _$_.template_el('div', ['class', 'outer'], [
+var root_80 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1462,14 +1446,14 @@ function render_26(__prev) {
 
 function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1ot44jk');
-	var div_35 = root_82();
+	var div_35 = root_80();
 
 	{
-		var node_55 = _$_.hydrating ? _$_.hydrate_child() : div_35.firstChild;
+		var node_53 = _$_.hydrating ? _$_.hydrate_child() : div_35.firstChild;
 
-		_$_.render_component(NestedFragmentThenStatic, node_55, {});
+		_$_.render_component(NestedFragmentThenStatic, node_53, {});
 
-		var span_19 = _$_.hydrating ? _$_.hydrate_sibling() : node_55;
+		var span_19 = _$_.hydrating ? _$_.hydrate_sibling() : node_53;
 		var button_27 = _$_.hydrating ? _$_.hydrate_sibling() : span_19.nextSibling;
 
 		button_27.__click = () => n.value++;
@@ -1482,7 +1466,7 @@ function WrapNestedFragmentThenStatic_render(__anchor, __block) {
 
 WrapNestedFragmentThenStatic[_$_.$r] = WrapNestedFragmentThenStatic_render;
 
-var root_83 = _$_.template_el('div', ['class', 'outer'], [
+var root_81 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1498,14 +1482,14 @@ function render_27(__prev) {
 
 function WrapTrailingNestedFragment_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1fz18vp');
-	var div_36 = root_83();
+	var div_36 = root_81();
 
 	{
-		var node_56 = _$_.hydrating ? _$_.hydrate_child() : div_36.firstChild;
+		var node_54 = _$_.hydrating ? _$_.hydrate_child() : div_36.firstChild;
 
-		_$_.render_component(TrailingNestedFragment, node_56, {});
+		_$_.render_component(TrailingNestedFragment, node_54, {});
 
-		var span_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_56;
+		var span_20 = _$_.hydrating ? _$_.hydrate_sibling() : node_54;
 		var button_28 = _$_.hydrating ? _$_.hydrate_sibling() : span_20.nextSibling;
 
 		button_28.__click = () => n.value++;
@@ -1518,7 +1502,7 @@ function WrapTrailingNestedFragment_render(__anchor, __block) {
 
 WrapTrailingNestedFragment[_$_.$r] = WrapTrailingNestedFragment_render;
 
-var root_84 = _$_.template_el('div', ['class', 'outer'], [
+var root_82 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1534,14 +1518,14 @@ function render_28(__prev) {
 
 function WrapForThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1acyxvu');
-	var div_37 = root_84();
+	var div_37 = root_82();
 
 	{
-		var node_57 = _$_.hydrating ? _$_.hydrate_child() : div_37.firstChild;
+		var node_55 = _$_.hydrating ? _$_.hydrate_child() : div_37.firstChild;
 
-		_$_.render_component(ForThenStatic, node_57, {});
+		_$_.render_component(ForThenStatic, node_55, {});
 
-		var span_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_57;
+		var span_21 = _$_.hydrating ? _$_.hydrate_sibling() : node_55;
 		var button_29 = _$_.hydrating ? _$_.hydrate_sibling() : span_21.nextSibling;
 
 		button_29.__click = () => n.value++;
@@ -1554,7 +1538,7 @@ function WrapForThenStatic_render(__anchor, __block) {
 
 WrapForThenStatic[_$_.$r] = WrapForThenStatic_render;
 
-var root_85 = _$_.template_el('div', ['class', 'outer'], [
+var root_83 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1570,14 +1554,14 @@ function render_29(__prev) {
 
 function WrapSwitchThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '19y3grj');
-	var div_38 = root_85();
+	var div_38 = root_83();
 
 	{
-		var node_58 = _$_.hydrating ? _$_.hydrate_child() : div_38.firstChild;
+		var node_56 = _$_.hydrating ? _$_.hydrate_child() : div_38.firstChild;
 
-		_$_.render_component(SwitchThenStatic, node_58, {});
+		_$_.render_component(SwitchThenStatic, node_56, {});
 
-		var span_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_58;
+		var span_22 = _$_.hydrating ? _$_.hydrate_sibling() : node_56;
 		var button_30 = _$_.hydrating ? _$_.hydrate_sibling() : span_22.nextSibling;
 
 		button_30.__click = () => n.value++;
@@ -1590,7 +1574,7 @@ function WrapSwitchThenStatic_render(__anchor, __block) {
 
 WrapSwitchThenStatic[_$_.$r] = WrapSwitchThenStatic_render;
 
-var root_86 = _$_.template_el('div', ['class', 'outer'], [
+var root_84 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1606,14 +1590,14 @@ function render_30(__prev) {
 
 function WrapTryThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '4hpwd2');
-	var div_39 = root_86();
+	var div_39 = root_84();
 
 	{
-		var node_59 = _$_.hydrating ? _$_.hydrate_child() : div_39.firstChild;
+		var node_57 = _$_.hydrating ? _$_.hydrate_child() : div_39.firstChild;
 
-		_$_.render_component(TryThenStatic, node_59, {});
+		_$_.render_component(TryThenStatic, node_57, {});
 
-		var span_23 = _$_.hydrating ? _$_.hydrate_sibling() : node_59;
+		var span_23 = _$_.hydrating ? _$_.hydrate_sibling() : node_57;
 		var button_31 = _$_.hydrating ? _$_.hydrate_sibling() : span_23.nextSibling;
 
 		button_31.__click = () => n.value++;
@@ -1626,7 +1610,7 @@ function WrapTryThenStatic_render(__anchor, __block) {
 
 WrapTryThenStatic[_$_.$r] = WrapTryThenStatic_render;
 
-var root_87 = _$_.template_el('div', ['class', 'outer'], [
+var root_85 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1642,14 +1626,14 @@ function render_31(__prev) {
 
 function WrapStyleThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1viwphy');
-	var div_40 = root_87();
+	var div_40 = root_85();
 
 	{
-		var node_60 = _$_.hydrating ? _$_.hydrate_child() : div_40.firstChild;
+		var node_58 = _$_.hydrating ? _$_.hydrate_child() : div_40.firstChild;
 
-		_$_.render_component(StyleThenStatic, node_60, {});
+		_$_.render_component(StyleThenStatic, node_58, {});
 
-		var span_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_60;
+		var span_24 = _$_.hydrating ? _$_.hydrate_sibling() : node_58;
 		var button_32 = _$_.hydrating ? _$_.hydrate_sibling() : span_24.nextSibling;
 
 		button_32.__click = () => n.value++;
@@ -1662,7 +1646,7 @@ function WrapStyleThenStatic_render(__anchor, __block) {
 
 WrapStyleThenStatic[_$_.$r] = WrapStyleThenStatic_render;
 
-var root_88 = _$_.template_el('div', ['class', 'outer'], [
+var root_86 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1678,14 +1662,14 @@ function render_32(__prev) {
 
 function WrapCollectionThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1dd1i1k');
-	var div_41 = root_88();
+	var div_41 = root_86();
 
 	{
-		var node_61 = _$_.hydrating ? _$_.hydrate_child() : div_41.firstChild;
+		var node_59 = _$_.hydrating ? _$_.hydrate_child() : div_41.firstChild;
 
-		_$_.render_component(CollectionThenStatic, node_61, {});
+		_$_.render_component(CollectionThenStatic, node_59, {});
 
-		var span_25 = _$_.hydrating ? _$_.hydrate_sibling() : node_61;
+		var span_25 = _$_.hydrating ? _$_.hydrate_sibling() : node_59;
 		var button_33 = _$_.hydrating ? _$_.hydrate_sibling() : span_25.nextSibling;
 
 		button_33.__click = () => n.value++;
@@ -1698,7 +1682,7 @@ function WrapCollectionThenStatic_render(__anchor, __block) {
 
 WrapCollectionThenStatic[_$_.$r] = WrapCollectionThenStatic_render;
 
-var root_89 = _$_.template_el('div', ['class', 'outer'], [
+var root_87 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1714,14 +1698,14 @@ function render_33(__prev) {
 
 function WrapInlineElementThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1pw54xk');
-	var div_42 = root_89();
+	var div_42 = root_87();
 
 	{
-		var node_62 = _$_.hydrating ? _$_.hydrate_child() : div_42.firstChild;
+		var node_60 = _$_.hydrating ? _$_.hydrate_child() : div_42.firstChild;
 
-		_$_.render_component(InlineElementThenStatic, node_62, {});
+		_$_.render_component(InlineElementThenStatic, node_60, {});
 
-		var span_26 = _$_.hydrating ? _$_.hydrate_sibling() : node_62;
+		var span_26 = _$_.hydrating ? _$_.hydrate_sibling() : node_60;
 		var button_34 = _$_.hydrating ? _$_.hydrate_sibling() : span_26.nextSibling;
 
 		button_34.__click = () => n.value++;
@@ -1734,10 +1718,10 @@ function WrapInlineElementThenStatic_render(__anchor, __block) {
 
 WrapInlineElementThenStatic[_$_.$r] = WrapInlineElementThenStatic_render;
 
-var root_91 = _$_.template_el('b', ['class', 'if'], 'x');
+var root_89 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_2(__anchor) {
-	var b_9 = root_91();
+	var b_9 = root_89();
 
 	_$_.append(__anchor, b_9);
 }
@@ -1754,28 +1738,28 @@ function render_34(__prev) {
 	}
 }
 
-var root_90 = _$_.template(`<!>`, 1, 1);
+var root_88 = _$_.template(`<!>`, 1, 1);
 
 function IfOnly_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1j4mp04');
-	var fragment_54 = root_90();
-	var node_63 = _$_.first_child_frag(fragment_54);
+	var fragment_52 = root_88();
+	var node_61 = _$_.first_child_frag(fragment_52);
 
-	_$_.expression(node_63, () => _$_.tsrx_element((__anchor, __block) => {
+	_$_.expression(node_61, () => _$_.tsrx_element((__anchor, __block) => {
 		var ifs_2 = _$_.if_static(__anchor, if_3, 1, n);
 
 		_$_.render(render_34, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_2 });
 	}));
 
-	_$_.append(__anchor, fragment_54);
+	_$_.append(__anchor, fragment_52);
 }
 
 IfOnly[_$_.$r] = IfOnly_render;
 
-var root_94 = _$_.template_el('b', ['class', 'if'], 'x');
+var root_92 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_3(__anchor) {
-	var b_10 = root_94();
+	var b_10 = root_92();
 
 	_$_.append(__anchor, b_10);
 }
@@ -1784,7 +1768,7 @@ function if_4(n) {
 	if (n.value >= 0) return consequent_3;
 }
 
-var root_93 = _$_.template(`<!><div class=a>a`, 1, 2);
+var root_91 = _$_.template(`<!><div class=a>a`, 1, 2);
 
 function render_35(__prev) {
 	var __a = if_4(__prev._a);
@@ -1794,32 +1778,32 @@ function render_35(__prev) {
 	}
 }
 
-var root_92 = _$_.template(`<!>`, 1, 1);
+var root_90 = _$_.template(`<!>`, 1, 1);
 
 function IfThenOne_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1iawrhh');
-	var fragment_55 = root_92();
-	var node_65 = _$_.first_child_frag(fragment_55);
+	var fragment_53 = root_90();
+	var node_63 = _$_.first_child_frag(fragment_53);
 
-	_$_.expression(node_65, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_56 = root_93();
-		var node_64 = _$_.first_child_frag(fragment_56);
-		var ifs_3 = _$_.if_static(node_64, if_4, 0, n);
+	_$_.expression(node_63, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_54 = root_91();
+		var node_62 = _$_.first_child_frag(fragment_54);
+		var ifs_3 = _$_.if_static(node_62, if_4, 0, n);
 
 		_$_.next();
 		_$_.render(render_35, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_3 });
-		_$_.append(__anchor, fragment_56);
+		_$_.append(__anchor, fragment_54);
 	}));
 
-	_$_.append(__anchor, fragment_55);
+	_$_.append(__anchor, fragment_53);
 }
 
 IfThenOne[_$_.$r] = IfThenOne_render;
 
-var root_96 = _$_.template_el('b', ['class', 'if'], 'x');
+var root_94 = _$_.template_el('b', ['class', 'if'], 'x');
 
 function consequent_4(__anchor) {
-	var b_11 = root_96();
+	var b_11 = root_94();
 
 	_$_.append(__anchor, b_11);
 }
@@ -1828,7 +1812,7 @@ function if_5(n) {
 	if (n.value >= 0) return consequent_4;
 }
 
-var root_95 = _$_.template_el('div', ['class', 'root'], [null]);
+var root_93 = _$_.template_el('div', ['class', 'root'], [null]);
 
 function render_36(__prev) {
 	var __a = if_5(__prev._a);
@@ -1840,11 +1824,11 @@ function render_36(__prev) {
 
 function SingleRootWithIf_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'rpd5nn');
-	var div_43 = root_95();
+	var div_43 = root_93();
 
 	{
-		var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
-		var ifs_4 = _$_.if_static(node_66, if_5, 0, n);
+		var node_64 = _$_.hydrating ? _$_.hydrate_child() : div_43.firstChild;
+		var ifs_4 = _$_.if_static(node_64, if_5, 0, n);
 
 		_$_.hydrating && _$_.pop(div_43);
 	}
@@ -1855,7 +1839,7 @@ function SingleRootWithIf_render(__anchor, __block) {
 
 SingleRootWithIf[_$_.$r] = SingleRootWithIf_render;
 
-var root_97 = _$_.template_el('div', ['class', 'outer'], [
+var root_95 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1871,14 +1855,14 @@ function render_37(__prev) {
 
 function WrapIfOnly_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '10kd2fx');
-	var div_44 = root_97();
+	var div_44 = root_95();
 
 	{
-		var node_67 = _$_.hydrating ? _$_.hydrate_child() : div_44.firstChild;
+		var node_65 = _$_.hydrating ? _$_.hydrate_child() : div_44.firstChild;
 
-		_$_.render_component(IfOnly, node_67, {});
+		_$_.render_component(IfOnly, node_65, {});
 
-		var span_27 = _$_.hydrating ? _$_.hydrate_sibling() : node_67;
+		var span_27 = _$_.hydrating ? _$_.hydrate_sibling() : node_65;
 		var button_35 = _$_.hydrating ? _$_.hydrate_sibling() : span_27.nextSibling;
 
 		button_35.__click = () => n.value++;
@@ -1891,7 +1875,7 @@ function WrapIfOnly_render(__anchor, __block) {
 
 WrapIfOnly[_$_.$r] = WrapIfOnly_render;
 
-var root_98 = _$_.template_el('div', ['class', 'outer'], [
+var root_96 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1907,14 +1891,14 @@ function render_38(__prev) {
 
 function WrapIfThenOne_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'cgtahj');
-	var div_45 = root_98();
+	var div_45 = root_96();
 
 	{
-		var node_68 = _$_.hydrating ? _$_.hydrate_child() : div_45.firstChild;
+		var node_66 = _$_.hydrating ? _$_.hydrate_child() : div_45.firstChild;
 
-		_$_.render_component(IfThenOne, node_68, {});
+		_$_.render_component(IfThenOne, node_66, {});
 
-		var span_28 = _$_.hydrating ? _$_.hydrate_sibling() : node_68;
+		var span_28 = _$_.hydrating ? _$_.hydrate_sibling() : node_66;
 		var button_36 = _$_.hydrating ? _$_.hydrate_sibling() : span_28.nextSibling;
 
 		button_36.__click = () => n.value++;
@@ -1927,7 +1911,7 @@ function WrapIfThenOne_render(__anchor, __block) {
 
 WrapIfThenOne[_$_.$r] = WrapIfThenOne_render;
 
-var root_99 = _$_.template_el('div', ['class', 'outer'], [
+var root_97 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -1943,14 +1927,14 @@ function render_39(__prev) {
 
 function WrapSingleRootWithIf_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1hoki9n');
-	var div_46 = root_99();
+	var div_46 = root_97();
 
 	{
-		var node_69 = _$_.hydrating ? _$_.hydrate_child() : div_46.firstChild;
+		var node_67 = _$_.hydrating ? _$_.hydrate_child() : div_46.firstChild;
 
-		_$_.render_component(SingleRootWithIf, node_69, {});
+		_$_.render_component(SingleRootWithIf, node_67, {});
 
-		var span_29 = _$_.hydrating ? _$_.hydrate_sibling() : node_69;
+		var span_29 = _$_.hydrating ? _$_.hydrate_sibling() : node_67;
 		var button_37 = _$_.hydrating ? _$_.hydrate_sibling() : span_29.nextSibling;
 
 		button_37.__click = () => n.value++;
@@ -1963,7 +1947,7 @@ function WrapSingleRootWithIf_render(__anchor, __block) {
 
 WrapSingleRootWithIf[_$_.$r] = WrapSingleRootWithIf_render;
 
-var root_100 = _$_.template_el('div', ['class', 'outer'], [
+var root_98 = _$_.template_el('div', ['class', 'outer'], [
 	null,
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
@@ -1981,7 +1965,7 @@ function render_40(__prev) {
 function ExprThenSiblingInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1osob1q');
 	const label = 'label';
-	var div_47 = root_100();
+	var div_47 = root_98();
 
 	{
 		var expression_40 = _$_.hydrating ? _$_.hydrate_child() : div_47.firstChild;
@@ -2001,20 +1985,20 @@ function ExprThenSiblingInDiv_render(__anchor, __block) {
 
 ExprThenSiblingInDiv[_$_.$r] = ExprThenSiblingInDiv_render;
 
-var root_103 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
+var root_101 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
 
 function consequent_5(__anchor) {
-	var fragment_59 = root_103();
+	var fragment_57 = root_101();
 
 	_$_.next();
-	_$_.append(__anchor, fragment_59);
+	_$_.append(__anchor, fragment_57);
 }
 
 function if_6(n) {
 	if (n.value >= 0) return consequent_5;
 }
 
-var root_102 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_100 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
 
 function render_41(__prev) {
 	var __a = if_6(__prev._a);
@@ -2024,42 +2008,42 @@ function render_41(__prev) {
 	}
 }
 
-var root_101 = _$_.template(`<!>`, 1, 1);
+var root_99 = _$_.template(`<!>`, 1, 1);
 
 function IfTwoThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1nzh6oi');
-	var fragment_57 = root_101();
-	var node_71 = _$_.first_child_frag(fragment_57);
+	var fragment_55 = root_99();
+	var node_69 = _$_.first_child_frag(fragment_55);
 
-	_$_.expression(node_71, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_58 = root_102();
-		var node_70 = _$_.first_child_frag(fragment_58);
-		var ifs_5 = _$_.if_static(node_70, if_6, 0, n);
+	_$_.expression(node_69, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_56 = root_100();
+		var node_68 = _$_.first_child_frag(fragment_56);
+		var ifs_5 = _$_.if_static(node_68, if_6, 0, n);
 
 		_$_.next(2);
 		_$_.render(render_41, { a: _$_.UNINITIALIZED, _a: n, _b: ifs_5 });
-		_$_.append(__anchor, fragment_58);
+		_$_.append(__anchor, fragment_56);
 	}));
 
-	_$_.append(__anchor, fragment_57);
+	_$_.append(__anchor, fragment_55);
 }
 
 IfTwoThenStatic[_$_.$r] = IfTwoThenStatic_render;
 
-var root_105 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
+var root_103 = _$_.template(`<b class=if>x</b><i class=if2>y`, 1, 2);
 
 function consequent_6(__anchor) {
-	var fragment_60 = root_105();
+	var fragment_58 = root_103();
 
 	_$_.next();
-	_$_.append(__anchor, fragment_60);
+	_$_.append(__anchor, fragment_58);
 }
 
 function if_7(n) {
 	if (n.value >= 0) return consequent_6;
 }
 
-var root_104 = _$_.template_el('div', ['class', 'outer'], [
+var root_102 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2081,12 +2065,12 @@ function render_42(__prev) {
 
 function IfTwoInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '3fm7u7');
-	var div_48 = root_104();
+	var div_48 = root_102();
 
 	{
-		var node_72 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
-		var ifs_6 = _$_.if_static(node_72, if_7, 0, n);
-		var span_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_72;
+		var node_70 = _$_.hydrating ? _$_.hydrate_child() : div_48.firstChild;
+		var ifs_6 = _$_.if_static(node_70, if_7, 0, n);
+		var span_31 = _$_.hydrating ? _$_.hydrate_sibling() : node_70;
 		var button_39 = _$_.hydrating ? _$_.hydrate_sibling() : span_31.nextSibling;
 
 		button_39.__click = () => n.value++;
@@ -2099,7 +2083,7 @@ function IfTwoInDiv_render(__anchor, __block) {
 
 IfTwoInDiv[_$_.$r] = IfTwoInDiv_render;
 
-var root_106 = _$_.template_el('div', ['class', 'outer'], [
+var root_104 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2115,14 +2099,14 @@ function render_43(__prev) {
 
 function WrapIfTwoThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1l1acs8');
-	var div_49 = root_106();
+	var div_49 = root_104();
 
 	{
-		var node_73 = _$_.hydrating ? _$_.hydrate_child() : div_49.firstChild;
+		var node_71 = _$_.hydrating ? _$_.hydrate_child() : div_49.firstChild;
 
-		_$_.render_component(IfTwoThenStatic, node_73, {});
+		_$_.render_component(IfTwoThenStatic, node_71, {});
 
-		var span_32 = _$_.hydrating ? _$_.hydrate_sibling() : node_73;
+		var span_32 = _$_.hydrating ? _$_.hydrate_sibling() : node_71;
 		var button_40 = _$_.hydrating ? _$_.hydrate_sibling() : span_32.nextSibling;
 
 		button_40.__click = () => n.value++;
@@ -2135,22 +2119,22 @@ function WrapIfTwoThenStatic_render(__anchor, __block) {
 
 WrapIfTwoThenStatic[_$_.$r] = WrapIfTwoThenStatic_render;
 
-var root_108 = _$_.template(`<b class=item> </b><i class=sep>|`, 1, 2);
-var root_107 = _$_.template_el('div', ['class', 'outer'], [['span', ['class', 'after'], 'after']]);
+var root_106 = _$_.template(`<b class=item> </b><i class=sep>|`, 1, 2);
+var root_105 = _$_.template_el('div', ['class', 'outer'], [['span', ['class', 'after'], 'after']]);
 
 function ForTwoNodeItems_render(__anchor, __block) {
 	const items = [1, 2];
-	var div_50 = root_107();
+	var div_50 = root_105();
 
 	{
-		var node_74 = _$_.hydrating ? _$_.hydrate_child() : div_50.firstChild;
+		var node_72 = _$_.hydrating ? _$_.hydrate_child() : div_50.firstChild;
 
 		_$_.for(
-			node_74,
+			node_72,
 			() => items,
 			(__anchor, item) => {
-				var fragment_61 = root_108();
-				var b_12 = _$_.first_child_frag(fragment_61);
+				var fragment_59 = root_106();
+				var b_12 = _$_.first_child_frag(fragment_59);
 
 				{
 					var expression_44 = _$_.hydrating ? _$_.hydrate_child() : b_12.firstChild;
@@ -2160,7 +2144,7 @@ function ForTwoNodeItems_render(__anchor, __block) {
 				}
 
 				_$_.next();
-				_$_.append(__anchor, fragment_61);
+				_$_.append(__anchor, fragment_59);
 			},
 			0
 		);
@@ -2173,44 +2157,44 @@ function ForTwoNodeItems_render(__anchor, __block) {
 
 ForTwoNodeItems[_$_.$r] = ForTwoNodeItems_render;
 
-var root_109 = _$_.template_el('b', ['class', 'made'], 'made');
-var root_111 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
-var root_110 = _$_.template(`<!>`, 1, 1);
+var root_107 = _$_.template_el('b', ['class', 'made'], 'made');
+var root_109 = _$_.template(`<!><div class=a>a</div><div class=b>b`, 1, 3);
+var root_108 = _$_.template(`<!>`, 1, 1);
 
 function StaticCallThenStatic_render(__anchor, __block) {
 	const makeB = () => _$_.tsrx_element((__anchor, __block) => {
-		var b_13 = root_109();
+		var b_13 = root_107();
 
 		_$_.append(__anchor, b_13);
 	});
 
-	var fragment_62 = root_110();
-	var node_75 = _$_.first_child_frag(fragment_62);
+	var fragment_60 = root_108();
+	var node_73 = _$_.first_child_frag(fragment_60);
 
-	_$_.expression(node_75, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_63 = root_111();
-		var expression_45 = _$_.first_child_frag(fragment_63);
+	_$_.expression(node_73, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_61 = root_109();
+		var expression_45 = _$_.first_child_frag(fragment_61);
 
 		_$_.render_tsrx_element(_$_.with_scope(__block, makeB), expression_45, __block);
 		_$_.next(2);
-		_$_.append(__anchor, fragment_63);
+		_$_.append(__anchor, fragment_61);
 	}));
 
-	_$_.append(__anchor, fragment_62);
+	_$_.append(__anchor, fragment_60);
 }
 
 StaticCallThenStatic[_$_.$r] = StaticCallThenStatic_render;
 
-var root_113 = _$_.template(`<div class=a>a</div><style>.styled2 { color: blue; }</style><div class="styled2 b">b</div><div class="styled2 c">c`, 1, 4);
-var root_112 = _$_.template(`<!>`, 1, 1);
+var root_111 = _$_.template(`<div class=a>a</div><style>.styled2 { color: blue; }</style><div class="styled2 b">b</div><div class="styled2 c">c`, 1, 4);
+var root_110 = _$_.template(`<!>`, 1, 1);
 
 function StaticThenStyleThenStatic_render(__anchor, __block) {
-	var fragment_64 = root_112();
-	var node_76 = _$_.first_child_frag(fragment_64);
+	var fragment_62 = root_110();
+	var node_74 = _$_.first_child_frag(fragment_62);
 
-	_$_.expression(node_76, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_65 = root_113();
-		var div_51 = _$_.first_child_frag(fragment_65);
+	_$_.expression(node_74, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_63 = root_111();
+		var div_51 = _$_.first_child_frag(fragment_63);
 		var style_1 = _$_.hydrating ? _$_.hydrate_sibling() : div_51.nextSibling;
 
 		{
@@ -2218,15 +2202,15 @@ function StaticThenStyleThenStatic_render(__anchor, __block) {
 		}
 
 		_$_.next(2);
-		_$_.append(__anchor, fragment_65);
+		_$_.append(__anchor, fragment_63);
 	}));
 
-	_$_.append(__anchor, fragment_64);
+	_$_.append(__anchor, fragment_62);
 }
 
 StaticThenStyleThenStatic[_$_.$r] = StaticThenStyleThenStatic_render;
 
-var root_114 = _$_.template_el('div', ['class', 'outer'], [
+var root_112 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2242,14 +2226,14 @@ function render_44(__prev) {
 
 function WrapStaticCallThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'j5zrlb');
-	var div_52 = root_114();
+	var div_52 = root_112();
 
 	{
-		var node_77 = _$_.hydrating ? _$_.hydrate_child() : div_52.firstChild;
+		var node_75 = _$_.hydrating ? _$_.hydrate_child() : div_52.firstChild;
 
-		_$_.render_component(StaticCallThenStatic, node_77, {});
+		_$_.render_component(StaticCallThenStatic, node_75, {});
 
-		var span_33 = _$_.hydrating ? _$_.hydrate_sibling() : node_77;
+		var span_33 = _$_.hydrating ? _$_.hydrate_sibling() : node_75;
 		var button_41 = _$_.hydrating ? _$_.hydrate_sibling() : span_33.nextSibling;
 
 		button_41.__click = () => n.value++;
@@ -2262,7 +2246,7 @@ function WrapStaticCallThenStatic_render(__anchor, __block) {
 
 WrapStaticCallThenStatic[_$_.$r] = WrapStaticCallThenStatic_render;
 
-var root_115 = _$_.template_el('div', ['class', 'outer'], [
+var root_113 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2278,14 +2262,14 @@ function render_45(__prev) {
 
 function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'pw4k4f');
-	var div_53 = root_115();
+	var div_53 = root_113();
 
 	{
-		var node_78 = _$_.hydrating ? _$_.hydrate_child() : div_53.firstChild;
+		var node_76 = _$_.hydrating ? _$_.hydrate_child() : div_53.firstChild;
 
-		_$_.render_component(StaticThenStyleThenStatic, node_78, {});
+		_$_.render_component(StaticThenStyleThenStatic, node_76, {});
 
-		var span_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_78;
+		var span_34 = _$_.hydrating ? _$_.hydrate_sibling() : node_76;
 		var button_42 = _$_.hydrating ? _$_.hydrate_sibling() : span_34.nextSibling;
 
 		button_42.__click = () => n.value++;
@@ -2298,7 +2282,7 @@ function WrapStaticThenStyleThenStatic_render(__anchor, __block) {
 
 WrapStaticThenStyleThenStatic[_$_.$r] = WrapStaticThenStyleThenStatic_render;
 
-var root_116 = _$_.template_el('div', ['class', 'outer'], [
+var root_114 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2314,14 +2298,14 @@ function render_46(__prev) {
 
 function CompThenStaticInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1r4hpd1');
-	var div_54 = root_116();
+	var div_54 = root_114();
 
 	{
-		var node_79 = _$_.hydrating ? _$_.hydrate_child() : div_54.firstChild;
+		var node_77 = _$_.hydrating ? _$_.hydrate_child() : div_54.firstChild;
 
-		_$_.render_component(Leaf, node_79, {});
+		_$_.render_component(Leaf, node_77, {});
 
-		var span_35 = _$_.hydrating ? _$_.hydrate_sibling() : node_79;
+		var span_35 = _$_.hydrating ? _$_.hydrate_sibling() : node_77;
 		var button_43 = _$_.hydrating ? _$_.hydrate_sibling() : span_35.nextSibling;
 
 		button_43.__click = () => n.value++;
@@ -2334,7 +2318,7 @@ function CompThenStaticInDiv_render(__anchor, __block) {
 
 CompThenStaticInDiv[_$_.$r] = CompThenStaticInDiv_render;
 
-var root_117 = _$_.template_el('div', ['class', 'outer'], [
+var root_115 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2350,18 +2334,18 @@ function render_47(__prev) {
 
 function SiblingCompsInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, 'qa5dkx');
-	var div_55 = root_117();
+	var div_55 = root_115();
 
 	{
-		var node_80 = _$_.hydrating ? _$_.hydrate_child() : div_55.firstChild;
+		var node_78 = _$_.hydrating ? _$_.hydrate_child() : div_55.firstChild;
 
-		_$_.render_component(Leaf, node_80, {});
+		_$_.render_component(Leaf, node_78, {});
 
-		var node_81 = _$_.hydrating ? _$_.hydrate_sibling() : node_80;
+		var node_79 = _$_.hydrating ? _$_.hydrate_sibling() : node_78;
 
-		_$_.render_component(Leaf, node_81, {});
+		_$_.render_component(Leaf, node_79, {});
 
-		var span_36 = _$_.hydrating ? _$_.hydrate_sibling() : node_81;
+		var span_36 = _$_.hydrating ? _$_.hydrate_sibling() : node_79;
 		var button_44 = _$_.hydrating ? _$_.hydrate_sibling() : span_36.nextSibling;
 
 		button_44.__click = () => n.value++;
@@ -2374,17 +2358,17 @@ function SiblingCompsInDiv_render(__anchor, __block) {
 
 SiblingCompsInDiv[_$_.$r] = SiblingCompsInDiv_render;
 
-var root_119 = _$_.template_el('b', ['class', 'even'], 'even');
-var root_120 = _$_.template_el('i', ['class', 'odd'], 'odd');
+var root_117 = _$_.template_el('b', ['class', 'even'], 'even');
+var root_118 = _$_.template_el('i', ['class', 'odd'], 'odd');
 
 function consequent_7(__anchor) {
-	var b_14 = root_119();
+	var b_14 = root_117();
 
 	_$_.append(__anchor, b_14);
 }
 
 function alternate(__anchor) {
-	var i_1 = root_120();
+	var i_1 = root_118();
 
 	_$_.append(__anchor, i_1);
 }
@@ -2393,7 +2377,7 @@ function if_8(n) {
 	if (n.value % 2 === 0) return consequent_7; else return alternate;
 }
 
-var root_118 = _$_.template_el('div', ['class', 'outer'], [
+var root_116 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2415,12 +2399,12 @@ function render_48(__prev) {
 
 function IfSwapThenStaticInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '155m7jb');
-	var div_56 = root_118();
+	var div_56 = root_116();
 
 	{
-		var node_82 = _$_.hydrating ? _$_.hydrate_child() : div_56.firstChild;
-		var ifs_7 = _$_.if_static(node_82, if_8, 0, n);
-		var span_37 = _$_.hydrating ? _$_.hydrate_sibling() : node_82;
+		var node_80 = _$_.hydrating ? _$_.hydrate_child() : div_56.firstChild;
+		var ifs_7 = _$_.if_static(node_80, if_8, 0, n);
+		var span_37 = _$_.hydrating ? _$_.hydrate_sibling() : node_80;
 		var button_45 = _$_.hydrating ? _$_.hydrate_sibling() : span_37.nextSibling;
 
 		button_45.__click = () => n.value++;
@@ -2433,9 +2417,9 @@ function IfSwapThenStaticInDiv_render(__anchor, __block) {
 
 IfSwapThenStaticInDiv[_$_.$r] = IfSwapThenStaticInDiv_render;
 
-var root_122 = _$_.template_el('b', ['class', 'item'], ' ');
+var root_120 = _$_.template_el('b', ['class', 'item'], ' ');
 
-var root_121 = _$_.template_el('div', ['class', 'outer'], [
+var root_119 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2452,16 +2436,16 @@ function render_49(__prev) {
 function ForThenStaticInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '1ve0yjw');
 	const items = [1, 2];
-	var div_57 = root_121();
+	var div_57 = root_119();
 
 	{
-		var node_83 = _$_.hydrating ? _$_.hydrate_child() : div_57.firstChild;
+		var node_81 = _$_.hydrating ? _$_.hydrate_child() : div_57.firstChild;
 
 		_$_.for(
-			node_83,
+			node_81,
 			() => items,
 			(__anchor, item) => {
-				var b_15 = root_122();
+				var b_15 = root_120();
 
 				{
 					var expression_51 = _$_.hydrating ? _$_.hydrate_child() : b_15.firstChild;
@@ -2475,7 +2459,7 @@ function ForThenStaticInDiv_render(__anchor, __block) {
 			0
 		);
 
-		var span_38 = _$_.hydrating ? _$_.hydrate_sibling() : node_83;
+		var span_38 = _$_.hydrating ? _$_.hydrate_sibling() : node_81;
 		var button_46 = _$_.hydrating ? _$_.hydrate_sibling() : span_38.nextSibling;
 
 		button_46.__click = () => n.value++;
@@ -2488,7 +2472,7 @@ function ForThenStaticInDiv_render(__anchor, __block) {
 
 ForThenStaticInDiv[_$_.$r] = ForThenStaticInDiv_render;
 
-var root_123 = _$_.template_el('div', ['class', 'outer'], [
+var root_121 = _$_.template_el('div', ['class', 'outer'], [
 	['span', ['class', 'after']],
 	['button', ['class', 'outer-inc'], 'outer']
 ]);
@@ -2504,12 +2488,12 @@ function render_50(__prev) {
 
 function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
 	const n = _$_.track(0, __block, '178iuvb');
-	var div_58 = root_123();
+	var div_58 = root_121();
 
 	{
-		var node_84 = _$_.hydrating ? _$_.hydrate_child() : div_58.firstChild;
+		var node_82 = _$_.hydrating ? _$_.hydrate_child() : div_58.firstChild;
 
-		_$_.render_component(Leaf, node_84, {});
+		_$_.render_component(Leaf, node_82, {});
 
 		{
 			const label = 'after';
@@ -2517,7 +2501,7 @@ function CompThenStatementThenStaticInDiv_render(__anchor, __block) {
 			_$_.with_scope(__block, () => console.assert(label === 'after'));
 		}
 
-		var span_39 = _$_.hydrating ? _$_.hydrate_sibling() : node_84;
+		var span_39 = _$_.hydrating ? _$_.hydrate_sibling() : node_82;
 		var button_47 = _$_.hydrating ? _$_.hydrate_sibling() : span_39.nextSibling;
 
 		button_47.__click = () => n.value++;
