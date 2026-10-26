@@ -2077,22 +2077,18 @@ export function normalize_children(children, context, text_only = false) {
 		) {
 			const child_expression = get_template_expression(child, to_ts);
 			const prev_expression = get_template_expression(prev_child, to_ts);
-			// A call-containing expression must not merge into a stringified text
-			// run when the call could return a template value — but when the whole
-			// expression is provably a text primitive (`String(f())`, `void f()`),
-			// stringifying is exactly its render semantics, and merging keeps the
-			// run a single text node on both client and server (required for
-			// hydration to pair static and dynamic text).
+			// Only proven primitives may merge into a stringified text run.
+			// Unknown values, including props and local bindings, can contain
+			// elements or collections and must keep their value-aware rendering.
+			// Text-only containers still require one combined text node.
 			if (
 				!text_only &&
 				((is_template_expression(child) &&
 					is_children_template_expression(child_expression, context.state.scope)) ||
 					(is_template_expression(prev_child) &&
 						is_children_template_expression(prev_expression, context.state.scope)) ||
-					(expression_contains_call(child_expression) &&
-						!is_text_primitive_expression(child_expression, context.state)) ||
-					(expression_contains_call(prev_expression) &&
-						!is_text_primitive_expression(prev_expression, context.state)))
+					!is_text_primitive_expression(child_expression, context.state) ||
+					!is_text_primitive_expression(prev_expression, context.state))
 			) {
 				continue;
 			}

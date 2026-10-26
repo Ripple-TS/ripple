@@ -710,11 +710,10 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 			'App.tsrx',
 		);
 
-		// The render lowering reads the item once per run (`__pattern`; a local
-		// item, off its slot); each name is then a plain member chain on it.
-		expect(code).toContain('var __pattern = __prev.$item;');
-		expect(code).toContain('__pattern.nested.label');
-		expect(code).toContain('__pattern.tags[0]');
+		// Each unproven child keeps its own expression and reads the tracked
+		// item through a plain member chain.
+		expect(code).toContain('_$_.get(pattern).nested.label');
+		expect(code).toContain('_$_.get(pattern).tags[0]');
 		expect(code).toContain('(pattern) => pattern.id');
 	});
 
@@ -741,8 +740,8 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 		expect(code).toContain('_$_.get(pattern).rest.name');
 		expect(code).toContain('(pattern) => pattern.id');
 		expect(code).toContain("([first, second = 'x', ...others]) => ({ first, second, others })");
-		expect(code).toContain('__pattern_1.second');
-		expect(code).toContain('__pattern_1.others.length');
+		expect(code).toContain('_$_.get(pattern_1).second');
+		expect(code).toContain('_$_.get(pattern_1).others.length');
 		expect(code).not.toContain('_$_.derived');
 		expect(code).not.toContain('exclude_from_object');
 		expect(code).not.toContain('array_slice');
