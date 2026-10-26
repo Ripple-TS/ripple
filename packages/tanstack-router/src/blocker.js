@@ -94,6 +94,10 @@ export function useBlocker(options) {
 							};
 						});
 					}
+					// Confirmation resolves asynchronously too. A newer navigation may
+					// bypass blockers between proceed() and this continuation.
+					if (!active || request !== generation || router.history.location !== currentLocation)
+						blocked = true;
 					// Memory history does not publish a blocked commit. Settle only
 					// this attempt, never a newer navigation's rendering promise.
 					if (blocked) commit?.resolve();

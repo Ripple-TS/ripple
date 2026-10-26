@@ -241,3 +241,31 @@ it(
 		expect(router.history.location.pathname).toBe('/c');
 	},
 );
+
+it(
+	'does not commit a just-approved confirmation over a newer ignored-blocker navigation',
+	async () => {
+		let resolver!: ReturnType<typeof useBlocker>;
+		function Layout() @{
+			resolver = useBlocker({ shouldBlockFn: () => true, withResolver: true });
+			<Outlet />
+		}
+		const root = createRootRoute({ component: Layout });
+		const routes = ['/a', '/b', '/c'].map(
+			(path) => createRoute({ getParentRoute: () => root, path, component: () => <p>{path}</p> }),
+		);
+		const router = createRouter({
+			routeTree: root.addChildren(routes),
+			history: createMemoryHistory({ initialEntries: ['/a'] }),
+		});
+		const view = render(() => <RouterProvider {router} />);
+		await view.findByText('/a');
+		const first = router.navigate({ to: '/b' });
+		await waitFor(() => expect(resolver.value.status).toBe('blocked'));
+		resolver.value.proceed!();
+		const newer = router.navigate({ to: '/c', ignoreBlocker: true });
+		await Promise.all([first, newer]);
+		expect(router.history.location.pathname).toBe('/c');
+		expect(view.getByText('/c')).toBeTruthy();
+	},
+);
