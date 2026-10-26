@@ -3910,6 +3910,8 @@ const visitors = {
 			let style_attribute = null;
 			/** @type {TransformClientState['update']} */
 			const local_updates = [];
+			/** @type {TransformClientState['update']} */
+			const property_updates = [];
 			const element_name = /** @type {AST.Identifier} */ (element_id).name;
 			const is_void = is_void_element(element_name);
 			// The scope hashes and applied theme classes the style pre-pass
@@ -4182,15 +4184,18 @@ const visitors = {
 							const id = state.flush_node?.();
 
 							if (is_dom_property(attribute)) {
-								local_updates.push({
-									operation: () =>
+								property_updates.push({
+									operation: (key) =>
 										b.stmt(
 											b.assignment(
 												'=',
 												b.member(/** @type {AST.Identifier} */ (id), attribute),
-												expression,
+												/** @type {AST.Expression} */ (key),
 											),
 										),
+									expression,
+									identity: attr_value,
+									initial: b.member(b.id('_$_'), b.id('UNINITIALIZED')),
 								});
 							} else {
 								const kind = attribute_kind(element_name, attribute, state);
@@ -4416,6 +4421,9 @@ const visitors = {
 				};
 				local_updates.push(spread_update);
 			}
+			// Direct property assignments have always run after spreads. Keep
+			// that order now that they also compare their previous values.
+			local_updates.push(...property_updates);
 
 			/** @type {TransformClientState['init']} */
 			const init = [];
