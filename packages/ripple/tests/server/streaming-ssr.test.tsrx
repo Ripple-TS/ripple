@@ -298,14 +298,20 @@ describe('streaming try/pending boundaries', () => {
 		expect(chunk).not.toContain('failed');
 	});
 
-	it.each([true, false])('streams the server-rendered catch with closeStream=%s', async (
+	it.each([
+		{ closeStream: true, failure: 'rejection' },
+		{ closeStream: false, failure: 'rejection' },
+		{ closeStream: true, failure: 'serialization' },
+		{ closeStream: false, failure: 'serialization' },
+	])('streams the server-rendered catch for $failure with closeStream=$closeStream', async ({
 		closeStream,
-	) => {
-		const d = deferred<string>();
+		failure,
+	}) => {
+		const d = deferred<unknown>();
 
 		function Content() @{
 			const data = trackAsync(() => d.promise);
-			<p>{data.value}</p>
+			<p>{String(data.value)}</p>
 		}
 
 		function App() @{
@@ -321,13 +327,21 @@ describe('streaming try/pending boundaries', () => {
 		const { chunks, sink, isClosed } = recordingSink();
 		const result = render(App, { stream: sink, closeStream });
 
-		d.reject(new Error('boom'));
+		const message =
+			failure === 'rejection' ? 'boom' : 'Cannot stringify a function';
+		if (failure === 'rejection') {
+			d.reject(new Error(message));
+		} else {
+			d.resolve({ default: () => 1 });
+		}
 		await result;
 
 		expect(isClosed()).toBe(closeStream);
 		const all = chunks.join('');
 		const chunk = chunks[chunks.length - 1];
-		expect(chunk).toContain('<em><!--[-->boom<!--]--></em>');
+		expect(chunk).toContain(`<em><!--[-->${message}<!--]--></em>`);
+		expect(all).toContain(`"ok":false,"error":{"message":"${message}"}`);
+		expect(all).not.toContain('"ok":true');
 		expect(chunk).toContain('<template data-ripple-chunk=');
 		// the rejected trackAsync envelope reaches the wire before the chunk
 		// that hydrates the catch branch from it
@@ -337,48 +351,57 @@ describe('streaming try/pending boundaries', () => {
 		expect(envelope_index).toBeLessThan(template_index);
 	});
 
-	it('emits a unit error envelope when the catch boundary region is already streamed', async () => {
-		const d = deferred<string>();
+	it.each(['rejection', 'serialization'])(
+		'emits a unit error envelope for %s when the catch boundary region is already streamed',
+		async (failure) => {
+			const d = deferred<unknown>();
 
-		function Content() @{
-			const data = trackAsync(() => d.promise);
-			<p>{data.value}</p>
-		}
-
-		function App() @{
-			@try {
-				<Content />
-			} @pending {
-				<p>{'loading...'}</p>
+			function Content() @{
+				const data = trackAsync(() => d.promise);
+				<p>{String(data.value)}</p>
 			}
-		}
 
-		function RootCatch({ error }: { error: unknown }) @{
-			<h2>{'root caught: ' + (error instanceof Error ? error.message : String(error))}</h2>
-		}
+			function App() @{
+				@try {
+					<Content />
+				} @pending {
+					<p>{'loading...'}</p>
+				}
+			}
 
-		const { chunks, sink } = recordingSink();
-		const result = render(App, { stream: sink, rootBoundary: { catch: RootCatch } });
+			function RootCatch({ error }: { error: unknown }) @{
+				<h2>{'root caught: ' + (error instanceof Error ? error.message : String(error))}</h2>
+			}
 
-		const shell = chunks[0];
-		const slot_match = shell.match(SLOT_OPEN_RE);
-		expect(slot_match).not.toBeNull();
-		const id = slot_match![1];
+			const { chunks, sink } = recordingSink();
+			const result = render(App, { stream: sink, rootBoundary: { catch: RootCatch } });
 
-		d.reject(new Error('no local catch'));
-		const { topLevelError } = await result;
+			const shell = chunks[0];
+			const slot_match = shell.match(SLOT_OPEN_RE);
+			expect(slot_match).not.toBeNull();
+			const id = slot_match![1];
 
-		// the nearest catch boundary is the root, whose region (the shell) is
-		// already on the wire — the server cannot re-render it, so it emits a
-		// unit error envelope for the client to route into the live boundary
-		// during hydration instead
-		expect(topLevelError).toBe(null);
-		const all = chunks.join('');
-		expect(all).not.toContain('root caught');
-		expect(all).toContain(`<script id="__ripple_te_${id}" type="application/json">`);
-		expect(all).toContain('no local catch');
-		expect(all).toContain(`__RIPPLE_S__(${id},1)`);
-	});
+			const message =
+				failure === 'rejection' ? 'no local catch' : 'Cannot stringify a function';
+			if (failure === 'rejection') {
+				d.reject(new Error(message));
+			} else {
+				d.resolve({ default: () => 1 });
+			}
+			const { topLevelError } = await result;
+
+			// the nearest catch boundary is the root, whose region (the shell) is
+			// already on the wire — the server cannot re-render it, so it emits a
+			// unit error envelope for the client to route into the live boundary
+			// during hydration instead
+			expect(topLevelError).toBe(null);
+			const all = chunks.join('');
+			expect(all).not.toContain('root caught');
+			expect(all).toContain(`<script id="__ripple_te_${id}" type="application/json">`);
+			expect(all).toContain(message);
+			expect(all).toContain(`__RIPPLE_S__(${id},1)`);
+		},
+	);
 });
 
 describe('streaming nested and sibling boundaries', () => {

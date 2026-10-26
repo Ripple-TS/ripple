@@ -2337,27 +2337,30 @@ function run_track_async(t, fn, block, dr, dj) {
 
 	t.aa = async_result.abort_controller;
 
+	// Serialization is part of settling the value: dependent work must not
+	// resume until it succeeds, and serialization failures use the same error
+	// path as a rejected result.
+	var promise = Promise.resolve(async_result.promise).then((resolved) => {
+		serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes);
+		update_tracked_value_clock(t, resolved);
+		if (dr) {
+			dr(resolved);
+		}
+		return resolved;
+	});
+
 	if (!dr) {
-		// First run, no chaining — set real promise directly
-		t.ap = async_result.promise;
+		// First run, no chaining — wait for serialization as well as resolution
+		t.ap = promise;
 	}
 
-	async_result.promise.then(
-		(resolved) => {
-			update_tracked_value_clock(t, resolved);
-			serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes);
-			if (dr) {
-				dr(resolved);
-			}
-		},
-		(error) => {
-			update_tracked_value_clock(t, SUSPENSE_REJECTED);
-			if (dj) {
-				dj(error);
-			}
-			handle_async_render_error(block, get_closest_try_block(block), t.h, error);
-		},
-	);
+	promise.catch((error) => {
+		update_tracked_value_clock(t, SUSPENSE_REJECTED);
+		if (dj) {
+			dj(error);
+		}
+		handle_async_render_error(block, get_closest_try_block(block), t.h, error);
+	});
 }
 
 /**

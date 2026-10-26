@@ -1,11 +1,115 @@
 import { DEV } from 'esm-env';
 import { setTransport, track, trackAsync, trackReadOnly } from 'ripple';
+import { prerender, render } from 'ripple/server';
 import * as devalue from 'devalue';
 
 const TRACK_ASYNC_PUBLIC_ERROR_MESSAGE = 'An error occurred during async rendering';
 
 describe('trackAsync serialization (server)', () => {
 	afterEach(() => setTransport());
+
+	describe.each([
+		{ name: 'render', render },
+		{ name: 'prerender', render: prerender },
+	])('$name serialization failures', ({ render }) => {
+		it.each(['unsupported value', 'throwing transport'])(
+			'routes %s to the parent catch and serializes an error envelope',
+			async (failure) => {
+				if (failure === 'throwing transport') {
+					setTransport({
+						Broken: {
+							encode() {
+								throw new Error('transport failed');
+							},
+							decode: (value) => value,
+						},
+					});
+				}
+
+				function Child() @{
+					const data = trackAsync(() => Promise.resolve({ default: () => 1 }));
+					<p class="result">
+						{typeof data.value.default}
+					</p>
+				}
+
+				function App() @{
+					@try {
+						<Child />
+					} @pending {
+						<p>{'loading...'}</p>
+					} @catch (error: Error) {
+						<p class="error">{error.message}</p>
+					}
+				}
+
+				const { body, topLevelError } = await render(App);
+				const message =
+					DEV
+						? failure === 'throwing transport'
+							? 'transport failed'
+							: 'Cannot stringify a function'
+						: TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+				expect(topLevelError).toBeNull();
+				expect(body).toContain(`<p class="error"><!--[-->${message}<!--]--></p>`);
+				expect(body).not.toContain('class="result"');
+				expect(body).not.toContain('"ok":true');
+				expect(body).toContain(`"ok":false,"error":{"message":"${message}"}`);
+			},
+		);
+
+		it('reports serialization failures through the root boundary and render result', async () => {
+			function App() @{
+				const data = trackAsync(() => Promise.resolve({ default: () => 1 }));
+				<p>
+					{typeof data.value.default}
+				</p>
+			}
+
+			function RootCatch({ error }: { error: Error }) @{
+				<p class="root-error">{error.message}</p>
+			}
+
+			const { body, topLevelError } = await render(App, { rootBoundary: { catch: RootCatch } });
+			const message = DEV ? 'Cannot stringify a function' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+			expect(topLevelError?.message).toBe(message);
+			expect(body).toContain(`<p class="root-error"><!--[-->${message}<!--]--></p>`);
+			expect(body).toContain('"ok":false');
+		});
+
+		it.each(['upstream', 'downstream'])('handles a %s chained serialization failure', async (
+			failure,
+		) => {
+			const read_value = vi.fn(() => 1);
+
+			function Child() @{
+				const first = trackAsync(() => Promise.resolve(failure === 'upstream' ? read_value : 1));
+				const second = trackAsync(() => {
+					const value = first.value;
+					return Promise.resolve(typeof value === 'function' ? value() : read_value);
+				});
+				<p class="result">
+					{typeof second.value}
+				</p>
+			}
+
+			function App() @{
+				@try {
+					<Child />
+				} @catch (error: Error) {
+					<p class="error">{error.message}</p>
+				}
+			}
+
+			const { body, topLevelError } = await render(App);
+			const message = DEV ? 'Cannot stringify a function' : TRACK_ASYNC_PUBLIC_ERROR_MESSAGE;
+			expect(topLevelError).toBeNull();
+			expect(body).toContain(`<p class="error"><!--[-->${message}<!--]--></p>`);
+			expect(body).not.toContain('class="result"');
+			expect(body).toContain('"ok":false');
+			expect(read_value).not.toHaveBeenCalled();
+		});
+	});
 
 	it('serializes resolved trackAsync data as a script tag in SSR output', async () => {
 		function App() @{
