@@ -203,6 +203,71 @@ describe('boxed locals', () => {
 		expect(text()).toBe('renamed none 1');
 	});
 
+	it('renders a fallback from a reassigned typed function parameter', () => {
+		function label(text: string) {
+			if (!text) text = 'untitled';
+			return <p>{text}</p>;
+		}
+
+		function App() @{
+			<>
+				{label('')}
+				{label('title')}
+			</>
+		}
+
+		render(App);
+		expect(Array.from(container.querySelectorAll('p'), (p) => p.textContent)).toEqual([
+			'untitled',
+			'title',
+		]);
+	});
+
+	it('renders reassigned optional and defaulted parameters', () => {
+		const optional = function (text?: string) {
+			if (!text) text = 'optional';
+			return <p>{text}</p>;
+		};
+		const defaulted = (text: string = '') => {
+			if (!text) text = 'defaulted';
+			return <p>{text}</p>;
+		};
+
+		function App() @{
+			<>
+				{optional()}
+				{defaulted()}
+				{defaulted('title')}
+			</>
+		}
+
+		render(App);
+		expect(Array.from(container.querySelectorAll('p'), (p) => p.textContent)).toEqual([
+			'optional',
+			'defaulted',
+			'title',
+		]);
+	});
+
+	it('transforms parameter defaults that read a boxed outer binding', () => {
+		function App() @{
+			let fallback = 'initial';
+			function label(text: string = fallback) {
+				text += '!';
+				return <p>{text}</p>;
+			}
+			fallback = 'updated';
+			<>
+				<span>{fallback}</span>
+				{label()}
+			</>
+		}
+
+		render(App);
+		expect(container.querySelector('span')?.textContent).toBe('updated');
+		expect(container.querySelector('p')?.textContent).toBe('updated!');
+	});
+
 	it('boxes a rebound destructured parameter', () => {
 		let edit: () => void = () => {};
 		let bump: () => void = () => {};

@@ -518,9 +518,11 @@ function visit_function(node, context) {
 		return context.next(SetStateForOutsideComponent(state));
 	}
 
-	// Strip parameter type annotations via copies (the source params are never
-	// mutated)
-	const transformed_params = node.params.map((param) => {
+	/** @param {AST.Pattern} param */
+	const transform_param = (param) => {
+		// Visit the original binding before stripping types on a copy, so it is
+		// still recognized as a declaration rather than a read of a boxed value.
+		param = /** @type {AST.Pattern} */ (context.visit(param, state));
 		/** @type {AST.Pattern} */
 		let param_out =
 			param.typeAnnotation || /** @type {any} */ (param).optional
@@ -541,7 +543,7 @@ function visit_function(node, context) {
 			);
 		}
 		return param_out;
-	});
+	};
 
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
 		context.visit(
@@ -576,7 +578,7 @@ function visit_function(node, context) {
 
 	return {
 		...node,
-		params: transformed_params.map((param) => context.visit(param, state)),
+		params: node.params.map(transform_param),
 		body,
 		returnType: undefined,
 		typeParameters: undefined,
