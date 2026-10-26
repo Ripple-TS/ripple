@@ -24,6 +24,7 @@ import {
 	strongHash,
 } from '@tsrx/core';
 import { has_text_type_fact } from './text-type-facts.js';
+import { walk } from 'zimmerframe';
 import {
 	get_element_id,
 	get_element_identifier,
@@ -1540,6 +1541,9 @@ export function is_inside_call_expression(context) {
 			return false;
 		}
 		if (type === 'CallExpression') {
+			// A suspending call evaluates its operands outside the scope wrapper.
+			// Calls in those operands must establish their own scope.
+			if (contains_await(context_node)) continue;
 			const callee = context_node.callee;
 			if (is_ripple_track_call(callee, context)) {
 				return false;
@@ -1553,6 +1557,28 @@ export function is_inside_call_expression(context) {
 		}
 	}
 	return false;
+}
+
+/**
+ * Whether evaluation of this expression suspends in the current function.
+ * An await inside a callback belongs to that callback's own scope.
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function contains_await(node) {
+	let found = false;
+	walk(node, null, {
+		_(node, { next }) {
+			if (!found) next();
+		},
+		AwaitExpression() {
+			found = true;
+		},
+		FunctionDeclaration() {},
+		FunctionExpression() {},
+		ArrowFunctionExpression() {},
+	});
+	return found;
 }
 
 /**

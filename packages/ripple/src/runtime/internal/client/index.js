@@ -50,6 +50,8 @@ export {
 	scope,
 	safe_scope,
 	with_scope,
+	call_with_scope,
+	construct_with_scope,
 	get,
 	get_tracked,
 	get_derived,

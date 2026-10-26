@@ -51,6 +51,8 @@ declare module '@tsrx/core/types' {
 	}
 
 	interface TransformClientState {
+		/** Per-invocation temporaries for calls whose operands contain await. */
+		call_temps?: AST.Identifier[];
 		/** the output can hydrate server HTML (see `CompileOptions.hydration`) */
 		hydration: boolean;
 		/**
