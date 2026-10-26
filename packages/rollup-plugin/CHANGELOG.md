@@ -1,5 +1,35 @@
 # @ripple-ts/rollup-plugin
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies
+  [[`5bad2e1`](https://github.com/Ripple-TS/ripple/commit/5bad2e1b7f953578aa6cb49e346106e937354fdb),
+  [`245ccdd`](https://github.com/Ripple-TS/ripple/commit/245ccdd374129bcdfac3bc632dae122cb368ef4b),
+  [`3cc271a`](https://github.com/Ripple-TS/ripple/commit/3cc271a740ae5e1267a7cdb4f057602eaf551ec3),
+  [`eabe6b5`](https://github.com/Ripple-TS/ripple/commit/eabe6b5d04ab11332dd0a2d528793275d4612bd0),
+  [`da1a8d7`](https://github.com/Ripple-TS/ripple/commit/da1a8d735dc9053315b4523b932ac7e5caa3fab4),
+  [`ed899fe`](https://github.com/Ripple-TS/ripple/commit/ed899fe9c58c131cbf5dc089384f8e957dc600e8),
+  [`9604b1b`](https://github.com/Ripple-TS/ripple/commit/9604b1b30c022e96249c5750e547de35aae7a8af),
+  [`558d9b6`](https://github.com/Ripple-TS/ripple/commit/558d9b65b004a5b9cedbba155d4318608c764362),
+  [`504434b`](https://github.com/Ripple-TS/ripple/commit/504434ba8300d30495b1c74c338bc3c07d4d3a1e),
+  [`5961e81`](https://github.com/Ripple-TS/ripple/commit/5961e812d67825d824aaeded4f017aff09390be7),
+  [`0e80c77`](https://github.com/Ripple-TS/ripple/commit/0e80c77318f13f410bca45879a04bba08f5a9774),
+  [`04e2c00`](https://github.com/Ripple-TS/ripple/commit/04e2c006f00f34eb48167008f2e7023ac116c2b3),
+  [`383c16f`](https://github.com/Ripple-TS/ripple/commit/383c16f4d4bbcbe7371a346e0a4c53e36aba9ab9),
+  [`93fd76a`](https://github.com/Ripple-TS/ripple/commit/93fd76a548284b51b8903ad1262fb70fbc4dcd11),
+  [`ddefa74`](https://github.com/Ripple-TS/ripple/commit/ddefa748586509dc58c2de2007dbf9ef606ff2be),
+  [`34b0388`](https://github.com/Ripple-TS/ripple/commit/34b0388c39cede2d29d3bc46f003f6a8168df827),
+  [`4c6f70b`](https://github.com/Ripple-TS/ripple/commit/4c6f70ba4ff24a6ced58802658efdbe751854f36),
+  [`f8bfbcb`](https://github.com/Ripple-TS/ripple/commit/f8bfbcbe58a27b72da5abb0204e6772a9992f83b),
+  [`0388383`](https://github.com/Ripple-TS/ripple/commit/0388383947f6d19830547a1e5d6ac356faf2d25e),
+  [`1c83b7f`](https://github.com/Ripple-TS/ripple/commit/1c83b7f00df41a6b034c1fdf87347dd69eaf7f16),
+  [`c8e3272`](https://github.com/Ripple-TS/ripple/commit/c8e32729510d5145816d08799ed9cd06d9813336),
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11),
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)]:
+  - @tsrx/ripple@0.2.5
+
 ## 0.4.7
 
 No changes in this release.

@@ -1,5 +1,183 @@
 # @tsrx/ripple
 
+## 0.2.5
+
+### Patch Changes
+
+- [#1509](https://github.com/Ripple-TS/ripple/pull/1509)
+  [`5bad2e1`](https://github.com/Ripple-TS/ripple/commit/5bad2e1b7f953578aa6cb49e346106e937354fdb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - An `@if` or `@switch` branch
+  can now declare a local with the same name as one its condition or a sibling
+  branch reads. Before, the client output declared that name twice and failed to
+  compile. A hoisted condition, branch or render block also captures an outer
+  local that it reads next to a nested declaration of the same name, such as a
+  `for (const label of …)` loop. Before, it read an undefined name at runtime.
+
+  On the server, a template value assigned inside an `@if`, `@switch`, `@for` or
+  `@try` branch, such as `const styles = <style>…</style>` or
+  `const el = <span />`, now compiles as it does in the component body.
+
+- [#1575](https://github.com/Ripple-TS/ripple/pull/1575)
+  [`245ccdd`](https://github.com/Ripple-TS/ripple/commit/245ccdd374129bcdfac3bc632dae122cb368ef4b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Erase TypeScript catch
+  binding annotations and ambient variable declarations from JavaScript output.
+  Keep awaited call operands in their async function while preserving evaluation
+  order, optional chaining, and Ripple scope for invocation.
+
+- [#1574](https://github.com/Ripple-TS/ripple/pull/1574)
+  [`3cc271a`](https://github.com/Ripple-TS/ripple/commit/3cc271a740ae5e1267a7cdb4f057602eaf551ec3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep root template expression
+  DOM ranges intact when component calls render nested control flow, so
+  conditional cleanup and keyed list updates remove and move all child nodes.
+
+- [#1541](https://github.com/Ripple-TS/ripple/pull/1541)
+  [`eabe6b5`](https://github.com/Ripple-TS/ripple/commit/eabe6b5d04ab11332dd0a2d528793275d4612bd0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Render textarea values as
+  escaped text content during SSR and omit hydration markers from textarea
+  expression children. Preserve leading newlines and support literal and spread
+  values on the client, including reactive updates after hydration.
+
+- [#1549](https://github.com/Ripple-TS/ripple/pull/1549)
+  [`da1a8d7`](https://github.com/Ripple-TS/ripple/commit/da1a8d735dc9053315b4523b932ac7e5caa3fab4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Emit hydration anchors for
+  empty fragments so empty components hydrate without throwing or consuming their
+  siblings' server-rendered DOM.
+
+- [#1542](https://github.com/Ripple-TS/ripple/pull/1542)
+  [`ed899fe`](https://github.com/Ripple-TS/ripple/commit/ed899fe9c58c131cbf5dc089384f8e957dc600e8)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow scripts with statically
+  known data MIME types, such as `application/json`, outside the head. Preserve
+  script attributes and raw text on the client, and adopt existing server-rendered
+  scripts during hydration without duplicating or re-executing them. Mounted
+  external scripts execute in order unless `async` is specified.
+
+- [#1511](https://github.com/Ripple-TS/ripple/pull/1511)
+  [`9604b1b`](https://github.com/Ripple-TS/ripple/commit/9604b1b30c022e96249c5750e547de35aae7a8af)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep the `export` keyword on
+  `export import Alias = Foo;` and `export import x = require('…');` in editor and
+  type-checking output, so other modules can import the alias and the statement
+  maps back to its source.
+
+- [#1547](https://github.com/Ripple-TS/ripple/pull/1547)
+  [`558d9b6`](https://github.com/Ripple-TS/ripple/commit/558d9b65b004a5b9cedbba155d4318608c764362)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve nested component
+  declarations in client output so they remain in scope and can be referenced
+  before their declaration.
+
+- [#1513](https://github.com/Ripple-TS/ripple/pull/1513)
+  [`504434b`](https://github.com/Ripple-TS/ripple/commit/504434ba8300d30495b1c74c338bc3c07d4d3a1e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Compile
+  `declare module A.B { … }` and a `module` block inside a `declare` namespace as
+  TypeScript namespaces instead of failing with a fatal error about
+  `module server`. A dotted `module server.api` now reports that dotted names are
+  not supported, and a misplaced `module` block is reported without discarding the
+  file's editor output.
+
+- [#1546](https://github.com/Ripple-TS/ripple/pull/1546)
+  [`5961e81`](https://github.com/Ripple-TS/ripple/commit/5961e812d67825d824aaeded4f017aff09390be7)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve optional
+  zero-argument calls when wrapping callbacks in the component scope, so invoking
+  an omitted callback such as `done?.()` does not throw.
+
+- [#1556](https://github.com/Ripple-TS/ripple/pull/1556)
+  [`0e80c77`](https://github.com/Ripple-TS/ripple/commit/0e80c77318f13f410bca45879a04bba08f5a9774)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve contenteditable
+  edits made before hydration with `bindInnerHTML`, `bindInnerText`, and
+  `bindTextContent`. Use server-content snapshots to distinguish edits and
+  deletions from untouched editors, preserve their DOM nodes and selection, and
+  initialize untouched bindings normally. Support inherited editability, dynamic
+  tags, and async server output, with fast paths for empty and HTML-valued
+  editors.
+
+- [#1560](https://github.com/Ripple-TS/ripple/pull/1560)
+  [`04e2c00`](https://github.com/Ripple-TS/ripple/commit/04e2c006f00f34eb48167008f2e7023ac116c2b3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Skip unchanged reactive DOM
+  property assignments during unrelated template updates, so updating a dialog's
+  class does not close a dialog opened with `showModal()`. Keep conflicting spread
+  properties from overwriting explicit reactive bindings.
+
+- [#1577](https://github.com/Ripple-TS/ripple/pull/1577)
+  [`383c16f`](https://github.com/Ripple-TS/ripple/commit/383c16f4d4bbcbe7371a346e0a4c53e36aba9ab9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add an optional
+  `@ripple-ts/vite-plugin/stylex` adapter for `@stylexjs/unplugin` that compiles
+  StyleX in Ripple `.tsrx` components after the Ripple transform. Support opt-in
+  `ripple({ stylex: true })` compiler lowering for `sx` and separate HTML/SVG
+  attribute types through `@ripple-ts/vite-plugin/stylex/jsx`.
+
+- [#1557](https://github.com/Ripple-TS/ripple/pull/1557)
+  [`93fd76a`](https://github.com/Ripple-TS/ripple/commit/93fd76a548284b51b8903ad1262fb70fbc4dcd11)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve adjacent renderable
+  child expressions instead of concatenating them as strings, including values
+  passed through props, local bindings, and collections.
+
+- [#1561](https://github.com/Ripple-TS/ripple/pull/1561)
+  [`ddefa74`](https://github.com/Ripple-TS/ripple/commit/ddefa748586509dc58c2de2007dbf9ef606ff2be)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix hydration of dynamic tags
+  without rendered children so their attributes and innerHTML apply to the
+  existing child element instead of its parent or a sibling.
+
+- [#1563](https://github.com/Ripple-TS/ripple/pull/1563)
+  [`34b0388`](https://github.com/Ripple-TS/ripple/commit/34b0388c39cede2d29d3bc46f003f6a8168df827)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve typed function
+  parameter declarations when reassigned values are read from JSX, preventing
+  invalid client JavaScript such as `function render(label.v)`.
+
+- [#1565](https://github.com/Ripple-TS/ripple/pull/1565)
+  [`4c6f70b`](https://github.com/Ripple-TS/ripple/commit/4c6f70ba4ff24a6ced58802658efdbe751854f36)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Report an actionable
+  diagnostic for unsupported runtime TypeScript enums in `.tsrx` files instead of
+  silently emitting invalid client or server JavaScript. Erase ambient enum
+  declarations from JavaScript while preserving them for editor type checking.
+
+- [#1576](https://github.com/Ripple-TS/ripple/pull/1576)
+  [`f8bfbcb`](https://github.com/Ripple-TS/ripple/commit/f8bfbcbe58a27b72da5abb0204e6772a9992f83b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support ordinary TypeScript
+  enums in `.tsrx` client and server output through the existing compiler
+  visitors. Preserve lexical scope, numeric reverse mappings, string members and
+  computed initializers, while retaining TypeScript syntax and Volar mappings for
+  editor support. Const enums, declaration merging and enums inside runtime
+  namespaces or class static blocks remain unsupported with actionable
+  diagnostics.
+
+- [#1554](https://github.com/Ripple-TS/ripple/pull/1554)
+  [`0388383`](https://github.com/Ripple-TS/ripple/commit/0388383947f6d19830547a1e5d6ac356faf2d25e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Strip variable definite
+  assignment assertions from client and server JavaScript output so declarations
+  such as `let count!: number` compile to valid JavaScript.
+
+- [#1544](https://github.com/Ripple-TS/ripple/pull/1544)
+  [`1c83b7f`](https://github.com/Ripple-TS/ripple/commit/1c83b7f00df41a6b034c1fdf87347dd69eaf7f16)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Avoid generating assignment
+  setters for const and imported refs so named callbacks compile correctly on host
+  elements, components, and in ref arrays.
+
+- [#1535](https://github.com/Ripple-TS/ripple/pull/1535)
+  [`c8e3272`](https://github.com/Ripple-TS/ripple/commit/c8e32729510d5145816d08799ed9cd06d9813336)
+  Thanks [@voidstackloop](https://github.com/voidstackloop)! - A template element
+  or fragment whose output is unused, such as `<div />;` or the body of
+  `if (x) <div />`, now keeps its `;` in editor output, including in `@{ }` setup,
+  `module server`, and namespace bodies. Before, the editor showed a TypeScript
+  syntax error (`JSX expressions must have one parent element` or `';' expected`)
+  next to the real "template output is unused" error.
+
+- [#1512](https://github.com/Ripple-TS/ripple/pull/1512)
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.3. Two `module B { … }` blocks in the same `declare namespace` now merge as
+  they do in TypeScript instead of failing with
+  `'B' has already been declared in the current scope`. The editor now reports
+  TypeScript errors on a class whose base is a call, a parenthesized expression,
+  or an array literal, such as `class Model extends createBase() {}`.
+
+- [#1508](https://github.com/Ripple-TS/ripple/pull/1508)
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.2, where each `@switch` arm (`@case x: { … }` or `@default: { … }`) is its
+  own block scope. Two arms can now declare the same local: the server output and
+  the TypeScript output give an arm that declares a name its own block inside the
+  generated `switch`, so the names no longer collide. `@import` inside a `<style>`
+  block is now the `tsrx-css-import` compile error.
+
 ## 0.2.4
 
 ### Patch Changes

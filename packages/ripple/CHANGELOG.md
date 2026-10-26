@@ -1,5 +1,110 @@
 # ripple
 
+## 0.5.0
+
+### Patch Changes
+
+- [#1573](https://github.com/Ripple-TS/ripple/pull/1573)
+  [`138bbac`](https://github.com/Ripple-TS/ripple/commit/138bbac1cb69b7f4d2f867dcb52a4ac32395b8fc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Clear effect cleanups before
+  calling them so a later run without a cleanup does not repeat the previous
+  cleanup when the effect reruns or unmounts.
+
+- [#1550](https://github.com/Ripple-TS/ripple/pull/1550)
+  [`a166f69`](https://github.com/Ripple-TS/ripple/commit/a166f6964756c53cfbd6da051fea098e521b3204)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Flush all settled streaming
+  SSR boundaries before `render()` resolves when `closeStream` is `false`, while
+  keeping the sink open for caller writes.
+
+- [#1541](https://github.com/Ripple-TS/ripple/pull/1541)
+  [`eabe6b5`](https://github.com/Ripple-TS/ripple/commit/eabe6b5d04ab11332dd0a2d528793275d4612bd0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Render textarea values as
+  escaped text content during SSR and omit hydration markers from textarea
+  expression children. Preserve leading newlines and support literal and spread
+  values on the client, including reactive updates after hydration.
+
+- [#1542](https://github.com/Ripple-TS/ripple/pull/1542)
+  [`ed899fe`](https://github.com/Ripple-TS/ripple/commit/ed899fe9c58c131cbf5dc089384f8e957dc600e8)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow scripts with statically
+  known data MIME types, such as `application/json`, outside the head. Preserve
+  script attributes and raw text on the client, and adopt existing server-rendered
+  scripts during hydration without duplicating or re-executing them. Mounted
+  external scripts execute in order unless `async` is specified.
+
+- [#1556](https://github.com/Ripple-TS/ripple/pull/1556)
+  [`0e80c77`](https://github.com/Ripple-TS/ripple/commit/0e80c77318f13f410bca45879a04bba08f5a9774)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve contenteditable
+  edits made before hydration with `bindInnerHTML`, `bindInnerText`, and
+  `bindTextContent`. Use server-content snapshots to distinguish edits and
+  deletions from untouched editors, preserve their DOM nodes and selection, and
+  initialize untouched bindings normally. Support inherited editability, dynamic
+  tags, and async server output, with fast paths for empty and HTML-valued
+  editors.
+
+- [#1553](https://github.com/Ripple-TS/ripple/pull/1553)
+  [`e9dc352`](https://github.com/Ripple-TS/ripple/commit/e9dc352995fa85774a3548ee3d9ee47dcb11d0f4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve checkbox, radio,
+  select, and file selections made before hydration when attaching form bindings.
+  Adopt edited controls into their models, including cleared selections and
+  indeterminate states, while initializing untouched controls normally.
+
+- [#1551](https://github.com/Ripple-TS/ripple/pull/1551)
+  [`5846d7a`](https://github.com/Ripple-TS/ripple/commit/5846d7a76642270b79eb79c3e38ec7fc6649c363)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve input and textarea
+  edits made before hydration when attaching `bindValue`. Adopt the live value
+  into the model without resetting focus or text selection, while continuing to
+  initialize untouched fields from their bound values.
+
+- [#1560](https://github.com/Ripple-TS/ripple/pull/1560)
+  [`04e2c00`](https://github.com/Ripple-TS/ripple/commit/04e2c006f00f34eb48167008f2e7023ac116c2b3)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Skip unchanged reactive DOM
+  property assignments during unrelated template updates, so updating a dialog's
+  class does not close a dialog opened with `showModal()`. Keep conflicting spread
+  properties from overwriting explicit reactive bindings.
+
+- [#1512](https://github.com/Ripple-TS/ripple/pull/1512)
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.3. Two `module B { … }` blocks in the same `declare namespace` now merge as
+  they do in TypeScript instead of failing with
+  `'B' has already been declared in the current scope`. The editor now reports
+  TypeScript errors on a class whose base is a call, a parenthesized expression,
+  or an array literal, such as `class Model extends createBase() {}`.
+
+- [#1508](https://github.com/Ripple-TS/ripple/pull/1508)
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Update `@tsrx/core` to
+  ^0.3.2, where each `@switch` arm (`@case x: { … }` or `@default: { … }`) is its
+  own block scope. Two arms can now declare the same local: the server output and
+  the TypeScript output give an arm that declares a name its own block inside the
+  generated `switch`, so the names no longer collide. `@import` inside a `<style>`
+  block is now the `tsrx-css-import` compile error.
+- Updated dependencies
+  [[`5bad2e1`](https://github.com/Ripple-TS/ripple/commit/5bad2e1b7f953578aa6cb49e346106e937354fdb),
+  [`245ccdd`](https://github.com/Ripple-TS/ripple/commit/245ccdd374129bcdfac3bc632dae122cb368ef4b),
+  [`3cc271a`](https://github.com/Ripple-TS/ripple/commit/3cc271a740ae5e1267a7cdb4f057602eaf551ec3),
+  [`eabe6b5`](https://github.com/Ripple-TS/ripple/commit/eabe6b5d04ab11332dd0a2d528793275d4612bd0),
+  [`da1a8d7`](https://github.com/Ripple-TS/ripple/commit/da1a8d735dc9053315b4523b932ac7e5caa3fab4),
+  [`ed899fe`](https://github.com/Ripple-TS/ripple/commit/ed899fe9c58c131cbf5dc089384f8e957dc600e8),
+  [`9604b1b`](https://github.com/Ripple-TS/ripple/commit/9604b1b30c022e96249c5750e547de35aae7a8af),
+  [`558d9b6`](https://github.com/Ripple-TS/ripple/commit/558d9b65b004a5b9cedbba155d4318608c764362),
+  [`504434b`](https://github.com/Ripple-TS/ripple/commit/504434ba8300d30495b1c74c338bc3c07d4d3a1e),
+  [`5961e81`](https://github.com/Ripple-TS/ripple/commit/5961e812d67825d824aaeded4f017aff09390be7),
+  [`0e80c77`](https://github.com/Ripple-TS/ripple/commit/0e80c77318f13f410bca45879a04bba08f5a9774),
+  [`04e2c00`](https://github.com/Ripple-TS/ripple/commit/04e2c006f00f34eb48167008f2e7023ac116c2b3),
+  [`383c16f`](https://github.com/Ripple-TS/ripple/commit/383c16f4d4bbcbe7371a346e0a4c53e36aba9ab9),
+  [`93fd76a`](https://github.com/Ripple-TS/ripple/commit/93fd76a548284b51b8903ad1262fb70fbc4dcd11),
+  [`ddefa74`](https://github.com/Ripple-TS/ripple/commit/ddefa748586509dc58c2de2007dbf9ef606ff2be),
+  [`34b0388`](https://github.com/Ripple-TS/ripple/commit/34b0388c39cede2d29d3bc46f003f6a8168df827),
+  [`4c6f70b`](https://github.com/Ripple-TS/ripple/commit/4c6f70ba4ff24a6ced58802658efdbe751854f36),
+  [`f8bfbcb`](https://github.com/Ripple-TS/ripple/commit/f8bfbcbe58a27b72da5abb0204e6772a9992f83b),
+  [`0388383`](https://github.com/Ripple-TS/ripple/commit/0388383947f6d19830547a1e5d6ac356faf2d25e),
+  [`1c83b7f`](https://github.com/Ripple-TS/ripple/commit/1c83b7f00df41a6b034c1fdf87347dd69eaf7f16),
+  [`c8e3272`](https://github.com/Ripple-TS/ripple/commit/c8e32729510d5145816d08799ed9cd06d9813336),
+  [`83ed561`](https://github.com/Ripple-TS/ripple/commit/83ed5615968364a077cbd39bc26a74e4d8c12b11),
+  [`cbd7af7`](https://github.com/Ripple-TS/ripple/commit/cbd7af7bb8d6dd2395a684879ec5857c9a792b7a)]:
+  - @tsrx/ripple@0.2.5
+
 ## 0.4.7
 
 ### Patch Changes
