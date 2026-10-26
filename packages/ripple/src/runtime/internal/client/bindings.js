@@ -5,11 +5,12 @@
 /** @typedef {(v: unknown) => void} BindSetter */
 /** @typedef {{getter: BindGetter, setter: BindSetter}} BindGetSet */
 
-import { effect, render } from './blocks.js';
+import { effect, hydrating_ref, render } from './blocks.js';
 import { on } from './events.js';
-import { get, set } from './runtime.js';
+import { get, set, untrack } from './runtime.js';
 import { is_ripple_object } from './utils.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
+import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
 /**
  * @param {string} name
@@ -361,7 +362,7 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 		} else {
 			var input = /** @type {HTMLInputElement} */ (node);
 
-			clear_event = on(input, 'input', () => {
+			var on_input = () => {
 				/** @type {any} */
 				var value = input.value;
 				value = is_numberlike_input(input) ? to_number(value) : value;
@@ -389,7 +390,21 @@ export function bindValue(maybe_tracked, set_func = undefined) {
 						input.selectionEnd = end;
 					}
 				}
-			});
+			};
+
+			clear_event = on(input, 'input', on_input);
+
+			if (HYDRATION && hydrating_ref && input.value !== input.defaultValue) {
+				// Normalize the server default using the browser's value rules. For
+				// example, an untouched range without a value attribute starts at 50.
+				var default_input = /** @type {HTMLInputElement} */ (input.cloneNode());
+				default_input.value = input.defaultValue;
+				if (input.value !== default_input.value) {
+					// Adopt edits before the first model-to-DOM write. Reuse the input
+					// handler for numeric conversion and custom getter/setter behavior.
+					untrack(on_input);
+				}
+			}
 
 			render(() => {
 				var value = getter();

@@ -41,6 +41,9 @@ import { is_ripple_object } from './utils.js';
 import { effect_orphan } from './errors.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 
+// Ref effects run after the hydration walk has restored `hydrating`.
+export let hydrating_ref = false;
+
 /**
  * @param {Function} fn
  */
@@ -155,7 +158,11 @@ function apply_ref(element, ref_value, set_fn) {
 			apply_ref(element, ref_value[i], undefined);
 		}
 	} else if (typeof ref_value === 'function') {
-		block(EFFECT_BLOCK, run_function_ref, { e: element, f: ref_value });
+		block(EFFECT_BLOCK, run_function_ref, {
+			e: element,
+			f: ref_value,
+			h: HYDRATION && hydrating,
+		});
 	} else if (is_ripple_object(ref_value)) {
 		block(EFFECT_BLOCK, run_tracked_ref, { e: element, t: ref_value });
 	} else if (set_fn !== undefined) {
@@ -165,10 +172,17 @@ function apply_ref(element, ref_value, set_fn) {
 
 /**
  * The callback's return value is the effect's teardown.
- * @param {{ e: Element, f: (element: Element) => any }} s
+ * @param {{ e: Element, f: (element: Element) => any, h: boolean }} s
  */
 function run_function_ref(s) {
-	return s.f(s.e);
+	var was_hydrating_ref = hydrating_ref;
+	hydrating_ref = s.h;
+	s.h = false;
+	try {
+		return s.f(s.e);
+	} finally {
+		hydrating_ref = was_hydrating_ref;
+	}
 }
 
 /**
