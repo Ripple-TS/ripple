@@ -8105,6 +8105,7 @@ function transform_children(children, context) {
 					render_text_expression(container_expression, expr);
 				} else if (
 					normalized.length === 1 &&
+					!is_fragment_root &&
 					!is_children_template_expression(container_expression, state.scope)
 				) {
 					state.template?.push(' ');
@@ -8116,6 +8117,9 @@ function transform_children(children, context) {
 							: b.stmt(call),
 					);
 				} else {
+					// A root expression can render through descendant control-flow
+					// blocks with no range of its own. Keep the fragment's leading
+					// comment so its range encloses all current and future content.
 					state.template?.push('<!>');
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
