@@ -2113,7 +2113,7 @@ const visitors = {
 			}
 			if (state.inside_head) {
 				if (/** @type {AST.Identifier} */ (element_id).name === 'title') {
-					const children = normalize_children(node.children, context);
+					const children = normalize_children(node.children, context, true);
 
 					if (children.length !== 1 || !is_template_text_or_expression(children[0])) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error

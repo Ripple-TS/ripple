@@ -60,6 +60,16 @@ describe('primitive text inference', () => {
 	);
 
 	it.each([
+		'props.value',
+		'props["value"]',
+		'props?.value',
+		'props.value as unknown',
+		'props.value!',
+		'[props.first, props.second]',
+		'props.flag && props.value',
+		'props.value ?? null',
+		'props.flag ? props.first : props.second',
+		'(props.first, props.second)',
 		'new Date()',
 		'new Number(1)',
 		'new String(1)',
@@ -69,6 +79,12 @@ describe('primitive text inference', () => {
 		'String?.(props.value)',
 		'BigInt?.(props.value)',
 	])('keeps %s on the renderable path', (expression) => expect_renderable(expression));
+
+	it('keeps local renderable bindings separate from neighboring text', () => {
+		expect_renderable('value', 'const value = props.value;');
+		expect_renderable('value', 'const value = <i>one</i>;');
+		expect_renderable('value', 'const value = [props.first, props.second];');
+	});
 
 	it.each([
 		['theme()', 'const theme = props.get as () => string;'],

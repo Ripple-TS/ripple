@@ -1,5 +1,5 @@
 import { Fragment, track } from 'ripple';
-import type { Tracked, PropsNoChildren } from 'ripple';
+import type { Tracked, PropsNoChildren, Renderable } from 'ripple';
 
 describe('basic client', () => {
 	it('render static text', async () => {
@@ -144,6 +144,43 @@ second
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml('');
+	});
+
+	it('renders adjacent renderable props as elements', async () => {
+		function Pair(props: { first: Renderable; second: Renderable }) @{
+			<section>
+				{props.first}
+				{props.second}
+			</section>
+		}
+
+		function App() @{
+			<Pair
+				first={@{
+					<i>one</i>
+				}}
+				second={@{
+					<b>two</b>
+				}}
+			/>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<section><i>one</i><b>two</b></section>');
+	});
+
+	it('renders local elements and collections beside escaped text', async () => {
+		function App() @{
+			const first = <i>one</i>;
+			const second = <b>two</b>;
+			const values = [first, null, '&', second, undefined];
+			<section>before:{first}{second}{values}{'<after>'}</section>
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml(
+			'<section>before:<i>one</i><b>two</b><i>one</i>&amp;<b>two</b>&lt;after></section>',
+		);
 	});
 
 	it('does not stringify adjacent call-containing expression children', async () => {

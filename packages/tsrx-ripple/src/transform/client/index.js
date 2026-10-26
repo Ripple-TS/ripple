@@ -1429,7 +1429,7 @@ function hoist_repeated_tracked_reads(statements, state) {
  * @param {TransformClientContext} context
  */
 function visit_title_element(node, context) {
-	const normalized = normalize_children(/** @type {AST.Node[]} */ (node.children), context);
+	const normalized = normalize_children(/** @type {AST.Node[]} */ (node.children), context, true);
 	const content = /** @type {ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer} */ (
 		normalized[0]
 	);
@@ -3571,7 +3571,8 @@ const visitors = {
 	},
 
 	VariableDeclarator(node, context) {
-		return context.next();
+		const visited = /** @type {AST.VariableDeclarator} */ (context.next() ?? node);
+		return context.state.to_ts ? visited : { ...visited, definite: false };
 	},
 
 	CatchClause(node, context) {

@@ -4,6 +4,50 @@ import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { check_types, find_exact_mapping } from './test-utils.js';
 
+describe('@tsrx/ripple definite assignment assertions', () => {
+	const sources = [
+		[
+			'a function local',
+			`export function read() {
+				let count!: number;
+				count = 1;
+				return count;
+			}`,
+		],
+		[
+			'module variables and multiple declarators',
+			`export let count!: number;
+			var label!: string, suffix!: string;
+			label = 'count';
+			suffix = ':';
+			count = 1;
+			export function read() { return label + suffix + count; }`,
+		],
+		[
+			'a captured component local',
+			`export function App() @{
+				let count!: number;
+				function increment() { count++; }
+				count = 1;
+				<button onClick={increment}>{count}</button>
+			}`,
+		],
+	];
+
+	for (const mode of /** @type {const} */ (['client', 'server'])) {
+		it.each(sources)(`strips assertions from %s in ${mode} output`, (_, source) => {
+			const { code, errors } = compile(source, 'Read.tsrx', { mode });
+
+			expect(errors).toEqual([]);
+			expect(() =>
+				acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' }),
+			).not.toThrow();
+			expect(code).not.toMatch(/\b(?:count|label|suffix)!/);
+			expect(code).toMatch(/count(?:\.v)? = 1;/);
+		});
+	}
+});
+
 describe('@tsrx/ripple TypeScript declarations in to_ts', () => {
 	it('preserves global augmentations without submodule diagnostics', () => {
 		const source =
@@ -666,11 +710,10 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 			'App.tsrx',
 		);
 
-		// The render lowering reads the item once per run (`__pattern`; a local
-		// item, off its slot); each name is then a plain member chain on it.
-		expect(code).toContain('var __pattern = __prev.$item;');
-		expect(code).toContain('__pattern.nested.label');
-		expect(code).toContain('__pattern.tags[0]');
+		// Each unproven child keeps its own expression and reads the tracked
+		// item through a plain member chain.
+		expect(code).toContain('_$_.get(pattern).nested.label');
+		expect(code).toContain('_$_.get(pattern).tags[0]');
 		expect(code).toContain('(pattern) => pattern.id');
 	});
 
@@ -697,8 +740,8 @@ describe('@tsrx/ripple keyed @for pattern reads', () => {
 		expect(code).toContain('_$_.get(pattern).rest.name');
 		expect(code).toContain('(pattern) => pattern.id');
 		expect(code).toContain("([first, second = 'x', ...others]) => ({ first, second, others })");
-		expect(code).toContain('__pattern_1.second');
-		expect(code).toContain('__pattern_1.others.length');
+		expect(code).toContain('_$_.get(pattern_1).second');
+		expect(code).toContain('_$_.get(pattern_1).others.length');
 		expect(code).not.toContain('_$_.derived');
 		expect(code).not.toContain('exclude_from_object');
 		expect(code).not.toContain('array_slice');
