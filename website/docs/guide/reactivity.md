@@ -143,6 +143,11 @@ either exposed (for get) or stored (for set). Also, if only supplying the `set`,
 the `get` parameter must be set to `undefined`.
 :::
 
+`isTracked(value)` checks whether a value is tracked or derived by the current
+Ripple runtime. It does not read `.value`, evaluate derived functions, or create
+a reactive dependency. This is useful for library props accepting either a plain
+value or a reactive input; ordinary objects with `value` or `f` fields remain plain.
+
 ## Transporting Reactivity
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can

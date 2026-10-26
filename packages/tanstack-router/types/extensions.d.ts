@@ -1,3 +1,4 @@
+import type { LinkComponent } from './link.js';
 import type { Component, Children } from 'ripple';
 import type {
 	ErrorComponentProps,
@@ -34,6 +35,7 @@ declare module '@tanstack/router-core' {
 		InnerWrap?: Component<{ children?: Children }>;
 	}
 	interface RouteExtensions<in out TId, in out TFullPath> {
+		Link: LinkComponent<Extract<TFullPath, string>>;
 		useMatch: UseMatchRoute<TId>;
 		useParams: UseParamsRoute<TId>;
 		useSearch: UseSearchRoute<TId>;

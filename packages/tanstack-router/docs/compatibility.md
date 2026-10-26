@@ -1,9 +1,10 @@
 # Compatibility contract
 
-This tracks the target contract for milestones 2–6. Milestone 2 implements route
-factories, a provider/outlet tree, scoped data readers, store lifetime and render
-acknowledgement. The package README lists the exact current exports and limits;
-the table below includes APIs still planned for later milestones.
+This tracks the target contract for milestones 2–6. Milestone 3 implements the
+client feature surface: routes, links, reactive readers, lazy loading, boundaries,
+blocking, history, and scroll integration. The package README lists the exact
+current exports and limits; the table below separates client features from later
+parity and release gates.
 
 | Surface                  | Planned API / behavior                                                                                                                                                                       | Milestone |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -53,8 +54,8 @@ router state.
 
 ## Link and provider inputs
 
-The following dynamic-input contract is planned for milestone 3. Milestone 2
-accepts plain provider context; it does not yet export `Link`.
+The following dynamic-input contract is implemented in milestone 3. See
+[client usage](./client.md) for callbacks and custom anchor components.
 
 Component props are ordinary objects evaluated once by Ripple. For changing
 navigation inputs, accept either the normal TanStack value or a read-only Ripple
@@ -69,7 +70,7 @@ functions as callbacks; do not interpret arbitrary functions as reactive getters
 Normal event handlers and refs retain Ripple's host-element semantics, including
 `class` rather than `className`.
 
-Planned usage:
+Usage:
 
 ```tsrx
 import { track } from 'ripple';
@@ -100,7 +101,7 @@ dependencies change. Leaving a route disposes its observers before they can read
 invalid match state. Provider cleanup removes its history subscription and settles
 owned pending acknowledgements.
 
-Milestone 2 uses Ripple's `createRenderObserver()` to await subtree rendering and
+The adapter uses Ripple's `createRenderObserver()` to await subtree rendering and
 settle superseded/unmounted observations. It does not implement atomic concurrent
 DOM staging. `tick()` or an arbitrary timeout is not evidence of completion of a
 suspended render. TanStack core remains the sole owner of native browser view

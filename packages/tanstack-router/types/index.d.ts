@@ -5,6 +5,10 @@ export {
 	isNotFound,
 	isRedirect,
 	notFound,
+	isMatch,
+	lazyFn,
+	retainSearchParams,
+	stripSearchParams,
 	redirect,
 } from '@tanstack/router-core';
 
@@ -14,11 +18,18 @@ export type { ControlledPromise, NotFoundError, Redirect } from '@tanstack/route
 export type { HistoryLocation, HistoryState, RouterHistory } from '@tanstack/history';
 import './extensions.js';
 export { Router, createRouter } from './router.js';
-export { createRootRoute, createRootRouteWithContext, createRoute } from './route.js';
+export {
+	createRootRoute,
+	createRootRouteWithContext,
+	createRoute,
+	getRouteApi,
+	createLazyRoute,
+} from './route.js';
 export {
 	RouterProvider,
 	RouterContextProvider,
 	Outlet,
+	ErrorComponent,
 	type RouterProps,
 } from './RouterProvider.js';
 export { useRouter } from './useRouter.js';
@@ -31,3 +42,17 @@ export { useLoaderDeps } from './useLoaderDeps.js';
 export { useRouteContext } from './useRouteContext.js';
 export { useNavigate } from './useNavigate.js';
 export type { Register, AnyRouter, AnyRoute, ErrorComponentProps } from '@tanstack/router-core';
+
+export * from './readers.js';
+export * from './link.js';
+export * from './navigation.js';
+export * from './lazyRouteComponent.js';
+export * from './blocker.js';
+export * from './scroll.js';
+export type {
+	RegisteredRouter,
+	AnyRouteMatch,
+	NavigateOptions,
+	LinkOptions,
+	NotFoundRouteProps,
+} from '@tanstack/router-core';

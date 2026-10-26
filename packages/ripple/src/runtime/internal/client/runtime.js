@@ -553,6 +553,11 @@ export function run_block(block, first_run = false) {
 
 var empty_get_set = { get: undefined, set: undefined };
 
+/** @param {unknown} value @returns {boolean} */
+export function is_tracked(value) {
+	return value instanceof TrackedValue || value instanceof DerivedValue;
+}
+
 class TrackedValue {
 	/**
 	 * @param {any} v

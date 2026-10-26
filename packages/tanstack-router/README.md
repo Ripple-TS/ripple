@@ -1,9 +1,10 @@
 # @ripple-ts/tanstack-router
 
-Milestone 2 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
-native stores, code-defined routes, nested rendering, reactive readers, and the
-navigation/rendering lifecycle. The package is **private** during development and
-will not be published with unrelated Ripple releases. It is not feature-complete.
+Milestone 3 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
+the client adapter: code-defined routes, reactive readers, links, lazy loading,
+boundaries, blocking, and render-aware navigation/scrolling. The package is
+**private** during development and will not be published with unrelated Ripple
+releases. It is not feature-complete.
 
 This is a separate TanStack Router integration. It does not change Ripple's own
 routing system. File-based routing is optional future TSRX tooling and is not
@@ -14,18 +15,24 @@ required by this package.
 Implemented adapter exports:
 
 - `createRouter`, `Router`, `createRootRoute`, `createRootRouteWithContext`, and
-  `createRoute`.
+  `createRoute`, `getRouteApi`, and `createLazyRoute`.
 - `RouterProvider`, `RouterContextProvider`, and `Outlet`.
 - `useRouter`, `useRouterState`, `useMatch`, `useParams`, `useSearch`,
-  `useLoaderData`, `useLoaderDeps`, `useRouteContext`, and `useNavigate`. Route
-  instances expose their corresponding scoped readers. State readers return
-  `Derived<T>` and are read through `.value`.
+  `useLoaderData`, `useLoaderDeps`, `useRouteContext`, `useLocation`,
+  `useMatches`, `useParentMatches`, `useChildMatches`, `useMatchRoute`,
+  `useCanGoBack`, and `useNavigate`. Route instances expose their corresponding
+  scoped readers. State readers return `Derived<T>` and are read through `.value`.
+- `Link`, `createLink`, `useLinkProps`, `linkOptions`, `Navigate`, and
+  `MatchRoute`.
+- `lazyRouteComponent`, `Await`, `useAwaited`, and `ErrorComponent`.
+- `useBlocker`, `Block`, and `useElementScrollRestoration`.
 
 The package also re-exports these unmodified upstream utilities:
 
 - From `@tanstack/router-core@1.171.39`: `createControlledPromise`,
   `defaultParseSearch`, `defaultStringifySearch`, `redirect`, `isRedirect`,
-  `notFound`, and `isNotFound`.
+  `notFound`, `isNotFound`, `isMatch`, `lazyFn`, `retainSearchParams`, and
+  `stripSearchParams`.
 - From `@tanstack/history@1.162.5`: `createMemoryHistory`, `createBrowserHistory`,
   and `createHashHistory`. Browser/hash history require a browser when called.
 - Types: `ControlledPromise`, `NotFoundError`, `Redirect`, `HistoryLocation`,
@@ -38,7 +45,9 @@ introduce another state creation API. The component subtree uses
 `createRenderObserver()` to acknowledge rendered navigation, including async work
 and supersession.
 
-See [the compatibility contract](./docs/compatibility.md) for the planned API and
+See [client usage and Ripple API adaptations](./docs/client.md),
+[the compatibility contract](./docs/compatibility.md) for the milestone contract,
+and
 [the upstream inventory](https://github.com/Ripple-TS/ripple/blob/main/packages/tanstack-router/upstream/README.md)
 for test provenance and status.
 
@@ -88,11 +97,12 @@ benchmarks; its router module augmentations must not enter the Ripple type tests
 
 ## Current limits
 
-`Link`, the remaining navigation/match helpers, explicit remount dependencies,
-complete error/not-found/lazy-boundary behavior, and reactive provider context are
-milestone 3 work. Full type/runtime parity, SSR/hydration, and real-browser
-release validation remain milestones 4–6. A provider currently accepts a stable
-router and plain context, with one mounted provider per router instance.
+Full upstream runtime/type parity, SSR/hydration, and real-browser release
+validation remain milestones 4–6. The client feature gate and exact translated
+test families are recorded in the upstream inventory. One mounted provider owns a
+router instance. Deprecated framework-specific aliases and file-route factories
+are not exported. See the client guide for explicit reactive inputs, `render`
+callbacks, custom anchors, and history ownership.
 
 TanStack core owns native `document.startViewTransition()` calls. Its update
 callback waits for the adapter's render acknowledgement; navigation does not wait

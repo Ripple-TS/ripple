@@ -89,7 +89,15 @@ function show_resolved_fragment(state) {
 
 /** @param {TryState} state */
 export function render_resolved(state) {
-	if (state.b !== null && !is_destroyed(state.b) && (state.rb === null || is_destroyed(state.rb))) {
+	if (
+		state.b !== null &&
+		!is_destroyed(state.b) &&
+		(state.m === 2 || state.rb === null || is_destroyed(state.rb))
+	) {
+		// A synchronous failure during branch initialization can precede the
+		// assignment to rb. Retire that failed attempt on reset even when the
+		// branch handle was published after catch_error returned.
+		if (state.m === 2) destroy_resolved(state);
 		if (state.cb !== null) {
 			destroy_block(state.cb);
 			state.cb = null;

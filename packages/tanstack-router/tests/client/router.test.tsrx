@@ -106,7 +106,7 @@ describe('native Ripple router', () => {
 				return <RouterProvider {router} />;
 			}
 			const view = render(App);
-			await view.findByText('Error: broken route');
+			await view.findByText('broken route');
 			await router.navigate({ to: '/good' });
 			expect(view.getByText('Recovered')).toBeTruthy();
 		},

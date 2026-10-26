@@ -136,3 +136,44 @@ export declare function createRootRoute<
 	TSSR,
 	THandlers
 >;
+
+import type {
+	ConstrainLiteral,
+	RegisteredRouter,
+	AnyRouter,
+	RouteIds,
+	RouteTypesById,
+	NotFoundError,
+	RouteById,
+	LazyRouteOptions,
+} from '@tanstack/router-core';
+import type { UseMatchRoute } from './useMatch.js';
+import type { UseParamsRoute } from './useParams.js';
+import type { UseSearchRoute } from './useSearch.js';
+import type { UseLoaderDataRoute } from './useLoaderData.js';
+import type { UseLoaderDepsRoute } from './useLoaderDeps.js';
+import type { UseRouteContextRoute } from './useRouteContext.js';
+import type { UseNavigateResult } from '@tanstack/router-core';
+import type { LinkComponent } from './link.js';
+export interface RouteApi<TId, TRouter extends AnyRouter = RegisteredRouter> {
+	useMatch: UseMatchRoute<TId>;
+	useParams: UseParamsRoute<TId>;
+	useSearch: UseSearchRoute<TId>;
+	useLoaderData: UseLoaderDataRoute<TId>;
+	useLoaderDeps: UseLoaderDepsRoute<TId>;
+	useRouteContext: UseRouteContextRoute<TId>;
+	useNavigate: () => UseNavigateResult<RouteTypesById<TRouter, TId>['fullPath']>;
+	Link: LinkComponent<RouteTypesById<TRouter, TId>['fullPath']>;
+	notFound: (options?: NotFoundError) => NotFoundError;
+}
+export declare function getRouteApi<const TId, TRouter extends AnyRouter = RegisteredRouter>(
+	id: ConstrainLiteral<TId, RouteIds<TRouter['routeTree']>>,
+): RouteApi<TId, TRouter>;
+export declare function createLazyRoute<
+	TRouter extends AnyRouter = RegisteredRouter,
+	TId extends string = string,
+>(
+	id: ConstrainLiteral<TId, RouteIds<TRouter['routeTree']>>,
+): (
+	options: LazyRouteOptions,
+) => RouteApi<TId, TRouter> & { options: { id: TId } & LazyRouteOptions };

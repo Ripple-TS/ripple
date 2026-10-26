@@ -252,6 +252,7 @@ export {
 	flush_sync as flushSync,
 	track,
 	track_read_only as trackReadOnly,
+	is_tracked as isTracked,
 	untrack,
 	tick,
 	is_tracked_pending as trackPending,

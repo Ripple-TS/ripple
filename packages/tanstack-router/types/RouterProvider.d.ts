@@ -1,9 +1,10 @@
-import type { Children, TSRXElement } from 'ripple';
+import type { Children, Derived, TSRXElement } from 'ripple';
 import type { AnyRouter, RegisteredRouter } from '@tanstack/router-core';
 
 export interface RouterProps<TRouter extends AnyRouter = RegisteredRouter> {
 	router: TRouter;
-	context?: Partial<TRouter['options']['context']>;
+	context?:
+		Partial<TRouter['options']['context']> | Derived<Partial<TRouter['options']['context']>>;
 }
 
 export declare function RouterProvider<TRouter extends AnyRouter = RegisteredRouter>(
@@ -13,3 +14,5 @@ export declare function RouterContextProvider<TRouter extends AnyRouter = Regist
 	props: RouterProps<TRouter> & { children?: Children },
 ): TSRXElement;
 export declare function Outlet(): TSRXElement;
+
+export declare function ErrorComponent(props: { error: unknown }): TSRXElement;

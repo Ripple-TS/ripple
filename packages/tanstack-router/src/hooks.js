@@ -1,6 +1,7 @@
 import { effect, track } from 'ripple';
 import { replaceEqualDeep } from '@tanstack/router-core';
 import { routerContext, matchContext } from './context.js';
+import { resolveInputs } from './inputs.js';
 
 /** @typedef {import('@tanstack/router-core').AnyRouteMatch} Match */
 /** @typedef {import('@tanstack/router-core').AnyRouter} AnyRouter */
@@ -103,4 +104,63 @@ export function useNavigate(defaults = {}) {
 	var router = useRouter();
 	/** @param {import('@tanstack/router-core').NavigateOptions<AnyRouter>} options */
 	return (options) => router.navigate({ ...options, from: options.from ?? defaults.from });
+}
+
+/** @param {{ select?: (location: AnyRouter['state']['location']) => unknown }} [options] */
+export function useLocation(options = {}) {
+	var router = useRouter();
+	return selectValue(() => {
+		var location = router.stores.location.get();
+		return options.select ? options.select(location) : location;
+	});
+}
+
+/** @param {{ select?: (matches: Match[]) => unknown }} [options] */
+export function useMatches(options = {}) {
+	var router = useRouter();
+	return selectValue(() => {
+		var matches = router.stores.matches.get();
+		return options.select ? options.select(matches) : matches;
+	});
+}
+
+/** @param {{ select?: (matches: Match[]) => unknown }} [options] */
+export function useParentMatches(options = {}) {
+	var nearest = matchContext.get();
+	return useMatches({
+		select: (matches) => {
+			var index = matches.findIndex((match) => match.routeId === nearest?.routeId);
+			var parents = index < 0 ? [] : matches.slice(0, index);
+			return options.select ? options.select(parents) : parents;
+		},
+	});
+}
+
+/** @param {{ select?: (matches: Match[]) => unknown }} [options] */
+export function useChildMatches(options = {}) {
+	var nearest = matchContext.get();
+	return useMatches({
+		select: (matches) => {
+			var index = matches.findIndex((match) => match.routeId === nearest?.routeId);
+			var children = nearest && index < 0 ? [] : matches.slice(index + 1);
+			return options.select ? options.select(children) : children;
+		},
+	});
+}
+
+export function useMatchRoute() {
+	var router = useRouter();
+	/** @param {Record<string, any>} options */
+	return (options) =>
+		selectValue(() => {
+			var { pending, caseSensitive, fuzzy, includeSearch, ...rest } = resolveInputs(options);
+			router.stores.location.get();
+			router.stores.resolvedLocation.get();
+			router.stores.status.get();
+			return router.matchRoute(rest, { pending, caseSensitive, fuzzy, includeSearch });
+		});
+}
+
+export function useCanGoBack() {
+	return useLocation({ select: (location) => location.state.__TSR_index !== 0 });
 }

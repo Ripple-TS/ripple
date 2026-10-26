@@ -297,6 +297,9 @@ export function track<V>(value?: V, get?: (v: V) => V, set?: (next: V, prev: V) 
  */
 export function trackReadOnly<V>(value: Tracked<V> | Derived<V>): Derived<V>;
 
+/** Recognizes tracked and derived values from this runtime without reading or evaluating them. */
+export function isTracked(value: unknown): value is Derived<unknown>;
+
 export function trackAsync<V>(
 	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
 ): Tracked<V>;

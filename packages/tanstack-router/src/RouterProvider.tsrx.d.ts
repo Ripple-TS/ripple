@@ -1,1 +1,6 @@
-export { RouterProvider, RouterContextProvider, Outlet } from '../types/RouterProvider.js';
+export {
+	RouterProvider,
+	RouterContextProvider,
+	Outlet,
+	ErrorComponent,
+} from '../types/RouterProvider.js';

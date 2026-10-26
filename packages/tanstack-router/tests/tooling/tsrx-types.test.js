@@ -7,7 +7,8 @@ describe('router TSRX call-site types', () => {
 	it('preserves route data and provider props through the target TypeScript view', () => {
 		const filename = fileURLToPath(new URL('../types/virtual-consumer.tsx', import.meta.url));
 		const source = `
-import { createRootRoute, createRoute, createRouter, RouterProvider } from '@ripple-ts/tanstack-router';
+import { createRootRoute, createRoute, createRouter, RouterProvider, Link, MatchRoute, createLazyRoute } from '@ripple-ts/tanstack-router';
+import { track } from 'ripple';
 const root = createRootRoute();
 const child = createRoute({ getParentRoute: () => root, path: '/$id', loader: ({ params }) => ({ title: params.id }) });
 const router = createRouter({ routeTree: root.addChildren([child]) });
@@ -19,6 +20,23 @@ function Page() @{
 	const invalid: number = data.value.title;
 	<p>{title}</p>
 }
+function Links() @{
+	const params = track({ id: 'one' });
+	<>
+		<Link to="/$id" {params} onClick={(event) => {
+			const anchor: HTMLAnchorElement = event.currentTarget;
+			// @ts-expect-error the event target retains its element type
+			const wrong: number = event.currentTarget;
+		}} render={({ isActive }) => isActive ? 'Active' : 'Inactive'} />
+		<MatchRoute to="/$id" render={(match) => match ? match.id : 'none'} />
+	</>
+}
+const lazy = createLazyRoute('/$id')({ component: Page });
+child.lazy(async () => lazy);
+// @ts-expect-error Link needs the required route params
+const missingParams = <Link to="/$id" />;
+// @ts-expect-error Link checks tracked parameter types
+const wrongParams = <Link to="/$id" params={{ id: 42 }} />;
 function App() { return <RouterProvider {router} />; }
 // @ts-expect-error the provider needs a router instance
 const missing = <RouterProvider />;

@@ -1,4 +1,5 @@
-import { BaseRoute, BaseRootRoute } from '@tanstack/router-core';
+import { BaseRoute, BaseRootRoute, notFound } from '@tanstack/router-core';
+import { createRouteLink, createRouteIdLink } from './Link.tsrx';
 import {
 	useMatch,
 	useParams,
@@ -7,10 +8,11 @@ import {
 	useLoaderData,
 	useLoaderDeps,
 	useNavigate,
+	useRouter,
 } from './hooks.js';
 
-/** @template {{ id: string; fullPath: string }} T @param {T} route */
-function bindRoute(route) {
+/** @template {{ id: string; fullPath?: string }} T @param {T} route @param {() => string} getFullPath */
+function bindRoute(route, getFullPath) {
 	return Object.assign(route, {
 		/** @param {import('./hooks.js').Options} [options] */
 		useMatch: (options) => useMatch({ ...options, from: route.id }),
@@ -24,18 +26,39 @@ function bindRoute(route) {
 		useLoaderDeps: (options) => useLoaderDeps({ ...options, from: route.id }),
 		/** @param {import('./hooks.js').Options} [options] */
 		useRouteContext: (options) => useRouteContext({ ...options, from: route.id }),
-		useNavigate: () => useNavigate({ from: route.fullPath }),
+		useNavigate: () => useNavigate({ from: getFullPath() }),
+		Link: createRouteLink(getFullPath),
 	});
 }
 
 /** @param {import('@tanstack/router-core').AnyRoute['options']} options */
 export function createRoute(options) {
-	return bindRoute(new BaseRoute(options));
+	var route = new BaseRoute(options);
+	return bindRoute(route, () => route.fullPath);
 }
 /** @param {import('@tanstack/router-core').AnyRoute['options']} [options] */
 export function createRootRoute(options) {
-	return bindRoute(new BaseRootRoute(options));
+	var route = new BaseRootRoute(options);
+	return bindRoute(route, () => route.fullPath);
 }
 export function createRootRouteWithContext() {
 	return createRootRoute;
+}
+
+/** @param {string} id */
+export function getRouteApi(id) {
+	return Object.assign(
+		bindRoute({ id }, () => useRouter().routesById[id].fullPath),
+		{
+			/** @param {import('@tanstack/router-core').NotFoundError} [options] */
+			notFound: (options) => notFound({ routeId: /** @type {any} */ (id), ...options }),
+			Link: createRouteIdLink(id),
+		},
+	);
+}
+
+/** @param {string} id */
+export function createLazyRoute(id) {
+	/** @param {import('@tanstack/router-core').LazyRouteOptions} options */
+	return (options) => Object.assign(getRouteApi(id), { options: { id, ...options } });
 }

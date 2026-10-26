@@ -242,6 +242,11 @@ export function Settings() @{
 }
 ```
 
+`isTracked(value)` recognizes tracked and derived values from the current Ripple
+runtime without reading `.value`, evaluating a derived, or subscribing. Use it in
+libraries that accept plain values or reactive inputs; ordinary objects are not
+tracked merely because they have `value` or numeric `f` fields.
+
 ## Reactive Collections
 
 Use Ripple collection classes when collection operations should update rendered

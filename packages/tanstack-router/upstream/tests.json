@@ -26,7 +26,14 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "8": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
+          "rippleTests": ["tests/client/upstream/Await.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/CatchBoundary.test.tsx",
@@ -162,7 +169,26 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "120": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
+        },
+        "138": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
+        },
+        "158": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/Outlet.test.tsx",
@@ -405,7 +431,38 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "36": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        },
+        "48": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        },
+        "57": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        },
+        "122": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        },
+        "148": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/createLazyRoute.test.tsx",
@@ -439,7 +496,32 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "54": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
+        },
+        "74": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
+        },
+        "101": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
+        },
+        "172": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/disableGlobalCatchBoundary.test.tsx",
@@ -526,7 +608,20 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "172": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Error text uses the default message presentation; Ripple resets replay failed component initialization.",
+          "rippleTests": ["tests/client/upstream/errorComponent.test.tsrx"]
+        },
+        "217": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Error text uses the default message presentation; Ripple resets replay failed component initialization.",
+          "rippleTests": ["tests/client/upstream/errorComponent.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/fileRoute.test-d.tsx",
@@ -689,7 +784,20 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "20": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/issue-7367-pending-min-redirect.test.tsrx"]
+        },
+        "74": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/issue-7367-pending-min-redirect.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/issue-7964-param-parsing-loader.test.tsx",
@@ -708,7 +816,14 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "17": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/issue-7964-param-parsing-loader.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/issue-7986-retained-pending.test.tsx",
@@ -872,7 +987,14 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "39": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/issue-8115-context.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/jest-dom.setup.ts",
@@ -1252,7 +1374,14 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "17": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates. Disabled anchors additionally prevent the click default; href suppression and no navigation/preloading assertions are retained.",
+          "rippleTests": ["tests/client/upstream/link-href-safety.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/link-path-cases.ts",
@@ -1281,7 +1410,20 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "16": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
+          "rippleTests": ["tests/client/upstream/link-path-matching.test.tsrx"]
+        },
+        "47": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
+          "rippleTests": ["tests/client/upstream/link-path-matching.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/link-style.test.tsx",
@@ -2758,7 +2900,26 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "61": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
+        },
+        "75": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
+        },
+        "88": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/renderRouterToStream.test.tsx",
@@ -3632,7 +3793,14 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "19": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/routeScopedShouldThrow.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/router-client-stream-cleanup.test.tsx",
@@ -4658,7 +4826,20 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "19": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/use-match-outgoing-transition.test.tsrx"]
+        },
+        "54": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/use-match-outgoing-transition.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/useBlocker.test-d.tsx",
@@ -4751,7 +4932,32 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "24": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
+        },
+        "76": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
+        },
+        "128": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
+        },
+        "180": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/useCanGoBack.test.tsx",
@@ -4775,7 +4981,20 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "65": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useCanGoBack.test.tsrx"]
+        },
+        "78": {
+          "status": "ported",
+          "milestone": 3,
+          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
+          "rippleTests": ["tests/client/upstream/useCanGoBack.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/useLoaderData.test-d.tsx",

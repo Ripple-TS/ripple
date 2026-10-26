@@ -7,6 +7,7 @@ export {
 	untrack,
 	track,
 	track_read_only as trackReadOnly,
+	is_tracked as isTracked,
 	track_async as trackAsync,
 	is_tracked_pending as trackPending,
 	peek_tracked as peek,

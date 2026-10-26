@@ -2,12 +2,15 @@ import { createRenderObserver, effect, track, untrack, type Children, type Deriv
 import {
 	getLocationChangeInfo,
 	trimPathRight,
+	isNotFound,
+	type NotFoundError,
 	type AnyRouter,
 	type AnyRouteMatch,
 } from '@tanstack/router-core';
 import { isServer } from '@tanstack/router-core/isServer';
 import { routerContext, matchContext } from './context.js';
 import { useRouter } from './hooks.js';
+import { resolveInput } from './inputs.js';
 
 const mounted = new WeakSet<AnyRouter>();
 
@@ -19,8 +22,14 @@ function Fragment({ children }: { children?: Children }) {
 function Empty() {
 	return null;
 }
-function DefaultError({ error }: { error: unknown }) {
-	return <pre>{String(error)}</pre>;
+export function ErrorComponent({ error }: { error: unknown }) {
+	return <pre>
+		{error instanceof Error ? error.message : String(error)}
+	</pre>;
+}
+
+function DefaultNotFound() {
+	return <p>Not Found</p>;
 }
 
 function Driver() @{
@@ -95,13 +104,16 @@ export function RouterContextProvider({
 	children,
 }: {
 	router: AnyRouter;
-	context?: Record<string, unknown>;
+	context?: Record<string, unknown> | Derived<Record<string, unknown>>;
 	children?: Children;
 }) @{
-	if (context) router.update({
-		...router.options,
-		context: { ...router.options.context, ...context },
-	});
+	const initialContext = router.options.context;
+	const updateContext = () => {
+		const value = resolveInput(context);
+		if (value) router.update({ context: { ...initialContext, ...value } });
+	};
+	updateContext();
+	effect(updateContext);
 	const Wrap = router.options.Wrap ?? Fragment;
 	<Wrap>
 		<ProviderContext {router}>{children}</ProviderContext>
@@ -113,7 +125,7 @@ export function RouterProvider({
 	context,
 }: {
 	router: AnyRouter;
-	context?: Record<string, unknown>;
+	context?: Record<string, unknown> | Derived<Record<string, unknown>>;
 }) {
 	return <RouterContextProvider {router} {context}>
 		<Driver />
@@ -134,7 +146,7 @@ function Matches() @{
 				effect(() => {
 					if (router.stores.matches.get() !== captured) reset();
 				});
-				const Catch = router.options.defaultErrorComponent || DefaultError;
+				const Catch = router.options.defaultErrorComponent || ErrorComponent;
 				<Catch {error} {reset} />
 			}
 		}
@@ -170,9 +182,20 @@ function Match({ routeId }: { routeId: string }) @{
 		effect(() => {
 			if (match.value !== captured) reset();
 		});
+		const notFound = isNotFound(error);
 		const Catch = route.options.errorComponent ?? router.options.defaultErrorComponent;
-		if (!Catch) throw error;
-		<Catch {error} {reset} />
+		if (!notFound && !Catch) throw error;
+		const onCatch = route.options.onCatch ?? router.options.defaultOnCatch;
+		if (!notFound) onCatch?.(error);
+		@if (notFound) {
+			const target = (error as NotFoundError).routeId;
+			if (
+				target && target !== routeId || !route.options.notFoundComponent && !route.isRoot
+			) throw error;
+			<RouteNotFound {routeId} error={error as NotFoundError} />
+		} @else {
+			<Catch {error} {reset} info={{ componentStack: '' }} />
+		}
 	}
 }
 
@@ -184,16 +207,38 @@ function MatchContent({ match }: { match: Derived<AnyRouteMatch | undefined> }) 
 		match.value;
 		return route.options.component ?? router.options.defaultComponent ?? Outlet;
 	});
+	const key = track(() => {
+		const current = match.value;
+		const remount = route.options.remountDeps ?? router.options.defaultRemountDeps;
+		if (!current || !remount) return nearest.routeId;
+		return JSON.stringify(
+			remount({
+				routeId: nearest.routeId,
+				loaderDeps: current.loaderDeps,
+				params: current._strictParams,
+				search: current._strictSearch,
+			}),
+		) ??
+			nearest.routeId;
+	});
 	@if (match.value?.status === 'error') {
 		throw match.value.error;
 		<></>
 	} @else if (match.value?.status === 'notFound') {
-		const NotFound =
-			route.options.notFoundComponent ?? router.options.defaultNotFoundComponent ?? Empty;
-		<NotFound />
+		<RouteNotFound routeId={nearest.routeId} error={match.value.error as NotFoundError} />
 	} @else if (match.value?.status === 'success') {
-		<{Component.value} />
+		@for (const identity of [key.value]; key identity) {
+			<{Component.value} />
+		}
 	}
+}
+
+function RouteNotFound({ routeId, error }: { routeId: string; error?: NotFoundError }) @{
+	const router = useRouter();
+	const route = router.routesById[routeId];
+	const NotFound =
+		route.options.notFoundComponent ?? router.options.defaultNotFoundComponent ?? DefaultNotFound;
+	<NotFound {...error} />
 }
 
 export function Outlet() @{
@@ -205,7 +250,11 @@ export function Outlet() @{
 		const index = ids.indexOf(parent.routeId);
 		return index < 0 || parent.match.value?._notFound ? [] : ids.slice(index + 1, index + 2);
 	});
-	@for (const id of children.value; key id) {
-		<Match routeId={id} />
+	@if (parent.match.value?._notFound) {
+		<RouteNotFound routeId={parent.routeId} error={parent.match.value.error as NotFoundError} />
+	} @else {
+		@for (const id of children.value; key id) {
+			<Match routeId={id} />
+		}
 	}
 }
