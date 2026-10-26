@@ -8,7 +8,7 @@ var root_3 = _$_.template_el('div', ['data-editor', '']);
 var root_4 = _$_.template_el('div', ['data-editor', ''], ' ');
 var root_5 = _$_.template(`<div data-editor contentEditable><b> </b><i>tail`);
 var root_6 = _$_.template(`<div contentEditable>`);
-var root_8 = _$_.template(` `, 1, 1);
+var root_8 = _$_.template(`<!>`, 1, 1);
 var root_7 = _$_.template(`<!>`, 1, 1);
 var root_9 = _$_.template_el('div');
 

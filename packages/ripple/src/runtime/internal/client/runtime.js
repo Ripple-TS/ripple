@@ -181,6 +181,7 @@ export function set_pending_read_handler(fn) {
 export function run_teardown(block) {
 	var fn = block.t;
 	if (fn !== null) {
+		block.t = null;
 		var previous_block = active_block;
 		var previous_reaction = active_reaction;
 		var previous_tracking = tracking;

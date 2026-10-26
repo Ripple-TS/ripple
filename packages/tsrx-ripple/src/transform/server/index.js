@@ -2177,7 +2177,17 @@ const visitors = {
 	},
 
 	VariableDeclaration(node, context) {
+		if (!context.state.to_ts && node.declare) {
+			return b.empty;
+		}
 		return transform_variable_declaration(node, context);
+	},
+
+	CatchClause(node, context) {
+		const visited = /** @type {AST.CatchClause} */ (context.next() ?? node);
+		return context.state.to_ts || !visited.param
+			? visited
+			: { ...visited, param: { ...visited.param, typeAnnotation: undefined } };
 	},
 
 	JSXStyleElement(node, context) {

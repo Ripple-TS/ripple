@@ -28,6 +28,7 @@ import {
 	getReturnKeywordNode,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
+	isFunctionNode as is_function_node,
 	validateNesting,
 	validateTsrxIfBreakStatement,
 	validateTsrxIfContinueStatement,
@@ -2411,6 +2412,14 @@ const visitors = {
 	},
 
 	AwaitExpression(node, context) {
+		// Record suspension during the existing analysis pass. Stop at the
+		// current function so awaits in callbacks do not mark their callers.
+		node.metadata.has_await = true;
+		for (let i = context.path.length - 1; i >= 0; i--) {
+			const parent = context.path[i];
+			if (is_function_node(parent) || parent.metadata.has_await) break;
+			parent.metadata.has_await = true;
+		}
 		const parent_block = get_parent_block_node(context);
 
 		if (is_inside_component(context)) {

@@ -39,6 +39,7 @@ const LOCAL_ITEMS = 1 << 7;
 const IF_ROOT_CONTROLLED = 1;
 const IF_TRACKED = 1 << 1;
 import { captured_locals, register_hoisted, rewrite } from './hoist.js';
+import { has_awaited_chain_call, visit_awaited_call } from './awaited-calls.js';
 import { has_text_type_fact } from '../../text-type-facts.js';
 import { is_data_script } from '../../script.js';
 import { HTML_ELEMENT_SETTERS, HTML_TAG_SETTERS } from '../../dom-setters.js';
@@ -511,7 +512,8 @@ function visit_function(node, context) {
 		return transform_native_tsrx_function(node, context);
 	}
 
-	const state = context.state;
+	const call_temps = /** @type {AST.Identifier[]} */ ([]);
+	const state = { ...context.state, call_temps };
 	const metadata = /** @type {AST.FunctionExpression['metadata']} */ (node.metadata);
 
 	if (context.state.to_ts) {
@@ -569,6 +571,14 @@ function visit_function(node, context) {
 	}
 
 	const boxes = box_param_statements(node);
+	if (call_temps.length > 0) {
+		boxes.unshift(
+			b.declaration(
+				'var',
+				call_temps.map((id) => b.declarator(id)),
+			),
+		);
+	}
 	if (boxes.length > 0) {
 		body =
 			body.type === 'BlockStatement'
@@ -3343,6 +3353,10 @@ const visitors = {
 			return visit_children_without(node, context, ['typeArguments']);
 		}
 
+		if (node.metadata.has_await) {
+			return visit_awaited_call(node, context);
+		}
+
 		// Handle array methods that access the array
 		if (callee.type === 'MemberExpression') {
 			const property = callee.property;
@@ -3450,6 +3464,10 @@ const visitors = {
 			return context.next();
 		}
 
+		if (node.metadata.has_await) {
+			return visit_awaited_call(node, context);
+		}
+
 		/** @type {AST.NewExpression} */
 		const new_node = {
 			...node,
@@ -3463,6 +3481,34 @@ const visitors = {
 		}
 
 		return b.call('_$_.with_scope', b.id('__block'), b.thunk(new_node));
+	},
+
+	ChainExpression(node, context) {
+		if (
+			!context.state.to_ts &&
+			is_inside_component(context, true) &&
+			context.path.some((node) => is_native_tsrx_function_node(node)) &&
+			!is_inside_call_expression(context) &&
+			has_awaited_chain_call(node.expression)
+		) {
+			return visit_awaited_call(node.expression, context);
+		}
+		return context.next();
+	},
+
+	UnaryExpression(node, context) {
+		if (
+			node.operator === 'delete' &&
+			node.argument.type === 'ChainExpression' &&
+			!context.state.to_ts &&
+			is_inside_component(context, true) &&
+			context.path.some((node) => is_native_tsrx_function_node(node)) &&
+			!is_inside_call_expression(context) &&
+			has_awaited_chain_call(node.argument.expression)
+		) {
+			return visit_awaited_call(node.argument.expression, context, true);
+		}
+		return context.next();
 	},
 
 	MemberExpression(node, context) {
@@ -3533,6 +3579,9 @@ const visitors = {
 	},
 
 	VariableDeclaration(node, context) {
+		if (!context.state.to_ts && node.declare) {
+			return b.empty;
+		}
 		// Rewrite declarator ids on copies (strip type annotations) — the source
 		// declarators are never mutated.
 		const declarations = node.declarations.map((declarator) => {
@@ -3582,11 +3631,17 @@ const visitors = {
 		if (context.state.to_ts) {
 			return visited;
 		}
+		// Visit the original binding before stripping its annotation, so boxed
+		// catch parameters are still recognized as declarations.
+		const param = visited.param ? { ...visited.param, typeAnnotation: undefined } : null;
 		const boxes = box_param_statements(node);
-		if (boxes.length === 0) {
-			return visited;
-		}
-		return { ...visited, body: { ...visited.body, body: [...boxes, ...visited.body.body] } };
+		return {
+			...visited,
+			param,
+			body: boxes.length
+				? { ...visited.body, body: [...boxes, ...visited.body.body] }
+				: visited.body,
+		};
 	},
 
 	FunctionDeclaration(node, context) {
@@ -8105,6 +8160,7 @@ function transform_children(children, context) {
 					render_text_expression(container_expression, expr);
 				} else if (
 					normalized.length === 1 &&
+					!is_fragment_root &&
 					!is_children_template_expression(container_expression, state.scope)
 				) {
 					state.template?.push(' ');
@@ -8116,6 +8172,9 @@ function transform_children(children, context) {
 							: b.stmt(call),
 					);
 				} else {
+					// A root expression can render through descendant control-flow
+					// blocks with no range of its own. Keep the fragment's leading
+					// comment so its range encloses all current and future content.
 					state.template?.push('<!>');
 					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));

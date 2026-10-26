@@ -1540,6 +1540,9 @@ export function is_inside_call_expression(context) {
 			return false;
 		}
 		if (type === 'CallExpression') {
+			// A suspending call evaluates its operands outside the scope wrapper.
+			// Calls in those operands must establish their own scope.
+			if (context_node.metadata?.has_await) continue;
 			const callee = context_node.callee;
 			if (is_ripple_track_call(callee, context)) {
 				return false;

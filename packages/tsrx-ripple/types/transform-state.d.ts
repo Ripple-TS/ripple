@@ -26,6 +26,8 @@ export interface SelectorForState {
 
 declare module '@tsrx/core/types' {
 	interface BaseNodeMetaData {
+		/** Evaluating this node awaits in the current function (set during analysis). */
+		has_await?: boolean;
 		/**
 		 * The parent element a static component child appends into when it
 		 * follows its template siblings (set by transform_children).
@@ -51,6 +53,8 @@ declare module '@tsrx/core/types' {
 	}
 
 	interface TransformClientState {
+		/** Per-invocation temporaries for calls whose operands contain await. */
+		call_temps?: AST.Identifier[];
 		/** the output can hydrate server HTML (see `CompileOptions.hydration`) */
 		hydration: boolean;
 		/**
