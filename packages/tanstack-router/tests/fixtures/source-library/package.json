@@ -1,0 +1,20 @@
+{
+  "name": "@ripple-ts/router-source-fixture",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./Probe.tsrx"
+    }
+  },
+  "peerDependencies": {
+    "ripple": "workspace:^"
+  },
+  "dependencies": {
+    "@ripple-ts/tanstack-router": "workspace:*"
+  },
+  "devDependencies": {
+    "ripple": "workspace:*"
+  }
+}

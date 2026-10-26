@@ -1,0 +1,5264 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/TanStack/router",
+  "commit": "da2adec76dbe6c0da6d6a0d5640f7b9388217f45",
+  "versions": {
+    "@tanstack/router-core": "1.171.39",
+    "@tanstack/history": "1.162.5",
+    "@tanstack/solid-router": "1.170.43",
+    "solid-js": "1.9.10"
+  },
+  "files": [
+    {
+      "file": "packages/solid-router/tests/Await.test.tsx",
+      "sha256": "2938aefd95defb1c93ec2ab6c41ff81bb843993440169ce033510974e09a0b42",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 8,
+          "title": "Await > renders a resolved %s value",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/CatchBoundary.test.tsx",
+      "sha256": "f0255e522c98e2e8018642fd5e1fddf230f798d9d9cc38ca97a07b7c202c8de2",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 24,
+          "title": "keeps the Outlet diagnostic context after a route render throws",
+          "modifiers": []
+        },
+        {
+          "line": 54,
+          "title": "keeps a lazy error fallback inside its own Suspense boundary",
+          "modifiers": []
+        },
+        {
+          "line": 100,
+          "title": "removes the diagnostic context from the production bundle",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/ClientOnly.test.tsx",
+      "sha256": "ec6ad47e5ecd8236848b38343be540afce7c2bb5bf098e7c74b86c472e63c83a",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 56,
+          "title": "ClientOnly > should render client content after hydration",
+          "modifiers": []
+        },
+        {
+          "line": 69,
+          "title": "ClientOnly > should handle navigation with client-only content",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/Matches.test-d.tsx",
+      "sha256": "35de7cf7931a99fbc83a96e30ef45cf3acebc9bd178b2a4486479116ac1c10f0",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 153,
+          "title": "when matching a route with params",
+          "modifiers": []
+        },
+        {
+          "line": 177,
+          "title": "when matching a route with params underneath a layout route",
+          "modifiers": []
+        },
+        {
+          "line": 187,
+          "title": "useMatches returns a union of all matches",
+          "modifiers": []
+        },
+        {
+          "line": 201,
+          "title": "when filtering useMatches by search",
+          "modifiers": []
+        },
+        {
+          "line": 216,
+          "title": "when filtering useMatches by loaderData with an array",
+          "modifiers": []
+        },
+        {
+          "line": 239,
+          "title": "MatchRoute children are typed from resolved params under pathless layouts",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/Matches.test.tsx",
+      "sha256": "04920e261226543b8784c2e85c67e626c3080abc13b51c5b49c4c6831fd06e17",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 120,
+          "title": "when filtering useMatches by loaderData",
+          "modifiers": []
+        },
+        {
+          "line": 138,
+          "title": "should show pendingComponent of root route",
+          "modifiers": []
+        },
+        {
+          "line": 158,
+          "title": "useMatchRoute follows superseding pending locations",
+          "modifiers": []
+        },
+        {
+          "line": 226,
+          "title": "MatchRoute updates for navigation and reactive params changes",
+          "modifiers": []
+        },
+        {
+          "line": 463,
+          "title": "matching on different param types > $name",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/Outlet.test.tsx",
+      "sha256": "a44da41ae0c994a4c8bad39d5c48e28879c44f3761c4c738dd6927e858f2cf17",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 23,
+          "title": "does not warn when Outlet is rendered inside a route component",
+          "modifiers": []
+        },
+        {
+          "line": 49,
+          "title": "warns when Outlet is rendered inside a pendingComponent",
+          "modifiers": []
+        },
+        {
+          "line": 87,
+          "title": "warns when Outlet is rendered inside an errorComponent",
+          "modifiers": []
+        },
+        {
+          "line": 114,
+          "title": "warns when Outlet is rendered inside a notFoundComponent",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/RouterProvider.test-d.tsx",
+      "sha256": "4c11c3a2316167524be2fd07575b78afb225b5e19ea2130e8d47cbdff2c19867",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 43,
+          "title": "can pass default router to the provider",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/RouterProvider.test.tsx",
+      "sha256": "5834c374875495659bda96ea80478e0a2f7f16f72ecc4473baf2a5893ced65c6",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 8,
+          "title": "RouterProvider > should provide context through RouterProvider Wrap",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/Scripts.test.tsx",
+      "sha256": "aea83b0e59b7bf252cb80b365a2fc21b8125de4e07db6a12d60f21416ea73b42",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 57,
+          "title": "ssr scripts > mounts one external script with children %j and removes it on unmount",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 91,
+          "title": "ssr scripts > updates route data scripts after client navigation",
+          "modifiers": []
+        },
+        {
+          "line": 145,
+          "title": "ssr scripts > it works",
+          "modifiers": []
+        },
+        {
+          "line": 197,
+          "title": "ssr scripts > excludes `undefined` script values",
+          "modifiers": []
+        },
+        {
+          "line": 237,
+          "title": "ssr scripts > keeps manifest stylesheet links mounted across repeated Link navigations",
+          "modifiers": []
+        },
+        {
+          "line": 314,
+          "title": "ssr scripts > keeps manifest stylesheet links mounted when preload counts change",
+          "modifiers": []
+        },
+        {
+          "line": 395,
+          "title": "ssr scripts > applies assetCrossOrigin to manifest stylesheets and preloads",
+          "modifiers": []
+        },
+        {
+          "line": 457,
+          "title": "ssr scripts > renders runtime manifest inlineStyle",
+          "modifiers": []
+        },
+        {
+          "line": 509,
+          "title": "ssr scripts > renders iife manifest preloads as low priority script links",
+          "modifiers": []
+        },
+        {
+          "line": 558,
+          "title": "ssr HeadContent > renders descendant assets during a data-only hydration handoff",
+          "modifiers": []
+        },
+        {
+          "line": 656,
+          "title": "ssr HeadContent > derives title, dedupes meta, and allows non-loader HeadContent",
+          "modifiers": []
+        },
+        {
+          "line": 745,
+          "title": "ssr HeadContent > keeps manifest stylesheet links mounted when history state changes",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/Transitioner.test.tsx",
+      "sha256": "ce3e68b76ef18513a6e8dcfe4a4512723d6e59c4b7d1da65ab1ae2463b4ebc93",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 12,
+          "title": "Transitioner > should call router.load() when Transitioner mounts on the client",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/blocker.test.tsx",
+      "sha256": "6e57e78cef114c7f5fdf2614218f0b61c345514f3093ba458bc9b72b820aa4cb",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 137,
+          "title": "Blocker > does not block navigation with blockerFn = $flags.blockerFn, ignoreBlocker = $flags.ignoreBlocker, clickTarget = $clickTarget",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 168,
+          "title": "Blocker > blocks navigation with condition = $flags.blockerFn, ignoreBlocker = $flags.ignoreBlocker, clickTarget = $clickTarget",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 181,
+          "title": "Blocker > blocker function is only called once when navigating to a route that redirects",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/component-preload-retry.test.tsx",
+      "sha256": "4283132beaffb52604600bbafddbcb3447ff12f1dcb1efa00d97caf155929c70",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 24,
+          "title": "a successful server component download is reused",
+          "modifiers": []
+        },
+        {
+          "line": 36,
+          "title": "a component loads when rendered before preload",
+          "modifiers": []
+        },
+        {
+          "line": 48,
+          "title": "a resolved client component preload is reused",
+          "modifiers": []
+        },
+        {
+          "line": 57,
+          "title": "revisiting a resolved lazy component skips pending UI",
+          "modifiers": []
+        },
+        {
+          "line": 122,
+          "title": "a missing export fails through the route error UI instead of recursing",
+          "modifiers": []
+        },
+        {
+          "line": 148,
+          "title": "a failed component download is retried from the route error UI",
+          "modifiers": []
+        },
+        {
+          "line": 200,
+          "title": "a component first loaded during render recovers after an awaited preload retry",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/createLazyRoute.test.tsx",
+      "sha256": "0688759785a7c06ea1f8421d759cf386364250407703ffc765492feba66c1928",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 54,
+          "title": "preload: matched routes > should wait for lazy options to be streamed in before ",
+          "modifiers": []
+        },
+        {
+          "line": 74,
+          "title": "preload: matched routes > should render the heavy/lazy component",
+          "modifiers": []
+        },
+        {
+          "line": 101,
+          "title": "replaces default pending UI when delayed lazy options provide pending UI",
+          "modifiers": []
+        },
+        {
+          "line": 172,
+          "title": "renders an eager loader error with a delayed lazy errorComponent",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/disableGlobalCatchBoundary.test.tsx",
+      "sha256": "fde82b30e8bf20e16f6e5aced22ac29d73dc0fd420c6b5ecb82ec0933a8c2a7c",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 51,
+          "title": "disableGlobalCatchBoundary option > catches errors in global boundary when disableGlobalCatchBoundary is false",
+          "modifiers": []
+        },
+        {
+          "line": 61,
+          "title": "disableGlobalCatchBoundary option > errors bubble up to external error boundary when disableGlobalCatchBoundary is true",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/errorBoundary.test-d.tsx",
+      "sha256": "401c4df37348f6f9368ea7cef64936e8b73dfb1ba65b08975df759b9ddbfc7a6",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 5,
+          "title": "Solid boundary errors default to Error",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/errorComponent.test.tsx",
+      "sha256": "30146ff2343b2ed8e159c05de0c0e7089898a1ff885e9f85b1b8e0f1cf1d6b4f",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 55,
+          "title": "with lazy errorComponent=%s > errorComponent is rendered when the preload=$preload > with async=%s > an Error is thrown on navigate in the route $caller function",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 121,
+          "title": "with lazy errorComponent=%s > errorComponent is rendered when the preload=$preload > with async=%s > an Error is thrown on first load in the route $caller function",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 172,
+          "title": "global catch boundary resets when a background child generation recovers",
+          "modifiers": []
+        },
+        {
+          "line": 217,
+          "title": "ancestor route errorComponent resets when a background child generation recovers",
+          "modifiers": []
+        },
+        {
+          "line": 272,
+          "title": "CatchBoundary renders falsy thrown value %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 313,
+          "title": "default error details render %s",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/fileRoute.test-d.tsx",
+      "sha256": "e31b637e0bf0e719156f7178adb0afa574373556bfde282c3229bd11d6e40dbc",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 7,
+        "reason": "File-route factories and generated type registration are in optional milestone 7.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 122,
+          "title": "when creating a file route with a static route",
+          "modifiers": []
+        },
+        {
+          "line": 128,
+          "title": "when creating a file route with params",
+          "modifiers": []
+        },
+        {
+          "line": 134,
+          "title": "when creating a layout route",
+          "modifiers": []
+        },
+        {
+          "line": 140,
+          "title": "when creating a _ suffix route",
+          "modifiers": []
+        },
+        {
+          "line": 146,
+          "title": "when creating a folder group",
+          "modifiers": []
+        },
+        {
+          "line": 152,
+          "title": "when creating a file route with middleware options",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/fileRoute.test.ts",
+      "sha256": "cc9868970be148cf96d70fbe1f13e31711ca422ed89bfe0cddb490f5b34c6897",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 7,
+        "reason": "File-route factories and generated type registration are in optional milestone 7.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 17,
+          "title": "createFileRoute > creates a non-root route without a deprecation warning",
+          "modifiers": []
+        },
+        {
+          "line": 26,
+          "title": "createFileRoute > keeps the deprecation warning for direct FileRoute usage",
+          "modifiers": []
+        },
+        {
+          "line": 42,
+          "title": "createFileRoute has the same hooks as getRouteApi > should have the \"%s\" hook defined",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 56,
+          "title": "createLazyFileRoute has the same hooks as getRouteApi > should have the \"%s\" hook defined",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 69,
+          "title": "createLazyRoute has the same hooks as getRouteApi > should have the \"%s\" hook defined",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/hydration-terminal-lane.test.tsx",
+      "sha256": "b7ed0f26d6b84a113efd6c2558a1e17ac37d1dc5414d0bb1ae9fc1414e2cfb8d",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 52,
+          "title": "hydration terminal lane > keeps a hydrated pending fallback through its minimum before a terminal result",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/index.test.tsx",
+      "sha256": "1612e4f434e1227c8c97ec312fc94b42522edf7b7a9c3897ae06584a444fb03c",
+      "kind": "client",
+      "mapping": {
+        "status": "inapplicable",
+        "reason": "The sole live test asserts true equals true; commented examples are not executable coverage.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 6,
+          "title": "index true=true",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/issue-4467-lazy-route-pending.test.tsx",
+      "sha256": "6223c6b46f5a5ddfe6103413dc5cd662f7ccffa1d72c8a8e6e6230cc3fe1e8a9",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 19,
+          "title": "a lazy pending component does not restart an acknowledged minimum",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/issue-7367-pending-min-redirect.test.tsx",
+      "sha256": "fa9223fff0214d846386396f46e38d4d14ec1953efd46962f2b67344b63f1dfa",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 20,
+          "title": "a compatible SPA redirect preserves the acknowledged pending minimum",
+          "modifiers": []
+        },
+        {
+          "line": 74,
+          "title": "an incompatible SPA redirect does not inherit the pending minimum",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/issue-7964-param-parsing-loader.test.tsx",
+      "sha256": "27e81ecffd869f88001e30098e40e8611b138685b5a3cf1f8730c4001c0601c2",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 17,
+          "title": "#7964: a child loader receives fresh structured params after revisiting its route",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/issue-7986-retained-pending.test.tsx",
+      "sha256": "56fbbd24712a829ff87f84eed817c125eb781e9ac8340b0ab96912b5fa7af552",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 101,
+          "title": "a search-only navigation retains successful UI while beforeLoad reruns",
+          "modifiers": []
+        },
+        {
+          "line": 140,
+          "title": "a path-param navigation retains successful UI while beforeLoad reruns",
+          "modifiers": []
+        },
+        {
+          "line": 178,
+          "title": "a blocking reload retains the exact successful match",
+          "modifiers": []
+        },
+        {
+          "line": 245,
+          "title": "a cached success retries through pending UI when an error is mounted",
+          "modifiers": []
+        },
+        {
+          "line": 305,
+          "title": "a cache-only success retries through pending UI over mounted success",
+          "modifiers": []
+        },
+        {
+          "line": 358,
+          "title": "a success hidden below an error boundary retries through pending UI",
+          "modifiers": []
+        },
+        {
+          "line": 431,
+          "title": "a global not-found destination keeps pending until its terminal component is ready",
+          "modifiers": []
+        },
+        {
+          "line": 501,
+          "title": "a cold global not-found presents pending only while its terminal component loads",
+          "modifiers": []
+        },
+        {
+          "line": 534,
+          "title": "lazy fuzzy-boundary relocation retains the mounted parent",
+          "modifiers": []
+        },
+        {
+          "line": 616,
+          "title": "a superseding navigation replaces an unrelated pending presentation",
+          "modifiers": []
+        },
+        {
+          "line": 686,
+          "title": "a retained root publishes fresh context with a child fallback",
+          "modifiers": []
+        },
+        {
+          "line": 756,
+          "title": "a retained prefix exposes one fresh context chain before descendant pending",
+          "modifiers": []
+        },
+        {
+          "line": 887,
+          "title": "retained loader and component work does not own the child fallback (parent pending: %s)",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 993,
+          "title": "a failure in the last retained guard suppresses descendant pending",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/issue-8115-context.test.tsx",
+      "sha256": "ea620ead68e802fe7243d92b2ab45bf6222d4a4f1a727b368d6b345f9b98a534",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 39,
+          "title": "invalidate merges fresh parent beforeLoad context with cached child context",
+          "modifiers": []
+        },
+        {
+          "line": 108,
+          "title": "a same-id child beforeLoad error observes fresh inherited context",
+          "modifiers": []
+        },
+        {
+          "line": 169,
+          "title": "a same-match reload merges new provider context with cached route context",
+          "modifiers": []
+        },
+        {
+          "line": 231,
+          "title": "navigation merges fresh parent context with cached child preload context",
+          "modifiers": []
+        },
+        {
+          "line": 308,
+          "title": "a cached child context contribution is merged with fresh parent context",
+          "modifiers": []
+        },
+        {
+          "line": 386,
+          "title": "#8115: hydration does not render a successful route with missing context when context reconstruction fails",
+          "modifiers": []
+        },
+        {
+          "line": 480,
+          "title": "a same-id child retry presents one coherent beforeLoad context generation",
+          "modifiers": []
+        },
+        {
+          "line": 588,
+          "title": "a same-id navigation merges new inherited context with cached route context",
+          "modifiers": []
+        },
+        {
+          "line": 652,
+          "title": "#8115: a successful root never renders without its context while a child is pending on cold load",
+          "modifiers": []
+        },
+        {
+          "line": 703,
+          "title": "a same-id search navigation merges fresh inherited context with cached route context",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/jest-dom.setup.ts",
+      "sha256": "69e0b1461ac0a16a3ffeb8edbbadd537b80679304007f093b000b72a72593bf1",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/lazy/heavy.tsx",
+      "sha256": "2bba91c189d899bf5dd840a99ce3eb554eae78ed0e89477ac579a8cb3d028915",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/lazy/mockHeavyDependenciesRoute.tsx",
+      "sha256": "e1a51dbed6c55ac9ee9f6710ff39c3ffef1cd73d5b3163f8c82dcbeb3e176a4d",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/lazy/normal.tsx",
+      "sha256": "33bdf0d16c008059c9d3b805532600631cab03f39c8b4a013a72f48575c0ce35",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/lazyRouteComponent.production.test.tsx",
+      "sha256": "01c2802cead78b9ce3056ff8cf7499b7431de8b02d7fd12c870a1768cedf1b2d",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 62,
+          "title": "a missing $exportName export renders blank with preload=$preload in production",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 96,
+          "title": "a preloaded production component renders synchronously with its props",
+          "modifiers": []
+        },
+        {
+          "line": 117,
+          "title": "a rejected production import reaches the error boundary",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-departing-scope.test.tsx",
+      "sha256": "951855121da876b3dba977f0b59ff98af374f0028df6a162e24ca6cea83da6f8",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 270,
+          "title": "links in a departing match > skip work at navigation start while staying links update urgently",
+          "modifiers": []
+        },
+        {
+          "line": 301,
+          "title": "links in a departing match > staying route with changed params updates its links while pending",
+          "modifiers": []
+        },
+        {
+          "line": 318,
+          "title": "links in a departing match > a pending departure redirected back to the owner ends consistent",
+          "modifiers": []
+        },
+        {
+          "line": 340,
+          "title": "links in a departing match > a pending departure superseded by a location that keeps the owner ends consistent",
+          "modifiers": []
+        },
+        {
+          "line": 358,
+          "title": "links in a departing match > links changing in a departing match keep its held location, links mounting in it read the pending one",
+          "modifiers": []
+        },
+        {
+          "line": 383,
+          "title": "links in a departing match > For churn in a departing match derives only the new link, from the pending location",
+          "modifiers": []
+        },
+        {
+          "line": 403,
+          "title": "links in a departing match > a pending navigation within the owner, then a departure, then back",
+          "modifiers": []
+        },
+        {
+          "line": 434,
+          "title": "links in a departing match > a departing link unmounted while pending does no further work",
+          "modifiers": []
+        },
+        {
+          "line": 451,
+          "title": "links in a departing match > clicking held link %s navigates to the href it displays",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 474,
+          "title": "links in a departing match > a %s preload of a held link loads the location it displays",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 492,
+          "title": "links in a departing match > a render preload of a link mounting in a departing match loads the location it displays",
+          "modifiers": []
+        },
+        {
+          "line": 508,
+          "title": "links in a departing match > staying links click and preload from the live location",
+          "modifiers": []
+        },
+        {
+          "line": 529,
+          "title": "links in a departing match > a revisited route starts with fresh links, also ones mounting during its next departure",
+          "modifiers": []
+        },
+        {
+          "line": 572,
+          "title": "links in a departing match > a document redirect from the destination does not break later navigations",
+          "modifiers": []
+        },
+        {
+          "line": 593,
+          "title": "links in a departing match > a departure superseded by a history traversal back to the owner updates its links",
+          "modifiers": []
+        },
+        {
+          "line": 617,
+          "title": "links in a departing match > invalidating a pending departure keeps holding until it commits",
+          "modifiers": []
+        },
+        {
+          "line": 637,
+          "title": "links in a departing match > a departure redirected or superseded to another departing location does no work",
+          "modifiers": []
+        },
+        {
+          "line": 668,
+          "title": "links in a departing match > a view transition callback that throws does not break later navigations",
+          "modifiers": []
+        },
+        {
+          "line": 709,
+          "title": "links in a departing match > navigations published inside a Solid batch leave staying links on the latest location",
+          "modifiers": []
+        },
+        {
+          "line": 738,
+          "title": "links in a departing match > links outside every match follow a pending navigation",
+          "modifiers": []
+        },
+        {
+          "line": 835,
+          "title": "pending and failing destinations > links in a pending component build from the destination and a return remounts fresh links",
+          "modifiers": []
+        },
+        {
+          "line": 859,
+          "title": "pending and failing destinations > a departure that ends in an error leaves live links",
+          "modifiers": []
+        },
+        {
+          "line": 953,
+          "title": "links in a page kept on screen by a suspended transition > held links update when the navigation returns to their page",
+          "modifiers": []
+        },
+        {
+          "line": 969,
+          "title": "links in a page kept on screen by a suspended transition > a held link navigates to the href it displays",
+          "modifiers": []
+        },
+        {
+          "line": 986,
+          "title": "masked links in a departing match > clicking a held link with a location-dependent %s pushes the masked href it displays",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1121,
+          "title": "link location retention > locations with large history state are collectable after their route is left",
+          "modifiers": []
+        },
+        {
+          "line": 1202,
+          "title": "links after a same-href navigation that changes history state > clicking link %s derives its state from the latest location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1218,
+          "title": "links after a same-href navigation that changes history state > preloading derives its state from the latest location",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-destination.test.tsx",
+      "sha256": "0dd09bbf9fe9fa21ce452e3ea042e064b1850a84e6f46706939f9c8fa7f2cffa",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 50,
+          "title": "reuses a fixed destination across navigations",
+          "modifiers": []
+        },
+        {
+          "line": 75,
+          "title": "rebuilds on a destination prop change, not a presentation prop change",
+          "modifiers": []
+        },
+        {
+          "line": 113,
+          "title": "store-backed params and search follow in-place mutations at the next navigation",
+          "modifiers": []
+        },
+        {
+          "line": 142,
+          "title": "does not re-read a store nested inside a plain object",
+          "modifiers": []
+        },
+        {
+          "line": 162,
+          "title": "state store values are not reused either",
+          "modifiers": []
+        },
+        {
+          "line": 182,
+          "title": "inherited params and search rebuild on every navigation",
+          "modifiers": []
+        },
+        {
+          "line": 199,
+          "title": "masked destinations follow their inputs",
+          "modifiers": []
+        },
+        {
+          "line": 230,
+          "title": "switches a mounted Link between plain and store-backed inputs",
+          "modifiers": []
+        },
+        {
+          "line": 266,
+          "title": "never mutates frozen caller options",
+          "modifiers": []
+        },
+        {
+          "line": 297,
+          "title": "a click after a same-href, state-only navigation uses the new state (%s)",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 324,
+          "title": "function children render once per active state change",
+          "modifiers": []
+        },
+        {
+          "line": 344,
+          "title": "calls a user ref once per element across state changes",
+          "modifiers": []
+        },
+        {
+          "line": 364,
+          "title": "refreshes history formatting even when the destination is reused",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-element-props.test.tsx",
+      "sha256": "d2f09dae96990cd582778acd0cf19356bfd0293326382c1cb19e7dfe46f42500",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 59,
+          "title": "static and reactive element props reach the anchor",
+          "modifiers": []
+        },
+        {
+          "line": 115,
+          "title": "element props spread into a Link apply, also when their keys change",
+          "modifiers": []
+        },
+        {
+          "line": 134,
+          "title": "element state attributes apply where the Link leaves them unset",
+          "modifiers": []
+        },
+        {
+          "line": 168,
+          "title": "state props add and remove arbitrary props, over element props of the same name",
+          "modifiers": []
+        },
+        {
+          "line": 218,
+          "title": "user handlers run before the Link and can prevent its navigation",
+          "modifiers": []
+        },
+        {
+          "line": 246,
+          "title": "intent preloading follows the user handlers of each event",
+          "modifiers": []
+        },
+        {
+          "line": 287,
+          "title": "leaving a Link cancels a delayed intent preload after the user handlers",
+          "modifiers": []
+        },
+        {
+          "line": 321,
+          "title": "a user ref receives the anchor once",
+          "modifiers": []
+        },
+        {
+          "line": 338,
+          "title": "a disabled Link renders no href and does not navigate",
+          "modifiers": []
+        },
+        {
+          "line": 372,
+          "title": "a custom component receives the element props, state and handlers",
+          "modifiers": []
+        },
+        {
+          "line": 405,
+          "title": "state props added later through a spread apply their extra props",
+          "modifiers": []
+        },
+        {
+          "line": 422,
+          "title": "the Link's handlers follow the element's own listeners",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-href-cases.ts",
+      "sha256": "41cd4ce699b4be92c92673991c0be93e2b5e0f1460ebb6d8e1eb65d5cf411b70",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/link-href-safety.test.tsx",
+      "sha256": "10a94fa5c6f7531224791c9c0c3d6ac666c7a37acd2e4e89ae9ddbff59a69956",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 17,
+          "title": "validates %s href %j and its active state",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-path-cases.ts",
+      "sha256": "4367d0f4e5efdffa634100ef0f4b290a57a8d00574548c30f5d7ee4c5dbb907c",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/link-path-matching.test.tsx",
+      "sha256": "0a39b8be4f2b58bc97e3e7935ae3cb39cf410eabe7af112b8ec5daf7dd3da757",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 16,
+          "title": "`pathname matching with basepath \"${basepath}\": $current -> $to, exact=$exact`",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 47,
+          "title": "pathname matching reacts when exact mode changes",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link-style.test.tsx",
+      "sha256": "a2ff5c7410a83a01c330afa17db9fd9bb8e4cbfa37a54b343f5f3a7858dbeac8",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 53,
+          "title": "selected state props override element props but not routing options (active: %s)",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 100,
+          "title": "tracks additions to an initially empty state-only style store",
+          "modifiers": []
+        },
+        {
+          "line": 115,
+          "title": "merges only the selected state and tracks reactive style properties",
+          "modifiers": []
+        },
+        {
+          "line": 190,
+          "title": "switches between default and custom state props without stale attributes",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link.bench.tsx",
+      "sha256": "e3b415c722531a0828ac6850a9a1a2ae110c42d6b72106c3292b89c4d32bac3a",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/link.test-d.tsx",
+      "sha256": "c479d1921a5793920ff355e9abb35afc75e4f74bb2111a30700dd0100d0f7778",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 169,
+          "title": "when navigating to the root",
+          "modifiers": []
+        },
+        {
+          "line": 436,
+          "title": "when navigating from a route with no params and no search to the root",
+          "modifiers": []
+        },
+        {
+          "line": 666,
+          "title": "when navigating from a route with no params and no search to the current route",
+          "modifiers": []
+        },
+        {
+          "line": 778,
+          "title": "when navigating from a route with no params and no search to the parent route",
+          "modifiers": []
+        },
+        {
+          "line": 881,
+          "title": "cannot navigate to a branch with an index",
+          "modifiers": []
+        },
+        {
+          "line": 994,
+          "title": "from autocompletes to all absolute routes",
+          "modifiers": []
+        },
+        {
+          "line": 1039,
+          "title": "from does not allow invalid routes",
+          "modifiers": []
+        },
+        {
+          "line": 1084,
+          "title": "when navigating to the same route",
+          "modifiers": []
+        },
+        {
+          "line": 1204,
+          "title": "when navigating to the parent route",
+          "modifiers": []
+        },
+        {
+          "line": 1325,
+          "title": "when navigating from a route with params to the same route",
+          "modifiers": []
+        },
+        {
+          "line": 1402,
+          "title": "when navigating to a route with params",
+          "modifiers": []
+        },
+        {
+          "line": 1542,
+          "title": "when navigating from a route with no params to a route with params",
+          "modifiers": []
+        },
+        {
+          "line": 1666,
+          "title": "when navigating from a route to a route with the same params",
+          "modifiers": []
+        },
+        {
+          "line": 1802,
+          "title": "when navigating from a route with params to a route with different params",
+          "modifiers": []
+        },
+        {
+          "line": 1934,
+          "title": "when navigating from a route with params to a route with an additional param",
+          "modifiers": []
+        },
+        {
+          "line": 2057,
+          "title": "when navigating to a union of routes with params",
+          "modifiers": []
+        },
+        {
+          "line": 2208,
+          "title": "when navigating to a union of routes including the root",
+          "modifiers": []
+        },
+        {
+          "line": 2370,
+          "title": "when navigating from a route with search params to the same route",
+          "modifiers": []
+        },
+        {
+          "line": 2446,
+          "title": "when navigating to a route with search params",
+          "modifiers": []
+        },
+        {
+          "line": 2619,
+          "title": "when navigating to a route with optional search params",
+          "modifiers": []
+        },
+        {
+          "line": 2814,
+          "title": "when navigating from a route with no search params to a route with search params",
+          "modifiers": []
+        },
+        {
+          "line": 2968,
+          "title": "when navigating to a union of routes with search params",
+          "modifiers": []
+        },
+        {
+          "line": 3154,
+          "title": "when navigating to a union of routes with search params including the root",
+          "modifiers": []
+        },
+        {
+          "line": 3356,
+          "title": "when navigating from the root to /posts",
+          "modifiers": []
+        },
+        {
+          "line": 3493,
+          "title": "when navigating to a route with SearchSchemaInput",
+          "modifiers": []
+        },
+        {
+          "line": 3699,
+          "title": "when passing a component with props to createLink and navigating to the root",
+          "modifiers": []
+        },
+        {
+          "line": 3983,
+          "title": "ResolveRelativePath",
+          "modifiers": []
+        },
+        {
+          "line": 4035,
+          "title": "navigation edge cases",
+          "modifiers": []
+        },
+        {
+          "line": 4208,
+          "title": "linkOptions",
+          "modifiers": []
+        },
+        {
+          "line": 4505,
+          "title": "when navigating to a route with conflicting validateSearch",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/link.test.tsx",
+      "sha256": "ec72bbee80759a9f806edec4496d70c49f24b7d5e399b0365154d110677f09a7",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 74,
+          "title": "Link > custom state props follow external, internal and blocked destination changes",
+          "modifiers": []
+        },
+        {
+          "line": 130,
+          "title": "Link > keeps protocol-relative Link paths on the router origin",
+          "modifiers": []
+        },
+        {
+          "line": 166,
+          "title": "Link > blocks a dangerous final href produced by an output rewrite",
+          "modifiers": []
+        },
+        {
+          "line": 192,
+          "title": "Link > blocks a dangerous final href produced by custom history",
+          "modifiers": []
+        },
+        {
+          "line": 218,
+          "title": "Link > does not transform a direct HTTPS link through custom history",
+          "modifiers": []
+        },
+        {
+          "line": 245,
+          "title": "Link > keeps a scheme-bearing custom-history href native",
+          "modifiers": []
+        },
+        {
+          "line": 271,
+          "title": "Link > reactively stops intercepting when a destination becomes external",
+          "modifiers": []
+        },
+        {
+          "line": 297,
+          "title": "Link > blocks a custom protocol that is not in the allowlist",
+          "modifiers": []
+        },
+        {
+          "line": 322,
+          "title": "Link > a blocked link stays inactive and cannot regain an href",
+          "modifiers": []
+        },
+        {
+          "line": 431,
+          "title": "Link > when a Link is disabled",
+          "modifiers": []
+        },
+        {
+          "line": 472,
+          "title": "Link > does not forward internal Link props to the DOM",
+          "modifiers": []
+        },
+        {
+          "line": 556,
+          "title": "Link > when a Link has children",
+          "modifiers": []
+        },
+        {
+          "line": 594,
+          "title": "Link > when the current route is the root",
+          "modifiers": []
+        },
+        {
+          "line": 824,
+          "title": "Link > when the current route has a search fields with undefined values > activeOptions.explicitUndefined=%s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 831,
+          "title": "Link > when the current route has a search fields with undefined values > activeOptions.explicitUndefined=true",
+          "modifiers": []
+        },
+        {
+          "line": 846,
+          "title": "Link > active and href updates > always reports external links as inactive",
+          "modifiers": []
+        },
+        {
+          "line": 872,
+          "title": "Link > active and href updates > updates href when link options change reactively",
+          "modifiers": []
+        },
+        {
+          "line": 911,
+          "title": "Link > active and href updates > updates exact and fuzzy active state before the next route renders",
+          "modifiers": []
+        },
+        {
+          "line": 1005,
+          "title": "Link > active and href updates > updates exact active state and href when only params change with params=true",
+          "modifiers": []
+        },
+        {
+          "line": 1084,
+          "title": "Link > active and href updates > updates search-sensitive active state immediately with and without search=true",
+          "modifiers": []
+        },
+        {
+          "line": 1180,
+          "title": "Link > active and href updates > updates hash-sensitive active state immediately with and without hash=true",
+          "modifiers": []
+        },
+        {
+          "line": 1243,
+          "title": "Link > active and href updates > eventually updates relative hrefs when the current route changes",
+          "modifiers": []
+        },
+        {
+          "line": 1309,
+          "title": "Link > when the current route is the root with beforeLoad that throws",
+          "modifiers": []
+        },
+        {
+          "line": 1355,
+          "title": "Link > when navigating to /posts",
+          "modifiers": []
+        },
+        {
+          "line": 1418,
+          "title": "Link > when navigating to /posts with a base url",
+          "modifiers": []
+        },
+        {
+          "line": 1480,
+          "title": "Link > when navigating to /posts with search",
+          "modifiers": []
+        },
+        {
+          "line": 1540,
+          "title": "Link > when navigation to . from /posts while updating search from /",
+          "modifiers": []
+        },
+        {
+          "line": 1657,
+          "title": "Link > when navigation to . from /posts while updating search from / and using base path",
+          "modifiers": []
+        },
+        {
+          "line": 1770,
+          "title": "Link > when navigating to /posts with invalid search",
+          "modifiers": []
+        },
+        {
+          "line": 1839,
+          "title": "Link > when navigating to /posts with a loader",
+          "modifiers": []
+        },
+        {
+          "line": 1904,
+          "title": "Link > when navigating to /posts with a loader that errors",
+          "modifiers": []
+        },
+        {
+          "line": 1971,
+          "title": "Link > when navigating away from a route with a loader that errors",
+          "modifiers": []
+        },
+        {
+          "line": 2044,
+          "title": "Link > when navigating to /posts with a beforeLoad that redirects",
+          "modifiers": []
+        },
+        {
+          "line": 2096,
+          "title": "Link > when navigating to /posts with a beforeLoad that returns context",
+          "modifiers": []
+        },
+        {
+          "line": 2150,
+          "title": "Link > when navigating to /posts with a beforeLoad that throws an error",
+          "modifiers": []
+        },
+        {
+          "line": 2198,
+          "title": "Link > when navigating to /posts with a beforeLoad that throws an error bubbles to the root",
+          "modifiers": []
+        },
+        {
+          "line": 2244,
+          "title": "Link > when navigating to /posts with a beforeLoad that throws an error bubbles to the nearest parent",
+          "modifiers": []
+        },
+        {
+          "line": 2306,
+          "title": "Link > when navigating to the root with an error in component",
+          "modifiers": []
+        },
+        {
+          "line": 2337,
+          "title": "Link > when navigating to /posts with params",
+          "modifiers": []
+        },
+        {
+          "line": 2406,
+          "title": "Link > keeps a relative link active when changing inherited params (issue #5655)",
+          "modifiers": []
+        },
+        {
+          "line": 2518,
+          "title": "Link > when navigating from /posts to ./$postId",
+          "modifiers": []
+        },
+        {
+          "line": 2616,
+          "title": "Link > when navigating from /posts/$postId to \"/\"",
+          "modifiers": []
+        },
+        {
+          "line": 2743,
+          "title": "Link > when navigating from /posts to ../posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 2839,
+          "title": "Link > when navigating from /posts/$postId to /posts/$postId/info and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 2976,
+          "title": "Link > when navigating from /posts/$postId with a trailing slash to /posts/$postId/info and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3123,
+          "title": "Link > when navigating from /dashboard/posts/$postId to /dashboard/users",
+          "modifiers": []
+        },
+        {
+          "line": 3309,
+          "title": "Link > when navigating from /posts/$postId to ./info and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3446,
+          "title": "Link > when navigating from /posts/$postId to / and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3568,
+          "title": "Link > when navigating from /posts/$postId with search and to ./info with search and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3718,
+          "title": "Link > when navigating from /posts/$postId to ../$postId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3852,
+          "title": "Link > when navigating from /posts/$postId with an index to ../$postId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 3996,
+          "title": "Link > when navigating from /invoices to ./invoiceId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 4135,
+          "title": "Link > when navigating to /posts/$postId/info which is declaratively masked as /posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 4225,
+          "title": "Link > when navigating to /posts/$postId/info which is imperatively masked as /posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 4312,
+          "title": "Link > when preloading /post/$postId with a redirects to /login",
+          "modifiers": []
+        },
+        {
+          "line": 4441,
+          "title": "Link > when navigating to /post/$postId with a redirect from /post/$postId to ../../login in a loader",
+          "modifiers": []
+        },
+        {
+          "line": 4541,
+          "title": "Link > when navigating to /post/$postId with a redirect from /post/$postId to ../../login in beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 4641,
+          "title": "Link > when preloading /post/$postId with a beforeLoad that navigates to /login",
+          "modifiers": []
+        },
+        {
+          "line": 4742,
+          "title": "Link > when preloading /post/$postId with a loader that navigates to /login",
+          "modifiers": []
+        },
+        {
+          "line": 4843,
+          "title": "Link > when navigating from /posts to /invoices with conditionally rendering Link on the root",
+          "modifiers": []
+        },
+        {
+          "line": 4955,
+          "title": "Link > when linking to self with from prop set and param containing a slash",
+          "modifiers": []
+        },
+        {
+          "line": 5003,
+          "title": "Link > when navigating to /$postId with parseParams and stringifyParams",
+          "modifiers": []
+        },
+        {
+          "line": 5065,
+          "title": "Link > when navigating to /$postId with params.parse and params.stringify",
+          "modifiers": []
+        },
+        {
+          "line": 5129,
+          "title": "Link > when navigating to /$postId with params.parse and params.stringify handles falsey inputs",
+          "modifiers": []
+        },
+        {
+          "line": 5196,
+          "title": "Link > Router.preload=\"%s\", should not trigger the IntersectionObserver's observe and disconnect methods",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 5226,
+          "title": "Link > Router.preload=\"%s\" with Link.preload=\"false\", should not trigger the IntersectionObserver's observe method",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 5257,
+          "title": "Link > Router.preload=\"viewport\", should trigger the IntersectionObserver's observe and disconnect methods",
+          "modifiers": []
+        },
+        {
+          "line": 5301,
+          "title": "Link > observers without viewport preloading clean up only while preloading (%s)",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 5323,
+          "title": "Link > preserves %s timer cleanup across mode changes and unmount",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 5407,
+          "title": "Link > Link.preload=\"viewport\" should respect preloadDelay",
+          "modifiers": []
+        },
+        {
+          "line": 5529,
+          "title": "Link > Router.preload='render', should trigger the route loader on render",
+          "modifiers": []
+        },
+        {
+          "line": 5569,
+          "title": "Link > Link.preload=\"%s\" should not preload on focus, hover, or touchstart",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 5625,
+          "title": "Link > Link.preload=\"intent\" should preload on focus, hover, and touchstart",
+          "modifiers": []
+        },
+        {
+          "line": 5684,
+          "title": "Link > Router.preload=\"intent\", pendingComponent renders during unresolved route loader",
+          "modifiers": []
+        },
+        {
+          "line": 5845,
+          "title": "Link > when preloading a link, `preload` should be > `true` when on / and hovering `/posts/id1` ",
+          "modifiers": []
+        },
+        {
+          "line": 5849,
+          "title": "Link > when preloading a link, `preload` should be > `false` when on `/posts/id1` and hovering `/posts/id1`",
+          "modifiers": []
+        },
+        {
+          "line": 5854,
+          "title": "Link > when preloading a link, `preload` should be > `true` when on `/posts/id1` and hovering `/posts/id2`",
+          "modifiers": []
+        },
+        {
+          "line": 5862,
+          "title": "createLink > should pass the \"disabled\" prop to the rendered target element",
+          "modifiers": []
+        },
+        {
+          "line": 5887,
+          "title": "createLink > should pass the \"foo\" prop to the rendered target element",
+          "modifiers": []
+        },
+        {
+          "line": 5916,
+          "title": "createLink > should pass activeProps and inactiveProps to the custom link",
+          "modifiers": []
+        },
+        {
+          "line": 6014,
+          "title": "createLink > should respect target attribute set by custom component",
+          "modifiers": []
+        },
+        {
+          "line": 6074,
+          "title": "createLink > should allow override of target prop even when custom component sets it",
+          "modifiers": []
+        },
+        {
+          "line": 6129,
+          "title": "search middleware > legacy search filters still work",
+          "modifiers": []
+        },
+        {
+          "line": 6200,
+          "title": "search middleware > search middlewares work",
+          "modifiers": []
+        },
+        {
+          "line": 6297,
+          "title": "search middleware > search middlewares work with redirect",
+          "modifiers": []
+        },
+        {
+          "line": 6407,
+          "title": "search middleware > reloadDocument > link to /posts with params",
+          "modifiers": []
+        },
+        {
+          "line": 6619,
+          "title": "relative links with %s > should navigate to the parent route",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6639,
+          "title": "relative links with %s > should navigate to the parent route and keep params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6659,
+          "title": "relative links with %s > should navigate to the parent route and change params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6681,
+          "title": "relative links with %s > should navigate to a relative link based on render location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6700,
+          "title": "relative links with %s > should navigate to a parent link based on render location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6721,
+          "title": "relative links with %s > should navigate to a parent link based on active location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6740,
+          "title": "relative links with %s > should navigate to a child link based on pathname",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6761,
+          "title": "relative links with %s > should navigate to a relative link based on pathname",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6781,
+          "title": "relative links with %s > should navigate to parent inside of splat route based on pathname",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6798,
+          "title": "relative links with %s > should navigate to same route inside of splat route based on pathname",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6814,
+          "title": "relative links with %s > should navigate to child route inside of splat route based on pathname",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6833,
+          "title": "relative links with %s > should navigate to same route with different params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6852,
+          "title": "splat routes with empty splat > should handle empty _splat parameter with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 6951,
+          "title": "relative links to current route > should navigate to current route when using \".\" in nested route structure from Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 7036,
+          "title": "relative links to current route > should navigate to current route with search params when using \".\" in nested route structure from Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 7119,
+          "title": "relative links to current route > should navigate to current route with changing path params when using \".\" in nested route structure with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 7239,
+          "title": "relative links to from route > should navigate to from route when using \".\" in nested route structure from Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 7318,
+          "title": "relative links to from route > should navigate to from route with path params when using \".\" in nested route structure with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 7688,
+          "title": "when on /posts/$postId and navigating to ../ with default `from` /posts > Route",
+          "modifiers": []
+        },
+        {
+          "line": 7689,
+          "title": "when on /posts/$postId and navigating to ../ with default `from` /posts > RouteApi",
+          "modifiers": []
+        },
+        {
+          "line": 7693,
+          "title": "rewrite > renders hard link when rewrite points to different origin",
+          "modifiers": []
+        },
+        {
+          "line": 7772,
+          "title": "hash history with target=\"_blank\" links > should generate correct href for target=\"_blank\" links in hash history mode",
+          "modifiers": []
+        },
+        {
+          "line": 7869,
+          "title": "encoded and unicode paths > should handle encoded, decoded paths with unicode characters correctly - $name",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/loaders.test.tsx",
+      "sha256": "b425e42033c9671175c50d062ee2a4fb303e7c992bcb916fe4bf9bd63b84f66d",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 29,
+          "title": "loaders are being called > called on /",
+          "modifiers": []
+        },
+        {
+          "line": 56,
+          "title": "loaders are being called > both are called on /nested/foo",
+          "modifiers": []
+        },
+        {
+          "line": 113,
+          "title": "loaders parentMatchPromise > parentMatchPromise is defined in a child route",
+          "modifiers": []
+        },
+        {
+          "line": 168,
+          "title": "reproducer for #2031",
+          "modifiers": []
+        },
+        {
+          "line": 196,
+          "title": "reproducer for #2053",
+          "modifiers": []
+        },
+        {
+          "line": 226,
+          "title": "reproducer for #2198 - throw error from beforeLoad upon initial load",
+          "modifiers": []
+        },
+        {
+          "line": 253,
+          "title": "throw error from loader upon initial load",
+          "modifiers": []
+        },
+        {
+          "line": 280,
+          "title": "throw error from beforeLoad when navigating to route",
+          "modifiers": []
+        },
+        {
+          "line": 325,
+          "title": "#7673: a spontaneous loader AbortError renders the boundary without executing the route component",
+          "modifiers": []
+        },
+        {
+          "line": 384,
+          "title": "reproducer #4245",
+          "modifiers": []
+        },
+        {
+          "line": 466,
+          "title": "reproducer #4546",
+          "modifiers": []
+        },
+        {
+          "line": 697,
+          "title": "does not show pending UI when loaders finish before their pending delays",
+          "modifiers": []
+        },
+        {
+          "line": 782,
+          "title": "navigating away from a pending route aborts its loader",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/navigate.test.tsx",
+      "sha256": "1a38d6f02a1a5aaaa19fdf5c8f31a06a08e851d6f3192a45048ccdbeffe6cab9",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 115,
+          "title": "router.navigate navigation using a single path param - object syntax for updates > should change $slug in \"/posts/$slug\" from \"tanner\" to \"tkdodo\"",
+          "modifiers": []
+        },
+        {
+          "line": 133,
+          "title": "router.navigate navigation using a single path param - object syntax for updates > should change $slug in \"/posts/$slug\" from \"tanner\" to \"tkdodo\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 152,
+          "title": "router.navigate navigation using a single path param - function syntax for updates > should change $slug in \"/posts/$slug\" from \"tanner\" to \"tkdodo\"",
+          "modifiers": []
+        },
+        {
+          "line": 170,
+          "title": "router.navigate navigation using a single path param - function syntax for updates > should change $slug in \"/posts/$slug\" from \"tanner\" to \"tkdodo\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 189,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $projectId in \"/p/$projectId/$version/$framework\" from \"router\" to \"query\"",
+          "modifiers": []
+        },
+        {
+          "line": 207,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $projectId in \"/p/$projectId/$version/$framework\" from \"router\" to \"query\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 224,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $version in \"/p/$projectId/$version/$framework\" from \"v1\" to \"v3\"",
+          "modifiers": []
+        },
+        {
+          "line": 242,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $version in \"/p/$projectId/$version/$framework\" from \"v1\" to \"v3\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 259,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $framework in \"/p/$projectId/$version/$framework\" from \"react\" to \"vue\"",
+          "modifiers": []
+        },
+        {
+          "line": 277,
+          "title": "router.navigate navigation using multiple path params - object syntax for updates > should change $framework in \"/p/$projectId/$version/$framework\" from \"react\" to \"vue\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 296,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $projectId in \"/p/$projectId/$version/$framework\" from \"router\" to \"query\"",
+          "modifiers": []
+        },
+        {
+          "line": 314,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $projectId in \"/p/$projectId/$version/$framework\" from \"router\" to \"query\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 331,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $version in \"/p/$projectId/$version/$framework\" from \"v1\" to \"v3\"",
+          "modifiers": []
+        },
+        {
+          "line": 349,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $version in \"/p/$projectId/$version/$framework\" from \"v1\" to \"v3\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 366,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $framework in \"/p/$projectId/$version/$framework\" from \"react\" to \"vue\"",
+          "modifiers": []
+        },
+        {
+          "line": 384,
+          "title": "router.navigate navigation using multiple path params - function syntax for updates > should change $framework in \"/p/$projectId/$version/$framework\" from \"react\" to \"vue\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 403,
+          "title": "router.navigate navigation using layout routes resolves correctly > should resolve \"/u/tanner\" in \"/u/_layout/$username\" to \"/u/tkdodo\"",
+          "modifiers": []
+        },
+        {
+          "line": 422,
+          "title": "router.navigate navigation using layout routes resolves correctly > should resolve \"/u/tanner\" in \"/u/_layout/$username\" to \"/u/tkdodo\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 439,
+          "title": "router.navigate navigation using layout routes resolves correctly > should resolve \"/g/tanner\" in \"/g/layout/$username\" to \"/g/tkdodo\"",
+          "modifiers": []
+        },
+        {
+          "line": 458,
+          "title": "router.navigate navigation using layout routes resolves correctly > should resolve \"/g/tanner\" in \"/g/layout/$username\" to \"/g/tkdodo\" w/o \"to\" path being provided",
+          "modifiers": []
+        },
+        {
+          "line": 475,
+          "title": "router.navigate navigation using layout routes resolves correctly > should handle search params with special characters",
+          "modifiers": []
+        },
+        {
+          "line": 504,
+          "title": "relative navigation > should navigate to a child route",
+          "modifiers": []
+        },
+        {
+          "line": 524,
+          "title": "relative navigation > should navigate to a parent route",
+          "modifiers": []
+        },
+        {
+          "line": 542,
+          "title": "relative navigation > should navigate to a sibling route",
+          "modifiers": []
+        },
+        {
+          "line": 562,
+          "title": "relative navigation > should navigate to a sibling route without from",
+          "modifiers": []
+        },
+        {
+          "line": 583,
+          "title": "splat routes with empty splat > should handle empty _splat parameter with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 687,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should navigate from \"/posts/tech\" to \"/posts\" by setting category to undefined",
+          "modifiers": []
+        },
+        {
+          "line": 704,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should navigate from \"/posts\" to \"/posts/tech\" by setting category",
+          "modifiers": []
+        },
+        {
+          "line": 721,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should navigate from \"/posts/tech\" to \"/posts/news\" by changing category",
+          "modifiers": []
+        },
+        {
+          "line": 738,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should navigate without \"to\" path and set category to undefined",
+          "modifiers": []
+        },
+        {
+          "line": 754,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should handle multiple optional parameters - set one to undefined",
+          "modifiers": []
+        },
+        {
+          "line": 771,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should handle multiple optional parameters - set both to undefined",
+          "modifiers": []
+        },
+        {
+          "line": 788,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should handle mixed required and optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 805,
+          "title": "router.navigate navigation using optional path parameters - object syntax for updates > should carry over optional parameters from current route when using empty params",
+          "modifiers": []
+        },
+        {
+          "line": 870,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should navigate from \"/posts/tech\" to \"/posts\" by setting category to undefined using function",
+          "modifiers": []
+        },
+        {
+          "line": 887,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should navigate from \"/posts/tech\" to \"/posts\" by setting category to undefined in function",
+          "modifiers": []
+        },
+        {
+          "line": 904,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should navigate from \"/posts\" to \"/posts/tech\" by setting category using function",
+          "modifiers": []
+        },
+        {
+          "line": 921,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should navigate from \"/posts/tech\" to \"/posts/news\" by changing category using function",
+          "modifiers": []
+        },
+        {
+          "line": 938,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should navigate without \"to\" path and set category to undefined using function",
+          "modifiers": []
+        },
+        {
+          "line": 954,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should handle multiple optional parameters - remove one using function",
+          "modifiers": []
+        },
+        {
+          "line": 971,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should handle multiple optional parameters - clear all using function",
+          "modifiers": []
+        },
+        {
+          "line": 988,
+          "title": "router.navigate navigation using optional path parameters - function syntax for updates > should handle mixed required and optional parameters using function",
+          "modifiers": []
+        },
+        {
+          "line": 1055,
+          "title": "router.navigate navigation using optional path parameters - parameter inheritance and isolation > should carry over optional parameters between different routes with same param names",
+          "modifiers": []
+        },
+        {
+          "line": 1074,
+          "title": "router.navigate navigation using optional path parameters - parameter inheritance and isolation > should properly handle navigation between routes with different optional param structures",
+          "modifiers": []
+        },
+        {
+          "line": 1101,
+          "title": "router.navigate navigation using optional path parameters - parameter inheritance and isolation > should handle nested optional parameters correctly",
+          "modifiers": []
+        },
+        {
+          "line": 1167,
+          "title": "router.navigate navigation using optional path parameters - edge cases and validations > should handle optional parameters with prefix/suffix correctly",
+          "modifiers": []
+        },
+        {
+          "line": 1194,
+          "title": "router.navigate navigation using optional path parameters - edge cases and validations > should handle route with all optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 1239,
+          "title": "router.navigate navigation using optional path parameters - edge cases and validations > should handle empty string vs undefined distinction",
+          "modifiers": []
+        },
+        {
+          "line": 1322,
+          "title": "encoded and unicode paths > should handle encoded, decoded paths with unicode characters correctly - $name",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/not-found.test.tsx",
+      "sha256": "93e2e42d80288cbb0b6fda24a758af0d98bfa25bdd088b83edebb366eea99e72",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 30,
+          "title": "correct notFoundComponent is rendered for mode=%s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 129,
+          "title": "defaultNotFoundComponent and notFoundComponent receives data props via spread operator",
+          "modifiers": []
+        },
+        {
+          "line": 250,
+          "title": "component-thrown bare notFound renders current route notFoundComponent",
+          "modifiers": []
+        },
+        {
+          "line": 290,
+          "title": "component-thrown bare notFound falls back to nearest ancestor notFoundComponent",
+          "modifiers": []
+        },
+        {
+          "line": 326,
+          "title": "beforeLoad notFound with routeId targets parent notFoundComponent",
+          "modifiers": []
+        },
+        {
+          "line": 364,
+          "title": "beforeLoad notFound with routeId targets parent boundary and preserves parent loader data",
+          "modifiers": []
+        },
+        {
+          "line": 410,
+          "title": "beforeLoad notFound with routeId targets root notFoundComponent",
+          "modifiers": []
+        },
+        {
+          "line": 448,
+          "title": "beforeLoad notFound with non-exact routeId falls back to root notFoundComponent",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/optional-path-params.test-d.tsx",
+      "sha256": "155729957a9f8e756d360fc47eba5609cfb8a0878c2e6a4d8019f57447f4696f",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 6,
+          "title": "when creating a route with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 24,
+          "title": "when creating a route with mixed optional and required parameters",
+          "modifiers": []
+        },
+        {
+          "line": 43,
+          "title": "when creating a route with optional param with prefix and suffix",
+          "modifiers": []
+        },
+        {
+          "line": 61,
+          "title": "when creating Link with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 80,
+          "title": "when using optional parameters in loaders",
+          "modifiers": []
+        },
+        {
+          "line": 102,
+          "title": "when using optional parameters in beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 124,
+          "title": "when using params.parse with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 156,
+          "title": "when nesting routes with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 179,
+          "title": "when combining optional parameters with wildcards",
+          "modifiers": []
+        },
+        {
+          "line": 198,
+          "title": "when using ResolveOptionalParams utility type",
+          "modifiers": []
+        },
+        {
+          "line": 210,
+          "title": "complex scenario with optional parameters only",
+          "modifiers": []
+        },
+        {
+          "line": 232,
+          "title": "edge case - all optional parameters",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/optional-path-params.test.tsx",
+      "sha256": "7afe67eb4c115ce7654f2e0ae26c4f783d535bae78e2d8b95ec35c575bd179b5",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 27,
+          "title": "Solid Router - Optional Path Parameters > Route matching with optional parameters > should match route with no optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 55,
+          "title": "Solid Router - Optional Path Parameters > Route matching with optional parameters > should match route with one optional parameter",
+          "modifiers": []
+        },
+        {
+          "line": 85,
+          "title": "Solid Router - Optional Path Parameters > Route matching with optional parameters > should match route with all optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 116,
+          "title": "Solid Router - Optional Path Parameters > Route matching with optional parameters > should handle mixed required and optional parameters: $path",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 153,
+          "title": "Solid Router - Optional Path Parameters > Route matching with optional parameters > should correctly render matches with and without optional parameter",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 336,
+          "title": "Solid Router - Optional Path Parameters > required and optional parameters on the same level > direct visit",
+          "modifiers": []
+        },
+        {
+          "line": 352,
+          "title": "Solid Router - Optional Path Parameters > required and optional parameters on the same level > client-side navigation",
+          "modifiers": []
+        },
+        {
+          "line": 388,
+          "title": "Solid Router - Optional Path Parameters > Link component with optional parameters > should generate correct href for optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 446,
+          "title": "Solid Router - Optional Path Parameters > Link component with optional parameters > should navigate correctly with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 538,
+          "title": "Solid Router - Optional Path Parameters > Link component with optional parameters > should handle optional parameters with prefix and suffix",
+          "modifiers": []
+        },
+        {
+          "line": 588,
+          "title": "Solid Router - Optional Path Parameters > useNavigate with optional parameters > should navigate with optional parameters programmatically",
+          "modifiers": []
+        },
+        {
+          "line": 668,
+          "title": "Solid Router - Optional Path Parameters > useNavigate with optional parameters > should handle relative navigation with optional parameters",
+          "modifiers": []
+        },
+        {
+          "line": 740,
+          "title": "Solid Router - Optional Path Parameters > complex routing scenarios > should handle nested routes with optional parameters: $path",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 834,
+          "title": "Solid Router - Optional Path Parameters > complex routing scenarios > should work with search parameters",
+          "modifiers": []
+        },
+        {
+          "line": 878,
+          "title": "Solid Router - Optional Path Parameters > complex routing scenarios > should handle multiple consecutive optional parameters: $path",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 918,
+          "title": "Solid Router - Optional Path Parameters > complex routing scenarios > should handle routes with required param after optional param: $path",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 988,
+          "title": "Solid Router - Optional Path Parameters > edge cases and error handling > should handle optional parameters with loaders",
+          "modifiers": []
+        },
+        {
+          "line": 1040,
+          "title": "Solid Router - Optional Path Parameters > edge cases and error handling > should handle beforeLoad with optional parameters",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/pending-fallback-promise-replacement.test.tsx",
+      "sha256": "5aa9a031ff1e33566591520942357f992dce4de954eb8eafeb5734a036bc753b",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 29,
+          "title": "a mounted %s pending fallback follows an overlapping load generation",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 126,
+          "title": "forcePending honors pendingMinMs when the reload settles before pendingMs",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/public-presentation-lane-contract.test.tsx",
+      "sha256": "b018d8b9e0030e3e2f4f0a835368106001eaaf6036e394d2d02a647966aefdd0",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 20,
+          "title": "public presentation lane contracts > a plain load retry presents pending UI over a committed error",
+          "modifiers": []
+        },
+        {
+          "line": 68,
+          "title": "public presentation lane contracts > same-boundary takeover republishes successor search without restarting pendingMinMs",
+          "modifiers": []
+        },
+        {
+          "line": 161,
+          "title": "public presentation lane contracts > an earlier pending-ineligible boundary retires a deeper pending minimum",
+          "modifiers": []
+        },
+        {
+          "line": 267,
+          "title": "public presentation lane contracts > same-boundary timing survives a private retained-context barrier",
+          "modifiers": []
+        },
+        {
+          "line": 381,
+          "title": "public presentation lane contracts > a successor supersedes the previous receipt while joining its transition",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/redirect.test.tsx",
+      "sha256": "ae56ff6c6b7f47fa812a1c23aa8e8f43d77e0e5e9dbc0057231a63793cfcdef0",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 40,
+          "title": "redirect > SPA > when `redirect` is thrown in `beforeLoad`",
+          "modifiers": []
+        },
+        {
+          "line": 108,
+          "title": "redirect > SPA > when root `beforeLoad` redirects while root pendingComponent is showing and the target route is lazy",
+          "modifiers": []
+        },
+        {
+          "line": 163,
+          "title": "redirect > SPA > when `redirect` is thrown in `loader`",
+          "modifiers": []
+        },
+        {
+          "line": 242,
+          "title": "redirect > SPA > when `redirect` is thrown in `loader` after `router.invalidate()`",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/redirects.test-d.tsx",
+      "sha256": "10cb2126e56916497cf44650cd39a17b2bc17c7fe99bca388d6088fffe522670",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 38,
+          "title": "can redirect to valid route",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/remountDeps.test.tsx",
+      "sha256": "41b9d54c43db37d4b87427bae511e09a002b9cdae77d86d7bc18866d4a8503ad",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 61,
+          "title": "keeps an active route component mounted when params change by default",
+          "modifiers": []
+        },
+        {
+          "line": 75,
+          "title": "remounts an active route component when params are remount deps",
+          "modifiers": []
+        },
+        {
+          "line": 88,
+          "title": "remounts when remount deps change between falsy values",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/renderRouterToStream.test.tsx",
+      "sha256": "f581f671f72631c8b5ef0009cf3668cfecbd032c7a444462746fb947f5e9a3a9",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 79,
+          "title": "renderRouterToStream > already-aborted requests do not start the Solid producer",
+          "modifiers": []
+        },
+        {
+          "line": 99,
+          "title": "renderRouterToStream > request abort during bot wait terminates before piping starts",
+          "modifiers": []
+        },
+        {
+          "line": 134,
+          "title": "renderRouterToStream > %s rejects the bot wait and prevents late piping",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 203,
+          "title": "renderRouterToStream > bots wait for renderer readiness before piping",
+          "modifiers": []
+        },
+        {
+          "line": 245,
+          "title": "renderRouterToStream > bot response does not wait for a backpressured pipe",
+          "modifiers": []
+        },
+        {
+          "line": 287,
+          "title": "renderRouterToStream > %s pipeTo rejection logs, aborts the writer, and terminates the response",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 335,
+          "title": "renderRouterToStream > async pipe failure cleans an unread response immediately",
+          "modifiers": []
+        },
+        {
+          "line": 362,
+          "title": "renderRouterToStream > request abort after attachment stops outgoing Solid writes",
+          "modifiers": []
+        },
+        {
+          "line": 406,
+          "title": "renderRouterToStream > request abort during renderer setup is caught before transform attachment",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/route.test-d.tsx",
+      "sha256": "88c200e427a575c009ddc90369bcae15ac87616d460897b622dfd32a99170bfe",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 25,
+          "title": "when creating the root",
+          "modifiers": []
+        },
+        {
+          "line": 33,
+          "title": "when creating the root with routeContext",
+          "modifiers": []
+        },
+        {
+          "line": 57,
+          "title": "when creating the root with beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 81,
+          "title": "when creating the root with a loader",
+          "modifiers": []
+        },
+        {
+          "line": 104,
+          "title": "when creating the root route with context and routeContext",
+          "modifiers": []
+        },
+        {
+          "line": 146,
+          "title": "when creating the root route with context and beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 189,
+          "title": "when creating the root route with context and a loader",
+          "modifiers": []
+        },
+        {
+          "line": 231,
+          "title": "when creating the root route with context, routeContext, beforeLoad and a loader",
+          "modifiers": []
+        },
+        {
+          "line": 317,
+          "title": "when creating a child route from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 330,
+          "title": "when creating a child route from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 356,
+          "title": "when creating a child route with routeContext from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 384,
+          "title": "when creating a child route with beforeLoad from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 408,
+          "title": "when creating a child route with a loader from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 456,
+          "title": "when creating a child route with a loader from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 515,
+          "title": "when creating a child route with search params from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 541,
+          "title": "when creating a child route with optional search params from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 569,
+          "title": "when creating a child route with params from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 594,
+          "title": "when creating a child route with a splat param from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 619,
+          "title": "when creating a child route with a param and splat param from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 647,
+          "title": "when creating a child route with params, search and loader from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 671,
+          "title": "when creating a child route with params, search, loader and loaderDeps from the root route",
+          "modifiers": []
+        },
+        {
+          "line": 695,
+          "title": "when creating a child route with params, search, loader and loaderDeps from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 719,
+          "title": "when creating a child route with params, search with routeContext from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 744,
+          "title": "when creating a child route with params, search with beforeLoad from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 768,
+          "title": "when creating a child route with params, search with routeContext, beforeLoad and a loader from the root route with context",
+          "modifiers": []
+        },
+        {
+          "line": 826,
+          "title": "when creating a child route with params from a parent with params",
+          "modifiers": []
+        },
+        {
+          "line": 861,
+          "title": "when creating a child route with search from a parent with search",
+          "modifiers": []
+        },
+        {
+          "line": 899,
+          "title": "when creating a child route with routeContext from a parent with routeContext",
+          "modifiers": []
+        },
+        {
+          "line": 975,
+          "title": "when creating a child route with beforeLoad from a parent with beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 1049,
+          "title": "when creating a child route with routeContext, beforeLoad, search, params, loaderDeps and loader",
+          "modifiers": []
+        },
+        {
+          "line": 1195,
+          "title": "when creating a child route with context, search, params and beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 1258,
+          "title": "when creating a child route with context, search, params, loader, loaderDeps and onEnter, onStay, onLeave",
+          "modifiers": []
+        },
+        {
+          "line": 1315,
+          "title": "when creating a child route with parseParams and stringify params without params in path",
+          "modifiers": []
+        },
+        {
+          "line": 1346,
+          "title": "when creating a child route with params.parse and params.stringify without params in path",
+          "modifiers": []
+        },
+        {
+          "line": 1379,
+          "title": "when creating a child route with parseParams and stringifyParams with params in path",
+          "modifiers": []
+        },
+        {
+          "line": 1421,
+          "title": "when creating a child route with params.parse and params.stringify with params in path",
+          "modifiers": []
+        },
+        {
+          "line": 1465,
+          "title": "when creating a child route with parseParams and stringifyParams with merged params from parent",
+          "modifiers": []
+        },
+        {
+          "line": 1536,
+          "title": "when creating a child route with params.parse and params.stringify with merged params from parent",
+          "modifiers": []
+        },
+        {
+          "line": 1610,
+          "title": "when routeContext throws",
+          "modifiers": []
+        },
+        {
+          "line": 1629,
+          "title": "when beforeLoad throws",
+          "modifiers": []
+        },
+        {
+          "line": 1648,
+          "title": "when creating a child route with no explicit search input",
+          "modifiers": []
+        },
+        {
+          "line": 1720,
+          "title": "when creating a child route with an explicit search input",
+          "modifiers": []
+        },
+        {
+          "line": 1789,
+          "title": "when creating a route with a prefix and suffix",
+          "modifiers": []
+        },
+        {
+          "line": 1808,
+          "title": "when creating a route with a optional prefix and suffix",
+          "modifiers": []
+        },
+        {
+          "line": 1827,
+          "title": "when creating a route with a splat prefix and suffix",
+          "modifiers": []
+        },
+        {
+          "line": 1846,
+          "title": "when creating a route with a splat, optional param and required param",
+          "modifiers": []
+        },
+        {
+          "line": 1868,
+          "title": "when creating a route with a boundary splat, optional param and required param",
+          "modifiers": []
+        },
+        {
+          "line": 1890,
+          "title": "when creating a route with a nested boundary splat, optional param and required param",
+          "modifiers": []
+        },
+        {
+          "line": 1912,
+          "title": "when creating a route with a nested boundary splat, optional param, required param and escaping",
+          "modifiers": []
+        },
+        {
+          "line": 1934,
+          "title": "when creating a route with escaped path param",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/route.test.tsx",
+      "sha256": "27d048a8ae893c8cbf9986a187a633030ec829a2950a473562849dacd691baf0",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 30,
+          "title": "getRouteApi > should have the useMatch hook",
+          "modifiers": []
+        },
+        {
+          "line": 35,
+          "title": "getRouteApi > should have the useRouteContext hook",
+          "modifiers": []
+        },
+        {
+          "line": 40,
+          "title": "getRouteApi > should have the useSearch hook",
+          "modifiers": []
+        },
+        {
+          "line": 45,
+          "title": "getRouteApi > should have the useParams hook",
+          "modifiers": []
+        },
+        {
+          "line": 50,
+          "title": "getRouteApi > should have the useLoaderData hook",
+          "modifiers": []
+        },
+        {
+          "line": 55,
+          "title": "getRouteApi > should have the useLoaderDeps hook",
+          "modifiers": []
+        },
+        {
+          "line": 60,
+          "title": "getRouteApi > should have the useNavigate hook",
+          "modifiers": []
+        },
+        {
+          "line": 71,
+          "title": "createRoute has the same hooks as getRouteApi > should have the \"%s\" hook defined",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 161,
+          "title": "onEnter event > should have router context defined in router.load()",
+          "modifiers": []
+        },
+        {
+          "line": 182,
+          "title": "onEnter event > should have router context defined in <RouterProvider router={router} />",
+          "modifiers": []
+        },
+        {
+          "line": 208,
+          "title": "useLoaderDeps > returns an Accessor",
+          "modifiers": []
+        },
+        {
+          "line": 229,
+          "title": "useLoaderDeps > returns an Accessor via Route API",
+          "modifiers": []
+        },
+        {
+          "line": 253,
+          "title": "route.head > meta",
+          "modifiers": []
+        },
+        {
+          "line": 291,
+          "title": "route.head > meta w/ loader",
+          "modifiers": []
+        },
+        {
+          "line": 331,
+          "title": "route.head > scripts",
+          "modifiers": []
+        },
+        {
+          "line": 359,
+          "title": "route.head > scripts w/ loader",
+          "modifiers": []
+        },
+        {
+          "line": 389,
+          "title": "route.head > links",
+          "modifiers": []
+        },
+        {
+          "line": 417,
+          "title": "route.head > links w/loader",
+          "modifiers": []
+        },
+        {
+          "line": 447,
+          "title": "route.head > styles",
+          "modifiers": []
+        },
+        {
+          "line": 495,
+          "title": "route.head > styles w/loader",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/routeApi.test-d.tsx",
+      "sha256": "3eff4db3cbdfc91968da70b93d219e76f94524826e1271f1b94507b8fa74461f",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 52,
+          "title": "getRouteApi > useNavigate > has a static `from`",
+          "modifiers": []
+        },
+        {
+          "line": 60,
+          "title": "getRouteApi > useParams",
+          "modifiers": []
+        },
+        {
+          "line": 73,
+          "title": "getRouteApi > useContext",
+          "modifiers": []
+        },
+        {
+          "line": 82,
+          "title": "getRouteApi > useSearch",
+          "modifiers": []
+        },
+        {
+          "line": 95,
+          "title": "getRouteApi > useLoaderData",
+          "modifiers": []
+        },
+        {
+          "line": 102,
+          "title": "getRouteApi > useLoaderDeps",
+          "modifiers": []
+        },
+        {
+          "line": 109,
+          "title": "getRouteApi > useMatch",
+          "modifiers": []
+        },
+        {
+          "line": 124,
+          "title": "getRouteApi > Link",
+          "modifiers": []
+        },
+        {
+          "line": 134,
+          "title": "createRoute > useNavigate > has a static `from`",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/routeContext.test.tsx",
+      "sha256": "9545737b7fd1dadd381ca7d01712d4638838cd77f0db4571e4d3d297ef84a2a0",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 51,
+          "title": "context function > context is executed > when the path params change",
+          "modifiers": []
+        },
+        {
+          "line": 135,
+          "title": "context function > context is executed > when loader deps change",
+          "modifiers": []
+        },
+        {
+          "line": 245,
+          "title": "context function > accessing values in the context function > receives an empty object",
+          "modifiers": []
+        },
+        {
+          "line": 268,
+          "title": "context function > accessing values in the context function > receives an empty object - with an empty object when creating the router",
+          "modifiers": []
+        },
+        {
+          "line": 291,
+          "title": "context function > accessing values in the context function > receives valid values - with values added when creating the router",
+          "modifiers": []
+        },
+        {
+          "line": 318,
+          "title": "context function > accessing values in the context function > receives valid values when updating the values in the parent route to be read in the child route",
+          "modifiers": []
+        },
+        {
+          "line": 347,
+          "title": "context function > return values being available in beforeLoad > when returning an empty object in a regular route",
+          "modifiers": []
+        },
+        {
+          "line": 376,
+          "title": "context function > return values being available in beforeLoad > when updating the initial router context value in a regular route",
+          "modifiers": []
+        },
+        {
+          "line": 405,
+          "title": "context function > return values being available in beforeLoad > when returning an empty object in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 431,
+          "title": "context function > return values being available in beforeLoad > when updating the initial router context value in the parent route and in the child route",
+          "modifiers": []
+        },
+        {
+          "line": 476,
+          "title": "context function > return values being available in loader > when returning an empty object in a regular route",
+          "modifiers": []
+        },
+        {
+          "line": 505,
+          "title": "context function > return values being available in loader > when updating the initial router context value in a regular route",
+          "modifiers": []
+        },
+        {
+          "line": 534,
+          "title": "context function > return values being available in loader > when returning an empty object in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 560,
+          "title": "context function > return values being available in loader > when updating the initial router context value in the root route and in the child route",
+          "modifiers": []
+        },
+        {
+          "line": 607,
+          "title": "beforeLoad in the route definition > route context, present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 628,
+          "title": "beforeLoad in the route definition > route context (sleep), present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 651,
+          "title": "beforeLoad in the route definition > route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 675,
+          "title": "beforeLoad in the route definition > route context (sleep), present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 701,
+          "title": "beforeLoad in the route definition > modified route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 735,
+          "title": "beforeLoad in the route definition > on first-load, route context is present in the /about route after a redirect is thrown in the beforeLoad of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 771,
+          "title": "beforeLoad in the route definition > on first-load, route context is present in the /about route after a redirect is thrown in the loader of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 808,
+          "title": "beforeLoad in the route definition > on navigate, route context is present in the /person route after a redirect is thrown in the beforeLoad of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 873,
+          "title": "beforeLoad in the route definition > on navigate, route context is present in the /person route after a redirect is thrown in the loader of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 939,
+          "title": "beforeLoad in the route definition > nested destination on navigate, route context in the /nested/about route is correctly inherited from the /nested parent",
+          "modifiers": []
+        },
+        {
+          "line": 1004,
+          "title": "beforeLoad in the route definition > nested destination on navigate, when a redirect is thrown in beforeLoad in /about, the /nested/person route context is correctly inherited from its parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 1077,
+          "title": "beforeLoad in the route definition > nested destination on navigate, when a redirect is thrown in loader in /about, the /nested/person route context is correctly inherited from parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 1151,
+          "title": "beforeLoad in the route definition > _layout on first-load, route context in the index route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 1190,
+          "title": "beforeLoad in the route definition > _layout on navigate, route context in the /about route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 1255,
+          "title": "beforeLoad in the route definition > _layout on navigate, when a redirect is thrown in beforeLoad in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 1328,
+          "title": "beforeLoad in the route definition > _layout on navigate, when a redirect is thrown in loader in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 1401,
+          "title": "beforeLoad in the route definition > child route receives updated values after the values were previously returned by the child route and then updated by the parent route",
+          "modifiers": []
+        },
+        {
+          "line": 1457,
+          "title": "loader in the route definition > route context, present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 1478,
+          "title": "loader in the route definition > route context (sleep), present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 1501,
+          "title": "loader in the route definition > route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 1525,
+          "title": "loader in the route definition > route context (sleep), present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 1551,
+          "title": "loader in the route definition > modified route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 1585,
+          "title": "loader in the route definition > on navigate (with preload using router methods), loader isn't invoked with undefined context if beforeLoad is pending when navigation happens",
+          "modifiers": ["skip"]
+        },
+        {
+          "line": 1627,
+          "title": "loader in the route definition > on navigate (with preload), loader isn't invoked with undefined context if beforeLoad is pending when navigation happens",
+          "modifiers": []
+        },
+        {
+          "line": 1690,
+          "title": "loader in the route definition > on first-load, route context is present in the /about route after a redirect is thrown in beforeLoad of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 1726,
+          "title": "loader in the route definition > on first-load, route context is present in the /about route after a redirect is thrown in loader of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 1763,
+          "title": "loader in the route definition > on navigate, route context is present in the /person route after a redirect is thrown in the beforeLoad of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 1828,
+          "title": "loader in the route definition > on navigate, route context is present in the /person route after a redirect is thrown in the loader of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 1894,
+          "title": "loader in the route definition > nested destination on navigate, route context in the /nested/about route is correctly inherited from the /nested parent",
+          "modifiers": []
+        },
+        {
+          "line": 1959,
+          "title": "loader in the route definition > nested destination on navigate, when a redirect is thrown in beforeLoad in /about, the /nested/person route context is correctly inherited from its parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 2032,
+          "title": "loader in the route definition > nested destination on navigate, when a redirect is thrown in loader in /about, the /nested/person route context is correctly inherited from parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 2106,
+          "title": "loader in the route definition > _layout on first-load, route context in the index route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 2145,
+          "title": "loader in the route definition > _layout on navigate, route context in the /about route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 2210,
+          "title": "loader in the route definition > _layout on navigate, when a redirect is thrown in beforeLoad in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 2283,
+          "title": "loader in the route definition > _layout on navigate, when a redirect is thrown in loader in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 2359,
+          "title": "useRouteContext in the component > route context, present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 2376,
+          "title": "useRouteContext in the component > route context (sleep in beforeLoad), present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 2398,
+          "title": "useRouteContext in the component > route context, (sleep in beforeLoad), with immediate navigation",
+          "modifiers": []
+        },
+        {
+          "line": 2454,
+          "title": "useRouteContext in the component > route context (sleep in loader), present root route",
+          "modifiers": []
+        },
+        {
+          "line": 2475,
+          "title": "useRouteContext in the component > route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2499,
+          "title": "useRouteContext in the component > route context (sleep in beforeLoad), present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2522,
+          "title": "useRouteContext in the component > route context (sleep in loader), present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2546,
+          "title": "useRouteContext in the component > modified route context, present in the root route",
+          "modifiers": []
+        },
+        {
+          "line": 2572,
+          "title": "useRouteContext in the component > modified route context, present in the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2601,
+          "title": "useRouteContext in the component > on first-load, route context is present in the /about route after a redirect is thrown in the beforeLoad of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2632,
+          "title": "useRouteContext in the component > on first-load, route context is present in the /about route after a redirect is thrown in the loader of the index route",
+          "modifiers": []
+        },
+        {
+          "line": 2664,
+          "title": "useRouteContext in the component > on navigate, route context is present in the /person route after a redirect is thrown in the beforeLoad of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 2716,
+          "title": "useRouteContext in the component > on navigate, route context is present in the /person route after a redirect is thrown in the loader of the /about route",
+          "modifiers": []
+        },
+        {
+          "line": 2769,
+          "title": "useRouteContext in the component > nested destination on navigate, route context in the /nested/about route is correctly inherited from its parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 2826,
+          "title": "useRouteContext in the component > nested destination on navigate, when a redirect is thrown in beforeLoad in /about, the /nested/person route context is correctly inherited from its parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 2890,
+          "title": "useRouteContext in the component > nested destination on navigate, when a redirect is thrown in loader in /about, the /nested/person route context is correctly inherited from its parent /nested",
+          "modifiers": []
+        },
+        {
+          "line": 2955,
+          "title": "useRouteContext in the component > _layout on first-load, route context in the index route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 2992,
+          "title": "useRouteContext in the component > _layout on navigate, route context in the /about route is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 3048,
+          "title": "useRouteContext in the component > _layout on navigate, when a redirect is thrown in beforeLoad in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        },
+        {
+          "line": 3112,
+          "title": "useRouteContext in the component > _layout on navigate, when a redirect is thrown in loader in /about, the /person route context is correctly inherited from the layout parent",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/routeScopedShouldThrow.test.tsx",
+      "sha256": "53840b7ace28fa0ba5726ba0caf652ce1025593181c53cc87676b2be74835f62",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 19,
+          "title": "route-scoped hooks render undefined for an inactive route when shouldThrow is false",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/router-client-stream-cleanup.test.tsx",
+      "sha256": "e607646ab1782cd9d8a4c81cc68e18a60f6cc7ec5163c2f72266af0a0eb0ca70",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 17,
+          "title": "RouterClient signals streaming cleanup without hiding a hydration failure",
+          "modifiers": ["runIf"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/router.test-d.tsx",
+      "sha256": "756dc36ee24fe2cc5ca3600b9449b3149d2f2b06133943fbbc9eb2568c0870ab",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 11,
+          "title": "when creating a router without context",
+          "modifiers": []
+        },
+        {
+          "line": 33,
+          "title": "when navigating using router",
+          "modifiers": []
+        },
+        {
+          "line": 67,
+          "title": "when building location using router",
+          "modifiers": []
+        },
+        {
+          "line": 101,
+          "title": "when creating a router with context",
+          "modifiers": []
+        },
+        {
+          "line": 123,
+          "title": "when creating a router with context and children",
+          "modifiers": []
+        },
+        {
+          "line": 152,
+          "title": "invalidate and clearCache narrowing in filter",
+          "modifiers": []
+        },
+        {
+          "line": 233,
+          "title": "when creating a router with default router history",
+          "modifiers": []
+        },
+        {
+          "line": 239,
+          "title": "when creating a router with custom router history",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/router.test.tsx",
+      "sha256": "0f16278f8996a2f86c2656792b11a952a16e9e1ad0eb9dc6d143da96fddd36ef",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 320,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"tanner\"",
+          "modifiers": []
+        },
+        {
+          "line": 330,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"🚀\"",
+          "modifiers": []
+        },
+        {
+          "line": 340,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"100%25\"",
+          "modifiers": []
+        },
+        {
+          "line": 350,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"100%26\"",
+          "modifiers": []
+        },
+        {
+          "line": 360,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"%F0%9F%9A%80\"",
+          "modifiers": []
+        },
+        {
+          "line": 370,
+          "title": "encoding: URL param segment for /posts/$slug > state.location.pathname, should have the params.slug value of \"framework%2Freact%2Fguide%2Ffile-based-routing%20tanstack\"",
+          "modifiers": []
+        },
+        {
+          "line": 390,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"tanner\"",
+          "modifiers": []
+        },
+        {
+          "line": 408,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"🚀\"",
+          "modifiers": []
+        },
+        {
+          "line": 426,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"🚀\" instead of it being \"%F0%9F%9A%80\"",
+          "modifiers": []
+        },
+        {
+          "line": 444,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"100%\"",
+          "modifiers": []
+        },
+        {
+          "line": 462,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"100&\"",
+          "modifiers": []
+        },
+        {
+          "line": 480,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"100%100\"",
+          "modifiers": []
+        },
+        {
+          "line": 498,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"100&100\"",
+          "modifiers": []
+        },
+        {
+          "line": 516,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug for the matched route, should be \"framework/react/guide/file-based-routing tanstack\" instead of it being \"framework%2Freact%2Fguide%2Ffile-based-routing%20tanstack\"",
+          "modifiers": []
+        },
+        {
+          "line": 540,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug should be encoded in the final URL",
+          "modifiers": []
+        },
+        {
+          "line": 553,
+          "title": "encoding: URL param segment for /posts/$slug > params.slug should be encoded in the final URL except characters in pathParamsAllowedCharacters",
+          "modifiers": []
+        },
+        {
+          "line": 569,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"tanner\"",
+          "modifiers": []
+        },
+        {
+          "line": 579,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"🚀\"",
+          "modifiers": []
+        },
+        {
+          "line": 590,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"100%25\"",
+          "modifiers": []
+        },
+        {
+          "line": 600,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"100%26\"",
+          "modifiers": []
+        },
+        {
+          "line": 610,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"%F0%9F%9A%80\"",
+          "modifiers": []
+        },
+        {
+          "line": 621,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"framework%2Freact%2Fguide%2Ffile-based-routing%20tanstack\"",
+          "modifiers": []
+        },
+        {
+          "line": 640,
+          "title": "encoding: URL splat segment for /$ > state.location.pathname, should have the params._splat value of \"framework/react/guide/file-based-routing tanstack\"",
+          "modifiers": []
+        },
+        {
+          "line": 658,
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"tanner\"",
+          "modifiers": []
+        },
+        {
+          "line": 676,
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"🚀\"",
+          "modifiers": []
+        },
+        {
+          "line": 694,
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"🚀\" instead of it being \"%F0%9F%9A%80\"",
+          "modifiers": []
+        },
+        {
+          "line": 712,
+          "title": "encoding: URL splat segment for /$ > params._splat for the matched route, should be \"framework/react/guide/file-based-routing tanstack\"",
+          "modifiers": []
+        },
+        {
+          "line": 736,
+          "title": "encoding: URL path segment > should resolve $input to $output",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 812,
+          "title": "router emits events during rendering > during initial load, should emit the \"onResolved\" event",
+          "modifiers": []
+        },
+        {
+          "line": 825,
+          "title": "router emits events during rendering > after a navigation, should have emitted the \"onResolved\" event twice",
+          "modifiers": []
+        },
+        {
+          "line": 840,
+          "title": "router emits events during rendering > should emit the \"onRendered\" event when a route renders, after navigation, and after param/search updates",
+          "modifiers": []
+        },
+        {
+          "line": 884,
+          "title": "router emits events during rendering > during initial load, should emit the \"onBeforeRouteMount\" and \"onResolved\" events in the correct order",
+          "modifiers": []
+        },
+        {
+          "line": 925,
+          "title": "router matches URLs to route definitions > solo splat route matches index route",
+          "modifiers": []
+        },
+        {
+          "line": 938,
+          "title": "router matches URLs to route definitions > solo splat route matches with splat",
+          "modifiers": []
+        },
+        {
+          "line": 951,
+          "title": "router matches URLs to route definitions > layout splat route matches with splat",
+          "modifiers": []
+        },
+        {
+          "line": 965,
+          "title": "router matches URLs to route definitions > nested path params",
+          "modifiers": []
+        },
+        {
+          "line": 985,
+          "title": "matches > params > /users/$userId/files/$fileId",
+          "modifiers": []
+        },
+        {
+          "line": 1016,
+          "title": "matches > search > /nested-search/child?foo=hello&bar=world",
+          "modifiers": []
+        },
+        {
+          "line": 1047,
+          "title": "invalidate > after router.invalid(), routes should be `valid` again after loading",
+          "modifiers": []
+        },
+        {
+          "line": 1065,
+          "title": "invalidate > re-runs loaders that throw notFound() when invalidated via HMR filter",
+          "modifiers": []
+        },
+        {
+          "line": 1108,
+          "title": "invalidate > keeps rendering a route notFoundComponent when loader returns notFound() after invalidate",
+          "modifiers": []
+        },
+        {
+          "line": 1162,
+          "title": "search params in URL > does not modify the search params in the URL when search.strict=%s > at $route with search params $search",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1190,
+          "title": "search params in URL > removes unknown search params in the URL when search.strict=true > %j",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1235,
+          "title": "search params in URL > default search params > should add the default search param upon initial load when no search params are present",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1244,
+          "title": "search params in URL > default search params > should have the correct `default` search param upon initial load when the `default` param is present",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1257,
+          "title": "search params in URL > default search params > should add the default search param upon initial load when only the optional search param is present",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1270,
+          "title": "search params in URL > default search params > should keep the search param upon initial load when both search params are present",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1283,
+          "title": "search params in URL > default search params > should have the default search param when navigating without search params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1296,
+          "title": "search params in URL > default search params > should have the default search param when navigating with the optional search param",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1309,
+          "title": "search params in URL > default search params > should have the correct `default` search param when navigating with the `default` search param",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1322,
+          "title": "search params in URL > default search params > should have the correct search params when navigating with both search params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1382,
+          "title": "search params in URL > validates search params > search param validation > does not throw an error when the search param is valid",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1402,
+          "title": "search params in URL > validates search params > search param validation > throws an error when the search param is not valid",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1425,
+          "title": "route ids should be consistent after rebuilding the route tree > should have the same route ids after rebuilding the route tree",
+          "modifiers": []
+        },
+        {
+          "line": 1455,
+          "title": "route id uniqueness > routesById should not have routes duplicated route ids",
+          "modifiers": []
+        },
+        {
+          "line": 1468,
+          "title": "route id uniqueness > routesByPath should not have routes duplicated route ids",
+          "modifiers": []
+        },
+        {
+          "line": 1529,
+          "title": "history: History gives correct notifcations and state > should work with push and back",
+          "modifiers": []
+        },
+        {
+          "line": 1567,
+          "title": "history: History gives correct notifcations and state > should work more complex scenario",
+          "modifiers": []
+        },
+        {
+          "line": 1640,
+          "title": "does not push to history if url and state are the same",
+          "modifiers": []
+        },
+        {
+          "line": 1694,
+          "title": "does not strip search params if search validation fails > smoke test - all required search params are present",
+          "modifiers": []
+        },
+        {
+          "line": 1705,
+          "title": "does not strip search params if search validation fails > root is missing",
+          "modifiers": []
+        },
+        {
+          "line": 1713,
+          "title": "does not strip search params if search validation fails > index is missing",
+          "modifiers": []
+        },
+        {
+          "line": 1724,
+          "title": "navigation outcomes > should recover from a not-found route when navigating to a valid route",
+          "modifiers": []
+        },
+        {
+          "line": 1784,
+          "title": "navigation outcomes > loader and beforeLoad outcomes are rendered (isAsync=%s) > should render notFoundComponent when a route loader throws a notFound()",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1825,
+          "title": "navigation outcomes > loader and beforeLoad outcomes are rendered (isAsync=%s) > should render notFoundComponent when a route beforeLoad throws a notFound()",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1869,
+          "title": "navigation outcomes > loader and beforeLoad outcomes are rendered (isAsync=%s) > should render errorComponent when a route loader throws an Error",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1906,
+          "title": "navigation outcomes > loader and beforeLoad outcomes are rendered (isAsync=%s) > should render errorComponent when a route beforeLoad throws an Error",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1950,
+          "title": "basepath > should handle basic basepath rewriting with input",
+          "modifiers": []
+        },
+        {
+          "line": 1987,
+          "title": "basepath > should handle $description",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2034,
+          "title": "basepath > should not resolve to 404 when basepath $description and URL matches",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2076,
+          "title": "basepath > should handle basepath $description when navigating to root path",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2128,
+          "title": "basepath > should handle empty basepath gracefully",
+          "modifiers": []
+        },
+        {
+          "line": 2156,
+          "title": "basepath > should combine basepath with additional input rewrite logic",
+          "modifiers": []
+        },
+        {
+          "line": 2195,
+          "title": "basepath > should preserve search params and hash when rewriting basepath",
+          "modifiers": []
+        },
+        {
+          "line": 2230,
+          "title": "basepath > should handle nested basepath with multiple rewrite layers",
+          "modifiers": []
+        },
+        {
+          "line": 2301,
+          "title": "basepath > should handle basepath with output rewriting",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/same-route-pending-blank.test.tsx",
+      "sha256": "de1b5c6206975282a8a3bca6da64120f003dbe29aacea5e33f0c322e4713d049",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 37,
+          "title": "same-route pending replacement without fallback keeps stale content until pendingMs",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/searchMiddleware.test.tsx",
+      "sha256": "4b292c78c607696cde5d61b0ffa2789010cb892c8364dc17247344f2ab018f36",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 119,
+          "title": "retainSearchParams > should retain `value` search param",
+          "modifiers": []
+        },
+        {
+          "line": 132,
+          "title": "retainSearchParams > should do nothing if `value` search param is not set",
+          "modifiers": []
+        },
+        {
+          "line": 143,
+          "title": "stripSearchParams > by key",
+          "modifiers": []
+        },
+        {
+          "line": 154,
+          "title": "stripSearchParams > true",
+          "modifiers": []
+        },
+        {
+          "line": 165,
+          "title": "stripSearchParams > by value",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/Await.test.tsx",
+      "sha256": "0e6fd75a35d1b4c05b66b0b6dd63736a6b49bd6306f8aac5a62f88fe88bcd085",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 7,
+          "title": "Await (server) > flushes blank content while an Await without a fallback is pending",
+          "modifiers": []
+        },
+        {
+          "line": 35,
+          "title": "Await (server) > renders an error boundary when an Await without a fallback rejects",
+          "modifiers": []
+        },
+        {
+          "line": 52,
+          "title": "Await (server) > renders a resolved %s value",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/ClientOnly.test.tsx",
+      "sha256": "7cdb83a825e05c83d3c580ea6c53055c1a9a303d296f0f2407a62b63691c0528",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 42,
+          "title": "ClientOnly (server) > should render fallback during SSR",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/HeadContent.test.tsx",
+      "sha256": "3b97964ae2181d2f5f9877d3d2c7240bf64e678a311cba259f60b754738cd53a",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 49,
+          "title": "HeadContent (server) > renders manifest module preloads with low fetch priority",
+          "modifiers": []
+        },
+        {
+          "line": 56,
+          "title": "HeadContent (server) > renders iife manifest preloads as low priority script links",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/Transitioner.test.tsx",
+      "sha256": "7bf0b3973ad54e4ef38e7c53d384a095701a7677f9d4a308ce69e025a8fe61e5",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 12,
+          "title": "Transitioner (server) > should call router.load() only once when on the server",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/doctype.test.tsx",
+      "sha256": "00853f88f62ff442f4efdb9ea17b23c2843a41521b64fd7fc4e1959584059e2f",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 34,
+          "title": "document type > %s output contains one document type",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/errorComponent.test.tsx",
+      "sha256": "a6af53d4b596b9ddac0c854fcd009c0842510d9402809dc173f394bc5742986c",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 31,
+          "title": "errorComponent (server) > cleans up components and router state after a synchronous string-render error",
+          "modifiers": []
+        },
+        {
+          "line": 72,
+          "title": "errorComponent (server) > normalizes a thrown %s for the SSR error component",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 147,
+          "title": "errorComponent (server) > handles a lazy error component during %s rendering",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 185,
+          "title": "errorComponent (server) > renders the route error component when a streamed Await rejects",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/lazyRouteComponent.test.tsx",
+      "sha256": "eb075de0294091eb4e01873e3fe7276d42f8fe6c90bf6777528e34c9e6eaec18",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 11,
+          "title": "lazyRouteComponent (server) > renders a missing $exportName export as blank in production (preload: $preload)",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 69,
+          "title": "lazyRouteComponent (server) > renders a preloaded component synchronously and reuses its import",
+          "modifiers": []
+        },
+        {
+          "line": 91,
+          "title": "lazyRouteComponent (server) > renders synchronously after an awaited retry of a failed import",
+          "modifiers": []
+        },
+        {
+          "line": 114,
+          "title": "lazyRouteComponent (server) > preserves provider context and component props (preload: %s)",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/link-href-safety.test.tsx",
+      "sha256": "9303f575807f48c6feb7c8216a02fb9b21e790ef29ea956b593658f37a6524dc",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 14,
+          "title": "validates SSR %s href %j and its active state",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/link-path-matching.test.tsx",
+      "sha256": "8d6ea5ffcaf71e55455f7e39bc0225a2230e74bf022cb5aa0cdada37bc8e1a09",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 13,
+          "title": "`SSR pathname matching with basepath \"${basepath}\": $current -> $to, exact=$exact`",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/link-style.test.tsx",
+      "sha256": "346de5607b9a67ea2a2c6813fad3e128aec576197ee85e4b92849ce353bf29aa",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 16,
+          "title": "preserves routing options, selected state props, and styling during SSR",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/link.test.tsx",
+      "sha256": "ebad5039a232bddd1c02e424795b13d07bb830ebc3a48d4f00adf9f5ccbe9982",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 14,
+          "title": "SSR custom links retain caller props for $to",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 92,
+          "title": "keeps the final SSR href safe and inactive for $to",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/renderRouterToStream.test.tsx",
+      "sha256": "5f888e139480dfb3ca35d0438106abecc170b269ea44e9f831b89bf3e49e9803",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 7,
+          "title": "the lifetime limit rejects a native Solid bot wait before its resource settles",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/renderRouterToString.test.tsx",
+      "sha256": "9ae211a116a9abef44a60b1ac9aa604e0b31adb971ead753feae184618812fb0",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 10,
+          "title": "renders the Suspense fallback while finishing deferred hydration data",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/server/renderToStreamRecords.test.tsx",
+      "sha256": "b4612b72e815c0ded413f607cc0a277b4035323e145de721570a7365e4123690",
+      "kind": "server",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 5,
+        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 6,
+          "title": "installed Solid stream renderer > writes a resolved Suspense patch as complete records",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/setupTests.tsx",
+      "sha256": "a9609b9e67d4d524439fa668c311ae7b876adc41403a4c1ee2bf28001b88a665",
+      "kind": "support"
+    },
+    {
+      "file": "packages/solid-router/tests/store-updates-during-navigation.test.tsx",
+      "sha256": "57ade6259681985ff208d5d8afc1515c808f8d483af87cb98d5ddc0070491424",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 126,
+          "title": "Store doesn't update *too many* times during navigation > async loader, async beforeLoad, pendingMs",
+          "modifiers": []
+        },
+        {
+          "line": 142,
+          "title": "Store doesn't update *too many* times during navigation > redirection in preload",
+          "modifiers": []
+        },
+        {
+          "line": 161,
+          "title": "Store doesn't update *too many* times during navigation > sync beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 178,
+          "title": "Store doesn't update *too many* times during navigation > nothing",
+          "modifiers": []
+        },
+        {
+          "line": 189,
+          "title": "Store doesn't update *too many* times during navigation > not found in beforeLoad",
+          "modifiers": []
+        },
+        {
+          "line": 204,
+          "title": "Store doesn't update *too many* times during navigation > hover preload, then navigate, w/ async loaders",
+          "modifiers": []
+        },
+        {
+          "line": 230,
+          "title": "Store doesn't update *too many* times during navigation > navigate, w/ preloaded & async loaders",
+          "modifiers": []
+        },
+        {
+          "line": 246,
+          "title": "Store doesn't update *too many* times during navigation > navigate, w/ preloaded & sync loaders",
+          "modifiers": []
+        },
+        {
+          "line": 262,
+          "title": "Store doesn't update *too many* times during navigation > navigate, w/ previous navigation & async loader",
+          "modifiers": []
+        },
+        {
+          "line": 278,
+          "title": "Store doesn't update *too many* times during navigation > preload a preloaded route w/ async loader",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/transitioner-listener-errors.test.tsx",
+      "sha256": "aeaff982b45bf4227207669dc41298974ac552124f785fc1160509d522d8a2de",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 16,
+          "title": "a throwing load-event listener cannot interrupt route hooks or later navigations",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/transitioner-remount.test.tsx",
+      "sha256": "5baf97fd9db035541b950fcf3e959692dafab1065a1c97475688650411a53a79",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 39,
+          "title": "Transitioner remount > does not load after the provider unmounts",
+          "modifiers": []
+        },
+        {
+          "line": 65,
+          "title": "Transitioner remount > re-subscribes and loads on remount with the same router",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/transitioner-render-ack.test.tsx",
+      "sha256": "c36468409b7ada872fe6a38c11326d9798a4b24a319aa3993171fe36b24f6d43",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 2,
+        "reason": "Adapter behavior is scheduled for milestone 2.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 19,
+          "title": "onResolved precedes onRendered and both observe the committed destination DOM",
+          "modifiers": []
+        },
+        {
+          "line": 99,
+          "title": "onRendered describes each committed navigation from the previously rendered location",
+          "modifiers": []
+        },
+        {
+          "line": 209,
+          "title": "a superseded suspended generation does not emit onRendered",
+          "modifiers": []
+        },
+        {
+          "line": 276,
+          "title": "a suspending all-success successor ignores stale resource resolution",
+          "modifiers": []
+        },
+        {
+          "line": 362,
+          "title": "an older rendered destination cannot resolve a superseding navigation",
+          "modifiers": []
+        },
+        {
+          "line": 458,
+          "title": "same-location invalidation resolves after its refreshed DOM commits",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/use-match-outgoing-transition.test.tsx",
+      "sha256": "257d007e915d2691c6e340328e052f165429f7e0a2f34591ec3eac894e5371b6",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 19,
+          "title": "an outgoing component never observes its own active match disappear",
+          "modifiers": []
+        },
+        {
+          "line": 54,
+          "title": "a persistent observer releases an explicit match only with the destination render",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useBlocker.test-d.tsx",
+      "sha256": "651cf97d7920039333de21d6347f4ff76970750c4f34c5c8a6cfe2d82fd1ac68",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 4,
+          "title": "blocker without resolver",
+          "modifiers": []
+        },
+        {
+          "line": 36,
+          "title": "blocker with resolver",
+          "modifiers": []
+        },
+        {
+          "line": 68,
+          "title": "shouldBlockFn has corrent action",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useBlocker.test.tsx",
+      "sha256": "714ed1d8def3c78f406bf437b58a601d8bb379d40a7b4d4f226f39eb39105964",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 24,
+          "title": "useBlocker > does not block navigation when not enabled",
+          "modifiers": []
+        },
+        {
+          "line": 76,
+          "title": "useBlocker > does not block navigation when disabled",
+          "modifiers": []
+        },
+        {
+          "line": 128,
+          "title": "useBlocker > blocks navigation when enabled",
+          "modifiers": []
+        },
+        {
+          "line": 180,
+          "title": "useBlocker > gives correct arguments to shouldBlockFn",
+          "modifiers": []
+        },
+        {
+          "line": 254,
+          "title": "useBlocker > gives correct arguments to shouldBlockFn with path and search params",
+          "modifiers": []
+        },
+        {
+          "line": 340,
+          "title": "useBlocker > conditionally blocking navigation works",
+          "modifiers": []
+        },
+        {
+          "line": 428,
+          "title": "useBlocker > <Block /> disabled property is reactive",
+          "modifiers": []
+        },
+        {
+          "line": 496,
+          "title": "useBlocker > should allow navigation from 404 page when blocker is active",
+          "modifiers": []
+        },
+        {
+          "line": 563,
+          "title": "useBlocker > should handle blocker navigation from 404 to another 404",
+          "modifiers": []
+        },
+        {
+          "line": 617,
+          "title": "useBlocker > navigate function should handle external URLs with ignoreBlocker",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useCanGoBack.test.tsx",
+      "sha256": "330f42613a703ff3d431891bd0021640ff97bf4e114cbd83b82f3f1e267815ca",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 65,
+          "title": "useCanGoBack > when no location behind",
+          "modifiers": []
+        },
+        {
+          "line": 78,
+          "title": "useCanGoBack > when location behind",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useLoaderData.test-d.tsx",
+      "sha256": "a968625b957cbcb17eb0ac94a27cd2c912ef3afebe7a3370fc953fb68bd1abbe",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 10,
+          "title": "when there is no loaders",
+          "modifiers": []
+        },
+        {
+          "line": 68,
+          "title": "when there is one loader",
+          "modifiers": []
+        },
+        {
+          "line": 131,
+          "title": "when there is one loader that is async",
+          "modifiers": []
+        },
+        {
+          "line": 194,
+          "title": "when there are multiple loaders",
+          "modifiers": []
+        },
+        {
+          "line": 289,
+          "title": "when there are multiple loaders of objects and primtives",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useLocation.test-d.tsx",
+      "sha256": "c3775d7b734291731c7cf55e201f04a24b6e92d8b83a359f9eb063c492e0cb93",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 23,
+          "title": "should have the types for a ParsedLocation in useLocation",
+          "modifiers": []
+        },
+        {
+          "line": 32,
+          "title": "should have the type of string for selecting the pathname in useLocation",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useMatch.test-d.tsx",
+      "sha256": "9888fa37819dfe6db5b8f1a4218db5028fdb9595fbed229449e0d029bcc97c2b",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 29,
+          "title": "useMatch > shouldThrow > return type is `RouteMatch` when shouldThrow = true",
+          "modifiers": []
+        },
+        {
+          "line": 42,
+          "title": "useMatch > shouldThrow > return type is `RouteMatch | undefined` when shouldThrow = false",
+          "modifiers": []
+        },
+        {
+          "line": 58,
+          "title": "useMatch > return type is union of matches when strict = false",
+          "modifiers": []
+        },
+        {
+          "line": 69,
+          "title": "useMatch > shouldThrow must be false when strict is false",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useMatch.test.tsx",
+      "sha256": "0ee1ecbdb52a3b4208d38196cba83096141b06d8b4c859814f2eb49a3077f670",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 63,
+          "title": "useMatch > when match is found > returns the match if shouldThrow = %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 83,
+          "title": "useMatch > tracks presentation generations across replacement and re-entry",
+          "modifiers": []
+        },
+        {
+          "line": 165,
+          "title": "useMatch > renders a route generation that re-enters before an intermediate route renders",
+          "modifiers": []
+        },
+        {
+          "line": 229,
+          "title": "useMatch > when match is not found > throws if shouldThrow = %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 245,
+          "title": "useMatch > when match is not found > returns undefined if shouldThrow = false > without select function",
+          "modifiers": []
+        },
+        {
+          "line": 256,
+          "title": "useMatch > when match is not found > returns undefined if shouldThrow = false > with select function",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useNavigate.test-d.tsx",
+      "sha256": "8b90e627dfddd3eacfc83d6b942a80085ea23357c144d8c386ffb651b8f47829",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 38,
+          "title": "when navigating to a route",
+          "modifiers": []
+        },
+        {
+          "line": 47,
+          "title": "when setting a default from",
+          "modifiers": []
+        },
+        {
+          "line": 57,
+          "title": "when setting an invalid default from",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useNavigate.test.tsx",
+      "sha256": "bb0e650a074109924f8b3388e0003e37696c914a8eb3eedaad9ea0ff0fe38839",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 40,
+          "title": "when navigating to /posts",
+          "modifiers": []
+        },
+        {
+          "line": 89,
+          "title": "when navigating from /posts to ./$postId",
+          "modifiers": []
+        },
+        {
+          "line": 198,
+          "title": "when navigating from /posts to ../posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 306,
+          "title": "when navigating from /posts/$postId to /posts/$postId/info and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 451,
+          "title": "when navigating from /posts/$postId to ./info and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 594,
+          "title": "when navigating from /posts/$postId to ../$postId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 735,
+          "title": "when navigating from /posts/$postId with an index to ../$postId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 886,
+          "title": "when navigating from /invoices to ./invoiceId and the current route is /posts/$postId/details",
+          "modifiers": []
+        },
+        {
+          "line": 1060,
+          "title": "when navigating to /posts/$postId/info which is masked as /posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 1159,
+          "title": "when navigating to /posts/$postId/info which is imperatively masked as /posts/$postId",
+          "modifiers": []
+        },
+        {
+          "line": 1255,
+          "title": "when setting search params with 2 parallel navigate calls",
+          "modifiers": []
+        },
+        {
+          "line": 1472,
+          "title": "when on /posts/$postId and navigating to ../ with default `from` /posts > Route",
+          "modifiers": []
+        },
+        {
+          "line": 1473,
+          "title": "when on /posts/$postId and navigating to ../ with default `from` /posts > RouteApi",
+          "modifiers": []
+        },
+        {
+          "line": 1607,
+          "title": "relative useNavigate with %s > should navigate to the parent route",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1625,
+          "title": "relative useNavigate with %s > should navigate to the parent route and keep params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1643,
+          "title": "relative useNavigate with %s > should navigate to the parent route and change params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1662,
+          "title": "relative useNavigate with %s > should navigate to a relative link based on render location with basepath",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1679,
+          "title": "relative useNavigate with %s > should navigate to a parent link based on render location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1698,
+          "title": "relative useNavigate with %s > should navigate to a parent link based on active location",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1715,
+          "title": "relative useNavigate with %s > should navigate to same route with different params",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1735,
+          "title": "relative navigate to current route > should navigate to current route with search params when using \".\" in nested route structure from Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1838,
+          "title": "relative navigate to current route > should navigate to current route with changing path params when using \".\" in nested route structure with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 1973,
+          "title": "relative navigate to current route > should navigate to current route with search params when using \".\" in nested route structure from non-Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2168,
+          "title": "relative navigate to from route > should navigate to from route when using \".\" in nested route structure from Index Route with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2269,
+          "title": "relative navigate to from route > should navigate to from route with path params when using \".\" in nested route structure with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2531,
+          "title": "splat routes with empty splat > should handle empty _splat parameter with trailingSlash: %s",
+          "modifiers": ["each"]
+        },
+        {
+          "line": 2693,
+          "title": "encoded and unicode paths > should handle encoded, decoded paths with unicode characters correctly - $name",
+          "modifiers": ["each"]
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useParams.test-d.tsx",
+      "sha256": "62f31c836e4f4de7d517b0858f87f0aa6b3939d7855297a77615fd3e56670453",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 6,
+          "title": "useParams > when there are no params",
+          "modifiers": []
+        },
+        {
+          "line": 67,
+          "title": "useParams > when there is one param",
+          "modifiers": []
+        },
+        {
+          "line": 136,
+          "title": "useParams > when there are multiple params",
+          "modifiers": []
+        },
+        {
+          "line": 255,
+          "title": "useParams > shouldThrow > return type is `{ id: string }` when shouldThrow = true",
+          "modifiers": []
+        },
+        {
+          "line": 267,
+          "title": "useParams > shouldThrow > return type is `{page: string} | undefined` when shouldThrow = false",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useParams.test.tsx",
+      "sha256": "5687d2b52da5d43d6ae187e10eafcd09c7e8b7e5dc4ff173a39394d7b089ca0c",
+      "kind": "client",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 13,
+          "title": "useParams must return parsed result if applicable.",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useRouteContext.test-d.tsx",
+      "sha256": "a113ba3c5fed9517796e8c6669274ee4f0d28d7c0d9302b7b0e204588b4cdca6",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 11,
+          "title": "when there is no context",
+          "modifiers": []
+        },
+        {
+          "line": 72,
+          "title": "when there is the root context",
+          "modifiers": []
+        },
+        {
+          "line": 140,
+          "title": "when there are multiple contexts",
+          "modifiers": []
+        },
+        {
+          "line": 221,
+          "title": "when there are overlapping contexts",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useRouterState.test-d.tsx",
+      "sha256": "de23a606d2538eebbfcc932a855917d890f23183e1f8f3592b0e18f8949bc0da",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 48,
+          "title": "can select router state",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/useSearch.test-d.tsx",
+      "sha256": "7d28168e8ea46fb6de68b4c4451e735472095c89c1140f1e2d34fee87ca79d50",
+      "kind": "types",
+      "mapping": {
+        "status": "deferred",
+        "milestone": 4,
+        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "rippleTests": []
+      },
+      "tests": [
+        {
+          "line": 7,
+          "title": "useSearch > when there are no search params",
+          "modifiers": []
+        },
+        {
+          "line": 75,
+          "title": "useSearch > when there is one search params",
+          "modifiers": []
+        },
+        {
+          "line": 160,
+          "title": "useSearch > when there are multiple search params",
+          "modifiers": []
+        },
+        {
+          "line": 223,
+          "title": "useSearch > when there are overlapping search params",
+          "modifiers": []
+        },
+        {
+          "line": 290,
+          "title": "useSearch > when the root has no search params but the index route does",
+          "modifiers": []
+        },
+        {
+          "line": 356,
+          "title": "useSearch > when the root has search params but the index route does not",
+          "modifiers": []
+        },
+        {
+          "line": 425,
+          "title": "useSearch > when the root has search params but the index does",
+          "modifiers": []
+        },
+        {
+          "line": 501,
+          "title": "useSearch > when a route has search params using SearchSchemaInput",
+          "modifiers": []
+        },
+        {
+          "line": 522,
+          "title": "useSearch > when route has a union of search params",
+          "modifiers": []
+        },
+        {
+          "line": 572,
+          "title": "useSearch > shouldThrow > return type is `{ page: number }` when shouldThrow = true",
+          "modifiers": []
+        },
+        {
+          "line": 584,
+          "title": "useSearch > shouldThrow > return type is `{page: number} | undefined` when shouldThrow = false",
+          "modifiers": []
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "file": "packages/solid-router/tests/utils.ts",
+      "sha256": "e689c3e5e66f0b07b2a1bc45f426d2e04cb32fefb78f145bbf868a56c84436fa",
+      "kind": "support"
+    }
+  ]
+}

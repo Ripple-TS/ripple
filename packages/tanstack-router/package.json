@@ -1,0 +1,58 @@
+{
+  "name": "@ripple-ts/tanstack-router",
+  "version": "0.0.0",
+  "description": "TanStack Router integration for Ripple (foundation)",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ripple Team",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/tanstack-router"
+  },
+  "bugs": {
+    "url": "https://github.com/Ripple-TS/ripple/issues"
+  },
+  "homepage": "https://ripple-ts.com",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "LICENSE",
+    "NOTICE",
+    "docs"
+  ],
+  "scripts": {
+    "test": "pnpm -w test --project tanstack-router-client --project tanstack-router-server --project tanstack-router-tooling",
+    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "upstream:inventory": "node scripts/inventory-upstream.js"
+  },
+  "dependencies": {
+    "@tanstack/history": "1.162.5",
+    "@tanstack/router-core": "1.171.39"
+  },
+  "peerDependencies": {
+    "ripple": "workspace:^"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "@testing-library/dom": "^10.4.1",
+    "@tsrx/ripple": "workspace:*",
+    "@types/node": "catalog:default",
+    "ripple": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default",
+    "jsdom": "catalog:default"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

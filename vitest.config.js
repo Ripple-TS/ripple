@@ -8,6 +8,34 @@ export default defineConfig({
 		projects: [
 			{
 				test: {
+					name: 'tanstack-router-client',
+					include: ['packages/tanstack-router/tests/client/**/*.test.tsrx'],
+					environment: 'jsdom',
+					setupFiles: ['packages/tanstack-router/tests/setup-client.js'],
+					globalSetup: ['packages/tanstack-router/tests/build-fixtures.js'],
+				},
+				plugins: [ripple({ excludeRippleExternalModules: true })],
+				resolve: { conditions: ['browser'] },
+			},
+			{
+				test: {
+					name: 'tanstack-router-server',
+					include: ['packages/tanstack-router/tests/server/**/*.test.tsrx'],
+					environment: 'node',
+				},
+				plugins: [ripple({ excludeRippleExternalModules: true, ssr: true })],
+				resolve: { conditions: ['node'] },
+			},
+			{
+				test: {
+					name: 'tanstack-router-tooling',
+					include: ['packages/tanstack-router/tests/tooling/**/*.test.js'],
+					environment: 'node',
+				},
+				plugins: [],
+			},
+			{
+				test: {
 					name: 'ripple-client',
 					include: ['packages/ripple/tests/client/**/*.test.tsrx'],
 					environment: 'jsdom',

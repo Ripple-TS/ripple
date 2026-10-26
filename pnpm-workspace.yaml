@@ -43,6 +43,7 @@ esrap_common: &esrap_common ^2.3.2
 
 packages:
   - packages/*
+  - packages/tanstack-router/tests/fixtures/*
   - playground/ripple
   - website
   - website-new
@@ -51,6 +52,9 @@ packages:
   - benchmarks/*/*
 
 overrides:
+  # 1.7.2 loses the trusted-publisher provenance present in 1.7.1.
+  '@tanstack/router-core@1.171.39>seroval': 1.7.1
+  '@tanstack/router-core@1.171.39>seroval-plugins': 1.7.1
   esrap: ^2.3.2
   semver: ^7.7.4
 

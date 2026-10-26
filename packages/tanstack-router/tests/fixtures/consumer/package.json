@@ -1,0 +1,15 @@
+{
+  "name": "@ripple-ts/router-consumer-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ripple-ts/tanstack-router": "workspace:*",
+    "@ripple-ts/router-source-fixture": "workspace:*",
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:default",
+    "@types/node": "catalog:default"
+  }
+}
