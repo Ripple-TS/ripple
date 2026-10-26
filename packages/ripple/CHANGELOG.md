@@ -1,5 +1,15 @@
 # ripple
 
+## 0.5.1
+
+### Patch Changes
+
+- [#1583](https://github.com/Ripple-TS/ripple/pull/1583)
+  [`10835bd`](https://github.com/Ripple-TS/ripple/commit/10835bd35faa2e59139c39a920aaeff469652f6a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Route SSR `trackAsync`
+  serialization failures through error boundaries and hydration error envelopes
+  instead of producing unhandled promise rejections.
+
 ## 0.5.0
 
 ### Patch Changes
