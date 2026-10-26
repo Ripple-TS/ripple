@@ -4761,6 +4761,22 @@ const visitors = {
 					state.update !== null &&
 					!state.inside_head
 				) {
+					const dynamic_state = b.id(state.scope.generate('dynamic'));
+					// Claim the server content while the hydration cursor is at
+					// this tag, before traversing siblings or popping to its parent.
+					// The enclosing render block is initialized after that walk.
+					state.init?.push(
+						b.var(
+							dynamic_state,
+							b.call(
+								'_$_.dynamic_init',
+								id,
+								b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
+								b.thunk(sole_spread ?? object_props),
+								...namespace_args,
+							),
+						),
+					);
 					/** @type {UpdateEntry} */
 					const dynamic_update = {
 						operation: (next, prev) =>
@@ -4784,13 +4800,7 @@ const visitors = {
 						// target is handed over with; a build that can hydrate lets a
 						// composite block claim the server element while hydrating (see
 						// `dynamic_init`).
-						initial: b.call(
-							'_$_.dynamic_init',
-							id,
-							b.thunk(/** @type {AST.Expression} */ (visit(element_id, state))),
-							b.thunk(sole_spread ?? object_props),
-							...namespace_args,
-						),
+						initial: dynamic_state,
 						unguarded: true,
 					};
 					state.update.push(dynamic_update);

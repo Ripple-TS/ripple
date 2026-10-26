@@ -97,16 +97,24 @@ export function App({ attrs }) @{
 		expect(code).toContain(
 			"__prev.a = _$_.dynamic(__prev.a, __prev._a, __prev._b.value, __prev._c, 'svg');",
 		);
-		expect(code).toContain("a: _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg'),");
+		expect(code).toContain(
+			"var dynamic = _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg');",
+		);
+		expect(code).toContain('a: dynamic,');
 		// Children keep the composite block, which owns them.
 		expect(code).toContain('_$_.composite(');
 		expect(code).toMatch(/_\$_\.composite\(\s*\(\) => tag\.value,\s*node_1,/);
 	});
 
-	it('lets a composite block claim the server element while hydrating', () => {
+	it('claims the server element before traversing its sibling or restoring the parent cursor', () => {
 		const { code } = compile(source, 'App.tsrx');
 		expect(code).toContain("_$_.dynamic(__prev.a, __prev._a, __prev._b.value, __prev._c, 'svg')");
-		expect(code).toContain("a: _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg'),");
+		expect(code).toContain(
+			"var dynamic = _$_.dynamic_init(node, () => tag.value, () => attrs, 'svg');",
+		);
+		expect(code).toContain('a: dynamic,');
+		expect(code.indexOf('_$_.dynamic_init(')).toBeLessThan(code.indexOf('_$_.hydrate_sibling()'));
+		expect(code.indexOf('_$_.dynamic_init(')).toBeLessThan(code.indexOf('_$_.pop(svg)'));
 	});
 });
 

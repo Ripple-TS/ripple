@@ -152,13 +152,9 @@ function DynamicTagComponent_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var fragment_4 = root_7();
 			var node_3 = _$_.first_child_frag(fragment_4);
+			var dynamic = _$_.dynamic_init(node_3, () => Comp, () => ({}));
 
-			_$_.render(render, {
-				a: _$_.dynamic_init(node_3, () => Comp, () => ({})),
-				_a: node_3,
-				_b: Comp
-			});
-
+			_$_.render(render, { a: dynamic, _a: node_3, _b: Comp });
 			_$_.append(__anchor, fragment_4);
 		})
 	});
