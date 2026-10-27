@@ -201,6 +201,11 @@ Async work must sit under a `@try` boundary that has `@pending` (or under the
 root boundary's `pending`) — the fallback is what occupies the slot in the
 shell.
 
+Pass `signal: request.signal` to `render()` to cancel rendering when a request
+is aborted. The render promise rejects with the signal reason, owned `trackAsync`
+controllers are aborted, and cancelled streams emit no late output. Application
+promises without an abort controller cannot themselves be forcibly stopped.
+
 Enable streaming by passing a `stream` sink. `streamTemplate` wraps the stream
 in a document: `before` and `between` frame the SSR head content and the shell
 body in the first write, and `after` is pushed once the last chunk has

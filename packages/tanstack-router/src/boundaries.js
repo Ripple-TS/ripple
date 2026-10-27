@@ -14,3 +14,11 @@ export function findNotFoundBoundary(router, routeId, error) {
 	}
 	return error.routeId && target ? target.id : '__root__';
 }
+
+/** @param {import('@tanstack/router-core').AnyRouter} router @param {string} routeId */
+export function findErrorBoundary(router, routeId) {
+	for (var route = router.routesById[routeId]; route; route = route.parentRoute) {
+		if (route.options.errorComponent || router.options.defaultErrorComponent) return route.id;
+	}
+	return router.options.disableGlobalCatchBoundary ? undefined : '__root__';
+}

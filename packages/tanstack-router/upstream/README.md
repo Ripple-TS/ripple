@@ -103,9 +103,43 @@ manifest identifies the affected framework contract.
 
 The one upstream-skipped client scenario (Solid `routeContext.test.tsx:1585`, also
 present in React) runs in Ripple with its assertions intact. Source skip modifiers
-remain visible in the report. The conditional streaming-cleanup source is deferred
-to milestone 5, along with SSR, hydration and assets. File routing remains
-optional milestone 7. No client/type case is silently deferred.
+remain visible in the report. Milestone 5 completes the streaming-cleanup source,
+SSR, hydration and assets. File routing remains optional milestone 7. No
+client/type case is silently deferred.
+
+## Milestone 5 SSR/hydration gate
+
+All previously deferred milestone 5 declarations now have explicit dispositions in
+both inventories. Only optional file routing remains deferred. The audit rejects
+any unfinished client, type, SSR, hydration or asset case. A renderer-specific
+exclusion is not counted as a passing port.
+
+| Contract                                                                   | Ripple validation                                                                              |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Request isolation, loader transfer, headers, statuses, redirects           | `tests/server/ssr.test.tsrx`; concurrent requests and reused-router rejection                  |
+| Buffered/streamed hydration, retained DOM, lazy imports, pending minimums  | `tests/client/ssr-hydration.test.tsrx`, terminal-lane ports and native root pending test       |
+| Terminal boundaries, context reconstruction, shell context                 | Solid #8115 port, React error/not-found/context and match-provider ports                       |
+| Head/data/executable scripts, manifests, JSON-LD, ownership                | Solid and React Scripts ports, React Asset ports, native `assets.test.tsrx`                    |
+| Late records, failed deferred values, abort/consumer/lifetime cancellation | Server SSR tests, `server/upstream/stream-records.test.tsrx`, real compiled hydration fixtures |
+| SSR links, refs, active props, URL safety, lazy components and Await       | `tests/server/upstream/`; refs use Ripple's symbol keys and CSS whitespace is normalized       |
+
+Framework substitutions are explicit. Ripple buffered rendering waits for async
+UI, while Solid's synchronous string renderer retains fallbacks. Ripple streaming
+always sends an early shell; callers select buffered rendering for bots rather
+than using Solid/React producer readiness APIs. Ripple's container root keeps its
+configured pending boundary enabled; React's document-root suppression and
+snapshot-getter/render counts are excluded. Loaded arbitrary errors retain their
+original values. Late async errors whose ancestor bytes were already sent use
+Ripple's error envelope and are checked through actual hydration and navigation.
+Server effects do not run. Missing lazy exports report an error in production.
+
+Tests use real server/client builds and execute each streamed script exactly once.
+Promises transported by core are observed before their component boundaries
+activate, preserving their original rejection for the eventual consumer without
+unhandled-rejection noise. Core owns serialization and transport cleanup; Ripple
+owns DOM patches and cancellable component work. See the
+[SSR contract](../docs/ssr.md) for output ownership and the remaining
+browser/release limits.
 
 ## Upstream upgrades
 

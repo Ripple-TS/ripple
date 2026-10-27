@@ -11,7 +11,8 @@ import { isServer } from '@tanstack/router-core/isServer';
 import { routerContext, matchContext, fallbackContext } from './context.js';
 import { useRouter } from './hooks.js';
 import { resolveInput } from './inputs.js';
-import { findNotFoundBoundary } from './boundaries.js';
+import { useHydrated } from './Assets.tsrx';
+import { findErrorBoundary, findNotFoundBoundary } from './boundaries.js';
 
 const mounted = new WeakSet<AnyRouter>();
 
@@ -160,7 +161,11 @@ function Matches() @{
 					if (router.stores.matches.get() !== captured) reset();
 				});
 				const Catch = router.options.defaultErrorComponent || ErrorComponent;
-				<Catch {error} {reset} />
+				@try {
+					<Catch {error} {reset} />
+				} @pending {
+					<></>
+				}
 			}
 		}
 	</InnerWrap>
@@ -178,42 +183,82 @@ function Match({ routeId }: { routeId: string }) @{
 	const route = router.routesById[routeId];
 	const match = track(() => router.stores.getMatchStore(routeId).get());
 	matchContext.set({ routeId, match });
+	const hydrated = useHydrated();
+	// A loaded error already has a known boundary. Select it before entering
+	// descendants so hydration never walks markup the server replaced.
+	const failure = track(
+		() => router.stores.matches.get().find(
+			(candidate) =>
+				candidate.status === 'error' && findErrorBoundary(router, candidate.routeId) === routeId,
+		),
+	);
 	const Pending = track(() => {
 		match.value;
 		return route.options.pendingComponent ?? router.options.defaultPendingComponent ?? Empty;
 	});
-	@try {
-		@if (match.value?.status === 'pending') {
+	const Shell = route.isRoot ? route.options.shellComponent ?? Fragment : Fragment;
+	<Shell>
+		@try {
+			@if (failure.value) {
+				@for (const failed of [failure.value]; key failed) {
+					<LoadedError {routeId} error={failed!.error} />
+				}
+			} @else if (
+				match.value?.status === 'pending' ||
+					!hydrated.value && (match.value?.ssr === false || match.value?.ssr === 'data-only')
+			) {
+				<Fallback kind="pendingComponent">
+					<{Pending.value} />
+				</Fallback>
+			} @else {
+				<MatchContent {match} />
+			}
+		} @pending {
 			<Fallback kind="pendingComponent">
 				<{Pending.value} />
 			</Fallback>
-		} @else {
-			<MatchContent {match} />
+		} @catch (error, reset) {
+			const captured = match.value;
+			effect(() => {
+				if (match.value !== captured) reset();
+			});
+			const notFound = isNotFound(error);
+			const Catch = route.options.errorComponent ?? router.options.defaultErrorComponent;
+			if (!notFound && !Catch) throw error;
+			const onCatch = route.options.onCatch ?? router.options.defaultOnCatch;
+			if (!notFound) onCatch?.(error);
+			@try {
+				@if (notFound) {
+					const boundaryId = findNotFoundBoundary(router, routeId, error as NotFoundError);
+					if (boundaryId !== routeId && !route.isRoot) throw error;
+					<RouteNotFound {routeId} error={error as NotFoundError} />
+				} @else {
+					<Fallback kind="errorComponent">
+						<Catch {error} {reset} info={{ componentStack: '' }} />
+					</Fallback>
+				}
+			} @pending {
+				<></>
+			}
 		}
-	} @pending {
-		<Fallback kind="pendingComponent">
-			<{Pending.value} />
-		</Fallback>
-	} @catch (error, reset) {
-		const captured = match.value;
-		effect(() => {
-			if (match.value !== captured) reset();
-		});
-		const notFound = isNotFound(error);
-		const Catch = route.options.errorComponent ?? router.options.defaultErrorComponent;
-		if (!notFound && !Catch) throw error;
-		const onCatch = route.options.onCatch ?? router.options.defaultOnCatch;
-		if (!notFound) onCatch?.(error);
-		@if (notFound) {
-			const boundaryId = findNotFoundBoundary(router, routeId, error as NotFoundError);
-			if (boundaryId !== routeId && !route.isRoot) throw error;
-			<RouteNotFound {routeId} error={error as NotFoundError} />
-		} @else {
-			<Fallback kind="errorComponent">
-				<Catch {error} {reset} info={{ componentStack: '' }} />
-			</Fallback>
-		}
-	}
+	</Shell>
+}
+
+function LoadedError({ routeId, error }: { routeId: string; error: unknown }) @{
+	const router = useRouter();
+	const route = router.routesById[routeId];
+	const Catch =
+		route.options.errorComponent || router.options.defaultErrorComponent || ErrorComponent;
+	route.options.onCatch ?? router.options.defaultOnCatch?.(error);
+	<Fallback kind="errorComponent">
+		<Catch
+			{error}
+			reset={() => {
+				void router.invalidate();
+			}}
+			info={{ componentStack: '' }}
+		/>
+	</Fallback>
 }
 
 function MatchContent({ match }: { match: Derived<AnyRouteMatch | undefined> }) @{

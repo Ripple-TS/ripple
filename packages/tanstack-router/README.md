@@ -1,11 +1,12 @@
 # @ripple-ts/tanstack-router
 
-Milestone 4 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
+Milestone 5 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
 the client adapter: code-defined routes, reactive readers, links, lazy loading,
 boundaries, blocking, and render-aware navigation/scrolling, with audited upstream
-runtime/type coverage and an isolated Solid comparison runner. The package is
-**private** during development and will not be published with unrelated Ripple
-releases. It is not feature-complete.
+runtime/type coverage and an isolated Solid comparison runner. It also provides
+request-scoped buffered/streaming SSR, state hydration, and route assets. The
+package is **private** during development and will not be published with unrelated
+Ripple releases. It is not feature-complete.
 
 This is a separate TanStack Router integration. It does not change Ripple's own
 routing system. File-based routing is optional future TSRX tooling and is not
@@ -27,6 +28,11 @@ Implemented adapter exports:
   `MatchRoute`.
 - `lazyRouteComponent`, `Await`, `useAwaited`, and `ErrorComponent`.
 - `useBlocker`, `Block`, and `useElementScrollRestoration`.
+- `HeadContent`, `Scripts`, `Asset`, `ClientOnly`, and `useHydrated`.
+- From `/ssr/server`: `createRequestHandler`, `renderRouterToString`,
+  `renderRouterToStream`, `defaultRenderHandler`, and `defaultStreamHandler`.
+- From `/ssr/client`: `hydrate` (router state) and `hydrateRouter` (state and
+  DOM).
 
 The package also re-exports these unmodified upstream utilities:
 
@@ -47,6 +53,7 @@ introduce another state creation API. The component subtree uses
 and supersession.
 
 See [client usage and Ripple API adaptations](./docs/client.md),
+[SSR, hydration, streaming and ownership](./docs/ssr.md),
 [the compatibility contract](./docs/compatibility.md) for the milestone contract,
 and
 [the upstream inventory](https://github.com/Ripple-TS/ripple/blob/main/packages/tanstack-router/upstream/README.md)
@@ -59,9 +66,9 @@ explicit `.d.ts` declarations; authored components use `.tsrx` source compiled b
 the application's `@ripple-ts/vite-plugin` into client or server code. This
 preserves the application's hydration, development, and SSR compiler options. The
 root entry includes components, so consumers must use Ripple's compiler
-integration. Dedicated SSR helpers and router state hydration remain milestone 5
-work. The server/client build fixtures verify compilation, not full router SSR
-compatibility.
+integration. Dedicated `/ssr/server` and `/ssr/client` entries handle request
+rendering and state restoration. The server/client fixtures exercise buffered and
+streamed hydration through working navigation.
 
 The private `tests/fixtures/source-library` models a component dependency with a
 `.tsrx` export and declaration entry. `tests/fixtures/consumer` imports it through
@@ -101,13 +108,14 @@ tooling suite checks `.tsrx` call sites through the published mapping pipeline.
 
 ## Current limits
 
-SSR/hydration and real-browser release validation remain milestones 5–6. Milestone
-4 accounts for each pinned upstream case, including explicit framework differences
-and later-milestone cases. The client feature gate and exact translated test
-families are recorded in the upstream inventory. One mounted provider owns a
-router instance. Deprecated framework-specific aliases and file-route factories
-are not exported. See the client guide for explicit reactive inputs, `render`
-callbacks, custom anchors, and history ownership.
+Real-browser release validation remains milestone 6. Milestone 5 adds
+SSR/hydration and streaming to the upstream audit. Milestone 4 accounts for each
+pinned upstream case, including explicit framework differences and later-milestone
+cases. The client feature gate and exact translated test families are recorded in
+the upstream inventory. One mounted provider owns a router instance. Deprecated
+framework-specific aliases and file-route factories are not exported. See the
+client guide for explicit reactive inputs, `render` callbacks, custom anchors, and
+history ownership.
 
 TanStack core owns native `document.startViewTransition()` calls. Its update
 callback waits for the adapter's render acknowledgement; navigation does not wait

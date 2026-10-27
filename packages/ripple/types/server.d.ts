@@ -57,6 +57,8 @@ export interface StreamTemplate {
 }
 
 export interface BaseRenderOptions {
+	/** Abort pending rendering, cancel owned trackAsync work, and reject with the signal's reason. */
+	signal?: AbortSignal;
 	stream?: StreamSink;
 	// defaults to true
 	// set to false to add more content

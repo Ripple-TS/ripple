@@ -758,6 +758,9 @@ result interactive with `hydrate()`.
 
 `render` options:
 
+- `signal` — an `AbortSignal`; aborting rejects with its reason, cancels owned
+  `trackAsync` operations and stops later streamed output.
+
 - `rootBoundary` — `{ pending?, catch? }` components wrapped around the app
   root; used when no user `@try` boundary handles a suspension or error.
 - `stream` — a sink from `createStream()`; switches to streaming SSR and

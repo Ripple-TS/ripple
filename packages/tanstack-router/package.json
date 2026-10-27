@@ -21,7 +21,15 @@
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./ssr/server": {
+      "types": "./types/ssr/server.d.ts",
+      "default": "./src/ssr/server.js"
+    },
+    "./ssr/client": {
+      "types": "./types/ssr/client.d.ts",
+      "default": "./src/ssr/client.js"
+    }
   },
   "files": [
     "src",

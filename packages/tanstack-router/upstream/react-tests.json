@@ -42,28 +42,27 @@
       ],
       "overrides": {
         "17": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React rerendering the same component with new ordinary props is not Ripple component semantics. Stable descriptors and keyed head updates retain unchanged nodes; changed style attributes and shared script ownership have native coverage.",
+          "rippleTests": [
+            "tests/client/assets.test.tsrx",
+            "tests/client/upstream/Scripts.test.tsrx"
+          ]
         },
         "69": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Asset.test.tsrx"]
         },
         "111": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Asset.test.tsrx"]
         },
         "138": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Asset.test.tsrx"]
         }
       }
     },
@@ -96,22 +95,31 @@
       ],
       "overrides": {
         "56": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/ClientOnly.test.tsrx",
+            "tests/client/upstream/ClientOnly.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "68": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/ClientOnly.test.tsrx",
+            "tests/client/upstream/ClientOnly.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "81": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/ClientOnly.test.tsrx",
+            "tests/client/upstream/ClientOnly.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         }
       }
     },
@@ -469,136 +477,154 @@
       ],
       "overrides": {
         "67": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "123": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "175": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Real server responses preserve script attributes/order after bootstrap, and data script content hydrates without duplication; core and Ripple own their respective transport records.",
+          "rippleTests": ["tests/server/ssr.test.tsrx", "tests/client/ssr-hydration.test.tsrx"]
         },
         "225": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Real server responses preserve script attributes/order after bootstrap, and data script content hydrates without duplication; core and Ripple own their respective transport records.",
+          "rippleTests": ["tests/server/ssr.test.tsrx", "tests/client/ssr-hydration.test.tsrx"]
         },
         "284": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "341": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "454": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "550": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "579": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "654": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "725": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "777": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "836": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "913": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/client/upstream/Scripts.test.tsrx",
+            "tests/server/upstream/HeadContent.test.tsrx",
+            "tests/client/ssr-hydration.test.tsrx"
+          ]
         },
         "993": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1119": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Real server responses preserve script attributes/order after bootstrap, and data script content hydrates without duplication; core and Ripple own their respective transport records.",
+          "rippleTests": ["tests/server/ssr.test.tsrx", "tests/client/ssr-hydration.test.tsrx"]
         },
         "1167": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1220": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1268": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1315": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1362": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         },
         "1422": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/Scripts.test.tsrx"]
         }
       }
     },
@@ -765,10 +791,9 @@
       ],
       "overrides": {
         "25": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": ["tests/server/upstream/lazyRouteComponent.test.tsrx"]
         },
         "35": {
           "status": "ported",
@@ -1051,10 +1076,9 @@
           "rippleTests": ["tests/client/react-upstream/errorComponent.test.tsrx"]
         },
         "530": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/react-errorComponent.test.tsrx"]
         },
         "579": {
           "status": "ported",
@@ -1067,16 +1091,14 @@
           "rippleTests": ["tests/client/react-upstream/errorComponent.test.tsrx"]
         },
         "725": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/react-errorComponent.test.tsrx"]
         },
         "797": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/react-errorComponent.test.tsrx"]
         },
         "869": {
           "status": "ported",
@@ -1286,16 +1308,14 @@
       ],
       "overrides": {
         "37": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Real server/client bundles cover the /404-to-missing handoff and root/parent error and not-found boundaries, preserving existing boundary nodes and preventing descendant loads.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         },
         "113": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Real server/client bundles cover the /404-to-missing handoff and root/parent error and not-found boundaries, preserving existing boundary nodes and preventing descendant loads.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         }
       }
     },
@@ -1323,16 +1343,14 @@
       ],
       "overrides": {
         "54": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/hydration-terminal-lane.test.tsrx"]
         },
         "102": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/hydration-terminal-lane.test.tsrx"]
         }
       }
     },
@@ -1685,10 +1703,11 @@
       ],
       "overrides": {
         "27": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Document shell/head ownership and shellComponent belong to the SSR contract in milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": [
+            "tests/client/react-upstream/issue-7635-error-head-after-navigation.test.tsrx"
+          ]
         }
       }
     },
@@ -1978,10 +1997,9 @@
           "rippleTests": ["tests/client/upstream/issue-8115-context.test.tsrx"]
         },
         "372": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": ["tests/client/upstream/m5-issue-8115-context.test.tsrx"]
         },
         "509": {
           "status": "covered",
@@ -2024,10 +2042,9 @@
       ],
       "overrides": {
         "15": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/issue-8128-context.test.tsrx"]
         }
       }
     },
@@ -2549,10 +2566,12 @@
       ],
       "overrides": {
         "19": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/link-href-safety.test.tsrx",
+            "tests/client/upstream/link-href-safety.test.tsrx"
+          ]
         }
       }
     },
@@ -2580,16 +2599,14 @@
       ],
       "overrides": {
         "15": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Real streamed hydration preserves anchors and applies the browser hash, including links in a delayed boundary. React render counts/snapshot getter calls are replaced by DOM identity, final attributes and native hydration checkpoints.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         },
         "119": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Real streamed hydration preserves anchors and applies the browser hash, including links in a delayed boundary. React render counts/snapshot getter calls are replaced by DOM identity, final attributes and native hydration checkpoints.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         }
       }
     },
@@ -2670,10 +2687,12 @@
       ],
       "overrides": {
         "25": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/link-path-matching.test.tsrx",
+            "tests/client/upstream/link-path-matching.test.tsrx"
+          ]
         }
       }
     },
@@ -2791,10 +2810,13 @@
       ],
       "overrides": {
         "26": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native server and client props tests cover state overrides, styling, routing authority and ref/event forwarding. Ripple symbol-keyed refs and universal disabled-href removal are intentional documented differences.",
+          "rippleTests": [
+            "tests/server/upstream/link-style.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/links.test.tsrx"
+          ]
         },
         "97": {
           "status": "covered",
@@ -2806,10 +2828,13 @@
           ]
         },
         "170": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native server and client props tests cover state overrides, styling, routing authority and ref/event forwarding. Ripple symbol-keyed refs and universal disabled-href removal are intentional documented differences.",
+          "rippleTests": [
+            "tests/server/upstream/link-style.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/links.test.tsrx"
+          ]
         },
         "255": {
           "status": "inapplicable",
@@ -2817,10 +2842,13 @@
           "rippleTests": []
         },
         "342": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native server and client props tests cover state overrides, styling, routing authority and ref/event forwarding. Ripple symbol-keyed refs and universal disabled-href removal are intentional documented differences.",
+          "rippleTests": [
+            "tests/server/upstream/link-style.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/links.test.tsrx"
+          ]
         },
         "421": {
           "status": "covered",
@@ -2831,10 +2859,13 @@
           ]
         },
         "485": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native server and client props tests cover state overrides, styling, routing authority and ref/event forwarding. Ripple symbol-keyed refs and universal disabled-href removal are intentional documented differences.",
+          "rippleTests": [
+            "tests/server/upstream/link-style.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/links.test.tsrx"
+          ]
         }
       }
     },
@@ -4342,16 +4373,22 @@
           "rippleTests": ["tests/client/react-upstream/link.test.tsrx"]
         },
         "8027": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/link-href-safety.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/react-upstream/link.test.tsrx"
+          ]
         },
         "8115": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/link-href-safety.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/react-upstream/link.test.tsrx"
+          ]
         },
         "8189": {
           "status": "ported",
@@ -4364,10 +4401,13 @@
           "rippleTests": ["tests/client/upstream/link.test.tsrx"]
         },
         "8251": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/upstream/link-href-safety.test.tsrx",
+            "tests/server/upstream/link.test.tsrx",
+            "tests/client/react-upstream/link.test.tsrx"
+          ]
         },
         "8276": {
           "status": "covered",
@@ -4585,16 +4625,14 @@
       ],
       "overrides": {
         "62": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Document shell/head ownership and shellComponent belong to the SSR contract in milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/match-provider.test.tsrx"]
         },
         "83": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Document shell/head ownership and shellComponent belong to the SSR contract in milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/react-match-provider.test.tsrx"]
         }
       }
     },
@@ -5182,10 +5220,9 @@
           "rippleTests": ["tests/client/react-upstream/not-found-route-context.test.tsrx"]
         },
         "93": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/react-not-found-route-context.test.tsrx"]
         },
         "122": {
           "status": "ported",
@@ -5298,16 +5335,14 @@
           "rippleTests": ["tests/client/react-upstream/not-found.test.tsrx"]
         },
         "113": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "SSR lazy beforeLoad and fuzzy-miss boundaries retain boundary selection and status assertions. Client lazy/fuzzy behavior is covered by the existing not-found suites.",
+          "rippleTests": ["tests/server/upstream/react-not-found.test.tsrx"]
         },
         "161": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Mixed client/server lazy-boundary family is completed with SSR in milestone 5. Client lazy not-found boundary behavior is already covered in features.test.tsrx.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "SSR lazy beforeLoad and fuzzy-miss boundaries retain boundary selection and status assertions. Client lazy/fuzzy behavior is covered by the existing not-found suites.",
+          "rippleTests": ["tests/server/upstream/react-not-found.test.tsrx"]
         },
         "226": {
           "status": "covered",
@@ -6070,10 +6105,12 @@
       ],
       "overrides": {
         "126": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Uses real Ripple pending records and independent deferred router state; asserts state can flush before the renderer finishes, at complete record boundaries. No React 19 renderer selection is involved.",
+          "rippleTests": [
+            "tests/server/ssr.test.tsrx",
+            "tests/server/upstream/stream-records.test.tsrx"
+          ]
         }
       }
     },
@@ -6181,112 +6218,97 @@
       ],
       "overrides": {
         "132": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "159": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "183": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "220": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "259": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": [
+            "tests/server/ssr.test.tsrx",
+            "tests/server/upstream/stream-records.test.tsrx"
+          ]
         },
         "340": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "379": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "416": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "455": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "509": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "569": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "601": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "637": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "693": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "741": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "778": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "811": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React readable/pipeable selection, progressiveChunkSize, bot readiness and recoverable-error callback machinery are renderer-specific. Ripple exposes one record-oriented sink renderer with explicit buffered/streaming selection; native tests cover fatal errors, setup abort and lifetime cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "863": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Native tests cover already-aborted setup, request abort, consumer cancellation and failure cleanup without logging expected cancellation.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         }
       }
     },
@@ -6324,28 +6346,24 @@
       ],
       "overrides": {
         "27": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React suppresses the root pending boundary without a separate document shell. Ripple uses a container root and keeps its configured pending boundary enabled, with an independent pendingMinMs test.",
+          "rippleTests": ["tests/client/react-upstream/root-pending-min.test.tsrx"]
         },
         "108": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Buffered and streaming hydration preserve root component DOM/state and avoid duplicate initial loads; native mount/disposal replaces React initializer and effect counts.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         },
         "162": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "The assertion inspects React Suspense markers for an unresolved functional ssr option. Ripple has explicit native boundaries; only resolved false/data-only values disable server route output.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         },
         "187": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "A real Ripple streaming shell keeps the configured root pending fallback within shellComponent. Buffered Ripple rendering waits for settlement instead of React synchronous string fallbacks.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
         }
       }
     },
@@ -7038,16 +7056,14 @@
           "rippleTests": ["tests/client/upstream/route.test.tsrx"]
         },
         "286": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Head metadata and asset behavior are audited with milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/m5-route.test.tsrx"]
         },
         "325": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Head metadata and asset behavior are audited with milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/react-upstream/m5-route.test.tsrx"]
         },
         "365": {
           "status": "covered",
@@ -8035,10 +8051,9 @@
       ],
       "overrides": {
         "34": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Audited framework-independent behavior is covered by the referenced Solid ports and native SSR/hydration scenarios.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         }
       }
     },
@@ -9657,16 +9672,17 @@
       ],
       "overrides": {
         "13": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "inapplicable",
+          "reason": "React useSyncExternalStore getter identity and component rerender counts are not Ripple APIs. Ripple uses a scope-local Derived<boolean>; ClientOnly and actual hydration assert server fallback followed by client content.",
+          "rippleTests": [
+            "tests/client/ssr-hydration.test.tsrx",
+            "tests/client/upstream/ClientOnly.test.tsrx"
+          ]
         },
         "26": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "SSR, hydration, head/assets and transport are milestone 5; renderer-specific substitutions will be audited there.",
-          "rippleTests": []
+          "status": "covered",
+          "reason": "Real buffered/streamed hydration keeps server ClientOnly fallback until mount, then reveals client content. Ripple reads Derived.value instead of React snapshot getters; newly mounted scopes start false.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
         }
       }
     },

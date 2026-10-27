@@ -98,7 +98,7 @@ it('rejects stale mappings and unfinished client cases without hiding upstream s
 		},
 	]);
 	expect(report.missing).toEqual([
-		'client.tsx:1: unfinished client/type case',
+		'client.tsx:1: unfinished adapter case',
 		'client.tsx:2: stale override',
 	]);
 	expect(report.skipped).toHaveLength(1);
@@ -106,7 +106,7 @@ it('rejects stale mappings and unfinished client cases without hiding upstream s
 	expect(report.ported).toHaveLength(0);
 });
 
-it('closes the client/type gate for both pinned framework inventories', async () => {
+it('closes the client/type/SSR gate for both pinned framework inventories', async () => {
 	const { reportMappings } = await import('../../scripts/audit-upstream.js');
 	const react = JSON.parse(
 		readFileSync(new URL('../../upstream/react-tests.json', import.meta.url), 'utf8'),

@@ -716,6 +716,7 @@ export class Output {
 	 */
 	push_serialized_error(str) {
 		var root = this.#root;
+		if (root.#stream_finished) return;
 		if (root.#streamOutput !== null && root.#shell_flushed) {
 			// past the shell the root buffer is already on the wire — emit the
 			// envelope directly so it reaches the document before any chunk
@@ -734,6 +735,7 @@ export class Output {
 	 */
 	push_serialized_result(str) {
 		var root = this.#root;
+		if (root.#stream_finished) return;
 		if (root.#streamOutput !== null && !root.#sync_run) {
 			var unit = this.#nearest_unflushed_unit();
 			if (unit !== null) {
@@ -771,6 +773,7 @@ export class Output {
 	 */
 	register_css(hash) {
 		var root = this.#root;
+		if (root.#stream_finished) return;
 		if (root.#streamOutput !== null && !root.#sync_run) {
 			var unit = this.#nearest_unflushed_unit();
 			if (unit !== null) {
@@ -1228,7 +1231,7 @@ export class Output {
 	 */
 	_errorStream(reason) {
 		if (this.#is_root) {
-			if (this.#streamOutput && this.#stream_started && !this.#stream_finished) {
+			if (this.#streamOutput && !this.#stream_finished) {
 				this.#stream_finished = true;
 				this.#streamOutput.error(reason);
 			}
@@ -1273,6 +1276,7 @@ function flatten_buffer(tree) {
  * @returns {Promise<RenderResult | RenderStreamResult>}
  */
 export async function render(component, options = {}) {
+	options.signal?.throwIfAborted();
 	/** @type {Error | null } */
 	var top_level_error = null;
 	var head = '';
@@ -1323,13 +1327,34 @@ export async function render(component, options = {}) {
 	);
 
 	const output = /** @type {Block} */ (/** @type {unknown} */ (root_block)).o;
-	if (output.isStreamMode()) {
-		// shell: sync content + fallbacks in open slots + css + swap runtime
-		output._streamShell();
+	const signal = options.signal;
+	const abort = () => {
+		output._errorStream(signal?.reason);
+		// Error recovery may have started fresh work in a caught boundary. Walk
+		// every output, rather than skipping CAUGHT_ERROR as boundary recovery does.
+		/** @param {Block | null} block */
+		function cancel(block) {
+			if (!block) return;
+			block.o.abandonUnit();
+			block.o.cancelAsyncOperations();
+			for (var child = block.first; child !== null; child = child.next) cancel(child);
+		}
+		cancel(root_block);
+	};
+	signal?.addEventListener('abort', abort, { once: true });
+	try {
+		if (signal?.aborted) abort();
+		signal?.throwIfAborted();
+		if (output.isStreamMode()) {
+			// shell: sync content + fallbacks in open slots + css + swap runtime
+			output._streamShell();
+		}
+		await output.promise;
+		signal?.throwIfAborted();
+	} finally {
+		signal?.removeEventListener('abort', abort);
+		reset_state();
 	}
-
-	await output.promise;
-	reset_state();
 
 	if (output.isStreamMode()) {
 		output._finishStream('closeStream' in options ? options.closeStream : true);

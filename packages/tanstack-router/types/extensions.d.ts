@@ -26,6 +26,9 @@ declare module '@tanstack/router-core' {
 		errorComponent?: ErrorRouteComponent | false | null;
 		notFoundComponent?: NotFoundRouteComponent;
 	}
+	interface RootRouteOptionsExtensions {
+		shellComponent?: Component<{ children?: Children }>;
+	}
 	interface RouterOptionsExtensions {
 		defaultOnCatch?: (error: unknown) => void;
 		defaultComponent?: RouteComponent;

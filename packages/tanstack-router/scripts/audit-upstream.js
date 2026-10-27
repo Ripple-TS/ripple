@@ -101,8 +101,8 @@ export function reportMappings(manifests, root = packageRoot) {
 						mapping.rippleTests.some((path) => !existsSync(resolve(root, path))))
 				)
 					report.missing.push(`${id}: missing Ripple test file`);
-				if (mapping.status === 'deferred' && ![5, 7].includes(mapping.milestone))
-					report.missing.push(`${id}: unfinished client/type case`);
+				if (mapping.status === 'deferred' && mapping.milestone !== 7)
+					report.missing.push(`${id}: unfinished adapter case`);
 			}
 			for (const line of Object.keys(file.overrides ?? {}))
 				if (!file.tests?.some((test) => test.line === Number(line)))

@@ -5,3 +5,10 @@ export { Probe };
 export function renderProbe() {
 	return render(Probe);
 }
+
+export { makeSsrRouter } from './router.tsrx';
+export {
+	createRequestHandler,
+	renderRouterToString,
+	renderRouterToStream,
+} from '@ripple-ts/tanstack-router/ssr/server';

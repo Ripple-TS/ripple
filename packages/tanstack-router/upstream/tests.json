@@ -88,7 +88,18 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "56": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/ClientOnly.test.tsrx"]
+        },
+        "69": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/ClientOnly.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/Matches.test-d.tsx",
@@ -312,7 +323,68 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "57": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "91": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "145": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "197": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "237": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "314": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "395": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "457": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "509": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "558": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "656": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        },
+        "745": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/Scripts.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/Transitioner.test.tsx",
@@ -408,10 +480,9 @@
       ],
       "overrides": {
         "24": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "The window-less server preload-cache contract is milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/lazyRouteComponent.test.tsrx"]
         }
       }
     },
@@ -643,7 +714,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "52": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/hydration-terminal-lane.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/index.test.tsx",
@@ -868,10 +945,9 @@
       ],
       "overrides": {
         "386": {
-          "status": "deferred",
-          "milestone": 5,
-          "reason": "Hydration context reconstruction and server state transfer are milestone 5.",
-          "rippleTests": []
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/upstream/m5-issue-8115-context.test.tsrx"]
         }
       }
     },
@@ -2844,7 +2920,53 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "79": {
+          "status": "ported",
+          "reason": "Translated abort-before-setup, attached-stream cancellation and reentrant setup abort to the real Ripple renderer and request signal.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "99": {
+          "status": "inapplicable",
+          "reason": "Solid-specific bot readiness/pipeTo choreography. Ripple uses explicit buffered rendering for consumers that require all UI; streaming always sends a shell. Request abort and core lifetime cleanup are independently tested.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "134": {
+          "status": "inapplicable",
+          "reason": "Solid-specific bot readiness/pipeTo choreography. Ripple uses explicit buffered rendering for consumers that require all UI; streaming always sends a shell. Request abort and core lifetime cleanup are independently tested.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "203": {
+          "status": "inapplicable",
+          "reason": "Solid-specific bot readiness/pipeTo choreography. Ripple uses explicit buffered rendering for consumers that require all UI; streaming always sends a shell. Request abort and core lifetime cleanup are independently tested.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "245": {
+          "status": "inapplicable",
+          "reason": "Solid-specific bot readiness/pipeTo choreography. Ripple uses explicit buffered rendering for consumers that require all UI; streaming always sends a shell. Request abort and core lifetime cleanup are independently tested.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "287": {
+          "status": "inapplicable",
+          "reason": "Mocked Solid pipeTo/writable rejection mechanics do not exist in Ripple. Fatal producer errors, unread-response cleanup, request cancellation and late-result suppression are tested using Ripple sinks.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "335": {
+          "status": "inapplicable",
+          "reason": "Mocked Solid pipeTo/writable rejection mechanics do not exist in Ripple. Fatal producer errors, unread-response cleanup, request cancellation and late-result suppression are tested using Ripple sinks.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "362": {
+          "status": "ported",
+          "reason": "Translated abort-before-setup, attached-stream cancellation and reentrant setup abort to the real Ripple renderer and request signal.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "406": {
+          "status": "ported",
+          "reason": "Translated abort-before-setup, attached-stream cancellation and reentrant setup abort to the real Ripple renderer and request signal.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/route.test-d.tsx",
@@ -3679,7 +3801,13 @@
           "modifiers": ["runIf"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "17": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/router.test-d.tsx",
@@ -4210,7 +4338,23 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "7": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/Await.test.tsrx"]
+        },
+        "35": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/Await.test.tsrx"]
+        },
+        "52": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/Await.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/ClientOnly.test.tsx",
@@ -4229,7 +4373,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "42": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/ClientOnly.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/HeadContent.test.tsx",
@@ -4253,7 +4403,18 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "49": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/HeadContent.test.tsrx"]
+        },
+        "56": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/HeadContent.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/Transitioner.test.tsx",
@@ -4272,7 +4433,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "12": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/Transitioner.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/doctype.test.tsx",
@@ -4291,7 +4458,13 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "34": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/errorComponent.test.tsx",
@@ -4325,7 +4498,28 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "31": {
+          "status": "ported",
+          "reason": "Preserves error values, request cleanup, lazy boundaries and visible error recovery. Ripple preserves arbitrary thrown values; effects do not run on the server. A late failure whose ancestor is already streamed uses a Ripple error envelope and is asserted through real hydration instead of Solid-specific output bytes.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "72": {
+          "status": "ported",
+          "reason": "Preserves error values, request cleanup, lazy boundaries and visible error recovery. Ripple preserves arbitrary thrown values; effects do not run on the server. A late failure whose ancestor is already streamed uses a Ripple error envelope and is asserted through real hydration instead of Solid-specific output bytes.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "147": {
+          "status": "ported",
+          "reason": "Preserves error values, request cleanup, lazy boundaries and visible error recovery. Ripple preserves arbitrary thrown values; effects do not run on the server. A late failure whose ancestor is already streamed uses a Ripple error envelope and is asserted through real hydration instead of Solid-specific output bytes.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        },
+        "185": {
+          "status": "ported",
+          "reason": "Preserves error values, request cleanup, lazy boundaries and visible error recovery. Ripple preserves arbitrary thrown values; effects do not run on the server. A late failure whose ancestor is already streamed uses a Ripple error envelope and is asserted through real hydration instead of Solid-specific output bytes.",
+          "rippleTests": ["tests/client/ssr-hydration.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/lazyRouteComponent.test.tsx",
@@ -4359,7 +4553,28 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "11": {
+          "status": "inapplicable",
+          "reason": "Solid silently renders missing lazy exports as blank in production. Ripple intentionally reports the error, matching its client contract; preload reuse, retry, context and props are ported separately.",
+          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        },
+        "69": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/lazyRouteComponent.test.tsrx"]
+        },
+        "91": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/lazyRouteComponent.test.tsrx"]
+        },
+        "114": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/lazyRouteComponent.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/link-href-safety.test.tsx",
@@ -4378,7 +4593,13 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "14": {
+          "status": "ported",
+          "reason": "SSR scenarios and assertions retained with native symbol-keyed refs and normalized CSS whitespace. Disabled Ripple links omit href for every destination, including direct schemes, consistently with the established client contract.",
+          "rippleTests": ["tests/server/upstream/link-href-safety.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/link-path-matching.test.tsx",
@@ -4397,7 +4618,13 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "13": {
+          "status": "ported",
+          "reason": "SSR scenarios and assertions retained with native symbol-keyed refs and normalized CSS whitespace. Disabled Ripple links omit href for every destination, including direct schemes, consistently with the established client contract.",
+          "rippleTests": ["tests/server/upstream/link-path-matching.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/link-style.test.tsx",
@@ -4416,7 +4643,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "16": {
+          "status": "ported",
+          "reason": "SSR scenarios and assertions retained with native symbol-keyed refs and normalized CSS whitespace. Disabled Ripple links omit href for every destination, including direct schemes, consistently with the established client contract.",
+          "rippleTests": ["tests/server/upstream/link-style.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/link.test.tsx",
@@ -4440,7 +4673,18 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "14": {
+          "status": "ported",
+          "reason": "SSR scenarios and assertions retained with native symbol-keyed refs and normalized CSS whitespace. Disabled Ripple links omit href for every destination, including direct schemes, consistently with the established client contract.",
+          "rippleTests": ["tests/server/upstream/link.test.tsrx"]
+        },
+        "92": {
+          "status": "ported",
+          "reason": "SSR scenarios and assertions retained with native symbol-keyed refs and normalized CSS whitespace. Disabled Ripple links omit href for every destination, including direct schemes, consistently with the established client contract.",
+          "rippleTests": ["tests/server/upstream/link.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/renderRouterToStream.test.tsx",
@@ -4459,7 +4703,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "7": {
+          "status": "inapplicable",
+          "reason": "This tests Solid bot readiness. Ripple chooses buffered versus streaming explicitly rather than inspecting User-Agent. Core lifetime cancellation of a real unresolved Ripple renderer is tested independently.",
+          "rippleTests": ["tests/server/ssr.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/renderRouterToString.test.tsx",
@@ -4478,7 +4728,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "10": {
+          "status": "inapplicable",
+          "reason": "Solid synchronous renderToString retains a Suspense fallback while serialization finishes. Ripple buffered rendering waits for component settlement; its early shell is provided by renderRouterToStream.",
+          "rippleTests": ["tests/server/ssr.test.tsrx", "tests/client/ssr-hydration.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/server/renderToStreamRecords.test.tsx",
@@ -4497,7 +4753,13 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "6": {
+          "status": "ported",
+          "reason": "Scenario and assertions translated to Ripple SSR, explicit tracked reads, and real hydration/disposal.",
+          "rippleTests": ["tests/server/upstream/stream-records.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/setupTests.tsx",

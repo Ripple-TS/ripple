@@ -72,3 +72,5 @@ export type {
 	ValidatorFn,
 	ValidatorObj,
 } from '@tanstack/router-core';
+
+export * from './assets.js';

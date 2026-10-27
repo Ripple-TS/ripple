@@ -55,3 +55,5 @@ export { Navigate, MatchRoute, Await, useAwaited } from './navigation.tsrx';
 export { useBlocker } from './blocker.js';
 export { Block } from './Block.tsrx';
 export { useElementScrollRestoration } from './scroll.js';
+
+export { HeadContent, Scripts, Asset, ClientOnly, useHydrated } from './Assets.tsrx';
