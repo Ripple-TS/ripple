@@ -1140,3 +1140,24 @@ export function ShadowedTextCalls() {
 		});
 	});
 }
+
+export function MultilineText() {
+	return _$_.tsrx_element(() => {
+		const command = _$_.track('build', '85dagf');
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<p>Run the <code>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(command.value);
+			}
+
+			__out += '</code> script before <a href="/docs">reading the docs</a> again.</p><button>Change command</button>';
+			_$_.output_push(__out);
+		});
+	});
+}

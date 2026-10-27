@@ -1230,6 +1230,43 @@ function ShadowedTextCalls_render(__anchor, __block) {
 
 ShadowedTextCalls[_$_.$r] = ShadowedTextCalls_render;
 
+var root_87 = _$_.template(`<p>Run the <code> </code> script before <a href=/docs>reading the docs</a> again.</p><button>Change command`, 1, 2);
+var root_86 = _$_.template(`<!>`, 1, 1);
+
+function MultilineText_render(__anchor, __block) {
+	const command = _$_.track('build', __block, '85dagf');
+	var fragment_36 = root_86();
+	var node_28 = _$_.first_child_frag(fragment_36);
+
+	_$_.expression(node_28, () => _$_.tsrx_element((__anchor, __block) => {
+		var fragment_37 = root_87();
+		var p_5 = _$_.first_child_frag(fragment_37);
+
+		{
+			var text_6 = _$_.hydrating ? _$_.hydrate_child() : p_5.firstChild;
+			var code = _$_.hydrating ? _$_.hydrate_sibling() : text_6.nextSibling;
+
+			{
+				var expression_37 = _$_.hydrating ? _$_.hydrate_child() : code.firstChild;
+
+				_$_.expression(expression_37, () => command.value);
+				_$_.hydrating && _$_.pop(code);
+			}
+		}
+
+		_$_.hydrating && _$_.pop(p_5);
+
+		var button_3 = _$_.hydrating ? _$_.hydrate_sibling() : p_5.nextSibling;
+
+		button_3.__click = () => command.value = 'test';
+		_$_.append(__anchor, fragment_37);
+	}));
+
+	_$_.append(__anchor, fragment_36);
+}
+
+MultilineText[_$_.$r] = MultilineText_render;
+
 import { track } from 'ripple';
 
 export function StaticText() {
@@ -1442,6 +1479,10 @@ export function PrimitiveTextCalls() {
 
 export function ShadowedTextCalls() {
 	return _$_.tsrx_element(ShadowedTextCalls_render);
+}
+
+export function MultilineText() {
+	return _$_.tsrx_element(MultilineText_render);
 }
 
 _$_.delegate(['click']);

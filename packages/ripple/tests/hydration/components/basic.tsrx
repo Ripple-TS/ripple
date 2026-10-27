@@ -405,3 +405,15 @@ export function ShadowedTextCalls() @{
 		<p>before{Date()}after</p>
 	</>
 }
+
+export function MultilineText() @{
+	const command = track('build');
+	// prettier-ignore
+	<>
+		<p>
+			Run the <code>{command.value}</code> script
+			before <a href="/docs">reading the docs</a> again.
+		</p>
+		<button onClick={() => (command.value = 'test')}>Change command</button>
+	</>
+}

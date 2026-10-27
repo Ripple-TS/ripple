@@ -75,13 +75,14 @@ describe('basic client', () => {
 					first
 second
 				</pre>
+				<pre>{'first\nsecond'}</pre>
 			</>
 		}
 
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml(
-			'<div>Rock &amp; "Roll"</div><div>line break</div><pre>first\nsecond</pre>',
+			'<div>Rock &amp; "Roll"</div><div>line break</div><pre>first second</pre><pre>first\nsecond</pre>',
 		);
 	});
 

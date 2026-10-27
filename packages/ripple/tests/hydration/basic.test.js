@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flushSync, hydrate } from 'ripple';
+import { flushSync, hydrate, mount } from 'ripple';
 import { render } from 'ripple/server';
 import { hydrateComponent, container } from '../setup-hydration.js';
 
@@ -9,6 +9,36 @@ import * as ServerComponents from './compiled/server/basic.js';
 import * as ClientComponents from './compiled/client/basic.js';
 
 describe('hydration > basic', () => {
+	it.each(['mount', 'hydrate'])(
+		'preserves multiline text around inline elements (%s)',
+		async (mode) => {
+			const expected =
+				'<p>Run the <code>build</code> script before <a href="/docs">reading the docs</a> again.</p>';
+			let paragraph;
+			if (mode === 'hydrate') {
+				const { body } = await render(ServerComponents.MultilineText);
+				expect(body).toBeHtml(expected + '<button>Change command</button>');
+				container.innerHTML = body;
+				paragraph = container.querySelector('p');
+			}
+
+			const unmount = (mode === 'hydrate' ? hydrate : mount)(ClientComponents.MultilineText, {
+				target: container,
+			});
+			try {
+				expect(container.querySelector('p').outerHTML).toBeHtml(expected);
+				if (mode === 'hydrate') expect(container.querySelector('p')).toBe(paragraph);
+				container.querySelector('button').click();
+				flushSync();
+				expect(container.querySelector('p').textContent).toBe(
+					'Run the test script before reading the docs again.',
+				);
+			} finally {
+				unmount();
+			}
+		},
+	);
+
 	it('hydrates static text content', async () => {
 		await hydrateComponent(ServerComponents.StaticText, ClientComponents.StaticText);
 		expect(container.innerHTML).toBeHtml('<div>Hello World</div>');

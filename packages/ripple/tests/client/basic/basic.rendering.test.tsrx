@@ -69,6 +69,7 @@ describe('basic client > rendering & text', () => {
 					first
 second
 				</pre>
+				<pre class="explicit-newline">{'first\nsecond'}</pre>
 			</>
 		}
 
@@ -76,7 +77,8 @@ second
 
 		expect(container.querySelector('.entities').textContent).toBe('Rock & "Roll"');
 		expect(container.querySelector('.backslash').textContent).toBe('line break');
-		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
+		expect(container.querySelector('.multiline').textContent).toBe('first second');
+		expect(container.querySelector('.explicit-newline').textContent).toBe('first\nsecond');
 	});
 
 	it('does not render JavaScript statements outside returned component templates', () => {

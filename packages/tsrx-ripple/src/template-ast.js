@@ -66,9 +66,9 @@ function decode_jsx_text_entities(value) {
 
 /**
  * The rendered text value of a `JSXText` template child. The whitespace
- * collapse is a runtime-only concern: Ripple lowers text to explicit
- * `_$_.text(...)` calls, so insignificant JSX whitespace (runs containing a
- * newline) is trimmed or it would render as literal text. The type-only
+ * collapse is a runtime-only concern: trim indentation around each line break,
+ * drop empty lines, and join the remaining lines with a space. Keep leading
+ * whitespace on the first line and trailing whitespace on the last. The type-only
  * (`to_ts`) view keeps text verbatim — like the other targets — so it stays
  * faithful to the source and its location; trimming there would leave the node
  * lying about its size, producing a mismatched-length source mapping.
@@ -77,9 +77,19 @@ function decode_jsx_text_entities(value) {
  * @returns {string}
  */
 export function get_template_text_value(node, to_ts) {
-	const value = node.value;
-	const normalized = to_ts ? value : /[\r\n]/.test(value) ? value.trim() : value;
-	return decode_jsx_text_entities(normalized);
+	let value = node.value;
+	if (!to_ts && /[\r\n]/.test(value)) {
+		const lines = value.split(/\r\n?|\n/);
+		value = lines
+			.map((line, i) => {
+				if (i > 0) line = line.trimStart();
+				if (i < lines.length - 1) line = line.trimEnd();
+				return line;
+			})
+			.filter((line) => line !== '')
+			.join(' ');
+	}
+	return decode_jsx_text_entities(value);
 }
 
 /**
