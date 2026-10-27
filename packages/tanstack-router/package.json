@@ -1,6 +1,6 @@
 {
   "name": "@ripple-ts/tanstack-router",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Native TanStack Router integration for Ripple",
   "type": "module",
   "license": "MIT",

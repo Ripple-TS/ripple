@@ -1,5 +1,19 @@
 # @ripple-ts/tanstack-router
 
+## 0.0.4
+
+### Patch Changes
+
+- [#1602](https://github.com/Ripple-TS/ripple/pull/1602)
+  [`bda0c92`](https://github.com/Ripple-TS/ripple/commit/bda0c92d6795c4aee2f48be08aad2844742b9484)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Route managed script content
+  and URLs through the application's Trusted Types policy. Document and test
+  Trusted Types navigation, static hash policies, reviewed third-party script
+  lifecycles and a separate Vite development/HMR policy.
+- Updated dependencies
+  [[`bda0c92`](https://github.com/Ripple-TS/ripple/commit/bda0c92d6795c4aee2f48be08aad2844742b9484)]:
+  - ripple@0.5.6
+
 ## 0.0.3
 
 ### Patch Changes

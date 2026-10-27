@@ -1,5 +1,19 @@
 # @tsrx/ripple
 
+## 0.2.7
+
+### Patch Changes
+
+- [#1602](https://github.com/Ripple-TS/ripple/pull/1602)
+  [`bda0c92`](https://github.com/Ripple-TS/ripple/commit/bda0c92d6795c4aee2f48be08aad2844742b9484)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add an explicit
+  application-owned Trusted Types policy contract for compiler templates, HTML
+  bindings, script sinks and streamed rich-text snapshots. Preserve native trusted
+  values, including SVG/MathML fragments, without creating a default policy.
+
+  Add `getCspHashes()` for final inline script and style contents in prerendered
+  documents, with runnable CSP examples and browser enforcement coverage.
+
 ## 0.2.6
 
 ### Patch Changes
