@@ -1,5 +1,12 @@
 # create-ripple
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/cli@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes

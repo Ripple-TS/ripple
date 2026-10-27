@@ -1,5 +1,18 @@
 # @ripple-ts/vite-plugin
 
+## 0.5.4
+
+### Patch Changes
+
+- [#1595](https://github.com/Ripple-TS/ripple/pull/1595)
+  [`bbdc031`](https://github.com/Ripple-TS/ripple/commit/bbdc031061e7eed8d6cd9a00bdd25f14cf85e071)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Compile installed TSRX source
+  dependencies when Vite appends a cache version query. Keep compiler filenames,
+  source maps, and scoped CSS identity stable across query changes, and leave
+  raw/URL imports to Vite's resource handling.
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes
