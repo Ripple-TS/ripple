@@ -1,5 +1,17 @@
 # @tsrx/ripple
 
+## 0.2.8
+
+### Patch Changes
+
+- [#1608](https://github.com/Ripple-TS/ripple/pull/1608)
+  [`80adae8`](https://github.com/Ripple-TS/ripple/commit/80adae897ac9a74b75e96746ed1cea360a5d6028)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Normalize multiline template
+  text per line using JSX whitespace rules, preserving spaces beside inline
+  elements and collapsing line breaks and indentation to a single space. Use
+  expression strings to preserve literal newlines, including inside `<pre>`
+  elements.
+
 ## 0.2.7
 
 ### Patch Changes
