@@ -32,7 +32,9 @@ export async function securityScenarios({ scenario, origin, ready, navigate, hea
 					'Template content',
 				);
 				assert.equal(await page.evaluate(() => window.exampleInlineRuns), 1);
-				await page.waitForFunction(() => window.compiledScriptLoads === 1);
+				await page.waitForFunction(
+					() => window.compiledScriptLoads === 1 && window.staticScriptLoads === 1,
+				);
 				await page.getByRole('button', { name: 'Update HTML' }).click();
 				for (const target of ['[data-html]', '[data-fragment]', '[data-spread]']) {
 					await page.locator(`${target} i`).waitFor();
@@ -135,6 +137,22 @@ if (window.trustedTypes) {
 				}),
 				true,
 			);
+			assert.equal(
+				await page.evaluate(() => {
+					try {
+						window.__RIPPLE_TRUSTED_TYPES__.createScriptURL(
+							'/app/security/static-compiled.js',
+							'script',
+						);
+						return false;
+					} catch {
+						return true;
+					}
+				}),
+				true,
+				'compiler-only URLs must not be approved as application input',
+			);
+
 			await page.evaluate(() => {
 				window.cspViolations = [];
 			});

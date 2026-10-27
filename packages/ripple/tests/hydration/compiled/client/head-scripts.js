@@ -116,7 +116,7 @@ function SpreadAttributes_render(__anchor, __block, { attrs }) {
 
 SpreadAttributes[_$_.$r] = SpreadAttributes_render;
 
-var root_5 = _$_.template(`<script type=application/json id=empty-head-data></script><script type=module id=external-script async nonce=static-nonce></script>`, 1, 2);
+var root_5 = _$_.template(`<script type=application/json id=empty-head-data></script><script type=module src=/example.js id=external-script async nonce=static-nonce></script>`, 1, 2);
 
 function EmptyScripts_render(__anchor, __block) {
 	_$_.head('db555c34', (__anchor) => {
@@ -125,14 +125,13 @@ function EmptyScripts_render(__anchor, __block) {
 		var script_5 = _$_.hydrating ? _$_.hydrate_sibling() : script_6.nextSibling;
 
 		script_5 = _$_.script(script_5);
-		_$_.set_attribute(script_5, 'src', "/example.js");
 		_$_.append(__anchor, fragment_2);
 	});
 }
 
 EmptyScripts[_$_.$r] = EmptyScripts_render;
 
-var root_6 = _$_.template(`<script id=first-external-script></script><script id=second-external-script></script>`, 1, 2);
+var root_6 = _$_.template(`<script src=/slow-first.js id=first-external-script></script><script src=/fast-second.js id=second-external-script></script>`, 1, 2);
 
 function OrderedExternalScripts_render(__anchor, __block) {
 	_$_.head('91dd818a', (__anchor) => {
@@ -140,19 +139,17 @@ function OrderedExternalScripts_render(__anchor, __block) {
 		var script_7 = _$_.first_child_frag(fragment_3);
 
 		script_7 = _$_.script(script_7);
-		_$_.set_attribute(script_7, 'src', "/slow-first.js");
 
 		var script_8 = _$_.hydrating ? _$_.hydrate_sibling() : script_7.nextSibling;
 
 		script_8 = _$_.script(script_8);
-		_$_.set_attribute(script_8, 'src', "/fast-second.js");
 		_$_.append(__anchor, fragment_3);
 	});
 }
 
 OrderedExternalScripts[_$_.$r] = OrderedExternalScripts_render;
 
-var root_7 = _$_.template(`<script id=first-external-script async></script><script id=second-external-script async></script>`, 1, 2);
+var root_7 = _$_.template(`<script src=/slow-first.js id=first-external-script async></script><script src=/fast-second.js id=second-external-script async></script>`, 1, 2);
 
 function AsyncExternalScripts_render(__anchor, __block) {
 	_$_.head('99a50d6c', (__anchor) => {
@@ -160,12 +157,10 @@ function AsyncExternalScripts_render(__anchor, __block) {
 		var script_9 = _$_.first_child_frag(fragment_4);
 
 		script_9 = _$_.script(script_9);
-		_$_.set_attribute(script_9, 'src', "/slow-first.js");
 
 		var script_10 = _$_.hydrating ? _$_.hydrate_sibling() : script_9.nextSibling;
 
 		script_10 = _$_.script(script_10);
-		_$_.set_attribute(script_10, 'src', "/fast-second.js");
 		_$_.append(__anchor, fragment_4);
 	});
 }

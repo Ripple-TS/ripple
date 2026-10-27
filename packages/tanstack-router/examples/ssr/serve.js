@@ -27,10 +27,17 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
 			if (!res.writableFinished) controller.abort();
 		});
 		try {
-			if (url.pathname === '/app/security/compiled.js') {
+			if (
+				url.pathname === '/app/security/compiled.js' ||
+				url.pathname === '/app/security/static-compiled.js'
+			) {
 				res
 					.writeHead(200, { 'Content-Type': 'text/javascript' })
-					.end('window.compiledScriptLoads = (window.compiledScriptLoads || 0) + 1;');
+					.end(
+						url.pathname.endsWith('/static-compiled.js')
+							? 'window.staticScriptLoads = (window.staticScriptLoads || 0) + 1;'
+							: 'window.compiledScriptLoads = (window.compiledScriptLoads || 0) + 1;',
+					);
 				return;
 			}
 			if (url.pathname === '/app/security/vendor.js') {

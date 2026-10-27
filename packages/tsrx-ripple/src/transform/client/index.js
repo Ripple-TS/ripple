@@ -4082,21 +4082,24 @@ const visitors = {
 							element_name === 'script' &&
 							state.namespace === 'html' &&
 							name === 'src' &&
+							attr_value !== null &&
+							attr_value.type !== 'Literal' &&
 							!is_spreading
 						) {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
-							const expression =
-								attr_value === null
-									? b.literal('')
-									: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
+							// Literal URLs stay in the trusted compiler template.
+							// Only application expressions use the dynamic script sink.
+							const expression = /** @type {AST.Expression} */ (
+								visit(attr_value, { ...state, metadata })
+							);
 							const write = (/** @type {AST.Expression | undefined} */ value) =>
 								b.stmt(b.call('_$_.set_attribute', id, b.literal('src'), value));
 							if (metadata.tracking)
 								local_updates.push({
 									operation: write,
 									expression,
-									identity: attr_value ?? b.literal(''),
+									identity: attr_value,
 									initial: b.void0,
 								});
 							else state.init?.push(write(expression));

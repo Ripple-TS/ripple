@@ -16,6 +16,7 @@ function Details() @{
 		<head>
 			<script innerHTML={inlineScript} />
 			<script id="compiled-external" src={scriptSource.value} />
+			<script id="static-compiled-external" src="/app/security/static-compiled.js" />
 		</head>
 		<button onClick={() => (html.value = approvedHTML('<i>Updated HTML</i>'))}>Update HTML</button>
 		<button onClick={() => (html.value = '<b>Unapproved HTML</b>')}>Try unapproved HTML</button>

@@ -27,11 +27,12 @@ export function installPolicy(inline, html) {
 				return value;
 			throw new TypeError('Script is not in the example allowlist');
 		},
-		createScriptURL(value) {
+		createScriptURL(value, sink) {
 			const url = new URL(value, location.href);
 			if (
 				url.origin === location.origin &&
-				['/app/security/vendor.js', '/app/security/compiled.js'].includes(url.pathname) &&
+				(['/app/security/vendor.js', '/app/security/compiled.js'].includes(url.pathname) ||
+					(sink === 'template' && url.pathname === '/app/security/static-compiled.js')) &&
 				!url.search &&
 				!url.hash
 			)

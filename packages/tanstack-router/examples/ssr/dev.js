@@ -14,13 +14,19 @@ export async function startDevServer(port = Number(process.env.PORT ?? 3001), pl
 	});
 	server.on('request', async (req, res) => {
 		const path = req.url?.split('?')[0];
-		if (path === '/app/security/vendor.js' || path === '/app/security/compiled.js') {
+		if (
+			path === '/app/security/vendor.js' ||
+			path === '/app/security/compiled.js' ||
+			path === '/app/security/static-compiled.js'
+		) {
 			res
 				.writeHead(200, { 'Content-Type': 'text/javascript' })
 				.end(
 					path.endsWith('/vendor.js')
 						? vendorScript
-						: 'window.compiledScriptLoads = (window.compiledScriptLoads || 0) + 1;',
+						: path.endsWith('/static-compiled.js')
+							? 'window.staticScriptLoads = (window.staticScriptLoads || 0) + 1;'
+							: 'window.compiledScriptLoads = (window.compiledScriptLoads || 0) + 1;',
 				);
 			return;
 		}
