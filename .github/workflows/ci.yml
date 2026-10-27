@@ -131,6 +131,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Check release workflow helpers
+        run: node --test scripts/prepare-changesets-action.test.js
+
       - name: Disallow major bumps in changesets
         run: node scripts/check-changesets.js
 

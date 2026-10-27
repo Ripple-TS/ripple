@@ -40,7 +40,14 @@ jobs:
       - name: Disallow major bumps in changesets
         run: pnpm changeset:check
 
+      - name: Check for releasable version bumps
+        id: release-plan
+        run: |
+          pnpm exec changeset status --output "$RUNNER_TEMP/release-plan.json"
+          node scripts/prepare-changesets-action.js release-plan "$RUNNER_TEMP/release-plan.json"
+
       - name: Create or update release pull request
+        if: steps.release-plan.outputs.has-releases == 'true'
         id: changesets
         # v2 pairs with @changesets/cli 3 (see publish.yml); the v1 inputs
         # `version`, `commit`, and `title` were renamed.
