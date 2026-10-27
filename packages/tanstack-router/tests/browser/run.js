@@ -21,6 +21,7 @@ const reportDir = fileURLToPath(new URL('../../dist/browser/', import.meta.url))
 await mkdir(reportDir, { recursive: true });
 
 async function ready(page) {
+	await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
 	await page.evaluate(async (entry) => {
 		window.app = await import(entry);
 	}, entry);
@@ -103,6 +104,7 @@ try {
 					route.fulfill({ contentType: 'text/html', body: html }),
 				);
 				await page.goto(`${devOrigin}/app/posts/one?page=1`);
+				await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
 				await page.evaluate(async () => {
 					window.app = await import('/app/client.js');
 				});
@@ -208,6 +210,37 @@ try {
 			});
 		}
 		try {
+			for (const [mode, path] of [
+				['buffered', '/posts/one?page=1'],
+				['streamed', '/stream?stream=1'],
+			]) {
+				await scenario(
+					`${mode} document scripts bootstrap without harness imports`,
+					async (page) => {
+						let documents = 0;
+						page.on('request', (request) => {
+							if (request.isNavigationRequest() && request.frame() === page.mainFrame())
+								documents++;
+						});
+						const response = await page.goto(`${origin}/app${path}`);
+						assert.equal(response.status(), 200);
+						assert(
+							(await response.text()).includes(`type="module" src="${entry}"`),
+							'SSR emits an executable module entry',
+						);
+						await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
+						await page.getByRole('link', { name: 'Editor', exact: true }).click();
+						await heading(page, 'Editor');
+						await page.getByRole('button', { name: 'Make changes' }).click();
+						await page.getByText('Unsaved changes', { exact: true }).waitFor();
+						assert.equal(
+							documents,
+							1,
+							'document-loaded scripts hydrate and navigate without a reload',
+						);
+					},
+				);
+			}
 			await scenario(
 				'direct entry, hydration, reload, typed updates and retained layout',
 				async (page) => {

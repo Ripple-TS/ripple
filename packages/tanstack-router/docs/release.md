@@ -40,7 +40,7 @@ hydrates and navigates through that development graph.
 
 | Contract              | Checks                                                                                                                                                                                                                                       |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SSR and hydration     | Direct parameter/search entry, reload, retained server DOM, no browser loader refetch, title updates, streamed deferred data and subsequent navigation                                                                                       |
+| SSR and hydration     | Document-driven bootstrap without harness imports, direct parameter/search entry, reload, retained server DOM, no browser loader refetch, title updates, streamed deferred data and subsequent navigation                                    |
 | Native navigation     | Links, back/forward, modified-click new tab, preloading without duplicate requests, actual pending UI, error recovery, explicit lazy chunk                                                                                                   |
 | History and ownership | `/app/` base path, blocker stay/leave, window scroll restoration and hash targets after render, 20 retained-layout updates, 8 remounts with exactly one history subscriber and zero after disposal                                           |
 | View transitions      | Real Chromium old/new DOM around the native update callback, `ready` and `finished`, rendered navigation before animation completion, skipped and interrupted animation, CSS naming and reduced motion; disabled API fallback in all engines |
@@ -91,9 +91,9 @@ does not depend on optional milestone 7.
 
 ## Initial validation record
 
-On October 26, 2026, the clean tarball consumer passed all 24 checks on macOS with
+On October 26, 2026, the clean tarball consumer passed all 30 checks on macOS with
 Node 24 and Playwright 1.63.0: Chromium 153.0.8010.12, Firefox 155.0, and WebKit
-26.6. The complete example client JavaScript measured 51,321 bytes gzip across
+26.6. The complete example client JavaScript measured 51,344 bytes gzip across
 three chunks (80,000-byte budget), with one Ripple runtime. The example's
 `tsrx-tsc` checks and production client/server builds passed. CI repeats the gate
 on Linux and publishes its own report; measurements may vary with tool/platform

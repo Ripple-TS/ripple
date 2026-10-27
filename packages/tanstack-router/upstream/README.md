@@ -149,7 +149,7 @@ consumer `tsconfig.json`, and builds both targets. It then runs
 `tests/browser/run.js` against the production SSR example in Chromium, Firefox,
 and WebKit, plus a browser navigation through Vite's dependency optimizer.
 
-The 24 checks cover direct entry/reload, retained server DOM and loader state,
+The 30 checks cover direct entry/reload, retained server DOM and loader state,
 streaming hydration, params/search, nested layout state, lazy chunks, history,
 modified clicks, preloading, blockers, base paths, scroll restoration, repeated
 navigation/remount/disposal, and native transition snapshots/completion/fallback.
