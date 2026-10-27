@@ -7,7 +7,7 @@ function SimpleTemplateHtml_render(__anchor, __block) {
 	const data = 'test data';
 	var template = root();
 
-	template.innerHTML = data ?? template.innerHTML;
+	_$_.set_inner_html(template, data ?? template.innerHTML);
 	_$_.append(__anchor, template);
 }
 
@@ -19,7 +19,7 @@ function TemplateWithJSON_render(__anchor, __block) {
 	const jsonData = _$_.with_scope(__block, () => JSON.stringify({ message: 'hello', count: 42 }));
 	var template_1 = root_1();
 
-	template_1.innerHTML = jsonData ?? template_1.innerHTML;
+	_$_.set_inner_html(template_1, jsonData ?? template_1.innerHTML);
 	_$_.append(__anchor, template_1);
 }
 
@@ -46,7 +46,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 	{
 		var template_2 = _$_.hydrating ? _$_.hydrate_child() : div.firstChild;
 
-		template_2.innerHTML = "before" ?? template_2.innerHTML;
+		_$_.set_inner_html(template_2, "before" ?? template_2.innerHTML);
 
 		var node = _$_.hydrating ? _$_.hydrate_sibling() : template_2.nextSibling;
 
@@ -54,7 +54,7 @@ function TemplateAroundIfBlock_render(__anchor, __block) {
 
 		var template_3 = _$_.hydrating ? _$_.hydrate_sibling() : node;
 
-		template_3.innerHTML = "after" ?? template_3.innerHTML;
+		_$_.set_inner_html(template_3, "after" ?? template_3.innerHTML);
 		_$_.hydrating && _$_.pop(div);
 	}
 

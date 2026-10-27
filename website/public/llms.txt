@@ -799,9 +799,26 @@ attributes or inline event handlers. `mount`/`hydrate` never blanket-authorize
 application HTML. Cached HTML and its CSP header must remain paired; do not reuse
 a response nonce across requests or hard-code one into a static build.
 `prerender` emits no executable renderer scripts and accepts no nonce option.
-Trusted Types, hash-based static CSP and development/HMR policies are separate
-contracts. See the TanStack Router package's `docs/ssr.md` for a complete server
-example and browser validation.
+Additional CSP contracts are documented in `website/docs/guide/content-security-policy.md`:
+- `ripple/csp` exports `setTrustedTypesPolicy` and `createTrustedHTML`,
+  `createTrustedScript`, `createTrustedScriptURL`. Policies are application-owned;
+  Ripple never creates a default policy. Native trusted values are preserved.
+  Callbacks distinguish compiler templates, application HTML, rich-text snapshots
+  and router scripts. Reject or sanitize application input. Configure before
+  hydration; pre-hydration streamed rich-text snapshots need a blocking bootstrap.
+- `getCspHashes({ scripts, styles })` from `ripple/server` returns quoted SHA-256
+  tokens for final inline contents (without tags), normalizing HTML line endings
+  and NULs. Use after `prerender` and all transforms; publish/cache HTML and its
+  header together. Static hashes do not support live streaming with unknown late
+  patches. Inert deferred data may be included after prerender settles it.
+- Third-party scripts require reviewed URLs/content and explicit cleanup. Under
+  `strict-dynamic`, trusted loaders can authorize descendants; arbitrary HTML is
+  never automatically nonced. Each vendor owns its own sink/lifecycle behavior.
+- The runnable Vite development policy uses per-response nonce substitution,
+  nonce metadata for CSS HMR, an explicit WebSocket origin, and disables the error
+  overlay. Development plus Trusted Types is not covered. Browser enforcement
+  tests cover Chromium, Firefox and WebKit, probing native Trusted Types support.
+See the TanStack Router package's `examples/ssr` and `docs/ssr.md`.
 
 ### Streaming SSR
 

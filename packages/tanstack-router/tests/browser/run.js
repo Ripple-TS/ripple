@@ -7,6 +7,7 @@ import { gzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import { chromium, firefox, webkit } from 'playwright';
 import { cspScenarios } from './csp.js';
+import { securityScenarios, developmentScenario } from './security.js';
 
 const root = await realpath(
 	process.argv[2]
@@ -78,7 +79,7 @@ try {
 
 	await test(
 		'installed dependency optimizer serves working TSRX navigation',
-		{ timeout: 45_000 },
+		{ timeout: 45_000, skip: process.env.CSP_ONLY === '1' },
 		async () => {
 			const require = createRequire(resolve(root, 'package.json'));
 			const { createServer } = await import(pathToFileURL(require.resolve('vite')).href);
@@ -223,6 +224,9 @@ try {
 			});
 		}
 		try {
+			await securityScenarios({ scenario, origin, ready, navigate, heading });
+			await developmentScenario({ scenario, root });
+			if (process.env.CSP_ONLY) continue;
 			await cspScenarios({ scenario, origin, entry, ready, navigate, heading });
 			for (const [mode, path] of [
 				['buffered', '/posts/one?page=1'],

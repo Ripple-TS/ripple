@@ -29,3 +29,5 @@ export function handle(request, assets) {
 	});
 }
 import { randomBytes } from 'node:crypto';
+
+export { securityResponse, staticDocument, vendorScript } from './security-server.js';

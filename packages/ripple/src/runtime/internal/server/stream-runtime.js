@@ -151,7 +151,9 @@ function stream_runtime(
 			if (source !== current_html && source !== '') {
 				inert ??= doc.implementation.createHTMLDocument();
 				var original = inert.createElementNS(ancestor.namespaceURI, ancestor.localName);
-				original.innerHTML = source;
+				original.innerHTML = /** @type {string} */ (
+					window.__RIPPLE_TRUSTED_TYPES__?.createHTML?.(source, 'content-editable') ?? source
+				);
 				source = original.innerHTML;
 			}
 			var editor = ancestor;

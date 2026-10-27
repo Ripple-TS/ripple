@@ -7,7 +7,7 @@ function StaticHtml_render(__anchor, __block) {
 	const html = '<p><strong>Bold</strong> text</p>';
 	var div = root();
 
-	div.innerHTML = html ?? div.innerHTML;
+	_$_.set_inner_html(div, html ?? div.innerHTML);
 	_$_.append(__anchor, div);
 }
 
@@ -19,7 +19,7 @@ function DynamicHtml_render(__anchor, __block) {
 	const content = '<p>Dynamic <span>HTML</span> content</p>';
 	var div_1 = root_1();
 
-	div_1.innerHTML = content ?? div_1.innerHTML;
+	_$_.set_inner_html(div_1, content ?? div_1.innerHTML);
 	_$_.append(__anchor, div_1);
 }
 
@@ -31,7 +31,7 @@ function EmptyHtml_render(__anchor, __block) {
 	const html = '';
 	var div_2 = root_2();
 
-	div_2.innerHTML = html ?? div_2.innerHTML;
+	_$_.set_inner_html(div_2, html ?? div_2.innerHTML);
 	_$_.append(__anchor, div_2);
 }
 
@@ -43,7 +43,7 @@ function ComplexHtml_render(__anchor, __block) {
 	const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
 	var section = root_3();
 
-	section.innerHTML = html ?? section.innerHTML;
+	_$_.set_inner_html(section, html ?? section.innerHTML);
 	_$_.append(__anchor, section);
 }
 
@@ -125,7 +125,7 @@ function HtmlInChildren_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_7 = root_7();
 
-			div_7.innerHTML = content ?? div_7.innerHTML;
+			_$_.set_inner_html(div_7, content ?? div_7.innerHTML);
 			_$_.append(__anchor, div_7);
 		})
 	});
@@ -144,7 +144,7 @@ function HtmlInChildrenWithSiblings_render(__anchor, __block) {
 			var h1 = _$_.first_child_frag(fragment);
 			var div_8 = _$_.hydrating ? _$_.hydrate_sibling() : h1.nextSibling;
 
-			div_8.innerHTML = content ?? div_8.innerHTML;
+			_$_.set_inner_html(div_8, content ?? div_8.innerHTML);
 			_$_.append(__anchor, fragment);
 		})
 	});
@@ -188,7 +188,7 @@ function HtmlWithComments_render(__anchor, __block) {
 	const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
 	var div_10 = root_10();
 
-	div_10.innerHTML = content ?? div_10.innerHTML;
+	_$_.set_inner_html(div_10, content ?? div_10.innerHTML);
 	_$_.append(__anchor, div_10);
 }
 
@@ -200,7 +200,7 @@ function HtmlWithEmptyComment_render(__anchor, __block) {
 	const content = '<p>Before</p><!----><p>After</p>';
 	var div_11 = root_11();
 
-	div_11.innerHTML = content ?? div_11.innerHTML;
+	_$_.set_inner_html(div_11, content ?? div_11.innerHTML);
 	_$_.append(__anchor, div_11);
 }
 
@@ -215,7 +215,7 @@ function HtmlWithCommentsInChildren_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_12 = root_12();
 
-			div_12.innerHTML = content ?? div_12.innerHTML;
+			_$_.set_inner_html(div_12, content ?? div_12.innerHTML);
 			_$_.append(__anchor, div_12);
 		})
 	});
@@ -427,7 +427,7 @@ function HtmlWithServerData_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_18 = root_19();
 
-			div_18.innerHTML = content ?? div_18.innerHTML;
+			_$_.set_inner_html(div_18, content ?? div_18.innerHTML);
 			_$_.append(__anchor, div_18);
 		})
 	});
@@ -444,7 +444,7 @@ function HtmlWithClientDefaults_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_19 = root_20();
 
-			div_19.innerHTML = content ?? div_19.innerHTML;
+			_$_.set_inner_html(div_19, content ?? div_19.innerHTML);
 			_$_.append(__anchor, div_19);
 		})
 	});
@@ -461,7 +461,7 @@ function HtmlWithUndefinedContent_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_20 = root_21();
 
-			div_20.innerHTML = content ?? div_20.innerHTML;
+			_$_.set_inner_html(div_20, content ?? div_20.innerHTML);
 			_$_.append(__anchor, div_20);
 		})
 	});
@@ -531,7 +531,7 @@ function CodeBlock_render(__anchor, __block, { code }) {
 		var div_23 = _$_.hydrating ? _$_.hydrate_child() : div_21.firstChild;
 		var div_22 = _$_.hydrating ? _$_.hydrate_sibling() : div_23.nextSibling;
 
-		div_22.innerHTML = highlighted ?? div_22.innerHTML;
+		_$_.set_inner_html(div_22, highlighted ?? div_22.innerHTML);
 	}
 
 	_$_.append(__anchor, div_21);
@@ -1192,7 +1192,7 @@ function ArticleWithHtmlChildThenSibling_render(__anchor, __block) {
 			children: _$_.tsrx_element((__anchor, __block) => {
 				var div_41 = root_55();
 
-				div_41.innerHTML = htmlContent ?? div_41.innerHTML;
+				_$_.set_inner_html(div_41, htmlContent ?? div_41.innerHTML);
 				_$_.append(__anchor, div_41);
 			})
 		});
@@ -1271,7 +1271,7 @@ function InlineArticleWithHtmlChild_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_46 = root_59();
 
-			div_46.innerHTML = htmlContent ?? div_46.innerHTML;
+			_$_.set_inner_html(div_46, htmlContent ?? div_46.innerHTML);
 			_$_.append(__anchor, div_46);
 		})
 	});
@@ -1440,7 +1440,7 @@ function DocsLayoutWithData_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_54 = root_66();
 
-			div_54.innerHTML = htmlContent ?? div_54.innerHTML;
+			_$_.set_inner_html(div_54, htmlContent ?? div_54.innerHTML);
 			_$_.append(__anchor, div_54);
 		})
 	});
@@ -1457,7 +1457,7 @@ function DocsLayoutWithoutData_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_55 = root_67();
 
-			div_55.innerHTML = htmlContent ?? div_55.innerHTML;
+			_$_.set_inner_html(div_55, htmlContent ?? div_55.innerHTML);
 			_$_.append(__anchor, div_55);
 		})
 	});
@@ -1748,7 +1748,7 @@ function DocsLayoutExactWithData_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_64 = root_76();
 
-			div_64.innerHTML = htmlContent ?? div_64.innerHTML;
+			_$_.set_inner_html(div_64, htmlContent ?? div_64.innerHTML);
 			_$_.append(__anchor, div_64);
 		})
 	});
@@ -1773,7 +1773,7 @@ function DocsLayoutExactWithoutData_render(__anchor, __block) {
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_65 = root_77();
 
-			div_65.innerHTML = htmlContent ?? div_65.innerHTML;
+			_$_.set_inner_html(div_65, htmlContent ?? div_65.innerHTML);
 			_$_.append(__anchor, div_65);
 		})
 	});
@@ -1787,7 +1787,7 @@ function render_12(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
-		__prev._c.innerHTML = (__prev.a = __a) ?? __prev._c.innerHTML;
+		_$_.set_inner_html(__prev._c, (__prev.a = __a) ?? __prev._c.innerHTML);
 	}
 }
 
@@ -1811,7 +1811,7 @@ function render_13(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
-		__prev._c.innerHTML = (__prev.a = __a) ?? __prev._c.innerHTML;
+		_$_.set_inner_html(__prev._c, (__prev.a = __a) ?? __prev._c.innerHTML);
 	}
 }
 
@@ -1842,7 +1842,7 @@ function render_14(__prev) {
 	var __a = _$_.with_scope(__prev._a, () => JSON.stringify(__prev._b));
 
 	if (__prev.a !== __a) {
-		__prev._c.innerHTML = (__prev.a = __a) ?? __prev._c.innerHTML;
+		_$_.set_inner_html(__prev._c, (__prev.a = __a) ?? __prev._c.innerHTML);
 	}
 }
 
@@ -1879,7 +1879,7 @@ function render_15(__prev) {
 	var __a = __prev._a.html;
 
 	if (__prev.a !== __a) {
-		__prev._b.innerHTML = (__prev.a = __a) ?? __prev._b.innerHTML;
+		_$_.set_inner_html(__prev._b, (__prev.a = __a) ?? __prev._b.innerHTML);
 	}
 }
 
@@ -1917,7 +1917,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 		{
 			var code_1 = _$_.hydrating ? _$_.hydrate_child() : pre.firstChild;
 
-			code_1.innerHTML = html1 ?? code_1.innerHTML;
+			_$_.set_inner_html(code_1, html1 ?? code_1.innerHTML);
 		}
 
 		_$_.hydrating && _$_.pop(pre);
@@ -1928,7 +1928,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 		{
 			var code_2 = _$_.hydrating ? _$_.hydrate_child() : pre_1.firstChild;
 
-			code_2.innerHTML = html2 ?? code_2.innerHTML;
+			_$_.set_inner_html(code_2, html2 ?? code_2.innerHTML);
 		}
 
 		_$_.hydrating && _$_.pop(pre_1);
@@ -1939,7 +1939,7 @@ function HtmlCodeBlocksWithSiblingChain_render(__anchor, __block) {
 		{
 			var code_3 = _$_.hydrating ? _$_.hydrate_child() : pre_2.firstChild;
 
-			code_3.innerHTML = html3 ?? code_3.innerHTML;
+			_$_.set_inner_html(code_3, html3 ?? code_3.innerHTML);
 		}
 	}
 

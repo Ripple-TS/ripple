@@ -97,7 +97,7 @@ export { try_block as try, get_pending_boundary } from './try.js';
 
 export { if_block as switch } from './if.js';
 
-export { template, template_el, append, text } from './template.js';
+export { template, template_el, set_template_html, append, text } from './template.js';
 
 export { template_ns, with_ns, render_component_ns } from './template-ns.js';
 

@@ -3,12 +3,17 @@ import { readFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
-import { handle } from './dist/server/server.js';
+import { handle, securityResponse, vendorScript } from './dist/server/server.js';
 
 export async function startServer(port = Number(process.env.PORT ?? 3000)) {
 	const client = new URL('./dist/client/', import.meta.url);
 	const manifest = JSON.parse(await readFile(new URL('.vite/manifest.json', client), 'utf8'));
 	const entry = manifest['client.js'];
+	const securityEntry = manifest['security-client.js'];
+	const securityAssets = {
+		entry: `/app/${securityEntry.file}`,
+		css: (securityEntry.css ?? []).map((file) => `/app/${file}`),
+	};
 	const assets = {
 		preloads: [`/app/${entry.file}`],
 		scripts: [{ tag: 'script', attrs: { type: 'module', src: `/app/${entry.file}` } }],
@@ -22,6 +27,23 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
 			if (!res.writableFinished) controller.abort();
 		});
 		try {
+			if (url.pathname === '/app/security/compiled.js') {
+				res
+					.writeHead(200, { 'Content-Type': 'text/javascript' })
+					.end('window.compiledScriptLoads = (window.compiledScriptLoads || 0) + 1;');
+				return;
+			}
+			if (url.pathname === '/app/security/vendor.js') {
+				res.writeHead(200, { 'Content-Type': 'text/javascript' }).end(vendorScript);
+				return;
+			}
+			if (url.pathname === '/app/security/static') {
+				const headers = JSON.parse(await readFile(new URL('security-policy.json', client), 'utf8'));
+				res
+					.writeHead(200, { ...headers, 'Content-Type': 'text/html' })
+					.end(await readFile(new URL('security.html', client)));
+				return;
+			}
 			if (url.pathname.startsWith('/app/assets/')) {
 				// Serve only assets emitted in the build, without exposing source files.
 				const relative = url.pathname.slice('/app/'.length);
@@ -52,7 +74,11 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
 					);
 				return;
 			}
-			const response = await handle(new Request(url, { signal: controller.signal }), assets);
+			const request = new Request(url, { signal: controller.signal });
+			const response =
+				url.pathname === '/app/security/trusted-types'
+					? await securityResponse(request, securityAssets)
+					: await handle(request, assets);
 			res.writeHead(response.status, Object.fromEntries(response.headers));
 			if (response.body) await pipeline(Readable.fromWeb(response.body), res);
 			else res.end();

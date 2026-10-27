@@ -1,5 +1,6 @@
 import { hydrating } from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+import { createTrustedHTML, createTrustedScript } from '../../../csp.js';
 
 /** @type {WeakMap<Element, { source: string, html: string }> | undefined} */
 var defaults;
@@ -25,7 +26,7 @@ export function content_editable_changed(element) {
 		// a second time while normalizing a rich-text snapshot.
 		inert_document ??= element.ownerDocument.implementation.createHTMLDocument();
 		var template = inert_document.createElementNS(element.namespaceURI, element.localName);
-		template.innerHTML = source;
+		template.innerHTML = /** @type {string} */ (createTrustedHTML(source, 'content-editable'));
 		original = { source, html: template.innerHTML };
 		(defaults ??= new WeakMap()).set(element, original);
 	}
@@ -38,6 +39,13 @@ export function content_editable_changed(element) {
  */
 export function set_inner_html(element, value) {
 	if (HYDRATION && hydrating && content_editable_changed(element)) return;
-	var html = value == null ? '' : String(value);
-	if (element.innerHTML !== html) element.innerHTML = html;
+	var html = value ?? '';
+	if (element.innerHTML === String(html)) return;
+	if (element.localName === 'script' && element.namespaceURI === 'http://www.w3.org/1999/xhtml') {
+		/** @type {HTMLScriptElement} */ (element).text = /** @type {string} */ (
+			createTrustedScript(html)
+		);
+	} else {
+		element.innerHTML = /** @type {string} */ (createTrustedHTML(html));
+	}
 }

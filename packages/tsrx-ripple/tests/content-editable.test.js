@@ -24,13 +24,13 @@ describe('contenteditable hydration output', () => {
 		}
 	});
 
-	it('omits editable hydration guards from client-only components', () => {
+	it('keeps the Trusted Types sink without editable guards in client-only components', () => {
 		const { code } = compile(
 			'export function App({html}) { return <div contentEditable={true} innerHTML={html} />; }',
 			'test.tsrx',
 			{ hydration: false },
 		);
 		expect(code).not.toContain('content_editable');
-		expect(code).not.toContain('set_inner_html');
+		expect(code).toContain('set_inner_html');
 	});
 });

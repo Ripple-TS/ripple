@@ -22,7 +22,24 @@ scoped styles and lazy assets. `/app/csp?stream=1` exercises nested streamed
 boundaries and late scoped CSS. See the
 [SSR policy guide](../../docs/ssr.md#strict-content-security-policy) for
 application-owned directives, caching, and the separate treatment of inline style
-attributes. Development/HMR and Trusted Types are separate contracts.
+attributes. See the
+[CSP guide](https://ripple-ts.com/docs/guide/content-security-policy) for the
+additional contracts:
+
+- `/app/security/trusted-types` (also `?stream=1`): native Trusted Types with an
+  explicit policy, trusted HTML, SVG/MathML and script lifecycle controls.
+- `/app/security/static`: build-time prerendered HTML and its saved hash header.
+  The build verifies stable executable/style hashes; inert render IDs can vary.
+- `pnpm --filter @ripple-ts/router-ssr-example dev:csp`: separate Vite policy at
+  `http://127.0.0.1:3001/app/security/dev`, with nonce CSS, module HMR and a
+  specific WebSocket endpoint. The error overlay and Trusted Types are disabled
+  here.
+
+`security-policy.js` uses fixed example-owned allowlists. Replace them with your
+application's review/sanitization policy; do not authorize arbitrary strings.
+`security-vendor.js` demonstrates a fixed reviewed external script and cleanup.
+Live streaming with static hashes is unsupported. Keep the generated
+`dist/client/security.html` and `security-policy.json` together when deploying.
 
 `vite.config.js` builds the same `.tsrx` sources for the browser and server. The
 Node example server translates Vite's manifest to the router's `scripts` and `css`

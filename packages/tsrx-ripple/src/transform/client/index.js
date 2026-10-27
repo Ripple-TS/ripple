@@ -4056,56 +4056,50 @@ const visitors = {
 								continue;
 							}
 
-							const id = state.flush_node?.();
-							if (metadata.tracking) {
-								local_updates.push({
-									operation: (key) =>
-										b.stmt(
-											editable
-												? b.call(
-														'_$_.set_inner_html',
-														id,
-														normalize_inner_html_expression(
-															/** @type {AST.Expression} */ (key),
-															/** @type {AST.Identifier} */ (id),
-														),
-													)
-												: b.assignment(
-														'=',
-														b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-														normalize_inner_html_expression(
-															/** @type {AST.Expression} */ (key),
-															/** @type {AST.Identifier} */ (id),
-														),
-													),
-										),
-									expression,
-									identity: attr_value ?? b.literal(''),
-									initial: b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-								});
-							} else {
-								state.init?.push(
-									b.stmt(
-										editable
-											? b.call(
-													'_$_.set_inner_html',
-													id,
-													normalize_inner_html_expression(
-														expression,
-														/** @type {AST.Identifier} */ (id),
-													),
-												)
-											: b.assignment(
-													'=',
-													b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-													normalize_inner_html_expression(
-														expression,
-														/** @type {AST.Identifier} */ (id),
-													),
-												),
+							const id = /** @type {AST.Identifier} */ (state.flush_node?.());
+							const set_html = (/** @type {AST.Expression | undefined} */ value) =>
+								b.stmt(
+									b.call(
+										'_$_.set_inner_html',
+										id,
+										normalize_inner_html_expression(/** @type {AST.Expression} */ (value), id),
 									),
 								);
+							if (metadata.tracking) {
+								local_updates.push({
+									operation: set_html,
+									expression,
+									identity: attr_value ?? b.literal(''),
+									initial: b.member(id, 'innerHTML'),
+								});
+							} else {
+								state.init?.push(set_html(expression));
 							}
+							continue;
+						}
+
+						if (
+							element_name === 'script' &&
+							state.namespace === 'html' &&
+							name === 'src' &&
+							!is_spreading
+						) {
+							const id = state.flush_node?.();
+							const metadata = { tracking: false };
+							const expression =
+								attr_value === null
+									? b.literal('')
+									: /** @type {AST.Expression} */ (visit(attr_value, { ...state, metadata }));
+							const write = (/** @type {AST.Expression | undefined} */ value) =>
+								b.stmt(b.call('_$_.set_attribute', id, b.literal('src'), value));
+							if (metadata.tracking)
+								local_updates.push({
+									operation: write,
+									expression,
+									identity: attr_value ?? b.literal(''),
+									initial: b.void0,
+								});
+							else state.init?.push(write(expression));
 							continue;
 						}
 
@@ -7575,11 +7569,7 @@ function transform_template_element(node, state, visit, child_namespace) {
 	if (template_array.length > 0) {
 		const content_html = join_template(template_array);
 		const id = state.flush_node?.();
-		state.init?.push(
-			b.stmt(
-				b.assignment('=', b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'), content_html),
-			),
-		);
+		state.init?.push(b.stmt(b.call('_$_.set_template_html', id, content_html)));
 	}
 }
 

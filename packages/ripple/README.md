@@ -10,3 +10,7 @@
 
 Ripple is an elegant TypeScript UI framework. To find out more, view
 [Ripple's Github README](https://github.com/Ripple-TS/ripple).
+
+See the [CSP guide](https://ripple-ts.com/docs/guide/content-security-policy) for
+nonce rendering, the application-owned `ripple/csp` Trusted Types contract,
+`getCspHashes()` for prerendered output, and runnable browser-tested examples.

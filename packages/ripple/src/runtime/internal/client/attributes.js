@@ -15,6 +15,7 @@ import { get } from './runtime.js';
 import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 import { set_class_value, set_value } from './render.js';
 import { set_inner_html } from './content-editable.js';
+import { createTrustedScriptURL } from '../../../csp.js';
 
 /**
  * Dynamic attributes, styles and spreads. Apart from `render.js`, so that an
@@ -81,6 +82,14 @@ export function set_style(element, value, prev = {}) {
 export function set_attribute(element, attribute, value) {
 	if (value == null) {
 		element.removeAttribute(attribute);
+	} else if (
+		element.localName === 'script' &&
+		element.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
+		attribute.toLowerCase() === 'src'
+	) {
+		/** @type {HTMLScriptElement} */ (element).src = /** @type {string} */ (
+			createTrustedScriptURL(value)
+		);
 	} else if (
 		typeof value !== 'string' &&
 		// A `data-` or `aria-` name is never a property: the setter walk it

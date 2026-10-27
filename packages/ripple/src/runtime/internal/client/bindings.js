@@ -11,7 +11,7 @@ import { get, set, untrack } from './runtime.js';
 import { is_ripple_object } from './utils.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
-import { content_editable_changed } from './content-editable.js';
+import { content_editable_changed, set_inner_html } from './content-editable.js';
 
 /**
  * @param {string} name
@@ -736,7 +736,8 @@ export function bind_content_editable(maybe_tracked, property, set_func = undefi
 					var non_null_value = element[property];
 					setter(non_null_value);
 				} else {
-					element[property] = value + '';
+					if (property === 'innerHTML') set_inner_html(element, value);
+					else element[property] = value + '';
 				}
 			}
 		});

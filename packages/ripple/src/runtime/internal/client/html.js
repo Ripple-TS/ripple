@@ -5,6 +5,7 @@ import { remove_block_dom, render } from './blocks.js';
 import { get_first_child, get_next_sibling } from './operations.js';
 import { active_block } from './runtime.js';
 import { assign_nodes, create_fragment_from_html } from './template.js';
+import { from_namespace } from './template-ns.js';
 import { hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { COMMENT_NODE } from '../../../constants.js';
@@ -13,7 +14,7 @@ import { COMMENT_NODE } from '../../../constants.js';
  * Renders dynamic HTML content into the DOM by inserting it before the anchor node.
  * Manages the lifecycle of HTML blocks, removing old content and inserting new content.
  * @param {ChildNode} node
- * @param {() => string} get_html
+ * @param {() => string | import('trusted-types/lib').TrustedHTML} get_html
  * @returns {void}
  */
 export function html(node, get_html, svg = false, mathml = false) {
@@ -22,7 +23,8 @@ export function html(node, get_html, svg = false, mathml = false) {
 
 	render(() => {
 		var block = /** @type {Block} */ (active_block);
-		var new_html = (get_html() ?? '') + '';
+		var value = get_html() ?? '';
+		var new_html = String(value);
 
 		// If the HTML hasn't changed, skip the update (but still hydrate on first run)
 		if (html === new_html) {
@@ -53,9 +55,6 @@ export function html(node, get_html, svg = false, mathml = false) {
 		}
 
 		html = new_html;
-
-		if (svg) html = `<svg>${html}</svg>`;
-		else if (mathml) html = `<math>${html}</math>`;
 
 		if (block.s !== null && block.s.start !== null) {
 			remove_block_dom(block.s.start, /** @type {Node} */ (block.s.end));
@@ -96,11 +95,10 @@ export function html(node, get_html, svg = false, mathml = false) {
 
 		if (html === '') return;
 
-		var fragment = create_fragment_from_html(html);
-
-		if (svg || mathml) {
-			fragment = /** @type {DocumentFragment} */ (get_first_child(fragment));
-		}
+		var fragment =
+			svg || mathml
+				? from_namespace(value, svg ? 'svg' : 'math', false)
+				: create_fragment_from_html(value);
 
 		assign_nodes(
 			/** @type {Node} */ (get_first_child(fragment)),

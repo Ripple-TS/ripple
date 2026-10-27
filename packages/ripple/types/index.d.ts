@@ -31,7 +31,7 @@ export type Children = TSRXElement | Component | string | number | boolean | nul
 
 export type FragmentProps = {
 	children?: Children | Children[];
-	innerHTML?: string | null | undefined;
+	innerHTML?: string | import('./csp.js').TrustedHTML | null | undefined;
 	[key: string]: unknown;
 };
 

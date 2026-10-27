@@ -1,5 +1,7 @@
 /** @import { RouterManagedTag } from '@tanstack/router-core' */
 
+import { createTrustedScript, createTrustedScriptURL } from 'ripple/csp';
+
 const marker = 'data-ripple-router-asset';
 /** @type {WeakMap<Element, { count: number, owned: boolean }>} */
 const owners = new WeakMap();
@@ -131,10 +133,20 @@ export function acquireAsset(asset) {
 		element = document.createElement(tag);
 		element.setAttribute(marker, '');
 		for (const [key, value] of Object.entries(attrs)) {
-			if (value !== undefined && value !== null && value !== false)
-				element.setAttribute(key, value === true ? '' : String(value));
+			if (value === undefined || value === null || value === false) continue;
+			if (tag === 'script' && key.toLowerCase() === 'src') {
+				/** @type {HTMLScriptElement} */ (element).src = /** @type {string} */ (
+					createTrustedScriptURL(value, 'route')
+				);
+			} else element.setAttribute(key, value === true ? '' : String(value));
 		}
-		if (children !== undefined) element.textContent = children;
+		if (children !== undefined) {
+			if (tag === 'script') {
+				/** @type {HTMLScriptElement} */ (element).text = /** @type {string} */ (
+					createTrustedScript(children, 'route')
+				);
+			} else element.textContent = children;
+		}
 		if (executable && attrs.src && !attrs.async)
 			/** @type {HTMLScriptElement} */ (element).async = false;
 		document.head.appendChild(element);

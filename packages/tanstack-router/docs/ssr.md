@@ -237,13 +237,20 @@ by this policy; Ripple's event listeners do not require them.
 Never keep a nonce in process-global state, reuse it between responses, or bake it
 into a static bundle. Caches must keep HTML and its CSP header consistent and
 provide a fresh nonce for each delivered response; disabling HTML caching as in
-the example is the simplest arrangement. Static hash policies require a separate
-design.
+the example is the simplest arrangement. For cached documents, use the separate
+[static hash contract](https://ripple-ts.com/docs/guide/content-security-policy#static-hashes-and-cached-documents).
 
 The production browser gate enforces CSP in Chromium, Firefox and WebKit without
 `bypassCSP`, including lazy assets, streamed boundaries, navigation, disposal and
 negative script controls. This contract requires browsers supporting CSP nonces
-and `strict-dynamic`; no legacy-browser fallback is provided. Trusted Types
-(`require-trusted-types-for 'script'`), hash-based static CSP, arbitrary
-third-party scripts and development/HMR policies are tracked separately in
-[#1599](https://github.com/Ripple-TS/ripple/issues/1599).
+and `strict-dynamic`; no legacy-browser fallback is provided.
+
+The [CSP guide](https://ripple-ts.com/docs/guide/content-security-policy) defines
+Trusted Types, static hashes, reviewed third-party scripts and development/HMR as
+separate contracts. Route-managed script text and URLs use the application's
+`ripple/csp` policy with the `route` label. Install the policy before hydration
+and allow only reviewed route assets. The browser gate also exercises router
+hydration, streamed output and lazy navigation with Trusted Types enforcement. The
+standalone static example does not cache personalized router transport. Arbitrary
+third-party compatibility and development with Trusted Types remain outside the
+supported contracts.

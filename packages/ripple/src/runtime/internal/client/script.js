@@ -3,6 +3,7 @@
 import { hydrating } from './hydration.js';
 import { active_block } from './runtime.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+import { createTrustedScript, createTrustedScriptURL } from '../../../csp.js';
 
 /**
  * Prepare a template script to run when its enclosing fragment is inserted.
@@ -19,11 +20,16 @@ export function script(node) {
 	// scripts run in order unless a static or dynamic async attribute opts in.
 	script.async = false;
 	for (var attribute of node.attributes) {
-		script.setAttribute(attribute.name, attribute.value);
+		if (attribute.name === 'src') {
+			script.src = /** @type {string} */ (createTrustedScriptURL(attribute.value, 'template'));
+		} else {
+			script.setAttribute(attribute.name, attribute.value);
+		}
 	}
 	// Browsers hide connected nonce attribute values; the property retains it.
 	if (node.nonce) script.nonce = node.nonce;
-	script.textContent = node.textContent;
+	if (node.textContent)
+		script.text = /** @type {string} */ (createTrustedScript(node.textContent, 'template'));
 	node.replaceWith(script);
 
 	// The template recorded its boundary nodes before this replacement. Keep

@@ -94,6 +94,12 @@ export declare function createStream(): Stream;
  */
 export declare function getCss(css: Set<string>): string;
 
+/** Hash final inline contents (without tags) after all transforms. Does not generate a policy. */
+export declare function getCspHashes(sources: {
+	scripts?: Iterable<string>;
+	styles?: Iterable<string>;
+}): Promise<{ scripts: string[]; styles: string[] }>;
+
 export declare function render(
 	component: Component,
 	options?: RenderOptions,

@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && vite build --ssr server.js",
+    "build": "vite build && vite build --ssr server.js && node security-build.js",
     "start": "node serve.js",
+    "dev:csp": "node dev.js",
     "typecheck": "tsrx-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

@@ -2,28 +2,29 @@
 import { get_first_child } from './operations.js';
 import { render_component, set_ns, with_ns as run_with_ns } from './runtime.js';
 import { set_ns_parser, template } from './template.js';
+import { createTrustedHTML } from '../../../csp.js';
 
 /**
- * Create fragment with proper namespace using Svelte's wrapping approach
- * @param {string} content
+ * Parse in the namespace without concatenating wrappers around TrustedHTML.
+ * @param {string | import('trusted-types/lib').TrustedHTML} content
  * @param {'svg' | 'math'} ns
+ * @param {boolean} compiled
  * @returns {DocumentFragment}
  */
-function from_namespace(content, ns) {
-	var wrapped = `<${ns}>${content}</${ns}>`;
-
-	var elem = document.createElement('template');
-	elem.innerHTML = wrapped;
-	var fragment = elem.content;
-
-	var root = /** @type {Element} */ (get_first_child(fragment));
+export function from_namespace(content, ns, compiled) {
+	// Keep parsing inert, as it was with string wrappers inside a <template>:
+	// foreignObject descendants must not upgrade or load resources in the master.
+	var inert = document.createElement('template').content.ownerDocument;
+	var root = inert.createElementNS(
+		ns === 'svg' ? 'http://www.w3.org/2000/svg' : 'http://www.w3.org/1998/Math/MathML',
+		ns,
+	);
+	root.innerHTML = /** @type {string} */ (
+		createTrustedHTML(content, compiled ? 'template' : 'html')
+	);
 	var result = document.createDocumentFragment();
-
 	var first;
-	while ((first = get_first_child(root))) {
-		result.appendChild(/** @type {Node} */ (first));
-	}
-
+	while ((first = get_first_child(root))) result.appendChild(first);
 	return result;
 }
 

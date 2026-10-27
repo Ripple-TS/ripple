@@ -30,6 +30,10 @@
       "default": "./src/runtime/index-server.js"
     },
     "./package.json": "./package.json",
+    "./csp": {
+      "types": "./types/csp.d.ts",
+      "default": "./src/csp.js"
+    },
     "./transport": {
       "types": "./types/transport.d.ts",
       "worker": "./src/runtime/internal/server/transport.js",
@@ -83,6 +87,7 @@
     "#public": "./types/index.d.ts"
   },
   "dependencies": {
+    "@types/trusted-types": "catalog:default",
     "csstype": "catalog:default",
     "devalue": "catalog:default",
     "esm-env": "catalog:default",

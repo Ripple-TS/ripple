@@ -160,6 +160,9 @@ catalogs:
     '@types/prompts':
       specifier: ^2.4.9
       version: 2.4.9
+    '@types/trusted-types':
+      specifier: 2.0.7
+      version: 2.0.7
     '@typescript-eslint/parser':
       specifier: ^8.56.1
       version: 8.56.1
@@ -2345,6 +2348,9 @@ importers:
       '@tsrx/ripple':
         specifier: workspace:*
         version: link:../tsrx-ripple
+      '@types/trusted-types':
+        specifier: catalog:default
+        version: 2.0.7
       csstype:
         specifier: catalog:default
         version: 3.2.3

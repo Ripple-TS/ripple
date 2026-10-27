@@ -42,7 +42,7 @@ export default defineConfig(({ isSsrBuild }) => ({
 		outDir: isSsrBuild ? 'dist/server' : 'dist/client',
 		manifest: !isSsrBuild,
 		rolldownOptions: {
-			input: isSsrBuild ? 'server.js' : 'client.js',
+			input: isSsrBuild ? 'server.js' : ['client.js', 'security-client.js'],
 			preserveEntrySignatures: 'exports-only',
 		},
 	},

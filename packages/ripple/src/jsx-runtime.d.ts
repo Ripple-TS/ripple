@@ -299,7 +299,7 @@ declare namespace Ripple {
 
 	type ScriptHTMLAttributes<Target extends HTMLScriptElement = HTMLScriptElement> =
 		HTMLAttributes<Target> & {
-			src?: Nullable<string>;
+			src?: Nullable<string | import('../types/csp.js').TrustedScriptURL>;
 			type?: Nullable<string>;
 			async?: boolean;
 			defer?: boolean;
@@ -500,6 +500,12 @@ declare namespace Ripple {
 	interface HTMLAttributes<
 		Target extends globalThis.Element = globalThis.HTMLElement,
 	> extends RefAttributes<Target> {
+		innerHTML?:
+			| string
+			| (Target extends HTMLScriptElement
+					? import('../types/csp.js').TrustedScript
+					: import('../types/csp.js').TrustedHTML)
+			| null;
 		class?: ClassValue | undefined | null;
 		className?: Nullable<string>;
 		id?: Nullable<string>;

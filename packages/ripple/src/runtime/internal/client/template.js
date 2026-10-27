@@ -11,6 +11,7 @@ import { create_text, get_first_child, is_firefox } from './operations.js';
 import { active_block, active_namespace } from './runtime.js';
 import { DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+import { createTrustedHTML } from '../../../csp.js';
 
 /**
  * Assigns start and end nodes to the active block's state.
@@ -35,12 +36,12 @@ export function assign_nodes(start, end) {
  * Parses content that belongs in the SVG or MathML namespace. Installed by
  * `template-ns.js` when a template or a dynamic element needs it, so an app
  * with HTML templates only ships neither.
- * @type {((html: string, ns: 'svg' | 'math') => DocumentFragment) | null}
+ * @type {((html: string | import('trusted-types/lib').TrustedHTML, ns: 'svg' | 'math', compiled: boolean) => DocumentFragment) | null}
  */
 var parse_ns = null;
 
 /**
- * @param {(html: string, ns: 'svg' | 'math') => DocumentFragment} fn
+ * @param {(html: string | import('trusted-types/lib').TrustedHTML, ns: 'svg' | 'math', compiled: boolean) => DocumentFragment} fn
  */
 export function set_ns_parser(fn) {
 	parse_ns = fn;
@@ -48,19 +49,21 @@ export function set_ns_parser(fn) {
 
 /**
  * Creates a DocumentFragment from an HTML string.
- * @param {string} html - The HTML string.
+ * @param {string | import('trusted-types/lib').TrustedHTML} html - The HTML value.
  * @param {string} ns - `'svg'`, `'math'`, or `''` for HTML.
+ * @param {boolean} [compiled] - Whether the content comes from a compiler template.
  * @returns {DocumentFragment}
  */
-export function create_fragment_from_html(html, ns = '') {
+export function create_fragment_from_html(html, ns = '', compiled = false) {
 	if (ns !== '') {
 		return /** @type {NonNullable<typeof parse_ns>} */ (parse_ns)(
 			html,
 			/** @type {'svg' | 'math'} */ (ns),
+			compiled,
 		);
 	}
 	var elem = document.createElement('template');
-	elem.innerHTML = html;
+	elem.innerHTML = /** @type {string} */ (createTrustedHTML(html, compiled ? 'template' : 'html'));
 	return elem.content;
 }
 
@@ -100,7 +103,11 @@ function clone_template(t) {
 	if (node === undefined || t.ns !== ns) {
 		// Content that opens with a placeholder comment gets one more in
 		// front, so the first child the compiler navigates to is the element.
-		node = create_fragment_from_html(content.startsWith('<!>') ? '<!>' + content : content, ns);
+		node = create_fragment_from_html(
+			content.startsWith('<!>') ? '<!>' + content : content,
+			ns,
+			true,
+		);
 		if (!is_fragment) node = /** @type {Node} */ (get_first_child(node));
 		t.n = node;
 		t.ns = ns;
@@ -274,4 +281,9 @@ export function text(data = '') {
 	var node = create_text(data);
 	assign_nodes(node, node);
 	return node;
+}
+
+/** @param {Element} element @param {string} value */
+export function set_template_html(element, value) {
+	element.innerHTML = /** @type {string} */ (createTrustedHTML(value, 'template'));
 }
