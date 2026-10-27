@@ -118,6 +118,18 @@ catalogs:
     '@tailwindcss/vite':
       specifier: ^4.1.12
       version: 4.2.1
+    '@tanstack/history':
+      specifier: 1.162.5
+      version: 1.162.5
+    '@tanstack/router-core':
+      specifier: 1.171.39
+      version: 1.171.39
+    '@testing-library/dom':
+      specifier: ^10.4.1
+      version: 10.4.2
+    '@testing-library/jest-dom':
+      specifier: 6.9.1
+      version: 6.9.1
     '@tsrx/core':
       specifier: ^0.3.3
       version: 0.3.3
@@ -160,6 +172,9 @@ catalogs:
     '@volar/language-core':
       specifier: ~2.4.28
       version: 2.4.28
+    combinate:
+      specifier: 1.1.11
+      version: 1.1.11
     commander:
       specifier: ^14.0.3
       version: 14.0.3
@@ -199,6 +214,9 @@ catalogs:
     ora:
       specifier: ^9.3.0
       version: 9.3.0
+    playwright:
+      specifier: 1.63.0
+      version: 1.63.0
     polka:
       specifier: ^1.0.0-next.25
       version: 1.0.0-next.28
@@ -256,6 +274,9 @@ catalogs:
     zimmerframe:
       specifier: ^1.1.2
       version: 1.1.4
+    zod:
+      specifier: 3.25.76
+      version: 3.25.76
   peer:
     tailwindcss:
       specifier: ^4.1.12
@@ -2369,20 +2390,20 @@ importers:
   packages/tanstack-router:
     dependencies:
       '@tanstack/history':
-        specifier: 1.162.5
+        specifier: catalog:default
         version: 1.162.5
       '@tanstack/router-core':
-        specifier: 1.171.39
+        specifier: catalog:default
         version: 1.171.39
     devDependencies:
       '@ripple-ts/vite-plugin':
         specifier: workspace:*
         version: link:../vite-plugin
       '@testing-library/dom':
-        specifier: ^10.4.1
+        specifier: catalog:default
         version: 10.4.2
       '@testing-library/jest-dom':
-        specifier: 6.9.1
+        specifier: catalog:default
         version: 6.9.1
       '@tsrx/ripple':
         specifier: workspace:*
@@ -2391,11 +2412,14 @@ importers:
         specifier: catalog:default
         version: 24.11.0
       combinate:
-        specifier: 1.1.11
+        specifier: catalog:default
         version: 1.1.11
       jsdom:
         specifier: catalog:default
         version: 29.0.2(@noble/hashes@2.2.0)
+      playwright:
+        specifier: catalog:default
+        version: 1.63.0
       ripple:
         specifier: workspace:*
         version: link:../ripple
@@ -2409,8 +2433,33 @@ importers:
         specifier: catalog:default
         version: 4.1.6(@opentelemetry/api@1.9.1)(@types/node@24.11.0)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.1.5(@types/node@24.11.0)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1))
       zod:
-        specifier: 3.25.76
+        specifier: catalog:default
         version: 3.25.76
+
+  packages/tanstack-router/examples/ssr:
+    dependencies:
+      '@ripple-ts/tanstack-router':
+        specifier: workspace:*
+        version: link:../..
+      ripple:
+        specifier: workspace:*
+        version: link:../../../ripple
+    devDependencies:
+      '@ripple-ts/vite-plugin':
+        specifier: workspace:*
+        version: link:../../../vite-plugin
+      '@tsrx/ripple':
+        specifier: workspace:*
+        version: link:../../../tsrx-ripple
+      '@tsrx/typescript-plugin':
+        specifier: catalog:default
+        version: 0.4.11(@tsrx/react@0.3.8(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@packages+tsrx-ripple)(@tsrx/solid@0.2.8(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1)))(typescript@5.9.3)
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1)
 
   packages/tanstack-router/tests/fixtures/consumer:
     dependencies:
@@ -10329,6 +10378,18 @@ snapshots:
       zimmerframe: 1.1.4
     transitivePeerDependencies:
       - '@typescript-eslint/types'
+
+  '@tsrx/typescript-plugin@0.4.11(@tsrx/react@0.3.8(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@packages+tsrx-ripple)(@tsrx/solid@0.2.8(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1)))(typescript@5.9.3)':
+    dependencies:
+      '@volar/language-core': 2.4.28
+      '@volar/typescript': 2.4.28
+      typescript: 5.9.3
+    optionalDependencies:
+      '@tsrx/react': 0.3.8(@typescript-eslint/types@8.56.1)(react@19.2.7)
+      '@tsrx/ripple': link:packages/tsrx-ripple
+      '@tsrx/solid': 0.2.8(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3)
+      octane: 0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1))
+
 
   '@tsrx/typescript-plugin@0.4.11(@tsrx/react@0.3.8(@typescript-eslint/types@8.56.1)(react@19.2.7))(@tsrx/ripple@0.2.4(@typescript-eslint/types@8.56.1)(typescript@5.9.3))(@tsrx/solid@0.2.8(@solidjs/web@2.0.0-rc.3(solid-js@2.0.0-rc.3))(@typescript-eslint/types@8.56.1)(solid-js@2.0.0-rc.3))(octane@0.2.6(@typescript-eslint/types@8.56.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.56.7(@typescript-eslint/types@8.56.1))(typescript@5.9.3)(vite@8.1.5(@types/node@25.3.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1)))(typescript@5.9.3)':
     dependencies:

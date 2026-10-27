@@ -167,3 +167,29 @@ jobs:
 
       - name: Type check
         run: pnpm typecheck
+
+  tanstack-router-validation:
+    name: TanStack Router package and browser validation
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install browser engines
+        run: pnpm --filter @ripple-ts/tanstack-router exec playwright install --with-deps chromium firefox webkit
+      - name: Validate installed tarballs in production browsers
+        run: pnpm --filter @ripple-ts/tanstack-router test:release
+      - name: Audit upstream compatibility mappings
+        run: pnpm --filter @ripple-ts/tanstack-router upstream:audit
+      - name: Upload browser and bundle evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tanstack-router-browser-validation
+          path: packages/tanstack-router/dist/browser/

@@ -76,6 +76,7 @@ const BUILD_CONSTANTS = [
 const RUNTIME_MODULE_PATTERN = /[\\/]ripple[\\/](?:src|dist)[\\/]runtime[\\/][^?]*\.js(?:\?|$)/;
 const RIPPLE_EXTENSIONS = ['.tsrx'];
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
+const RIPPLE_MODULE_PATTERN = /\.tsrx(?:\?|$)/;
 
 /**
  * @param {string} file_name
@@ -1349,10 +1350,19 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			transform: {
-				filter: { id: RIPPLE_EXTENSION_PATTERN },
+				filter: { id: RIPPLE_MODULE_PATTERN },
 
 				async handler(source_code, id, opts) {
-					const filename = id.replace(root, '');
+					// Installed source dependencies carry Vite's cache-busting query.
+					const [file_path, query] = id.split('?', 2);
+					const params = new URLSearchParams(query);
+					if (
+						params.has('raw') ||
+						params.has('url') ||
+						(params.has('ripple') && params.get('type') === 'style')
+					)
+						return null;
+					const filename = file_path.replace(root, '');
 					const ssr =
 						ssrOption ?? (opts?.ssr === true || this.environment.config.consumer === 'server');
 
@@ -1363,7 +1373,7 @@ export function ripple(inlineOptions = {}) {
 						dev: is_dev,
 						hmr: is_dev && !ssr,
 						hydration: !clientOnly,
-						textTypeFacts: await text_types.getFacts(id, source_code, filename),
+						textTypeFacts: await text_types.getFacts(file_path, source_code, filename),
 					});
 
 					// Track modules with `module server` declarations for RPC (client build only)

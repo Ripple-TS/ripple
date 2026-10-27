@@ -1,10 +1,10 @@
 # Compatibility contract
 
-This tracks the target contract for milestones 2–6. Milestone 5 implements SSR,
-hydration, and streaming; milestone 4 audits the client feature surface and types:
-routes, links, reactive readers, lazy loading, boundaries, blocking, history, and
-scroll integration. The package README lists the exact current exports and limits;
-the table below separates client features from later SSR and release gates.
+This records the implemented contract for milestones 1–6. It includes SSR,
+hydration, streaming, and the audited client feature surface and types: routes,
+links, reactive readers, lazy loading, boundaries, blocking, history, and scroll
+integration. The package README lists the exact current exports and limits; the
+table below identifies the owning milestones.
 
 | Surface                  | Planned API / behavior                                                                                                                                                                       | Milestone |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -130,9 +130,14 @@ held-location behavior for newly mounted departing-route links.
 React memo/StrictMode counts, Solid proxy-store detection, standalone framework
 boundary helpers, and global concurrent DOM staging are excluded. Their public
 routing counterparts are tested with native scopes and control flow. Pending DOM
-may be removed instead of kept hidden as in React. Browser validation remains
-milestone 6. The [SSR contract](./ssr.md) documents request ownership, streaming,
-assets and the deliberate renderer differences.
+may be removed instead of kept hidden as in React. The
+[release gate](./release.md) covers production browsers and installed artifacts.
+The [SSR contract](./ssr.md) documents request ownership, streaming, assets and
+the deliberate renderer differences.
 
 Disabled Ripple links omit `href` for all destinations, including direct schemes.
 This applies identically on the server and client.
+
+Native animation cancellation preserves rendered navigation completion. The pinned
+core can report an animation-only unhandled rejection when the browser skips a
+transition; see [the release contract](./release.md) and upstream #7906.

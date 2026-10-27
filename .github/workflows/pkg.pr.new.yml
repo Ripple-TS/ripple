@@ -100,6 +100,7 @@ jobs:
             './packages/adapter-vercel' \
             './packages/rollup-plugin' \
             './packages/tsrx-ripple' \
+            './packages/tanstack-router' \
             './packages/vite-plugin' \
             './packages/cli' \
             --compact \

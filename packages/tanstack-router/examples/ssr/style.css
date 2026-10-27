@@ -1,0 +1,49 @@
+:root {
+	font-family: system-ui, sans-serif;
+	color: #172638;
+	background: #f6f8fb;
+}
+body {
+	margin: 0;
+}
+header {
+	position: sticky;
+	top: 0;
+	background: white;
+	padding: 1rem;
+	z-index: 1;
+}
+nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+a {
+	color: #174b97;
+}
+main {
+	max-width: 60rem;
+	margin: 2rem auto;
+	padding: 1rem;
+}
+button {
+	padding: 0.6rem 1rem;
+	cursor: pointer;
+}
+.spacer {
+	height: 1400px;
+}
+main {
+	view-transition-name: route;
+}
+::view-transition-old(route),
+::view-transition-new(route) {
+	animation-duration: 350ms;
+}
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation-duration: 0s !important;
+	}
+}

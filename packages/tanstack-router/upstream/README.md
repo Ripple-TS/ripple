@@ -141,6 +141,29 @@ owns DOM patches and cancellable component work. See the
 [SSR contract](../docs/ssr.md) for output ownership and the remaining
 browser/release limits.
 
+## Milestone 6 browser/package gate
+
+`test:release` packs the adapter and pending Ripple dependencies, installs them
+outside the workspace, checks declarations with the published `tsrx-tsc` and
+consumer `tsconfig.json`, and builds both targets. It then runs
+`tests/browser/run.js` against the production SSR example in Chromium, Firefox,
+and WebKit, plus a browser navigation through Vite's dependency optimizer.
+
+The 24 checks cover direct entry/reload, retained server DOM and loader state,
+streaming hydration, params/search, nested layout state, lazy chunks, history,
+modified clicks, preloading, blockers, base paths, scroll restoration, repeated
+navigation/remount/disposal, and native transition snapshots/completion/fallback.
+The module graph checks one Ripple runtime, correct client/server conditions and
+no React/Solid runtime dependencies. Every client chunk counts toward the gzip
+budget; CI uploads the measured chunks, browser versions and transition images.
+
+Native animation-only `ready` rejection from the pinned core is explicitly
+accounted for by native promise identity, recorded separately, and requires a
+successful update callback. Application errors remain failures. See
+[the release contract](../docs/release.md) for upstream #7906, strict CSP
+follow-up #1594, reproduction commands and the scope of the performance/ownership
+checks. No file-routing milestone is needed to use or publish the package.
+
 ## Upstream upgrades
 
 ```sh

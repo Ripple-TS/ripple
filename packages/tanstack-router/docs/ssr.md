@@ -2,8 +2,8 @@
 
 The adapter supports buffered and streaming HTML responses using TanStack core
 1.171.39 and Ripple's renderer. Create a fresh router and route tree for each
-request. The package remains private until milestone 6 validates production
-browser builds and packaged consumers.
+request. The [production example and release gate](./release.md) validate both
+modes in real browsers using installed package artifacts.
 
 ## Application layout
 
@@ -172,6 +172,8 @@ Solid producer APIs, and React script-hoisting behavior are not reproduced.
 
 This milestone uses the existing Ripple renderer and its inline patch runtime.
 Route/transport nonce attributes are supported, but a complete strict-CSP nonce
-policy for Ripple's own inline scripts is not claimed. Production browser/CSP,
-package installation and performance validation remain milestone 6. File-route
-manifests, TanStack Start, Query and devtools remain outside this adapter's scope.
+policy for Ripple's own inline scripts is tracked in
+[#1594](https://github.com/Ripple-TS/ripple/issues/1594). Browser navigation,
+package installation and representative bundle/ownership checks are covered by the
+release gate; strict CSP remains outside the contract. File-route manifests,
+TanStack Start, Query and devtools remain outside this adapter's scope.

@@ -1,0 +1,21 @@
+{
+  "tsrx": { "compiler": "@tsrx/ripple", "platform": "web" },
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "allowJs": true,
+    "allowArbitraryExtensions": true,
+    "allowImportingTsExtensions": true,
+    "jsx": "preserve",
+    "jsxImportSource": "ripple",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "plugins": [{ "name": "@tsrx/typescript-plugin" }]
+  },
+  "include": ["*.ts", "*.tsrx", "*.js"],
+  "exclude": ["dist", "node_modules"]
+}

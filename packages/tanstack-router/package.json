@@ -1,8 +1,7 @@
 {
   "name": "@ripple-ts/tanstack-router",
-  "private": true,
   "version": "0.0.1",
-  "description": "TanStack Router integration for Ripple (in development)",
+  "description": "Native TanStack Router integration for Ripple",
   "type": "module",
   "license": "MIT",
   "author": "Ripple Team",
@@ -40,30 +39,33 @@
   ],
   "scripts": {
     "test": "pnpm -w test --project tanstack-router-client --project tanstack-router-server --project tanstack-router-tooling",
-    "typecheck": "tsgo --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.upstream.json && tsc --noEmit -p tests/fixtures/solid-reference/tsconfig.json",
+    "typecheck": "tsgo --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.upstream.json && tsc --noEmit -p tests/fixtures/solid-reference/tsconfig.json && pnpm --filter @ripple-ts/router-ssr-example typecheck",
     "upstream:inventory": "node scripts/inventory-upstream.js",
-    "upstream:audit": "node scripts/audit-upstream.js"
+    "upstream:audit": "node scripts/audit-upstream.js",
+    "test:browser": "pnpm --filter @ripple-ts/router-ssr-example build && node tests/browser/run.js",
+    "test:release": "node scripts/test-release.js"
   },
   "dependencies": {
-    "@tanstack/history": "1.162.5",
-    "@tanstack/router-core": "1.171.39"
+    "@tanstack/history": "catalog:default",
+    "@tanstack/router-core": "catalog:default"
   },
   "peerDependencies": {
     "ripple": "workspace:^"
   },
   "devDependencies": {
     "@ripple-ts/vite-plugin": "workspace:*",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/dom": "catalog:default",
+    "@testing-library/jest-dom": "catalog:default",
     "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
-    "combinate": "1.1.11",
+    "combinate": "catalog:default",
     "jsdom": "catalog:default",
+    "playwright": "catalog:default",
     "ripple": "workspace:*",
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vitest": "catalog:default",
-    "zod": "3.25.76"
+    "zod": "catalog:default"
   },
   "publishConfig": {
     "access": "public"

@@ -96,3 +96,30 @@ describe('vite-plugin-ripple source maps', () => {
 		expect(map.sourcesContent).toEqual([source]);
 	});
 });
+
+it.each(['?v=abc123', '?import&v=abc123', '?t=123456'])(
+	'compiles installed TSRX modules with %s without changing CSS or source identity',
+	async (query) => {
+		const plugin = get_ripple_plugin();
+		await init_plugin(plugin, '/virtual-root');
+		const id = '/virtual-root/node_modules/source-library/Component.tsrx';
+		const source =
+			'export function Component() @{ <><p>Hello</p><style>p { color: red }</style></> }';
+		const transform = /** @type {any} */ (plugin.transform);
+		expect(transform.filter.id.test(id + query)).toBe(true);
+		const plain = await call_transform(plugin, source, id);
+		const versioned = await call_transform(plugin, source, id + query);
+		expect(versioned).toEqual(plain);
+	},
+);
+
+it.each(['?raw', '?url', '?v=abc123&raw', '?ripple&type=style&lang.css'])(
+	'leaves %s resource imports to Vite',
+	async (query) => {
+		const plugin = get_ripple_plugin();
+		await init_plugin(plugin, '/virtual-root');
+		expect(
+			await call_transform(plugin, '<not a component>', `/virtual-root/App.tsrx${query}`),
+		).toBeNull();
+	},
+);

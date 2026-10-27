@@ -1,0 +1,21 @@
+{
+  "name": "@ripple-ts/router-ssr-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build && vite build --ssr server.js",
+    "start": "node serve.js",
+    "typecheck": "tsrx-tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ripple-ts/tanstack-router": "workspace:*",
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "@tsrx/ripple": "workspace:*",
+    "@tsrx/typescript-plugin": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

@@ -1,8 +1,9 @@
 # Client adapter
 
-Milestone 3 provides the client feature surface. The package remains private; full
-upstream/type parity, SSR, and browser release validation follow in milestones
-4–6. Use the pinned core and a single Ripple runtime.
+Use the pinned TanStack core and a single Ripple runtime. The adapter supports
+code-defined route trees without file-route generation; the
+[production example](https://github.com/Ripple-TS/ripple/tree/main/packages/tanstack-router/examples/ssr)
+shows registered route types and client/server setup.
 
 ## Reactive input and output
 
@@ -116,8 +117,9 @@ completion, including suspension. `useElementScrollRestoration()` returns the
 core's saved element entry for virtualized lists. Core owns its document-lifetime
 scroll listeners/cache; provider remounts do not install another set. The adapter
 owns and disposes its history subscription, blockers, preload timers/observers,
-refs, and render acknowledgement. Real browser scroll/BFCache validation remains
-milestone 6; deprecated scroll components and SSR scroll scripts are not exported.
+refs, and render acknowledgement. Production browser tests cover scroll and
+history restoration. A BFCache audit is not claimed; deprecated scroll components
+and SSR scroll scripts are not exported.
 
 ## Error values and typed options
 

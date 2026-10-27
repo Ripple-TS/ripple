@@ -1,12 +1,26 @@
 # @ripple-ts/tanstack-router
 
-Milestone 5 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
-the client adapter: code-defined routes, reactive readers, links, lazy loading,
-boundaries, blocking, and render-aware navigation/scrolling, with audited upstream
-runtime/type coverage and an isolated Solid comparison runner. It also provides
-request-scoped buffered/streaming SSR, state hydration, and route assets. The
-package is **private** during development and will not be published with unrelated
-Ripple releases. It is not feature-complete.
+A native Ripple adapter over TanStack Router: code-defined routes, typed reactive
+readers, links, lazy loading, boundaries, blocking, scroll restoration, and
+request-scoped buffered/streaming SSR with hydration and route assets. Milestones
+1–6 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) cover the declared
+contract, including upstream runtime/type ports, production browser tests and a
+clean installed-tarball consumer.
+
+## Setup
+
+```sh
+pnpm add @ripple-ts/tanstack-router ripple
+pnpm add -D @ripple-ts/vite-plugin vite
+```
+
+Enable `ripple()` from `@ripple-ts/vite-plugin` in Vite. The plugin compiles the
+adapter's `.tsrx` components for the selected target and handles dependency
+optimization. Start with the
+[production SSR example](https://github.com/Ripple-TS/ripple/tree/main/packages/tanstack-router/examples/ssr)
+for a complete code-defined route tree, registered types, lazy imports and
+client/server entries. The package requires the Ripple peer version specified by
+its release; keep one application runtime.
 
 This is a separate TanStack Router integration. It does not change Ripple's own
 routing system. File-based routing is optional future TSRX tooling and is not
@@ -45,12 +59,11 @@ The package also re-exports these unmodified upstream utilities:
 - Types: `ControlledPromise`, `NotFoundError`, `Redirect`, `HistoryLocation`,
   `HistoryState`, and `RouterHistory`.
 
-The core and history versions are pinned together. Ripple is a peer dependency
-(`workspace:^`) so the application and adapter share one runtime. React and Solid
-are not package dependencies. The store factory uses `track()` values; it does not
-introduce another state creation API. The component subtree uses
-`createRenderObserver()` to acknowledge rendered navigation, including async work
-and supersession.
+The core and history versions are pinned together. Ripple is a peer dependency so
+the application and adapter share one runtime. React and Solid are not package
+dependencies. The store factory uses `track()` values; it does not introduce
+another state creation API. The component subtree uses `createRenderObserver()` to
+acknowledge rendered navigation, including async work and supersession.
 
 See [client usage and Ripple API adaptations](./docs/client.md),
 [SSR, hydration, streaming and ownership](./docs/ssr.md),
@@ -74,8 +87,9 @@ The private `tests/fixtures/source-library` models a component dependency with a
 `.tsrx` export and declaration entry. `tests/fixtures/consumer` imports it through
 package resolution, along with this package. Tests build that consumer for both
 targets, hydrate server output, and verify disposal. These fixtures are excluded
-from the published package. A clean installed-tarball/browser release matrix is
-tracked in milestone 6.
+from the published package. The [release gate](./docs/release.md) installs packed
+artifacts outside the workspace and runs the production example in Chromium,
+Firefox and WebKit.
 
 ## Development
 
@@ -108,20 +122,23 @@ tooling suite checks `.tsrx` call sites through the published mapping pipeline.
 
 ## Current limits
 
-Real-browser release validation remains milestone 6. Milestone 5 adds
-SSR/hydration and streaming to the upstream audit. Milestone 4 accounts for each
-pinned upstream case, including explicit framework differences and later-milestone
-cases. The client feature gate and exact translated test families are recorded in
-the upstream inventory. One mounted provider owns a router instance. Deprecated
+The upstream audit accounts for each pinned client, type, SSR/hydration and
+streaming case, including explicit framework differences. The
+[release gate](./docs/release.md) records browser and package validation. The
+client feature gate and exact translated test families are recorded in the
+upstream inventory. One mounted provider owns a router instance. Deprecated
 framework-specific aliases and file-route factories are not exported. See the
 client guide for explicit reactive inputs, `render` callbacks, custom anchors, and
 history ownership.
 
 TanStack core owns native `document.startViewTransition()` calls. Its update
 callback waits for the adapter's render acknowledgement; navigation does not wait
-for the animation's `finished` promise. Mocked lifecycle tests cover this
-contract; real-browser snapshot/style validation remains milestone 6. A
-React-style Ripple `<ViewTransition>` is a separate feature in
+for the animation's `finished` promise. Runtime lifecycle tests and real Chromium
+snapshot/style checks cover this contract, including interrupted/skipped
+animations and reduced motion. The [release notes](./docs/release.md) document the
+pinned core's animation-promise rejection limitation
+([upstream #7906](https://github.com/TanStack/router/issues/7906)). A React-style
+Ripple `<ViewTransition>` is a separate feature in
 [#1581](https://github.com/Ripple-TS/ripple/issues/1581).
 
 The render observer reports subtree settlement. It does not provide atomic
