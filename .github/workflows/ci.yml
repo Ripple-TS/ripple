@@ -179,7 +179,8 @@ jobs:
       # Match the Playwright catalog in pnpm-workspace.yaml. The image includes
       # browser binaries and Linux libraries, avoiding slow apt mirrors per run.
       image: mcr.microsoft.com/playwright:v1.63.0-noble
-      options: --ipc=host
+      # Match the owner of GitHub's mounted home directory so Firefox can launch.
+      options: --ipc=host --user 1001
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
