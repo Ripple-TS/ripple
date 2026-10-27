@@ -1,5 +1,19 @@
 # @ripple-ts/tanstack-router
 
+## 0.0.3
+
+### Patch Changes
+
+- [#1600](https://github.com/Ripple-TS/ripple/pull/1600)
+  [`f9a4fed`](https://github.com/Ripple-TS/ripple/commit/f9a4fed697097d249f78c4371876712c657cd724)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Pass the router SSR nonce
+  through Ripple rendering and buffered scoped styles. Expose the nonce to Vite's
+  lazy asset loader, and document and test production nonce-based strict CSP
+  across SSR, hydration, and navigation.
+- Updated dependencies
+  [[`f9a4fed`](https://github.com/Ripple-TS/ripple/commit/f9a4fed697097d249f78c4371876712c657cd724)]:
+  - ripple@0.5.5
+
 ## 0.0.2
 
 ### Patch Changes

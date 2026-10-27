@@ -1,5 +1,19 @@
 # ripple
 
+## 0.5.5
+
+### Patch Changes
+
+- [#1600](https://github.com/Ripple-TS/ripple/pull/1600)
+  [`f9a4fed`](https://github.com/Ripple-TS/ripple/commit/f9a4fed697097d249f78c4371876712c657cd724)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add a per-render `nonce`
+  option for executable streaming scripts and scoped styles, including nested,
+  late, and failed boundaries. Preserve explicitly supplied nonces when creating
+  client scripts.
+
+  Restore the component context when rendering an asynchronous catch branch so
+  late route fallbacks can read their provider.
+
 ## 0.5.4
 
 No changes in this release.
