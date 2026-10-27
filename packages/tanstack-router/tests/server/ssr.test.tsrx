@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	Scripts,
+	Outlet,
+	createRoute,
 	createControlledPromise,
 	createRootRoute,
 	createRouter,
@@ -452,3 +454,65 @@ it(
 		expect(html).toMatch(/src="\/second.js" async=""/);
 	},
 );
+
+it.each(['route', 'default'])('reports loaded failures through the selected %s onCatch', async (
+	selected,
+) => {
+	const error = new Error('loaded failure');
+	const local = vi.fn();
+	const fallback = vi.fn();
+	const root = createRootRoute({
+		loader: () => {
+			throw error;
+		},
+		errorComponent: () => <p>Error UI</p>,
+		...(selected === 'route' ? { onCatch: local } : {}),
+	});
+	const router = createRouter({ routeTree: root, defaultOnCatch: fallback });
+	const response = await createRequestHandler({
+		request: new Request('http://localhost/'),
+		createRouter: () => router,
+	})(renderRouterToString);
+	expect(await response.text()).toContain('Error UI');
+	expect(selected === 'route' ? local : fallback).toHaveBeenCalledExactlyOnceWith(error);
+	expect(selected === 'route' ? fallback : local).not.toHaveBeenCalled();
+});
+
+it('keeps route pending UI out of a lazy ancestor loader-error boundary', async () => {
+	const gate = createControlledPromise<void>();
+	const importer = vi.fn(async () => {
+		await gate;
+		return { default: ({ error }: any) => <p data-lazy-error>{error.message}</p> };
+	});
+	const root = createRootRoute({
+		component: Outlet,
+		pendingComponent: () => <p>Wrong pending UI</p>,
+		errorComponent: lazyRouteComponent(importer),
+	});
+	const child = createRoute({
+		getParentRoute: () => root,
+		path: '/',
+		loader: () => {
+			throw new Error('child loader failed');
+		},
+	});
+	const router = createRouter({ routeTree: root.addChildren([child]) });
+	const response = await createRequestHandler({
+		request: new Request('http://localhost/'),
+		createRouter: () => router,
+	})(renderRouterToStream);
+	const reader = response.body!.getReader();
+	const decoder = new TextDecoder();
+	const shell = decoder.decode((await reader.read()).value);
+	expect(importer).toHaveBeenCalledOnce();
+	expect(shell).not.toContain('Wrong pending UI');
+	gate.resolve();
+	let html = '';
+	for (;;) {
+		const chunk = await reader.read();
+		if (chunk.done) break;
+		html += decoder.decode(chunk.value);
+	}
+	expect(html).toContain('data-lazy-error');
+	expect(html).toContain('child loader failed');
+});

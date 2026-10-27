@@ -249,16 +249,21 @@ function LoadedError({ routeId, error }: { routeId: string; error: unknown }) @{
 	const route = router.routesById[routeId];
 	const Catch =
 		route.options.errorComponent || router.options.defaultErrorComponent || ErrorComponent;
-	route.options.onCatch ?? router.options.defaultOnCatch?.(error);
-	<Fallback kind="errorComponent">
-		<Catch
-			{error}
-			reset={() => {
-				void router.invalidate();
-			}}
-			info={{ componentStack: '' }}
-		/>
-	</Fallback>
+	const onCatch = route.options.onCatch ?? router.options.defaultOnCatch;
+	onCatch?.(error);
+	@try {
+		<Fallback kind="errorComponent">
+			<Catch
+				{error}
+				reset={() => {
+					void router.invalidate();
+				}}
+				info={{ componentStack: '' }}
+			/>
+		</Fallback>
+	} @pending {
+		<></>
+	}
 }
 
 function MatchContent({ match }: { match: Derived<AnyRouteMatch | undefined> }) @{

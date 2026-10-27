@@ -25,6 +25,7 @@ export function makeSsrRouter(
 		ssr = true,
 		hydrate,
 		lazy,
+		lazyError,
 		onImport = () => {},
 		boundary,
 		outcome,
@@ -53,6 +54,15 @@ export function makeSsrRouter(
 			meta: [{ title: 'Root title' }, { name: 'description', content: 'root description' }],
 		}),
 	});
+	if (lazyError) {
+		const errorComponent = root.options.errorComponent;
+		root.update({
+			errorComponent: lazyRouteComponent(async () => {
+				onImport();
+				return { default: errorComponent };
+			}),
+		});
+	}
 	const home = createRoute({
 		getParentRoute: () => root,
 		path: '/',

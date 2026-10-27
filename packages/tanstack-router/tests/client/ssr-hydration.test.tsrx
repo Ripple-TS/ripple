@@ -281,3 +281,18 @@ it.each(['before', 'after'])(
 		expect(target.textContent).toContain('Next page');
 	},
 );
+
+it('hydrates a lazy ancestor error component after a child loader failure', async () => {
+	const target = loadDocument(await (await response({ path: '/error', lazyError: true })).text());
+	const alert = target.querySelector('[role="alert"]');
+	const onImport = vi.fn();
+	const router = makeSsrRouter({ path: '/error', lazyError: true, onImport });
+	disposers.push(await hydrateRouter({ router, target }));
+	await waitFor(
+		() => expect(target.querySelector('[role="alert"]')?.textContent).toBe('Loader failed'),
+	);
+	expect(target.querySelector('[role="alert"]')).toBe(alert);
+	expect(onImport).toHaveBeenCalledOnce();
+	await router.navigate({ to: '/next' });
+	expect(target.textContent).toContain('Next page');
+});
