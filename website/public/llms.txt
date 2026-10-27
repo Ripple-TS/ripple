@@ -758,6 +758,10 @@ result interactive with `hydrate()`.
 
 `render` options:
 
+- `nonce` — a per-response CSP nonce shared by renderer-generated executable
+  scripts and scoped style tags, including late streamed chunks. No nonce is
+  added to application HTML or inert JSON records. Buffered `render` and
+  `prerender` return CSS as text; the caller adds a nonce to its own style tag.
 - `signal` — an `AbortSignal`; aborting rejects with its reason, cancels owned
   `trackAsync` operations and stops later streamed output.
 
@@ -781,6 +785,23 @@ const html = template
 	.replace('<!--ssr-head-->', `${head}<style data-ripple-ssr>${getCss(css)}</style>`)
 	.replace('<!--ssr-body-->', body);
 ```
+
+For strict CSP, generate a fresh cryptographically random nonce per HTTP response
+and set the CSP header before streaming. For example, use
+`script-src 'nonce-<nonce>' 'strict-dynamic'; style-src 'self' 'nonce-<nonce>';
+object-src 'none'; base-uri 'none'`, adding other directives for the application.
+Pass the same nonce to `render`, explicitly authorize trusted entry scripts and
+buffered style tags, and include `<meta property="csp-nonce" nonce="...">` for
+Vite's production lazy CSS/preload loader. Escape interpolated attribute values.
+Generated client CSS is extracted by the bundler; application script/style
+elements need their own explicit nonce. A nonce does not authorize `style`
+attributes or inline event handlers. `mount`/`hydrate` never blanket-authorize
+application HTML. Cached HTML and its CSP header must remain paired; do not reuse
+a response nonce across requests or hard-code one into a static build.
+`prerender` emits no executable renderer scripts and accepts no nonce option.
+Trusted Types, hash-based static CSP and development/HMR policies are separate
+contracts. See the TanStack Router package's `docs/ssr.md` for a complete server
+example and browser validation.
 
 ### Streaming SSR
 

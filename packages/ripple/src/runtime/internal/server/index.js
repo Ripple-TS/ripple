@@ -73,7 +73,7 @@ import {
 	STREAM_ERROR_SCRIPT_PREFIX,
 } from '../../../constants.js';
 import { get_css_text } from './css-registry.js';
-import { STREAM_RUNTIME_SCRIPT } from './stream-runtime.js';
+import { STREAM_RUNTIME_SOURCE } from './stream-runtime.js';
 import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
@@ -573,6 +573,8 @@ export class Output {
 	#streamOutput = null;
 	/** @type {{ before: string, between: string, after: string } | null} */
 	#stream_template = null;
+	// Escaped once per render root; late and nested chunks share this value.
+	#nonce_attribute = '';
 	#stream_started = false;
 	#stream_finished = false;
 	/** @type {null | number} */
@@ -786,7 +788,9 @@ export class Output {
 					sent_css.add(hash);
 					var css_text = get_css_text(new Set([hash]));
 					if (css_text) {
-						root.#streamOutput.push('<style data-ripple-ssr>' + css_text + '</style>');
+						root.#streamOutput.push(
+							'<style data-ripple-ssr' + root.#nonce_attribute + '>' + css_text + '</style>',
+						);
 					}
 				}
 				return;
@@ -1006,7 +1010,9 @@ export class Output {
 			return '';
 		}
 		var css_text = get_css_text(fresh);
-		return css_text ? '<style data-ripple-ssr>' + css_text + '</style>' : '';
+		return css_text
+			? '<style data-ripple-ssr' + this.#nonce_attribute + '>' + css_text + '</style>'
+			: '';
 	}
 
 	/**
@@ -1052,7 +1058,9 @@ export class Output {
 				'" type="application/json">' +
 				escape_inline_script(JSON.stringify({ message: unit.error })) +
 				'</script>' +
-				'<script>__RIPPLE_S__(' +
+				'<script' +
+				this.#nonce_attribute +
+				'>__RIPPLE_S__(' +
 				JSON.stringify(unit.id) +
 				',1)</script>'
 			);
@@ -1066,7 +1074,8 @@ export class Output {
 		}
 		out += chunk.scripts.join('');
 		out += '<template ' + STREAM_CHUNK_ATTR + '="' + unit.id + '">' + html + '</template>';
-		out += '<script>__RIPPLE_S__(' + JSON.stringify(unit.id) + ')</script>';
+		out +=
+			'<script' + this.#nonce_attribute + '>__RIPPLE_S__(' + JSON.stringify(unit.id) + ')</script>';
 		return out;
 	}
 
@@ -1143,7 +1152,7 @@ export class Output {
 			}
 		}
 		if (has_open_units) {
-			out += STREAM_RUNTIME_SCRIPT;
+			out += '<script' + this.#nonce_attribute + '>' + STREAM_RUNTIME_SOURCE + '</script>';
 		}
 		sink.push(out);
 		this.#shell_flushed = true;
@@ -1182,11 +1191,13 @@ export class Output {
 	/**
 	 * @param {StreamSink} stream
 	 * @param {{ before: string, between: string, after: string } | null} [template]
+	 * @param {string} [nonce]
 	 */
-	_setStream(stream, template = null) {
+	_setStream(stream, template = null, nonce) {
 		if (this.#is_root) {
 			this.#streamOutput = stream;
 			this.#stream_template = template;
+			this.#nonce_attribute = nonce === undefined ? '' : ' nonce="' + escape(nonce, true) + '"';
 			return;
 		}
 
@@ -1296,7 +1307,7 @@ export async function render(component, options = {}) {
 			root_block = /** @type {Block} */ (active_block);
 			const output = root_block.o;
 			if (options.stream) {
-				output._setStream(options.stream, options.streamTemplate ?? null);
+				output._setStream(options.stream, options.streamTemplate ?? null, options.nonce);
 			}
 			render_component(component, {});
 			output._decrementPending();
@@ -2504,6 +2515,8 @@ function route_error_to_catch_block(catch_block, error) {
 	cancel_async_operations(catch_block);
 	reset_state();
 	set_active_block(catch_block);
+	// Async recovery runs after the original component stack has unwound.
+	active_component = catch_block.co;
 	catch_block.s.c(error);
 }
 

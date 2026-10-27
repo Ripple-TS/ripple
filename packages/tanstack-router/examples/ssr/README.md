@@ -15,6 +15,15 @@ scroll restoration. `/app/stream?stream=1` streams a deferred loader value; othe
 entries use buffered SSR. Every request constructs a fresh router. Both modes
 restore router state before hydrating the existing DOM.
 
+Production responses enforce a nonce-based strict CSP. `server.js` generates a
+fresh cryptographic nonce for each response, configures the router, and sets the
+policy and `private, no-store` before streaming. The same nonce reaches scripts,
+scoped styles and lazy assets. `/app/csp?stream=1` exercises nested streamed
+boundaries and late scoped CSS. See the
+[SSR policy guide](../../docs/ssr.md#strict-content-security-policy) for
+application-owned directives, caching, and the separate treatment of inline style
+attributes. Development/HMR and Trusted Types are separate contracts.
+
 `vite.config.js` builds the same `.tsrx` sources for the browser and server. The
 Node example server translates Vite's manifest to the router's `scripts` and `css`
 manifest entries, serves emitted assets, and propagates disconnected requests to

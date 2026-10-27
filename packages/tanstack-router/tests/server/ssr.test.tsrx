@@ -16,6 +16,7 @@ import {
 } from '@ripple-ts/tanstack-router/ssr/server';
 import { makeSsrRouter } from '../fixtures/consumer/router.tsrx';
 import { render } from 'ripple/server';
+import { parseHTML } from 'linkedom';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -23,6 +24,39 @@ for (const mode of ['buffered', 'stream'] as const) {
 	const handler =
 		mode === 'buffered' ? renderRouterToString : renderRouterToStream;
 	describe(mode, () => {
+		it('passes the request nonce to renderer CSS, scripts and Vite preload metadata', async () => {
+			const nonce = 'request-"<&';
+			const deferred = createControlledPromise<string>();
+			const router = makeSsrRouter({ deferred });
+			router.update({ ssr: { nonce } });
+			function Styled() @{
+				<>
+					<style>
+						p {
+							color: blue;
+						}
+					</style>
+					<RouterProvider router={router} />
+				</>
+			}
+			const pending = createRequestHandler({
+				request: new Request('http://localhost/'),
+				createRouter: () => router,
+			})((options) => handler({ ...options, children: Styled }));
+			setTimeout(() => deferred.resolve('Late data'), 10);
+			const html = await (await pending).text();
+			const { document } = parseHTML(html);
+			expect(document.querySelector('style[data-ripple-ssr]')?.getAttribute('nonce')).toBe(nonce);
+			expect(document.querySelector('meta[property="csp-nonce"]')?.getAttribute('nonce')).toBe(
+				nonce,
+			);
+			const scripts = [...document.querySelectorAll('script')].filter(
+				(node) => node.getAttribute('type') !== 'application/json',
+			);
+			expect(scripts.length).toBeGreaterThan(0);
+			for (const script of scripts) expect(script.getAttribute('nonce')).toBe(nonce);
+		});
+
 		it(
 			'isolates requests, loads once, and transfers loader data and deduplicated head assets',
 			async () => {

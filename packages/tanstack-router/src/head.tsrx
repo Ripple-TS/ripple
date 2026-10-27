@@ -86,6 +86,9 @@ export const useTags = (assetCrossOrigin?: AssetCrossOriginConfig) => {
 				tag: 'meta',
 				attrs: {
 					property: 'csp-nonce',
+					// Vite's production preload helper reads the nonce property;
+					// TanStack core restores router.options.ssr.nonce from content.
+					nonce,
 					content: router.options.ssr.nonce,
 				},
 			});

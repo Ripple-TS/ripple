@@ -21,6 +21,8 @@ export function script(node) {
 	for (var attribute of node.attributes) {
 		script.setAttribute(attribute.name, attribute.value);
 	}
+	// Browsers hide connected nonce attribute values; the property retains it.
+	if (node.nonce) script.nonce = node.nonce;
 	script.textContent = node.textContent;
 	node.replaceWith(script);
 

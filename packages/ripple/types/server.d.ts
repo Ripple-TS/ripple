@@ -57,6 +57,12 @@ export interface StreamTemplate {
 }
 
 export interface BaseRenderOptions {
+	/**
+	 * Per-response CSP nonce shared by renderer-generated executable scripts and
+	 * scoped styles. Does not authorize application HTML or inert JSON records.
+	 * Buffered CSS is returned as text; add this nonce to the style tag you emit.
+	 */
+	nonce?: string;
 	/** Abort pending rendering, cancel owned trackAsync work, and reject with the signal's reason. */
 	signal?: AbortSignal;
 	stream?: StreamSink;

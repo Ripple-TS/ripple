@@ -7,7 +7,7 @@ import {
 	transformReadableStreamWithRouter,
 } from '@tanstack/router-core/ssr/server';
 import { routerComponent } from './Root.tsrx';
-import { renderAsset } from '../assets.js';
+import { escapeAttribute, renderAsset } from '../assets.js';
 import { observeDeferred } from './deferred.js';
 
 /** @import { AnyRouter } from '@tanstack/router-core' */
@@ -59,10 +59,13 @@ export async function renderRouterToString({
 	try {
 		request.signal.throwIfAborted();
 		const scripts = initialScripts(router);
-		const result = await render(children, { signal: request.signal });
+		const nonce = router.options.ssr?.nonce;
+		const result = await render(children, { signal: request.signal, nonce });
 		if (result.topLevelError) throw result.topLevelError;
 		const css = getCss(result.css);
-		const html = `<html><head>${scripts.before}${result.head}${css ? `<style data-ripple-ssr>${css}</style>` : ''}</head><body><div id="app">${result.body}</div>${scripts.boundary}</body></html>`;
+		const nonceAttribute = nonce === undefined ? '' : ` nonce="${escapeAttribute(nonce)}"`;
+		const styles = css ? `<style data-ripple-ssr${nonceAttribute}>${css}</style>` : '';
+		const html = `<html><head>${scripts.before}${result.head}${styles}</head><body><div id="app">${result.body}</div>${scripts.boundary}</body></html>`;
 		return new Response(
 			await transformHtmlStringWithRouter(router, html, { signal: request.signal }),
 			{
@@ -100,6 +103,7 @@ export async function renderRouterToStream({
 		});
 		let shell = true;
 		const rendering = render(children, {
+			nonce: router.options.ssr?.nonce,
 			signal: controller.signal,
 			closeStream: false,
 			streamTemplate: {

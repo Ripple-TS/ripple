@@ -1,4 +1,5 @@
-import { track } from 'ripple';
+import { track, trackAsync } from 'ripple';
+import { CspPage } from './csp.tsrx';
 import {
 	Await,
 	HeadContent,
@@ -10,6 +11,7 @@ import {
 	createRouter,
 	lazyRouteComponent,
 	useBlocker,
+	notFound,
 } from '@ripple-ts/tanstack-router';
 
 export function getRouter(origin: string) {
@@ -112,6 +114,18 @@ export function getRouter(origin: string) {
 		getParentRoute: () => root,
 		path: '/lazy',
 		component: lazyRouteComponent(() => import('./lazy.tsrx')),
+		head: () => ({
+			styles: [{ children: '.route-style { color: rgb(7, 8, 9); }' }],
+			scripts: [
+				{
+					id: 'lazy-head-script',
+					children: 'window.lazyHeadRuns = (window.lazyHeadRuns || 0) + 1',
+				},
+			],
+		}),
+		scripts: () => [
+			{ id: 'lazy-body-script', children: 'window.lazyBodyRuns = (window.lazyBodyRuns || 0) + 1' },
+		],
 	});
 	const editor = createRoute({
 		getParentRoute: () => root,
@@ -158,8 +172,45 @@ export function getRouter(origin: string) {
 			</>
 		},
 	});
+	const csp = createRoute({ getParentRoute: () => root, path: '/csp', component: CspPage });
+	const outcome = createRoute({
+		getParentRoute: () => root,
+		path: '/csp/$outcome',
+		errorComponent: ({ error }) => <p role="alert">
+			{error instanceof Error ? error.message : String(error)}
+		</p>,
+		notFoundComponent: () => <h1>Page not found</h1>,
+		component: function Outcome() @{
+			const params = outcome.useParams();
+			const pending = new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 100));
+			const value = trackAsync(() => pending);
+			function Result({ ready }: { ready: boolean }) {
+				if (ready) throw params.value.outcome === 'missing'
+					? notFound()
+					: new Error('Late CSP error');
+				return <p>Waiting for outcome</p>;
+			}
+			@if (params.value.outcome === 'patch-error') {
+				<Await
+					promise={pending}
+					fallback={<p>Waiting for failed patch</p>}
+					render={(ready) => <Result {ready} />}
+				/>
+			} @else {
+				<Result ready={value.value} />
+			}
+		},
+	});
 	return createRouter({
-		routeTree: root.addChildren([home, posts.addChildren([post]), lazy, editor, stream]),
+		routeTree: root.addChildren([
+			home,
+			posts.addChildren([post]),
+			lazy,
+			editor,
+			stream,
+			csp,
+			outcome,
+		]),
 		context: { origin },
 		basepath: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
 		defaultPendingMs: 30,

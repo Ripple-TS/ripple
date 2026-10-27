@@ -10,6 +10,7 @@ export async function startServer(port = Number(process.env.PORT ?? 3000)) {
 	const manifest = JSON.parse(await readFile(new URL('.vite/manifest.json', client), 'utf8'));
 	const entry = manifest['client.js'];
 	const assets = {
+		preloads: [`/app/${entry.file}`],
 		scripts: [{ tag: 'script', attrs: { type: 'module', src: `/app/${entry.file}` } }],
 		css: (entry.css ?? []).map((file) => `/app/${file}`),
 	};

@@ -199,8 +199,8 @@ function stream_runtime(
 	};
 }
 
-export const STREAM_RUNTIME_SCRIPT =
-	'<script>(' +
+export const STREAM_RUNTIME_SOURCE =
+	'(' +
 	stream_runtime.toString() +
 	')(' +
 	JSON.stringify(HYDRATION_START_PENDING) +
@@ -214,4 +214,4 @@ export const STREAM_RUNTIME_SCRIPT =
 	JSON.stringify(STREAM_HEAD_ATTR) +
 	',' +
 	String(COMMENT_NODE) +
-	')</script>';
+	')';

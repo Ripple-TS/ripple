@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import { chromium, firefox, webkit } from 'playwright';
+import { cspScenarios } from './csp.js';
 
 const root = await realpath(
 	process.argv[2]
@@ -144,6 +145,13 @@ try {
 			await test(`${name}: ${title}`, { timeout: 45_000 }, async (t) => {
 				const context = await browser.newContext();
 				await context.addInitScript(() => {
+					window.cspViolations = [];
+					document.addEventListener('securitypolicyviolation', (event) => {
+						window.cspViolations.push({
+							directive: event.effectiveDirective,
+							blocked: event.blockedURI,
+						});
+					});
 					window.animationRejections = [];
 					const start = document.startViewTransition?.bind(document);
 					if (!start) return;
@@ -191,6 +199,11 @@ try {
 					throw error;
 				}
 				assert.deepEqual(errors, [], 'no unexpected browser errors');
+				assert.deepEqual(
+					await page.evaluate(() => window.cspViolations),
+					[],
+					'no unexpected CSP violations',
+				);
 				const animationRejections = await page.evaluate(() =>
 					window.animationRejections.map(({ record, message }) => ({
 						updated: record.updated,
@@ -210,6 +223,7 @@ try {
 			});
 		}
 		try {
+			await cspScenarios({ scenario, origin, entry, ready, navigate, heading });
 			for (const [mode, path] of [
 				['buffered', '/posts/one?page=1'],
 				['streamed', '/stream?stream=1'],
@@ -459,9 +473,12 @@ try {
 							};
 						});
 						await visit(page);
-						await page.addStyleTag({
-							content:
-								'::view-transition-old(route), ::view-transition-new(route) { animation-duration: 3s; }',
+						await page.evaluate(() => {
+							const style = document.createElement('style');
+							style.nonce = document.querySelector('meta[property="csp-nonce"]').nonce;
+							style.textContent =
+								'::view-transition-old(route), ::view-transition-new(route) { animation-duration: 3s; }';
+							document.head.appendChild(style);
 						});
 						await page.evaluate(async () => {
 							await window.app.router.navigate({

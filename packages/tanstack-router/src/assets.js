@@ -56,7 +56,7 @@ export function scriptAttributes(attrs) {
 }
 
 /** @param {unknown} value */
-function escapeAttribute(value) {
+export function escapeAttribute(value) {
 	return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 

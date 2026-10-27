@@ -38,6 +38,12 @@ hydrates and navigates through that development graph.
 
 ## Browser assertions
 
+Production documents use the nonce-based strict CSP described in the SSR guide.
+The gate captures `securitypolicyviolation` events, checks distinct nonces across
+concurrent responses, and deliberately inserts unauthorized scripts to verify
+enforcement. It covers scoped and late CSS, lazy CSS/module preloads, nested
+stream patches and late route outcomes in all three engines without `bypassCSP`.
+
 | Contract              | Checks                                                                                                                                                                                                                                       |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SSR and hydration     | Document-driven bootstrap without harness imports, direct parameter/search entry, reload, retained server DOM, no browser loader refetch, title updates, streamed deferred data and subsequent navigation                                    |
@@ -84,10 +90,10 @@ Any core/history upgrade must audit the pinned source inventories, rerun type an
 runtime ports, compare reference apps, and pass this clean-consumer browser gate.
 
 File-route generation is optional TSRX work. TanStack Start, Query, devtools,
-React-style transition components and strict CSP coverage of Ripple's inline
-stream patch runtime are outside the supported contract. Streaming requires the
-inline transport/patch scripts described in the SSR guide. Publishing the adapter
-does not depend on optional milestone 7.
+React-style transition components, Trusted Types, static hash policies and
+development/HMR CSP are outside the supported contract. Streaming authorizes the
+inline transport/patch scripts with the response nonce described in the SSR guide.
+Publishing the adapter does not depend on optional milestone 7.
 
 ## Initial validation record
 

@@ -170,10 +170,80 @@ agent. Ripple uses its configured root pending boundary inside `#app`, including
 forced reload after hydration. Framework-specific React document-shell rules,
 Solid producer APIs, and React script-hoisting behavior are not reproduced.
 
-This milestone uses the existing Ripple renderer and its inline patch runtime.
-Route/transport nonce attributes are supported, but a complete strict-CSP nonce
-policy for Ripple's own inline scripts is tracked in
-[#1594](https://github.com/Ripple-TS/ripple/issues/1594). Browser navigation,
-package installation and representative bundle/ownership checks are covered by the
-release gate; strict CSP remains outside the contract. File-route manifests,
-TanStack Start, Query and devtools remain outside this adapter's scope.
+File-route manifests, TanStack Start, Query and devtools remain outside this
+adapter's scope.
+
+## Strict Content Security Policy
+
+Set `router.options.ssr.nonce` once on the fresh request router. Both HTTP helpers
+pass it to Ripple's `render(component, { nonce })` option and apply it to
+adapter-owned scoped CSS. One nonce authorizes generated scripts and styles:
+core's transport, Ripple's stream bootstrap and success/error patches, initial and
+late scoped styles, and trusted route/manifest assets. Inert `application/json`
+hydration records need no nonce. Omission preserves the existing rendering
+behavior.
+
+```js
+import { randomBytes } from 'node:crypto';
+import {
+  createRequestHandler,
+  defaultStreamHandler,
+} from '@ripple-ts/tanstack-router/ssr/server';
+import { getRouter } from './router.tsrx';
+
+export function handle(request) {
+  const nonce = randomBytes(18).toString('base64');
+  return createRequestHandler({
+    request,
+    createRouter: () => {
+      const router = getRouter();
+      router.update({ ssr: { nonce } });
+      return router;
+    },
+    // Supply the production entry and styles using getRouterManifest.
+  })((options) => {
+    options.responseHeaders.set(
+      'Content-Security-Policy',
+      `default-src 'self'; script-src 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'nonce-${nonce}'; style-src-attr 'none'; object-src 'none'; base-uri 'none'`,
+    );
+    options.responseHeaders.set('Cache-Control', 'private, no-store');
+    return defaultStreamHandler(options);
+  });
+}
+```
+
+Use `defaultRenderHandler` for buffered output. Set headers before rendering and
+forward the response status/headers before piping its body. The runnable
+[`examples/ssr/server.js`](../examples/ssr/server.js) and
+[`serve.js`](../examples/ssr/serve.js) demonstrate this flow with production
+assets. Applications own the policy; adapt connection, image, font, frame and
+other directives to the resources they use.
+
+Keep `HeadContent` in the root shell. Its nonce metadata serves both TanStack's
+client restoration (`content`) and Vite's lazy CSS/module-preload helper
+(`nonce`). The restored router retains that document nonce for route assets on
+navigation. Production scoped CSS is extracted into stylesheets, including lazy
+chunks; their links preserve the nonce. `hydrateRouter` needs no separate nonce
+option.
+
+For direct Ripple rendering, buffered `render`/`prerender` return CSS text: put
+the nonce on the `<style data-ripple-ssr>` you create. Pass explicit nonces to
+trusted application `<script>`/`<style>` elements and entry assets. Neither Ripple
+nor this adapter adds trust to arbitrary `innerHTML`. A style nonce does not
+authorize `style="..."` attributes; use classes/scoped CSS under
+`style-src-attr 'none'`. Inline event-handler attributes are likewise unsupported
+by this policy; Ripple's event listeners do not require them.
+
+Never keep a nonce in process-global state, reuse it between responses, or bake it
+into a static bundle. Caches must keep HTML and its CSP header consistent and
+provide a fresh nonce for each delivered response; disabling HTML caching as in
+the example is the simplest arrangement. Static hash policies require a separate
+design.
+
+The production browser gate enforces CSP in Chromium, Firefox and WebKit without
+`bypassCSP`, including lazy assets, streamed boundaries, navigation, disposal and
+negative script controls. This contract requires browsers supporting CSP nonces
+and `strict-dynamic`; no legacy-browser fallback is provided. Trusted Types
+(`require-trusted-types-for 'script'`), hash-based static CSP, arbitrary
+third-party scripts and development/HMR policies are tracked separately in
+[#1599](https://github.com/Ripple-TS/ripple/issues/1599).
