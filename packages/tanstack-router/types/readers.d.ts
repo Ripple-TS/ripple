@@ -12,6 +12,7 @@ import type {
 	ResolveRoute,
 	RouterState,
 	ToSubOptionsProps,
+	ToPathOption,
 } from '@tanstack/router-core';
 import type { Reactive } from './link.js';
 
@@ -45,7 +46,10 @@ export type UseMatchRouteOptions<
 			MaskOptions<TRouter, TMaskFrom, TMaskTo> &
 			MatchRouteOptions
 	>
-> & { to?: TTo | Derived<TTo>; from?: TFrom | Derived<TFrom> };
+> & {
+	to?: ToPathOption<TRouter, TFrom, TTo> | Derived<ToPathOption<TRouter, TFrom, TTo>>;
+	from?: TFrom | Derived<TFrom>;
+};
 export declare function useMatchRoute<TRouter extends AnyRouter = RegisteredRouter>(): <
 	const TFrom extends string = string,
 	const TTo extends string | undefined = undefined,

@@ -32,8 +32,9 @@
   ],
   "scripts": {
     "test": "pnpm -w test --project tanstack-router-client --project tanstack-router-server --project tanstack-router-tooling",
-    "typecheck": "tsgo --noEmit -p tsconfig.json",
-    "upstream:inventory": "node scripts/inventory-upstream.js"
+    "typecheck": "tsgo --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.upstream.json && tsc --noEmit -p tests/fixtures/solid-reference/tsconfig.json",
+    "upstream:inventory": "node scripts/inventory-upstream.js",
+    "upstream:audit": "node scripts/audit-upstream.js"
   },
   "dependencies": {
     "@tanstack/history": "1.162.5",
@@ -45,14 +46,16 @@
   "devDependencies": {
     "@ripple-ts/vite-plugin": "workspace:*",
     "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "6.9.1",
     "@tsrx/ripple": "workspace:*",
     "@types/node": "catalog:default",
+    "combinate": "1.1.11",
+    "jsdom": "catalog:default",
     "ripple": "workspace:*",
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vitest": "catalog:default",
-    "jsdom": "catalog:default",
-    "@testing-library/jest-dom": "6.9.1"
+    "zod": "3.25.76"
   },
   "publishConfig": {
     "access": "public"

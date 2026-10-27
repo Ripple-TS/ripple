@@ -5,3 +5,6 @@ export var routerContext = new Context();
 
 /** @type {import('ripple').Context<{ routeId: string; match: import('ripple').Derived<import('@tanstack/router-core').AnyRouteMatch | undefined> } | undefined>} */
 export var matchContext = new Context();
+
+/** @type {import('ripple').Context<string | undefined>} */
+export var fallbackContext = new Context();

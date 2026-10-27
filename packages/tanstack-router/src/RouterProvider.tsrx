@@ -8,7 +8,7 @@ import {
 	type AnyRouteMatch,
 } from '@tanstack/router-core';
 import { isServer } from '@tanstack/router-core/isServer';
-import { routerContext, matchContext } from './context.js';
+import { routerContext, matchContext, fallbackContext } from './context.js';
 import { useRouter } from './hooks.js';
 import { resolveInput } from './inputs.js';
 import { findNotFoundBoundary } from './boundaries.js';
@@ -22,6 +22,13 @@ function Fragment({ children }: { children?: Children }) {
 }
 function Empty() {
 	return null;
+}
+
+function Fallback({ kind, children }: { kind: string; children?: Children }) @{
+	fallbackContext.set(kind);
+	<>
+		{children}
+	</>
 }
 export function ErrorComponent({ error }: { error: unknown }) {
 	return <pre>
@@ -93,6 +100,10 @@ function Driver() @{
 }
 
 function ProviderContext({ router, children }: { router: AnyRouter; children?: Children }) @{
+	if (routerContext.get() !== router) {
+		matchContext.set(undefined);
+		fallbackContext.set(undefined);
+	}
 	routerContext.set(router);
 	<>
 		{children}
@@ -144,6 +155,7 @@ function Matches() @{
 				<RootMatch />
 			} @catch (error, reset) {
 				const captured = router.stores.matches.get();
+				router.options.defaultOnCatch?.(error);
 				effect(() => {
 					if (router.stores.matches.get() !== captured) reset();
 				});
@@ -172,12 +184,16 @@ function Match({ routeId }: { routeId: string }) @{
 	});
 	@try {
 		@if (match.value?.status === 'pending') {
-			<{Pending.value} />
+			<Fallback kind="pendingComponent">
+				<{Pending.value} />
+			</Fallback>
 		} @else {
 			<MatchContent {match} />
 		}
 	} @pending {
-		<{Pending.value} />
+		<Fallback kind="pendingComponent">
+			<{Pending.value} />
+		</Fallback>
 	} @catch (error, reset) {
 		const captured = match.value;
 		effect(() => {
@@ -193,7 +209,9 @@ function Match({ routeId }: { routeId: string }) @{
 			if (boundaryId !== routeId && !route.isRoot) throw error;
 			<RouteNotFound {routeId} error={error as NotFoundError} />
 		} @else {
-			<Catch {error} {reset} info={{ componentStack: '' }} />
+			<Fallback kind="errorComponent">
+				<Catch {error} {reset} info={{ componentStack: '' }} />
+			</Fallback>
 		}
 	}
 }
@@ -237,19 +255,29 @@ function RouteNotFound({ routeId, error }: { routeId: string; error?: NotFoundEr
 	const route = router.routesById[routeId];
 	const NotFound =
 		route.options.notFoundComponent ?? router.options.defaultNotFoundComponent ?? DefaultNotFound;
-	<NotFound {...error} />
+	<Fallback kind="notFoundComponent">
+		<NotFound {...error} />
+	</Fallback>
 }
 
 export function Outlet() @{
 	const router = useRouter();
 	const parent = matchContext.get();
+	const fallback = fallbackContext.get();
+	if (fallback && import.meta.env.DEV) {
+		console.warn(
+			`Warning: An <Outlet /> was rendered inside a ${fallback}. <Outlet /> should only be rendered inside a route component.`,
+		);
+	}
 	if (!parent) throw new Error('Outlet must be rendered inside a route component.');
 	const children = track(() => {
 		const ids = router.stores.ids.get();
 		const index = ids.indexOf(parent.routeId);
-		return index < 0 || parent.match.value?._notFound ? [] : ids.slice(index + 1, index + 2);
+		return fallback || index < 0 || parent.match.value?._notFound
+			? []
+			: ids.slice(index + 1, index + 2);
 	});
-	@if (parent.match.value?._notFound) {
+	@if (!fallback && parent.match.value?._notFound) {
 		<RouteNotFound routeId={parent.routeId} error={parent.match.value.error as NotFoundError} />
 	} @else {
 		@for (const id of children.value; key id) {

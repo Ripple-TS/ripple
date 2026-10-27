@@ -51,6 +51,21 @@ function checkClientApis() {
 		search: { tab: undefined },
 	});
 	Link(options);
+	const optionList = linkOptions([
+		{ to: '/posts/$postId', params: { postId: 'one' }, search: { tab: undefined }, label: 'First' },
+		{
+			to: '/posts/$postId',
+			params: { postId: 'two' },
+			search: { tab: undefined },
+			label: 'Second',
+		},
+	]);
+	const firstLabel: 'First' = optionList[0].label;
+	// @ts-expect-error arrays validate each destination
+	linkOptions([{ to: '/missing' }]);
+	// @ts-expect-error arrays validate required parameters
+	linkOptions([{ to: '/posts/$postId', params: { wrong: 'one' } }]);
+	void firstLabel;
 	// @ts-expect-error linkOptions validates route parameters too
 	linkOptions({ to: '/posts/$postId', params: { wrong: 'one' } });
 	const api = getRouteApi('/posts/$postId');

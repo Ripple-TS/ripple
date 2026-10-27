@@ -36,7 +36,8 @@ Configure `Wrap` and `InnerWrap` on the router; both propagate Ripple context.
 `Link` renders an anchor with active/inactive props, classes, styles, normal DOM
 attributes and events, and Ripple refs (callback cleanup, tracked refs, or ref
 arrays). Disabled links have no href. Modified clicks, downloads, external links,
-non-self targets, and `reloadDocument` preserve browser navigation. User handlers
+and non-self targets preserve browser navigation. `reloadDocument` goes through
+TanStack core so navigation blockers run before a document reload. User handlers
 run before the routing handler and can prevent it. Core validates public hrefs,
 including rewrites, masks and history formatting, against its protocol allowlist.
 
@@ -117,3 +118,13 @@ scroll listeners/cache; provider remounts do not install another set. The adapte
 owns and disposes its history subscription, blockers, preload timers/observers,
 refs, and render acknowledgement. Real browser scroll/BFCache validation remains
 milestone 6; deprecated scroll components and SSR scroll scripts are not exported.
+
+## Error values and typed options
+
+Error components receive the original thrown value as `unknown`. Use
+`error instanceof Error ? error.message : String(error)` for display.
+
+`linkOptions()` validates destinations while preserving extra fields and literal
+types in an object or readonly tuple. `createRouteMask()` types declarative masks
+against the code-defined route tree. Native anchor event/ref types and custom
+required props are preserved by `createLink()`.

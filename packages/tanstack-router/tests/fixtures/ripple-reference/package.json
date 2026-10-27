@@ -1,0 +1,15 @@
+{
+  "name": "@ripple-ts/router-ripple-reference",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@ripple-ts/tanstack-router": "workspace:*",
+    "@tanstack/router-core": "1.171.39",
+    "@tanstack/history": "1.162.5",
+    "ripple": "workspace:*"
+  },
+  "devDependencies": {
+    "@ripple-ts/vite-plugin": "workspace:*",
+    "vite": "catalog:default"
+  }
+}

@@ -1,5 +1,7 @@
 export {
 	createControlledPromise,
+	SearchParamError,
+	rootRouteId,
 	defaultParseSearch,
 	defaultStringifySearch,
 	isNotFound,
@@ -23,6 +25,7 @@ export {
 	createRootRouteWithContext,
 	createRoute,
 	getRouteApi,
+	createRouteMask,
 	createLazyRoute,
 } from './route.js';
 export {
@@ -55,4 +58,17 @@ export type {
 	NavigateOptions,
 	LinkOptions,
 	NotFoundRouteProps,
+} from '@tanstack/router-core';
+
+export type {
+	BuildLocationFn,
+	NavigateFn,
+	ParsedLocation,
+	SearchSchemaInput,
+	ResolveRelativePath,
+	ResolveOptionalParams,
+	RouterState,
+	RouterOptions,
+	ValidatorFn,
+	ValidatorObj,
 } from '@tanstack/router-core';

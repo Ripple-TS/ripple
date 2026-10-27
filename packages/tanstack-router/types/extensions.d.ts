@@ -18,7 +18,7 @@ export type NotFoundRouteComponent = Component<NotFoundRouteProps>;
 
 declare module '@tanstack/router-core' {
 	interface ErrorBoundaryTypes {
-		error: Error;
+		error: unknown;
 	}
 	interface UpdatableRouteOptionsExtensions {
 		component?: RouteComponent;
@@ -27,6 +27,7 @@ declare module '@tanstack/router-core' {
 		notFoundComponent?: NotFoundRouteComponent;
 	}
 	interface RouterOptionsExtensions {
+		defaultOnCatch?: (error: unknown) => void;
 		defaultComponent?: RouteComponent;
 		defaultPendingComponent?: RouteComponent;
 		defaultErrorComponent?: ErrorRouteComponent;

@@ -1,10 +1,10 @@
 # Compatibility contract
 
-This tracks the target contract for milestones 2–6. Milestone 3 implements the
-client feature surface: routes, links, reactive readers, lazy loading, boundaries,
-blocking, history, and scroll integration. The package README lists the exact
-current exports and limits; the table below separates client features from later
-parity and release gates.
+This tracks the target contract for milestones 2–6. Milestone 4 audits the client
+feature surface and types: routes, links, reactive readers, lazy loading,
+boundaries, blocking, history, and scroll integration. The package README lists
+the exact current exports and limits; the table below separates client features
+from later SSR and release gates.
 
 | Surface                  | Planned API / behavior                                                                                                                                                                       | Milestone |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -106,3 +106,29 @@ settle superseded/unmounted observations. It does not implement atomic concurren
 DOM staging. `tick()` or an arbitrary timeout is not evidence of completion of a
 suspended render. TanStack core remains the sole owner of native browser view
 transitions; render completion and animation completion are separate.
+
+## Parity and framework differences
+
+The pinned Solid runtime/type inventory and React audit are in
+[`../upstream/`](../upstream/README.md). Each declaration has a disposition and
+test references or an explicit exclusion/deferment reason. React-only behavior
+already covered by a Solid/native scenario is marked `covered`, not counted as a
+direct port. The source-skipped preload/context case runs in Ripple.
+
+Ripple preserves arbitrary thrown values, so error component and `onCatch`
+arguments default to `unknown`; narrow them before reading error properties.
+Missing lazy exports report errors in development and production. Default error
+markup and Solid's error normalization are not part of the contract.
+
+Reader options are fixed during component initialization. Changing a `from` option
+requires a new component scope. Links and provider context retain their explicit
+tracked-input contract. Native user event callbacks run even when an event was
+already prevented; the router action remains cancelled. Blocked links prevent
+default clicks. Ripple follows Solid's inactive styling for external links and its
+held-location behavior for newly mounted departing-route links.
+
+React memo/StrictMode counts, Solid proxy-store detection, standalone framework
+boundary helpers, and global concurrent DOM staging are excluded. Their public
+routing counterparts are tested with native scopes and control flow. Pending DOM
+may be removed instead of kept hidden as in React. Browser validation and
+SSR/hydration remain later milestones.

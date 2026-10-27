@@ -12,8 +12,10 @@ was reconfirmed October 26, 2026:
 | `solid-js` (reference)               | `1.9.10`   |
 
 The published Solid adapter depends on the same core/history versions and peers
-with Solid `^1.9.10`. The reference version is recorded here, not installed into
-the Ripple package or its typechecking graph.
+with Solid `^1.9.10`. The reference is installed only in the private Solid
+fixture, outside the Ripple package dependency and typechecking graphs. React
+source version `1.170.46` is audited at the same commit; React is not installed
+for this audit.
 
 `tests.json` inventories all files in `packages/solid-router/tests`, including
 support fixtures, with SHA-256 checksums. It records each live `test`/`it`
@@ -70,18 +72,58 @@ custom anchors receive `Derived<AnchorProps>` as `linkProps`. Flushes in tracked
 input tests commit scheduled Ripple updates; they do not substitute for loader or
 render completion. The disabled-href port additionally verifies click default
 prevention. Lazy fixture delays and upstream controlled promises are retained.
-Full applicable test/type parity and the React audit remain milestone 4.
+Milestone 4 completes the applicable client/type audit described below.
 
-Regenerate from a clean checkout at the pinned commit:
+## Milestone 4 parity gate
+
+`tests.json` inventories the Solid baseline; `react-tests.json` inventories every
+React test and support source at the same commit. Every declaration resolves to an
+explicit mapping. `ported` means a translated scenario; React `covered` means the
+audited behavior is already tested by the referenced Solid/native scenario.
+Neither excludes nor deferred cases count as passing ports. Parameterized
+declarations represent families, not expanded test counts.
+
+The adapter test projects execute the runtime ports. Package typechecking runs the
+positive and negative type ports in an isolated TypeScript graph, separate from
+registered `.ts` consumers and the Solid fixture. The tooling suite uses
+`compile_to_volar_mappings` for TSRX generic components, required props, events,
+refs, tracked inputs and invalid inputs.
+
+The bundled reference apps compare public state, lifecycle events and visible text
+at initial load, same-route updates, pending navigation, supersession, late
+completion, invalidation and disposal. They also assert retained parent state,
+absence of stale rendered work, and removal of owned history listeners.
+
+Translations use native `@if`/`@for`/`@try`, explicit tracked props, real root
+disposal, and awaited public navigation completion. React `act` becomes callback
+settlement followed by `flushSync`; it is not evidence that an unresolved loader
+or render finished. Native event and error-value differences are documented in
+[the compatibility contract](../docs/compatibility.md). Each exclusion in the
+manifest identifies the affected framework contract.
+
+The one upstream-skipped client scenario (Solid `routeContext.test.tsx:1585`, also
+present in React) runs in Ripple with its assertions intact. Source skip modifiers
+remain visible in the report. The conditional streaming-cleanup source is deferred
+to milestone 5, along with SSR, hydration and assets. File routing remains
+optional milestone 7. No client/type case is silently deferred.
+
+## Upstream upgrades
 
 ```sh
-pnpm --filter @ripple-ts/tanstack-router upstream:inventory /path/to/TanStack-router
-pnpm exec prettier --write packages/tanstack-router/upstream/tests.json
+# Local mapping gate: reports missing, deferred and upstream-skipped cases.
+pnpm --filter @ripple-ts/tanstack-router upstream:audit
+# Candidate source audit: nonzero exit when the commit or tracked sources differ.
+pnpm --filter @ripple-ts/tanstack-router upstream:audit /path/to/TanStack-router
+# Regenerate each inventory only after reviewing and migrating the baseline.
+pnpm --filter @ripple-ts/tanstack-router upstream:inventory /path/to/TanStack-router solid
+pnpm --filter @ripple-ts/tanstack-router upstream:inventory /path/to/TanStack-router react
 ```
 
-The generator reads local source, performs no network calls, preserves existing
-mappings, and rejects a different commit or changed tracked test sources. When
-upgrading, review changed/added/deleted test families and migrate their mappings
-explicitly before changing the pin. The broader upgrade audit and React-only test
-comparison are milestone 4 work. Preserve the upstream notice in `NOTICE` when
-porting source or tests.
+The audit reports added/deleted/changed source checksums and test declarations,
+including assertion-only changes with unchanged titles. It reads a clean local
+checkout and makes no network requests. A different commit always requires review.
+The generator refuses an unreviewed baseline change, changed source, or removed
+source; new cases inherit a deferred mapping that fails the client/type gate.
+Review the audit, migrate the manifests and version pins in the upgrade PR, then
+regenerate and rerun runtime, type and differential checks. Preserve the upstream
+notice in `NOTICE`.

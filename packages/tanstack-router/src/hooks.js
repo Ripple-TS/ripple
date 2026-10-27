@@ -82,9 +82,7 @@ export function useParams(options = {}) {
 }
 /** @param {Options} [options] */
 export function useSearch(options = {}) {
-	return useMatchValue(options, (match) =>
-		options.strict === false ? match.search : match._strictSearch,
-	);
+	return useMatchValue(options, (match) => match.search);
 }
 /** @param {Options} [options] */
 export function useLoaderData(options = {}) {

@@ -4,6 +4,7 @@ export {
 	createRootRouteWithContext,
 	createRoute,
 	getRouteApi,
+	createRouteMask,
 	createLazyRoute,
 } from './route.js';
 export {
@@ -31,6 +32,8 @@ export {
 } from './hooks.js';
 export {
 	createControlledPromise,
+	SearchParamError,
+	rootRouteId,
 	defaultParseSearch,
 	defaultStringifySearch,
 	isNotFound,

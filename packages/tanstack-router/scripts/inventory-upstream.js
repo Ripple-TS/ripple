@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 export const upstreamCommit = 'da2adec76dbe6c0da6d6a0d5640f7b9388217f45';
-const output = new URL('../upstream/tests.json', import.meta.url);
+const outputFor = (framework) =>
+	new URL(
+		framework === 'react' ? '../upstream/react-tests.json' : '../upstream/tests.json',
+		import.meta.url,
+	);
 
 // Inventory declarations, not expanded test.each rows or assertions. TypeScript's
 // parser excludes commented-out tests and retains the original source locations.
@@ -65,19 +69,21 @@ function walk(directory) {
 	});
 }
 
-export function createInventory(checkout) {
+export function createInventory(checkout, framework = 'solid') {
+	if (!['solid', 'react'].includes(framework)) throw new Error('Expected solid or react framework');
+	const output = outputFor(framework);
+	const sourceRoot = `packages/${framework}-router/tests`;
 	const commit = execFileSync('git', ['rev-parse', 'HEAD'], {
 		cwd: checkout,
 		encoding: 'utf8',
 	}).trim();
 	if (commit !== upstreamCommit)
 		throw new Error(`Expected upstream ${upstreamCommit}, received ${commit}`);
-	const testRoot = resolve(checkout, 'packages/solid-router/tests');
-	const dirty = execFileSync(
-		'git',
-		['status', '--porcelain', '--', 'packages/solid-router/tests'],
-		{ cwd: checkout, encoding: 'utf8' },
-	);
+	const testRoot = resolve(checkout, sourceRoot);
+	const dirty = execFileSync('git', ['status', '--porcelain', '--', sourceRoot], {
+		cwd: checkout,
+		encoding: 'utf8',
+	});
 	if (dirty.trim()) throw new Error('The upstream test tree must be unmodified');
 	let previous;
 	try {
@@ -85,52 +91,61 @@ export function createInventory(checkout) {
 	} catch (error) {
 		if (error.code !== 'ENOENT') throw error;
 	}
-	const files = walk(testRoot)
-		.sort()
-		.map((path) => {
-			const source = readFileSync(path, 'utf8');
-			const file = relative(checkout, path).replaceAll('\\', '/');
-			const isTest = /\.test(?:-d)?\.[jt]sx?$/.test(file);
-			const kind = file.includes('.test-d.')
-				? 'types'
-				: isTest
-					? file.includes('/server/')
-						? 'server'
-						: 'client'
-					: 'support';
-			const old = previous?.files.find((entry) => entry.file === file);
-			const sha256 = createHash('sha256').update(source).digest('hex');
-			if (old && old.sha256 !== sha256)
-				throw new Error(
-					`Upstream source changed: ${file}; review mappings before updating the baseline`,
-				);
-			const milestone = /\/fileRoute\.test/.test(file)
-				? 7
-				: kind === 'server' ||
-					  /(?:hydration|renderRouterToStream|router-client-stream|Scripts)/i.test(file)
-					? 5
-					: /(?:transitioner|retained-pending|store-updates|presentation-lane)/i.test(file)
-						? 2
-						: 4;
-			return {
-				file,
-				sha256,
-				kind,
-				...(isTest
-					? {
-							// Every declaration inherits this mapping unless overrides[line] exists.
-							mapping: old?.mapping ?? {
-								status: 'deferred',
-								milestone,
-								reason: `Adapter behavior is scheduled for milestone ${milestone}.`,
-								rippleTests: [],
-							},
-							tests: inventoryTests(source, file),
-							overrides: old?.overrides ?? {},
-						}
-					: {}),
-			};
-		});
+	if (previous && previous.commit !== commit)
+		throw new Error(
+			'Baseline changed: audit upstream sources and explicitly migrate the reviewed manifest before regenerating.',
+		);
+	const paths = walk(testRoot);
+	for (const old of previous?.files ?? []) {
+		if (!paths.some((path) => relative(checkout, path).replaceAll('\\', '/') === old.file))
+			throw new Error(
+				`Upstream source removed: ${old.file}; review mappings before updating the baseline`,
+			);
+	}
+	const files = paths.sort().map((path) => {
+		const source = readFileSync(path, 'utf8');
+		const file = relative(checkout, path).replaceAll('\\', '/');
+		const isTest = /\.test(?:-d)?\.[jt]sx?$/.test(file);
+		const kind = file.includes('.test-d.')
+			? 'types'
+			: isTest
+				? file.includes('/server/')
+					? 'server'
+					: 'client'
+				: 'support';
+		const old = previous?.files.find((entry) => entry.file === file);
+		const sha256 = createHash('sha256').update(source).digest('hex');
+		if (old && old.sha256 !== sha256)
+			throw new Error(
+				`Upstream source changed: ${file}; review mappings before updating the baseline`,
+			);
+		const milestone = /\/fileRoute\.test/.test(file)
+			? 7
+			: kind === 'server' ||
+				  /(?:hydration|renderRouterToStream|router-client-stream|Scripts)/i.test(file)
+				? 5
+				: /(?:transitioner|retained-pending|store-updates|presentation-lane)/i.test(file)
+					? 2
+					: 4;
+		return {
+			file,
+			sha256,
+			kind,
+			...(isTest
+				? {
+						// Every declaration inherits this mapping unless overrides[line] exists.
+						mapping: old?.mapping ?? {
+							status: 'deferred',
+							milestone,
+							reason: `Adapter behavior is scheduled for milestone ${milestone}.`,
+							rippleTests: [],
+						},
+						tests: inventoryTests(source, file),
+						overrides: old?.overrides ?? {},
+					}
+				: {}),
+		};
+	});
 	return {
 		schemaVersion: 1,
 		repository: 'https://github.com/TanStack/router',
@@ -138,8 +153,9 @@ export function createInventory(checkout) {
 		versions: {
 			'@tanstack/router-core': '1.171.39',
 			'@tanstack/history': '1.162.5',
-			'@tanstack/solid-router': '1.170.43',
-			'solid-js': '1.9.10',
+			...(framework === 'solid'
+				? { '@tanstack/solid-router': '1.170.43', 'solid-js': '1.9.10' }
+				: { '@tanstack/react-router (source audit)': '1.170.46' }),
 		},
 		files,
 	};
@@ -148,7 +164,9 @@ export function createInventory(checkout) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	const checkout = process.argv[2];
 	if (!checkout) throw new Error('Usage: pnpm upstream:inventory /path/to/pinned/TanStack-router');
-	const inventory = createInventory(resolve(checkout));
+	const framework = process.argv[3] ?? 'solid';
+	const inventory = createInventory(resolve(checkout), framework);
+	const output = outputFor(framework);
 	writeFileSync(output, JSON.stringify(inventory, null, 2) + '\n');
 	console.log(
 		`Recorded ${inventory.files.filter((file) => file.tests).length} test files and ${inventory.files.reduce((count, file) => count + (file.tests?.length ?? 0), 0)} test declarations.`,

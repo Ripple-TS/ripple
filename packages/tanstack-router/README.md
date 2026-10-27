@@ -1,8 +1,9 @@
 # @ripple-ts/tanstack-router
 
-Milestone 3 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
+Milestone 4 of [#1578](https://github.com/Ripple-TS/ripple/issues/1578) provides
 the client adapter: code-defined routes, reactive readers, links, lazy loading,
-boundaries, blocking, and render-aware navigation/scrolling. The package is
+boundaries, blocking, and render-aware navigation/scrolling, with audited upstream
+runtime/type coverage and an isolated Solid comparison runner. The package is
 **private** during development and will not be published with unrelated Ripple
 releases. It is not feature-complete.
 
@@ -15,7 +16,7 @@ required by this package.
 Implemented adapter exports:
 
 - `createRouter`, `Router`, `createRootRoute`, `createRootRouteWithContext`, and
-  `createRoute`, `getRouteApi`, and `createLazyRoute`.
+  `createRoute`, `getRouteApi`, `createLazyRoute`, and `createRouteMask`.
 - `RouterProvider`, `RouterContextProvider`, and `Outlet`.
 - `useRouter`, `useRouterState`, `useMatch`, `useParams`, `useSearch`,
   `useLoaderData`, `useLoaderDeps`, `useRouteContext`, `useLocation`,
@@ -90,16 +91,20 @@ queries, real Ripple root disposal, `createControlledPromise`, and
 before restoring timers and mocks; it never runs all outstanding timers just to
 make a test pass.
 
-When differential reference runners are added in milestone 4, place them in
-separate private projects with their own dependency and TypeScript graphs. The
-pinned Solid reference uses Solid 1.9, independently of this repository's Solid 2
-benchmarks; its router module augmentations must not enter the Ripple type tests.
+The differential runners are separate private projects under `tests/fixtures/`,
+with independent dependency and TypeScript graphs. The pinned Solid reference uses
+Solid 1.9, independently of the Solid 2 benchmarks. Both apps bundle the same core
+version and compare public state, lifecycle events, normalized UI, and cleanup at
+controlled checkpoints. Package typechecking includes the upstream
+positive/negative `.tsx` tests and checks the Solid fixture separately; the
+tooling suite checks `.tsrx` call sites through the published mapping pipeline.
 
 ## Current limits
 
-Full upstream runtime/type parity, SSR/hydration, and real-browser release
-validation remain milestones 4–6. The client feature gate and exact translated
-test families are recorded in the upstream inventory. One mounted provider owns a
+SSR/hydration and real-browser release validation remain milestones 5–6. Milestone
+4 accounts for each pinned upstream case, including explicit framework differences
+and later-milestone cases. The client feature gate and exact translated test
+families are recorded in the upstream inventory. One mounted provider owns a
 router instance. Deprecated framework-specific aliases and file-route factories
 are not exported. See the client guide for explicit reactive inputs, `render`
 callbacks, custom anchors, and history ownership.

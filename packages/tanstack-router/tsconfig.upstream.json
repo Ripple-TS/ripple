@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "checkJs": false,
+    "jsx": "preserve",
+    "jsxImportSource": "ripple",
+    "types": []
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "tests/types/upstream/**/*.tsx",
+    "tests/types/react-upstream/**/*.tsx"
+  ]
+}

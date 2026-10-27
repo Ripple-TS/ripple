@@ -23,4 +23,27 @@ export default async function buildFixtures() {
 			},
 		});
 	}
+	for (const framework of ['solid', 'ripple']) {
+		const root = fileURLToPath(new URL(`./fixtures/${framework}-reference/`, import.meta.url));
+		const plugins =
+			framework === 'solid'
+				? (await import('./fixtures/solid-reference/build.js')).plugins()
+				: [ripple({ excludeRippleExternalModules: true })];
+		await build({
+			root,
+			configFile: false,
+			logLevel: 'error',
+			plugins,
+			build: {
+				outDir: 'dist',
+				emptyOutDir: true,
+				minify: false,
+				lib: {
+					entry: framework === 'solid' ? 'app.tsx' : 'app.tsrx',
+					formats: ['es'],
+					fileName: () => 'index.js',
+				},
+			},
+		});
+	}
 }

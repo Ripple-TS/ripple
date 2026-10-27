@@ -14,10 +14,9 @@
       "sha256": "2938aefd95defb1c93ec2ab6c41ff81bb843993440169ce033510974e09a0b42",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/Await.test.tsrx"]
       },
       "tests": [
         {
@@ -26,24 +25,16 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {
-        "8": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
-          "rippleTests": ["tests/client/upstream/Await.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/CatchBoundary.test.tsx",
       "sha256": "f0255e522c98e2e8018642fd5e1fddf230f798d9d9cc38ca97a07b7c202c8de2",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/CatchBoundary.test.tsrx"]
       },
       "tests": [
         {
@@ -62,7 +53,18 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "54": {
+          "status": "inapplicable",
+          "reason": "Standalone Solid CatchBoundary and its production diagnostic-context implementation are not exported. Ripple uses native @try boundaries; route lazy error rendering is covered in errorComponent.test.tsrx.",
+          "rippleTests": []
+        },
+        "100": {
+          "status": "inapplicable",
+          "reason": "Standalone Solid CatchBoundary and its production diagnostic-context implementation are not exported. Ripple uses native @try boundaries; route lazy error rendering is covered in errorComponent.test.tsrx.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/ClientOnly.test.tsx",
@@ -70,8 +72,8 @@
       "kind": "client",
       "mapping": {
         "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
+        "milestone": 5,
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -93,10 +95,9 @@
       "sha256": "35de7cf7931a99fbc83a96e30ef45cf3acebc9bd178b2a4486479116ac1c10f0",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/Matches.test-d.tsx"]
       },
       "tests": [
         {
@@ -137,10 +138,9 @@
       "sha256": "04920e261226543b8784c2e85c67e626c3080abc13b51c5b49c4c6831fd06e17",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
       },
       "tests": [
         {
@@ -169,36 +169,16 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {
-        "120": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
-        },
-        "138": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
-        },
-        "158": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/Matches.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/Outlet.test.tsx",
       "sha256": "a44da41ae0c994a4c8bad39d5c48e28879c44f3761c4c738dd6927e858f2cf17",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/Outlet.test.tsrx"]
       },
       "tests": [
         {
@@ -229,10 +209,9 @@
       "sha256": "4c11c3a2316167524be2fd07575b78afb225b5e19ea2130e8d47cbdff2c19867",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/RouterProvider.test-d.tsx"]
       },
       "tests": [
         {
@@ -248,10 +227,9 @@
       "sha256": "5834c374875495659bda96ea80478e0a2f7f16f72ecc4473baf2a5893ced65c6",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/RouterProvider.test.tsrx"]
       },
       "tests": [
         {
@@ -269,7 +247,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -341,10 +319,9 @@
       "sha256": "ce3e68b76ef18513a6e8dcfe4a4512723d6e59c4b7d1da65ab1ae2463b4ebc93",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/Transitioner.test.tsrx"]
       },
       "tests": [
         {
@@ -360,10 +337,9 @@
       "sha256": "6e57e78cef114c7f5fdf2614218f0b61c345514f3093ba458bc9b72b820aa4cb",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/blocker.test.tsrx"]
       },
       "tests": [
         {
@@ -389,10 +365,9 @@
       "sha256": "4283132beaffb52604600bbafddbcb3447ff12f1dcb1efa00d97caf155929c70",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
       },
       "tests": [
         {
@@ -432,35 +407,11 @@
         }
       ],
       "overrides": {
-        "36": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
-        },
-        "48": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
-        },
-        "57": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
-        },
-        "122": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
-        },
-        "148": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/component-preload-retry.test.tsrx"]
+        "24": {
+          "status": "deferred",
+          "milestone": 5,
+          "reason": "The window-less server preload-cache contract is milestone 5.",
+          "rippleTests": []
         }
       }
     },
@@ -469,10 +420,9 @@
       "sha256": "0688759785a7c06ea1f8421d759cf386364250407703ffc765492feba66c1928",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
       },
       "tests": [
         {
@@ -496,42 +446,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "54": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
-        },
-        "74": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
-        },
-        "101": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
-        },
-        "172": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/createLazyRoute.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/disableGlobalCatchBoundary.test.tsx",
       "sha256": "fde82b30e8bf20e16f6e5aced22ac29d73dc0fd420c6b5ecb82ec0933a8c2a7c",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/disableGlobalCatchBoundary.test.tsrx"]
       },
       "tests": [
         {
@@ -552,10 +476,9 @@
       "sha256": "401c4df37348f6f9368ea7cef64936e8b73dfb1ba65b08975df759b9ddbfc7a6",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Preserves route callback inference and generic error overrides; unknown replaces Solid Error because Ripple does not normalize thrown values. The standalone CatchBoundary JSX is omitted (native @try).",
+        "rippleTests": ["tests/types/upstream/errorBoundary.test-d.tsx"]
       },
       "tests": [
         {
@@ -571,10 +494,9 @@
       "sha256": "30146ff2343b2ed8e159c05de0c0e7089898a1ff885e9f85b1b8e0f1cf1d6b4f",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/errorComponent.test.tsrx"]
       },
       "tests": [
         {
@@ -609,17 +531,15 @@
         }
       ],
       "overrides": {
-        "172": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Error text uses the default message presentation; Ripple resets replay failed component initialization.",
-          "rippleTests": ["tests/client/upstream/errorComponent.test.tsrx"]
+        "272": {
+          "status": "inapplicable",
+          "reason": "Solid standalone CatchBoundary normalization and default error UI markup are framework-specific. Ripple preserves raw thrown values and renders their text; route boundaries are tested separately.",
+          "rippleTests": []
         },
-        "217": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Error text uses the default message presentation; Ripple resets replay failed component initialization.",
-          "rippleTests": ["tests/client/upstream/errorComponent.test.tsrx"]
+        "313": {
+          "status": "inapplicable",
+          "reason": "Solid standalone CatchBoundary normalization and default error UI markup are framework-specific. Ripple preserves raw thrown values and renders their text; route boundaries are tested separately.",
+          "rippleTests": []
         }
       }
     },
@@ -630,7 +550,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 7,
-        "reason": "File-route factories and generated type registration are in optional milestone 7.",
+        "reason": "File-route factories and generation are outside the code-defined adapter project (optional milestone 7).",
         "rippleTests": []
       },
       "tests": [
@@ -674,7 +594,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 7,
-        "reason": "File-route factories and generated type registration are in optional milestone 7.",
+        "reason": "File-route factories and generation are outside the code-defined adapter project (optional milestone 7).",
         "rippleTests": []
       },
       "tests": [
@@ -713,7 +633,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -748,10 +668,9 @@
       "sha256": "6223c6b46f5a5ddfe6103413dc5cd662f7ccffa1d72c8a8e6e6230cc3fe1e8a9",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/issue-4467-lazy-route-pending.test.tsrx"]
       },
       "tests": [
         {
@@ -767,10 +686,9 @@
       "sha256": "fa9223fff0214d846386396f46e38d4d14ec1953efd46962f2b67344b63f1dfa",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/issue-7367-pending-min-redirect.test.tsrx"]
       },
       "tests": [
         {
@@ -784,30 +702,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "20": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/issue-7367-pending-min-redirect.test.tsrx"]
-        },
-        "74": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/issue-7367-pending-min-redirect.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/issue-7964-param-parsing-loader.test.tsx",
       "sha256": "27e81ecffd869f88001e30098e40e8611b138685b5a3cf1f8730c4001c0601c2",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/issue-7964-param-parsing-loader.test.tsrx"]
       },
       "tests": [
         {
@@ -816,24 +720,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "17": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/issue-7964-param-parsing-loader.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/issue-7986-retained-pending.test.tsx",
       "sha256": "56fbbd24712a829ff87f84eed817c125eb781e9ac8340b0ab96912b5fa7af552",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
       },
       "tests": [
         {
@@ -907,33 +803,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "101": {
-          "status": "ported",
-          "milestone": 2,
-          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
-        },
-        "140": {
-          "status": "ported",
-          "milestone": 2,
-          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
-        },
-        "178": {
-          "status": "ported",
-          "milestone": 2,
-          "rippleTests": ["tests/client/upstream/issue-7986-retained-pending.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/issue-8115-context.test.tsx",
       "sha256": "ea620ead68e802fe7243d92b2ab45bf6222d4a4f1a727b368d6b345f9b98a534",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/issue-8115-context.test.tsrx"]
       },
       "tests": [
         {
@@ -988,11 +867,11 @@
         }
       ],
       "overrides": {
-        "39": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/issue-8115-context.test.tsrx"]
+        "386": {
+          "status": "deferred",
+          "milestone": 5,
+          "reason": "Hydration context reconstruction and server state transfer are milestone 5.",
+          "rippleTests": []
         }
       }
     },
@@ -1021,10 +900,9 @@
       "sha256": "01c2802cead78b9ce3056ff8cf7499b7431de8b02d7fd12c870a1768cedf1b2d",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/lazyRouteComponent.production.test.tsrx"]
       },
       "tests": [
         {
@@ -1043,17 +921,22 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "62": {
+          "status": "inapplicable",
+          "reason": "Solid silently renders missing production exports as blank. Ripple deliberately reports missing exports in both modes; the same four setup combinations have independent production error assertions.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/link-departing-scope.test.tsx",
       "sha256": "951855121da876b3dba977f0b59ff98af374f0028df6a162e24ca6cea83da6f8",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-departing-scope.test.tsrx"]
       },
       "tests": [
         {
@@ -1197,17 +1080,27 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "953": {
+          "status": "inapplicable",
+          "reason": "Requires Solid concurrent staging to retain the entire previous DOM while a root resource suspends. Atomic concurrent DOM staging is excluded by the established Ripple rendering contract; loader-retained links and render-observer supersession remain covered.",
+          "rippleTests": []
+        },
+        "969": {
+          "status": "inapplicable",
+          "reason": "Requires Solid concurrent staging to retain the entire previous DOM while a root resource suspends. Atomic concurrent DOM staging is excluded by the established Ripple rendering contract; loader-retained links and render-observer supersession remain covered.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/link-destination.test.tsx",
       "sha256": "0dd09bbf9fe9fa21ce452e3ea042e064b1850a84e6f46706939f9c8fa7f2cffa",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-destination.test.tsrx"]
       },
       "tests": [
         {
@@ -1276,17 +1169,32 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "113": {
+          "status": "inapplicable",
+          "reason": "Tests Solid proxy-store detection and in-place mutation, not the explicit Derived input contract. Ripple consumers replace tracked top-level params/search/state; tracked replacements are covered by links.test.tsrx.",
+          "rippleTests": []
+        },
+        "162": {
+          "status": "inapplicable",
+          "reason": "Tests Solid proxy-store detection and in-place mutation, not the explicit Derived input contract. Ripple consumers replace tracked top-level params/search/state; tracked replacements are covered by links.test.tsrx.",
+          "rippleTests": []
+        },
+        "230": {
+          "status": "inapplicable",
+          "reason": "Tests Solid proxy-store detection and in-place mutation, not the explicit Derived input contract. Ripple consumers replace tracked top-level params/search/state; tracked replacements are covered by links.test.tsrx.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/link-element-props.test.tsx",
       "sha256": "d2f09dae96990cd582778acd0cf19356bfd0293326382c1cb19e7dfe46f42500",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-element-props.test.tsrx"]
       },
       "tests": [
         {
@@ -1362,10 +1270,9 @@
       "sha256": "10a94fa5c6f7531224791c9c0c3d6ac666c7a37acd2e4e89ae9ddbff59a69956",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-href-safety.test.tsrx"]
       },
       "tests": [
         {
@@ -1374,14 +1281,7 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {
-        "17": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates. Disabled anchors additionally prevent the click default; href suppression and no navigation/preloading assertions are retained.",
-          "rippleTests": ["tests/client/upstream/link-href-safety.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/link-path-cases.ts",
@@ -1393,10 +1293,9 @@
       "sha256": "0a39b8be4f2b58bc97e3e7935ae3cb39cf410eabe7af112b8ec5daf7dd3da757",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-path-matching.test.tsrx"]
       },
       "tests": [
         {
@@ -1410,30 +1309,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "16": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
-          "rippleTests": ["tests/client/upstream/link-path-matching.test.tsrx"]
-        },
-        "47": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions. Function children use the explicit render prop because Ripple reserves children for templates.",
-          "rippleTests": ["tests/client/upstream/link-path-matching.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/link-style.test.tsx",
       "sha256": "a2ff5c7410a83a01c330afa17db9fd9bb8e4cbfa37a54b343f5f3a7858dbeac8",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link-style.test.tsrx"]
       },
       "tests": [
         {
@@ -1469,10 +1354,9 @@
       "sha256": "c479d1921a5793920ff355e9abb35afc75e4f74bb2111a30700dd0100d0f7778",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/link.test-d.tsx"]
       },
       "tests": [
         {
@@ -1633,10 +1517,9 @@
       "sha256": "ec72bbee80759a9f806edec4496d70c49f24b7d5e399b0365154d110677f09a7",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/link.test.tsrx"]
       },
       "tests": [
         {
@@ -2185,17 +2068,22 @@
           "modifiers": ["each"]
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "5301": {
+          "status": "inapplicable",
+          "reason": "Direct test of Solid private useIntersectionObserver (not a supported public API). Public intent/viewport cancellation and stale observer callbacks are ported in this file.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/loaders.test.tsx",
       "sha256": "b425e42033c9671175c50d062ee2a4fb303e7c992bcb916fe4bf9bd63b84f66d",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/loaders.test.tsrx"]
       },
       "tests": [
         {
@@ -2271,10 +2159,9 @@
       "sha256": "1a38d6f02a1a5aaaa19fdf5c8f31a06a08e851d6f3192a45048ccdbeffe6cab9",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/navigate.test.tsrx"]
       },
       "tests": [
         {
@@ -2530,10 +2417,9 @@
       "sha256": "93e2e42d80288cbb0b6fda24a758af0d98bfa25bdd088b83edebb366eea99e72",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/not-found.test.tsrx"]
       },
       "tests": [
         {
@@ -2584,10 +2470,9 @@
       "sha256": "155729957a9f8e756d360fc47eba5609cfb8a0878c2e6a4d8019f57447f4696f",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/optional-path-params.test-d.tsx"]
       },
       "tests": [
         {
@@ -2658,10 +2543,9 @@
       "sha256": "7afe67eb4c115ce7654f2e0ae26c4f783d535bae78e2d8b95ec35c575bd179b5",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/optional-path-params.test.tsrx"]
       },
       "tests": [
         {
@@ -2762,10 +2646,9 @@
       "sha256": "5aa9a031ff1e33566591520942357f992dce4de954eb8eafeb5734a036bc753b",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/pending-fallback-promise-replacement.test.tsrx"]
       },
       "tests": [
         {
@@ -2786,10 +2669,9 @@
       "sha256": "b018d8b9e0030e3e2f4f0a835368106001eaaf6036e394d2d02a647966aefdd0",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/public-presentation-lane-contract.test.tsrx"]
       },
       "tests": [
         {
@@ -2818,17 +2700,22 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "381": {
+          "status": "inapplicable",
+          "reason": "Requires Solid global transitions to retain old DOM and join superseded resource work. Ripple render observers retire superseded receipts independently; atomic concurrent DOM staging is outside the declared contract.",
+          "rippleTests": []
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/redirect.test.tsx",
       "sha256": "ae56ff6c6b7f47fa812a1c23aa8e8f43d77e0e5e9dbc0057231a63793cfcdef0",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/redirect.test.tsrx"]
       },
       "tests": [
         {
@@ -2859,10 +2746,9 @@
       "sha256": "10cb2126e56916497cf44650cd39a17b2bc17c7fe99bca388d6088fffe522670",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/redirects.test-d.tsx"]
       },
       "tests": [
         {
@@ -2878,10 +2764,9 @@
       "sha256": "41b9d54c43db37d4b87427bae511e09a002b9cdae77d86d7bc18866d4a8503ad",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
       },
       "tests": [
         {
@@ -2900,26 +2785,7 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "61": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
-        },
-        "75": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
-        },
-        "88": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/remountDeps.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/renderRouterToStream.test.tsx",
@@ -2928,7 +2794,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -2985,10 +2851,9 @@
       "sha256": "88c200e427a575c009ddc90369bcae15ac87616d460897b622dfd32a99170bfe",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/route.test-d.tsx"]
       },
       "tests": [
         {
@@ -3249,10 +3114,9 @@
       "sha256": "27d048a8ae893c8cbf9986a187a633030ec829a2950a473562849dacd691baf0",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/route.test.tsrx"]
       },
       "tests": [
         {
@@ -3363,10 +3227,9 @@
       "sha256": "3eff4db3cbdfc91968da70b93d219e76f94524826e1271f1b94507b8fa74461f",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/routeApi.test-d.tsx"]
       },
       "tests": [
         {
@@ -3422,10 +3285,9 @@
       "sha256": "9545737b7fd1dadd381ca7d01712d4638838cd77f0db4571e4d3d297ef84a2a0",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/routeContext.test.tsrx"]
       },
       "tests": [
         {
@@ -3774,17 +3636,22 @@
           "modifiers": []
         }
       ],
-      "overrides": {}
+      "overrides": {
+        "1585": {
+          "status": "ported",
+          "reason": "Upstream skips this timer-based case as flaky; the Ripple port runs it, preserving setup and assertions. Source skip metadata remains recorded.",
+          "rippleTests": ["tests/client/upstream/routeContext.test.tsrx"]
+        }
+      }
     },
     {
       "file": "packages/solid-router/tests/routeScopedShouldThrow.test.tsx",
       "sha256": "53840b7ace28fa0ba5726ba0caf652ce1025593181c53cc87676b2be74835f62",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/routeScopedShouldThrow.test.tsrx"]
       },
       "tests": [
         {
@@ -3793,14 +3660,7 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "19": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/routeScopedShouldThrow.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/router-client-stream-cleanup.test.tsx",
@@ -3809,7 +3669,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -3826,10 +3686,9 @@
       "sha256": "756dc36ee24fe2cc5ca3600b9449b3149d2f2b06133943fbbc9eb2568c0870ab",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/router.test-d.tsx"]
       },
       "tests": [
         {
@@ -3880,10 +3739,9 @@
       "sha256": "0f16278f8996a2f86c2656792b11a952a16e9e1ad0eb9dc6d143da96fddd36ef",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/router.test.tsrx"]
       },
       "tests": [
         {
@@ -4274,10 +4132,9 @@
       "sha256": "de1b5c6206975282a8a3bca6da64120f003dbe29aacea5e33f0c322e4713d049",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/same-route-pending-blank.test.tsrx"]
       },
       "tests": [
         {
@@ -4293,10 +4150,9 @@
       "sha256": "4b292c78c607696cde5d61b0ffa2789010cb892c8364dc17247344f2ab018f36",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/searchMiddleware.test.tsrx"]
       },
       "tests": [
         {
@@ -4334,7 +4190,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4363,7 +4219,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4382,7 +4238,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4406,7 +4262,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4425,7 +4281,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4444,7 +4300,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4478,7 +4334,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4512,7 +4368,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4531,7 +4387,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4550,7 +4406,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4569,7 +4425,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4593,7 +4449,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4612,7 +4468,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4631,7 +4487,7 @@
       "mapping": {
         "status": "deferred",
         "milestone": 5,
-        "reason": "Adapter behavior is scheduled for milestone 5.",
+        "reason": "SSR, hydration, client-only rendering and asset transport are milestone 5.",
         "rippleTests": []
       },
       "tests": [
@@ -4653,9 +4509,8 @@
       "sha256": "57ade6259681985ff208d5d8afc1515c808f8d483af87cb98d5ddc0070491424",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Link-based scenarios await milestone 3. Solid eager-memo evaluation counts require a framework-specific audit; tests/client/stores.test.tsrx validates Ripple batching, selector isolation, and lifetime in milestone 2.",
+        "status": "inapplicable",
+        "reason": "Exact eager Solid memo execution counts are framework-specific. Ripple readers are lazy; stores.test.tsrx and selector-isolation regressions verify synchronous state and bounded notifications independently.",
         "rippleTests": []
       },
       "tests": [
@@ -4724,10 +4579,9 @@
       "sha256": "aeaff982b45bf4227207669dc41298974ac552124f785fc1160509d522d8a2de",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Remaining parity cases are deferred to milestone 4; the milestone 2 regression subset is mapped individually.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/transitioner-listener-errors.test.tsrx"]
       },
       "tests": [
         {
@@ -4744,7 +4598,7 @@
       "kind": "client",
       "mapping": {
         "status": "ported",
-        "milestone": 2,
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
         "rippleTests": ["tests/client/upstream/transitioner-remount.test.tsrx"]
       },
       "tests": [
@@ -4767,7 +4621,7 @@
       "kind": "client",
       "mapping": {
         "status": "ported",
-        "milestone": 2,
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
         "rippleTests": ["tests/client/upstream/transitioner-render-ack.test.tsrx"]
       },
       "tests": [
@@ -4809,10 +4663,9 @@
       "sha256": "257d007e915d2691c6e340328e052f165429f7e0a2f34591ec3eac894e5371b6",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/use-match-outgoing-transition.test.tsrx"]
       },
       "tests": [
         {
@@ -4826,30 +4679,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "19": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/use-match-outgoing-transition.test.tsrx"]
-        },
-        "54": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/use-match-outgoing-transition.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/useBlocker.test-d.tsx",
       "sha256": "651cf97d7920039333de21d6347f4ff76970750c4f34c5c8a6cfe2d82fd1ac68",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useBlocker.test-d.tsx"]
       },
       "tests": [
         {
@@ -4875,10 +4714,9 @@
       "sha256": "714ed1d8def3c78f406bf437b58a601d8bb379d40a7b4d4f226f39eb39105964",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
       },
       "tests": [
         {
@@ -4932,42 +4770,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "24": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
-        },
-        "76": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
-        },
-        "128": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
-        },
-        "180": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useBlocker.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/useCanGoBack.test.tsx",
       "sha256": "330f42613a703ff3d431891bd0021640ff97bf4e114cbd83b82f3f1e267815ca",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/useCanGoBack.test.tsrx"]
       },
       "tests": [
         {
@@ -4981,30 +4793,16 @@
           "modifiers": []
         }
       ],
-      "overrides": {
-        "65": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useCanGoBack.test.tsrx"]
-        },
-        "78": {
-          "status": "ported",
-          "milestone": 3,
-          "reason": "Translated to Ripple mounting, explicit derived reads, effects, and template syntax; preserves the upstream scenario and assertions.",
-          "rippleTests": ["tests/client/upstream/useCanGoBack.test.tsrx"]
-        }
-      }
+      "overrides": {}
     },
     {
       "file": "packages/solid-router/tests/useLoaderData.test-d.tsx",
       "sha256": "a968625b957cbcb17eb0ac94a27cd2c912ef3afebe7a3370fc953fb68bd1abbe",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useLoaderData.test-d.tsx"]
       },
       "tests": [
         {
@@ -5040,10 +4838,9 @@
       "sha256": "c3775d7b734291731c7cf55e201f04a24b6e92d8b83a359f9eb063c492e0cb93",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useLocation.test-d.tsx"]
       },
       "tests": [
         {
@@ -5064,10 +4861,9 @@
       "sha256": "9888fa37819dfe6db5b8f1a4218db5028fdb9595fbed229449e0d029bcc97c2b",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useMatch.test-d.tsx"]
       },
       "tests": [
         {
@@ -5098,10 +4894,9 @@
       "sha256": "0ee1ecbdb52a3b4208d38196cba83096141b06d8b4c859814f2eb49a3077f670",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/useMatch.test.tsrx"]
       },
       "tests": [
         {
@@ -5142,10 +4937,9 @@
       "sha256": "8b90e627dfddd3eacfc83d6b942a80085ea23357c144d8c386ffb651b8f47829",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useNavigate.test-d.tsx"]
       },
       "tests": [
         {
@@ -5171,10 +4965,9 @@
       "sha256": "bb0e650a074109924f8b3388e0003e37696c914a8eb3eedaad9ea0ff0fe38839",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/useNavigate.test.tsrx"]
       },
       "tests": [
         {
@@ -5320,10 +5113,9 @@
       "sha256": "62f31c836e4f4de7d517b0858f87f0aa6b3939d7855297a77615fd3e56670453",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useParams.test-d.tsx"]
       },
       "tests": [
         {
@@ -5359,10 +5151,9 @@
       "sha256": "5687d2b52da5d43d6ae187e10eafcd09c7e8b7e5dc4ff173a39394d7b089ca0c",
       "kind": "client",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/client/upstream/useParams.test.tsrx"]
       },
       "tests": [
         {
@@ -5378,10 +5169,9 @@
       "sha256": "a113ba3c5fed9517796e8c6669274ee4f0d28d7c0d9302b7b0e204588b4cdca6",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useRouteContext.test-d.tsx"]
       },
       "tests": [
         {
@@ -5412,10 +5202,9 @@
       "sha256": "de23a606d2538eebbfcc932a855917d890f23183e1f8f3592b0e18f8949bc0da",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useRouterState.test-d.tsx"]
       },
       "tests": [
         {
@@ -5431,10 +5220,9 @@
       "sha256": "7d28168e8ea46fb6de68b4c4451e735472095c89c1140f1e2d34fee87ca79d50",
       "kind": "types",
       "mapping": {
-        "status": "deferred",
-        "milestone": 4,
-        "reason": "Adapter behavior is scheduled for milestone 4.",
-        "rippleTests": []
+        "status": "ported",
+        "reason": "Scenario and assertions translated to Ripple rendering, explicit tracked values and real disposal.",
+        "rippleTests": ["tests/types/upstream/useSearch.test-d.tsx"]
       },
       "tests": [
         {

@@ -116,6 +116,8 @@ export function useLinkProps(options) {
 					(!activeOptions?.includeHash || current.hash === next.hash);
 			}
 		}
+		if (blocked && process.env.NODE_ENV !== 'production')
+			console.warn(`Blocked Link with dangerous protocol: ${href ?? props.to}`);
 		var disabled = !!props.disabled || blocked;
 		return { href: disabled ? undefined : href, external, disabled, active, dest };
 	});
@@ -139,8 +141,7 @@ export function useLinkProps(options) {
 		if (!preload()) return;
 		void router.preloadRoute(/** @type {any} */ (state.value.dest)).catch(console.warn);
 	};
-	var enqueuePreload = () => {
-		if (preload() !== 'intent') return;
+	var schedulePreload = () => {
 		var delay = inputs.value.preloadDelay ?? router.options.defaultPreloadDelay ?? 0;
 		if (!delay) doPreload();
 		else
@@ -148,6 +149,9 @@ export function useLinkProps(options) {
 				timeout = undefined;
 				doPreload();
 			}, delay);
+	};
+	var enqueuePreload = () => {
+		if (preload() === 'intent') schedulePreload();
 	};
 	/** @type {import('ripple').Tracked<Element | null>} */
 	var element = track(null);
@@ -161,26 +165,36 @@ export function useLinkProps(options) {
 		};
 	};
 	if (!(isServer ?? router.isServer)) {
+		var hasRenderFetched = false;
 		effect(() => {
-			// A destination change cancels an intent timer for the old href.
+			// Destination and mode changes cancel work for the previous input.
 			state.value;
+			preload();
 			return cancelPreload;
 		});
 		effect(() => {
-			if (preload() === 'render') untrack(doPreload);
+			if (!hasRenderFetched && preload() === 'render') {
+				hasRenderFetched = true;
+				untrack(doPreload);
+			}
 		});
 		effect(() => {
 			var mode = preload();
 			var node = element.value;
 			if (mode !== 'viewport' || !node || typeof IntersectionObserver === 'undefined') return;
+			var active = true;
 			var observer = new IntersectionObserver((entries) => {
-				if (entries.some((entry) => entry.isIntersecting)) {
-					untrack(doPreload);
-					observer.disconnect();
-				}
+				if (!active) return;
+				if (!entries.length) return;
+				if (entries[entries.length - 1].isIntersecting) untrack(schedulePreload);
+				else cancelPreload();
 			});
 			observer.observe(node);
-			return () => observer.disconnect();
+			return () => {
+				active = false;
+				cancelPreload();
+				observer.disconnect();
+			};
 		});
 	}
 	/** @param {string} name @param {(event: any) => void} fallback */
@@ -205,7 +219,6 @@ export function useLinkProps(options) {
 			var target = inputs.value.target ?? event.currentTarget?.getAttribute('target');
 			if (
 				current.external ||
-				inputs.value.reloadDocument ||
 				event.metaKey ||
 				event.altKey ||
 				event.ctrlKey ||
@@ -222,9 +235,15 @@ export function useLinkProps(options) {
 		onFocus: compose('onFocus', enqueuePreload),
 		onMouseEnter: compose('onMouseEnter', enqueuePreload),
 		onMouseOver: compose('onMouseOver', enqueuePreload),
-		onBlur: compose('onBlur', cancelPreload),
-		onMouseLeave: compose('onMouseLeave', cancelPreload),
-		onMouseOut: compose('onMouseOut', cancelPreload),
+		onBlur: compose('onBlur', () => {
+			if (preload() === 'intent') cancelPreload();
+		}),
+		onMouseLeave: compose('onMouseLeave', () => {
+			if (preload() === 'intent') cancelPreload();
+		}),
+		onMouseOut: compose('onMouseOut', () => {
+			if (preload() === 'intent') cancelPreload();
+		}),
 		onTouchStart: compose('onTouchStart', () => {
 			if (preload() === 'intent') doPreload();
 		}),
@@ -249,6 +268,7 @@ export function useLinkProps(options) {
 			...selected,
 			...handlers,
 			href: current.href,
+			disabled: current.disabled || undefined,
 			target: props.target,
 			class: [base.class, selected.class],
 			style: base.style || selected.style ? { ...base.style, ...selected.style } : undefined,

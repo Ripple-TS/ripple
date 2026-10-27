@@ -1,4 +1,4 @@
-import { type Children, type Component, type Derived } from 'ripple';
+import { track, type Children, type Component, type Derived } from 'ripple';
 import { useLinkProps } from './link.js';
 import { useRouter } from './hooks.js';
 
@@ -42,14 +42,15 @@ function LinkContent({
 	linkProps: Derived<Record<string, any>>;
 	renderChild?: (state: { readonly isActive: boolean }) => Children;
 	children?: Children;
-}) {
-	return <>
+}) @{
+	const active = track(() => linkProps.value['data-status'] === 'active');
+	<>
 		{renderChild
 			? renderChild({
 					get isActive() {
-						return linkProps.value['data-status'] === 'active';
+						return active.value;
 					},
 				})
 			: children}
-	</>;
+	</>
 }

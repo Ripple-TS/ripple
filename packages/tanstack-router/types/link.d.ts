@@ -1,5 +1,16 @@
 import type { Children, Component, CSSProperties, Derived, JSX, TSRXElement } from 'ripple';
-import type { AnyRouter, LinkOptions, RegisteredRouter } from '@tanstack/router-core';
+import type {
+	AnyRouter,
+	LinkOptions,
+	RegisteredRouter,
+	ToPathOption,
+	FromPathOption,
+	Constrain,
+	InferFrom,
+	InferTo,
+	InferMaskFrom,
+	InferMaskTo,
+} from '@tanstack/router-core';
 
 export type Reactive<T> = { [K in keyof T]: T[K] | Derived<T[K]> };
 type KnownProps<T> = {
@@ -16,13 +27,27 @@ export type LinkProps<
 	TMaskFrom extends string = TFrom,
 	TMaskTo extends string = '',
 > = NoInfer<Reactive<LinkOptions<TRouter, TFrom, TTo, TMaskFrom, TMaskTo>>> & {
-	to?: TTo | Derived<TTo>;
-	from?: TFrom | Derived<TFrom>;
-	mask?: { to?: TMaskTo; from?: TMaskFrom } | Derived<{ to?: TMaskTo; from?: TMaskFrom }>;
+	to?: ToPathOption<TRouter, TFrom, TTo> | Derived<ToPathOption<TRouter, TFrom, TTo>>;
+	from?: FromPathOption<TRouter, TFrom> | Derived<FromPathOption<TRouter, TFrom>>;
+	mask?:
+		| {
+				to?: ToPathOption<TRouter, TMaskFrom, TMaskTo>;
+				from?: FromPathOption<TRouter, TMaskFrom>;
+		  }
+		| Derived<{
+				to?: ToPathOption<TRouter, TMaskFrom, TMaskTo>;
+				from?: FromPathOption<TRouter, TMaskFrom>;
+		  }>;
 } & Omit<Reactive<AnchorProps>, 'href' | 'ref' | `on${string}`> &
 	Pick<AnchorProps, Extract<keyof AnchorProps, 'ref' | `on${string}`>> & {
-		activeProps?: Partial<AnchorProps> | (() => Partial<AnchorProps>);
-		inactiveProps?: Partial<AnchorProps> | (() => Partial<AnchorProps>);
+		activeProps?:
+			| Partial<AnchorProps>
+			| (() => Partial<AnchorProps>)
+			| Derived<Partial<AnchorProps> | undefined>;
+		inactiveProps?:
+			| Partial<AnchorProps>
+			| (() => Partial<AnchorProps>)
+			| Derived<Partial<AnchorProps> | undefined>;
 		children?: Children;
 		render?: (state: { readonly isActive: boolean }) => Children;
 	};
@@ -46,12 +71,20 @@ export declare function useLinkProps<
 	const TMaskFrom extends string = TFrom,
 	const TMaskTo extends string = '',
 >(options: LinkProps<TRouter, TFrom, TTo, TMaskFrom, TMaskTo>): Derived<AnchorProps>;
-export declare function linkOptions<
-	TRouter extends AnyRouter = RegisteredRouter,
-	const TFrom extends string = string,
-	const TTo extends string | undefined = undefined,
-	const TMaskFrom extends string = TFrom,
-	const TMaskTo extends string = '',
->(
-	options: LinkProps<TRouter, TFrom, TTo, TMaskFrom, TMaskTo>,
-): LinkProps<TRouter, TFrom, TTo, TMaskFrom, TMaskTo>;
+// Preserve the caller's literal object (or tuple) while checking destinations.
+type InputValues<T> = { [K in keyof T]: T[K] extends Derived<infer V> ? V : T[K] };
+type ValidateLinkOptions<TRouter extends AnyRouter, TOptions> = Constrain<
+	TOptions,
+	LinkProps<
+		TRouter,
+		InferFrom<InputValues<TOptions>>,
+		InferTo<InputValues<TOptions>>,
+		InferMaskFrom<InputValues<TOptions>>,
+		InferMaskTo<InputValues<TOptions>>
+	>
+>;
+export declare function linkOptions<const TOptions, TRouter extends AnyRouter = RegisteredRouter>(
+	options: TOptions extends ReadonlyArray<unknown>
+		? { [K in keyof TOptions]: ValidateLinkOptions<TRouter, TOptions[K]> }
+		: ValidateLinkOptions<TRouter, TOptions>,
+): TOptions;

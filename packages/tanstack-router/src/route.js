@@ -62,3 +62,8 @@ export function createLazyRoute(id) {
 	/** @param {import('@tanstack/router-core').LazyRouteOptions} options */
 	return (options) => Object.assign(getRouteApi(id), { options: { id, ...options } });
 }
+
+/** @template T @param {T} options @returns {T} */
+export function createRouteMask(options) {
+	return options;
+}

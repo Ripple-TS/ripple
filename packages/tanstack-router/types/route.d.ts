@@ -11,6 +11,9 @@ import type {
 	RouteConstraints,
 	Route as RouteCore,
 	RouteOptions,
+	RouteMask,
+	RouterCore,
+	ToMaskOptions,
 } from '@tanstack/router-core';
 export declare function createRoute<
 	TRegister = unknown,
@@ -177,3 +180,15 @@ export declare function createLazyRoute<
 ): (
 	options: LazyRouteOptions,
 ) => RouteApi<TId, TRouter> & { options: { id: TId } & LazyRouteOptions };
+
+export declare function createRouteMask<
+	TRouteTree extends AnyRoute,
+	TFrom extends string,
+	TTo extends string,
+>(
+	options: { routeTree: TRouteTree } & ToMaskOptions<
+		RouterCore<TRouteTree, 'never', false>,
+		TFrom,
+		TTo
+	>,
+): RouteMask<TRouteTree>;

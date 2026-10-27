@@ -149,7 +149,6 @@ describe('Ripple link inputs and host behavior', () => {
 		{ to: 'https://example.com' },
 		{ to: 'mailto:a@example.com' },
 		{ to: '/posts/one', target: '_blank' },
-		{ to: '/posts/one', reloadDocument: true },
 		{ to: '/posts/one', download: 'file' },
 	])('preserves native navigation for %j', async (props) => {
 		const { view, router } = setup(() => <Link {...props}>Native</Link>);
@@ -288,9 +287,10 @@ describe('Ripple link inputs and host behavior', () => {
 			expect(observe).toHaveBeenCalledOnce();
 			intersect([{ isIntersecting: true }] as any, {} as any);
 			await waitFor(() => expect(loader).toHaveBeenCalledTimes(2));
-			expect(disconnect).toHaveBeenCalled();
+			// Viewport observation stays live to cancel or reschedule delayed preloads.
+			expect(disconnect).not.toHaveBeenCalled();
 			view.unmount();
-			expect(disconnect).toHaveBeenCalledTimes(2);
+			expect(disconnect).toHaveBeenCalledOnce();
 		} finally {
 			vi.unstubAllGlobals();
 		}
