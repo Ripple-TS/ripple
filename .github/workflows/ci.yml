@@ -174,7 +174,12 @@ jobs:
   tanstack-router-validation:
     name: TanStack Router package and browser validation
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    container:
+      # Match the Playwright catalog in pnpm-workspace.yaml. The image includes
+      # browser binaries and Linux libraries, avoiding slow apt mirrors per run.
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -184,8 +189,6 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install browser engines
-        run: pnpm --filter @ripple-ts/tanstack-router exec playwright install --with-deps chromium firefox webkit
       - name: Validate installed tarballs in production browsers
         run: pnpm --filter @ripple-ts/tanstack-router test:release
       - name: Audit upstream compatibility mappings
