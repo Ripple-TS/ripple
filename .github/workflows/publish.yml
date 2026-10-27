@@ -1,6 +1,7 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,7 +13,10 @@ permissions: {}
 
 jobs:
   publish:
-    if: github.repository == 'Ripple-TS/ripple' && contains(github.event.head_commit.message, 'Version Packages')
+    if: >-
+      github.repository == 'Ripple-TS/ripple' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'Version Packages'))
     permissions:
       contents: write
       id-token: write
@@ -40,6 +44,9 @@ jobs:
 
       - name: Disallow major bumps in changesets
         run: pnpm changeset:check
+
+      - name: Select publishing without consuming pending private-package changesets
+        run: node scripts/prepare-changesets-action.js publish "$RUNNER_TEMP"
 
       - name: Publish to npm
         id: changesets

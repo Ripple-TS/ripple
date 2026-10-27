@@ -1,5 +1,27 @@
 # ripple
 
+## 0.5.3
+
+### Patch Changes
+
+- [#1590](https://github.com/Ripple-TS/ripple/pull/1590)
+  [`0d98eb4`](https://github.com/Ripple-TS/ripple/commit/0d98eb40cea50683de789f3d465c499fddbb34eb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow error boundaries to
+  recover after a reset attempt throws synchronously again. Dispose the failed
+  attempt so subsequent resets can render fresh content.
+
+- [#1590](https://github.com/Ripple-TS/ripple/pull/1590)
+  [`0d98eb4`](https://github.com/Ripple-TS/ripple/commit/0d98eb40cea50683de789f3d465c499fddbb34eb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add `isTracked(value)` to
+  recognize tracked and derived values without reading or evaluating them, for
+  integrations that accept either plain or reactive inputs.
+
+- [#1593](https://github.com/Ripple-TS/ripple/pull/1593)
+  [`545c350`](https://github.com/Ripple-TS/ripple/commit/545c350722192977f4bd0ecf27945ee2d26f18ed)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow server rendering to
+  observe an AbortSignal, cancel owned async work, and stop late streamed output
+  when a request is aborted.
+
 ## 0.5.2
 
 ### Patch Changes
