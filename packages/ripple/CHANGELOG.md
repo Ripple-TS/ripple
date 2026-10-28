@@ -1,5 +1,20 @@
 # ripple
 
+## 0.5.8
+
+### Patch Changes
+
+- [#1610](https://github.com/Ripple-TS/ripple/pull/1610)
+  [`34d0c35`](https://github.com/Ripple-TS/ripple/commit/34d0c35a22f75e1dcfd460772ee0b1be52a06d14)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add Activity to retain hidden
+  DOM and component state, disconnect and restart user effects, and hydrate
+  retained server content in separate background tasks. Share the internal
+  deferred-range lifecycle independently of visibility policy.
+
+  Ensure scheduler failures cannot stall subsequent boundaries, render observers
+  wait for visible hydration while ignoring hidden Activity work, and cleared
+  hidden root text stays empty on reveal.
+
 ## 0.5.7
 
 ### Patch Changes

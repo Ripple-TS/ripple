@@ -1,5 +1,9 @@
 # @ripple-ts/rollup-plugin
 
+## 0.5.8
+
+No changes in this release.
+
 ## 0.5.7
 
 ### Patch Changes
