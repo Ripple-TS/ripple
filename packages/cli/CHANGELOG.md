@@ -1,5 +1,9 @@
 # @ripple-ts/cli
 
+## 0.5.9
+
+No changes in this release.
+
 ## 0.5.8
 
 No changes in this release.
