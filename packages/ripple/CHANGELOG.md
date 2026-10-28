@@ -1,5 +1,26 @@
 # ripple
 
+## 0.5.9
+
+### Patch Changes
+
+- [#1612](https://github.com/Ripple-TS/ripple/pull/1612)
+  [`05f92b6`](https://github.com/Ripple-TS/ripple/commit/05f92b61128eaa9fe6640e4586151f3ab35a8801)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add `Hydrate` and the
+  `ripple/hydration` strategies `load`, `idle`, `visible`, `interaction`, `media`,
+  `condition`, and `never`. Retain initial SSR HTML until its policy opens, reuse
+  Activity's deferred context and scheduling machinery, and preserve native
+  interaction delivery through nested boundaries. Client-only mounts render
+  normally. Add typed policies, completion callbacks, cleanup, streaming,
+  root-specific async/transport support, documentation, and browser coverage.
+
+  Record deferred conditional choices in existing hydration comments so changed
+  branches reconcile locally without rebuilding edited siblings or adding markers.
+
+- Updated dependencies
+  [[`05f92b6`](https://github.com/Ripple-TS/ripple/commit/05f92b61128eaa9fe6640e4586151f3ab35a8801)]:
+  - @tsrx/ripple@0.2.9
+
 ## 0.5.8
 
 ### Patch Changes
