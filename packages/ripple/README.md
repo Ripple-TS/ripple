@@ -14,3 +14,10 @@ Ripple is an elegant TypeScript UI framework. To find out more, view
 See the [CSP guide](https://ripple-ts.com/docs/guide/content-security-policy) for
 nonce rendering, the application-owned `ripple/csp` Trusted Types contract,
 `getCspHashes()` for prerendered output, and runnable browser-tested examples.
+
+Use `Activity` to retain hidden panels and their component state while
+disconnecting user effects. Pass a tracked or derived `mode` for reactive
+visibility; it defaults to `'visible'`. Hidden server-rendered panels hydrate one
+boundary per background task, and activation promotes queued work. See the
+[Activity guide](https://ripple-ts.com/docs/guide/activity) for lifecycle, refs,
+portals, and scheduling details.

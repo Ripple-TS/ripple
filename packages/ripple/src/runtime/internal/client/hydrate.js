@@ -2,6 +2,7 @@
 
 import {
 	COMMENT_NODE,
+	HYDRATION_ERROR,
 	HYDRATION_END,
 	HYDRATION_START,
 	HYDRATION_START_ERRORED,
@@ -9,6 +10,14 @@ import {
 	STREAM_ERROR_SCRIPT_PREFIX,
 	TEXT_NODE,
 } from '../../../constants.js';
+import {
+	retain_boundary,
+	hydrate_boundary,
+	enqueue_boundary,
+	dispose_boundary,
+} from './deferred.js';
+import { set_text } from './render.js';
+import { restore_activity_range } from './activity-state.js';
 import { is_destroyed } from './blocks.js';
 import { hydration_mismatch } from './errors.js';
 import { clear_expression_range } from './expression.js';
@@ -39,6 +48,10 @@ import {
  * and boundary code calls through that object only while hydrating, so a
  * client-only mount compiles and ships none of this.
  * @typedef {{
+ *   r: typeof retain_boundary;
+ *   y: typeof hydrate_boundary;
+ *   q: typeof enqueue_boundary;
+ *   d: typeof dispose_boundary;
  *   a: typeof hydrate_append;
  *   t: typeof hydrate_template;
  *   x: typeof hydrate_text;
@@ -52,6 +65,10 @@ import {
 
 /** @type {HydrationRuntime} */
 var runtime = {
+	r: retain_boundary,
+	y: hydrate_boundary,
+	q: enqueue_boundary,
+	d: dispose_boundary,
 	a: hydrate_append,
 	t: hydrate_template,
 	x: hydrate_text,
@@ -143,10 +160,17 @@ function skip_to_hydration_end() {
  * at the cursor instead of cloning.
  * @param {boolean} is_fragment
  * @param {number} count
+ * @param {string} [tag]
  * @returns {Node}
  */
-function hydrate_template(is_fragment, count) {
+function hydrate_template(is_fragment, count, tag) {
 	var node = /** @type {Node} */ (hydrate_node);
+	if (
+		hydration_context?.recover &&
+		tag !== undefined &&
+		(node.nodeType !== 1 || /** @type {Element} */ (node).localName !== tag)
+	)
+		throw HYDRATION_ERROR;
 	assign_nodes(node, is_fragment ? hydrate_fragment_end(node, count) : node);
 	return node;
 }
@@ -196,9 +220,8 @@ function hydrate_text(value, anchor, assign) {
 	if (node?.nodeType === TEXT_NODE) {
 		var current_value = /** @type {Text} */ (node).nodeValue ?? '';
 
+		set_text(/** @type {Text} */ (node), value);
 		if (current_value !== value) {
-			/** @type {Text} */ (node).nodeValue = value;
-
 			if (current_value.startsWith(value)) {
 				var remaining = current_value.slice(value.length);
 
@@ -250,7 +273,7 @@ function expression_end(anchor) {
 		if (current.nodeType === COMMENT_NODE) {
 			var data = /** @type {Comment} */ (current).data;
 
-			if (data === HYDRATION_START) {
+			if (data.startsWith(HYDRATION_START)) {
 				depth += 1;
 			} else if (data === HYDRATION_END) {
 				if (depth === 0) {
@@ -395,6 +418,7 @@ function route_streamed_error(state, id) {
 	if (state.b === null || is_destroyed(state.b)) {
 		return;
 	}
+	state.si = null;
 	neutralize_slot_markers(state);
 	var message = 'An error occurred during server rendering';
 	var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
@@ -452,6 +476,9 @@ function activate_streamed_chunk(state, template, errored, context) {
 	}
 	var id = /** @type {string} */ (state.si);
 	state.si = null;
+	// Stream-only work may create no reactive updates; still notify observers
+	// after the DOM and any newly queued effects have settled.
+	queue_microtask();
 	if (errored) {
 		clear_streamed_slot(state);
 		route_streamed_error(state, id);
@@ -461,6 +488,7 @@ function activate_streamed_chunk(state, template, errored, context) {
 	if (template !== null) {
 		/** @type {ChildNode} */ (state.sc).before(template.content);
 	}
+	restore_activity_range?.(/** @type {Comment} */ (state.so), /** @type {Comment} */ (state.sc));
 	var first = /** @type {ChildNode} */ (state.so).nextSibling;
 	if (first === null || first === state.sc) {
 		neutralize_slot_markers(state);

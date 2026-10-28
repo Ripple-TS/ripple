@@ -100,6 +100,16 @@ export { try_block, component_block, regular_block } from './blocks.js';
 export { is_tsrx_element, tsrx_element, normalize_children };
 export { create_ref_prop };
 
+/** @type {WeakMap<NestedArray<string>, (html: string) => string> | undefined} */
+var output_transforms;
+
+/** @param {(html: string) => string} transform */
+export function transform_output(transform) {
+	var output = /** @type {Block} */ (active_block).o;
+	(output_transforms ??= new WeakMap()).set(output.body, transform);
+	output.activity_transform = transform;
+}
+
 /** @type {WeakSet<NestedArray<string>> | undefined} */
 var editable_outputs;
 /** @type {WeakMap<Block, boolean> | undefined} */
@@ -166,6 +176,8 @@ export function content_editable(render, editable) {
  * @param {string} content
  */
 function with_editable_snapshot(tree, content) {
+	var transform = output_transforms?.get(tree);
+	if (transform !== undefined) content = transform(content);
 	return editable_outputs?.has(tree) ? editable_snapshot(content) : content;
 }
 
@@ -559,6 +571,8 @@ const replacements = {
 };
 
 export class Output {
+	/** @type {((html: string) => string) | null} */
+	activity_transform = null;
 	/** @type {Output} */
 	#root;
 	/** @type {NestedArray<string>} */
@@ -669,6 +683,7 @@ export class Output {
 		} else {
 			this.#root = parent.root;
 			this.#parent = parent;
+			this.activity_transform = parent.activity_transform;
 			// branches created after a flush unit sealed its slot belong to the
 			// unit's detached content tree, not to the already-shaped slot
 			(parent.#content_redirect ?? parent.#body).push(this.#body);
@@ -1068,6 +1083,7 @@ export class Output {
 		/** @type {StreamChunk} */
 		var chunk = { css: new Set(), scripts: [], head: '' };
 		var html = this.#collect_unit(unit, chunk);
+		if (unit.output.activity_transform !== null) html = unit.output.activity_transform(html);
 		var out = this.#chunk_css(chunk.css);
 		if (chunk.head !== '') {
 			out += '<template ' + STREAM_HEAD_ATTR + '="' + unit.id + '">' + chunk.head + '</template>';

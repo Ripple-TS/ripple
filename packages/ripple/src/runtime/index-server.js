@@ -110,3 +110,5 @@ export function Portal() {
 		output_push('<!--portal-->');
 	});
 }
+
+export { Activity } from './internal/server/activity.js';

@@ -14,6 +14,8 @@ import { hydrating, hydration_context, track_hash_reference } from './hydration.
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import {
 	active_block,
+	queue_microtask,
+	run_block,
 	active_component,
 	active_dependency,
 	get,
@@ -38,7 +40,6 @@ import {
 } from './try.js';
 import { get_async_track_result } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
-import { revive } from './transport.js';
 import {
 	pending_read_direct,
 	track_async_argument,
@@ -142,6 +143,7 @@ export function track_async(fn, b, hash) {
 
 	// During hydration, attempt to read serialized data from SSR
 	var had_hydration_data = false;
+	var stale_hydration_data = false;
 	var hydration_value;
 	/** @type {string[] | undefined} */
 	var hydration_deps;
@@ -160,8 +162,15 @@ export function track_async(fn, b, hash) {
 			if (envelope.ok) {
 				had_hydration_data = true;
 				hydration_value =
-					envelope.payload === undefined ? envelope.value : revive(envelope.payload);
+					envelope.payload === undefined ? envelope.value : context.revive(envelope.payload);
 				hydration_deps = envelope.deps;
+				// Deferred children may initialize after an ancestor changed a serialized dependency.
+				if (
+					context.recover &&
+					hydration_deps?.some((hash) => (context.hashes.get(hash)?.c ?? 0) > 0)
+				) {
+					stale_hydration_data = true;
+				}
 			} else {
 				// trigger the catch block
 				throw new Error(envelope.error?.message ?? 'Unknown server error');
@@ -217,6 +226,13 @@ export function track_async(fn, b, hash) {
 						get(dep_ref);
 					}
 				}
+			}
+			if (stale_hydration_data) {
+				// Claim the SSR nodes with their serialized value first, then
+				// reconcile current inputs after leaving the hydration context.
+				queue_microtask(() => {
+					if (!is_destroyed(async_block)) run_block(async_block);
+				});
 			}
 			return;
 		}

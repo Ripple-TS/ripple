@@ -36,3 +36,12 @@ export function revive(payload) {
 		? devalue.parse(payload, revivers)
 		: devalue.unflatten(payload, revivers);
 }
+
+/** Capture a root's transport before its deferred boundaries yield. */
+export function capture_reviver() {
+	var revivers = transport?.revivers;
+	return (/** @type {string | unknown[]} */ payload) =>
+		typeof payload === 'string'
+			? devalue.parse(payload, revivers)
+			: devalue.unflatten(payload, revivers);
+}

@@ -11,7 +11,7 @@ export let hydrate_node = null;
 /**
  * The target and server-render namespace of the current root. Streamed
  * boundaries retain it for activation after the initial hydration walk.
- * @typedef {{ target: HTMLElement, id: string }} HydrationContext
+ * @typedef {{ target: HTMLElement, id: string, hashes: Map<string, Tracked | Derived>, revive: (payload: string | unknown[]) => any, recover?: boolean }} HydrationContext
  */
 
 /** @type {HydrationContext | null} */
@@ -20,6 +20,7 @@ export let hydration_context = null;
 /** @param {HydrationContext | null} context */
 export function set_hydration_context(context) {
 	hydration_context = context;
+	track_hash_reference = context?.hashes ?? new Map();
 }
 
 /**
@@ -28,7 +29,7 @@ export function set_hydration_context(context) {
  * wire up reactivity without re-running the user's async fn.
  * @type {Map<string, Tracked | Derived>}
  */
-export const track_hash_reference = new Map();
+export let track_hash_reference = new Map();
 
 /**
  * The hydration paths of the DOM runtime (see `hydrate.js`), installed by

@@ -235,7 +235,7 @@ export function template_el(tag, attributes = null, children = '', inert = 0) {
 
 	return () => {
 		if (HYDRATION && hydrating) {
-			return /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(false, 1);
+			return /** @type {import('./hydrate.js').HydrationRuntime} */ (H).t(false, 1, tag);
 		}
 		var ns = active_namespace;
 		if (node === undefined || node_ns !== ns) {

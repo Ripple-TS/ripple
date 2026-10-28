@@ -4,7 +4,7 @@
 /** @typedef {DerivedValue} Derived */
 
 import { DEV } from 'esm-env';
-import { block, destroy_block, destroy_non_branch_children } from './blocks.js';
+import { application_effect, destroy_block, destroy_non_branch_children } from './blocks.js';
 import {
 	ASYNC_DERIVED_READ_THROWN,
 	BLOCK_HAS_RUN,
@@ -46,7 +46,20 @@ import {
 	is_array,
 	object_keys,
 } from '@tsrx/core/runtime/language-helpers';
-import { hydrating, track_hash_reference } from './hydration.js';
+import {
+	user_effect_state,
+	after_activity_update,
+	activity_needs_run,
+	consume_activity_run,
+} from './activity-state.js';
+import { HYDRATION_ERROR } from '../../../constants.js';
+import {
+	hydrating,
+	hydrate_node,
+	set_hydration,
+	hydration_context,
+	track_hash_reference,
+} from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { create_ref_prop as create_core_ref_prop } from '@tsrx/core/runtime/ref';
 
@@ -122,7 +135,12 @@ export function set_render_observer(observer) {
 
 /** Whether all synchronous render/effect work has finished. */
 export function is_render_idle() {
-	return flush_depth === 0 && queue.blocks.length === 0 && queued_post_block_flush.length === 0;
+	return (
+		flush_depth === 0 &&
+		queue.blocks.length === 0 &&
+		queued_microtasks.length === 0 &&
+		queued_post_block_flush.length === 0
+	);
 }
 /** @type {null | Dependency} */
 export let active_dependency = null;
@@ -205,9 +223,10 @@ export function run_teardown(block) {
 			tracking = false;
 			teardown = true;
 			// Runtime-internal teardowns keyed on block state get it as their
-			// argument, so they need no per-block closure; user effects have
-			// null state.
-			fn.call(null, block.s);
+			// argument, so they need no per-block closure. User cleanups receive
+			// no arguments; their lifecycle state stays internal.
+			if (user_effect_state(block) !== null) fn.call(null);
+			else fn.call(null, block.s);
 		} finally {
 			active_block = previous_block;
 			active_reaction = previous_reaction;
@@ -363,8 +382,22 @@ export function handle_error(error, block) {
  */
 function handle_run_error(error, block) {
 	finish_dependencies(block, active_dependency);
-	if (error !== ASYNC_DERIVED_READ_THROWN) {
-		handle_error(error, block);
+	if (HYDRATION && error === HYDRATION_ERROR && hydration_context?.recover) {
+		throw error;
+	} else if (error !== ASYNC_DERIVED_READ_THROWN) {
+		// A newly thrown error has no server catch DOM to adopt. The nearest
+		// catch renders normally while the retained-range walk unwinds.
+		if (HYDRATION && hydrating && hydration_context?.recover) {
+			var previous_node = hydrate_node;
+			set_hydration(false, null);
+			try {
+				handle_error(error, block);
+			} finally {
+				set_hydration(true, previous_node);
+			}
+		} else {
+			handle_error(error, block);
+		}
 	} else if (pending_read !== null) {
 		pending_read(block);
 	} else {
@@ -483,6 +516,7 @@ export function run_in_block(block, fn, arg) {
 		if (previous_deriveds !== null) {
 			keep_deriveds(block, release_deriveds(previous_deriveds));
 		}
+		after_activity_update?.(block);
 	}
 }
 
@@ -516,7 +550,7 @@ export function run_block(block, first_run = false) {
 
 		tracking = (block.f & (ROOT_BLOCK | BRANCH_BLOCK)) === 0;
 		active_dependency = null;
-		var res = block.fn(block.s);
+		var res = user_effect_state(block) !== null ? block.fn() : block.fn(block.s);
 
 		if (typeof res === 'function') {
 			register_teardown(block, res);
@@ -548,6 +582,7 @@ export function run_block(block, first_run = false) {
 		if (previous_deriveds !== null) {
 			keep_deriveds(block, release_deriveds(previous_deriveds));
 		}
+		after_activity_update?.(block);
 	}
 }
 
@@ -1102,7 +1137,7 @@ export function is_block_dirty(block) {
 		return true;
 	}
 
-	return is_tracking_dirty(block.d);
+	return activity_needs_run(block) || is_tracking_dirty(block.d);
 }
 
 /**
@@ -1233,6 +1268,7 @@ function run_phase(blocks) {
 		try {
 			if ((flags & (PAUSED | DESTROYED)) === 0 && is_block_dirty(block)) {
 				// A block that has never run has no children or teardown to clear.
+				consume_activity_run(block);
 				run_block(block, (flags & BLOCK_HAS_RUN) === 0);
 			}
 		} catch (error) {
@@ -1883,9 +1919,7 @@ function create_deferred_effects(effects) {
 	for (var i = 0; i < length; i += 3) {
 		active_block = /** @type {Block} */ (effects[i + 1]);
 		active_reaction = /** @type {Block | Derived | null} */ (effects[i + 2]);
-		// effect(), inline: one function less on every component's cold path
-		// (kept identical by tests/utils/inline-drift.test.js).
-		block(EFFECT_BLOCK, /** @type {Function} */ (effects[i]));
+		application_effect(/** @type {() => void | (() => void)} */ (effects[i]));
 	}
 	active_block = previous_block;
 	active_reaction = previous_reaction;

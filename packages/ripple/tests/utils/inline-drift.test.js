@@ -64,20 +64,4 @@ describe('inlined helpers match their functions', () => {
 			throw new Error('track() no longer starts with the check');
 		expect(shape(first.expression)).toEqual(shape(helper));
 	});
-
-	it('create_deferred_effects() inlines effect()', () => {
-		const helper = returned(fn(parse('blocks.js'), 'effect'));
-		const creator = fn(parse('runtime.js'), 'create_deferred_effects');
-		/** @type {ts.CallExpression | undefined} */
-		let inlined;
-		const visit = (/** @type {ts.Node} */ node) => {
-			if (ts.isCallExpression(node) && node.expression.getText() === 'block') inlined = node;
-			node.forEachChild(visit);
-		};
-		visit(creator);
-		if (!inlined) throw new Error('create_deferred_effects() no longer creates the block itself');
-		// The helper's `fn` stands for whatever the inlined call passes.
-		const fn_argument = shape(inlined.arguments[inlined.arguments.length - 1]);
-		expect(shape(inlined)).toEqual(shape(helper, { fn: fn_argument }));
-	});
 });

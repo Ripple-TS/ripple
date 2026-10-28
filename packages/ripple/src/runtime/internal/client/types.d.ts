@@ -73,6 +73,16 @@ export type Block = {
 	t: ((state?: any) => void) | null;
 };
 
+/** State owned by a public effect, distinct from render, ref and binding effects. */
+export type UserEffectState = {
+	/** u = user effect; distinguishes application effects from internal effects. */
+	u: true;
+	/** p = paused by async suspension; Activity must not clear this pause. */
+	p: boolean;
+	/** r = restart pending; forces one setup after deactivation, even with unchanged dependencies. */
+	r: boolean;
+};
+
 export type TryCatchFunction = (anchor: Node, error: any, reset?: () => void) => void;
 export type TryPendingFunction = (anchor: Node) => void;
 

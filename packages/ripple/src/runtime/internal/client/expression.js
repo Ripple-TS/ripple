@@ -4,6 +4,7 @@ import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render } from './blocks.js';
 import { BRANCH_BLOCK, COMPOSITE_BLOCK, IF_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
+import { set_text } from './render.js';
 import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
 import { H, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
@@ -228,7 +229,7 @@ function run_expression(s) {
 			}
 
 			if (s.n === TEXT_NODE) {
-				/** @type {Text} */ (anchor).nodeValue = '';
+				set_text(/** @type {Text} */ (anchor), '');
 			} else if (s.t !== null) {
 				s.t.remove();
 				s.t = null;
@@ -329,7 +330,7 @@ function run_expression(s) {
 			text = s.t = create_text(next_text);
 			/** @type {Comment} */ (end).before(text);
 		} else if (text.nodeValue !== next_text) {
-			text.nodeValue = next_text;
+			set_text(text, next_text);
 		}
 	} else if (s.n === COMMENT_NODE) {
 		var text = s.t;
@@ -342,10 +343,10 @@ function run_expression(s) {
 			text = s.t = create_text(next_text);
 			(end ?? anchor).before(text);
 		} else if (text.nodeValue !== next_text) {
-			text.nodeValue = next_text;
+			set_text(text, next_text);
 		}
 	} else if (s.n === TEXT_NODE) {
-		/** @type {Text} */ (anchor).nodeValue = next_text;
+		set_text(/** @type {Text} */ (anchor), next_text);
 	}
 
 	s.v = next_text;

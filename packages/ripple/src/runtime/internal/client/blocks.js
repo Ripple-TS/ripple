@@ -1,4 +1,4 @@
-/** @import { AppendIntoAnchor, Block, Derived, Component } from '#client' */
+/** @import { AppendIntoAnchor, Block, Derived, Component, UserEffectState } from '#client' */
 
 import {
 	BLOCK_HAS_RUN,
@@ -20,8 +20,15 @@ import {
 	SVG_BLOCK,
 	MATHML_BLOCK,
 } from './constants.js';
+import {
+	user_effect_state,
+	activity_hidden,
+	pause_activity_effect,
+	resume_activity_effect,
+	resume_async_effect,
+} from './activity-state.js';
 import { hydrating } from './hydration.js';
-import { next_sibling } from './operations.js';
+import { get_next_sibling } from './operations.js';
 import { is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	active_block,
@@ -45,7 +52,7 @@ import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 export let hydrating_ref = false;
 
 /**
- * @param {Function} fn
+ * @param {() => void | (() => void)} fn
  */
 export function user_effect(fn) {
 	if (active_block === null) {
@@ -61,7 +68,14 @@ export function user_effect(fn) {
 		return;
 	}
 
-	return block(EFFECT_BLOCK, fn);
+	return application_effect(fn);
+}
+
+/** @param {() => void | (() => void)} fn */
+export function application_effect(fn) {
+	/** @type {UserEffectState} */
+	var state = { u: true, p: false, r: false };
+	return block(EFFECT_BLOCK, fn, state);
 }
 
 /**
@@ -87,6 +101,7 @@ export function pre_effect(fn) {
 export function render(fn, state, flags = 0) {
 	// block(), inline: a render block runs at once.
 	var block = create_block(RENDER_BLOCK | flags, fn, state);
+	if ((block.f & DESTROYED) !== 0) return block;
 	run_block(block, true);
 	block.f ^= BLOCK_HAS_RUN;
 	return block;
@@ -257,9 +272,14 @@ function push_block(block, parent_block) {
  */
 export function block(flags, fn, state = null, co) {
 	var block = create_block(flags, fn, state, co);
+	if ((block.f & DESTROYED) !== 0) return block;
 
 	if ((flags & EFFECT_BLOCK) !== 0) {
-		schedule_update(block);
+		if (user_effect_state(block) !== null && activity_hidden(block)) {
+			pause_activity_effect(block);
+		} else {
+			schedule_update(block);
+		}
 	} else {
 		run_block(block, true);
 		block.f ^= BLOCK_HAS_RUN;
@@ -277,6 +297,9 @@ export function block(flags, fn, state = null, co) {
  * @returns {Block}
  */
 export function create_block(flags, fn, state = null, co) {
+	// Setup may dispose its owner synchronously and then continue executing.
+	// Work created by that abandoned setup must never be scheduled or run.
+	flags |= (active_block?.f ?? 0) & DESTROYED;
 	/** @type {Block} */
 	var block = {
 		co: co || active_component,
@@ -384,8 +407,29 @@ export function move_block_last(block) {
 
 /**
  * @param {Block} block
+ * @param {boolean} [activity] Only deactivate application effects, preserving render maintenance.
  */
-export function pause_block(block) {
+export function pause_block(block, activity = false) {
+	if (activity) {
+		if (!activity_hidden(block)) return;
+		if (user_effect_state(block) !== null) {
+			pause_activity_effect(block);
+			// Effect-owned subscriptions and nested effects are recreated by setup.
+			destroy_block_children(block);
+			run_teardown(block);
+			return;
+		}
+		for (var child = block.first; child !== null;) {
+			var next = child.next;
+			pause_block(child, true);
+			child = next;
+		}
+		return;
+	}
+	var effect_state = user_effect_state(block);
+	// Activity may already own PAUSED. Record the additional async reason
+	// before the early return so activation cannot release that suspension.
+	if (effect_state?.r) effect_state.p = true;
 	if ((block.f & PAUSED) !== 0) {
 		return;
 	}
@@ -404,9 +448,19 @@ export function pause_block(block) {
 
 /**
  * @param {Block} block
+ * @param {boolean} [activity] Release Activity ownership without clearing async suspension.
  */
-export function resume_block(block) {
-	if ((block.f & PAUSED) === 0) {
+export function resume_block(block, activity = false) {
+	if (activity) {
+		if (resume_activity_effect(block)) {
+			schedule_update(block);
+		}
+		for (var child = block.first; child !== null; child = child.next) {
+			resume_block(child, true);
+		}
+		return;
+	}
+	if (resume_async_effect(block) || (block.f & PAUSED) === 0) {
 		return;
 	}
 	block.f ^= PAUSED;
@@ -453,7 +507,7 @@ export function is_destroyed(target_block) {
 export function remove_block_dom(node, end) {
 	while (node !== null) {
 		/** @type {Node | null} */
-		var next = node === end ? null : next_sibling(node);
+		var next = node === end ? null : get_next_sibling(node);
 
 		/** @type {Element | Text | Comment} */ (node).remove();
 		node = next;
@@ -479,7 +533,7 @@ export function move_block(block, target) {
 			var end = s.end;
 
 			while (node !== null) {
-				var next = node === end ? null : next_sibling(node);
+				var next = node === end ? null : get_next_sibling(node);
 				target.append(node);
 				node = next;
 			}
