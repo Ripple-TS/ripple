@@ -42,7 +42,7 @@ Deferred work retains its component context, namespace, root-specific async valu
 
 A render observer waits for visible demand hydration, its effects, and visible async or streamed work in its captured subtree. Hidden Activity work does not delay settlement. Showing an Activity makes its pending work relevant; hiding it lets the observer settle without cancelling the underlying request.
 
-If `postTask` rejects or throws before starting its callback, a cancellable timer reports the error to the next eligible boundary and the queue continues. An error already raised by a running hydration callback is reported without consuming another boundary.
+If `postTask` rejects or throws before starting its callback, a cancellable timer reports the error to the Activity that originally scheduled it, if that Activity is still queued. If it has already been promoted or removed, the stale failure is discarded and queued siblings continue. An error already raised by a running hydration callback is reported without consuming another boundary.
 
 Scheduling yields between boundaries, not within one boundary. A large boundary can still create a long task. Timer fallback yields a browser task but has no equivalent background priority, and neither scheduler guarantees a paint after every boundary. Deferring hydration does not split or defer downloading JavaScript.
 

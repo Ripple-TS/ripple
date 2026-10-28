@@ -131,6 +131,7 @@ export function enqueue_boundary(boundary) {
 
 function schedule_background() {
 	if (cancel_task !== null || background.size === 0) return;
+	var submitted_boundary = background.values().next().value;
 	var cancelled = false;
 	var started = false;
 	var failed = false;
@@ -140,10 +141,12 @@ function schedule_background() {
 		if (cancelled || started) return;
 		started = true;
 		cancel_task = null;
-		var boundary = background.values().next().value;
-		if (boundary === undefined) return;
-		background.delete(boundary);
+		var boundary = failed ? submitted_boundary : background.values().next().value;
 		try {
+			// A submission error belongs to its original boundary. Promotion or
+			// disposal can retire that work before this timer runs; never transfer
+			// the stale error to a sibling that is still waiting.
+			if (boundary === undefined || !background.delete(boundary)) return;
 			if (failed) {
 				dispose_boundary(boundary);
 				if (!is_destroyed(boundary.owner)) handle_error(failure, boundary.owner);
@@ -174,8 +177,8 @@ function schedule_background() {
 			return;
 		}
 		// A rejected submission never enters the callback. Replace its handle
-		// with a cancellable task that routes the error to the next eligible
-		// owner and advances the queue, without recursively draining failures.
+		// with a cancellable task that routes the error to the original owner
+		// if still queued, then advances the queue without draining recursively.
 		failed = true;
 		failure = error;
 		timer_task();

@@ -162,6 +162,40 @@ describe.each(['postTask', 'timer'])('Activity scheduler: %s', (kind) => {
 	});
 
 	if (kind === 'postTask') {
+		it.each([
+			['throw', 'promote'],
+			['reject', 'promote'],
+			['throw', 'remove'],
+			['reject', 'remove'],
+		])(
+			'does not transfer a failed %s submission to a sibling after %s',
+			async (failure, action) => {
+				postTask.mockImplementationOnce(() => {
+					const error = new Error('stale submission');
+					if (failure === 'throw') throw error;
+					return Promise.reject(error);
+				});
+				await setup();
+				if (action === 'promote') {
+					flushSync(() => (client.controls.first.value = 'visible'));
+					await Promise.resolve();
+					flushSync();
+					expect(client.calls).toContain('init:first:context');
+				} else {
+					flushSync(() => (client.controls.exists.value = false));
+				}
+				await vi.advanceTimersToNextTimerAsync();
+				expect(client.calls).not.toContain('init:second:context');
+				await vi.advanceTimersToNextTimerAsync();
+				expect(client.calls.filter((x) => x === 'init:second:context')).toHaveLength(1);
+				flushSync(() => (client.controls.second.value = 'visible'));
+				await Promise.resolve();
+				flushSync();
+				expect(client.calls.filter((x) => x === 'effect:second')).toHaveLength(1);
+				expect(container.querySelector('[data-name="second"]').style.display).toBe('');
+			},
+		);
+
 		it.each(['throw', 'reject'])(
 			'recovers when submission fails by %s before the callback',
 			async (failure) => {
