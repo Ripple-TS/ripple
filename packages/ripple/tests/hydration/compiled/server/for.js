@@ -383,9 +383,12 @@ export function ForLoopInsideIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="toggle">Toggle List</button><button class="add">Add Item</button><!--[-->';
+			__out += '<button class="toggle">Toggle List</button><button class="add">Add Item</button>';
 
 			if (showList.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<ul class="list"><!--[-->';
 
 				for (const item of items.value) {
@@ -401,6 +404,10 @@ export function ForLoopInsideIf() {
 				}
 
 				__out += '<!--]--></ul>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';

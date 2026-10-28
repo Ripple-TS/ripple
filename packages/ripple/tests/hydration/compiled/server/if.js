@@ -10,10 +10,15 @@ export function IfTruthy() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (show) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="shown">Visible</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -29,10 +34,15 @@ export function IfFalsy() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (show) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="shown">Visible</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -48,11 +58,15 @@ export function IfElse() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (isLoggedIn) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="logged-in">Welcome back!</div>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<div class="logged-out">Please log in</div>';
 			}
 
@@ -69,10 +83,17 @@ export function ReactiveIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="toggle">Toggle</button><!--[-->';
+			__out += '<button class="toggle">Toggle</button>';
 
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="content">Content visible</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -88,11 +109,17 @@ export function ReactiveIfElse() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="toggle">Toggle</button><!--[-->';
+			__out += '<button class="toggle">Toggle</button>';
 
 			if (isOn.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="on">ON</div>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<div class="off">OFF</div>';
 			}
 
@@ -110,16 +137,30 @@ export function NestedIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!--[-->';
+			__out += '<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button>';
 
 			if (outer.value) {
-				__out += '<div class="outer-content">Outer<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+				__out += '<div class="outer-content">Outer';
 
 				if (inner.value) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<span class="inner-content">Inner</span>';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]--></div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -135,14 +176,23 @@ export function IfElseIfChain() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!--[-->';
+			__out += '<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button>';
 
 			if (status.value === 'loading') {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="state">Loading...</div>';
 			} else {
 				if (status.value === 'success') {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="state">Success!</div>';
 				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="state">Error occurred</div>';
 				}
 			}
@@ -161,9 +211,13 @@ export function IfBranchDeclarations() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="branch-toggle">Toggle</button><!--[-->';
+			__out += '<button class="branch-toggle">Toggle</button>';
 
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+
 				const label = 'inner';
 
 				const styles = {
@@ -182,6 +236,9 @@ export function IfBranchDeclarations() {
 
 				__out += '<span' + _$_.attr('class', styles.styled) + '>' + _$_.escape(label) + '</span>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<span class="plain">';
 
 				{

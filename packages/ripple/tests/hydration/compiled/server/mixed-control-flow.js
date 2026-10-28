@@ -17,13 +17,16 @@ export function MixedControlFlowStatic() {
 			__out += '<section class="mixed-static"><!--[-->';
 
 			for (const row of rows) {
-				__out += '<!--[-->';
-
 				if (row.enabled) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (row.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -46,6 +49,9 @@ export function MixedControlFlowStatic() {
 						default:
 							_$_.output_push(__out);
 							__out = '';
+							_$_.branch_marker(1);
+							_$_.output_push(__out);
+							__out = '';
 							_$_.try_block(
 								() => {
 									let __out = '';
@@ -65,6 +71,10 @@ export function MixedControlFlowStatic() {
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -85,16 +95,20 @@ export function MixedControlFlowReactive() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!--[-->';
+			__out += '<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button>';
 
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="mixed-reactive-list"><!--[-->';
 
 				for (const item of items.value) {
-					__out += '<!--[-->';
-
 					switch (mode.value) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -115,6 +129,9 @@ export function MixedControlFlowReactive() {
 							break;
 
 						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -139,6 +156,10 @@ export function MixedControlFlowReactive() {
 				}
 
 				__out += '<!--]--></div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -158,13 +179,16 @@ export function MixedControlFlowAsyncPending() {
 			__out += '<div class="before">before</div><!--[-->';
 
 			for (const row of rows) {
-				__out += '<!--[-->';
-
 				if (row === 1) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (state) {
 						case 'slow':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -196,11 +220,18 @@ export function MixedControlFlowAsyncPending() {
 							break;
 
 						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							__out += '<div class="unexpected">unexpected</div>';
 							break;
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';

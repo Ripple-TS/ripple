@@ -692,9 +692,10 @@ export function AsyncRoot(props) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (value.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<button>';
 
 				{
@@ -704,6 +705,10 @@ export function AsyncRoot(props) {
 				}
 
 				__out += '</button>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';

@@ -10,9 +10,12 @@ export function IfWithChildren({ children }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="container"><div role="button" class="header">Toggle</div><!--[-->';
+			__out += '<div class="container"><div role="button" class="header">Toggle</div>';
 
 			if (expanded.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="content">';
 
 				{
@@ -22,6 +25,10 @@ export function IfWithChildren({ children }) {
 				}
 
 				__out += '</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -82,10 +89,17 @@ export function IfWithStaticChildren() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="container"><div role="button" class="header">Toggle</div><!--[-->';
+			__out += '<div class="container"><div role="button" class="header">Toggle</div>';
 
 			if (expanded.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="content"><span>Static child 1</span><span>Static child 2</span></div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -101,9 +115,12 @@ export function IfWithSiblingsAndChildren({ children }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!--[-->';
+			__out += '<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div>';
 
 			if (expanded.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="items">';
 
 				{
@@ -113,6 +130,10 @@ export function IfWithSiblingsAndChildren({ children }) {
 				}
 
 				__out += '</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></section>';
@@ -162,10 +183,17 @@ export function ElementWithChildrenThenIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!--[-->';
+			__out += '<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div>';
 
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div class="conditional">Conditional content</div>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div><button class="toggle">Toggle</button>';
@@ -181,10 +209,17 @@ export function DeepNestingThenIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!--[-->';
+			__out += '<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article>';
 
 			if (visible.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<footer class="footer">Footer</footer>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></section><button class="btn">Toggle</button>';
@@ -200,11 +235,17 @@ export function DomElementChildrenThenSibling() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="tabs"><div class="tab-list"><button' + _$_.attr('aria-selected', activeTab.value === 'code' ? 'true' : 'false', false) + ' class="tab">Code</button><button' + _$_.attr('aria-selected', activeTab.value === 'preview' ? 'true' : 'false', false) + ' class="tab">Preview</button></div><div class="panel"><!--[-->';
+			__out += '<div class="tabs"><div class="tab-list"><button' + _$_.attr('aria-selected', activeTab.value === 'code' ? 'true' : 'false', false) + ' class="tab">Code</button><button' + _$_.attr('aria-selected', activeTab.value === 'preview' ? 'true' : 'false', false) + ' class="tab">Preview</button></div><div class="panel">';
 
 			if (activeTab.value === 'code') {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<pre class="code">const x = 1;</pre>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<div class="preview">Preview content</div>';
 			}
 
@@ -243,11 +284,15 @@ function RootIfChild(props) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (props.on.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<span class="root-if">on</span>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<span class="root-if">off</span>';
 			}
 

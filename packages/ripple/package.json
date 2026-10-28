@@ -29,6 +29,10 @@
       "browser": "./src/runtime/index-client.js",
       "default": "./src/runtime/index-server.js"
     },
+    "./hydration": {
+      "types": "./types/hydration.d.ts",
+      "default": "./src/runtime/hydration.js"
+    },
     "./package.json": "./package.json",
     "./csp": {
       "types": "./types/csp.d.ts",
@@ -97,6 +101,8 @@
   "devDependencies": {
     "@types/estree": "catalog:default",
     "@types/estree-jsx": "catalog:default",
-    "@types/node": "catalog:default"
+    "@types/node": "catalog:default",
+    "playwright": "catalog:default",
+    "vite": "catalog:default"
   }
 }

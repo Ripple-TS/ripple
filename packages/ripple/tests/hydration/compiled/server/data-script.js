@@ -54,10 +54,17 @@ export function ConditionalData() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<article><!--[-->';
+			__out += '<article>';
 
 			if (visible.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<script type="application/json" id="conditional-data">\n				{"visible":true}\n			</script>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><button>toggle</button></article>';

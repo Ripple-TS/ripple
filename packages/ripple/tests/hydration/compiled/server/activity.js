@@ -87,9 +87,13 @@ export function App() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<main><!--[-->';
+			__out += '<main>';
 
 			if (exists.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+
 				{
 					const comp = Activity;
 
@@ -116,6 +120,10 @@ export function App() {
 					__out = '';
 					_$_.render_component(comp, ...args);
 				}
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -431,11 +439,15 @@ export function Recovery() {
 							return _$_.tsrx_element(() => {
 								let __out = '';
 
-								__out += '<!--[-->';
-
 								if (changed.value) {
+									_$_.output_push(__out);
+									__out = '';
+									_$_.branch_marker(0);
 									__out += '<section>new</section>';
 								} else {
+									_$_.output_push(__out);
+									__out = '';
+									_$_.branch_marker(1);
 									__out += '<p>old</p>';
 								}
 

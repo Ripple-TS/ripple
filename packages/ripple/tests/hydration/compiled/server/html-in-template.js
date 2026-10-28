@@ -34,10 +34,17 @@ export function TemplateAroundIfBlock() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><template id="before">before</template><!--[-->';
+			__out += '<div><template id="before">before</template>';
 
 			if (show) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<span class="inside">inside</span>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><template id="after">after</template></div>';

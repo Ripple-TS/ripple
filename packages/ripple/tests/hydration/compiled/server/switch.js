@@ -10,18 +10,25 @@ export function SwitchStatic() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			switch (status) {
 				case 'success':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="status-success">Success</div>';
 					break;
 
 				case 'error':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="status-error">Error</div>';
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="status-unknown">Unknown</div>';
 					break;
 			}
@@ -39,18 +46,27 @@ export function SwitchReactive() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="toggle">Toggle</button><!--[-->';
+			__out += '<button class="toggle">Toggle</button>';
 
 			switch (status.value) {
 				case 'a':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="case-a">Case A</div>';
 					break;
 
 				case 'b':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="case-b">Case B</div>';
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="case-c">Case C</div>';
 					break;
 			}
@@ -68,17 +84,24 @@ export function SwitchFallthrough() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			switch (val) {
 				case 1:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 					break;
 
 				case 2:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="case-1-2">1 or 2</div>';
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="case-other">Other</div>';
 					break;
 			}
@@ -96,20 +119,34 @@ export function SwitchNumericLevels() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="level-toggle">Toggle Level</button><!--[-->';
+			__out += '<button class="level-toggle">Toggle Level</button>';
 
 			switch (level.value) {
 				case 1:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="level-1">Level 1</div>';
 					break;
 
 				case 2:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="level-2">Level 2</div>';
 					break;
 
 				case 3:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="level-3">Level 3</div>';
 					break;
+
+				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -125,20 +162,34 @@ export function SwitchBlockScoped() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="block-toggle">Toggle</button><!--[-->';
+			__out += '<button class="block-toggle">Toggle</button>';
 
 			switch (level.value) {
 				case 1:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="block-1">Block 1</div>';
 					break;
 
 				case 2:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="block-2">Block 2</div>';
 					break;
 
 				case 3:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="block-3">Block 3</div>';
 					break;
+
+				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -154,20 +205,34 @@ export function SwitchNoBreak() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<button class="nobreak-toggle">Toggle</button><!--[-->';
+			__out += '<button class="nobreak-toggle">Toggle</button>';
 
 			switch (level.value) {
 				case 1:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div class="nobreak-1">NoBreak 1</div>';
 					break;
 
 				case 2:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div class="nobreak-2">NoBreak 2</div>';
 					break;
 
 				case 3:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div class="nobreak-3">NoBreak 3</div>';
 					break;
+
+				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';

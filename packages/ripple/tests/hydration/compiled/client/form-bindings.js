@@ -18,6 +18,8 @@ function alternate(__anchor, { b: ref }) {
 	_$_.append(__anchor, input_1);
 }
 
+alternate.h = 1;
+
 function if_1({ a: seeded }) {
 	if (seeded) return consequent; else return alternate;
 }

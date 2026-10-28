@@ -267,6 +267,8 @@ function alternate(__anchor) {
 	_$_.append(__anchor, p_1);
 }
 
+alternate.h = 1;
+
 function if_2(changed) {
 	if (changed.value) return consequent_1; else return alternate;
 }

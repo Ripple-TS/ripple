@@ -173,10 +173,17 @@ export function IfThenStatic() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><div class="a">a</div><div class="b">b</div><!--]-->';
@@ -192,10 +199,17 @@ export function StaticThenIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="a">a</div><div class="b">b</div><!--[-->';
+			__out += '<div class="a">a</div><div class="b">b</div>';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -750,14 +764,20 @@ export function SwitchThenStatic() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			switch (n.value) {
 				case 0:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<b class="zero">zero</b>';
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<b class="other">other</b>';
 					break;
 			}
@@ -1087,10 +1107,17 @@ export function IfOnly() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><!--]-->';
@@ -1106,10 +1133,17 @@ export function IfThenOne() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><div class="a">a</div><!--]-->';
@@ -1125,10 +1159,17 @@ export function SingleRootWithIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="root"><!--[-->';
+			__out += '<div class="root">';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -1234,10 +1275,17 @@ export function IfTwoThenStatic() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b><i class="if2">y</i>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><div class="a">a</div><div class="b">b</div><!--]-->';
@@ -1253,10 +1301,17 @@ export function IfTwoInDiv() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="outer"><!--[-->';
+			__out += '<div class="outer">';
 
 			if (n.value >= 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="if">x</b><i class="if2">y</i>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><span class="after">' + _$_.escape(n.value) + '</span><button class="outer-inc">outer</button></div>';
@@ -1462,11 +1517,17 @@ export function IfSwapThenStaticInDiv() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="outer"><!--[-->';
+			__out += '<div class="outer">';
 
 			if (n.value % 2 === 0) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<b class="even">even</b>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<i class="odd">odd</i>';
 			}
 

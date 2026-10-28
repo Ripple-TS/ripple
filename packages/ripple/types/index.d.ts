@@ -479,6 +479,24 @@ export interface ActivityProps {
 }
 export function Activity(props: ActivityProps): void;
 
+/** Controls initial SSR hydration; client-only mounts render normally. */
+export interface HydrateOptions {
+	when: import('./hydration.js').HydrationWhen | Derived<import('./hydration.js').HydrationWhen>;
+	children?: Children | Derived<Renderable>;
+	/** Once after successful initial hydration attaches the subtree, before queued effects. */
+	onHydrated?: () => void;
+}
+export function Hydrate(props: HydrateOptions): void;
+export type {
+	HydrationStrategy,
+	HydrationWhen,
+	HydrationInteractionEvent,
+	HydrationInteractionEvents,
+	IdleHydrationOptions,
+	VisibleHydrationOptions,
+	InteractionHydrationOptions,
+} from './hydration.js';
+
 export function Portal<V = HTMLElement>({
 	target,
 	children,

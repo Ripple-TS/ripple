@@ -237,10 +237,11 @@ export function render_tsrx_element(value) {
 
 /**
  * @param {any} value
+ * @param {string} [marker]
  * @returns {void}
  */
-export function render_expression(value) {
-	output_push(BLOCK_OPEN);
+export function render_expression(value, marker = BLOCK_OPEN) {
+	output_push(marker);
 
 	if (is_tsrx_element(value)) {
 		render_tsrx_element(value);
@@ -571,6 +572,8 @@ const replacements = {
 };
 
 export class Output {
+	/** Whether retained descendants need branch identity for delayed hydration. */
+	h = false;
 	/** @type {((html: string) => string) | null} */
 	activity_transform = null;
 	/** @type {Output} */
@@ -684,6 +687,7 @@ export class Output {
 			this.#root = parent.root;
 			this.#parent = parent;
 			this.activity_transform = parent.activity_transform;
+			this.h = parent.h;
 			// branches created after a flush unit sealed its slot belong to the
 			// unit's detached content tree, not to the already-shaped slot
 			(parent.#content_redirect ?? parent.#body).push(this.#body);
@@ -2748,3 +2752,18 @@ export function ripple_map(iterable) {
 }
 
 export { dynamic_element } from './dynamic.js';
+
+/**
+ * Mark this output and its descendants as retained hydration work.
+ */
+export function defer_hydration() {
+	/** @type {Block} */ (active_block).o.h = true;
+}
+
+/**
+ * Reuses the control-flow opening comment; ordinary SSR output is unchanged.
+ * @param {number} index
+ */
+export function branch_marker(index) {
+	output_push(/** @type {Block} */ (active_block).o.h ? '<!--[b' + index + '-->' : BLOCK_OPEN);
+}

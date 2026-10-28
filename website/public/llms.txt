@@ -729,6 +729,69 @@ boundary, and allow the queue to continue. This yields between boundaries, not w
 neither avoids JavaScript downloads nor guarantees a paint between tasks. Effect
 restarts may repeat uncached requests; resource caching belongs to the author.
 
+## Deferred hydration
+
+`Hydrate` from `ripple` defers initial SSR subtree setup while preserving visible,
+styled HTML. Import `load`, `idle`, `visible`, `interaction`, `media`, `condition`,
+and `never` from `ripple/hydration`. `when` is mandatory: a strategy, a tracked/
+derived strategy, or a synchronous client-only factory. Never use an async factory.
+SSR renders children without evaluating factories or condition getters.
+
+```tsrx
+import { Hydrate, track } from 'ripple';
+import { visible, condition } from 'ripple/hydration';
+
+export function Content() @{
+	const enabled = track(false);
+	<>
+		<Hydrate when={visible({ rootMargin: '600px' })}><Reviews /></Hydrate>
+		<button onClick={() => enabled.value = true}>Enable</button>
+		<Hydrate when={condition(() => enabled.value)}><Panel /></Hydrate>
+	</>
+}
+```
+
+- `load()` opens after the initial sibling walk. `idle({ timeout })` defaults to
+  2000 ms and uses `requestIdleCallback`, or a timer at that timeout.
+- `visible({ rootMargin, threshold })` defaults to `600px` and `0`; thresholds may
+  be arrays. Shared observers watch actual root elements. Missing observation
+  APIs and empty/text-only output become immediately eligible, without placeholders.
+- `interaction({ events })` accepts one event or a readonly array, deduplicated.
+  Defaults: `pointerenter`, `focusin`, `pointerdown`, `click`. Supported events:
+  `auxclick`, `click`, `contextmenu`, `dblclick`, `focusin`, `keydown`, `keyup`,
+  `mousedown`, `mouseenter`, `mouseover`, `mouseup`, `pointerdown`, `pointerenter`,
+  `pointerover`, `pointerup`. An empty list has no own trigger.
+- `media(query)` opens on an initial or later match; missing `matchMedia` opens
+  nonempty queries immediately. An empty query remains waiting.
+- `condition(booleanOrGetter)` tracks getters while waiting. Booleans are snapshots.
+  Equivalent options retain subscriptions; changed options replace them and cancel
+  stale queued requests. Completion stays latched and releases all trigger resources.
+- `never()` preserves static initial SSR even across children updates and nested
+  intent. An explicit replacement of `when` may choose another policy.
+- Ripple store/prop/context updates do not rerender unevaluated component bodies.
+  They reconcile at activation, including changed serialized async dependencies.
+  Replacing directly tracked `children` requires early hydration unless
+  its strategy is `never()`. Computed children remain unevaluated until activation.
+  Use a condition getter to open for a shared update.
+- Retained boundaries reuse Activity's owner/context/range/async-data machinery.
+  Changed conditional branches recover locally; bindings adopt live form edits.
+  Waiting unmounts remove SSR DOM without initializing children. Hydrate adds one
+  comment pair, with no wrapper; conditional identity reuses existing comments.
+- Nested hydration is parent-first. Descendant intent can open eligible ancestors,
+  including Activity, but never crosses a static ancestor. Interaction hydrates
+  synchronously in capture and continues the original native event exactly once;
+  no synthetic replay or buffering before root listeners exist. Removed/failed
+  targets discard their remaining event/default action.
+- `onHydrated` runs once after successful synchronous attachment, before queued
+  refs/effects. It does not wait for nested gates or async completion. Errors in
+  setup, policies, or callbacks use the owning `@try`/`@catch`.
+- `mount()` and later client navigation render normally, including `never()`; they
+  do not evaluate factories or call `onHydrated`. Activity background preparation
+  does not open nested Hydrate gates; hidden Activity effects stay suppressed.
+- This contract is pinned to TanStack Router `da2adec76dbe6c0da6d6a0d5640f7b9388217f45`.
+  Deferred hydration alone does not defer JavaScript downloads. Automatic splitting,
+  prefetch strategies/procedures, and chunk-loading fallback extensions are unsupported.
+
 ## Portals
 
 Use `Portal` to render content outside the normal DOM position.

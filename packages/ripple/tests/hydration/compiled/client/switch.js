@@ -17,11 +17,15 @@ function switch_case_1(__anchor) {
 	_$_.append(__anchor, div_1);
 }
 
+switch_case_1.h = 1;
+
 function switch_case_default(__anchor) {
 	var div_2 = root_2();
 
 	_$_.append(__anchor, div_2);
 }
+
+switch_case_default.h = 2;
 
 function switch_1(status) {
 	switch (status) {
@@ -60,11 +64,15 @@ function switch_case_1_1(__anchor) {
 	_$_.append(__anchor, div_4);
 }
 
+switch_case_1_1.h = 1;
+
 function switch_case_default_1(__anchor) {
 	var div_5 = root_7();
 
 	_$_.append(__anchor, div_5);
 }
+
+switch_case_default_1.h = 2;
 
 function switch_2(status) {
 	switch (status.value) {
@@ -121,6 +129,8 @@ function switch_case_default_2(__anchor) {
 	_$_.append(__anchor, div_7);
 }
 
+switch_case_default_2.h = 1;
+
 function switch_3(val) {
 	switch (val) {
 		case 1:
@@ -158,11 +168,15 @@ function switch_case_1_2(__anchor) {
 	_$_.append(__anchor, div_9);
 }
 
+switch_case_1_2.h = 1;
+
 function switch_case_2(__anchor) {
 	var div_10 = root_14();
 
 	_$_.append(__anchor, div_10);
 }
+
+switch_case_2.h = 2;
 
 function switch_4(level) {
 	switch (level.value) {
@@ -220,11 +234,15 @@ function switch_case_1_3(__anchor) {
 	_$_.append(__anchor, div_12);
 }
 
+switch_case_1_3.h = 1;
+
 function switch_case_2_1(__anchor) {
 	var div_13 = root_19();
 
 	_$_.append(__anchor, div_13);
 }
+
+switch_case_2_1.h = 2;
 
 function switch_5(level) {
 	switch (level.value) {
@@ -282,11 +300,15 @@ function switch_case_1_4(__anchor) {
 	_$_.append(__anchor, div_15);
 }
 
+switch_case_1_4.h = 1;
+
 function switch_case_2_2(__anchor) {
 	var div_16 = root_24();
 
 	_$_.append(__anchor, div_16);
 }
+
+switch_case_2_2.h = 2;
 
 function switch_6(level) {
 	switch (level.value) {

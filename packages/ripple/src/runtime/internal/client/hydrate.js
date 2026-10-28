@@ -18,7 +18,7 @@ import {
 } from './deferred.js';
 import { set_text } from './render.js';
 import { restore_activity_range } from './activity-state.js';
-import { is_destroyed } from './blocks.js';
+import { is_destroyed, destroy_block } from './blocks.js';
 import { hydration_mismatch } from './errors.js';
 import { clear_expression_range } from './expression.js';
 import {
@@ -48,6 +48,7 @@ import {
  * and boundary code calls through that object only while hydrating, so a
  * client-only mount compiles and ships none of this.
  * @typedef {{
+ *   i: typeof hydrate_conditional;
  *   r: typeof retain_boundary;
  *   y: typeof hydrate_boundary;
  *   q: typeof enqueue_boundary;
@@ -65,6 +66,7 @@ import {
 
 /** @type {HydrationRuntime} */
 var runtime = {
+	i: hydrate_conditional,
 	r: retain_boundary,
 	y: hydrate_boundary,
 	q: enqueue_boundary,
@@ -515,5 +517,36 @@ function activate_streamed_chunk(state, template, errored, context) {
 	} finally {
 		set_hydration(previous_hydrating, previous_hydrate_node);
 		set_hydration_context(previous_hydration_context);
+	}
+}
+
+/**
+ * Reconcile only a changed conditional range, retaining edited siblings.
+ * @param {Comment} start
+ * @param {(anchor: Node) => Block} initialize
+ * @param {Node} anchor
+ */
+function hydrate_conditional(start, initialize, anchor) {
+	var parent = /** @type {Block} */ (active_block);
+	var previous = parent.last;
+	try {
+		initialize(anchor);
+		if (
+			hydrate_node?.nodeType !== COMMENT_NODE ||
+			/** @type {Comment} */ (hydrate_node).data !== ']'
+		)
+			throw HYDRATION_ERROR;
+	} catch (error) {
+		if (error !== HYDRATION_ERROR) throw error;
+		var failed = previous === null ? parent.first : previous.next;
+		if (failed !== null) destroy_block(failed, false);
+		var end = expression_end(start);
+		clear_expression_range(start, end);
+		set_hydration(false, null);
+		try {
+			initialize(end);
+		} finally {
+			set_hydration(true, end);
+		}
 	}
 }

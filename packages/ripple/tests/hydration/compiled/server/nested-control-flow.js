@@ -15,9 +15,10 @@ export function ForIf() {
 			__out += '<ul class="for-if"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<li' + _$_.attr('class', `item item-${item.id}`) + '>';
 
 					{
@@ -27,6 +28,10 @@ export function ForIf() {
 					}
 
 					__out += '</li>';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -52,14 +57,18 @@ export function ForSwitch() {
 			__out += '<ul class="for-switch"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				switch (item.kind) {
 					case 'a':
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(0);
 						__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
 						break;
 
 					default:
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(1);
 						__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
 						break;
 				}
@@ -81,22 +90,34 @@ export function IfSwitch() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="if-switch"><!--[-->';
+			__out += '<div class="if-switch">';
 
 			if (show) {
-				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 
 				switch (kind) {
 					case 'a':
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(0);
 						__out += '<p class="case-a">Case A</p>';
 						break;
 
 					default:
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(1);
 						__out += '<p class="case-default">Default</p>';
 						break;
 				}
 
 				__out += '<!--]-->';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -113,22 +134,34 @@ export function IfSwitchHidden() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="if-switch-hidden"><!--[-->';
+			__out += '<div class="if-switch-hidden">';
 
 			if (show) {
-				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 
 				switch (kind) {
 					case 'a':
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(0);
 						__out += '<p class="case-a">Case A</p>';
 						break;
 
 					default:
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(1);
 						__out += '<p class="case-default">Default</p>';
 						break;
 				}
 
 				__out += '<!--]-->';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><p class="after">after</p></div>';
@@ -147,22 +180,32 @@ export function ForIfSwitchSingle() {
 			__out += '<ul class="for-if-switch-single"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (item.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
 							break;
 
 						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-default`) + '>' + _$_.escape(`D-${item.id}`) + '</li>';
 							break;
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -187,22 +230,32 @@ export function ForIfSwitchMulti() {
 			__out += '<ul class="for-if-switch-multi"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (item.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
 							break;
 
 						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
 							break;
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -228,22 +281,32 @@ export function ForIfSwitchWithDisabled() {
 			__out += '<ul class="for-if-switch-disabled"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (item.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
 							break;
 
 						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
 							break;
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -262,10 +325,13 @@ export function SwitchTry() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="switch-try"><!--[-->';
+			__out += '<div class="switch-try">';
 
 			switch (kind) {
 				case 'a':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					_$_.output_push(__out);
 					__out = '';
 					_$_.try_block(
@@ -286,6 +352,9 @@ export function SwitchTry() {
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<p class="default">Default</p>';
 					break;
 			}
@@ -306,10 +375,11 @@ export function ForSwitchTry() {
 			__out += '<ul class="for-switch-try"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				switch (item.kind) {
 					case 'a':
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(0);
 						_$_.output_push(__out);
 						__out = '';
 						_$_.try_block(
@@ -330,6 +400,9 @@ export function ForSwitchTry() {
 						break;
 
 					default:
+						_$_.output_push(__out);
+						__out = '';
+						_$_.branch_marker(1);
 						_$_.output_push(__out);
 						__out = '';
 						_$_.try_block(
@@ -369,9 +442,10 @@ export function ForIfTry() {
 			__out += '<ul class="for-if-try"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					_$_.output_push(__out);
 					__out = '';
 
@@ -390,6 +464,10 @@ export function ForIfTry() {
 							_$_.output_push(__out);
 						}
 					);
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -411,13 +489,16 @@ export function ForIfSwitchTrySingle() {
 			__out += '<ul class="for-if-switch-try-single"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (item.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -440,6 +521,9 @@ export function ForIfSwitchTrySingle() {
 						default:
 							_$_.output_push(__out);
 							__out = '';
+							_$_.branch_marker(1);
+							_$_.output_push(__out);
+							__out = '';
 							_$_.try_block(
 								() => {
 									let __out = '';
@@ -459,6 +543,10 @@ export function ForIfSwitchTrySingle() {
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
@@ -483,13 +571,16 @@ export function ForIfSwitchTryMulti() {
 			__out += '<ul class="for-if-switch-try-multi"><!--[-->';
 
 			for (const item of items) {
-				__out += '<!--[-->';
-
 				if (item.show) {
-					__out += '<!--[-->';
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 
 					switch (item.kind) {
 						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.try_block(
@@ -512,6 +603,9 @@ export function ForIfSwitchTryMulti() {
 						default:
 							_$_.output_push(__out);
 							__out = '';
+							_$_.branch_marker(1);
+							_$_.output_push(__out);
+							__out = '';
 							_$_.try_block(
 								() => {
 									let __out = '';
@@ -531,6 +625,10 @@ export function ForIfSwitchTryMulti() {
 					}
 
 					__out += '<!--]-->';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';

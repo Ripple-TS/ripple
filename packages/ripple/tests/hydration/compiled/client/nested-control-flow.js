@@ -122,6 +122,8 @@ function switch_case_default(__anchor, pattern_1) {
 	_$_.append(__anchor, li_2);
 }
 
+switch_case_default.h = 1;
+
 function switch_1(pattern_1) {
 	switch (_$_.get(pattern_1).kind) {
 		case 'a':
@@ -177,6 +179,8 @@ function switch_case_default_1(__anchor) {
 	_$_.append(__anchor, p_1);
 }
 
+switch_case_default_1.h = 1;
+
 function switch_2(kind) {
 	switch (kind) {
 		case 'a':
@@ -228,6 +232,8 @@ function switch_case_default_2(__anchor) {
 
 	_$_.append(__anchor, p_3);
 }
+
+switch_case_default_2.h = 1;
 
 function switch_3(kind) {
 	switch (kind) {
@@ -315,6 +321,8 @@ function switch_case_default_3(__anchor, pattern_2) {
 	_$_.render(render_5, { a: '', b: _$_.UNINITIALIZED, _a: pattern_2, _b: li_4 });
 	_$_.append(__anchor, li_4);
 }
+
+switch_case_default_3.h = 1;
 
 function switch_4(pattern_2) {
 	switch (_$_.get(pattern_2).kind) {
@@ -421,6 +429,8 @@ function switch_case_default_4(__anchor, pattern_3) {
 	_$_.render(render_8, { a: '', b: _$_.UNINITIALIZED, _a: pattern_3, _b: li_6 });
 	_$_.append(__anchor, li_6);
 }
+
+switch_case_default_4.h = 1;
 
 function switch_5(pattern_3) {
 	switch (_$_.get(pattern_3).kind) {
@@ -532,6 +542,8 @@ function switch_case_default_5(__anchor, pattern_4) {
 	_$_.append(__anchor, li_8);
 }
 
+switch_case_default_5.h = 1;
+
 function switch_6(pattern_4) {
 	switch (_$_.get(pattern_4).kind) {
 		case 'a':
@@ -620,6 +632,8 @@ function switch_case_default_6(__anchor) {
 
 	_$_.append(__anchor, p_6);
 }
+
+switch_case_default_6.h = 1;
 
 function switch_7(kind) {
 	switch (kind) {
@@ -760,6 +774,8 @@ function switch_case_default_7(__anchor, pattern_5) {
 		true
 	);
 }
+
+switch_case_default_7.h = 1;
 
 function switch_8(pattern_5) {
 	switch (_$_.get(pattern_5).kind) {
@@ -1006,6 +1022,8 @@ function switch_case_default_8(__anchor, pattern_7) {
 	);
 }
 
+switch_case_default_8.h = 1;
+
 function switch_9(pattern_7) {
 	switch (_$_.get(pattern_7).kind) {
 		case 'a':
@@ -1173,6 +1191,8 @@ function switch_case_default_9(__anchor, pattern_8) {
 		true
 	);
 }
+
+switch_case_default_9.h = 1;
 
 function switch_10(pattern_8) {
 	switch (_$_.get(pattern_8).kind) {

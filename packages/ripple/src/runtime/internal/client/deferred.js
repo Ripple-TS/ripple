@@ -18,14 +18,31 @@ import { BRANCH_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_BLOCK, SVG_BLOCK } from './c
  *   status: 'dehydrated' | 'queued' | 'hydrating' | 'hydrated' | 'destroyed';
  *   owner: Block; start: Comment; end: Comment; init: (() => void) | null;
  *   context: import('./hydration.js').HydrationContext | null;
+ *   c?: () => void;
  * }} DeferredBoundary
  */
+/**
+ * Optional intent support, installed only when Hydrate is used.
+ */
+/** @type {((boundary: DeferredBoundary) => void) | null} */
+var on_retain = null;
+/**
+ * @param {(boundary: DeferredBoundary) => void} observe
+ */
+export function observe_deferred(observe) {
+	on_retain = observe;
+}
+
 /** @type {Set<DeferredBoundary>} */
 var background = new Set();
 /** @type {(() => void) | null} */
 var cancel_task = null;
 
-/** @param {Block} owner @param {() => void} init @returns {DeferredBoundary} */
+/**
+ * @param {Block} owner
+ * @param {() => void} init
+ * @returns {DeferredBoundary}
+ */
 export function retain_boundary(owner, init) {
 	var start = /** @type {Comment} */ (hydrate_node);
 	var end = start;
@@ -39,10 +56,21 @@ export function retain_boundary(owner, init) {
 	}
 	if (end === null) throw HYDRATION_ERROR;
 	set_hydration(true, end);
-	return { status: 'dehydrated', owner, start, end, init, context: hydration_context };
+	var boundary = /** @type {DeferredBoundary} */ ({
+		status: 'dehydrated',
+		owner,
+		start,
+		end,
+		init,
+		context: hydration_context,
+	});
+	on_retain?.(boundary);
+	return boundary;
 }
 
-/** @param {DeferredBoundary} boundary */
+/**
+ * @param {DeferredBoundary} boundary
+ */
 export function hydrate_boundary(boundary) {
 	if (
 		boundary.status === 'hydrating' ||
@@ -104,13 +132,19 @@ export function hydrate_boundary(boundary) {
 		if (context !== null) context.recover = previous_recover;
 		boundary.init = null;
 		boundary.context = null;
+		boundary.c?.();
+		boundary.c = undefined;
 		set_hydration(previous_hydrating, previous_node);
 		set_hydration_context(previous_context);
 	}
 }
 
-/** @param {DeferredBoundary} boundary */
+/**
+ * @param {DeferredBoundary} boundary
+ */
 export function dispose_boundary(boundary) {
+	boundary.c?.();
+	boundary.c = undefined;
 	boundary.status = 'destroyed';
 	boundary.init = null;
 	boundary.context = null;
@@ -121,7 +155,9 @@ export function dispose_boundary(boundary) {
 	}
 }
 
-/** @param {DeferredBoundary} boundary */
+/**
+ * @param {DeferredBoundary} boundary
+ */
 export function enqueue_boundary(boundary) {
 	if (boundary.status !== 'dehydrated') return;
 	boundary.status = 'queued';

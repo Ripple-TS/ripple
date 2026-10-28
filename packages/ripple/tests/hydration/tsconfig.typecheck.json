@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "./hydrate*.test.js",
+    "../common.d.ts",
+    "../hydration.d.ts",
+    "../../src/runtime/internal/client/types.d.ts"
+  ]
+}

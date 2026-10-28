@@ -2002,6 +2002,9 @@ const visit_switch_statement = (node, context) => {
 					branch.body,
 				),
 			);
+			if (context.state.hydration && index !== 0) {
+				hoisted.push(b.stmt(b.assignment('=', b.member(branch.id, b.id('h')), b.literal(index))));
+			}
 			register_hoisted(hoisted, branch.id.name);
 		});
 		hoisted.push(b.function_declaration(switch_id, context_params(captured.reads[0]), callback));
@@ -2025,8 +2028,11 @@ const visit_switch_statement = (node, context) => {
 
 	/** @type {AST.Statement[]} */
 	const statements = [];
-	for (const branch of branches) {
+	for (const [index, branch] of branches.entries()) {
 		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+		if (context.state.hydration && index !== 0) {
+			statements.push(b.stmt(b.assignment('=', b.member(branch.id, b.id('h')), b.literal(index))));
+		}
 	}
 	statements.push(
 		b.stmt(b.call('_$_.switch', id, b.arrow([], callback), root_controlled ? b.true : undefined)),
@@ -2205,6 +2211,9 @@ const visit_if_statement = (node, context) => {
 					branch.body,
 				),
 			);
+			if (context.state.hydration && index !== 0) {
+				hoisted.push(b.stmt(b.assignment('=', b.member(branch.id, b.id('h')), b.literal(index))));
+			}
 			register_hoisted(hoisted, branch.id.name);
 		});
 		hoisted.push(b.function_declaration(if_id, context_params(captured.reads[0]), callback));
@@ -2259,8 +2268,11 @@ const visit_if_statement = (node, context) => {
 		return;
 	}
 
-	for (const branch of branches) {
+	for (const [index, branch] of branches.entries()) {
 		statements.push(b.var(branch.id, b.arrow([b.id('__anchor')], branch.body)));
+		if (context.state.hydration && index !== 0) {
+			statements.push(b.stmt(b.assignment('=', b.member(branch.id, b.id('h')), b.literal(index))));
+		}
 	}
 	statements.push(
 		b.stmt(b.call('_$_.if', id, b.arrow([], callback), root_controlled ? b.true : undefined)),

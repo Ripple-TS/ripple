@@ -40,9 +40,12 @@ export function ComponentCallCleanup({ native, initialShown }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section><button id="toggle">Toggle</button><!--[-->';
+			__out += '<section><button id="toggle">Toggle</button>';
 
 			if (shown.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				_$_.output_push(__out);
 				__out = '';
 
@@ -50,9 +53,13 @@ export function ComponentCallCleanup({ native, initialShown }) {
 					() => {
 						let __out = '';
 
-						__out += '<!--[--><!--[-->';
+						__out += '<!--[-->';
 
 						if (native) {
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(0);
+
 							{
 								const comp = Child;
 								const args = [{}];
@@ -62,6 +69,9 @@ export function ComponentCallCleanup({ native, initialShown }) {
 								_$_.render_component(comp, ...args);
 							}
 						} else {
+							_$_.output_push(__out);
+							__out = '';
+							_$_.branch_marker(1);
 							_$_.output_push(__out);
 							__out = '';
 							_$_.render_expression(Child());
@@ -78,6 +88,10 @@ export function ComponentCallCleanup({ native, initialShown }) {
 					},
 					null
 				);
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></section>';

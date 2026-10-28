@@ -56,6 +56,8 @@ function alternate(__anchor) {
 	_$_.append(__anchor, div_3);
 }
 
+alternate.h = 1;
+
 function if_3(isLoggedIn) {
 	if (isLoggedIn) return consequent_2; else return alternate;
 }
@@ -131,6 +133,8 @@ function alternate_1(__anchor) {
 
 	_$_.append(__anchor, div_6);
 }
+
+alternate_1.h = 1;
 
 function if_5(isOn) {
 	if (isOn.value) return consequent_4; else return alternate_1;
@@ -274,11 +278,15 @@ function consequent_8(__anchor) {
 	_$_.append(__anchor, div_10);
 }
 
+consequent_8.h = 1;
+
 function alternate_2(__anchor) {
 	var div_11 = root_18();
 
 	_$_.append(__anchor, div_11);
 }
+
+alternate_2.h = 2;
 
 function if_8(status) {
 	if (status.value === 'loading') return consequent_7; else if (status.value === 'success') return consequent_8; else return alternate_2;
@@ -370,6 +378,8 @@ function alternate_3(__anchor, { b: label }) {
 
 	_$_.append(__anchor, span_2);
 }
+
+alternate_3.h = 1;
 
 function if_9({ a: show }) {
 	if (show.value) return consequent_9; else return alternate_3;

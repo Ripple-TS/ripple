@@ -29,10 +29,17 @@ export function Content() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="content"><!--[-->';
+			__out += '<div class="content">';
 
 			if (visible.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<p class="text">Hello world</p>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';

@@ -9,9 +9,12 @@ export function IfFragmentForElement() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed-c"><!--[-->';
+			__out += '<div class="feed-c">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<!--[-->';
 
 				for (const muze of muzes) {
@@ -27,6 +30,10 @@ export function IfFragmentForElement() {
 				}
 
 				__out += '<!--]--><span class="after">after</span>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -43,9 +50,12 @@ export function IfFragmentForIfIf() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed"><!--[-->';
+			__out += '<div class="feed">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<!--[-->';
 
 				for (const muze of muzes) {
@@ -60,19 +70,37 @@ export function IfFragmentForIfIf() {
 					__out += '</p>';
 				}
 
-				__out += '<!--]--><!--[-->';
+				__out += '<!--]-->';
 
 				if (muzes.length > 0) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<span class="has-items">has items</span>';
-				}
-
-				__out += '<!--]--><!--[-->';
-
-				if (muzes.length === 0) {
-					__out += '<span class="empty">empty</span>';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 				}
 
 				__out += '<!--]-->';
+
+				if (muzes.length === 0) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
+					__out += '<span class="empty">empty</span>';
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
+				}
+
+				__out += '<!--]-->';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -88,10 +116,17 @@ export function IfFragmentElements() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed-b"><!--[-->';
+			__out += '<div class="feed-b">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<p class="muze">b</p><p class="muze">c</p>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -174,9 +209,12 @@ export function IfCodeBlockControlFlow() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed-f"><!--[-->';
+			__out += '<div class="feed-f">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				_$_.output_push(__out);
 				__out = '';
 
@@ -203,6 +241,10 @@ export function IfCodeBlockControlFlow() {
 				}));
 
 				__out += '<span class="after">after</span>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';
@@ -219,11 +261,17 @@ export function IfElseFragment() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed-d"><!--[-->';
+			__out += '<div class="feed-d">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<span class="loading">loading</span>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<!--[-->';
 
 				for (const muze of muzes) {
@@ -255,9 +303,12 @@ export function IfDivFragment() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="feed-e"><!--[-->';
+			__out += '<div class="feed-e">';
 
 			if (hasLoaded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<section><!--[-->';
 
 				for (const muze of muzes) {
@@ -273,6 +324,10 @@ export function IfDivFragment() {
 				}
 
 				__out += '<!--]--><span class="after">after</span></section>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';

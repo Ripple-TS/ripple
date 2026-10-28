@@ -98,6 +98,8 @@ function switch_case_0(__anchor, { a: label, b: onClick }) {
 
 function switch_case_default(__anchor) {}
 
+switch_case_default.h = 1;
+
 function switch_1({ a: label }) {
 	switch (label) {
 		case 'Click':

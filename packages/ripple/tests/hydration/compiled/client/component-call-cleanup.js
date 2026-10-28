@@ -44,6 +44,8 @@ function alternate(__anchor, { b: __block }) {
 	_$_.append(__anchor, fragment_1);
 }
 
+alternate.h = 1;
+
 function if_1({ a: native }) {
 	if (native) return consequent; else return alternate;
 }

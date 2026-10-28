@@ -190,6 +190,8 @@ function alternate(__anchor) {
 	_$_.append(__anchor, b);
 }
 
+alternate.h = 1;
+
 function if_1(show) {
 	if (show.value) return consequent; else return alternate;
 }

@@ -21,3 +21,12 @@ visibility; it defaults to `'visible'`. Hidden server-rendered panels hydrate on
 boundary per background task, and activation promotes queued work. See the
 [Activity guide](https://ripple-ts.com/docs/guide/activity) for lifecycle, refs,
 portals, and scheduling details.
+
+Use `Hydrate` with `load`, `idle`, `visible`, `interaction`, `media`, `condition`,
+or `never` from `ripple/hydration` to defer initialization of visible server HTML.
+`when` is mandatory; factories are synchronous and client-only. Boundaries open
+once, preserve their owner/context and live input edits, and compose with
+Activity. Client-only mounts render normally, even for `never()`. This does not
+split code or reduce JavaScript downloads. See the
+[Hydrate guide](https://ripple-ts.com/docs/guide/hydrate) for defaults, reactive
+policies, early-update rules, nesting, events, and completion timing.
