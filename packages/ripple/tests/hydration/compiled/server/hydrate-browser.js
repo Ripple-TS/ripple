@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { Hydrate, track, effect, bindChecked, bindValue } from 'ripple/server';
+import { Hydrate, Activity, track, effect, bindChecked, bindValue } from 'ripple/server';
 import { idle, visible, interaction, media, condition, never, load } from 'ripple/hydration';
 
 function record(kind, name) {
@@ -110,6 +110,19 @@ function Row({ index }) {
 			let __out = '';
 
 			__out += '<li>' + _$_.escape(String(index)) + '</li>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function Composed({ name }) {
+	return _$_.tsrx_element(() => {
+		record('init', name);
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button' + _$_.attr('id', name, false) + '>' + _$_.escape(name) + '</button>';
 			_$_.output_push(__out);
 		});
 	});
@@ -318,6 +331,144 @@ export function App() {
 								{
 									const comp = Static;
 									const args = [{}];
+
+									_$_.render_component(comp, ...args);
+								}
+							});
+						})
+					}
+				];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			{
+				const comp = Activity;
+
+				_$_.output_push(__out);
+				__out = '';
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								{
+									const comp = Hydrate;
+
+									const args = [
+										{
+											when: interaction({ events: 'click' }),
+											children: _$_.tsrx_element(() => {
+												return _$_.tsrx_element(() => {
+													{
+														const comp = Composed;
+														const args = [{ name: "activity-hydrate" }];
+
+														_$_.render_component(comp, ...args);
+													}
+												});
+											})
+										}
+									];
+
+									_$_.render_component(comp, ...args);
+								}
+							});
+						})
+					}
+				];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			{
+				const comp = Hydrate;
+
+				_$_.output_push(__out);
+				__out = '';
+
+				const args = [
+					{
+						when: interaction({ events: 'click' }),
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								{
+									const comp = Activity;
+
+									const args = [
+										{
+											children: _$_.tsrx_element(() => {
+												return _$_.tsrx_element(() => {
+													{
+														const comp = Composed;
+														const args = [{ name: "hydrate-activity" }];
+
+														_$_.render_component(comp, ...args);
+													}
+												});
+											})
+										}
+									];
+
+									_$_.render_component(comp, ...args);
+								}
+							});
+						})
+					}
+				];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			{
+				const comp = Hydrate;
+
+				_$_.output_push(__out);
+				__out = '';
+
+				const args = [
+					{
+						when: interaction({ events: 'click' }),
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								{
+									const comp = Activity;
+
+									const args = [
+										{
+											children: _$_.tsrx_element(() => {
+												return _$_.tsrx_element(() => {
+													{
+														const comp = Hydrate;
+
+														const args = [
+															{
+																when: load(),
+																children: _$_.tsrx_element(() => {
+																	return _$_.tsrx_element(() => {
+																		{
+																			const comp = Composed;
+																			const args = [{ name: "hydrate-activity-load" }];
+
+																			_$_.render_component(comp, ...args);
+																		}
+																	});
+																})
+															}
+														];
+
+														_$_.render_component(comp, ...args);
+													}
+												});
+											})
+										}
+									];
 
 									_$_.render_component(comp, ...args);
 								}

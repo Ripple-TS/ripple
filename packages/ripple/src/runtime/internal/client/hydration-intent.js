@@ -87,13 +87,23 @@ export function listen_intent(boundary, open, pending) {
 			if (markers.some((marker) => marker.data === '[hn')) return;
 			var last = -1;
 			for (var i = 0; i < markers.length; i++) if (matches(markers[i], event.type)) last = i;
-			for (var i = 0; i <= last; i++) {
+			for (var i = 0; last !== -1 && i < markers.length; i++) {
 				var marker = markers[i];
 				if (!target.contains(marker) || marker.data === '[hn') break;
 				// Opening an ancestor registers its children in this same map.
 				// A client-only factory may replace its server 'dynamic' policy.
 				var entry = boundaries.get(marker);
-				if (i === last && !matches(marker, event.type) && !entry?.q?.()) break;
+				// Also prepare descendant Activities and gates that became eligible
+				// as their parents opened, before native dispatch reaches the target.
+				// An unresolved Hydrate policy still stops this continuation.
+				if (
+					i >= last &&
+					marker.data !== '[' &&
+					!(i > last && marker.data === '[a') &&
+					!matches(marker, event.type) &&
+					!entry?.q?.()
+				)
+					break;
 				entry?.o();
 			}
 			if (!target.contains(event.target)) {

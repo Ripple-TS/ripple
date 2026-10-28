@@ -1091,3 +1091,208 @@ export function DerivedChildren() {
 		});
 	});
 }
+
+function ActivityComposition({ activityOutside }) {
+	return _$_.tsrx_element(() => {
+		const mode = _$_.track(initial === 'visible' ? 'visible' : 'hidden', '1cneavi');
+		const enabled = _$_.track(false, '13c2lr2');
+		const exists = _$_.track(true, '1jlq8y6');
+
+		context.set('context');
+		controls = { mode, enabled, exists };
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<main>';
+
+			if (exists.value) {
+				if (activityOutside) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
+
+					{
+						const comp = Activity;
+
+						_$_.output_push(__out);
+						__out = '';
+
+						const args = [
+							{
+								mode,
+								children: _$_.tsrx_element(() => {
+									return _$_.tsrx_element(() => {
+										{
+											const comp = Hydrate;
+
+											const args = [
+												{
+													when,
+													onHydrated: () => calls.push('hydrated'),
+													children: _$_.tsrx_element(() => {
+														return _$_.tsrx_element(() => {
+															{
+																const comp = Child;
+																const args = [{ name: "composed" }];
+
+																_$_.render_component(comp, ...args);
+															}
+														});
+													})
+												}
+											];
+
+											_$_.render_component(comp, ...args);
+										}
+									});
+								})
+							}
+						];
+
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
+					}
+				} else {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
+
+					{
+						const comp = Hydrate;
+
+						_$_.output_push(__out);
+						__out = '';
+
+						const args = [
+							{
+								when,
+								onHydrated: () => calls.push('hydrated'),
+								children: _$_.tsrx_element(() => {
+									return _$_.tsrx_element(() => {
+										{
+											const comp = Activity;
+
+											const args = [
+												{
+													mode,
+													children: _$_.tsrx_element(() => {
+														return _$_.tsrx_element(() => {
+															{
+																const comp = Child;
+																const args = [{ name: "composed" }];
+
+																_$_.render_component(comp, ...args);
+															}
+														});
+													})
+												}
+											];
+
+											_$_.render_component(comp, ...args);
+										}
+									});
+								})
+							}
+						];
+
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
+					}
+				}
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
+			}
+
+			__out += '<!--]--><footer>untouched</footer></main>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function ActivityOutsideHydrate() {
+	return _$_.tsrx_element(() => {
+		{
+			const comp = ActivityComposition;
+			const args = [{ activityOutside: true }];
+
+			_$_.render_component(comp, ...args);
+		}
+	});
+}
+
+export function HydrateOutsideActivity() {
+	return _$_.tsrx_element(() => {
+		{
+			const comp = ActivityComposition;
+			const args = [{ activityOutside: false }];
+
+			_$_.render_component(comp, ...args);
+		}
+	});
+}
+
+export function HydrateActivityHydrate() {
+	return _$_.tsrx_element(() => {
+		context.set('context');
+
+		_$_.regular_block(() => {
+			{
+				const comp = Hydrate;
+
+				const args = [
+					{
+						when,
+						onHydrated: () => calls.push('outer hydrated'),
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								{
+									const comp = Activity;
+
+									const args = [
+										{
+											children: _$_.tsrx_element(() => {
+												return _$_.tsrx_element(() => {
+													{
+														const comp = Hydrate;
+
+														const args = [
+															{
+																when: nested,
+																onHydrated: () => calls.push('inner hydrated'),
+																children: _$_.tsrx_element(() => {
+																	return _$_.tsrx_element(() => {
+																		{
+																			const comp = Child;
+																			const args = [{ name: "composed" }];
+
+																			_$_.render_component(comp, ...args);
+																		}
+																	});
+																})
+															}
+														];
+
+														_$_.render_component(comp, ...args);
+													}
+												});
+											})
+										}
+									];
+
+									_$_.render_component(comp, ...args);
+								}
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}

@@ -27,9 +27,11 @@ pnpm --filter ripple exec node tests/browser/hydrate.js
 The production Vite/Chromium fixture exercises native viewport and media changes,
 idle callbacks and the timer fallback, nested keyboard/focus/non-bubbling intent,
 checkboxes, bindings edited before hydration, links, cancellation, propagation,
-and form submission. SSR styles for a `never()` child remain available after the
-SSR style tag is replaced by the extracted Vite CSS. It asserts that client-only
-builds exclude deferred hydration modules and unused Hydrate exports are removed.
+and form submission. First clicks reach their handlers with both Activity around
+Hydrate and Hydrate around Activity. SSR styles for a `never()` child remain
+available after the SSR style tag is replaced by the extracted Vite CSS. It
+asserts that client-only builds exclude deferred hydration modules and unused
+Hydrate exports are removed.
 
 A 2,500-row SSR section initializes zero row components before its condition
 opens, compared with 2,500 for the eager variant. Both variants request the same

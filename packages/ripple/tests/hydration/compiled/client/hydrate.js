@@ -823,6 +823,109 @@ function DerivedChildren_render(__anchor, __block) {
 
 DerivedChildren[_$_.$r] = DerivedChildren_render;
 
+function consequent_7(__anchor, { c: mode }) {
+	_$_.render_component(Activity, __anchor, {
+		mode,
+		children: _$_.tsrx_element((__anchor, __block) => {
+			_$_.render_component(Hydrate, __anchor, {
+				when,
+				onHydrated: () => _$_.with_scope(__block, () => calls.push('hydrated')),
+				children: _$_.tsrx_element((__anchor, __block) => {
+					_$_.render_component(Child, __anchor, { name: "composed" });
+				})
+			});
+		})
+	});
+}
+
+function alternate_2(__anchor, { c: mode, d: __block }) {
+	_$_.render_component(Hydrate, __anchor, {
+		when,
+		onHydrated: () => _$_.with_scope(__block, () => calls.push('hydrated')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			_$_.render_component(Activity, __anchor, {
+				mode,
+				children: _$_.tsrx_element((__anchor, __block) => {
+					_$_.render_component(Child, __anchor, { name: "composed" });
+				})
+			});
+		})
+	});
+}
+
+alternate_2.h = 1;
+
+function if_6({ a: exists, b: activityOutside }) {
+	if (exists.value) {
+		if (activityOutside) return consequent_7; else return alternate_2;
+	}
+}
+
+var root_30 = _$_.template_el('main', null, [['footer', null, 'untouched']]);
+
+function render_5(__prev) {
+	var __a = if_6({ a: __prev._a, b: __prev._b, c: __prev._c, d: __prev._d });
+
+	if (__prev.a !== __a) {
+		_$_.if_update(__prev._e, __prev.a = __a);
+	}
+}
+
+function ActivityComposition_render(__anchor, __block, { activityOutside }) {
+	const mode = _$_.track(initial === 'visible' ? 'visible' : 'hidden', __block, '1cneavi');
+	const enabled = _$_.track(false, __block, '13c2lr2');
+	const exists = _$_.track(true, __block, '1jlq8y6');
+
+	context.set('context');
+	controls = { mode, enabled, exists };
+
+	var main_2 = root_30();
+
+	{
+		var node_14 = _$_.hydrating ? _$_.hydrate_child() : main_2.firstChild;
+		var ifs_5 = _$_.if_static(node_14, if_6, 0, { a: exists, b: activityOutside, c: mode, d: __block });
+
+		_$_.hydrating && _$_.pop(main_2);
+	}
+
+	_$_.render(render_5, {
+		a: _$_.UNINITIALIZED,
+		_a: exists,
+		_b: activityOutside,
+		_c: mode,
+		_d: __block,
+		_e: ifs_5
+	});
+
+	_$_.append(__anchor, main_2);
+}
+
+ActivityComposition[_$_.$r] = ActivityComposition_render;
+
+function HydrateActivityHydrate_render(__anchor, __block) {
+	context.set('context');
+
+	_$_.render_component(Hydrate, __anchor, {
+		when,
+		onHydrated: () => _$_.with_scope(__block, () => calls.push('outer hydrated')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			_$_.render_component(Activity, __anchor, {
+				children: _$_.tsrx_element((__anchor, __block) => {
+					_$_.render_component(Hydrate, __anchor, {
+						when: nested,
+						onHydrated: () => _$_.with_scope(__block, () => calls.push('inner hydrated')),
+						children: _$_.tsrx_element((__anchor, __block) => {
+							_$_.render_component(Child, __anchor, { name: "composed" });
+						})
+					});
+				})
+			});
+		})
+	});
+}
+
+HydrateActivityHydrate[_$_.$r] = HydrateActivityHydrate_render;
+
 import {
 	Hydrate,
 	Activity,
@@ -928,6 +1031,26 @@ export function Branches() {
 
 export function DerivedChildren() {
 	return _$_.tsrx_element(DerivedChildren_render);
+}
+
+function ActivityComposition(__props) {
+	return _$_.tsrx_element(ActivityComposition_render, __props);
+}
+
+export function ActivityOutsideHydrate() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(ActivityComposition, __anchor, { activityOutside: true });
+	});
+}
+
+export function HydrateOutsideActivity() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		_$_.render_component(ActivityComposition, __anchor, { activityOutside: false });
+	});
+}
+
+export function HydrateActivityHydrate() {
+	return _$_.tsrx_element(HydrateActivityHydrate_render);
 }
 
 _$_.delegate(['click', 'focusin']);

@@ -308,3 +308,48 @@ export function DerivedChildren() @{
 	controls = { enabled, value };
 	<Hydrate when={condition(() => enabled.value)} {children} />
 }
+
+function ActivityComposition({ activityOutside }: { activityOutside: boolean }) @{
+	const mode = track<'hidden' | 'visible'>(initial === 'visible' ? 'visible' : 'hidden');
+	const enabled = track(false);
+	const exists = track(true);
+	context.set('context');
+	controls = { mode, enabled, exists };
+	<main>
+		@if (exists.value) {
+			@if (activityOutside) {
+				<Activity {mode}>
+					<Hydrate {when} onHydrated={() => calls.push('hydrated')}>
+						<Child name="composed" />
+					</Hydrate>
+				</Activity>
+			} @else {
+				<Hydrate {when} onHydrated={() => calls.push('hydrated')}>
+					<Activity {mode}>
+						<Child name="composed" />
+					</Activity>
+				</Hydrate>
+			}
+		}
+		<footer>untouched</footer>
+	</main>
+}
+
+export function ActivityOutsideHydrate() {
+	return <ActivityComposition activityOutside={true} />;
+}
+
+export function HydrateOutsideActivity() {
+	return <ActivityComposition activityOutside={false} />;
+}
+
+export function HydrateActivityHydrate() @{
+	context.set('context');
+	<Hydrate {when} onHydrated={() => calls.push('outer hydrated')}>
+		<Activity>
+			<Hydrate when={nested} onHydrated={() => calls.push('inner hydrated')}>
+				<Child name="composed" />
+			</Hydrate>
+		</Activity>
+	</Hydrate>
+}

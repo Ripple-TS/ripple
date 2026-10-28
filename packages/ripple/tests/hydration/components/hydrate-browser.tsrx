@@ -1,4 +1,4 @@
-import { Hydrate, track, effect, bindChecked, bindValue } from 'ripple';
+import { Hydrate, Activity, track, effect, bindChecked, bindValue } from 'ripple';
 import { idle, visible, interaction, media, condition, never, load } from 'ripple/hydration';
 
 function record(kind: string, name: string) {
@@ -83,6 +83,11 @@ function Row({ index }: { index: number }) @{
 	record('row', String(index));
 	<li>{String(index)}</li>
 }
+function Composed({ name }: { name: string }) @{
+	record('init', name);
+	<button id={name} onClick={() => record('event', name)}>{name}</button>
+}
+
 export function App() @{
 	const enabled = track(false);
 	if (typeof window !== 'undefined') (window as any).openLarge = () => (enabled.value = true);
@@ -109,6 +114,23 @@ export function App() @{
 		</Hydrate>
 		<Hydrate when={never()}>
 			<Static />
+		</Hydrate>
+		<Activity>
+			<Hydrate when={interaction({ events: 'click' })}>
+				<Composed name="activity-hydrate" />
+			</Hydrate>
+		</Activity>
+		<Hydrate when={interaction({ events: 'click' })}>
+			<Activity>
+				<Composed name="hydrate-activity" />
+			</Activity>
+		</Hydrate>
+		<Hydrate when={interaction({ events: 'click' })}>
+			<Activity>
+				<Hydrate when={load()}>
+					<Composed name="hydrate-activity-load" />
+				</Hydrate>
+			</Activity>
 		</Hydrate>
 		<div style="height:3000px" />
 		<Hydrate when={visible({ rootMargin: '0px', threshold: [0, 0.5] })}>

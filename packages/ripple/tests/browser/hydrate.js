@@ -243,6 +243,38 @@ try {
 			),
 			1,
 		);
+		for (const id of ['activity-hydrate', 'hydrate-activity', 'hydrate-activity-load']) {
+			assert.equal(
+				await page.evaluate(
+					(name) => hydrateTrace.filter((x) => x.kind === 'init' && x.name === name).length,
+					id,
+				),
+				0,
+			);
+			await page.locator('#' + id).click();
+			assert.equal(
+				await page.evaluate(
+					(name) => hydrateTrace.filter((x) => x.kind === 'event' && x.name === name).length,
+					id,
+				),
+				1,
+			);
+			await page.locator('#' + id).click();
+			assert.equal(
+				await page.evaluate(
+					(name) => hydrateTrace.filter((x) => x.kind === 'event' && x.name === name).length,
+					id,
+				),
+				2,
+			);
+			assert.equal(
+				await page.evaluate(
+					(name) => hydrateTrace.filter((x) => x.kind === 'init' && x.name === name).length,
+					id,
+				),
+				1,
+			);
+		}
 		await page.setViewportSize({ width: 1300, height: 700 });
 		await page.waitForFunction(() =>
 			hydrateTrace.some((x) => x.kind === 'init' && x.name === 'media'),

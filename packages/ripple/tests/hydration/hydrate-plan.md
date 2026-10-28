@@ -130,6 +130,12 @@ the issue, including all delivery milestones.
       `website/public/llms.txt`, browser instructions, and patch changesets for
       `ripple` and `@tsrx/ripple`.
 
+The dedicated `hydrate-activity.test.js` matrix covers both nesting orders,
+hidden/visible effects, current visibility before activation, retained input
+edits, `never()` gates, queued/waiting disposal, once-only setup/completion, and
+the first interaction. Chromium also checks first-click delivery through both
+orders.
+
 ## Validation commands
 
 ```bash
