@@ -97,6 +97,8 @@ function switch_case_default(__anchor, pattern) {
 	);
 }
 
+switch_case_default.h = 1;
+
 function switch_1(pattern) {
 	switch (_$_.get(pattern).kind) {
 		case 'a':
@@ -235,6 +237,8 @@ function switch_case_default_1(__anchor, { b: pattern_1 }) {
 	);
 }
 
+switch_case_default_1.h = 1;
+
 function switch_2({ a: mode }) {
 	switch (mode.value) {
 		case 'a':
@@ -359,6 +363,8 @@ function switch_case_default_2(__anchor) {
 
 	_$_.append(__anchor, div_7);
 }
+
+switch_case_default_2.h = 1;
 
 function switch_3({ a: state }) {
 	switch (state) {

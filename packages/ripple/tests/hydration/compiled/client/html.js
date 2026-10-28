@@ -498,6 +498,8 @@ function switch_case_1(__anchor, { b: children }) {
 	_$_.append(__anchor, h2);
 }
 
+switch_case_1.h = 1;
+
 function switch_1({ a: level }) {
 	switch (level) {
 		case 1:
@@ -618,6 +620,8 @@ function alternate(__anchor, { b: children }) {
 
 	_$_.append(__anchor, h2_1);
 }
+
+alternate.h = 1;
 
 function if_4({ a: primary }) {
 	if (primary) return consequent_3; else return alternate;
@@ -1518,6 +1522,8 @@ function alternate_1(__anchor) {
 
 	_$_.append(__anchor, span_5);
 }
+
+alternate_1.h = 1;
 
 function if_15(prevLink) {
 	if (prevLink) return consequent_14; else return alternate_1;

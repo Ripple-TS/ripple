@@ -47,3 +47,7 @@ If `postTask` rejects or throws before starting its callback, a cancellable time
 Scheduling yields between boundaries, not within one boundary. A large boundary can still create a long task. Timer fallback yields a browser task but has no equivalent background priority, and neither scheduler guarantees a paint after every boundary. Deferring hydration does not split or defer downloading JavaScript.
 
 The internal range lifecycle is independent of Activity visibility so other hydration policies can reuse it. Activity does not implement the separate `Hydrate` strategy API.
+
+For visible SSR content that should initialize only on a particular trigger, use
+[Hydrate](./hydrate). Activity preparation respects a nested Hydrate policy;
+opening Hydrate inside an inactive Activity does not start its user effects.

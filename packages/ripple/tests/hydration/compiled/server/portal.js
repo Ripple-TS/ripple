@@ -48,9 +48,13 @@ export function ConditionalPortal() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div class="container"><button class="toggle">Toggle</button><!--[-->';
+			__out += '<div class="container"><button class="toggle">Toggle</button>';
 
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+
 				{
 					const comp = Portal;
 
@@ -75,6 +79,10 @@ export function ConditionalPortal() {
 					__out = '';
 					_$_.render_component(comp, ...args);
 				}
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--></div>';

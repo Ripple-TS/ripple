@@ -47,10 +47,15 @@ export function Row({ label, onClick }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (label) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<button' + _$_.attr('aria-label', label, false) + '>Press</button>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -116,14 +121,18 @@ export function SwitchChild({ label, onClick }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			switch (label) {
 				case 'Click':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<button' + _$_.attr('aria-label', label, false) + '>Press</button>';
 					break;
 
 				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					break;
 			}
 
@@ -217,9 +226,11 @@ export function BranchLocalChild({ label, onClick }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (label) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+
 				function Local() {
 					return _$_.tsrx_element(() => {
 						let __out = '';
@@ -250,6 +261,10 @@ export function BranchLocalChild({ label, onClick }) {
 					__out = '';
 					_$_.render_component(comp, ...args);
 				}
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -302,10 +317,15 @@ function ReactiveRow({ visible }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			if (visible.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<button aria-label="Click">Press</button>';
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';

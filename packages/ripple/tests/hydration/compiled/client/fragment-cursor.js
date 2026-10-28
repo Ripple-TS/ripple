@@ -1240,6 +1240,8 @@ function switch_case_default(__anchor) {
 	_$_.append(__anchor, b_4);
 }
 
+switch_case_default.h = 1;
+
 function switch_1(n) {
 	switch (n.value) {
 		case 0:
@@ -2372,6 +2374,8 @@ function alternate(__anchor) {
 
 	_$_.append(__anchor, i_1);
 }
+
+alternate.h = 1;
 
 function if_8(n) {
 	if (n.value % 2 === 0) return consequent_7; else return alternate;

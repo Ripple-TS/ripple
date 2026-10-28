@@ -368,6 +368,8 @@ function alternate(__anchor, { b: muzes }) {
 	_$_.append(__anchor, fragment_8);
 }
 
+alternate.h = 1;
+
 function if_7({ a: hasLoaded }) {
 	if (hasLoaded) return consequent_6; else return alternate;
 }

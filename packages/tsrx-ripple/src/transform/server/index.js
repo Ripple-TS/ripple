@@ -1371,9 +1371,18 @@ const visit_switch_statement = (node, context) => {
 	}
 
 	const cases = [];
+	let branch_index = 0;
 
 	for (const switch_case of node.cases) {
-		const case_body = [];
+		/** @type {AST.Statement[]} */
+		const case_body = [
+			b.stmt(
+				b.call(
+					'_$_.branch_marker',
+					b.literal(switch_case.consequent.length !== 0 ? branch_index++ : -1),
+				),
+			),
+		];
 
 		if (switch_case.consequent.length !== 0) {
 			const flattened_consequent = flatten_switch_consequent(switch_case.consequent);
@@ -1400,7 +1409,9 @@ const visit_switch_statement = (node, context) => {
 		);
 	}
 
-	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
+	if (!node.cases.some((item) => item.test === null)) {
+		cases.push(b.switch_case(null, [b.stmt(b.call('_$_.branch_marker', b.literal(-1)))]));
+	}
 
 	context.state.init?.push(
 		b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
@@ -1446,18 +1457,20 @@ const visit_if_statement = (node, context) => {
 		return;
 	}
 
+	let branch_index = 0;
 	/**
 	 * @param {AST.Statement} branch
 	 * @param {ScopeInterface} scope
 	 * @returns {AST.BlockStatement}
 	 */
 	const render_branch = (branch, scope) =>
-		b.block(
-			transform_body(branch.type === 'BlockStatement' ? branch.body : [branch], {
+		b.block([
+			b.stmt(b.call('_$_.branch_marker', b.literal(branch_index++))),
+			...transform_body(branch.type === 'BlockStatement' ? branch.body : [branch], {
 				...context,
 				state: { ...context.state, scope, control_flow_branch_body: true },
 			}),
-		);
+		]);
 
 	/**
 	 * Mirrors the client transform: an `@else if`, and a branch whose only
@@ -1477,7 +1490,7 @@ const visit_if_statement = (node, context) => {
 			: render_branch(consequent, consequent_scope);
 
 		/** @type {AST.Statement | undefined} */
-		let alternate_statement;
+		let alternate_statement = b.block([b.stmt(b.call('_$_.branch_marker', b.literal(-1)))]);
 		if (if_node.alternate) {
 			const alternate = /** @type {AST.Statement} */ (if_node.alternate);
 			const alternate_scope =
@@ -1495,7 +1508,6 @@ const visit_if_statement = (node, context) => {
 		);
 	};
 
-	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 	context.state.init?.push(lower_chain(node, context.state.scope));
 	context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 };

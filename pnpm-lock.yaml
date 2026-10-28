@@ -2370,6 +2370,12 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
+      playwright:
+        specifier: catalog:default
+        version: 1.63.0
+      vite:
+        specifier: catalog:default
+        version: 8.1.5(@types/node@24.11.0)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.49.0)(yaml@2.9.1)
 
   packages/rollup-plugin:
     dependencies:

@@ -289,9 +289,11 @@ export function ToggleEmpty() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<!--[-->';
-
 			if (show.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
+
 				{
 					const comp = Empty;
 					const args = [{}];
@@ -301,6 +303,9 @@ export function ToggleEmpty() {
 					_$_.render_component(comp, ...args);
 				}
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<b>child</b>';
 			}
 

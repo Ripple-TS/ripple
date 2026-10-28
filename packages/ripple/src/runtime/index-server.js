@@ -112,3 +112,5 @@ export function Portal() {
 }
 
 export { Activity } from './internal/server/activity.js';
+
+export { Hydrate } from './internal/server/hydrate.js';

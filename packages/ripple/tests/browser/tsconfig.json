@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["./*.js", "./*.d.ts", "../../src/runtime/internal/client/types.d.ts"]
+}

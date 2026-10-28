@@ -314,3 +314,5 @@ export {
 	bindOffsetHeight,
 } from './internal/client/bindings.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
+
+export { Hydrate } from './internal/client/hydrate-component.js';

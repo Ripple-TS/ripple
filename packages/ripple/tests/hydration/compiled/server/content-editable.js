@@ -20,18 +20,25 @@ function Content({ kind, binding, seed, editable = true }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[-->';
-
 			switch (kind) {
 				case 'empty':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(0);
 					__out += '<div data-editor="" contenteditable="true" data-ripple-content=""></div>';
 					break;
 
 				case 'static':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(1);
 					__out += '<div data-editor="" contentEditable="" data-ripple-content="server &amp;amp; text">server &amp; text</div>';
 					break;
 
 				case 'rich':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(2);
 					__out += '<div data-editor="" contentEditable=""';
 					_$_.output_push(__out);
 					__out = '';
@@ -48,6 +55,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'html':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(3);
 					{
 						__out += '<div data-editor=""';
 
@@ -58,6 +68,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'text':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(4);
 					{
 						__out += '<div data-editor=""';
 
@@ -81,6 +94,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'nested':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(5);
 					__out += '<div data-editor="" contentEditable=""';
 					_$_.output_push(__out);
 					__out = '';
@@ -105,6 +121,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'inherited':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(6);
 					__out += '<div contentEditable=""';
 					_$_.output_push(__out);
 					__out = '';
@@ -125,6 +144,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'dynamic':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(7);
 					{
 						const tag = 'div';
 
@@ -145,6 +167,9 @@ function Content({ kind, binding, seed, editable = true }) {
 					break;
 
 				case 'spread':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(8);
 					{
 						__out += '<div';
 
@@ -178,6 +203,11 @@ function Content({ kind, binding, seed, editable = true }) {
 						__out += '</div>';
 					}
 					break;
+
+				default:
+					_$_.output_push(__out);
+					__out = '';
+					_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]-->';
@@ -267,11 +297,17 @@ export function ReactiveEditor({ property = 'innerHTML' }) {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<section><!--[-->';
+			__out += '<section>';
 
 			if (property === 'innerHTML') {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<div data-editor="" contentEditable=""' + _$_.content_editable_html(String(value.value ?? ''), true) + '</div>';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<div data-editor="" contentEditable=""';
 				_$_.output_push(__out);
 				__out = '';

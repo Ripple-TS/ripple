@@ -11,8 +11,8 @@ import {
 	remove_block_dom,
 } from './blocks.js';
 import { DETACHED_BLOCK, IF_BLOCK, RENDER_BLOCK, UNINITIALIZED } from './constants.js';
-import { IF_ROOT_CONTROLLED, IF_TRACKED } from '../../../constants.js';
-import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
+import { HYDRATION_ERROR, IF_ROOT_CONTROLLED, IF_TRACKED } from '../../../constants.js';
+import { H, hydration_context, hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { create_text, resolve_anchor } from './operations.js';
 import { active_block, probe_if, run_in_block, run_untracked } from './runtime.js';
 import { append } from './template.js';
@@ -33,7 +33,7 @@ import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
  *   b: Branch | undefined | typeof UNINITIALIZED;
  *   o: Block | null;
  * }} IfState
- * @typedef {(anchor: Node, x: any) => void} Branch
+ * @typedef {((anchor: Node, x: any) => void) & { h?: number }} Branch
  */
 
 function noop() {}
@@ -187,6 +187,25 @@ function run_if(state) {
 }
 
 /**
+ * Validate branch identity only on the initial retained-range walk. Subsequent
+ * updates use run_if directly, without metadata reads or hydration checks.
+ * @param {IfState} state
+ */
+function hydrate_if(state) {
+	/** @type {Block} */ (active_block).fn = run_if;
+	var selected = state.fn(state.x);
+	var index = selected === undefined ? -1 : (selected.h ?? 0);
+	var marker = hydrate_node?.previousSibling;
+	if (
+		marker?.nodeType === 8 &&
+		/** @type {Comment} */ (marker).data.startsWith('[b') &&
+		/** @type {Comment} */ (marker).data !== '[b' + index
+	)
+		throw HYDRATION_ERROR;
+	update_branch(state, selected);
+}
+
+/**
  * State lives on the block instead of per-if closures.
  * @param {Node | AppendIntoAnchor} anchor
  * @param {IfState['fn']} fn
@@ -254,9 +273,23 @@ export function if_block(node, fn, root_controlled, x) {
 		anchor = resolve_anchor(node);
 		boundary = /** @type {Node} */ (hydrate_node);
 	}
+	var start = /** @type {Comment} */ (hydrate_node);
 	hydrate_next();
 
-	block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
+	if (hydration_context?.recover) {
+		/** @type {import('./hydrate.js').HydrationRuntime} */ (H).i(
+			start,
+			(anchor) =>
+				block(
+					RENDER_BLOCK | IF_BLOCK,
+					hydrating ? hydrate_if : run_if,
+					if_block_state(anchor, fn, x),
+				),
+			/** @type {Node} */ (anchor),
+		);
+	} else {
+		block(RENDER_BLOCK | IF_BLOCK, run_if, if_block_state(anchor, fn, x));
+	}
 
 	if (root_controlled) {
 		// The original `node`: for a sentinel, `hydrate_append` performs the

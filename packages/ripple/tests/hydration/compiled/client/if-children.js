@@ -330,6 +330,8 @@ function alternate(__anchor) {
 	_$_.append(__anchor, div_15);
 }
 
+alternate.h = 1;
+
 function if_6(activeTab) {
 	if (activeTab.value === 'code') return consequent_5; else return alternate;
 }
@@ -481,6 +483,8 @@ function alternate_1(__anchor) {
 
 	_$_.append(__anchor, span_1);
 }
+
+alternate_1.h = 1;
 
 function if_7(props) {
 	if (props.on.value) return consequent_6; else return alternate_1;

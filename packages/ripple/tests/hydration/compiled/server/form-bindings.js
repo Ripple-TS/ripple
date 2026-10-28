@@ -24,11 +24,17 @@ export function Checkbox({ initial = false, seeded = false, accessors = false })
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<div><!--[-->';
+			__out += '<div>';
 
 			if (seeded) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<input type="checkbox" checked />';
 			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(1);
 				__out += '<input type="checkbox" />';
 			}
 

@@ -347,9 +347,12 @@ function HeadContent() {
 		_$_.regular_block(() => {
 			let __out = '';
 
-			__out += '<!--[--><!--[-->';
+			__out += '<!--[-->';
 
 			if (data.value) {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(0);
 				__out += '<p class="head-content">';
 
 				{
@@ -366,6 +369,10 @@ function HeadContent() {
 				_$_.output_push(__out);
 				__out = '';
 				_$_.set_output_target(null);
+			} else {
+				_$_.output_push(__out);
+				__out = '';
+				_$_.branch_marker(-1);
 			}
 
 			__out += '<!--]--><!--]-->';

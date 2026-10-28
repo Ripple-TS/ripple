@@ -37,12 +37,16 @@ function switch_case_1(__anchor, { b: binding }) {
 	_$_.append(__anchor, div_1);
 }
 
+switch_case_1.h = 1;
+
 function switch_case_2(__anchor, { b: binding }) {
 	var div_2 = root_2();
 
 	_$_.ref(div_2, () => binding.v, (v) => binding.v = v);
 	_$_.append(__anchor, div_2);
 }
+
+switch_case_2.h = 2;
 
 function switch_case_3(__anchor, { b: binding, c: editable, d: seed }) {
 	var div_3 = root_3();
@@ -52,6 +56,8 @@ function switch_case_3(__anchor, { b: binding, c: editable, d: seed }) {
 	_$_.ref(div_3, () => binding.v, (v) => binding.v = v);
 	_$_.append(__anchor, div_3);
 }
+
+switch_case_3.h = 3;
 
 function switch_case_4(__anchor, { b: binding, c: editable, d: seed }) {
 	var div_4 = root_4();
@@ -70,6 +76,8 @@ function switch_case_4(__anchor, { b: binding, c: editable, d: seed }) {
 
 	_$_.append(__anchor, div_4);
 }
+
+switch_case_4.h = 4;
 
 function switch_case_5(__anchor, { b: binding, d: seed }) {
 	var div_5 = root_5();
@@ -92,6 +100,8 @@ function switch_case_5(__anchor, { b: binding, d: seed }) {
 	_$_.append(__anchor, div_5);
 }
 
+switch_case_5.h = 5;
+
 function switch_case_6(__anchor, { b: binding, d: seed }) {
 	var div_6 = root_6();
 
@@ -104,6 +114,8 @@ function switch_case_6(__anchor, { b: binding, d: seed }) {
 
 	_$_.append(__anchor, div_6);
 }
+
+switch_case_6.h = 6;
 
 function switch_case_7(__anchor, { b: binding, d: seed }) {
 	const tag = 'div';
@@ -126,6 +138,8 @@ function switch_case_7(__anchor, { b: binding, d: seed }) {
 	_$_.append(__anchor, fragment);
 }
 
+switch_case_7.h = 7;
+
 function switch_case_8(__anchor, { b: binding, c: editable, d: seed }) {
 	var div_7 = root_9();
 
@@ -133,6 +147,8 @@ function switch_case_8(__anchor, { b: binding, c: editable, d: seed }) {
 	_$_.render(render, { a: void 0, _a: div_7, _b: editable, _c: seed });
 	_$_.append(__anchor, div_7);
 }
+
+switch_case_8.h = 8;
 
 function switch_1({ a: kind }) {
 	switch (kind) {
@@ -264,6 +280,8 @@ function alternate(__anchor, { b: binding, c: value }) {
 
 	_$_.append(__anchor, div_10);
 }
+
+alternate.h = 1;
 
 function if_1({ a: property }) {
 	if (property === 'innerHTML') return consequent; else return alternate;

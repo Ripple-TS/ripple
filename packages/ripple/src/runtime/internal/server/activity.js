@@ -1,4 +1,5 @@
 import {
+	defer_hydration,
 	get,
 	output_push,
 	regular_block,
@@ -76,6 +77,7 @@ export function Activity(props) {
 	return tsrx_element(() => {
 		output_push('<!--[a-->');
 		regular_block(() => {
+			defer_hydration();
 			if (get(props.mode) === 'hidden') transform_output(hide_activity_html);
 			render_expression(props.children);
 		});

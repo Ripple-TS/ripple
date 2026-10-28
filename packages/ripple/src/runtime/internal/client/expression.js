@@ -167,9 +167,10 @@ function render_tsrx_collection_text(value, anchor, assign = false) {
 /**
  * @param {Node} node
  * @param {() => any} get_value
+ * @param {Comment | null} [end]
  * @returns {void}
  */
-export function expression(node, get_value) {
+export function expression(node, get_value, end = null) {
 	// State lives on the render block instead of a per-expression closure, and
 	// the anchor's node type is read once since the anchor never changes.
 	render(run_expression, {
@@ -180,8 +181,8 @@ export function expression(node, get_value) {
 		g: get_value,
 		// child block rendering a TSRX element / collection
 		b: null,
-		// hydration end marker
-		m: null,
+		// hydration end marker (retained boundaries already know their end)
+		m: end,
 		// text node inserted before a comment anchor
 		t: null,
 		// last rendered value
@@ -209,7 +210,7 @@ function run_expression(s) {
 		HYDRATION &&
 		hydrating &&
 		s.n === COMMENT_NODE &&
-		/** @type {Comment} */ (anchor).data === HYDRATION_START;
+		(s.m !== null || /** @type {Comment} */ (anchor).data === HYDRATION_START);
 
 	if (is_hydration_marker) {
 		s.m ??= /** @type {import('./hydrate.js').HydrationRuntime} */ (H).e(anchor);
