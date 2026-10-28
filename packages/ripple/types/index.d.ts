@@ -471,6 +471,13 @@ export interface MediaQuery extends Tracked<boolean> {
 }
 export const MediaQuery: MediaQueryConstructor;
 
+/** Retains DOM and state while hidden, disconnecting user effects until visible. */
+export interface ActivityProps {
+	mode?: 'visible' | 'hidden' | Derived<'visible' | 'hidden'>;
+	children?: Children;
+}
+export function Activity(props: ActivityProps): void;
+
 export function Portal<V = HTMLElement>({
 	target,
 	children,

@@ -685,6 +685,47 @@ export function Button({ context }: { context: Context<ThemeStore> }) @{
 Context lookup follows component ancestry, including when the instance is passed
 as a prop. File boundaries do not change which provider a component reads.
 
+## Activity
+
+`Activity` from `ripple` retains DOM and component state while hidden. Its `mode`
+defaults to `'visible'` and accepts `'visible' | 'hidden'` or a tracked/derived
+value. Pass `mode={mode}`, not the snapshot `mode={mode.value}`, for reactivity.
+Aliases and dynamic components work without compiler special cases.
+
+```tsrx
+import { Activity, track } from 'ripple';
+
+export function Panel() @{
+	const mode = track<'visible' | 'hidden'>('visible');
+	<>
+		<button onClick={() => mode.value = mode.value === 'visible' ? 'hidden' : 'visible'}>Toggle</button>
+		<Activity {mode}><input placeholder="Retained draft" /></Activity>
+	</>
+}
+```
+
+Hiding cleans user effects and their owned nested subscriptions once. Showing
+reruns surviving user effects once with current state, even with unchanged or no
+dependencies. Hidden effects, including newly created ones, never start. Nested
+Activities compose; an outer activation does not clear an inner hidden mode or
+async suspension. Render updates, refs and binding machinery stay active. Put
+resources that should disconnect in `effect()`, rather than ref callbacks.
+Head metadata stays active; portal content follows its owning Activity.
+
+Root elements use `display:none!important` without a layout wrapper; root text is
+blanked temporarily. DOM identity and authored display values/priorities survive
+visibility changes, including reactive updates while hidden.
+
+SSR emits retained range markers. Root hydration skips Activity children so
+ordinary siblings initialize first; visible ranges hydrate urgently afterward.
+Hidden ranges hydrate at most one boundary per `scheduler.postTask` background
+task, with a cancellable timer fallback. Activation promotes queued work, nested
+ranges prepare parent first, and disposal cancels pending initialization. Async
+hydration data is scoped to its root. Effects remain inactive during hidden
+preparation. This yields between boundaries, not within one large boundary, and
+neither avoids JavaScript downloads nor guarantees a paint between tasks. Effect
+restarts may repeat uncached requests; resource caching belongs to the author.
+
 ## Portals
 
 Use `Portal` to render content outside the normal DOM position.

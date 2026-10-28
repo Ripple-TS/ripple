@@ -1,5 +1,6 @@
 /** @import { Block } from '#client' */
 
+import { activity_style } from './activity-state.js';
 import { block, branch, destroy_block, ref } from './blocks.js';
 import { DESTROYED, REF_PROP, RENDER_BLOCK, TRACKED_OBJECT } from './constants.js';
 import { isRefProp as is_ref_prop } from '@tsrx/core/runtime/ref';
@@ -63,6 +64,13 @@ function get_setters(element) {
  * @returns {void}
  */
 export function set_style(element, value, prev = {}) {
+	if (activity_style !== null)
+		return activity_style(element, () => write_style(element, value, prev));
+	write_style(element, value, prev);
+}
+
+/** @param {Element} element @param {any} value @param {Record<string, string | number | null | undefined>} prev */
+function write_style(element, value, prev) {
 	if (value == null) {
 		element.removeAttribute('style');
 	} else if (typeof value !== 'string') {

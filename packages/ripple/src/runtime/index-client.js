@@ -6,6 +6,7 @@ import { init_operations } from './internal/client/operations.js';
 import { render_component } from './internal/client/component.js';
 import { try_block } from './internal/client/try.js';
 import { remove_styles } from './internal/client/css.js';
+import { capture_reviver } from './internal/client/transport.js';
 import { install_hydration } from './internal/client/hydrate.js';
 import { hydration_disabled, root_boundary_disabled } from './internal/client/errors.js';
 import { ROOT_BOUNDARY } from 'ripple/internal/client/root-boundary-enabled';
@@ -206,7 +207,7 @@ export function hydrate(component, options) {
 			: streamed && data.includes(':')
 				? data.slice(HYDRATION_START_PENDING.length, data.lastIndexOf(':'))
 				: '';
-		set_hydration_context({ target, id });
+		set_hydration_context({ target, id, hashes: new Map(), revive: capture_reviver() });
 		if (!ROOT_BOUNDARY && root_boundary != null && root_boundary !== false) {
 			root_boundary_disabled();
 		}
@@ -282,6 +283,8 @@ export { createSubscriber } from './create-subscriber.js';
 export { MediaQuery } from './media-query.js';
 
 export { user_effect as effect } from './internal/client/blocks.js';
+
+export { Activity } from './internal/client/activity.js';
 
 export { Portal } from './internal/client/portal.js';
 
