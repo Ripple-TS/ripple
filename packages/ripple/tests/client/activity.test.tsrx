@@ -13,6 +13,35 @@ import { pause_block, resume_block } from '../../src/runtime/internal/client/blo
 import { active_block } from '../../src/runtime/internal/client/runtime.js';
 
 describe('Activity', () => {
+	it.each(['expression', 'primitive'])('keeps cleared hidden root text empty (%s)', (kind) => {
+		let mode: Tracked<'visible' | 'hidden'>;
+		let value: Tracked<string | null>;
+		function App() @{
+			mode = track('visible');
+			value = track('old');
+			<Activity {mode}>
+				@if (kind === 'primitive') {
+					<>
+						{String(value.value ?? '')}
+					</>
+				} @else {
+					<>
+						{value.value}
+					</>
+				}
+			</Activity>
+		}
+		const dispose = mount(App, { target: container });
+		flushSync();
+		for (const cleared of ['', null]) {
+			flushSync(() => (value.value = 'old'));
+			flushSync(() => (mode.value = 'hidden'));
+			flushSync(() => (value.value = cleared));
+			flushSync(() => (mode.value = 'visible'));
+			expect(container.textContent).toBe('');
+		}
+		dispose();
+	});
 	it('handles reentrant activation and restores ordinary dependency checking', () => {
 		let mode: Tracked<'visible' | 'hidden'>;
 		let count: Tracked<number>;

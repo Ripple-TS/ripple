@@ -1,5 +1,6 @@
 /** @import { Block } from '#client' */
 
+import { activity_text } from './activity-state.js';
 import { hydrating } from './hydration.js';
 import { HYDRATION } from 'ripple/internal/client/hydration-enabled';
 import { TEXT_NODE } from '../../../constants.js';
@@ -48,6 +49,7 @@ export function set_text_content(element, value, prev) {
  */
 export function set_text(text, value) {
 	var str = value == null ? '' : value + '';
+	if (activity_text?.(text, str)) return;
 	// The compiled render block compares against the value it last wrote, so
 	// nothing is cached on the node. Only server-rendered text can already
 	// hold the value; a fresh template text node never does.

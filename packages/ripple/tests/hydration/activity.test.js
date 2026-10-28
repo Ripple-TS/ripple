@@ -28,6 +28,19 @@ async function setup(name = 'App', before = () => {}) {
 }
 
 describe('Activity deferred hydration', () => {
+	it('preserves empty text updates through nested hidden ownership after hydration', async () => {
+		vi.useFakeTimers();
+		await setup('ClearedText');
+		await vi.advanceTimersToNextTimerAsync();
+		await vi.advanceTimersToNextTimerAsync();
+		flushSync(() => (client.controls.value.value = ''));
+		flushSync(() => (client.controls.mode.value = 'visible'));
+		expect(container.textContent).toBe('');
+		flushSync(() => (client.controls.inner.value = 'visible'));
+		expect(container.textContent).toBe('');
+		flushSync(() => (client.controls.value.value = 'new'));
+		expect(container.textContent).toBe('new');
+	});
 	it('does not revive children when setup removes its own deferred boundary', async () => {
 		vi.useFakeTimers();
 		await setup();

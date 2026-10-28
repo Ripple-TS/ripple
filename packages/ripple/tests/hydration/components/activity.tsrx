@@ -1,9 +1,21 @@
-import { Activity, bindValue, Context, effect, track, trackAsync } from 'ripple';
+import {
+	Activity,
+	bindValue,
+	Context,
+	createRenderObserver,
+	effect,
+	track,
+	trackAsync,
+} from 'ripple';
 
 export const calls: string[] = [];
 export let controls: any;
 export let initial = 'value';
 export let fail = false;
+let streamEffects = true;
+export function setStreamEffects(value: boolean) {
+	streamEffects = value;
+}
 export let duringInit: (() => void) | undefined;
 export function setDuringInit(fn?: () => void) {
 	duringInit = fn;
@@ -85,6 +97,16 @@ export function Text() @{
 	</Activity>
 }
 
+export function ClearedText() @{
+	const mode = track<'visible' | 'hidden'>('hidden');
+	const inner = track<'visible' | 'hidden'>('hidden');
+	const value = track('old');
+	controls = { mode, inner, value };
+	<Activity {mode}>
+		<Activity mode={inner}>{String(value.value)}</Activity>
+	</Activity>
+}
+
 export function Async() @{
 	const mode = track<'visible' | 'hidden'>('hidden');
 	const input = track(initial);
@@ -140,10 +162,10 @@ export function Errors() @{
 
 export function Stream() @{
 	const mode = track<'visible' | 'hidden'>('hidden');
-	controls = { mode };
+	controls = { mode, observer: createRenderObserver() };
 	function Data() @{
 		const data = trackAsync(() => stream);
-		effect(() => {
+		if (streamEffects) effect(() => {
 			calls.push('stream effect');
 		});
 		<p class="stream-value">{data.value}</p>

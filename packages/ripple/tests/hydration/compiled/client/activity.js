@@ -173,11 +173,47 @@ function Text_render(__anchor, __block) {
 
 Text[_$_.$r] = Text_render;
 
-var root_5 = _$_.template_el('p', null, ' ');
+var root_5 = _$_.template(` `, 1, 1);
+
+function render_1(__prev) {
+	var __a = String(__prev._a.value);
+
+	if (__prev.a !== __a) {
+		_$_.set_text(__prev._b, __prev.a = __a);
+	}
+}
+
+function ClearedText_render(__anchor, __block) {
+	const mode = _$_.track('hidden', __block, 'h0vg63');
+	const inner = _$_.track('hidden', __block, '18l51gx');
+	const value = _$_.track('old', __block, 'yk10ld');
+
+	controls = { mode, inner, value };
+
+	_$_.render_component(Activity, __anchor, {
+		mode,
+		children: _$_.tsrx_element((__anchor, __block) => {
+			_$_.render_component(Activity, __anchor, {
+				mode: inner,
+				children: _$_.tsrx_element((__anchor, __block) => {
+					var fragment_2 = root_5();
+					var expression_1 = _$_.first_child_frag(fragment_2, true);
+
+					_$_.render(render_1, { a: ' ', _a: value, _b: expression_1 });
+					_$_.append(__anchor, fragment_2);
+				})
+			});
+		})
+	});
+}
+
+ClearedText[_$_.$r] = ClearedText_render;
+
+var root_6 = _$_.template_el('p', null, ' ');
 
 function Async_render(__anchor, __block) {
-	const mode = _$_.track('hidden', __block, 'h0vg63');
-	const input = _$_.track(initial, __block, '18l51gx');
+	const mode = _$_.track('hidden', __block, 'www7if');
+	const input = _$_.track(initial, __block, 'c5yrg2');
 
 	controls = { mode, input };
 
@@ -190,15 +226,15 @@ function Async_render(__anchor, __block) {
 					return input.value;
 				},
 				__block,
-				'yk10ld'
+				'ddhrr4'
 			);
 
-			var p = root_5();
+			var p = root_6();
 
 			{
-				var expression_1 = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
+				var expression_2 = _$_.hydrating ? _$_.hydrate_child() : p.firstChild;
 
-				_$_.expression(expression_1, () => data.value);
+				_$_.expression(expression_2, () => data.value);
 				_$_.hydrating && _$_.pop(p);
 			}
 
@@ -216,17 +252,17 @@ function Async_render(__anchor, __block) {
 
 Async[_$_.$r] = Async_render;
 
-var root_7 = _$_.template_el('section', null, 'new');
-var root_8 = _$_.template_el('p', null, 'old');
+var root_8 = _$_.template_el('section', null, 'new');
+var root_9 = _$_.template_el('p', null, 'old');
 
 function consequent_1(__anchor) {
-	var section = root_7();
+	var section = root_8();
 
 	_$_.append(__anchor, section);
 }
 
 function alternate(__anchor) {
-	var p_1 = root_8();
+	var p_1 = root_9();
 
 	_$_.append(__anchor, p_1);
 }
@@ -235,7 +271,7 @@ function if_2(changed) {
 	if (changed.value) return consequent_1; else return alternate;
 }
 
-function render_1(__prev) {
+function render_2(__prev) {
 	var __a = if_2(__prev._a);
 
 	if (__prev.a !== __a) {
@@ -243,15 +279,15 @@ function render_1(__prev) {
 	}
 }
 
-var root_6 = _$_.template_el('main', null, [['footer', null, 'untouched']]);
+var root_7 = _$_.template_el('main', null, [['footer', null, 'untouched']]);
 
 function Recovery_render(__anchor, __block) {
-	const mode = _$_.track('hidden', __block, 'www7if');
-	const changed = _$_.track(false, __block, 'c5yrg2');
+	const mode = _$_.track('hidden', __block, '1ow5dng');
+	const changed = _$_.track(false, __block, 'w38juv');
 
 	controls = { mode, changed };
 
-	var main_2 = root_6();
+	var main_2 = root_7();
 
 	{
 		var node_5 = _$_.hydrating ? _$_.hydrate_child() : main_2.firstChild;
@@ -261,7 +297,7 @@ function Recovery_render(__anchor, __block) {
 			children: _$_.tsrx_element((__anchor, __block) => {
 				var ifs_1 = _$_.if_static(__anchor, if_2, 1, changed);
 
-				_$_.render(render_1, { a: _$_.UNINITIALIZED, _a: changed, _b: ifs_1 });
+				_$_.render(render_2, { a: _$_.UNINITIALIZED, _a: changed, _b: ifs_1 });
 			})
 		});
 
@@ -273,31 +309,31 @@ function Recovery_render(__anchor, __block) {
 
 Recovery[_$_.$r] = Recovery_render;
 
-var root_9 = _$_.template(`<p>ok`, 1, 1);
+var root_10 = _$_.template(`<p>ok`, 1, 1);
 
 function Broken_render(__anchor, __block) {
 	if (fail) throw _$_.with_scope(__block, () => new Error('deferred failure'));
 
-	var fragment_2 = root_9();
+	var fragment_3 = root_10();
 
-	_$_.append(__anchor, fragment_2);
+	_$_.append(__anchor, fragment_3);
 }
 
 Broken[_$_.$r] = Broken_render;
 
-var root_12 = _$_.template_el('strong', null, ' ');
-var root_11 = _$_.template(`<!><!>`, 1, 2);
-var root_10 = _$_.template(`<!>`, 1, 1);
+var root_13 = _$_.template_el('strong', null, ' ');
+var root_12 = _$_.template(`<!><!>`, 1, 2);
+var root_11 = _$_.template(`<!>`, 1, 1);
 
 function Errors_render(__anchor, __block) {
 	context.set('context');
 
-	var fragment_3 = root_10();
-	var node_8 = _$_.first_child_frag(fragment_3);
+	var fragment_4 = root_11();
+	var node_8 = _$_.first_child_frag(fragment_4);
 
 	_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
-		var fragment_4 = root_11();
-		var node_6 = _$_.first_child_frag(fragment_4);
+		var fragment_5 = root_12();
+		var node_6 = _$_.first_child_frag(fragment_5);
 
 		_$_.try(
 			node_6,
@@ -310,12 +346,12 @@ function Errors_render(__anchor, __block) {
 				});
 			},
 			(__anchor, error) => {
-				var strong = root_12();
+				var strong = root_13();
 
 				{
-					var expression_2 = _$_.hydrating ? _$_.hydrate_child() : strong.firstChild;
+					var expression_3 = _$_.hydrating ? _$_.hydrate_child() : strong.firstChild;
 
-					_$_.expression(expression_2, () => error.message);
+					_$_.expression(expression_3, () => error.message);
 					_$_.hydrating && _$_.pop(strong);
 				}
 
@@ -332,46 +368,50 @@ function Errors_render(__anchor, __block) {
 			})
 		});
 
-		_$_.append(__anchor, fragment_4);
+		_$_.append(__anchor, fragment_5);
 	}));
 
-	_$_.append(__anchor, fragment_3);
+	_$_.append(__anchor, fragment_4);
 }
 
 Errors[_$_.$r] = Errors_render;
 
-var root_13 = _$_.template_el('p', ['class', 'stream-value'], ' ');
-var root_15 = _$_.template_el('span', ['class', 'stream-pending'], 'waiting');
-var root_14 = _$_.template(`<!><button>ordinary sibling`, 1, 2);
+var root_14 = _$_.template(`<p class=stream-value> `, 1, 1);
+var root_16 = _$_.template_el('span', ['class', 'stream-pending'], 'waiting');
+var root_15 = _$_.template(`<!><button>ordinary sibling`, 1, 2);
 
 function Stream_render(__anchor, __block) {
-	const mode = _$_.track('hidden', __block, 'ddhrr4');
+	const mode = _$_.track('hidden', __block, 'i41ox9');
 
-	controls = { mode };
+	controls = {
+		mode,
+		observer: _$_.with_scope(__block, createRenderObserver)
+	};
 
 	function Data() {
 		return _$_.tsrx_element((__anchor, __block) => {
-			const data = _$_.track_async(() => stream, __block, '1ow5dng');
+			const data = _$_.track_async(() => stream, __block, 'fqa6fw');
 
-			_$_.effect(() => {
+			if (streamEffects) _$_.effect(() => {
 				_$_.with_scope(__block, () => calls.push('stream effect'));
 			});
 
-			var p_2 = root_13();
+			var fragment_6 = root_14();
+			var p_2 = _$_.first_child_frag(fragment_6);
 
 			{
-				var expression_3 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
+				var expression_4 = _$_.hydrating ? _$_.hydrate_child() : p_2.firstChild;
 
-				_$_.expression(expression_3, () => data.value);
+				_$_.expression(expression_4, () => data.value);
 				_$_.hydrating && _$_.pop(p_2);
 			}
 
-			_$_.append(__anchor, p_2);
+			_$_.append(__anchor, fragment_6);
 		});
 	}
 
-	var fragment_5 = root_14();
-	var node_9 = _$_.first_child_frag(fragment_5);
+	var fragment_7 = root_15();
+	var node_9 = _$_.first_child_frag(fragment_7);
 
 	_$_.render_component(Activity, node_9, {
 		mode,
@@ -383,7 +423,7 @@ function Stream_render(__anchor, __block) {
 				},
 				null,
 				(__anchor) => {
-					var span_1 = root_15();
+					var span_1 = root_16();
 
 					_$_.append(__anchor, span_1);
 				},
@@ -393,17 +433,32 @@ function Stream_render(__anchor, __block) {
 	});
 
 	_$_.next();
-	_$_.append(__anchor, fragment_5);
+	_$_.append(__anchor, fragment_7);
 }
 
 Stream[_$_.$r] = Stream_render;
 
-import { Activity, bindValue, Context, effect, track, trackAsync } from 'ripple';
+import {
+	Activity,
+	bindValue,
+	Context,
+	createRenderObserver,
+	effect,
+	track,
+	trackAsync
+} from 'ripple';
 
 export const calls = [];
 export let controls;
 export let initial = 'value';
 export let fail = false;
+
+let streamEffects = true;
+
+export function setStreamEffects(value) {
+	streamEffects = value;
+}
+
 export let duringInit;
 
 export function setDuringInit(fn) {
@@ -444,6 +499,10 @@ export function Nested() {
 
 export function Text() {
 	return _$_.tsrx_element(Text_render);
+}
+
+export function ClearedText() {
+	return _$_.tsrx_element(ClearedText_render);
 }
 
 export function Async() {

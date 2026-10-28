@@ -72,6 +72,15 @@ export function update_activity_style(element, update) {
 	style.setProperty('display', 'none', 'important');
 }
 
+/** Record every write, including the empty string used to hide root text. @param {Text} text @param {string} value */
+export function update_activity_text(text, value) {
+	var state = hidden_nodes.get(text);
+	if (state === undefined) return false;
+	state.value = value;
+	if (text.nodeValue !== '') text.nodeValue = '';
+	return true;
+}
+
 /** @param {Node | null} start @param {Node | null} end @param {Set<Node>} nodes */
 function collect_range(start, end, nodes) {
 	for (var node = start; node !== null; node = node.nextSibling) {

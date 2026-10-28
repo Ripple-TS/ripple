@@ -10,6 +10,7 @@ import {
 	activity_hidden,
 	observe_activity_updates,
 	observe_activity_styles,
+	observe_activity_text,
 	set_activity_restorer,
 } from './activity-state.js';
 import {
@@ -17,6 +18,7 @@ import {
 	reveal_activity,
 	restore_activity_html,
 	update_activity_style,
+	update_activity_text,
 } from './activity-dom.js';
 
 /** @typedef {{ activity: true, start: Comment, end: Comment, hidden: boolean, nodes: Set<Node>, owner: Block, deferred: import('./deferred.js').DeferredBoundary | null }} ActivityState */
@@ -80,6 +82,7 @@ export function Activity(props) {
 			owner.s = state;
 			observe_activity_updates(update_ancestors);
 			observe_activity_styles(update_activity_style);
+			observe_activity_text(update_activity_text);
 			set_activity_restorer(restore_activity_html);
 			var init = () => {
 				if (HYDRATION && hydrating) restore_activity_html(state.start, state.end);

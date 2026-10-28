@@ -135,7 +135,12 @@ export function set_render_observer(observer) {
 
 /** Whether all synchronous render/effect work has finished. */
 export function is_render_idle() {
-	return flush_depth === 0 && queue.blocks.length === 0 && queued_post_block_flush.length === 0;
+	return (
+		flush_depth === 0 &&
+		queue.blocks.length === 0 &&
+		queued_microtasks.length === 0 &&
+		queued_post_block_flush.length === 0
+	);
 }
 /** @type {null | Dependency} */
 export let active_dependency = null;

@@ -16,6 +16,7 @@ import {
 	enqueue_boundary,
 	dispose_boundary,
 } from './deferred.js';
+import { set_text } from './render.js';
 import { restore_activity_range } from './activity-state.js';
 import { is_destroyed } from './blocks.js';
 import { hydration_mismatch } from './errors.js';
@@ -219,9 +220,8 @@ function hydrate_text(value, anchor, assign) {
 	if (node?.nodeType === TEXT_NODE) {
 		var current_value = /** @type {Text} */ (node).nodeValue ?? '';
 
+		set_text(/** @type {Text} */ (node), value);
 		if (current_value !== value) {
-			/** @type {Text} */ (node).nodeValue = value;
-
 			if (current_value.startsWith(value)) {
 				var remaining = current_value.slice(value.length);
 
@@ -418,6 +418,7 @@ function route_streamed_error(state, id) {
 	if (state.b === null || is_destroyed(state.b)) {
 		return;
 	}
+	state.si = null;
 	neutralize_slot_markers(state);
 	var message = 'An error occurred during server rendering';
 	var script = document.getElementById(STREAM_ERROR_SCRIPT_PREFIX + id);
@@ -475,6 +476,9 @@ function activate_streamed_chunk(state, template, errored, context) {
 	}
 	var id = /** @type {string} */ (state.si);
 	state.si = null;
+	// Stream-only work may create no reactive updates; still notify observers
+	// after the DOM and any newly queued effects have settled.
+	queue_microtask();
 	if (errored) {
 		clear_streamed_slot(state);
 		route_streamed_error(state, id);

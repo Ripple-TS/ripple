@@ -132,17 +132,53 @@ export function enqueue_boundary(boundary) {
 function schedule_background() {
 	if (cancel_task !== null || background.size === 0) return;
 	var cancelled = false;
+	var started = false;
+	var failed = false;
+	/** @type {unknown} */
+	var failure;
 	var task = () => {
-		if (cancelled) return;
+		if (cancelled || started) return;
+		started = true;
 		cancel_task = null;
 		var boundary = background.values().next().value;
 		if (boundary === undefined) return;
 		background.delete(boundary);
 		try {
-			hydrate_boundary(boundary);
+			if (failed) {
+				dispose_boundary(boundary);
+				if (!is_destroyed(boundary.owner)) handle_error(failure, boundary.owner);
+			} else {
+				hydrate_boundary(boundary);
+			}
 		} finally {
 			schedule_background();
 		}
+	};
+	var timer_task = () => {
+		var timer = setTimeout(task, 0);
+		cancel_task = () => {
+			cancelled = true;
+			clearTimeout(timer);
+		};
+	};
+	/** @param {unknown} error */
+	var rejected = (error) => {
+		if (cancelled) return;
+		if (started) {
+			// The callback already routed this error and advanced the queue.
+			// Report an uncaught error without consuming another boundary or
+			// replacing the next task's cancellation handle.
+			setTimeout(() => {
+				throw error;
+			});
+			return;
+		}
+		// A rejected submission never enters the callback. Replace its handle
+		// with a cancellable task that routes the error to the next eligible
+		// owner and advances the queue, without recursively draining failures.
+		failed = true;
+		failure = error;
+		timer_task();
 	};
 	var scheduler =
 		/** @type {{ scheduler?: { postTask: (fn: () => void, options: { priority: string, signal: AbortSignal }) => Promise<void> } }} */ (
@@ -157,21 +193,11 @@ function schedule_background() {
 		try {
 			scheduler
 				.postTask(task, { priority: 'background', signal: controller.signal })
-				.catch((error) => {
-					if (!cancelled)
-						setTimeout(() => {
-							throw error;
-						});
-				});
+				.catch(rejected);
 		} catch (error) {
-			cancel_task = null;
-			throw error;
+			rejected(error);
 		}
 	} else {
-		var timer = setTimeout(task, 0);
-		cancel_task = () => {
-			cancelled = true;
-			clearTimeout(timer);
-		};
+		timer_task();
 	}
 }

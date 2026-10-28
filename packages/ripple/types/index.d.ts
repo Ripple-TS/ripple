@@ -102,7 +102,8 @@ export function flushSync<T>(fn?: () => T): T;
 export function effect(fn: (() => void) | (() => () => void)): void;
 
 export interface RenderObserver {
-	/** Flush an update and await pending async rendering in the captured subtree.
+	/** Flush an update and await visible async rendering and demand hydration in the captured subtree.
+	 * Hidden Activity work does not delay settlement; showing it makes its pending work relevant.
 	 * A newer run, disposal, or unmount settles the old run with false.
 	 * Requests in other component subtrees do not delay a run. This observes rendering;
 	 * it does not roll back state or provide atomic concurrent DOM updates.

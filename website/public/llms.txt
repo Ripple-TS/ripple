@@ -722,7 +722,10 @@ Hidden ranges hydrate at most one boundary per `scheduler.postTask` background
 task, with a cancellable timer fallback. Activation promotes queued work, nested
 ranges prepare parent first, and disposal cancels pending initialization. Async
 hydration data is scoped to its root. Effects remain inactive during hidden
-preparation. This yields between boundaries, not within one large boundary, and
+preparation. Render observers wait for visible demand hydration, effects, and
+async/streamed work in their scope; hidden Activity work does not delay them.
+Scheduler submission failures release their handles, route through the owning
+boundary, and allow the queue to continue. This yields between boundaries, not within one large boundary, and
 neither avoids JavaScript downloads nor guarantees a paint between tasks. Effect
 restarts may repeat uncached requests; resource caching belongs to the author.
 

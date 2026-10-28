@@ -40,6 +40,10 @@ Visible ranges are hydrated urgently after that synchronous walk. Hidden ranges 
 
 Deferred work retains its component context, namespace, root-specific async values and transport. Inputs edited before hydration keep their live values. Current reactive inputs reconcile against the retained server content; a structural mismatch recovers within that boundary. Removing a queued boundary cancels its work without initializing its children.
 
+A render observer waits for visible demand hydration, its effects, and visible async or streamed work in its captured subtree. Hidden Activity work does not delay settlement. Showing an Activity makes its pending work relevant; hiding it lets the observer settle without cancelling the underlying request.
+
+If `postTask` rejects or throws before starting its callback, a cancellable timer reports the error to the next eligible boundary and the queue continues. An error already raised by a running hydration callback is reported without consuming another boundary.
+
 Scheduling yields between boundaries, not within one boundary. A large boundary can still create a long task. Timer fallback yields a browser task but has no equivalent background priority, and neither scheduler guarantees a paint after every boundary. Deferring hydration does not split or defer downloading JavaScript.
 
 The internal range lifecycle is independent of Activity visibility so other hydration policies can reuse it. Activity does not implement the separate `Hydrate` strategy API.

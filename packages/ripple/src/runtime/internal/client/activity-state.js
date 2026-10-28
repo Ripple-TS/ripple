@@ -76,3 +76,10 @@ export let restore_activity_range = null;
 export function set_activity_restorer(restore) {
 	restore_activity_range = restore;
 }
+
+/** @type {((text: Text, value: string) => boolean) | null} */
+export let activity_text = null;
+/** @param {NonNullable<typeof activity_text>} update */
+export function observe_activity_text(update) {
+	activity_text = update;
+}

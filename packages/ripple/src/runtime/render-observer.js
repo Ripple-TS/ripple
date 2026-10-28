@@ -1,5 +1,6 @@
 /** @import { Block, Component, TryState } from '#client' */
 import { branch, is_destroyed } from './internal/client/blocks.js';
+import { activity_hidden } from './internal/client/activity-state.js';
 import { TRY_BLOCK } from './internal/client/constants.js';
 import {
 	active_block,
@@ -30,13 +31,19 @@ function stop_waiting(check) {
  * @returns {boolean}
  */
 function has_pending_requests(owner, component) {
+	/** @param {Block | null} origin */
+	function relevant(origin) {
+		if (origin === null || is_destroyed(origin) || activity_hidden(origin)) return false;
+		for (var context = origin.co; context !== null; context = context.p) {
+			if (context === component) return true;
+		}
+		return false;
+	}
 	/** @param {TryState} state */
 	function contains_request(state) {
+		if (state.si !== null && relevant(state.b)) return true;
 		for (var origin of state.q.values()) {
-			if (origin === null || is_destroyed(origin)) continue;
-			for (var context = origin.co; context !== null; context = context.p) {
-				if (context === component) return true;
-			}
+			if (relevant(origin)) return true;
 		}
 		return false;
 	}
