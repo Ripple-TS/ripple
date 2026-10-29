@@ -268,3 +268,26 @@ travels as raw JSON; values requiring devalue retain its built-in encoding. A
 nonempty transport uses devalue for all hydration payloads so every value can be
 offered to the encoders. RPC always uses devalue. The plugin registers the
 transport automatically before rendering, hydration, and RPC handling.
+
+## Iterable RPC deployment
+
+Server functions can return async iterables. RPC streams each value using the
+registered transport and sends explicit completion or application-error frames. A
+disconnected response without completion is an interruption, not natural
+completion. `trackAsync` read owners can re-enter their callbacks with the last
+accepted snapshot; ordinary mutation calls are not automatically retried.
+
+Builds with server functions emit `dist/server/rpc.js` alongside `entry.js`.
+`rpc.js` exports `createHandler(runtime)`, accepting the adapter's runtime
+primitives and returning a Web Request/Response handler. Deploy it independently
+for long-lived RPC requests on workers or serverless platforms. It lazily loads
+isolated `module server` function artifacts and serializers, without importing the
+configuration, pages, layouts or renderer. The document entry uses the same
+dispatcher and request context on persistent servers. Keep authorization required
+by a server function in its server graph, as with existing RPC calls.
+
+SSR releases iterable producers after the first ready snapshot. Continuation may
+reach another instance, so use a resumable application cursor or an authoritative
+resnapshot. Live requests still consume host resources and remain subject to host
+limits. A transport sequence validates frames within one request; it is not an
+application cursor.

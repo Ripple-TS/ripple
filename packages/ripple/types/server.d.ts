@@ -4,6 +4,8 @@ import type { Component, RootBoundaryOptions } from '#public';
 export {
 	setTransport,
 	track,
+	trackAsync,
+	getTrackedStatus,
 	untrack,
 	flushSync,
 	effect,
@@ -18,7 +20,7 @@ export {
 	RippleURLSearchParams,
 } from './index.js';
 
-export type { Transport, Transporter } from './index.js';
+export type { Transport, Transporter, AsyncSource, AsyncResult, TrackedStatus } from './index.js';
 
 export interface RenderResult {
 	head: string;
@@ -126,3 +128,11 @@ export declare function prerender(
 	component: Component,
 	options?: { rootBoundary?: RootBoundaryOptions },
 ): Promise<PrerenderResult>;
+
+/** Execute a server function as an ordinary serialized result or an incremental response. */
+export declare function executeServerFunction(
+	fn: (...args: any[]) => unknown,
+	args: string,
+	signal?: AbortSignal,
+	run?: <T>(fn: () => T, signal?: AbortSignal) => T,
+): Promise<string | Response>;

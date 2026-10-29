@@ -148,6 +148,13 @@ Ripple runtime. It does not read `.value`, evaluate derived functions, or create
 a reactive dependency. This is useful for library props accepting either a plain
 value or a reactive input; ordinary objects with `value` or `f` fields remain plain.
 
+## Async values
+
+Use `trackAsync` for promises and async iterables, and `getTrackedStatus` to inspect
+readiness and completion without suspending. Each yielded value updates consumers
+through the same tracked graph. See [Async Data](./async-data) for examples,
+previous values, status migration, SSR continuation, and deferred views.
+
 ## Transporting Reactivity
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can

@@ -109,10 +109,19 @@ export interface RenderFunction {
 }
 
 export interface HandlerOptions {
+	createRpcHandler?: (
+		runtime: import('@ripple-ts/adapter/rpc').RuntimePrimitives,
+		context: import('@ripple-ts/adapter/rpc').AsyncContext,
+	) => (request: Request) => Promise<Response>;
 	render: RenderFunction;
 	getCss: (css: Set<string>) => string;
 	htmlTemplate: string;
-	executeServerFunction: (fn: Function, body: string) => Promise<string>;
+	executeServerFunction: (
+		fn: Function,
+		body: string,
+		signal?: AbortSignal,
+		run?: <T>(fn: () => T, signal?: AbortSignal) => T,
+	) => Promise<string | Response>;
 	/** `createStream` from 'ripple/server' — required when streaming is enabled */
 	createSsrStream?: () => {
 		stream: ReadableStream<Uint8Array>;

@@ -301,11 +301,20 @@ export function trackReadOnly<V>(value: Tracked<V> | Derived<V>): Derived<V>;
 /** Recognizes tracked and derived values from this runtime without reading or evaluating them. */
 export function isTracked(value: unknown): value is Derived<unknown>;
 
-export function trackAsync<V>(
-	value: () => PromiseLike<V> | { promise: PromiseLike<V>; abortController: AbortController },
-): Tracked<V>;
+export type AsyncSource<V> = AsyncIterable<V> | PromiseLike<V | AsyncIterable<V>>;
 
-export function trackPending<V>(value: Tracked<V> | (() => any)): boolean;
+export type AsyncResult<V> =
+	AsyncSource<V> | { promise: PromiseLike<V | AsyncIterable<V>>; abortController: AbortController };
+
+export function trackAsync<V>(compute: (previous: V | undefined) => AsyncResult<V>): Tracked<V>;
+
+export type TrackedStatus =
+	| { readonly state: 'pending'; readonly complete: false }
+	| { readonly state: 'ready'; readonly complete: boolean }
+	| { readonly state: 'error'; readonly complete: false };
+
+/** Inspect readiness and completion without suspending or suppressing errors on value reads. */
+export function getTrackedStatus<V>(value: Tracked<V> | Derived<V>): TrackedStatus;
 
 export function peek<V>(tracked: Tracked<V>): V;
 

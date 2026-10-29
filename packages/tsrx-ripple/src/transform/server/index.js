@@ -532,6 +532,43 @@ function get_imported_name(specifier) {
 }
 
 /**
+ * Capture the source owner before awaiting, matching the client RPC lowering.
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
+ * @param {TransformServerContext} context
+ */
+function visit_owned_function(node, context) {
+	const inherited = context.state.async_owner?.c === true;
+	const owner = context.state.async_owner?.c
+		? context.state.async_owner
+		: {
+				id: b.id(context.state.scope.generate('owner')),
+				used: false,
+				c: context.state.async_callback,
+			};
+	const state = { ...context.state, async_owner: owner };
+	let body = /** @type {AST.BlockStatement | AST.Expression} */ (context.visit(node.body, state));
+	if (!inherited && owner.used) {
+		const capture = b.const(owner.id, b.call('_$_.get_async_owner'));
+		body =
+			body.type === 'BlockStatement'
+				? b.block([capture, ...body.body])
+				: b.block([capture, b.return(body)]);
+	}
+	return /** @type {AST.Function} */ ({
+		...node,
+		returnType: undefined,
+		typeParameters: undefined,
+		...(node.type === 'ArrowFunctionExpression'
+			? {}
+			: { id: node.id ? /** @type {AST.Identifier} */ (context.visit(node.id)) : node.id }),
+		params: strip_function_params(node.params).map(
+			(param) => /** @type {AST.Pattern} */ (context.visit(param)),
+		),
+		body,
+	});
+}
+
+/**
  * @param {AST.TSRXImportDeclaration} node
  * @returns {AST.Statement[]}
  */
@@ -1739,6 +1776,28 @@ const visitors = {
 			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
 		}
 
+		if (state.async_owner && callee.type === 'Identifier') {
+			const declaration = state.scope.get(callee.name)?.initial;
+			if (
+				declaration?.type === 'ImportDeclaration' &&
+				get_submodule_import_source_name(declaration) === 'server'
+			) {
+				const specifier = declaration.specifiers.find((s) => s.local.name === callee.name);
+				if (specifier?.type === 'ImportSpecifier') {
+					state.async_owner.used = true;
+					return b.call(
+						'_$_.record_async_source',
+						b.call(
+							callee,
+							...node.arguments.map((arg) => /** @type {AST.Expression} */ (context.visit(arg))),
+						),
+						b.literal(strong_hash(state.filename + '#' + get_imported_name(specifier))),
+						state.async_owner.id,
+					);
+				}
+			}
+		}
+
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {
 			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
@@ -1769,7 +1828,16 @@ const visitors = {
 
 			for (let i = 0; i < track_args.length; i++) {
 				const arg = track_args[i];
-				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
+				call_args.push(
+					/** @type {(AST.Expression | AST.SpreadElement)} */ (
+						context.visit(
+							arg,
+							i === 0 && track_call_name === 'trackAsync'
+								? { ...state, async_owner: undefined, async_callback: true }
+								: state,
+						)
+					),
+				);
 				// A read-only view is not a serialized value: no hash.
 				if (i === 0 && track_call_name !== 'trackReadOnly') {
 					call_args.push(b.literal(node.metadata.hash));
@@ -1983,36 +2051,12 @@ const visitors = {
 			}
 			return transform_native_tsrx_function(node, context);
 		}
-		if (!context.state.to_ts) {
-			const params = strip_function_params(node.params);
-			return {
-				...node,
-				returnType: undefined,
-				typeParameters: undefined,
-				id: node.id ? /** @type {AST.Identifier} */ (context.visit(node.id)) : node.id,
-				params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
-				body: /** @type {AST.BlockStatement} */ (context.visit(node.body)),
-			};
-		}
-		return context.next();
+		return context.state.to_ts ? context.next() : visit_owned_function(node, context);
 	},
 
 	FunctionExpression(node, context) {
-		if (is_tsrx_component_function(node)) {
-			return transform_native_tsrx_function(node, context);
-		}
-		if (!context.state.to_ts) {
-			const params = strip_function_params(node.params);
-			return {
-				...node,
-				returnType: undefined,
-				typeParameters: undefined,
-				id: node.id ? /** @type {AST.Identifier} */ (context.visit(node.id)) : node.id,
-				params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
-				body: /** @type {AST.BlockStatement} */ (context.visit(node.body)),
-			};
-		}
-		return context.next();
+		if (is_tsrx_component_function(node)) return transform_native_tsrx_function(node, context);
+		return context.state.to_ts ? context.next() : visit_owned_function(node, context);
 	},
 
 	BlockStatement(node, context) {
@@ -2030,21 +2074,8 @@ const visitors = {
 	},
 
 	ArrowFunctionExpression(node, context) {
-		if (is_tsrx_component_function(node)) {
-			return transform_native_tsrx_function(node, context);
-		}
-		const params = strip_function_params(node.params);
-
-		return {
-			...node,
-			returnType: undefined,
-			typeParameters: undefined,
-			params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
-			body:
-				node.body.type === 'BlockStatement'
-					? /** @type {AST.BlockStatement} */ (context.visit(node.body))
-					: /** @type {AST.Expression} */ (context.visit(node.body)),
-		};
+		if (is_tsrx_component_function(node)) return transform_native_tsrx_function(node, context);
+		return context.state.to_ts ? context.next() : visit_owned_function(node, context);
 	},
 
 	TSSatisfiesExpression(node, context) {

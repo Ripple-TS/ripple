@@ -8,8 +8,24 @@ import {
 	set_hydration,
 	set_hydration_context,
 } from './hydration.js';
-import { handle_error, with_block, with_ns, untrack, run_block } from './runtime.js';
-import { BRANCH_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_BLOCK, SVG_BLOCK } from './constants.js';
+import {
+	handle_error,
+	with_block,
+	with_ns,
+	untrack,
+	run_block,
+	queue_microtask,
+	schedule_update,
+} from './runtime.js';
+import {
+	BRANCH_BLOCK,
+	DEFAULT_NAMESPACE,
+	NAMESPACE_BLOCK,
+	SVG_BLOCK,
+	DERIVED,
+	PRE_EFFECT_BLOCK,
+	UNINITIALIZED,
+} from './constants.js';
 
 /**
  * Shared retained range. Trigger policy belongs to the caller (Activity or
@@ -93,6 +109,7 @@ export function hydrate_boundary(boundary) {
 	set_hydration_context(context);
 	var previous_recover = context?.recover;
 	if (context !== null) context.recover = true;
+	var restore = adopt_async_snapshots(context, boundary.owner);
 	var ns = boundary.owner.f & NAMESPACE_BLOCK;
 	try {
 		with_ns(ns === 0 ? DEFAULT_NAMESPACE : ns === SVG_BLOCK ? 'svg' : 'mathml', () =>
@@ -129,6 +146,7 @@ export function hydrate_boundary(boundary) {
 		boundary.status = 'destroyed';
 		handle_error(error, boundary.owner);
 	} finally {
+		restore?.();
 		if (context !== null) context.recover = previous_recover;
 		boundary.init = null;
 		boundary.context = null;
@@ -137,6 +155,71 @@ export function hydrate_boundary(boundary) {
 		set_hydration(previous_hydrating, previous_node);
 		set_hydration_context(previous_context);
 	}
+}
+
+/**
+ * Claim retained HTML with its original async inputs, then reconcile only the
+ * newly attached readers. Existing owners and their RPC attempts never rerun.
+ * @param {import('./hydration.js').HydrationContext | null} context
+ * @param {Block} owner
+ */
+function adopt_async_snapshots(context, owner) {
+	if (!context?.v) return;
+	/** @type {Array<[import('#client').Tracked, any, number | undefined, number]>} */
+	var live = [];
+	for (var [t, [value, status]] of context.v) {
+		if (t.__v !== value || t.s !== status) {
+			live.push([t, t.__v, t.s, t.c]);
+			t.__v = value;
+			t.s = status | ((t.s ?? 0) & 4);
+		}
+	}
+	if (live.length === 0) return;
+	var changed = new Set(live.map(([t]) => t));
+	/** @type {Map<import('#client').Derived, boolean>} */
+	var deriveds = new Map();
+	/** @param {import('#client').Tracked | import('#client').Derived} t @returns {boolean} */
+	function invalidate(t) {
+		if ((t.f & DERIVED) === 0) return changed.has(/** @type {import('#client').Tracked} */ (t));
+		var d = /** @type {import('#client').Derived} */ (t);
+		if (deriveds.has(d)) return /** @type {boolean} */ (deriveds.get(d));
+		deriveds.set(d, false);
+		var affected = false;
+		for (var dep = d.d; dep !== null; dep = dep.n) {
+			if (invalidate(dep.t)) affected = true;
+		}
+		if (affected) d.__v = UNINITIALIZED;
+		deriveds.set(d, affected);
+		return affected;
+	}
+	for (var reference of context.hashes.values()) invalidate(reference);
+	return () => {
+		for (var [t, value, status, clock] of live) {
+			// A binding may have adopted a native edit while claiming the HTML.
+			if (t.c === clock) t.__v = value;
+			t.s = status;
+		}
+		deriveds.clear();
+		for (var reference of context.hashes.values()) invalidate(reference);
+		queue_microtask(() => reconcile_async_snapshot(owner, invalidate));
+	};
+}
+
+/** @param {Block} block @param {(t: import('#client').Tracked | import('#client').Derived) => boolean} invalidate */
+function reconcile_async_snapshot(block, invalidate) {
+	if (is_destroyed(block)) return;
+	if ((block.f & (PRE_EFFECT_BLOCK | BRANCH_BLOCK)) === 0) {
+		var dirty = false;
+		for (var dep = block.d; dep !== null; dep = dep.n) {
+			if (invalidate(dep.t)) {
+				dep.c = -1;
+				dirty = true;
+			}
+		}
+		if (dirty) schedule_update(block);
+	}
+	for (var child = block.first; child !== null; child = child.next)
+		reconcile_async_snapshot(child, invalidate);
 }
 
 /**

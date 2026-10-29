@@ -24,6 +24,7 @@ import {
 
 /**
  * @typedef {Object} VirtualEntryOptions
+ * @property {string} [rpcEntry] - Isolated RPC dispatcher module
  * @property {Route[]} routes - Route definitions from ripple.config.ts
  * @property {string} rippleConfigPath - Absolute path to ripple.config.ts (for importing middlewares/adapter)
  * @property {string} htmlTemplatePath - Path to the processed index.html template
@@ -55,6 +56,7 @@ export function generateServerEntry(options) {
 		rippleConfigPath,
 		htmlTemplatePath,
 		rpcModulePaths = [],
+		rpcEntry,
 		clientAssetMap = {},
 		transport,
 		rootBoundary = {},
@@ -85,7 +87,7 @@ export function generateServerEntry(options) {
 	}
 
 	// Collect RPC modules (sub-components with `module server` declarations, not already in page entries)
-	for (const rpcPath of rpcModulePaths) {
+	for (const rpcPath of rpcEntry ? [] : rpcModulePaths) {
 		if (!component_imports.has(rpcPath) && !rpc_imports.has(rpcPath)) {
 			rpc_imports.set(rpcPath, `_rpc_${rpc_index++}`);
 		}
@@ -146,7 +148,7 @@ export function generateServerEntry(options) {
 	// Only check _$_server_$_ on modules known to have `module server` declarations.
 	// Checking modules without `module server` declarations causes rollup warnings since
 	// they don't export _$_server_$_.
-	const rpcPathSet = new Set(rpcModulePaths);
+	const rpcPathSet = new Set(rpcEntry ? [] : rpcModulePaths);
 	const rpc_entries = [];
 
 	for (const [entry, varName] of component_imports) {
@@ -171,6 +173,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
 import _rawRippleConfig from ${JSON.stringify(rippleConfigPath)};
+
+${rpcEntry ? `import { createHandler as createRpcHandler } from ${JSON.stringify(rpcEntry)};` : ''}
 
 ${import_lines.join('\n')}
 
@@ -228,6 +232,7 @@ const manifest = {
     clientAssets,
 };
 const handlerOptions = {
+    ${rpcEntry ? 'createRpcHandler,' : ''}
     render,
     getCss,
     htmlTemplate,
@@ -260,6 +265,29 @@ if (isMainModule) {
     console.error('[ripple] No adapter configured in ripple.config.ts');
     process.exit(1);
   }
+}
+`;
+}
+
+/**
+ * No config/page/layout imports: safe to instantiate in an independent worker/function.
+ * @param {Record<string, { path: string; name: string }>} functions
+ * @param {ModuleEntry | undefined} transport
+ * @param {boolean} trustProxy
+ */
+export function generateRpcEntry(functions, transport, trustProxy) {
+	const loaders = Object.entries(functions)
+		.map(
+			([hash, { path, name }]) =>
+				`${JSON.stringify(hash)}: () => import(${JSON.stringify(path + '?ripple-rpc=' + encodeURIComponent(name))}).then(m => m[${JSON.stringify(name)}])`,
+		)
+		.join(',\n');
+	return `import { executeServerFunction${transport ? ', setTransport' : ''} } from 'ripple/internal/server/rpc';
+import { create_rpc_handler } from '@ripple-ts/adapter/rpc';
+${transport ? `import * as transport from ${JSON.stringify(get_route_entry_path(transport))};` : ''}
+export function createHandler(runtime, context) {
+  ${transport ? `setTransport(transport[${JSON.stringify(get_route_entry_export_name(transport) ?? 'default')}]);` : ''}
+  return create_rpc_handler({${loaders}}, runtime, executeServerFunction, ${trustProxy}, context);
 }
 `;
 }

@@ -11,10 +11,10 @@
 // Internal Types
 /** @typedef {(props?: Props) => void} RenderComponent */
 /** @typedef {{ tag: string; parent: undefined | ElementContext; filename: undefined | string; line: number; column: number; }} ElementContext */
-/** @typedef {{ cancel: () => void }} RegisteredAsyncOperation */
+/** @typedef {{ cancel: () => void; s?: boolean }} RegisteredAsyncOperation */
 
 // Both
-/** @typedef {TrackedValue} Tracked */
+/** @typedef {TrackedValue & { s?: boolean; x?: boolean; r?: Set<string> }} Tracked */
 /** @typedef {DerivedValue} Derived */
 
 /**
@@ -79,7 +79,10 @@ import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
 } from '../../../html-tree-validation.js';
-import { get_async_track_result } from '../../../utils/async.js';
+import { is_async_iterable, get_async_track_result } from '../../../utils/async.js';
+import { with_async_owner } from '../../../utils/async-owner.js';
+export { get_async_owner } from '../../../utils/async-owner.js';
+export { record_async_source } from '../../../utils/async.js';
 import { create_random_id } from '../../../utils/random-id.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
@@ -900,7 +903,14 @@ export class Output {
 	 */
 	hasPendingAsyncOperations() {
 		var operations = this.#async_operations;
-		return operations !== null && operations.size > 0;
+		if (operations !== null) {
+			for (var operation of operations) {
+				// Snapshot ownership keeps cleanup/accounting, but only a render
+				// dependency needs a pending slot around this boundary's HTML.
+				if (!operation.s) return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -1599,7 +1609,7 @@ export function get_tracked(tracked) {
 				(is_try_block = (active_block.f & TRY_BLOCK) !== 0))
 		) {
 			throw new Error(
-				`Reads on pending tracked or derived values directly inside ${is_try_block ? 'try' : 'component'} body are prohibited. Use trackPending() test for safe access or create another derived instead.`,
+				`Reads on pending tracked or derived values directly inside ${is_try_block ? 'try' : 'component'} body are prohibited. Use getTrackedStatus(value).state === 'ready' for safe access or create another derived instead.`,
 			);
 		}
 
@@ -1631,7 +1641,7 @@ export function get_derived(tracked) {
 				(is_try_block = (active_block.f & TRY_BLOCK) !== 0))
 		) {
 			throw new Error(
-				`Reads on pending tracked or derived values directly inside ${is_try_block ? 'try' : 'component'} body are prohibited. Use trackPending() test for safe access or create another derived instead.`,
+				`Reads on pending tracked or derived values directly inside ${is_try_block ? 'try' : 'component'} body are prohibited. Use getTrackedStatus(value).state === 'ready' for safe access or create another derived instead.`,
 			);
 		}
 
@@ -1996,9 +2006,11 @@ export function track(v, hash, get, set) {
  * @param {string} hash - The unique hash for this trackAsync call
  * @param {any} value - The resolved value
  * @param {string[] | null} [deps] - Hashes of direct reactive dependencies read by fn()
+ * @param {boolean} [continuing]
+ * @param {Set<string>} [reads]
  * @returns {void}
  */
-function serialize_track_async_result(output, hash, value, deps) {
+function serialize_track_async_result(output, hash, value, deps, continuing = false, reads) {
 	/** @type {string} */
 	var envelope;
 	if (is_plain_data(value, null)) {
@@ -2008,13 +2020,17 @@ function serialize_track_async_result(output, hash, value, deps) {
 		if (deps && deps.length > 0) {
 			envelope += ',"deps":' + JSON.stringify(deps);
 		}
+		if (continuing) envelope += ',"c":1';
+		if (reads?.size) envelope += ',"r":' + JSON.stringify([...reads]);
 		envelope += '}';
 	} else {
-		/** @type {{ ok: true, payload: string, deps?: string[] }} */
+		/** @type {{ ok: true, payload: string, deps?: string[], c?: number, r?: string[] }} */
 		var object = { ok: true, payload: devalue.stringify(value) };
 		if (deps && deps.length > 0) {
 			object.deps = deps;
 		}
+		if (continuing) object.c = 1;
+		if (reads?.size) object.r = [...reads];
 		envelope = JSON.stringify(object);
 	}
 	output.push_serialized_result(
@@ -2039,12 +2055,14 @@ export function set_track_async_transport(reducers) {
 	const serializer =
 		reducers === undefined
 			? default_track_async_serializer
-			: (output, hash, value, deps) => {
+			: (output, hash, value, deps, continuing, reads) => {
 					// Reducers can claim plain objects: devalue must do the only walk.
 					// Embed its JSON directly, avoiding another stringify of the payload
 					// string and another JSON.parse on the client before revival.
 					let envelope = '{"ok":true,"payload":' + devalue.stringify(value, reducers);
 					if (deps && deps.length > 0) envelope += ',"deps":' + JSON.stringify(deps);
+					if (continuing) envelope += ',"c":1';
+					if (reads?.size) envelope += ',"r":' + JSON.stringify([...reads]);
 					envelope += '}';
 					output.push_serialized_result(
 						'<script id="' +
@@ -2316,12 +2334,16 @@ function push_script_for_hydration(push_fn, hash, envelope) {
  * Runs the async tracked function, handling sync results, async results,
  * and chained cases where fn() reads a pending dependency.
  * @param {Tracked} t
- * @param {() => any} fn
+ * @param {(previous?: any) => any} fn
  * @param {Block} block
  * @param {((value?: any) => void) | null} dr
  * @param {((reason?: any) => void) | null} dj
  */
 function run_track_async(t, fn, block, dr, dj) {
+	if (t.x) return;
+	function get_owner() {
+		return { r: (t.r ??= new Set()) };
+	}
 	var previous_tracking = tracking;
 	var previous_dependency = active_dependency;
 	var previous_inside = inside_async_track;
@@ -2337,7 +2359,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	var caught = false;
 
 	try {
-		result = fn();
+		result = with_async_owner(get_owner, fn);
 		direct_deps = active_dependency;
 	} catch (error) {
 		caught_dep = active_dependency;
@@ -2420,12 +2442,42 @@ function run_track_async(t, fn, block, dr, dj) {
 	// Serialization is part of settling the value: dependent work must not
 	// resume until it succeeds, and serialization failures use the same error
 	// path as a rejected result.
-	var promise = Promise.resolve(async_result.promise).then((resolved) => {
-		serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes);
-		update_tracked_value_clock(t, resolved);
-		if (dr) {
-			dr(resolved);
+	var promise = Promise.resolve(async_result.promise).then(async (resolved) => {
+		if (is_async_iterable(resolved)) {
+			const iterator = resolved[Symbol.asyncIterator]();
+			const controller = t.aa ?? new AbortController();
+			t.aa = controller;
+			let closed = false;
+			const close = () => {
+				if (closed) return;
+				closed = true;
+				try {
+					Promise.resolve(
+						iterator.return && with_async_owner(get_owner, iterator.return, iterator),
+					).catch(() => {});
+				} catch {}
+			};
+			controller.signal.addEventListener('abort', close, { once: true });
+			try {
+				if (t.x || controller.signal.aborted) throw controller.signal.reason ?? TRACKED_UPDATED;
+				const first = await with_async_owner(get_owner, iterator.next, iterator);
+				if (t.x || controller.signal.aborted) throw controller.signal.reason ?? TRACKED_UPDATED;
+				if (first.done) throw new Error('trackAsync() source completed without a value');
+				resolved = first.value;
+				t.s = false;
+				serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes, true, t.r);
+			} finally {
+				controller.signal.removeEventListener('abort', close);
+				close();
+				controller.abort(TRACKED_UPDATED);
+			}
+		} else {
+			if (t.x) return;
+			t.s = true;
+			serialize_track_async_result(t.b.o, t.h, resolved, dep_hashes);
 		}
+		update_tracked_value_clock(t, resolved);
+		if (dr) dr(resolved);
 		return resolved;
 	});
 
@@ -2435,6 +2487,7 @@ function run_track_async(t, fn, block, dr, dj) {
 	}
 
 	promise.catch((error) => {
+		if (t.x) return;
 		update_tracked_value_clock(t, SUSPENSE_REJECTED);
 		if (dj) {
 			dj(error);
@@ -2451,18 +2504,20 @@ function run_track_async(t, fn, block, dr, dj) {
  * recorded in its place.
  * @param {Dependency | null} head
  * @param {string[] | null} [hashes]
+ * @param {boolean} [status]
  * @returns {string[] | null}
  */
-function collect_dep_hashes(head, hashes = null) {
+function collect_dep_hashes(head, hashes = null, status = false) {
 	var dep = head;
 	while (dep !== null) {
 		var t = /** @type {{ h?: string; f: number; d?: Dependency | null }} */ (dep.t);
-		var h = t.h;
+		var status_read = status || dep.s === true;
+		var h = t.h === undefined ? undefined : (status_read ? '?' : '') + t.h;
 		if (h !== undefined) {
 			if (hashes === null) hashes = [];
 			if (!hashes.includes(h)) hashes.push(h);
 		} else if ((t.f & DERIVED) !== 0) {
-			hashes = collect_dep_hashes(t.d ?? null, hashes);
+			hashes = collect_dep_hashes(t.d ?? null, hashes, status_read);
 		}
 		dep = dep.n;
 	}
@@ -2481,34 +2536,75 @@ export function track_async(v, hash) {
 
 	if (typeof v !== 'function') {
 		throw new TypeError(
-			'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
+			'trackAsync() expects a callback returning a promise, async iterable, or abortable promise',
 		);
 	}
 
 	/** @type {Block} */ (active_block).o.ensure_hydration_id();
 	var t = tracked(SUSPENSE_PENDING, hash);
+	var output = get_closest_try_block(t.b).o;
+	var operation = {
+		s: true,
+		cancel() {
+			t.x = true;
+			t.aa?.abort(TRACKED_UPDATED);
+		},
+	};
+	output.registerAsync(operation);
 	run_track_async(t, v, t.b, null, null);
+	if (t.ap === null) output.resolveAsync(operation);
+	else
+		Promise.resolve(t.ap).then(
+			() => {
+				if (!t.x) output.resolveAsync(operation);
+			},
+			() => {},
+		);
 	return t;
 }
 
 /**
- * @param {(Derived | Tracked) | (() => any)} t
- * @returns {boolean}
+ * @param {Derived | Tracked} t
+ * @returns {import('#public').TrackedStatus}
  */
-export function is_tracked_pending(t) {
+export function get_tracked_status(t) {
+	if (!is_tracked(t)) throw new TypeError('getTrackedStatus() expects a tracked or derived value');
+	var failed = false;
 	try {
-		if (typeof t === 'function') {
-			t();
-		} else {
-			get(t);
-		}
-		return false;
-	} catch (error) {
-		if (error === ASYNC_DERIVED_READ_THROWN) {
-			return true;
-		}
-		throw error;
+		if ((t.f & DERIVED) !== 0) update_derived(/** @type {Derived} */ (t));
+	} catch {
+		failed = true;
 	}
+	if (tracking) {
+		register_dependency(t);
+		for (var entry = active_dependency; entry !== null; entry = entry.n) {
+			if (entry.t === t) {
+				entry.s = true;
+				break;
+			}
+		}
+	}
+	var value = t.v;
+	/** @type {'pending' | 'ready' | 'error'} */
+	var state =
+		failed || value === SUSPENSE_REJECTED
+			? 'error'
+			: value === SUSPENSE_PENDING
+				? 'pending'
+				: 'ready';
+	var complete = state === 'ready';
+	if ((t.f & DERIVED) !== 0) {
+		var dep = /** @type {Derived} */ (t).d;
+		while (dep !== null) {
+			// Read every current dependency, including status-only completion signals.
+			if (!get_tracked_status(dep.t).complete) complete = false;
+			dep = dep.n;
+		}
+	} else {
+		var status = /** @type {Tracked} */ (t).s;
+		if (status !== undefined) complete = state === 'ready' && status;
+	}
+	return state === 'ready' ? { state, complete } : { state, complete: false };
 }
 
 /**
@@ -2540,24 +2636,27 @@ function route_error_to_catch_block(catch_block, error) {
 	catch_block.s.c(error);
 }
 
+/** @param {Dependency | null} dep @returns {Tracked | null} */
+function find_pending_dependency(dep) {
+	while (dep !== null) {
+		var t = dep.t;
+		if ((t.f & DERIVED) !== 0) {
+			var pending = find_pending_dependency(/** @type {Derived} */ (t).d);
+			if (pending !== null) return pending;
+		} else if (t.v === SUSPENSE_PENDING && /** @type {Tracked} */ (t).ap) {
+			return /** @type {Tracked} */ (t);
+		}
+		dep = dep.n;
+	}
+	return null;
+}
+
 /**
  * @param {Block} block
  * @returns {void}
  */
 function register_block_rerun(block) {
-	// Find the pending dependency with a promise in the dependency chain.
-	var dep_entry = active_dependency;
-	// tracked async must exist as otherwise we wouldn't have thrown the ASYNC_DERIVED_READ_THROWN
-	/** @type {Tracked | null} */
-	var t = null;
-	while (dep_entry !== null) {
-		var d = /** @type {Tracked} */ (dep_entry.t);
-		if ((d.f & TRACKED) !== 0 && d.v === SUSPENSE_PENDING && d.ap) {
-			t = d;
-			break;
-		}
-		dep_entry = dep_entry.n;
-	}
+	var t = find_pending_dependency(active_dependency);
 
 	var cancelled = false;
 	// async work is accounted on the nearest try boundary (in stream mode
@@ -2567,11 +2666,8 @@ function register_block_rerun(block) {
 	var operation = {
 		cancel: () => {
 			cancelled = true;
-			if (t && t.aa) {
-				t.aa.abort(TRACKED_UPDATED);
-				t.aa = null;
-				t.ap = null;
-			}
+			// The source's owner controls cancellation; another reader may
+			// still need the same pending value outside this branch.
 		},
 	};
 
@@ -2623,6 +2719,14 @@ export function run_block(block) {
 		tracking = true;
 		active_dependency = null;
 		block.fn(block.o);
+		// Non-suspending status reads still need first-ready HTML on the server.
+		// Only render computations rerun; component/branch initialization stays once.
+		if (
+			(block.f & (COMPONENT_BLOCK | TRY_BLOCK)) === 0 &&
+			find_pending_dependency(active_dependency) !== null
+		) {
+			register_block_rerun(block);
+		}
 	} catch (error) {
 		if (error === ASYNC_DERIVED_READ_THROWN) {
 			// regardless of the render mode we re-run the block when the

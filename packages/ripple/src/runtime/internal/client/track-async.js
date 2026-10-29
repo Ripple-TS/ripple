@@ -19,10 +19,13 @@ import {
 	active_component,
 	active_dependency,
 	get,
+	get_tracked_status,
 	is_mutating_allowed,
+	is_block_dirty,
 	set_mutating_allowed,
 	set_pending_read_handler,
 	set_tracking,
+	set_async_status,
 	tracked,
 	tracking,
 	update_tracked_value_clock,
@@ -38,7 +41,8 @@ import {
 	register_boundary_paused_block,
 	replace_boundary_request,
 } from './try.js';
-import { get_async_track_result } from '../../../utils/async.js';
+import { with_async_owner } from '../../../utils/async-owner.js';
+import { get_async_track_result, is_async_iterable } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import {
 	pending_read_direct,
@@ -145,6 +149,7 @@ export function track_async(fn, b, hash) {
 	var had_hydration_data = false;
 	var stale_hydration_data = false;
 	var hydration_value;
+	var continuing = false;
 	/** @type {string[] | undefined} */
 	var hydration_deps;
 
@@ -164,10 +169,17 @@ export function track_async(fn, b, hash) {
 				hydration_value =
 					envelope.payload === undefined ? envelope.value : context.revive(envelope.payload);
 				hydration_deps = envelope.deps;
+				continuing = envelope.c === 1;
+				if (envelope.r !== undefined) reads = new Set(envelope.r);
 				// Deferred children may initialize after an ancestor changed a serialized dependency.
 				if (
 					context.recover &&
-					hydration_deps?.some((hash) => (context.hashes.get(hash)?.c ?? 0) > 0)
+					hydration_deps?.some((hash) => {
+						const status = hash[0] === '?';
+						const dep = context.hashes.get(status ? hash.slice(1) : hash);
+						const source = /** @type {Tracked | undefined} */ (dep);
+						return (dep?.c ?? 0) > 0 || (status && ((source?.s ?? 0) & 4) !== 0);
+					})
 				) {
 					stale_hydration_data = true;
 				}
@@ -179,6 +191,22 @@ export function track_async(fn, b, hash) {
 	}
 
 	var t = tracked(had_hydration_data ? hydration_value : SUSPENSE_PENDING, target_block, hash);
+
+	// Completion has its own signal: finishing an iterator never republishes data.
+	t.s = had_hydration_data ? (continuing ? 1 : 2) : 0;
+	if (HYDRATION && had_hydration_data && hydration_context !== null) {
+		var snapshots = (hydration_context.v ??= new Map());
+		snapshots.set(t, [hydration_value, t.s]);
+	}
+	var accepted = hydration_value;
+	var has_value = had_hydration_data;
+	var resume = false;
+	var retries = 0;
+	/** @type {typeof import('./async-iterator.js') | undefined} */
+	var stream_runtime;
+	/** RPC function IDs already identified as iterable reads. */
+	/** @type {Set<string> | undefined} */
+	var reads;
 
 	// Capture the call-site block for boundary lookups. target_block is the
 	// component's block (passed by compiler), but the actual try/pending/catch
@@ -221,17 +249,29 @@ export function track_async(fn, b, hash) {
 			had_hydration_data = false;
 			if (hydration_deps !== undefined) {
 				for (var i = 0; i < hydration_deps.length; i++) {
-					var dep_ref = track_hash_reference.get(hydration_deps[i]);
+					var hash = hydration_deps[i];
+					var status = hash[0] === '?';
+					var dep_ref = track_hash_reference.get(status ? hash.slice(1) : hash);
 					if (dep_ref !== undefined) {
-						get(dep_ref);
+						if (status) get_tracked_status(dep_ref);
+						else get(dep_ref);
 					}
 				}
 			}
-			if (stale_hydration_data) {
+			if (stale_hydration_data || continuing) {
 				// Claim the SSR nodes with their serialized value first, then
 				// reconcile current inputs after leaving the hydration context.
+				const hydration_version = version;
 				queue_microtask(() => {
-					if (!is_destroyed(async_block)) run_block(async_block);
+					if (!is_destroyed(async_block) && version === hydration_version) {
+						// Inputs can change after adoption but before continuation starts.
+						try {
+							resume = !stale_hydration_data && !is_block_dirty(async_block);
+						} catch {
+							resume = false;
+						}
+						run_block(async_block);
+					}
 				});
 			}
 			return;
@@ -239,7 +279,22 @@ export function track_async(fn, b, hash) {
 
 		/** @type {AbortController | null} */
 		var current_abort_controller = null;
+		/** @type {(() => void) | undefined} */
+		var close;
+		var retired = false;
+		/** @type {import('../../../utils/async-owner.js').AsyncOwner | undefined} */
+		var owner;
+		function get_owner() {
+			if (owner === undefined) {
+				current_abort_controller ??= new AbortController();
+				if (retired) current_abort_controller.abort(TRACKED_UPDATED);
+				owner = { s: current_abort_controller.signal, r: (reads ??= new Set()) };
+			}
+			return owner;
+		}
 		function cleanup() {
+			retired = true;
+			close?.();
 			if (current_abort_controller !== null && current_abort_controller.signal.aborted === false) {
 				current_abort_controller.abort(TRACKED_UPDATED);
 			}
@@ -260,15 +315,25 @@ export function track_async(fn, b, hash) {
 		}
 		abort_controller = null;
 
+		var recovering = resume;
+		resume = false;
+		if (!recovering) {
+			has_value = false;
+			retries = 0;
+			stream_runtime = undefined;
+			reads = undefined;
+		}
+
 		// Manage boundary request: replace if in-flight, or begin new if previous completed
-		if (request_id > 0 && boundary !== null) {
+		if (!recovering && request_id > 0 && boundary !== null) {
 			request_id = replace_boundary_request(boundary, request_id);
-		} else if (boundary !== null) {
+		} else if (!recovering && boundary !== null) {
 			request_id = begin_boundary_request(boundary);
 		}
 
 		// Set to pending before calling fn() in case it's sync.
-		if (t.__v !== SUSPENSE_PENDING) {
+		if (!recovering) set_async_status(t, 0);
+		if (!recovering && t.__v !== SUSPENSE_PENDING) {
 			update_tracked_value_clock(t, SUSPENSE_PENDING);
 		}
 
@@ -278,7 +343,7 @@ export function track_async(fn, b, hash) {
 
 		var result;
 		try {
-			result = fn();
+			result = with_async_owner(get_owner, fn, undefined, accepted);
 		} catch (e) {
 			set_mutating_allowed(previous_is_mutating_allowed);
 			if (e === ASYNC_DERIVED_READ_THROWN) {
@@ -287,6 +352,7 @@ export function track_async(fn, b, hash) {
 				var dep = active_dependency;
 				while (dep !== null) {
 					if (dep.t.__v === SUSPENSE_REJECTED) {
+						set_async_status(t, 3);
 						update_tracked_value_clock(t, SUSPENSE_REJECTED);
 						complete_deferred_boundaries(t, false);
 						if (request_id > 0 && boundary !== null) {
@@ -302,11 +368,15 @@ export function track_async(fn, b, hash) {
 				// tracked value is also set to REJECTED.
 				if (request_id > 0 && boundary !== null) {
 					register_boundary_deferred(boundary, request_id, () => {
+						set_async_status(t, 3);
 						update_tracked_value_clock(t, SUSPENSE_REJECTED);
 					});
 				}
 				return cleanup;
 			}
+			set_async_status(t, 3);
+			update_tracked_value_clock(t, SUSPENSE_REJECTED);
+			cleanup();
 			throw e;
 		}
 		set_mutating_allowed(previous_is_mutating_allowed);
@@ -314,11 +384,23 @@ export function track_async(fn, b, hash) {
 		// Check if the result is async
 		var previous_tracking = tracking;
 		set_tracking(false);
-		var async_result = get_async_track_result(result);
-		set_tracking(previous_tracking);
+		var async_result;
+		try {
+			async_result = get_async_track_result(result);
+		} catch (error) {
+			set_async_status(t, 3);
+			update_tracked_value_clock(t, SUSPENSE_REJECTED);
+			cleanup();
+			throw error;
+		} finally {
+			set_tracking(previous_tracking);
+		}
 
 		if (async_result === null) {
 			// Sync result
+			accepted = result;
+			has_value = true;
+			set_async_status(t, 2);
 			update_tracked_value_clock(t, result);
 			if (request_id > 0 && boundary !== null) {
 				complete_boundary_request(boundary, request_id);
@@ -330,54 +412,116 @@ export function track_async(fn, b, hash) {
 		// Capture per-invocation so async closures (rejection handler, teardown)
 		// have a stable reference. The shared abort_controller is only read
 		// synchronously at the top of the pre_effect to abort the previous request.
-		current_abort_controller = async_result.abort_controller;
+		if (async_result.abort_controller !== null) {
+			const supplied = async_result.abort_controller;
+			if (current_abort_controller === null) current_abort_controller = supplied;
+			else {
+				const controller = /** @type {AbortController} */ (current_abort_controller);
+				controller.signal.addEventListener(
+					'abort',
+					() => supplied.abort(controller.signal.reason),
+					{ once: true },
+				);
+				if (supplied.signal.aborted) controller.abort(supplied.signal.reason);
+				else
+					supplied.signal.addEventListener(
+						'abort',
+						() => controller.abort(supplied.signal.reason),
+						{ once: true },
+					);
+			}
+		}
 		abort_controller = current_abort_controller;
 
-		async_result.promise.then(
-			(resolved) => {
-				if (current_version !== version) {
-					// stale
-					return;
-				}
-				update_tracked_value_clock(t, resolved);
-				complete_deferred_boundaries(t);
-				if (request_id > 0 && boundary !== null) {
-					complete_boundary_request(boundary, request_id);
-					request_id = 0;
-				}
-			},
-			(error) => {
-				if (current_version !== version) return; // stale
+		function current() {
+			return !retired && current_version === version && !is_destroyed(async_block);
+		}
 
-				var is_internal_abort =
-					error === TRACKED_UPDATED || current_abort_controller?.signal?.reason === TRACKED_UPDATED;
-				if (is_internal_abort) {
-					// Internal abort (superseded by a new request) — don't set rejected
-					if (request_id > 0 && boundary !== null) {
-						complete_boundary_request(boundary, request_id, false);
-						request_id = 0;
-					}
-					complete_deferred_boundaries(t, false);
-					return;
-				}
+		/** @param {any} value */
+		function publish(value) {
+			if (!current()) return;
+			accepted = value;
+			has_value = true;
+			update_tracked_value_clock(t, value);
+			complete_deferred_boundaries(t);
+			if (request_id > 0 && boundary !== null) {
+				complete_boundary_request(boundary, request_id);
+				request_id = 0;
+			}
+		}
 
-				update_tracked_value_clock(t, SUSPENSE_REJECTED);
-				complete_deferred_boundaries(t, false);
+		/** @param {any} error */
+		function reject(error) {
+			if (!current()) return;
+			if (error === TRACKED_UPDATED || current_abort_controller?.signal.reason === TRACKED_UPDATED)
+				return;
+			set_async_status(t, 3);
+			update_tracked_value_clock(t, SUSPENSE_REJECTED);
+			complete_deferred_boundaries(t, false);
+			var boundary_with_catch = get_boundary_with_catch(call_site_block);
+			if (boundary_with_catch !== null) handle_boundary_error(boundary_with_catch, error);
+			if (request_id > 0 && boundary !== null) {
+				complete_boundary_request(boundary, request_id, boundary_with_catch !== boundary);
+				request_id = 0;
+			}
+		}
 
-				// Route error to catch boundary
-				var boundary_with_catch = get_boundary_with_catch(call_site_block);
-				if (boundary_with_catch !== null) {
-					handle_boundary_error(boundary_with_catch, error);
-				}
+		/** @param {any} error */
+		function fail(error) {
+			if (!current()) return;
+			// A direct RPC can fail before returning the handed-off iterable.
+			if (recovering && stream_runtime === undefined) {
+				import('./async-iterator.js')
+					.then((runtime) => {
+						if (!current()) return;
+						stream_runtime = runtime;
+						fail(error);
+					})
+					.catch(reject);
+				return;
+			}
+			const retry = stream_runtime?.retry(error, retries, () => {
+				if (!current()) return;
+				resume = true;
+				run_block(async_block);
+			});
+			if (retry) {
+				retries++;
+				close = retry;
+			} else reject(error);
+		}
 
-				if (request_id > 0 && boundary !== null) {
-					var should_show_resolved =
-						boundary_with_catch === boundary || boundary === null ? false : true;
-					complete_boundary_request(boundary, request_id, should_show_resolved);
-					request_id = 0;
+		Promise.resolve(async_result.promise)
+			.then(async (resolved) => {
+				if (is_async_iterable(resolved)) {
+					// Keep iteration/recovery off the ordinary promise's execution path.
+					const runtime = await import('./async-iterator.js');
+					if (current()) stream_runtime = runtime;
+					close = runtime.consume(
+						resolved,
+						current,
+						(value) => {
+							set_async_status(t, 1);
+							publish(value);
+						},
+						() => {
+							if (!has_value) {
+								reject(new Error('trackAsync() source completed without a value'));
+							} else {
+								if (t.__v === SUSPENSE_PENDING) publish(accepted);
+								set_async_status(t, 2);
+							}
+						},
+						fail,
+						get_owner,
+					);
+					if (!current()) close();
+				} else if (current()) {
+					set_async_status(t, 2);
+					publish(resolved);
 				}
-			},
-		);
+			})
+			.catch(fail);
 
 		return cleanup;
 	});

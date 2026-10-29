@@ -77,7 +77,7 @@ Subscriptions compare option values, not factory or strategy object identity. Re
 
 ## Updates and retained DOM
 
-Ripple component bodies do not rerender when a store changes. Consequently, changes to a tracked prop or a store provided through context do not, by themselves, open an unevaluated subtree. Its dependencies have not been read yet. When the gate opens, children initialize under their original owner/context with **current** values, and serialized async dependencies changed while waiting are recomputed.
+Ripple component bodies do not rerender when a store changes. Consequently, changes to a tracked prop or a store provided through context do not, by themselves, open an unevaluated subtree. Its dependencies have not been read yet. When the gate opens, children initialize under their original owner/context. Async snapshots and status first match the historical HTML, then reconcile with current values; serialized async dependencies changed while waiting are recomputed.
 
 A changed directly tracked `children` value is an external replacement of the retained output. That replacement requires early hydration even if the strategy is still waiting. `never()` is the exception: it keeps the initial HTML static. Computed children remain unevaluated until activation; changes inside their getter do not open the gate. To make a particular shared update open the gate immediately, include that state in `condition()` or the policy factory.
 
@@ -92,6 +92,14 @@ Intent handling is installed on the hydration root. Server comment metadata lets
 Interaction opens synchronously during capture, including when another trigger has already queued that boundary. The original event continues to newly attached capture, target, and delegated handlers exactly once. Buttons, links, checkbox toggles, form submission, keyboard payload, focus, `preventDefault()`, and propagation retain native behavior. Non-bubbling enter events also use capture. There is no synthetic replay queue, and no promise to reconstruct a trusted event later. If recovery or failure removes the original target, the event's remaining propagation and default action are canceled rather than transferred to a replacement node. Events before the application installs its root listeners are not buffered; native browser behavior still applies.
 
 An unresolved parent normally delays its descendants' policy setup. A nested interaction can make ancestors eligible early, but a `never()` ancestor keeps every descendant static. A child factory whose policy was unknown on the server may require its ancestors to initialize before that policy can be determined.
+
+## Async source ownership
+
+An iterable `trackAsync` source created inside a deferred child resumes only when that child activates. SSR retains its first ready snapshot and continuation metadata; it does not leave a producer running or queue later yields for the child. Incomplete status does not open the gate. `never()` and removal before activation open no component-owned continuation request.
+
+If data should update before the view initializes, create the source in an active ancestor and pass its tracked handle through props or Context. The deferred view reuses that owner's existing reader. At activation, completed sources need no request, active sources keep their reader, and handed-off sources re-enter their callback with the accepted snapshot. The source must handle a delayed or expired cursor itself.
+
+`getTrackedStatus` can inspect an already-created shared source, but cannot inspect one still inside an uninitialized child. See the [active-owner example](./async-data#deferred-hydration).
 
 ## Completion, errors, and Activity
 

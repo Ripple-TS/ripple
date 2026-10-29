@@ -4,9 +4,10 @@
 /** @import { CompileOptions, CompileError, ParseOptions } from '../types/index' */
 /** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
-import { analyzeTsrx, createVolarMappingsResult, parseModule } from '@tsrx/core';
+import { analyzeTsrx, builders, createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { register_text_type_facts } from './text-type-facts.js';
 import { analyze } from './analyze/index.js';
+import { is_server_module_declaration } from './utils.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
 
@@ -27,7 +28,7 @@ export function parse(source, filename, options) {
  * @param {string} source
  * @param {string} filename
  * @param {CompileOptions} [options]
- * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[], js: { code: string, map: any } }}
+ * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[], serverExports: string[], js: { code: string, map: any } }}
  */
 export function compile(source, filename, options = {}) {
 	const errors = /** @type {CompileError[]} */ ([]);
@@ -56,8 +57,34 @@ export function compile(source, filename, options = {}) {
 		analysis.scope,
 		options.textTypeFacts,
 	);
+	const server_modules = analysis.ast.body.filter((node) =>
+		is_server_module_declaration(node, analysis.ast),
+	);
+	const serverExports = server_modules.flatMap((node) => {
+		const module = /** @type {AST.TSModuleDeclaration} */ (node);
+		return [...(module.metadata.exports ?? [])];
+	});
+	if (options.serverOnly) {
+		analysis.ast.body = server_modules;
+		analysis.stylesheets = [];
+		if (typeof options.serverOnly === 'string') {
+			const name = options.serverOnly;
+			if (!serverExports.includes(name)) throw new Error(`Unknown server function: ${name}`);
+			const module = /** @type {AST.TSModuleDeclaration} */ (server_modules[0]);
+			const body = /** @type {AST.TSModuleBlock} */ (module.body);
+			// One public export lets the bundler discard other functions and their
+			// imports. The language already forbids captures from the outer module.
+			analysis.scope = analysis.scopes.get(body) ?? analysis.scope;
+			analysis.ast.body = body.body.map((statement) =>
+				statement.type === 'ExportNamedDeclaration'
+					? (statement.declaration ?? builders.empty)
+					: statement,
+			);
+			analysis.ast.body.push(builders.export_builder(null, [builders.export_specifier(name)]));
+		}
+	}
 	const result =
-		options.mode === 'server'
+		options.mode === 'server' || options.serverOnly
 			? transform_server(
 					filename,
 					source,
@@ -78,6 +105,7 @@ export function compile(source, filename, options = {}) {
 	const { ast: _ast, ...rest } = result;
 	return {
 		...rest,
+		serverExports,
 		// Temporary back-compat for the LiveCodes playground
 		// (live-codes/livecodes#865), which still reads `js.code`. Remove once
 		// the playground is replaced.

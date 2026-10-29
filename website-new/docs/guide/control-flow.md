@@ -303,63 +303,36 @@ export function App() @{
 }
 ```
 
-## Async (Suspense boundaries) <Badge type="warning" text="Experimental" />
+## Async boundaries
 
-Components can use `await` directly in their body — no `async` keyword needed.
-The component suspends at the `await` and resumes rendering when the promise
-resolves.
-
-```tsrx
-function UserProfile({ id }: { id: number }) @{
-  const user = await fetchUser(id);
-
-  <>
-    <h1>{user.name}</h1>
-    <p>{user.email}</p>
-  </>
-}
-```
-
-Wrap the component in a `try/pending` block to handle the suspended state:
+Use `trackAsync` to read promises or async iterables through a tracked handle.
+`@pending` supplies the initial loading UI, and `@catch` handles failures:
 
 ```tsrx
-export function App() @{
+import { trackAsync } from 'ripple';
+
+export function Greeting() @{
   @try {
-    <UserProfile id={1} />
+    const message = trackAsync(() => Promise.resolve('Hello'));
+    <p>{message.value}</p>
   } @pending {
-    <p>Loading...</p>
-  } @catch (e) {
-    <p>Error: {e.message}</p>
+    <p>Loading…</p>
+  } @catch (error, reset) {
+    <button onClick={() => reset()}>Try again</button>
   }
 }
 ```
 
-The `pending` clause shows while the component is suspended. The `catch`
-clause handles both sync throws and async rejections. Both clauses are optional
-and can be used independently.
+Do not use `await` directly in a component body or `await track(...)`. Read reactive
+inputs synchronously in the `trackAsync` callback. Changed inputs start new work;
+reads of that new query can suspend until its first result, while existing ready
+DOM can remain in place. Use `getTrackedStatus` when you need an explicit loading
+indicator or a safe-access guard.
 
-### Reactive async with `await track(fn)`
+An iterable keeps its latest accepted `.value` readable between yields and during
+same-source recovery. Natural completion changes its status without publishing
+another data value. `reset()` recreates the failed branch and its owned sources;
+it does not refetch a source owned by an ancestor.
 
-For async operations that should re-run when reactive dependencies change, use
-`await track(fn)`. Any tracked values read inside the function become dependencies
-— when they change the operation re-runs and the component re-suspends to the
-nearest `@try/pending` boundary.
-
-```tsrx
-import { track } from 'ripple';
-
-export function CitySearch() @{
-  const query = track('');
-  const city = await track(() => fetchCity(query.value));
-
-  <>
-    <input type="text" value={query.value} onInput={(e) => (query.value = e.target.value)} />
-    <p>Showing: {query.value}</p>
-    <CityCard {city} />
-  </>
-}
-```
-
-::: info Note When `query` changes, `await track` re-runs and re-suspends to the
-nearest `@try/pending` boundary until the new fetch resolves.
-:::
+See [Async Data](./async-data) for iterable sources, status inspection, migration
+from `trackPending`, and server-to-client continuation.

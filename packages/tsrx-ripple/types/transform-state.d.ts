@@ -52,7 +52,16 @@ declare module '@tsrx/core/types' {
 		alias_prev?: boolean;
 	}
 
+	interface TransformServerState {
+		/** Explicit request ownership captured by a trackAsync callback. */
+		async_owner?: { id: AST.Identifier; used: boolean; c?: boolean };
+		async_callback?: boolean;
+	}
+
 	interface TransformClientState {
+		/** Explicit request ownership captured by a trackAsync callback. */
+		async_owner?: { id: AST.Identifier; used: boolean; c?: boolean };
+		async_callback?: boolean;
 		/** Per-invocation temporaries for calls whose operands contain await. */
 		call_temps?: AST.Identifier[];
 		/** the output can hydrate server HTML (see `CompileOptions.hydration`) */

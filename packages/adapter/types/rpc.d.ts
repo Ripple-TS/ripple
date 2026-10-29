@@ -51,7 +51,12 @@ export type HandleRpcOptions = {
 	/** Resolve a hash to the server function to call */
 	resolveFunction: (hash: string) => Function | null | Promise<Function | null>;
 	/** Execute a resolved server function with the request body */
-	executeServerFunction: (fn: Function, body: string) => Promise<string>;
+	executeServerFunction: (
+		fn: Function,
+		body: string,
+		signal?: AbortSignal,
+		run?: <T>(fn: () => T, signal?: AbortSignal) => T,
+	) => Promise<string | Response>;
 	/** Request-scoped async context for fetch patching */
 	asyncContext: AsyncContext;
 	/** Whether to trust X-Forwarded-* headers */
@@ -110,3 +115,11 @@ export function handle_rpc_request(request: Request, options: HandleRpcOptions):
 export type RipplePatchedFetch = typeof globalThis.fetch & {
 	__ripple_patched?: boolean;
 };
+
+export function create_rpc_handler(
+	functions: Record<string, () => Promise<Function>>,
+	runtime: RuntimePrimitives,
+	executeServerFunction: HandleRpcOptions['executeServerFunction'],
+	trustProxy?: boolean,
+	context?: AsyncContext,
+): (request: Request) => Promise<Response>;

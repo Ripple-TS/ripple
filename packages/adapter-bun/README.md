@@ -38,6 +38,29 @@ const app = serve(async (request) => {
 app.listen(3000);
 ```
 
+## Streaming RPC
+
+The shared `@ripple-ts/adapter` RPC handler supports iterable responses through
+this adapter's existing streaming `Response` path. Normal applications can keep
+using the generated document server entry.
+
+To serve RPC in a separate process, create an entry in your project root:
+
+```js
+// rpc-server.js
+import { serve, runtime } from '@ripple-ts/adapter-bun';
+import { createHandler } from './dist/server/rpc.js';
+
+serve(createHandler(runtime), { static: false }).listen(3001);
+```
+
+The RPC entry is emitted when the application has server functions. Route
+`/_$_ripple_rpc_$_/*` to this process and document requests to the SSR process.
+The RPC process loads the addressed function and required dependencies without
+loading unrelated pages or the document renderer. Importing both entries into one
+process still retains their loaded code. Requests remain subject to host limits;
+sources must support restarting from a cursor or a fresh snapshot.
+
 ## API
 
 ### `serve(fetch_handler, options?)`

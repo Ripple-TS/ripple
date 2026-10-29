@@ -148,6 +148,7 @@ function docs_sidebar() {
 				{ text: 'Components', link: 'guide/components' },
 				{ text: 'Control Flow', link: 'guide/control-flow' },
 				{ text: 'Reactivity', link: 'guide/reactivity' },
+				{ text: 'Async Data', link: 'guide/async-data' },
 				{ text: 'Events', link: 'guide/events' },
 				{ text: 'DOM References', link: 'guide/dom-refs' },
 				{ text: 'State Management', link: 'guide/state-management' },

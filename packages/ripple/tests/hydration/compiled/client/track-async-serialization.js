@@ -4,7 +4,16 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template_el('p', ['class', 'result'], ' ');
 
 function MoneyResult_render(__anchor, __block, { count }) {
-	const money = _$_.track_async(() => _$_.with_scope(__block, () => doubleMoney(new Money(count.value, 'USD'))), __block, 'csssmh');
+	const money = _$_.track_async(
+		() => {
+			const owner_2 = _$_.get_async_owner();
+
+			return _$_.rpc('4a0a0675', [new Money(count.value, 'USD')], owner_2);
+		},
+		__block,
+		'csssmh'
+	);
+
 	var p = root();
 
 	{
@@ -62,7 +71,16 @@ AsyncCustomType[_$_.$r] = AsyncCustomType_render;
 var root_4 = _$_.template_el('p', ['class', 'result'], ' ');
 
 function ServerCallResult_render(__anchor, __block, { count }) {
-	const data = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(count.value)), __block, 'lq8y0o');
+	const data = _$_.track_async(
+		() => {
+			const owner_4 = _$_.get_async_owner();
+
+			return _$_.rpc('1215faad', [count.value], owner_4);
+		},
+		__block,
+		'lq8y0o'
+	);
+
 	var p_2 = root_4();
 
 	{

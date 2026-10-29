@@ -9,7 +9,7 @@ export {
 	track_read_only as trackReadOnly,
 	is_tracked as isTracked,
 	track_async as trackAsync,
-	is_tracked_pending as trackPending,
+	get_tracked_status as getTrackedStatus,
 	peek_tracked as peek,
 } from './internal/server/index.js';
 export {

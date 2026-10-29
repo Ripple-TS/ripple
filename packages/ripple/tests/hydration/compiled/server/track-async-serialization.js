@@ -39,7 +39,14 @@ const formatValue = function (...args) {
 
 function MoneyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		const money = _$_.track_async(() => doubleMoney(new Money(count.value, 'USD')), 'csssmh');
+		const money = _$_.track_async(
+			() => {
+				const owner_4 = _$_.get_async_owner();
+
+				return _$_.record_async_source(doubleMoney(new Money(count.value, 'USD')), '4a0a0675', owner_4);
+			},
+			'csssmh'
+		);
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -103,7 +110,14 @@ export function AsyncCustomType() {
 
 function ServerCallResult({ count }) {
 	return _$_.tsrx_element(() => {
-		const data = _$_.track_async(() => formatValue(count.value), 'lq8y0o');
+		const data = _$_.track_async(
+			() => {
+				const owner_5 = _$_.get_async_owner();
+
+				return _$_.record_async_source(formatValue(count.value), '1215faad', owner_5);
+			},
+			'lq8y0o'
+		);
 
 		_$_.regular_block(() => {
 			let __out = '';

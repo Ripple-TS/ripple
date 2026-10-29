@@ -247,6 +247,109 @@ runtime without reading `.value`, evaluating a derived, or subscribing. Use it i
 libraries that accept plain values or reactive inputs; ordinary objects are not
 tracked merely because they have `value` or numeric `f` fields.
 
+## Async Values and Live Sources
+
+See the [Async Data guide](https://ripple-ts.com/docs/guide/async-data) for complete
+examples and migration instructions.
+
+`trackAsync(compute)` accepts `AsyncIterable<T>`, `PromiseLike<T | AsyncIterable<T>>`,
+or `{ promise, abortController }`. Its callback receives the last accepted producer
+value as `previous`, initially `undefined`. Each yield replaces `.value`; use an
+ordinary generator to accumulate immutable snapshots. Promise-resolved arrays,
+strings, sets and synchronous iterables remain ordinary values. Read reactive
+query inputs synchronously in `compute`, before creating the generator. Reads
+first made after `await` or `yield` are not automatically tracked.
+
+```tsrx
+const result = trackAsync<Snapshot>((previous) => {
+	const account = selectedAccount.value;
+	const saved = previous?.account === account ? previous : undefined;
+	return (async function* () {
+		let rows = saved?.rows ?? [];
+		const batches = await readRows(account, saved?.cursor ?? 0);
+		for await (const batch of batches) {
+			rows = [...rows, ...batch.rows];
+			yield { account, cursor: batch.cursor, rows };
+		}
+	})();
+});
+```
+
+`Snapshot` and the resumable `readRows` source are application-defined. Only the
+arguments explicitly passed to a server function cross RPC; `previous` does not.
+Include query identity and a refresh revision when a changed query or explicit
+refresh should discard a cursor. Display overrides never advance the accepted
+producer checkpoint; do not mutate accepted snapshots in place.
+
+`getTrackedStatus(handle)` is a reactive, non-suspending inspection for tracked or
+derived values only. It returns `{ state: 'pending', complete: false }`,
+`{ state: 'ready', complete: boolean }`, or `{ state: 'error', complete: false }`.
+Promises and synchronous values complete; an iterator completes only when it
+reports `done`. A ready stream remains readable between yields and during
+same-source recovery. Completion notifies status readers without a new data value.
+Derived completion aggregates only current dependencies; a ready fallback may
+still be incomplete. Status does not suppress errors on value reads, indicate
+connection health, or guarantee another yield.
+
+`trackPending` is removed. Migrate loading checks to `state === 'pending'` and
+safe-access guards to `state === 'ready'`. For callback-form checks, create a named
+`track(() => expression)` derived and inspect it; functions are not accepted by
+`getTrackedStatus`. Do not convert a safe-access guard to `state !== 'pending'`,
+which also includes errors.
+
+SSR (including buffered render and prerender) takes the first yielded snapshot,
+renders its matching HTML/CSS/head, records continuation in the existing data
+script, and closes the producer without lookahead. Browser activation adopts that
+snapshot and calls `compute(previous)` to continue. Promises do not restart.
+Initial empty completion is an error; yielded `undefined` is valid. Continuation
+may complete without another yield and retain the snapshot. Sources must safely
+restart/resume across fresh server instances; Ripple does not preserve generator
+stacks or automatically discard replayed first values.
+
+Keep the first continuation yield by default: it can include changes since SSR
+or a disconnect. Each yield replaces the tracked value; receiving the same array
+snapshot again does not append duplicate rows. Keyed `@for` loops can reuse matching
+rows; unkeyed loops update or replace their rendered items. An unchanged primitive
+or rendered field can avoid a DOM write, while new arrays/objects can trigger
+reconciliation with the same visible output. Accepted `trackAsync` yields notify
+consumers even for equal primitives, so effects and dependent requests can rerun.
+Suppressing a known replay is optional, not required.
+
+When a source guarantees its first item on continuation replays the accepted
+snapshot, a callback-local `let skipFirst = previous !== undefined` can suppress
+exactly that item: clear the flag and `continue` on the first iteration, then yield
+later items normally. On the initial run the flag must be false. If `undefined`
+is a valid payload, yield an ordinary `{ data }` wrapper so an accepted undefined
+payload still has a defined previous snapshot. For changing queries or explicit
+refresh, include the query key/revision in that wrapper and skip only when they
+match. Do not use a component-local "has run" flag across SSR and hydration.
+A source's fresh current snapshot may have changed during a disconnect; without
+a replay guarantee, accept it or use application-defined equality. Missing IDs
+alone do not make skipping safe. See the [first-yield suppression example](https://ripple-ts.com/docs/guide/async-data#suppressing-a-replayed-first-yield).
+
+RPC iterables use a versioned incremental fetch response, custom transports, bounded
+buffers and attempt-owned cancellation. Only recognized read-transport interruptions
+retry (up to three attempts with backoff), rebuilding arguments from the accepted
+checkpoint. Application errors, protocol errors and mutations do not automatically
+retry. Superseded or disposed attempts cannot publish. Normal changed-query promise
+loading still suspends. Use a tracked revision for explicit refetch, a keyed owner
+for a fresh reset, and `@catch(error, reset)` to recreate sources in a failed branch.
+
+A component-owned source inside `Hydrate` starts only on activation. Incomplete
+status never overrides the strategy; `never()` and removal before activation open
+no continuation. For active data behind a deferred view, create the source in an
+active ancestor and pass its handle through props/Context. Such a view shares the
+existing reader and adopts historical HTML/status before reconciling current data.
+No ongoing server-yield queue or per-yield DOM scripts are used. Without hydration,
+only the first server snapshot is displayed.
+
+Production builds provide `dist/server/rpc.js`, exporting `createHandler(runtime)`,
+independently of the SSR entry. It loads isolated server-function graphs, without
+page/layout/render imports. Vercel routes RPC to a separate streaming function.
+Worker integrations can instantiate this entry with their adapter runtime. No
+sticky routing or process-local iterator registry is needed; host execution limits
+still apply to each continuing request.
+
 ## Reactive Collections
 
 Use Ripple collection classes when collection operations should update rendered
@@ -976,7 +1079,7 @@ the plugin falls back to buffered SSR with a warning when they are missing.
 ### Static Generation
 
 `prerender(component, options?)` is the static-generation counterpart of
-`render`: buffered, every `@try` boundary and `trackAsync` settled before it
+`render`: buffered, every `@try` boundary and first `trackAsync` result settled before it
 resolves, and the scoped CSS returned as text.
 
 ```ts

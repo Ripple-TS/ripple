@@ -166,3 +166,11 @@ If you do have a `vercel.json`, the adapter respects your `buildCommand` and
   "buildCommand": "pnpm vite build && pnpm ripple-adapt-vercel"
 }
 ```
+
+When the build contains `dist/server/rpc.js`, the adapter traces it separately
+into `rpc.func` and routes `/_$_ripple_rpc_$_/*` there. This function enables
+streaming and does not inherit document ISR caching. Its cold start evaluates only
+the addressed server-function graph, transport and runtime dependencies. SSR
+remains in `index.func`; no sticky routing or retained SSR request is needed for
+iterable continuation. Vercel duration and resource limits still apply to the RPC
+request.

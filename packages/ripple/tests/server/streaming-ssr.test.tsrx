@@ -1,5 +1,5 @@
 import { createStream } from 'ripple/server';
-import { trackAsync } from 'ripple';
+import { trackAsync, type Tracked } from 'ripple';
 
 interface Deferred<T> {
 	promise: Promise<T>;
@@ -405,6 +405,71 @@ describe('streaming try/pending boundaries', () => {
 			expect(all).toContain(`__RIPPLE_S__(${JSON.stringify(id)},1)`);
 		},
 	);
+});
+
+describe('streaming source ownership', () => {
+	it('does not hold a parent catch region for a source that only a child renders', async () => {
+		const d = deferred<boolean>();
+		function Result({ ready }: { ready: boolean }) {
+			if (ready) throw new Error('late child render failure');
+			return <p>waiting</p>;
+		}
+		function Child() @{
+			const ready = trackAsync(() => d.promise);
+			<Result ready={ready.value} />
+		}
+		function App() @{
+			trackAsync(() => d.promise);
+			@try {
+				<Child />
+			} @pending {
+				<p>child pending</p>
+			}
+		}
+		function Catch({ error }: { error: Error }) {
+			return <h2>{error.message}</h2>;
+		}
+		const { chunks, sink } = recordingSink();
+		const result = render(App, { stream: sink, rootBoundary: { catch: Catch } });
+		expect(chunks[0]).toContain('child pending');
+		expect(chunks[0].match(new RegExp(SLOT_OPEN_RE.source, 'g'))).toHaveLength(1);
+		d.resolve(true);
+		await result;
+		expect(chunks.join('')).toMatch(/__RIPPLE_S__\([^)]*,1\)/);
+		expect(chunks.join('')).toContain('late child render failure');
+		expect(chunks.join('')).not.toContain('<h2>');
+	});
+
+	it('does not cancel a shared source when one suspended reader is discarded', async () => {
+		const d = deferred<string>();
+		const controller = new AbortController();
+		function Fail() {
+			throw new Error('discard this branch');
+		}
+		function Reader({ value }: { value: Tracked<string> }) {
+			return <p>{value.value}</p>;
+		}
+		function App() @{
+			const value = trackAsync(() => ({ promise: d.promise, abortController: controller }));
+			<>
+				@try {
+					<>
+						<Reader {value} />
+						<Fail />
+					</>
+				} @catch {
+					<p>caught</p>
+				}
+				<p class="remaining">{value.value}</p>
+			</>
+		}
+		const { chunks, sink } = recordingSink();
+		const result = render(App, { stream: sink });
+		expect(controller.signal.aborted).toBe(false);
+		d.resolve('shared');
+		await result;
+		expect(applyStream(chunks)).toContain('<p class="remaining"><!--[-->shared<!--]--></p>');
+	});
 });
 
 describe('streaming nested and sibling boundaries', () => {

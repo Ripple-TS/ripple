@@ -10,6 +10,8 @@ export type Component = {
 };
 
 export type Dependency = {
+	/** The computation also inspected readiness/completion. */
+	s?: boolean;
 	c: number;
 	t: Tracked | Derived;
 	n: null | Dependency;

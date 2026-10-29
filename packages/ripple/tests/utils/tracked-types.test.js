@@ -73,6 +73,38 @@ describe('Ripple tracked types', () => {
 		}
 	});
 
+	it('infers async source values and accepts only handles for status inspection', () => {
+		const source = `
+			import { track, trackAsync, getTrackedStatus, type Tracked } from 'ripple';
+			const promise: Tracked<number> = trackAsync(() => Promise.resolve(1));
+			const abortable: Tracked<string> = trackAsync(() => ({ promise: Promise.resolve('a'), abortController: new AbortController() }));
+			const stream: Tracked<number> = trackAsync(async function* () { yield 1; });
+			const wrapped: Tracked<number> = trackAsync(() => Promise.resolve((async function* () { yield 1; })()));
+			const previous: Tracked<number> = trackAsync<number>((previous) => Promise.resolve((previous ?? 0) + 1));
+			const array: Tracked<number[]> = trackAsync(() => Promise.resolve([1, 2]));
+			const undef: Tracked<undefined> = trackAsync(async function* () { yield undefined; });
+			const total = track(() => promise.value + stream.value);
+			getTrackedStatus(total);
+			getTrackedStatus(stream);
+			// @ts-expect-error Calculations must first be made into a named derived.
+			getTrackedStatus(() => promise.value + stream.value);
+			// @ts-expect-error Plain values have no tracked status.
+			getTrackedStatus(1);
+			// @ts-expect-error Removed public API.
+			import { trackPending } from 'ripple';
+		`;
+		const { service, file_name } = create_service(source);
+		try {
+			expect(
+				service
+					.getSemanticDiagnostics(file_name)
+					.map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n')),
+			).toEqual([]);
+		} finally {
+			service.dispose();
+		}
+	});
+
 	it('preserves writes, read-only views, and tracked component props', () => {
 		const source = `
 			import { track, type Component, type Derived, type Tracked, trackReadOnly } from 'ripple';
