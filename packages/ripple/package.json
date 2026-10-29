@@ -82,6 +82,9 @@
       "types": "./src/jsx-runtime.d.ts",
       "import": "./src/jsx-runtime.js",
       "default": "./src/jsx-runtime.js"
+    },
+    "./internal/server/rpc": {
+      "default": "./src/runtime/internal/server/rpc.js"
     }
   },
   "imports": {

@@ -256,7 +256,7 @@ export {
 	is_tracked as isTracked,
 	untrack,
 	tick,
-	is_tracked_pending as trackPending,
+	get_tracked_status as getTrackedStatus,
 	peek_tracked as peek,
 } from './internal/client/runtime.js';
 

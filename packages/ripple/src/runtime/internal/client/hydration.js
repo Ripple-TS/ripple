@@ -11,7 +11,7 @@ export let hydrate_node = null;
 /**
  * The target and server-render namespace of the current root. Streamed
  * boundaries retain it for activation after the initial hydration walk.
- * @typedef {{ target: HTMLElement, id: string, hashes: Map<string, Tracked | Derived>, revive: (payload: string | unknown[]) => any, recover?: boolean }} HydrationContext
+ * @typedef {{ target: HTMLElement, id: string, hashes: Map<string, Tracked | Derived>, revive: (payload: string | unknown[]) => any, recover?: boolean, v?: Map<Tracked, [any, number]> }} HydrationContext
  */
 
 /** @type {HydrationContext | null} */

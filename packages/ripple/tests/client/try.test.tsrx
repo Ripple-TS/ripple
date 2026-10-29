@@ -1185,10 +1185,10 @@ describe('try block', () => {
 		expect(container.querySelector('.caught')?.textContent).toBe('name failed');
 		expect(container.querySelector('.resolved')).toBeNull();
 
-		// Second promise was resolved (by the test), but the boundary already caught
+		// The producer settled, but the disposed owner no longer accepts publications.
 		expect(second_settled).toEqual({ type: 'resolved', value: 42 });
 		expect(peek(name)).toEqual(SUSPENSE_REJECTED);
-		expect(peek(count)).toEqual(42);
+		expect(peek(count)).toEqual(SUSPENSE_PENDING);
 	});
 });
 

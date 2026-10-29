@@ -54,6 +54,30 @@ describe('adapt()', () => {
 		);
 	}
 
+	it('routes continuation to a separately traced RPC function without ISR', async () => {
+		const { adapt } = await import('../src/adapt.js');
+		const { nodeFileTrace } = await import('@vercel/nft');
+		create_build_output(tmp_dir);
+		writeFileSync(
+			join(tmp_dir, 'dist/server/rpc.js'),
+			'export const createHandler = () => () => new Response("rpc");',
+		);
+		await adapt({ verbose: false, isr: { expiration: 60 } });
+		const config = JSON.parse(readFileSync(join(tmp_dir, '.vercel/output/config.json'), 'utf8'));
+		expect(config.routes.find((route) => route.dest === '/rpc')).toEqual({
+			src: '/_\\$_ripple_rpc_\\$_/.*',
+			dest: '/rpc',
+		});
+		const rpc = JSON.parse(
+			readFileSync(join(tmp_dir, '.vercel/output/functions/rpc.func/.vc-config.json'), 'utf8'),
+		);
+		expect(rpc.prerender).toBeUndefined();
+		expect(rpc.experimentalResponseStreaming).toBe(true);
+		expect(nodeFileTrace.mock.calls.some(([entries]) => entries[0].endsWith('rpc-vercel.js'))).toBe(
+			true,
+		);
+	});
+
 	it('throws when client build output is missing', async () => {
 		const { adapt } = await import('../src/adapt.js');
 		await expect(adapt()).rejects.toThrow('Client build output not found');

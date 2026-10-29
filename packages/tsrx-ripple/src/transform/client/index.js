@@ -514,7 +514,19 @@ function visit_function(node, context) {
 	}
 
 	const call_temps = /** @type {AST.Identifier[]} */ ([]);
-	const state = { ...context.state, call_temps };
+	const inherited_owner = context.state.async_owner?.c === true;
+	const state = {
+		...context.state,
+		call_temps,
+		async_owner: context.state.async_owner?.c
+			? context.state.async_owner
+			: {
+					id: b.id(context.state.scope.generate('owner')),
+					used: false,
+					c: context.state.async_callback,
+				},
+	};
+
 	const metadata = /** @type {AST.FunctionExpression['metadata']} */ (node.metadata);
 
 	if (context.state.to_ts) {
@@ -572,6 +584,9 @@ function visit_function(node, context) {
 	}
 
 	const boxes = box_param_statements(node);
+	if (!inherited_owner && state.async_owner.used) {
+		boxes.unshift(b.const(state.async_owner.id, b.call('_$_.get_async_owner')));
+	}
 	if (call_temps.length > 0) {
 		boxes.unshift(
 			b.declaration(
@@ -3317,6 +3332,28 @@ const visitors = {
 			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
 		}
 
+		if (!context.state.to_ts && context.state.async_owner && callee.type === 'Identifier') {
+			const binding = context.state.scope.get(callee.name);
+			const declaration = binding?.initial;
+			if (
+				declaration?.type === 'ImportDeclaration' &&
+				get_submodule_import_source_name(declaration) === 'server'
+			) {
+				const specifier = declaration.specifiers.find((s) => s.local.name === callee.name);
+				if (specifier?.type === 'ImportSpecifier') {
+					context.state.async_owner.used = true;
+					return b.call(
+						'_$_.rpc',
+						b.literal(strong_hash(context.state.filename + '#' + get_imported_name(specifier))),
+						b.array(
+							node.arguments.map((arg) => /** @type {AST.Expression} */ (context.visit(arg))),
+						),
+						context.state.async_owner.id,
+					);
+				}
+			}
+		}
+
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (!context.state.to_ts && callee.type === 'Identifier' && is_ripple_import(callee, context)) {
 			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
@@ -3348,7 +3385,16 @@ const visitors = {
 
 			for (let i = 0; i < source_args.length; i++) {
 				const arg = source_args[i];
-				call_args.push(/** @type {(AST.Expression | AST.SpreadElement)} */ (context.visit(arg)));
+				call_args.push(
+					/** @type {(AST.Expression | AST.SpreadElement)} */ (
+						context.visit(
+							arg,
+							i === 0 && matched_track_call === 'trackAsync'
+								? { ...context.state, async_owner: undefined, async_callback: true }
+								: context.state,
+						)
+					),
+				);
 				if (i === 0) {
 					call_args.push(b.id('__block'));
 					// A read-only view is not a serialized value: no hash.

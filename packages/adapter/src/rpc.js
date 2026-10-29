@@ -82,6 +82,13 @@ export function patch_global_fetch(async_context) {
 	const patched_fetch = function (input, init) {
 		try {
 			const context = async_context.getStore();
+			if (context?.signal) {
+				const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+				init = {
+					...init,
+					signal: signal ? AbortSignal.any([signal, context.signal]) : context.signal,
+				};
+			}
 
 			if (context?.origin) {
 				if (typeof input === 'string' && !has_scheme(input)) {
@@ -206,8 +213,11 @@ export async function handle_rpc_request(request, options) {
 
 		const origin = derive_origin(request, trustProxy);
 
-		return await asyncContext.run({ origin }, async () => {
-			const result = await executeServerFunction(fn, body);
+		return await asyncContext.run({ origin, signal: request.signal }, async () => {
+			const result = await executeServerFunction(fn, body, request.signal, (fn, signal) =>
+				asyncContext.run({ origin, signal: signal ?? request.signal }, fn),
+			);
+			if (result instanceof Response) return result;
 
 			return new Response(result, {
 				status: 200,
@@ -224,4 +234,30 @@ export async function handle_rpc_request(request, options) {
 			},
 		);
 	}
+}
+
+/**
+ * A renderer-free dispatcher. Function graphs load only when addressed.
+ * @param {Record<string, () => Promise<Function>>} functions
+ * @param {import('@ripple-ts/adapter/rpc').RuntimePrimitives} runtime
+ * @param {import('@ripple-ts/adapter/rpc').HandleRpcOptions['executeServerFunction']} executeServerFunction
+ * @param {boolean} [trustProxy]
+ * @param {import('@ripple-ts/adapter/rpc').AsyncContext} [context]
+ */
+export function create_rpc_handler(
+	functions,
+	runtime,
+	executeServerFunction,
+	trustProxy = false,
+	context,
+) {
+	const asyncContext = context ?? runtime.createAsyncContext();
+	if (context === undefined) patch_global_fetch(asyncContext);
+	return (/** @type {Request} */ request) =>
+		handle_rpc_request(request, {
+			resolveFunction: (hash) => (Object.hasOwn(functions, hash) ? functions[hash]() : null),
+			executeServerFunction,
+			asyncContext,
+			trustProxy,
+		});
 }

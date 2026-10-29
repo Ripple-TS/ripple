@@ -1,6 +1,6 @@
 /** @import { AppendIntoAnchor, Block, Component, Dependency, BlockWithTryBoundaryAndCatch, DeferredTrackedEntry } from '#client' */
 /** @import { NAMESPACE_URI } from './constants.js' */
-/** @typedef {TrackedValue} Tracked */
+/** @typedef {TrackedValue & { s?: number; q?: TrackedValue }} Tracked */
 /** @typedef {DerivedValue} Derived */
 
 import { DEV } from 'esm-env';
@@ -865,23 +865,57 @@ export function track(v, b, hash, get, set) {
 }
 
 /**
- * @param {(Derived | Tracked) | (() => any)} t
- * @returns {boolean}
+ * @param {Derived | Tracked} t
+ * @returns {import('#public').TrackedStatus}
  */
-export function is_tracked_pending(t) {
+export function get_tracked_status(t) {
+	if (!is_tracked(t)) throw new TypeError('getTrackedStatus() expects a tracked or derived value');
+	var failed = false;
 	try {
-		if (typeof t === 'function') {
-			t();
-		} else {
-			get(t);
-		}
-		return false;
-	} catch (error) {
-		if (error === ASYNC_DERIVED_READ_THROWN) {
-			return true;
-		}
-		throw error;
+		if ((t.f & DERIVED) !== 0) update_derived(/** @type {Derived} */ (t));
+	} catch {
+		failed = true;
 	}
+	if (tracking) register_dependency(t);
+	var value = t.__v;
+	/** @type {'pending' | 'ready' | 'error'} */
+	var state =
+		failed || value === SUSPENSE_REJECTED
+			? 'error'
+			: value === SUSPENSE_PENDING
+				? 'pending'
+				: 'ready';
+	var complete = state === 'ready';
+	if ((t.f & DERIVED) !== 0) {
+		var dep = /** @type {Derived} */ (t).d;
+		while (dep !== null) {
+			// Read every current dependency, including status-only completion signals.
+			if (!get_tracked_status(dep.t).complete) complete = false;
+			dep = dep.n;
+		}
+	} else {
+		var source = /** @type {Tracked} */ (t);
+		if (source.s !== undefined) {
+			get_tracked((source.q ??= tracked(0, /** @type {Block} */ (source.b))));
+			var status = source.s & 3;
+			state = status === 0 ? 'pending' : status === 3 ? 'error' : 'ready';
+			complete = status === 2;
+		}
+	}
+	return state === 'ready' ? { state, complete } : { state, complete: false };
+}
+
+/**
+ * Status readers allocate their notification signal on demand. Ordinary value
+ * readers neither allocate nor subscribe to it.
+ * @param {Tracked} t
+ * @param {number} status 0 pending, 1 ready/open, 2 complete, 3 error
+ */
+export function set_async_status(t, status) {
+	if (t.s !== undefined && (t.s & 3) === status) return;
+	// The high bit records a status change since SSR adoption, even without readers.
+	t.s = status | 4;
+	if (t.q !== undefined) update_tracked_value_clock(t.q, status);
 }
 
 /**

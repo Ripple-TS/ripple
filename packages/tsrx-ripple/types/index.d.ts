@@ -57,6 +57,8 @@ export interface TextTypeFacts {
 }
 
 export interface CompileOptions extends CoreCompileOptions {
+	/** Emit only the isolated module server graph for RPC dispatch. */
+	serverOnly?: boolean | string;
 	/** Lower sx={styles} on host elements to StyleX attrs() spreads. Default false. */
 	stylex?: boolean;
 	/** Use the same facts for client and server compilation. */
@@ -115,6 +117,7 @@ export interface AnalysisResult extends CoreAnalysisResult {
  * be removed once the playground is replaced.
  */
 export interface RippleCompileResult extends CompileResult {
+	serverExports: string[];
 	/** @deprecated Use `code` and `map` at the root of the result. */
 	js: { code: string; map: import('source-map').RawSourceMap };
 }

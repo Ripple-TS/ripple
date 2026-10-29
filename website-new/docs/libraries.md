@@ -11,6 +11,7 @@ may have breaking changes at any moment.
 
 ## Router
 
+- [@ripple-ts/tanstack-router](https://github.com/Ripple-TS/ripple/tree/main/packages/tanstack-router) — native TanStack Router integration for Ripple.
 - https://github.com/WebEferen/ripple-router
 
 ## Component Library

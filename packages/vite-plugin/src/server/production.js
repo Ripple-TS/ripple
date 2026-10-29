@@ -72,6 +72,7 @@ export function createHandler(manifest, options) {
 	// Create async context and patch fetch for relative URL resolution in `module server` declarations
 	const asyncContext = runtime.createAsyncContext();
 	const fetchHandle = patch_global_fetch(asyncContext);
+	const rpcHandler = options.createRpcHandler?.(runtime, asyncContext);
 
 	const handler = async function handler(/** @type {Request} */ request) {
 		const url = new URL(request.url);
@@ -79,6 +80,7 @@ export function createHandler(manifest, options) {
 
 		// Handle RPC requests for `module server` declarations
 		if (is_rpc_request(url.pathname)) {
+			if (rpcHandler) return rpcHandler(request);
 			return handle_rpc_request(request, {
 				resolveFunction(hash) {
 					const entry = rpcLookup.get(hash);

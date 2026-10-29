@@ -25,6 +25,10 @@ export const routes = [
 		path: '/docs/guide/reactivity',
 		entry: '/src/pages/docs/guide/reactivity.tsrx',
 	}),
+	new RenderRoute({
+		path: '/docs/guide/async-data',
+		entry: '/src/pages/docs/guide/async-data.tsrx',
+	}),
 	new RenderRoute({ path: '/docs/guide/events', entry: '/src/pages/docs/guide/events.tsrx' }),
 	new RenderRoute({ path: '/docs/guide/dom-refs', entry: '/src/pages/docs/guide/dom-refs.tsrx' }),
 	new RenderRoute({

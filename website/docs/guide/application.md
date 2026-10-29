@@ -107,8 +107,9 @@ option is rejected when `ripple.config.ts` configures a root boundary, and
 ### Server-Side Rendering
 
 On the server, use `render()` from `ripple/server`. It is asynchronous — the
-returned promise resolves once all async work (`trackAsync`) has settled — and
-it resolves an object, not a string:
+returned promise resolves when the rendering work is ready. Ordinary promises
+resolve fully; async iterables supply their first accepted snapshot and hand off
+continuation to the browser. It resolves an object, not a string:
 
 - `body` — HTML for the app's insertion point, including hydration markers.
 - `head` — HTML for the document head, collected from `<head>` writes such as
@@ -179,14 +180,15 @@ const { head, body, css } = await render(App, {
 
 ### Streaming SSR
 
-Buffered rendering holds the whole response until the slowest data has
-resolved. Streaming sends bytes as soon as they exist:
+Buffered rendering holds the whole response until the data needed for the initial
+HTML is ready. For an async iterable, that means its first accepted value, not
+completion of the entire source. Streaming sends bytes as soon as they exist:
 
 1. The **shell** flushes immediately: all synchronous HTML, with each
    suspended `@try` boundary showing its `@pending` fallback, plus all CSS
    collected so far. The browser starts painting and fetching assets while the
    server is still waiting on data.
-2. As each boundary's async work settles, its HTML streams as a
+2. As each boundary's required sources first make it ready, its HTML streams as a
    self-contained chunk — carrying its own CSS, serialized `trackAsync`
    results, and `<head>` content — and a small inline runtime (shipped once
    with the shell) swaps it into the boundary's slot. Chunks arrive in
@@ -238,6 +240,24 @@ activate their boundary in place without re-rendering. Set
 `closeStream: false` when you need the sink to stay open for writes of your
 own after rendering finishes.
 
+### Iterable continuation
+
+`trackAsync` takes the first accepted server yield and records continuation in its
+existing hydration snapshot. The initial document can finish without waiting for
+another yield or natural completion. SSR closes that producer without lookahead;
+when its owner activates, the browser calls `compute(previous)` to resume.
+Resolved promises need no continuation.
+
+Later server-function yields arrive through a separate streaming RPC response.
+They update existing consumers with data, without additional hydration markers,
+placeholders, or per-yield HTML replacements. Callbacks must safely restart using
+an application cursor or a fresh snapshot; a different server instance may handle
+continuation. Buffered rendering and prerendering use the same contract.
+
+A source inside `Hydrate` waits for its gate. An active ancestor-owned source can
+continue while its view remains deferred. See [Async Data](./async-data#deferred-hydration)
+for ownership patterns, status inspection, and recovery.
+
 ### Streaming With The Vite Plugin
 
 Apps built on `@ripple-ts/vite-plugin` do not call `render()` directly. Enable
@@ -281,7 +301,7 @@ export default {
 Use `transport` in `ripple.config.ts` when `trackAsync` or a server function
 returns a custom type. Each named handler encodes values for devalue and decodes
 them back into application values. Hydration and RPC share these handlers, and
-RPC uses them for both arguments and return values.
+RPC uses them for arguments, ordinary return values, and each iterable yield.
 
 Define the handlers in their own module and name it in the config: a path uses
 the module's default export, and an `[exportName, path]` tuple picks a named
@@ -332,8 +352,9 @@ restores built-in serialization.
 
 Pages whose content does not depend on the request can be rendered once at
 build time. `prerender()` from `ripple/server` is the static counterpart of
-`render()`: it is buffered, resolves once every `@try` boundary and
-`trackAsync` has settled, and returns the scoped CSS as text:
+`render()`: it is buffered, waits for each boundary's initial ready result, and
+returns the scoped CSS as text. Iterable sources contribute their first snapshot
+and continuation metadata, rather than being consumed to completion:
 
 ```ts
 import { prerender } from 'ripple/server';
@@ -366,6 +387,10 @@ node and bun adapters serve that file for the route before the server renders
 anything, with a cache policy that revalidates on every request, and the page
 hydrates exactly like a server-rendered one. Routes without the flag keep
 rendering per request, so static and dynamic pages mix freely in one app.
+
+Prerendered iterable sources must still be restartable when a browser hydrates the
+page, potentially much later. Without hydration, the output remains the initial
+snapshot and receives no subsequent values.
 
 A path with a `:param` or `*` segment names its pages with `entries`: an array
 of records giving every parameter a string, or a function (sync or async) that

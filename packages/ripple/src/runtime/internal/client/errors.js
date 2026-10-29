@@ -53,7 +53,7 @@ export function track_async_argument() {
 		DEV
 			? text(
 					'track_async_argument',
-					'trackAsync() only accepts function arguments that return a promise or an object with a promise property',
+					'trackAsync() expects a callback returning a promise, async iterable, or abortable promise',
 				)
 			: text('track_async_argument', ''),
 	);
@@ -78,7 +78,7 @@ export function pending_read_direct(in_component) {
 		DEV
 			? text(
 					'pending_read_direct',
-					`Reads on pending tracked values directly inside ${in_component ? 'component' : 'try/pending/catch'} body are prohibited. Use trackPending() test or peek() for safe access or create another derived instead.`,
+					`Reads on pending tracked values directly inside ${in_component ? 'component' : 'try/pending/catch'} body are prohibited. Use getTrackedStatus(value).state === 'ready' for safe access or create another derived instead.`,
 				)
 			: text('pending_read_direct', ''),
 	);

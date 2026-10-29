@@ -65,7 +65,7 @@ export {
 	update_pre_property,
 	track,
 	track_read_only,
-	is_tracked_pending,
+	get_tracked_status,
 	peek_tracked,
 	push_component,
 	pop_component,
@@ -144,3 +144,5 @@ export { hmr } from './hmr.js';
 export { pop, next, hydrating } from './hydration.js';
 
 export { is_tsrx_element, tsrx_element, normalize_children } from '../../element.js';
+
+export { get_async_owner } from './async-owner.js';

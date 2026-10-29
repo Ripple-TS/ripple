@@ -52,6 +52,11 @@ export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: 
 							active={currentPath === '/docs/guide/reactivity'}
 						/>
 						<SidebarItem
+							href="/docs/guide/async-data"
+							text="Async Data"
+							active={currentPath === '/docs/guide/async-data'}
+						/>
+						<SidebarItem
 							href="/docs/guide/events"
 							text="Events"
 							active={currentPath === '/docs/guide/events'}

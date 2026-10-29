@@ -16,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import * as devalue from 'devalue';
 
 const packages = fileURLToPath(new URL('../../', import.meta.url));
@@ -25,7 +26,7 @@ afterEach(async () => {
 	vi.unstubAllGlobals();
 });
 
-function fixture() {
+function fixture(direct_adapter = true) {
 	const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'ripple-transport-')));
 	cleanups.push(() => rmSync(root, { recursive: true, force: true }));
 	mkdirSync(path.join(root, 'node_modules', '@ripple-ts'), { recursive: true });
@@ -35,6 +36,7 @@ function fixture() {
 		['@ripple-ts/adapter', 'adapter'],
 		['@ripple-ts/adapter-node', 'adapter-node'],
 	]) {
+		if (name === '@ripple-ts/adapter' && !direct_adapter) continue;
 		symlinkSync(path.join(packages, source), path.join(root, 'node_modules', name), 'dir');
 	}
 	writeFileSync(path.join(root, 'package.json'), '{"type":"module"}');
@@ -60,6 +62,7 @@ export const transport = {
 	writeFileSync(
 		path.join(root, 'auth.ts'),
 		`import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 const secret = createHash('sha256').update('server-only-auth').digest('hex');
 export async function auth(context: { state: Map<string, unknown> }, next: () => Promise<Response>) {
   context.state.set('secret', secret);
@@ -210,6 +213,11 @@ export async function run() {
 		const request = (pathname, init) => fetch(new URL(pathname, url), init);
 		await verify_requests(request);
 
+		// The extraction query is meaningful only in the server environment.
+		const client_module = await (await request('/App.tsrx?import&ripple-rpc=doubleMoney')).text();
+		expect(client_module).toContain('.rpc(');
+		expect(client_module).not.toContain('Argument not revived');
+
 		// The browser imports the modules the config names, never the config.
 		const client_entry = async () => (await request('/@id/virtual:ripple-hydrate')).text();
 		const source = await client_entry();
@@ -245,5 +253,64 @@ export async function run() {
 		await verify_requests((pathname, init) =>
 			handler(new Request('http://localhost' + pathname, init)),
 		);
+	}, 30_000);
+	it('builds an isolated RPC graph without a direct adapter dependency and resumes across fresh invocations', async () => {
+		const root = fixture(false);
+		writeFileSync(
+			path.join(root, 'ssr-only.ts'),
+			`globalThis.__ripple_ssr_loaded__ = true; export const label = 'renderer-only';`,
+		);
+		const app = path.join(root, 'App.tsrx');
+		writeFileSync(
+			app,
+			`import './ssr-only';\n` +
+				readFileSync(app, 'utf8').replace(
+					'module server {',
+					`module server {
+  export async function* rows(afterId: number) {
+    if (afterId === 999) throw new Error('expired cursor');
+    for (let cursor = afterId + 100; cursor <= 300; cursor += 100) yield { cursor };
+  }
+`,
+				),
+		);
+		await build({ root });
+		const rpc_hash = createHash('sha256').update('/App.tsrx#rows').digest('hex').slice(0, 8);
+		const probe = path.join(root, 'probe.mjs');
+		writeFileSync(
+			probe,
+			`
+import { createHandler } from './dist/server/rpc.js';
+import { runtime } from '@ripple-ts/adapter-node';
+const handler = createHandler(runtime);
+if (globalThis.__ripple_ssr_loaded__) throw Error('RPC imported SSR graph');
+const body = JSON.stringify([[1], Number(process.argv[2])]);
+const response = await handler(new Request('https://app.test/_$_ripple_rpc_$_/${rpc_hash}', { method: 'POST', body }));
+console.log(await response.text());
+if (globalThis.__ripple_ssr_loaded__) throw Error('RPC evaluated SSR graph');
+`,
+		);
+		for (const cursor of [0, 100, 300, 999]) {
+			const process = spawnSync(globalThis.process.execPath, [probe, String(cursor)], {
+				encoding: 'utf8',
+			});
+			expect(process.status, process.stderr).toBe(0);
+			const frames = process.stdout
+				.trim()
+				.split('\n')
+				.map((line) => JSON.parse(line));
+			if (cursor === 999) {
+				expect(frames[0].slice(2)).toEqual(['e', 'expired cursor']);
+			} else {
+				expect(frames.at(-1)[2]).toBe('c');
+				expect(frames.filter((f) => f[2] === 'v').map((f) => devalue.parse(f[3]).cursor)).toEqual(
+					[100, 200, 300].filter((n) => n > cursor),
+				);
+			}
+		}
+		// The document entry is independently executable and does evaluate its graph.
+		await import(pathToFileURL(path.join(root, 'dist/server/entry.js')).href);
+		expect(globalThis.__ripple_ssr_loaded__).toBe(true);
+		delete globalThis.__ripple_ssr_loaded__;
 	}, 30_000);
 });

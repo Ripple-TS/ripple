@@ -161,6 +161,13 @@ either exposed (for get) or stored (for set). Also, if only supplying the `set`,
 the `get` parameter must be set to `undefined`.
 :::
 
+## Async values
+
+Use `trackAsync` for promises and async iterables, and `getTrackedStatus` to inspect
+readiness and completion without suspending. Each yielded value updates consumers
+through the same tracked graph. See [Async Data](./async-data) for examples,
+previous values, status migration, SSR continuation, and deferred views.
+
 ## Transporting Reactivity
 
 Ripple doesn't constrain reactivity to components only. `Tracked<T>` objects can

@@ -11,6 +11,7 @@ import { write_prerendered_pages } from './prerender-output.js';
 import { createDepScanTransformPlugin } from '@tsrx/core/vite/dep-scan';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { Readable } from 'node:stream';
 
@@ -18,7 +19,7 @@ import { createRouter } from './server/router.js';
 import { createContext, runMiddlewareChain } from './server/middleware.js';
 import { handleRenderRoute } from './server/render-route.js';
 import { handleServerRoute } from './server/server-route.js';
-import { generateServerEntry } from './server/virtual-entry.js';
+import { generateServerEntry, generateRpcEntry } from './server/virtual-entry.js';
 import {
 	getRippleConfigPath,
 	loadRippleConfig,
@@ -413,6 +414,8 @@ export function ripple(inlineOptions = {}) {
 	let loadedRippleConfig = null;
 	/** @type {Set<string>} File paths (relative to root) of .tsrx modules with `module server` declarations */
 	const serverModuleModules = new Set();
+	/** @type {Record<string, { path: string; name: string }>} */
+	const rpcFunctions = {};
 
 	/**
 	 * @returns {Promise<ResolvedRippleConfig | null>}
@@ -1155,12 +1158,21 @@ export function ripple(inlineOptions = {}) {
 						);
 					}
 
+					// Generate the isolated data entry alongside the document renderer.
+					const hasRpc = Object.keys(rpcFunctions).length > 0;
+					const rpcEntryCode = generateRpcEntry(
+						rpcFunctions,
+						loadedRippleConfig.transport,
+						loadedRippleConfig.server.trustProxy,
+					);
+
 					// Generate the virtual server entry
 					const serverEntryCode = generateServerEntry({
 						routes: loadedRippleConfig.router.routes,
 						rippleConfigPath: getRippleConfigPath(root),
 						htmlTemplatePath: './index.html',
 						rpcModulePaths: [...serverModuleModules],
+						rpcEntry: hasRpc ? 'virtual:ripple-rpc-entry' : undefined,
 						clientAssetMap,
 						transport: loadedRippleConfig.transport,
 						rootBoundary: loadedRippleConfig.rootBoundary,
@@ -1186,10 +1198,17 @@ export function ripple(inlineOptions = {}) {
 							}
 							server_plugin?.api?.textTypes?.share(text_types);
 						},
-						resolveId(id) {
+						resolveId(id, importer) {
 							if (id === VIRTUAL_SERVER_ENTRY_ID) return RESOLVED_VIRTUAL_SERVER_ENTRY_ID;
+							if (id === 'virtual:ripple-rpc-entry') return '\0virtual:ripple-rpc-entry';
+							if (importer === '\0virtual:ripple-rpc-entry' && id === '@ripple-ts/adapter/rpc') {
+								// This is the plugin's dependency, not a required direct app dependency.
+								// Bundle it so the deployed entry has the same resolution guarantee.
+								return { id: createRequire(import.meta.url).resolve(id), external: false };
+							}
 						},
 						load(id) {
+							if (id === '\0virtual:ripple-rpc-entry') return rpcEntryCode;
 							if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) {
 								return fs.readFileSync(serverEntryFile, 'utf-8');
 							}
@@ -1215,9 +1234,11 @@ export function ripple(inlineOptions = {}) {
 								target: loadedRippleConfig?.build?.target,
 								minify: loadedRippleConfig?.build?.minify ?? false,
 								rollupOptions: {
-									input: VIRTUAL_SERVER_ENTRY_ID,
+									input: hasRpc
+										? { entry: VIRTUAL_SERVER_ENTRY_ID, rpc: 'virtual:ripple-rpc-entry' }
+										: { entry: VIRTUAL_SERVER_ENTRY_ID },
 									output: {
-										entryFileNames: ENTRY_FILENAME,
+										entryFileNames: '[name].js',
 										format: 'esm',
 									},
 								},
@@ -1367,7 +1388,8 @@ export function ripple(inlineOptions = {}) {
 						ssrOption ?? (opts?.ssr === true || this.environment.config.consumer === 'server');
 
 					const is_dev = config?.command === 'serve';
-					let { code, css, map } = await compile(source_code, filename, {
+					let { code, css, map, serverExports } = await compile(source_code, filename, {
+						serverOnly: ssr && params.has('ripple-rpc') ? params.get('ripple-rpc') || true : false,
 						mode: ssr ? 'server' : 'client',
 						stylex,
 						dev: is_dev,
@@ -1379,6 +1401,13 @@ export function ripple(inlineOptions = {}) {
 					// Track modules with `module server` declarations for RPC (client build only)
 					if (isBuild && !ssr && code.includes('_$_.rpc(')) {
 						serverModuleModules.add(filename);
+						for (const name of serverExports) {
+							const hash = createHash('sha256')
+								.update(filename + '#' + name)
+								.digest('hex')
+								.slice(0, 8);
+							rpcFunctions[hash] = { path: filename, name };
+						}
 					}
 
 					if (css) {
@@ -1404,9 +1433,10 @@ export function ripple(inlineOptions = {}) {
 /**
  * Convert a Node.js IncomingMessage to a Web Request
  * @param {import('node:http').IncomingMessage} nodeRequest
+ * @param {AbortSignal} [signal]
  * @returns {Request}
  */
-function nodeRequestToWebRequest(nodeRequest) {
+function nodeRequestToWebRequest(nodeRequest, signal) {
 	const protocol = 'http';
 	const host = nodeRequest.headers.host || 'localhost';
 	const url = new URL(nodeRequest.url || '/', `${protocol}://${host}`);
@@ -1423,7 +1453,7 @@ function nodeRequestToWebRequest(nodeRequest) {
 
 	const method = (nodeRequest.method || 'GET').toUpperCase();
 	/** @type {RequestInit & { duplex?: 'half' }} */
-	const init = { method, headers };
+	const init = { method, headers, signal };
 
 	// Add body for non-GET/HEAD requests
 	if (method !== 'GET' && method !== 'HEAD') {
@@ -1453,13 +1483,28 @@ async function sendWebResponse(nodeResponse, webResponse) {
 	// Send body
 	if (webResponse.body) {
 		const reader = webResponse.body.getReader();
+		const cancel = () => {
+			void reader.cancel().catch(() => {});
+		};
+		nodeResponse.once('close', cancel);
 		try {
-			while (true) {
+			while (!nodeResponse.destroyed) {
 				const { done, value } = await reader.read();
 				if (done) break;
-				nodeResponse.write(value);
+				if (!nodeResponse.write(value)) {
+					await new Promise((resolve) => {
+						const resume = () => {
+							nodeResponse.off('drain', resume);
+							nodeResponse.off('close', resume);
+							resolve(undefined);
+						};
+						nodeResponse.once('drain', resume);
+						nodeResponse.once('close', resume);
+					});
+				}
 			}
 		} finally {
+			nodeResponse.off('close', cancel);
 			reader.releaseLock();
 		}
 	}
@@ -1481,9 +1526,13 @@ async function sendWebResponse(nodeResponse, webResponse) {
  * @param {RippleConfigOptions | null} config
  */
 async function handleRpcRequest(req, res, vite, trustProxy, config) {
+	const controller = new AbortController();
+	const abort = () => controller.abort();
+	req.once('aborted', abort);
+	res.once('close', abort);
 	try {
 		// Convert Node request to Web Request for the shared handler
-		const webRequest = nodeRequestToWebRequest(req);
+		const webRequest = nodeRequestToWebRequest(req, controller.signal);
 		const asyncContext = getDevAsyncContext(config);
 
 		const response = await handle_rpc_request(webRequest, {
@@ -1495,15 +1544,14 @@ async function handleRpcRequest(req, res, vite, trustProxy, config) {
 				if (!moduleInfo) return null;
 
 				const [filePath, funcName] = moduleInfo;
-				const module = await vite.ssrLoadModule(filePath);
-				const server = module._$_server_$_;
-
-				if (!server || !server[funcName]) return null;
-				return server[funcName];
+				const module = await vite.ssrLoadModule(
+					filePath + '?ripple-rpc=' + encodeURIComponent(funcName),
+				);
+				return typeof module[funcName] === 'function' ? module[funcName] : null;
 			},
-			async executeServerFunction(fn, body) {
+			async executeServerFunction(fn, body, signal, run) {
 				const { executeServerFunction } = await vite.ssrLoadModule('ripple/server');
-				return executeServerFunction(fn, body);
+				return executeServerFunction(fn, body, signal, run);
 			},
 			asyncContext,
 			trustProxy,
@@ -1511,10 +1559,18 @@ async function handleRpcRequest(req, res, vite, trustProxy, config) {
 
 		await sendWebResponse(res, response);
 	} catch (error) {
+		if (controller.signal.aborted) return;
 		console.error('[@ripple-ts/vite-plugin] RPC error:', error);
+		if (res.headersSent) {
+			res.destroy();
+			return;
+		}
 		res.statusCode = 500;
 		res.setHeader('Content-Type', 'application/json');
 		res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'RPC failed' }));
+	} finally {
+		req.off('aborted', abort);
+		res.off('close', abort);
 	}
 }
 
