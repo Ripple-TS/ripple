@@ -1,5 +1,29 @@
 # @tsrx/ripple
 
+## 0.2.11
+
+### Patch Changes
+
+- [#1617](https://github.com/Ripple-TS/ripple/pull/1617)
+  [`2339eec`](https://github.com/Ripple-TS/ripple/commit/2339eeca2d1928119486494b90d312c0fe99b501)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add transparent
+  ViewTransition boundaries and scoped createViewTransition controllers with
+  shared-element naming, typed CSS classes, animation callbacks, bounded async
+  rendering coordination, SSR/hydration support, and browser/reduced-motion
+  fallbacks. Allow render observations to be cancelled with an AbortSignal. Add
+  optional RouterProvider coordination that replaces TanStack's native transition
+  wrapper.
+
+  Support automatic pending-to-content animation inside ViewTransition and
+  CSS-driven cross-document transitions with explicit SSR names. Cover both
+  Activity nesting orders and preserve explicit visibility animations during
+  deferred hydration. Shorten Activity hidden-text markers to `rt:`.
+
+  Scope transition selectors inside their native arguments, with explicit global
+  selectors and portable style maps. Preserve browser-default `auto` and disabling
+  `none` behavior across all styling props and transition-type maps. Preserve
+  updater errors when pending reveals are queued.
+
 ## 0.2.10
 
 ### Patch Changes
