@@ -153,6 +153,7 @@ function docs_sidebar() {
 				{ text: 'DOM References', link: 'guide/dom-refs' },
 				{ text: 'State Management', link: 'guide/state-management' },
 				{ text: 'Activity', link: 'guide/activity' },
+				{ text: 'View Transitions', link: 'guide/view-transitions' },
 				{ text: 'Deferred Hydration', link: 'guide/hydrate' },
 				{ text: 'Content Security Policy', link: 'guide/content-security-policy' },
 				{ text: 'Head Management', link: 'guide/head-management' },

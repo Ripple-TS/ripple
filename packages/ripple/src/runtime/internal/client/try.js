@@ -23,6 +23,34 @@ import {
 
 var installed = false;
 
+/** @type {null | ((state: TryState, reveal: () => void) => boolean)} */
+var reveal_transition = null;
+
+/** Optional renderer integration, installed only while ViewTransition boundaries exist.
+ * @param {typeof reveal_transition} transition
+ */
+export function set_reveal_transition(transition) {
+	reveal_transition = transition;
+}
+
+/** @param {TryState} state @param {number} version */
+function reveal_resolved(state, version) {
+	if (
+		state.b === null ||
+		is_destroyed(state.b) ||
+		state.n > 0 ||
+		state.v !== version ||
+		state.m === 2
+	)
+		return;
+	if (state.m === 1) {
+		destroy_pending(state);
+		show_resolved_fragment(state);
+	}
+	state.h = true;
+	state.m = 0;
+}
+
 /**
  * The runtime's catch routing: the nearest boundary above `block` with a
  * catch branch takes the error, or null leaves it to the caller.
@@ -290,13 +318,10 @@ function complete_request(state, request_id, show_resolved_branch = true) {
 				return;
 			}
 
-			if (state.m === 1) {
-				destroy_pending(state);
-				show_resolved_fragment(state);
-			}
-
-			state.h = true;
-			state.m = 0;
+			var version = state.v;
+			if (state.m === 1 && reveal_transition?.(state, () => reveal_resolved(state, version)))
+				return;
+			reveal_resolved(state, version);
 		});
 		// this is more just in case here and shouldn't really cause anything to run
 		// most likely the scheduling is already there

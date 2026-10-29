@@ -8,6 +8,8 @@ import { expression } from './expression.js';
 import { tsrx_element } from '../../element.js';
 import {
 	activity_hidden,
+	activity_revealing,
+	set_activity_revealing,
 	observe_activity_updates,
 	observe_activity_styles,
 	observe_activity_text,
@@ -43,13 +45,20 @@ function update_ancestors(block) {
 	}
 }
 
-/** @param {ActivityState} state */
-function queue_activation(state) {
+/** @param {ActivityState} state @param {boolean} [revealing] */
+function queue_activation(state, revealing = activity_revealing) {
 	const deferred = state.deferred;
 	if (HYDRATION && deferred !== null) {
 		queue_microtask(() => {
-			if (!activity_hidden(state.owner))
-				/** @type {import('./hydrate.js').HydrationRuntime} */ (H).y(deferred);
+			if (!activity_hidden(state.owner)) {
+				var previous = activity_revealing;
+				set_activity_revealing(revealing);
+				try {
+					/** @type {import('./hydrate.js').HydrationRuntime} */ (H).y(deferred);
+				} finally {
+					set_activity_revealing(previous);
+				}
+			}
 		});
 	}
 }
@@ -59,7 +68,7 @@ function promote_descendants(owner) {
 	for (var child = owner.first; child !== null; child = child.next) {
 		var state = get_activity(child);
 		if (state?.hidden) continue;
-		if (state !== undefined) queue_activation(state);
+		if (state !== undefined) queue_activation(state, true);
 		promote_descendants(child);
 	}
 }
@@ -104,6 +113,7 @@ export function Activity(props) {
 				branch(init);
 			}
 			render(() => {
+				var was_hidden = state.hidden;
 				var hidden = get(/** @type {any} */ (props.mode)) === 'hidden';
 				while (state.hidden !== hidden) {
 					state.hidden = hidden;
@@ -120,7 +130,7 @@ export function Activity(props) {
 					var deferred = state.deferred;
 					var runtime = /** @type {import('./hydrate.js').HydrationRuntime} */ (H);
 					if (activity_hidden(owner)) runtime.q(deferred);
-					else queue_activation(state);
+					else queue_activation(state, was_hidden || activity_revealing);
 				}
 				update_dom(state);
 			});

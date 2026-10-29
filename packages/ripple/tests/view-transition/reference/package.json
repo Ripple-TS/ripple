@@ -1,0 +1,9 @@
+{
+  "name": "ripple-view-transition-reference",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  }
+}

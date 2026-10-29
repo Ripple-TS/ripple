@@ -121,3 +121,11 @@ does not open a gate, and `never()` or removal before activation starts no
 request. For early updates with deferred view initialization, create one source in
 an active ancestor and pass it through props or Context. Deferred views reuse that
 owner's reader. Hydration-disabled output retains only the initial snapshot.
+
+### View transitions
+
+`ViewTransition` and `createViewTransition` provide transparent, explicitly
+activated browser animations for local state changes and shared elements.
+Boundaries add no wrapper, hydration marker, or template placeholder. See the
+[ViewTransition guide](https://ripple-ts.com/docs/guide/view-transitions) for the
+API, scoped/global CSS recipes, async coordination, and browser fallbacks.

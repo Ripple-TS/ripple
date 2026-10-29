@@ -80,18 +80,21 @@ export function createRenderObserver() {
 
 	return {
 		dispose,
-		run(update) {
+		run(update, options) {
 			settle_current?.(false);
-			if (disposed || is_destroyed(owner)) return Promise.resolve(false);
+			var signal = options?.signal;
+			if (disposed || is_destroyed(owner) || signal?.aborted) return Promise.resolve(false);
 			return new Promise((resolve, reject) => {
 				var armed = false;
 				var settle = (/** @type {boolean} */ rendered) => {
 					stop_waiting(check);
+					signal?.removeEventListener('abort', abort);
 					if (settle_current === settle) {
 						settle_current = null;
 					}
 					resolve(rendered);
 				};
+				var abort = () => settle(false);
 				var check = () => {
 					if (!armed || !is_render_idle()) return;
 					if (disposed || is_destroyed(owner)) return settle(false);
@@ -99,6 +102,7 @@ export function createRenderObserver() {
 					settle(true);
 				};
 				settle_current = settle;
+				signal?.addEventListener('abort', abort, { once: true });
 				waiting.add(check);
 				set_render_observer(notify);
 				try {
@@ -120,6 +124,7 @@ export function createRenderObserver() {
 					check();
 				} catch (error) {
 					stop_waiting(check);
+					signal?.removeEventListener('abort', abort);
 					if (settle_current === settle) {
 						settle_current = null;
 					}

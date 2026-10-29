@@ -46,9 +46,30 @@ export function createRenderObserver() {
 		dispose() {
 			disposed = true;
 		},
-		async run(update) {
-			if (!disposed) update();
+		async run(update, options) {
+			if (!disposed && !options?.signal?.aborted) update();
 			return false;
+		},
+	};
+}
+
+export { ViewTransition } from './internal/server/view-transition.js';
+
+/** @returns {import('#public').ViewTransitionController} */
+export function createViewTransition() {
+	var disposed = false;
+	return {
+		dispose() {
+			disposed = true;
+		},
+		run(update) {
+			var rendered = Promise.resolve().then(async () => {
+				if (!disposed) await update();
+				return false;
+			});
+			var finished = rendered.then(() => {});
+			finished.catch(noop);
+			return { rendered, ready: Promise.resolve(false), finished, skipTransition: noop };
 		},
 	};
 }

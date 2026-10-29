@@ -1,6 +1,13 @@
 /** @import { Block, UserEffectState } from '#client' */
 import { EFFECT_BLOCK, PAUSED } from './constants.js';
 
+// Distinguish initial adoption from hydration caused by a visibility change.
+export let activity_revealing = false;
+/** @param {boolean} value */
+export function set_activity_revealing(value) {
+	activity_revealing = value;
+}
+
 /** @type {((block: Block) => void) | null} */
 export let after_activity_update = null;
 

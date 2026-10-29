@@ -248,6 +248,7 @@ export function hydrate(component, options) {
 
 export { Context } from './internal/client/context.js';
 export { createRenderObserver } from './render-observer.js';
+export { ViewTransition, createViewTransition } from './view-transition.js';
 
 export {
 	flush_sync as flushSync,

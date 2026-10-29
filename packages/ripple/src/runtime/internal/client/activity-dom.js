@@ -125,14 +125,11 @@ export function restore_activity_html(start, end) {
 				element.setAttribute('style', style);
 				element.removeAttribute('data-ripple-activity-style');
 			}
-		} else if (
-			node.nodeType === 8 &&
-			/** @type {Comment} */ (node).data.startsWith('ripple-text:')
-		) {
+		} else if (node.nodeType === 8 && /** @type {Comment} */ (node).data.startsWith('rt:')) {
 			var template = document.createElement('template');
 			template.innerHTML = /** @type {string} */ (
 				createTrustedHTML(
-					decodeURIComponent(/** @type {Comment} */ (node).data.slice(12)),
+					decodeURIComponent(/** @type {Comment} */ (node).data.slice(3)),
 					'template',
 				)
 			);

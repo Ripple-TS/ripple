@@ -1,0 +1,206 @@
+{
+  "date": "2026-10-29",
+  "description": "One local Playwright run; timings and heap deltas are descriptive, not thresholds. React reference: 19.3.0.",
+  "bundleBytes": {
+    "baseline": 16587,
+    "enabled": 32328,
+    "added": 15741,
+    "addedGzip": 4913,
+    "fixtureGzip": 28098
+  },
+  "browsers": [
+    {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 1.5,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 2.1,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2581.5,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": true,
+        "ready": true,
+        "finished": true,
+        "hydrated": false,
+        "pseudos": [
+          "::view-transition-group(root)",
+          "::view-transition-group(photo)",
+          "::view-transition-new(root)",
+          "::view-transition-new(root)",
+          "::view-transition-old(root)",
+          "::view-transition-old(root)",
+          "::view-transition-new(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-old(photo)"
+        ]
+      },
+      "memory": {
+        "heapBefore": 2301092,
+        "heapAfter": 2337136,
+        "domBefore": {
+          "documents": 1,
+          "nodes": 53,
+          "jsEventListeners": 29
+        },
+        "domAfter": {
+          "documents": 1,
+          "nodes": 58,
+          "jsEventListeners": 29
+        }
+      }
+    },
+    {
+      "engine": "firefox",
+      "version": "155.0",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 2,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 3,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2568,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": false,
+        "ready": false,
+        "finished": false,
+        "hydrated": false,
+        "pseudos": []
+      }
+    },
+    {
+      "engine": "webkit",
+      "version": "26.6",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 2,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 3,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2561,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": true,
+        "ready": true,
+        "finished": true,
+        "hydrated": false,
+        "pseudos": [
+          "::view-transition-group(root)",
+          "::view-transition-old(root)",
+          "::view-transition-old(root)",
+          "::view-transition-new(root)",
+          "::view-transition-new(root)",
+          "::view-transition-group(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-new(photo)"
+        ]
+      }
+    }
+  ]
+}

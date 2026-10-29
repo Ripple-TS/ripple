@@ -1,4 +1,12 @@
-import { createRenderObserver, effect, track, untrack, type Children, type Derived } from 'ripple';
+import {
+	createRenderObserver,
+	effect,
+	track,
+	untrack,
+	type Children,
+	type Derived,
+	type ViewTransitionController,
+} from 'ripple';
 import {
 	getLocationChangeInfo,
 	trimPathRight,
@@ -41,7 +49,7 @@ function DefaultNotFound() {
 	return <p>Not Found</p>;
 }
 
-function Driver() @{
+function Driver({ viewTransition }: { viewTransition?: ViewTransitionController }) @{
 	const router = useRouter();
 	const observer = createRenderObserver();
 	if (!(isServer ?? router.isServer)) {
@@ -52,7 +60,30 @@ function Driver() @{
 				) throw new Error('A router can only have one mounted RouterProvider.');
 				mounted.add(router);
 				const previous = router.startTransition;
+				const previousViewTransition = router.startViewTransition;
 				router.startTransition = (update) => observer.run(update);
+				if (viewTransition) {
+					// One owner of the native API: replace core's wrapper, rather than
+					// starting a second transition from its render callback.
+					router.startViewTransition = (update) => {
+						const option = router.shouldViewTransition ?? router.options.defaultViewTransition;
+						router.shouldViewTransition = undefined;
+						if (!option) return update();
+						const types =
+							typeof option === 'object'
+								? typeof option.types === 'function'
+									? option.types(
+											getLocationChangeInfo(
+												router.latestLocation,
+												router.stores.resolvedLocation.get(),
+											),
+										)
+									: option.types
+								: undefined;
+						if (types === false) return update();
+						return viewTransition.run(update, { types }).rendered.then(() => {});
+					};
+				}
 				const unsubscribe = router.history.subscribe((event) => {
 					void router.load(event).catch(console.error);
 				});
@@ -92,6 +123,7 @@ function Driver() @{
 					unsubscribe();
 					observer.dispose();
 					router.startTransition = previous;
+					router.startViewTransition = previousViewTransition;
 					mounted.delete(router);
 				};
 			}),
@@ -136,12 +168,14 @@ export function RouterContextProvider({
 export function RouterProvider({
 	router,
 	context,
+	viewTransition,
 }: {
 	router: AnyRouter;
 	context?: Record<string, unknown> | Derived<Record<string, unknown>>;
+	viewTransition?: ViewTransitionController;
 }) {
 	return <RouterContextProvider {router} {context}>
-		<Driver />
+		<Driver {viewTransition} />
 	</RouterContextProvider>;
 }
 

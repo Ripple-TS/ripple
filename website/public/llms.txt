@@ -788,6 +788,50 @@ export function Button({ context }: { context: Context<ThemeStore> }) @{
 Context lookup follows component ancestry, including when the instance is passed
 as a prop. File boundaries do not change which provider a component reads.
 
+## View transitions
+
+`ViewTransition` from `ripple` is a transparent animation boundary: it adds no
+wrapper, template placeholder, or hydration marker. Create a scoped controller
+during component initialization with `createViewTransition()`, then call
+`controller.run(() => { state.value = next; }, { types: ['forward'] })` to animate.
+Ordinary updates, mount, hydration, and streamed adoption do not start animations.
+A ViewTransition wrapping @try/@pending automatically animates pending-to-content
+replacement, including a later reveal after an explicit run times out.
+
+Optional `name` pairs explicit shared elements; omit it for unique automatic
+names. `enter`, `exit`, `update`, `share`, and `default` accept `auto`, `none`, CSS
+class names, or transition-type maps. Pass tracked/derived props themselves for
+live reads. `onEnter/onExit/onUpdate/onShare(instance, types)` can return cleanup.
+The instance exposes `name`, `names`, and `old/new/group/imagePair` pseudo targets;
+their `animate()` and `getAnimations()` return arrays of Animation objects.
+
+Use global CSS for the document's transition pseudo tree, including
+`:global(::view-transition-new(.notice-in))` inside a scoped style block. Local
+keyframes remain scoped. Local runtime name/class overrides are temporary.
+Explicit names and shared classes are emitted in SSR for CSS-driven cross-document
+transitions: both pages opt in with @view-transition { navigation: auto; }.
+Use matching explicit names across pages; generated names remain document-local.
+Component animation callbacks remain same-document only.
+Enter/exit selects top-level inserted/removed boundaries; shared names pair
+across branches when both sides are onscreen; nested mutations select the inner
+boundary. Activity visibility can animate without losing state.
+
+The returned handle separates `rendered: Promise<boolean>`,
+`ready: Promise<boolean>`, and `finished: Promise<void>`; it also has
+`skipTransition()`. The controller waits for visible async rendering and demand
+hydration in its captured scope, then relevant images/fonts, bounded by a 500ms
+snapshot deadline (`timeout` option). Wrapped pending reveals animate automatically;
+other late updates render normally. This does not provide React concurrent rendering. A newer
+run supersedes the document's previous run. Unsupported browsers and reduced
+motion still apply updates without animation. Render observers also accept
+`run(update, { signal })` for cancellation.
+
+Pass a controller as `<RouterProvider {router} viewTransition={controller} />`
+to replace TanStack core's native wrapper; use the router's normal navigation
+viewTransition options. Never nest independently owned native wrappers.
+Full API, examples, differences, and browser fallback guidance:
+https://ripple-ts.com/docs/guide/view-transitions
+
 ## Activity
 
 `Activity` from `ripple` retains DOM and component state while hidden. Its `mode`

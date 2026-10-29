@@ -1,3 +1,4 @@
+import { map_root_html } from './root-html.js';
 import {
 	defer_hydration,
 	get,
@@ -15,41 +16,11 @@ import {
  * @param {string} html
  */
 export function hide_activity_html(html) {
-	var depth = 0;
-	var raw = '';
-	var result = '';
-	var tokens = /<!--[\s\S]*?-->|<\/?[a-zA-Z][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>|[^<]+|</g;
-	for (var match of html.matchAll(tokens)) {
-		var token = match[0];
-		var tag = /^<(\/)?([\w:-]+)/.exec(token);
-		if (raw !== '') {
-			result += token;
-			if (tag?.[1] && tag[2].toLowerCase() === raw) {
-				raw = '';
-				depth--;
-			}
-			continue;
-		}
-		if (tag !== null) {
-			var name = tag[2].toLowerCase();
-			if (tag[1]) depth--;
-			else {
-				if (depth === 0) token = hide_element(token);
-				if (
-					!/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(name) &&
-					!token.endsWith('/>')
-				) {
-					depth++;
-					if (/^(script|style|textarea|title)$/.test(name)) raw = name;
-				}
-			}
-		} else if (depth === 0 && !token.startsWith('<!--')) {
-			// Escaped text remains HTML until restoration, so entities roundtrip.
-			token = '<!--ripple-text:' + encodeURIComponent(token).replace(/-/g, '%2D') + '-->';
-		}
-		result += token;
-	}
-	return result;
+	return map_root_html(
+		html,
+		hide_element,
+		(text) => '<!--rt:' + encodeURIComponent(text).replace(/-/g, '%2D') + '-->',
+	);
 }
 
 /** @param {string} token */
