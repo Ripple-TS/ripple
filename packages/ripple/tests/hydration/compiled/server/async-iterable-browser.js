@@ -25,11 +25,12 @@ const rows = function (...args) {
 };
 
 async function* accumulate(previous) {
+	const owner_3 = _$_.get_async_owner();
 	let snapshot = previous ?? { cursor: 0, rows: [] };
 
 	await Promise.resolve();
 
-	const batches = await rows(snapshot.cursor);
+	const batches = await _$_.record_async_source(rows(snapshot.cursor), 'b2009f9a', owner_3);
 
 	for await (const batch of batches) {
 		snapshot = {

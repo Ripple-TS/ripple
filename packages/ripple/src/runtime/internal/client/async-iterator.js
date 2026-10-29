@@ -1,4 +1,4 @@
-import { with_async_owner } from './async-owner.js';
+import { with_async_owner } from '../../../utils/async-owner.js';
 import { RpcTransportError } from '../../../utils/rpc-stream.js';
 
 /**
@@ -9,7 +9,7 @@ import { RpcTransportError } from '../../../utils/rpc-stream.js';
  * @param {(value: any) => void} publish
  * @param {() => void} complete
  * @param {(error: any) => void} reject
- * @param {() => import('./async-owner.js').AsyncOwner} owner
+ * @param {() => import('../../../utils/async-owner.js').AsyncOwner} owner
  * @returns {() => void}
  */
 export function consume(source, current, publish, complete, reject, owner) {

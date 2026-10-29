@@ -4,7 +4,8 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template_el('em', null, ' ');
 
 function StatusSummary_render(__anchor, __block, { value }) {
-	const status = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(_$_.get_tracked_status(value).complete ? 'done' : 'open')), __block, 'eadcju');
+	const view = _$_.track_read_only(value, __block);
+	const status = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(_$_.get_tracked_status(view).complete ? 'done' : 'open')), __block, '188fmqx');
 	var em = root();
 
 	{
@@ -114,10 +115,10 @@ function render_1(__prev) {
 var root_5 = _$_.template(`<!>`, 1, 1);
 
 function Deferred_render(__anchor, __block) {
-	selection = _$_.track(0, __block, '188fmqx');
+	selection = _$_.track(0, __block, '1u0dgw');
 
-	const enabled = _$_.track(false, __block, '1u0dgw');
-	const show = _$_.track(true, __block, '1kgpbmv');
+	const enabled = _$_.track(false, __block, '1kgpbmv');
+	const show = _$_.track(true, __block, '1u0kar');
 	var fragment_2 = root_5();
 	var node_4 = _$_.first_child_frag(fragment_2);
 
@@ -168,10 +169,10 @@ function render_2(__prev) {
 var root_7 = _$_.template(`<!>`, 1, 1);
 
 function Shared_render(__anchor, __block) {
-	selection = _$_.track(0, __block, '1u0kar');
+	selection = _$_.track(0, __block, 'dy5u4e');
 	source = _$_.with_scope(__block, makeSource);
 
-	const enabled = _$_.track(false, __block, 'dy5u4e');
+	const enabled = _$_.track(false, __block, 'ud61f0');
 	var fragment_4 = root_7();
 	var node_6 = _$_.first_child_frag(fragment_4);
 
@@ -201,7 +202,7 @@ function Shared_render(__anchor, __block) {
 Shared[_$_.$r] = Shared_render;
 
 function Never_render(__anchor, __block) {
-	selection = _$_.track(0, __block, 'ud61f0');
+	selection = _$_.track(0, __block, '1wzerhc');
 
 	_$_.render_component(Hydrate, __anchor, {
 		when: _$_.with_scope(__block, never),
@@ -214,7 +215,7 @@ function Never_render(__anchor, __block) {
 Never[_$_.$r] = Never_render;
 
 function Immediate_render(__anchor, __block) {
-	selection = _$_.track(0, __block, '1wzerhc');
+	selection = _$_.track(0, __block, 'pna4yj');
 	_$_.render_component(Owned, __anchor, {});
 }
 
@@ -245,10 +246,10 @@ function render_4(__prev) {
 var root_9 = _$_.template(`<!>`, 1, 1);
 
 function BoundShared_render(__anchor, __block) {
-	selection = _$_.track(0, __block, 'pna4yj');
+	selection = _$_.track(0, __block, '1bdt1sk');
 	source = _$_.with_scope(__block, makeSource);
 
-	const enabled = _$_.track(false, __block, '1bdt1sk');
+	const enabled = _$_.track(false, __block, '13buzaq');
 	var fragment_6 = root_9();
 	var node_8 = _$_.first_child_frag(fragment_6);
 
@@ -285,7 +286,15 @@ function BoundShared_render(__anchor, __block) {
 
 BoundShared[_$_.$r] = BoundShared_render;
 
-import { Hydrate, bindValue, getTrackedStatus, track, trackAsync } from 'ripple';
+import {
+	Hydrate,
+	bindValue,
+	getTrackedStatus,
+	track,
+	trackAsync,
+	trackReadOnly
+} from 'ripple';
+
 import { condition, never } from 'ripple/hydration';
 
 export const calls = [];

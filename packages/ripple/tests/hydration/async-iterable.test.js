@@ -46,6 +46,24 @@ describe('iterable hydration', () => {
 		unmount();
 	});
 
+	it('preserves status-only dependencies through a hashless read-only view', async () => {
+		container.innerHTML = (await render(server.Immediate)).body;
+		const envelopes = [...container.querySelectorAll('script[id^="__ripple_ta_"]')].map((node) =>
+			JSON.parse(node.textContent),
+		);
+		const summary = envelopes.find((entry) => entry.value === 'open');
+		expect(summary.deps).toHaveLength(1);
+		expect(summary.deps[0]).toMatch(/^\?/);
+		const unmount = hydrate(client.Immediate, { target: container });
+		try {
+			await vi.waitFor(() => expect(client.release).toBeTypeOf('function'));
+			client.release();
+			await vi.waitFor(() => expect(container.querySelector('em').textContent).toBe('done'));
+		} finally {
+			unmount();
+		}
+	});
+
 	it('retains a single-yield snapshot when continuation observes completion', async () => {
 		client.reset(true);
 		const { unmount } = await hydrateComponent(server.Immediate, client.Immediate);

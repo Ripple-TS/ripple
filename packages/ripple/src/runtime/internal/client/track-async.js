@@ -41,7 +41,7 @@ import {
 	register_boundary_paused_block,
 	replace_boundary_request,
 } from './try.js';
-import { with_async_owner } from './async-owner.js';
+import { with_async_owner } from '../../../utils/async-owner.js';
 import { get_async_track_result, is_async_iterable } from '../../../utils/async.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import {
@@ -170,6 +170,7 @@ export function track_async(fn, b, hash) {
 					envelope.payload === undefined ? envelope.value : context.revive(envelope.payload);
 				hydration_deps = envelope.deps;
 				continuing = envelope.c === 1;
+				if (envelope.r !== undefined) reads = new Set(envelope.r);
 				// Deferred children may initialize after an ancestor changed a serialized dependency.
 				if (
 					context.recover &&
@@ -281,7 +282,7 @@ export function track_async(fn, b, hash) {
 		/** @type {(() => void) | undefined} */
 		var close;
 		var retired = false;
-		/** @type {import('./async-owner.js').AsyncOwner | undefined} */
+		/** @type {import('../../../utils/async-owner.js').AsyncOwner | undefined} */
 		var owner;
 		function get_owner() {
 			if (owner === undefined) {
@@ -468,6 +469,17 @@ export function track_async(fn, b, hash) {
 		/** @param {any} error */
 		function fail(error) {
 			if (!current()) return;
+			// A direct RPC can fail before returning the handed-off iterable.
+			if (recovering && stream_runtime === undefined) {
+				import('./async-iterator.js')
+					.then((runtime) => {
+						if (!current()) return;
+						stream_runtime = runtime;
+						fail(error);
+					})
+					.catch(reject);
+				return;
+			}
 			const retry = stream_runtime?.retry(error, retries, () => {
 				if (!current()) return;
 				resume = true;

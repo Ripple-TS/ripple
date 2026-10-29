@@ -1,4 +1,4 @@
-/** @typedef {{ s: AbortSignal; r: Set<string> }} AsyncOwner */
+/** @typedef {{ s?: AbortSignal; r: Set<string> }} AsyncOwner */
 /** @type {(() => AsyncOwner) | undefined} */
 let owner;
 

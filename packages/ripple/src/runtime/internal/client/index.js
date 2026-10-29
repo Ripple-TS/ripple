@@ -145,4 +145,4 @@ export { pop, next, hydrating } from './hydration.js';
 
 export { is_tsrx_element, tsrx_element, normalize_children } from '../../element.js';
 
-export { get_async_owner } from './async-owner.js';
+export { get_async_owner } from '../../../utils/async-owner.js';

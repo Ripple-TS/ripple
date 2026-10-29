@@ -1,4 +1,12 @@
-import { Hydrate, bindValue, getTrackedStatus, track, trackAsync, type Tracked } from 'ripple';
+import {
+	Hydrate,
+	bindValue,
+	getTrackedStatus,
+	track,
+	trackAsync,
+	trackReadOnly,
+	type Tracked,
+} from 'ripple';
 import { condition, never } from 'ripple/hydration';
 
 export const calls: Array<number | undefined> = [];
@@ -28,8 +36,9 @@ function makeSource() {
 	});
 }
 function StatusSummary({ value }: { value: Tracked<{ cursor: number }> }) @{
+	const view = trackReadOnly(value);
 	const status = trackAsync(
-		() => Promise.resolve(getTrackedStatus(value).complete ? 'done' : 'open'),
+		() => Promise.resolve(getTrackedStatus(view).complete ? 'done' : 'open'),
 	);
 	<em>{status.value}</em>
 }

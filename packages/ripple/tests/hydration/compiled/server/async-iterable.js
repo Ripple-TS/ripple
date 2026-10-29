@@ -1,7 +1,15 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { Hydrate, bindValue, getTrackedStatus, track, trackAsync } from 'ripple/server';
+import {
+	Hydrate,
+	bindValue,
+	getTrackedStatus,
+	track,
+	trackAsync,
+	trackReadOnly
+} from 'ripple/server';
+
 import { condition, never } from 'ripple/hydration';
 
 export const calls = [];
@@ -39,7 +47,8 @@ function makeSource() {
 
 function StatusSummary({ value }) {
 	return _$_.tsrx_element(() => {
-		const status = _$_.track_async(() => Promise.resolve(_$_.get_tracked_status(value).complete ? 'done' : 'open'), 'eadcju');
+		const view = _$_.track_read_only(value);
+		const status = _$_.track_async(() => Promise.resolve(_$_.get_tracked_status(view).complete ? 'done' : 'open'), '188fmqx');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -111,10 +120,10 @@ function Owned() {
 
 export function Deferred() {
 	return _$_.tsrx_element(() => {
-		selection = _$_.track(0, '188fmqx');
+		selection = _$_.track(0, '1u0dgw');
 
-		const enabled = _$_.track(false, '1u0dgw');
-		const show = _$_.track(true, '1kgpbmv');
+		const enabled = _$_.track(false, '1kgpbmv');
+		const show = _$_.track(true, '1u0kar');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -166,10 +175,10 @@ export function Deferred() {
 
 export function Shared() {
 	return _$_.tsrx_element(() => {
-		selection = _$_.track(0, '1u0kar');
+		selection = _$_.track(0, 'dy5u4e');
 		source = makeSource();
 
-		const enabled = _$_.track(false, 'dy5u4e');
+		const enabled = _$_.track(false, 'ud61f0');
 
 		_$_.regular_block(() => {
 			let __out = '';
@@ -210,7 +219,7 @@ export function Shared() {
 
 export function Never() {
 	return _$_.tsrx_element(() => {
-		selection = _$_.track(0, 'ud61f0');
+		selection = _$_.track(0, '1wzerhc');
 
 		_$_.regular_block(() => {
 			{
@@ -240,7 +249,7 @@ export function Never() {
 
 export function Immediate() {
 	return _$_.tsrx_element(() => {
-		selection = _$_.track(0, '1wzerhc');
+		selection = _$_.track(0, 'pna4yj');
 
 		_$_.regular_block(() => {
 			{
@@ -255,10 +264,10 @@ export function Immediate() {
 
 export function BoundShared() {
 	return _$_.tsrx_element(() => {
-		selection = _$_.track(0, 'pna4yj');
+		selection = _$_.track(0, '1bdt1sk');
 		source = makeSource();
 
-		const enabled = _$_.track(false, '1bdt1sk');
+		const enabled = _$_.track(false, '13buzaq');
 
 		_$_.regular_block(() => {
 			let __out = '';
