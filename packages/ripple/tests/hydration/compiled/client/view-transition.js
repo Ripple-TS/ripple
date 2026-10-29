@@ -237,6 +237,37 @@ function ActivityAroundTransition_render(__anchor, __block, { initial = 'visible
 
 ActivityAroundTransition[_$_.$r] = ActivityAroundTransition_render;
 
+var root_10 = _$_.template_el('button', ['class', 'tsrx-79a67cbe']);
+
+function render_4(__prev) {
+	var __a = count.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._a, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+function Scoped_render(__anchor, __block, { value = 'auto' }) {
+	transition = _$_.with_scope(__block, createViewTransition);
+	count = _$_.track(0, __block, 'bm7o44');
+
+	_$_.render_component(ViewTransition, __anchor, {
+		name: "scoped",
+		default: value,
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var button_6 = root_10();
+
+			button_6.__click = () => count.value++;
+			_$_.render(render_4, { a: '', _a: button_6 });
+			_$_.append(__anchor, button_6);
+		}),
+		$v: 'tsrx-79a67cbe'
+	});
+}
+
+Scoped[_$_.$r] = Scoped_render;
+
 import {
 	ViewTransition,
 	Activity,
@@ -292,6 +323,10 @@ export function WrappedActivity(__props) {
 
 export function ActivityAroundTransition(__props) {
 	return _$_.tsrx_element(ActivityAroundTransition_render, __props);
+}
+
+export function Scoped(__props) {
+	return _$_.tsrx_element(Scoped_render, __props);
 }
 
 _$_.delegate(['click']);

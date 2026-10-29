@@ -33,6 +33,8 @@ export type AnalysisContext = import('@tsrx/core/types').Context<AST.Node, Analy
 
 declare module '@tsrx/core/types' {
 	interface BaseNodeMetaData {
+		/** Native transition classes supplied by enclosing Ripple style scopes. */
+		tsrx_view_transition_scope?: AST.Expression;
 		/**
 		 * A keyed `@for` whose pattern has a rest element or a default: the
 		 * loop runtime destructures each item once, natively, into an object of

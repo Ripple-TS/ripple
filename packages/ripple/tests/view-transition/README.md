@@ -47,8 +47,8 @@ callback sequence rather than inferring it from the component signature.
 | Shared pair             | Same explicit name, unrelated branches, both onscreen; share before enter/exit; outgoing callback only                                      | client; browser; reference                            |
 | Names                   | Document-wide auto uniqueness, CSS identifier subset, duplicate/invalid development diagnostics                                             | client; hydration                                     |
 | Rootless/multiple roots | No wrapper/marker; element roots get ordered suffixes; text alone is excluded                                                               | client; SSR equality; 500-boundary browser comparison |
-| Styles                  | Type-map merging, none precedence, default fallback, live tracked props; restore inline values/priorities                                   | client; browser                                       |
-| Scoped CSS              | Explicit global pseudo selectors; names/classes unchanged; keyframes remain scoped; nested scopes and unused rules                          | compiler; browser production CSS                      |
+| Styles                  | All five props support auto/none, type maps and live values; scope tokens preserve browser defaults and none precedence                     | client; browser                                       |
+| Scoped CSS              | Local argument filters, global escapes, portable style maps, nested/applied scopes, and independent keyframe scoping                        | compiler; browser production CSS                      |
 | Async                   | Explicit runs wait for visible work; wrapped pending-to-content changes automatically start or join a transition                            | client; streaming hydration                           |
 | Ordering                | Old snapshot, update, render/effect/ref completion, assets, new snapshot, callbacks, cleanup                                                | deterministic native fixture; browser promises        |
 | Rapid changes           | One owner/document; supersede prior work; stale unstarted updater never commits                                                             | client; browser interruption                          |
@@ -102,3 +102,13 @@ An example local run is recorded in [measurements.json](./measurements.json). It
 includes raw/gzip bundle deltas, five-sample hydration medians, callback/DOM
 lifetime counts, Chromium heap counters, browser versions, and the scenarios
 compared against React. Rerun the script to measure another machine or revision.
+
+Scoped styling checks also compare `auto` against an unstyled native browser
+transition, verify two components can reuse a class label with different
+animations, exercise an explicit global recipe and a local wildcard override, and
+confirm that `none` remains disabled. Incoming cross-document snapshots exercise
+scoped SSR CSS before hydration.
+
+Bugbot review regressions cover updater errors with queued automatic reveals and
+missing `matchMedia`/`defaultView`. The former required a fix; the latter already
+short-circuited correctly through optional chaining.

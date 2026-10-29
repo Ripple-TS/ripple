@@ -328,3 +328,39 @@ export function ActivityAroundTransition({ initial = 'visible' }) {
 		});
 	});
 }
+
+export function Scoped({ value = 'auto' }) {
+	return _$_.tsrx_element(() => {
+		_$_.output_register_css('tsrx-79a67cbe');
+		transition = createViewTransition();
+		count = _$_.track(0, 'bm7o44');
+
+		_$_.regular_block(() => {
+			{
+				{
+					const comp = ViewTransition;
+
+					const args = [
+						{
+							name: "scoped",
+							default: value,
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
+
+									__out += '<button class="tsrx-79a67cbe">' + _$_.escape(count.value) + '</button>';
+									_$_.output_push(__out);
+								});
+							}),
+							$v: 'tsrx-79a67cbe'
+						}
+					];
+
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
+_$_.register_css('tsrx-79a67cbe', '\n			::view-transition-group(*.tsrx-79a67cbe) {\n				animation-duration: 100ms;\n			}\n			::view-transition-new(.notice.tsrx-79a67cbe) {\n				opacity: 1;\n			}\n		');

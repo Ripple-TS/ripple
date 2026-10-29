@@ -437,6 +437,8 @@ export function Gallery() {
 
 export function Detail() {
 	return _$_.tsrx_element(() => {
+		_$_.output_register_css('tsrx-53cebc47');
+
 		_$_.regular_block(() => {
 			let __out = '';
 
@@ -449,15 +451,16 @@ export function Detail() {
 				const args = [
 					{
 						name: "photo",
-						share: "share",
+						share: "local-photo",
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
 								let __out = '';
 
-								__out += '<div id="photo">large photo</div>';
+								__out += '<div id="photo" class="tsrx-53cebc47">large photo</div>';
 								_$_.output_push(__out);
 							});
-						})
+						}),
+						$v: 'tsrx-53cebc47'
 					}
 				];
 
@@ -466,7 +469,7 @@ export function Detail() {
 				_$_.render_component(comp, ...args);
 			}
 
-			__out += '<a id="next" href="/document-a">Back to gallery</a>';
+			__out += '<a id="next" href="/document-a" class="tsrx-53cebc47">Back to gallery</a>';
 			_$_.output_push(__out);
 		});
 	});
@@ -593,4 +596,177 @@ export function InnerActivityApp() {
 	});
 }
 
+let scopedCount;
+let scopedMode;
+
+export function runScoped(mode) {
+	scopedMode.value = mode;
+
+	return transition.run(() => {
+		scopedCount.value++;
+	});
+}
+
+function ScopedA() {
+	return _$_.tsrx_element(() => {
+		_$_.output_register_css('tsrx-7a97b36f');
+
+		_$_.regular_block(() => {
+			{
+				{
+					const comp = ViewTransition;
+
+					const args = [
+						{
+							name: "scoped-a",
+							update: scopedMode,
+							onUpdate: record('scoped-a'),
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
+
+									__out += '<p id="scoped-a" class="tsrx-7a97b36f">' + _$_.escape(scopedCount.value) + '</p>';
+									_$_.output_push(__out);
+								});
+							}),
+							$v: 'tsrx-7a97b36f'
+						}
+					];
+
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
+function ScopedB() {
+	return _$_.tsrx_element(() => {
+		_$_.output_register_css('tsrx-c2268f10');
+
+		let styles;
+
+		styles = { '$class': 'tsrx-c2268f10', 'notice': 'tsrx-c2268f10 notice' };
+
+		_$_.regular_block(() => {
+			{
+				{
+					const comp = ViewTransition;
+
+					const args = [
+						{
+							name: "scoped-b",
+							update: styles.notice,
+							onUpdate: record('scoped-b'),
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
+
+									__out += '<p class="tsrx-c2268f10">' + _$_.escape(scopedCount.value) + '</p>';
+									_$_.output_push(__out);
+								});
+							}),
+							$v: 'tsrx-c2268f10'
+						}
+					];
+
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
+function ScopedWildcard() {
+	return _$_.tsrx_element(() => {
+		_$_.output_register_css('tsrx-074c3239');
+
+		_$_.regular_block(() => {
+			{
+				{
+					const comp = ViewTransition;
+
+					const args = [
+						{
+							name: "scoped-wildcard",
+							update: "auto",
+							onUpdate: record('scoped-wildcard'),
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
+
+									__out += '<p class="tsrx-074c3239">' + _$_.escape(scopedCount.value) + '</p>';
+									_$_.output_push(__out);
+								});
+							}),
+							$v: 'tsrx-074c3239'
+						}
+					];
+
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
+export function ScopedApp() {
+	return _$_.tsrx_element(() => {
+		transition = createViewTransition();
+		scopedCount = _$_.track(0, 'ia4wuv');
+		scopedMode = _$_.track('notice', '1pn0k11');
+
+		_$_.regular_block(() => {
+			{
+				{
+					const comp = ScopedA;
+					const args = [{}];
+
+					_$_.render_component(comp, ...args);
+				}
+
+				{
+					const comp = ScopedB;
+					const args = [{}];
+
+					_$_.render_component(comp, ...args);
+				}
+
+				{
+					const comp = ScopedWildcard;
+					const args = [{}];
+
+					_$_.render_component(comp, ...args);
+				}
+
+				{
+					const comp = ViewTransition;
+
+					const args = [
+						{
+							name: "scoped-global",
+							update: "shared-recipe",
+							onUpdate: record('scoped-global'),
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
+
+									__out += '<p>' + _$_.escape(scopedCount.value) + '</p>';
+									_$_.output_push(__out);
+								});
+							})
+						}
+					];
+
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
 _$_.register_css('tsrx-430cbf0c', '\n			::view-transition-new(.notice-in) {\n				animation: tsrx-430cbf0c-appear 120ms linear;\n			}\n			::view-transition-old(.notice-out) {\n				animation: tsrx-430cbf0c-appear 120ms linear reverse;\n			}\n			::view-transition-new(.change) {\n				animation: tsrx-430cbf0c-appear 100ms linear;\n			}\n			::view-transition-new(.share) {\n				animation: tsrx-430cbf0c-appear 140ms linear;\n			}\n			::view-transition-image-pair(.share) {\n				isolation: isolate;\n			}\n			::view-transition-group(.share) {\n				animation-duration: 140ms;\n			}\n			@keyframes tsrx-430cbf0c-appear {\n				from {\n					opacity: 0;\n				}\n				to {\n					opacity: 1;\n				}\n			}\n			@media (prefers-reduced-motion: reduce) {\n				::view-transition-group(*) {\n					animation-duration: 0s;\n				}\n			}\n		');
+_$_.register_css('tsrx-53cebc47', '\n			::view-transition-new(.local-photo.tsrx-53cebc47) {\n				animation: tsrx-53cebc47-photo-in 170ms linear;\n			}\n			@keyframes tsrx-53cebc47-photo-in {\n				from {\n					opacity: 0;\n				}\n				to {\n					opacity: 1;\n				}\n			}\n		');
+_$_.register_css('tsrx-7a97b36f', '\n			::view-transition-new(.notice.tsrx-7a97b36f) {\n				animation: tsrx-7a97b36f-reveal 170ms linear;\n			}\n			::view-transition-new(.shared-recipe) {\n				animation: tsrx-7a97b36f-reveal 130ms linear;\n			}\n			@keyframes tsrx-7a97b36f-reveal {\n				from {\n					opacity: 0;\n				}\n				to {\n					opacity: 1;\n				}\n			}\n		');
+_$_.register_css('tsrx-c2268f10', '\n			::view-transition-new(.notice.tsrx-c2268f10) {\n				animation: tsrx-c2268f10-reveal 220ms linear;\n			}\n			@keyframes tsrx-c2268f10-reveal {\n				from {\n					opacity: 0;\n				}\n				to {\n					opacity: 1;\n				}\n			}\n		');
+_$_.register_css('tsrx-074c3239', '\n			::view-transition-new(*.tsrx-074c3239) {\n				animation-duration: 90ms;\n			}\n		');

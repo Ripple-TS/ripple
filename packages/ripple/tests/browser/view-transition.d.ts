@@ -5,6 +5,7 @@ interface Window {
 		finished: boolean;
 		hydrated: boolean;
 		pseudos: Array<string | null>;
+		duration: string;
 		error?: string;
 	};
 	reactTransitions: globalThis.ViewTransition[];
@@ -18,6 +19,7 @@ interface Window {
 		fixture: {
 			run(action: string, skip?: boolean): import('ripple').ViewTransitionHandle;
 			resolveAsync(): void;
+			runScoped(mode: string): import('ripple').ViewTransitionHandle;
 			runActivity(mode: 'visible' | 'hidden'): import('ripple').ViewTransitionHandle;
 			events: Array<{
 				kind: string;
@@ -33,5 +35,6 @@ interface Window {
 		hydration: number;
 		starts(): number;
 		finished(): Promise<void>;
+		browserDefault(): Promise<string>;
 	};
 }

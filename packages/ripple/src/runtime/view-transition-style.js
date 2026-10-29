@@ -19,3 +19,11 @@ export function resolve_class(value, types) {
 	if (values.includes('none')) return 'none';
 	return values.filter((value) => value !== 'auto').join(' ') || 'auto';
 }
+
+/** Scope is matching metadata, never an animation preset. Disabled boundaries
+ * must remain disabled; auto carries only the scope and keeps browser defaults.
+ * @param {string} value @param {string | undefined} scope
+ */
+export function scope_class(value, scope) {
+	return !scope || value === 'none' ? value : value === 'auto' ? scope : value + ' ' + scope;
+}

@@ -1410,3 +1410,230 @@ it(
 		expect(native.start).not.toHaveBeenCalled();
 	},
 );
+
+describe('scoped transition classes', () => {
+	it.each(['enter', 'exit', 'update', 'share', 'default'] as const)(
+		'%s supports auto and none without turning keywords into classes',
+		async (kind) => {
+			const value = create_library_value<'auto' | 'none'>('auto');
+			const shown = create_library_value(kind !== 'enter');
+			const count = create_library_value(0);
+			const detail = create_library_value(false);
+			let transition!: ViewTransitionController;
+			const callback = vi.fn();
+			const props = {
+				[kind]: value,
+				onEnter: callback,
+				onExit: callback,
+				onUpdate: callback,
+				onShare: callback,
+			};
+			function App() @{
+				transition = createViewTransition();
+				<>
+					<style>
+						::view-transition-group(*) {
+							animation-duration: 1s;
+						}
+					</style>
+					@if (kind === 'share') {
+						@if (detail.value) {
+							<ViewTransition name="shared-scoped" {...props}>
+								<p>new</p>
+							</ViewTransition>
+						} @else {
+							<ViewTransition name="shared-scoped" {...props}>
+								<p>old</p>
+							</ViewTransition>
+						}
+					} @else {
+						@if (shown.value) {
+							<ViewTransition {...props}>
+								<p>{count.value}</p>
+							</ViewTransition>
+						}
+					}
+				</>
+			}
+			setup(App);
+			const update = () => {
+				if (kind === 'enter' || kind === 'exit') shown.value = !shown.value;
+				else if (kind === 'share') detail.value = !detail.value;
+				else count.value++;
+			};
+			let handle = transition.run(update);
+			expect(await handle.ready).toBe(true);
+			expect(callback).toHaveBeenCalledOnce();
+			const captured =
+				kind === 'exit' ? native.transitions[0].old : native.transitions[0].new;
+			const classes = captured.find((entry: any[]) => entry[0].tagName === 'P')![2];
+			expect(classes).toMatch(/^tsrx-[\da-f]+$/);
+			expect(classes).not.toContain('auto');
+			native.transitions[0].finish();
+			await handle.finished;
+			// Restore the presence condition without activating a transition.
+			if (kind === 'enter' || kind === 'exit') {
+				shown.value = !shown.value;
+				flushSync();
+			}
+			value.value = 'none';
+			handle = transition.run(update);
+			expect(await handle.ready).toBe(false);
+			await handle.finished;
+			expect(callback).toHaveBeenCalledOnce();
+			expect(native.transitions[1].new.some((entry: any[]) => entry[0].tagName === 'P')).toBe(
+				false,
+			);
+		},
+	);
+
+	it(
+		'combines resolved dynamic classes, map values, and scopes while none wins across types',
+		async () => {
+			const count = create_library_value(0);
+			const classes = create_library_value({
+				forward: 'auto',
+				fast: 'fade slide',
+				stop: 'none',
+				default: 'auto',
+			});
+			let transition!: ViewTransitionController;
+			function App() @{
+				transition = createViewTransition();
+				<>
+					<style>
+						::view-transition-new(.fade.slide) {
+							opacity: 0;
+						}
+					</style>
+					<ViewTransition update={classes}>
+						<p>{count.value}</p>
+					</ViewTransition>
+				</>
+			}
+			setup(App);
+			let handle = transition.run(() => {
+				count.value++;
+			}, { types: ['forward', 'fast'] });
+			await handle.ready;
+			expect(
+				native.transitions[0].new.find((entry: any[]) => entry[0].tagName === 'P')![2],
+			).toMatch(/^fade slide tsrx-[\da-f]+$/);
+			native.transitions[0].finish();
+			await handle.finished;
+			handle = transition.run(() => {
+				count.value++;
+			}, { types: ['fast', 'stop'] });
+			expect(await handle.ready).toBe(false);
+			await handle.finished;
+			handle = transition.run(() => {
+				count.value++;
+			});
+			await handle.ready;
+			expect(
+				native.transitions[2].new.find((entry: any[]) => entry[0].tagName === 'P')![2],
+			).toMatch(/^tsrx-[\da-f]+$/);
+			native.transitions[2].finish();
+			await handle.finished;
+		},
+	);
+
+	it('allows an explicit auto trigger to override default none in a scoped boundary', async () => {
+		const count = create_library_value(0);
+		let transition!: ViewTransitionController;
+		function App() @{
+			transition = createViewTransition();
+			<>
+				<style>
+					::view-transition-new(*) {
+						opacity: 1;
+					}
+				</style>
+				<ViewTransition default="none" update="auto">
+					<p>{count.value}</p>
+				</ViewTransition>
+			</>
+		}
+		setup(App);
+		const handle = transition.run(() => {
+			count.value++;
+		});
+		expect(await handle.ready).toBe(true);
+		expect(native.transitions[0].new.find((entry: any[]) => entry[0].tagName === 'P')![2]).toMatch(
+			/^tsrx-/,
+		);
+		native.transitions[0].finish();
+		await handle.finished;
+	});
+});
+
+it(
+	'preserves updater failures when an automatic reveal was queued before the native commit',
+	async () => {
+		const pending = Promise.withResolvers<string>();
+		let transition!: ViewTransitionController;
+		function Content() @{
+			const value = trackAsync(() => pending.promise);
+			<p>{value.value}</p>
+		}
+		function App() @{
+			transition = createViewTransition();
+			<ViewTransition>
+				@try {
+					<Content />
+				} @pending {
+					<p>loading</p>
+				}
+			</ViewTransition>
+		}
+		setup(App);
+		await vi.waitFor(() => expect(container.textContent).toBe('loading'));
+		let release!: () => Promise<void>;
+		const start = document.startViewTransition;
+		Object.defineProperty(document, 'startViewTransition', {
+			configurable: true,
+			value: (update: () => Promise<void>) => start(
+				() => new Promise<void>((resolve, reject) => {
+					release = () => update().then(resolve, reject);
+				}),
+			),
+		});
+		const handle = transition.run(() => {
+			throw new Error('queued updater failed');
+		});
+		pending.resolve('ready');
+		await vi.waitFor(() => expect(release).toBeTypeOf('function'));
+		await Promise.resolve();
+		flushSync();
+		expect(container.textContent).toBe('loading');
+		await release();
+		await expect(handle.rendered).rejects.toThrow('queued updater failed');
+		await expect(handle.finished).rejects.toThrow('queued updater failed');
+		expect(await handle.ready).toBe(false);
+		expect(container.textContent).toBe('ready');
+	},
+);
+
+it.each(['matchMedia', 'defaultView'])('renders and animates safely without %s', async (
+	missing,
+) => {
+	const count = create_library_value(0);
+	let transition!: ViewTransitionController;
+	function App() @{
+		transition = createViewTransition();
+		<ViewTransition>
+			<p>{count.value}</p>
+		</ViewTransition>
+	}
+	setup(App);
+	if (missing === 'matchMedia') vi.stubGlobal('matchMedia', undefined);
+	else vi.spyOn(document, 'defaultView', 'get').mockReturnValue(null);
+	const handle = transition.run(() => {
+		count.value++;
+	});
+	expect(await handle.ready).toBe(true);
+	expect(container.textContent).toBe('1');
+	native.transitions[0].finish();
+	await handle.finished;
+	vi.unstubAllGlobals();
+});

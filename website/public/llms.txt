@@ -805,16 +805,21 @@ live reads. `onEnter/onExit/onUpdate/onShare(instance, types)` can return cleanu
 The instance exposes `name`, `names`, and `old/new/group/imagePair` pseudo targets;
 their `animate()` and `getAnimations()` return arrays of Animation objects.
 
-Use global CSS for the document's transition pseudo tree, including
-`:global(::view-transition-new(.notice-in))` inside a scoped style block. Local
-keyframes remain scoped. Local runtime name/class overrides are temporary.
+Transition CSS in scoped blocks is local by default: `::view-transition-new(.notice)`
+becomes `::view-transition-new(.notice.HASH)`, with the same hash supplied to the
+boundary as a native transition class. Use `:global(...)` for shared recipes.
+All four named pseudo-elements, wildcard selectors, explicit names, nested scopes,
+and applied themes are supported. Keyframe scoping remains independent. Style
+maps and refs expose transition classes for forwarding through other components.
+`auto` adds no preset and keeps browser defaults unless authored CSS overrides
+it; `none` remains disabled regardless of scope. Transition-type map keys and
+explicit shared names are never scoped. Root/overlay styling must be global.
+
 Explicit names and shared classes are emitted in SSR for CSS-driven cross-document
 transitions: both pages opt in with @view-transition { navigation: auto; }.
-Use matching explicit names across pages; generated names remain document-local.
-Component animation callbacks remain same-document only.
-Enter/exit selects top-level inserted/removed boundaries; shared names pair
-across branches when both sides are onscreen; nested mutations select the inner
-boundary. Activity visibility can animate without losing state.
+Generated names remain document-local. Component callbacks are same-document.
+The incoming side's classes select shared styles. Both Activity nesting orders
+preserve component state; hiding/showing can animate through the controller.
 
 The returned handle separates `rendered: Promise<boolean>`,
 `ready: Promise<boolean>`, and `finished: Promise<void>`; it also has

@@ -20,14 +20,14 @@ export function Notice() @{
 			</ViewTransition>
 		}
 		<style>
-			:global(::view-transition-new(.notice-in)) { animation: arrive 160ms ease-out; }
-			:global(::view-transition-old(.notice-out)) { animation: arrive 120ms ease-in reverse; }
+			::view-transition-new(.notice-in) { animation: arrive 160ms ease-out; }
+			::view-transition-old(.notice-out) { animation: arrive 120ms ease-in reverse; }
 			@keyframes arrive {
 				from { opacity: 0; transform: translateY(8px); }
 				to { opacity: 1; transform: translateY(0); }
 			}
 			@media (prefers-reduced-motion: reduce) {
-				:global(::view-transition-group(*)) { animation-duration: 0s; }
+				::view-transition-group(*) { animation-duration: 0s; }
 			}
 		</style>
 	</>
@@ -53,7 +53,10 @@ from that snapshot.
 `enter`, `exit`, `update`, `share`, and `default` accept:
 
 - `auto`: browser default animation; the default when no style is specified.
-- `none`: disable that kind of animation and its callback.
+  Scoping adds only a matching class, never an animation preset or CSS animation
+  declaration. Authored local or global CSS can still override browser defaults.
+- `none`: disable that kind of animation and its callback. A scope class or
+  wildcard rule cannot re-enable it. This applies to all five styling props.
 - A space-separated list of view-transition CSS classes.
 - A transition-type map, such as `{ forward: 'slide-left', back: 'slide-right', default: 'auto' }`.
 
@@ -113,25 +116,98 @@ export function Photo() @{
 			</aside>
 		}
 		<style>
-			:global(::view-transition-group(.photo-move)) { animation-duration: 220ms; }
-			:global(::view-transition-image-pair(.photo-move)) { isolation: isolate; }
-			:global(::view-transition-old(.photo-move)) { animation: fade 220ms reverse; }
-			:global(::view-transition-new(.photo-move)) { animation: fade 220ms; }
+			::view-transition-group(.photo-move) { animation-duration: 220ms; }
+			::view-transition-image-pair(.photo-move) { isolation: isolate; }
+			::view-transition-old(.photo-move) { animation: fade 220ms reverse; }
+			::view-transition-new(.photo-move) { animation: fade 220ms; }
 			@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 			@media (prefers-reduced-motion: reduce) {
-				:global(::view-transition-group(*)) { animation-duration: 0s; }
+				::view-transition-group(*) { animation-duration: 0s; }
 			}
 		</style>
 	</>
 }
 ```
 
-Transition pseudo-elements live under the document root, outside component DOM
-scopes. Use `:global(::view-transition-…(...))` inside scoped `<style>` blocks, or
-an application stylesheet. Ordinary scoped selectors acquire a DOM scope class
-and do not reach this tree. Global selectors keep their names/classes unchanged;
-local keyframes are still renamed consistently by the compiler. Avoid styling an
-automatic generated name; classes let multiple boundaries share an animation.
+## Local and global transition CSS
+
+Inside a scoped `<style>`, transition selectors are local by default. The
+compiler puts the scope hash **inside the pseudo-selector argument** and supplies
+that hash as a native transition class to ViewTransition boundaries in the scope.
+It does not add a wrapper or a hydration marker. For scope hash `S`:
+
+| Authored selector                         | Compiled selector                       |
+| ----------------------------------------- | --------------------------------------- |
+| `::view-transition-new(.notice)`          | `::view-transition-new(.notice.S)`      |
+| `::view-transition-old(.notice)`          | `::view-transition-old(.notice.S)`      |
+| `::view-transition-group(*)`              | `::view-transition-group(*.S)`          |
+| `::view-transition-image-pair(photo)`     | `::view-transition-image-pair(photo.S)` |
+| `::view-transition-new(.fade.slide)`      | `::view-transition-new(.fade.slide.S)`  |
+| `:global(::view-transition-new(.notice))` | `::view-transition-new(.notice)`        |
+
+Names such as `photo` and transition-type keys such as `forward` are never
+renamed. Different components can reuse `.notice` independently. Instances of the
+same component share its CSS scope while retaining unique automatic names.
+Nested scopes and applied themes follow ordinary Ripple style scoping. A style
+scope does not implicitly cross a separately declared component function.
+
+For example, `enter="notice"` resolves to transition classes `notice S`. `auto`
+resolves to just `S`, so it uses the browser default animation unless a matching
+rule changes it. `none` stays disabled. Dynamic strings, tracked values, spreads,
+and transition-type maps use the same rules; matching `none` still wins when
+several transition types match. Import aliases and namespace imports are supported.
+
+Use `:global(...)` for intentionally shared recipes:
+
+```tsrx
+export function SharedRecipe() @{
+	<>
+		<style>
+			:global(::view-transition-new(.shared-toast)) { animation: toast-in 160ms; }
+			@keyframes -global-toast-in { from { opacity: 0; } to { opacity: 1; } }
+		</style>
+		<ViewTransition enter="shared-toast"><p>Saved</p></ViewTransition>
+	</>
+}
+```
+
+Selector scope and keyframe scope are independent. A global selector can also
+reference a local keyframe. Global rules deliberately match across scopes; normal
+CSS cascade rules determine which matching declarations win.
+
+Transition pseudo-elements belong to the document, so a DOM wrapper prefix such
+as `div ::view-transition-new(...)` cannot provide component scoping. The compiler
+reports that usage. Document-wide targets such as `::view-transition` and
+`::view-transition-new(root)` require `:global(...)` in a scoped block. Ordinary
+application `.css` files use native selectors directly, without `:global`.
+
+### Portable class maps
+
+Transition classes also appear in assigned style maps and `<style ref>` maps,
+using the existing `"scope class"` representation:
+
+```tsrx
+export function PortableNotice() @{
+	const styles = <style>
+		::view-transition-new(.notice) { animation: appear 160ms; }
+		@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+	</style>;
+	<ViewTransition enter={styles.notice}><p>Saved</p></ViewTransition>
+}
+```
+
+Pass these values through custom wrapper components or dynamic component calls
+when the compiler cannot identify the ViewTransition import. Use `<style
+apply={theme} />` to apply a theme's scope to direct ViewTransition calls. Compound
+class selectors require every listed class; `styles.fade` alone does not satisfy
+`.fade.slide`.
+
+Shared-element pairing still uses the explicit `name`. The browser uses the
+incoming element's classes for a matched pair, including across documents, so
+its local transition CSS styles both snapshots. Use a global recipe when different
+components or pages should use identical shared styles. Local class filtering
+requires native `view-transition-class` support; browsers without it retain
+rendering and browser-default animation fallbacks.
 
 ## Async boundaries and Activity
 

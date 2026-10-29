@@ -97,3 +97,21 @@ export function ActivityAroundTransition({
 		</ViewTransition>
 	</Activity>
 }
+
+export function Scoped({ value = 'auto' }: { value?: 'auto' | 'none' }) @{
+	transition = createViewTransition();
+	count = track(0);
+	<>
+		<style>
+			::view-transition-group(*) {
+				animation-duration: 100ms;
+			}
+			::view-transition-new(.notice) {
+				opacity: 1;
+			}
+		</style>
+		<ViewTransition name="scoped" default={value}>
+			<button onClick={() => count.value++}>{count.value}</button>
+		</ViewTransition>
+	</>
+}

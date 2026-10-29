@@ -9,7 +9,7 @@ import { gzipSync } from 'node:zlib';
 import { chromium, firefox, webkit } from 'playwright';
 import { build } from 'vite';
 import { ripple } from '@ripple-ts/vite-plugin';
-import { render } from 'ripple/server';
+import { render, getCss } from 'ripple/server';
 import buildFixtures from '../hydration/build-components.js';
 
 buildFixtures();
@@ -22,7 +22,9 @@ const plainHTML = (await render(/** @type {any} */ (ManyPlain))).body;
 const wrappedHTML = (await render(/** @type {any} */ (ManyWrapped))).body;
 assert.equal(wrappedHTML, plainHTML, '500 boundaries add zero SSR bytes/markers');
 const galleryHTML = (await render(/** @type {any} */ (Gallery))).body;
-const detailHTML = (await render(/** @type {any} */ (Detail))).body;
+const detailResult = await render(/** @type {any} */ (Detail));
+const detailHTML = detailResult.body;
+const detailCSS = getCss(detailResult.css);
 const activityHTML = (await render(/** @type {any} */ (ActivityApp))).body;
 const innerActivityHTML = (await render(/** @type {any} */ (InnerActivityApp))).body;
 const directory = await mkdtemp(join(tmpdir(), 'ripple-view-transition-'));
@@ -44,8 +46,19 @@ if (location.search === '?unsupported') document.startViewTransition = undefined
 else if (native) document.startViewTransition = (...args) => { starts++; return lastTransition = native(...args); };
 const begin = performance.now();
 const component = location.pathname === '/document-a' ? fixture.Gallery : location.pathname === '/document-b' ? fixture.Detail : location.search === '?activity-inner' ? fixture.InnerActivityApp : location.search === '?activity' ? fixture.ActivityApp : location.search === '?bench=plain' ? fixture.ManyPlain : location.search === '?bench=wrapped' ? fixture.ManyWrapped : fixture.App;
-const dispose = location.search === '?async' ? mount(fixture.AsyncApp, { target: document.getElementById('app') }) : hydrate(component, { target: document.getElementById('app') });
-window.vtTest = { fixture, dispose, initial, hydration: performance.now() - begin, starts: () => starts, finished: () => lastTransition?.finished ?? Promise.resolve() };
+const dispose = location.search === '?scoped' ? mount(fixture.ScopedApp, { target: document.getElementById('app') }) : location.search === '?async' ? mount(fixture.AsyncApp, { target: document.getElementById('app') }) : hydrate(component, { target: document.getElementById('app') });
+async function browserDefault() {
+  if (!native) return '';
+  const element = document.createElement('p');
+  element.style.viewTransitionName = 'browser-baseline';
+  element.textContent = 'old'; document.body.append(element);
+  const transition = native(() => { element.textContent = 'new'; });
+  await transition.ready;
+  const duration = getComputedStyle(document.documentElement, '::view-transition-new(browser-baseline)').animationDuration;
+  await transition.finished; element.remove();
+  return duration;
+}
+window.vtTest = { fixture, dispose, initial, hydration: performance.now() - begin, starts: () => starts, finished: () => lastTransition?.finished ?? Promise.resolve(), browserDefault };
 `,
 );
 const result = await build({
@@ -150,14 +163,15 @@ const server = createServer((request, response) => {
 			.end(`<!doctype html><html><head><link rel="stylesheet" href="/client.css"><style>
 @view-transition { navigation: auto; }
 #photo { width: ${detail ? 400 : 100}px; height: ${detail ? 300 : 80}px; background: teal; color:white; }
-</style><script>
-window.crossDocument = { supported:false, ready:false, finished:false, hydrated:false, pseudos:[] };
+</style>${detail ? '<style data-ripple-ssr>' + detailCSS + '</style>' : ''}<script>
+window.crossDocument = { supported:false, ready:false, finished:false, hydrated:false, pseudos:[], duration:'' };
 addEventListener('pagereveal', event => {
   if (!event.viewTransition) return;
-  const state = window.crossDocument = { supported:true, ready:false, finished:false, hydrated:false, pseudos:[] };
+  const state = window.crossDocument = { supported:true, ready:false, finished:false, hydrated:false, pseudos:[], duration:'' };
   event.viewTransition.ready.then(() => {
     state.ready = true; state.hydrated = !!window.vtTest;
     state.pseudos = document.documentElement.getAnimations({subtree:true}).map(animation => animation.effect?.pseudoElement ?? null);
+    state.duration = getComputedStyle(document.documentElement, '::view-transition-new(photo)').animationDuration;
   }, error => { state.error = String(error); });
   event.viewTransition.finished.then(() => { state.finished = true; });
 });
@@ -437,6 +451,11 @@ try {
 				);
 				assert(crossDocument.pseudos.includes('::view-transition-old(photo)'));
 				assert(crossDocument.pseudos.includes('::view-transition-new(photo)'));
+				assert.equal(
+					crossDocument.duration,
+					'0.17s',
+					'incoming scoped CSS applies before hydration',
+				);
 			}
 			assert.equal(
 				await page.evaluate(() => window.vtTest.starts()),
@@ -451,6 +470,31 @@ try {
 				assert.equal(await page.evaluate(() => window.crossDocument.error), undefined);
 			}
 
+			await page.goto(origin + '?scoped');
+			await page.waitForFunction(() => !!window.vtTest);
+			const browserDefault = await page.evaluate(() => window.vtTest.browserDefault());
+			const scoped = [];
+			for (const mode of ['notice', 'auto', 'none']) {
+				const events = await page.evaluate(async (mode) => {
+					const offset = window.vtTest.fixture.events.length;
+					const handle = window.vtTest.fixture.runScoped(mode);
+					await handle.finished;
+					return window.vtTest.fixture.events.slice(offset);
+				}, mode);
+				if (support.native && support.classes) {
+					assert.equal(events.find((event) => event.name === 'scoped-b')?.duration, '0.22s');
+					assert.equal(events.find((event) => event.name === 'scoped-global')?.duration, '0.13s');
+					assert.equal(events.find((event) => event.name === 'scoped-wildcard')?.duration, '0.09s');
+					if (mode === 'none') assert(!events.some((event) => event.name === 'scoped-a'));
+					else
+						assert.equal(
+							events.find((event) => event.name === 'scoped-a')?.duration,
+							mode === 'auto' ? browserDefault : '0.17s',
+						);
+				}
+				scoped.push({ mode, events });
+			}
+			assert.equal(await page.locator('#scoped-a').textContent(), '3');
 			const hydration = [];
 			for (let sample = 0; sample < 5; sample++) {
 				for (const variant of ['plain', 'wrapped']) {
@@ -485,6 +529,8 @@ try {
 				reveal,
 				activity,
 				crossDocument,
+				scoped,
+				browserDefault,
 				memory,
 				hydration,
 			});

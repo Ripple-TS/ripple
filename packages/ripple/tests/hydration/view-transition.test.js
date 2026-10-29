@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { hydrate, flushSync } from 'ripple';
-import { render } from 'ripple/server';
+import { render, getCss } from 'ripple/server';
 import { container } from '../setup-hydration.js';
 import * as client from './compiled/client/view-transition.js';
 import * as server from './compiled/server/view-transition.js';
@@ -115,7 +115,7 @@ it.each([
 ])(
 	'hydrates %s starting %s without initial animation or replacing nodes',
 	async (component, initial) => {
-		container.innerHTML = (await render(server[component], { props: { initial } })).body;
+		container.innerHTML = (await render(() => server[component]({ initial }))).body;
 		const input = container.querySelector('input');
 		const button = container.querySelector('button');
 		input.value = 'edited before hydration';
@@ -142,5 +142,34 @@ it.each([
 		flushSync();
 		expect(button.textContent).toBe('1');
 		expect(input.style.getPropertyPriority('view-transition-name')).toBe('');
+	},
+);
+
+it.each(['auto', 'none'])(
+	'preserves scoped %s semantics through SSR and hydration',
+	async (value) => {
+		const { body, css } = await render(() => server.Scoped({ value }));
+		container.innerHTML = body;
+		const button = container.querySelector('button');
+		const classes = button.style.getPropertyValue('view-transition-class');
+		if (value === 'auto') {
+			expect(classes).toMatch(/^tsrx-[\da-f]+$/);
+			expect(getCss(css)).toContain('::view-transition-group(*.' + classes + ')');
+		} else {
+			expect(classes).toBe('');
+			expect(button.style.getPropertyValue('view-transition-name')).toBe('none');
+		}
+		unmount = hydrate(client.Scoped, { target: container, props: { value } });
+		flushSync();
+		expect(container.querySelector('button')).toBe(button);
+		expect(native.start).not.toHaveBeenCalled();
+		const handle = client.transition.run(() => {
+			client.count.value++;
+		});
+		expect(await handle.ready).toBe(value === 'auto');
+		native.transitions[0].finish();
+		await handle.finished;
+		expect(button.textContent).toBe('1');
+		expect(button.style.getPropertyValue('view-transition-class')).toBe(classes);
 	},
 );

@@ -6,7 +6,7 @@ import {
 	tsrx_element,
 } from './index.js';
 import { map_root_html } from './root-html.js';
-import { valid_name, resolve_class } from '../../view-transition-style.js';
+import { valid_name, resolve_class, scope_class } from '../../view-transition-style.js';
 
 /** @param {import('#public').ViewTransitionProps} props */
 export function ViewTransition(props) {
@@ -18,6 +18,10 @@ export function ViewTransition(props) {
 					resolve_class(get(/** @type {any} */ (props.share)), []) ??
 					resolve_class(get(/** @type {any} */ (props.default)), []) ??
 					'auto';
+				value = scope_class(
+					value,
+					/** @type {import('#public').ViewTransitionProps & { $v?: string }} */ (props).$v,
+				);
 				transform_output((html) => {
 					var index = 0;
 					return map_root_html(html, (tag) => {

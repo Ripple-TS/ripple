@@ -73,7 +73,13 @@ import {
 	is_template_element,
 	is_template_fragment,
 } from './template-ast.js';
-import { is_element_dom_element, is_style_element } from './utils.js';
+import { is_element_dom_element, is_style_element, build_scope_class_expression } from './utils.js';
+import {
+	analyze_transition_styles,
+	finish_transition_styles,
+	set_transition_scope,
+	transition_class_map,
+} from './view-transition-styles.js';
 
 const b = builders;
 
@@ -101,7 +107,7 @@ export function get_style_registrations(fn) {
 
 /**
  * @typedef {'statement' | 'expression'} WalkMode
- * @typedef {{ hash: string | null, applied: Array<string | AST.Expression> }} ScopeEntry
+ * @typedef {{ hash: string | null, applied: Array<string | AST.Expression>, transition: boolean }} ScopeEntry
  * @typedef {{
  *   analysis: AnalysisResult,
  *   filename: string,
@@ -338,6 +344,14 @@ function walk_template(node, state) {
 		// document stylesheet), so nothing inside it is a scope or stamped.
 		if (get_element_identifier(node)?.name === 'head') return;
 		if (is_stamped_host(node)) stamp(node, state);
+		else {
+			const hashes = state.stack.flatMap((entry) =>
+				entry.transition && entry.hash ? [entry.hash] : [],
+			);
+			const applied = state.stack.flatMap((entry) => entry.applied);
+			const scope = build_scope_class_expression([...new Set(hashes), ...applied]);
+			if (scope) set_transition_scope(node, scope);
+		}
 		for (const attr of get_element_attributes(node)) {
 			if (attr.type === 'JSXAttribute') {
 				if (attr.value) walk(/** @type {AST.Node} */ (attr.value), state, 'expression');
@@ -459,6 +473,7 @@ function prepare_scope(own, items, state) {
 	// `<style ref>`), so two scopes never share a map.
 	const holder = own[0];
 	const refs = collectStyleRefAttributes(own);
+	let transition = false;
 
 	/** @type {AST.CSS.StyleSheet | null} */
 	let first_sheet = null;
@@ -474,6 +489,19 @@ function prepare_scope(own, items, state) {
 				const region_hash = sheet.hash;
 				sheet.hash = /** @type {string} */ (hash);
 				if (!analyze_scope_css(block, sheet, state)) continue;
+				const transitions = analyze_transition_styles(sheet, (message) =>
+					error(
+						message,
+						state.filename,
+						block,
+						state.collect ? analysis.errors : undefined,
+						analysis.comments,
+						'ripple-view-transition-scope',
+					),
+				);
+				transition ||= transitions.local;
+				for (const [name, entry] of transitions.classes)
+					if (!top_scoped_classes.has(name)) top_scoped_classes.set(name, entry);
 				const prune = () => {
 					for (const { element } of elements) {
 						pruneCss(
@@ -492,6 +520,13 @@ function prepare_scope(own, items, state) {
 					}
 					prune();
 				}
+				finish_transition_styles(
+					sheet,
+					refs.length > 0 ||
+						elements.some(
+							({ element }) => !is_element_dom_element(element) || is_dynamic_element(element),
+						),
+				);
 				analysis.stylesheets.push(sheet);
 				first_sheet ??= sheet;
 			}
@@ -512,14 +547,12 @@ function prepare_scope(own, items, state) {
 	}
 
 	if (refs.length > 0 && state.fn !== null) {
-		const statements = createStyleRefSetupStatements(
-			refs,
-			createStyleClassMap(holder, first_sheet, { applied, hash }),
-			{
-				allowMutableRefTarget: true,
-				createTempIdentifier: () => b.id(analysis.scope.generate('style_ref')),
-			},
-		);
+		const map = createStyleClassMap(holder, first_sheet, { applied, hash });
+		for (const [, sheet] of sheets) transition_class_map(map, sheet);
+		const statements = createStyleRefSetupStatements(refs, map, {
+			allowMutableRefTarget: true,
+			createTempIdentifier: () => b.id(analysis.scope.generate('style_ref')),
+		});
 		const metadata = state.fn.metadata;
 		metadata.tsrx_style_ref_statements = [
 			...(metadata.tsrx_style_ref_statements ?? []),
@@ -529,7 +562,7 @@ function prepare_scope(own, items, state) {
 
 	if (state.fn !== null) record_registrations(state.fn, applied, hash);
 
-	return { hash, applied };
+	return { hash, applied, transition };
 }
 
 /**
@@ -662,9 +695,20 @@ function prepare_assigned_style(node, state) {
 	const sheet = getStyleElementStylesheet(node);
 	if (!sheet) return;
 	if (!analyze_scope_css(node, sheet, state)) return;
+	analyze_transition_styles(sheet, (message) =>
+		error(
+			message,
+			state.filename,
+			node,
+			state.collect ? state.analysis.errors : undefined,
+			state.analysis.comments,
+			'ripple-view-transition-scope',
+		),
+	);
 	state.analysis.stylesheets.push(
 		prepareStylesheetForRender(sheet, node.metadata.styleKind === 'theme' ? 'theme' : 'class-map'),
 	);
+	finish_transition_styles(sheet, undefined);
 }
 
 /**

@@ -182,7 +182,20 @@ export function Gallery() @{
 }
 export function Detail() @{
 	<>
-		<ViewTransition name="photo" share="share">
+		<style>
+			::view-transition-new(.local-photo) {
+				animation: photo-in 170ms linear;
+			}
+			@keyframes photo-in {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+		</style>
+		<ViewTransition name="photo" share="local-photo">
 			<div id="photo">large photo</div>
 		</ViewTransition>
 		<a id="next" href="/document-a">Back to gallery</a>
@@ -232,4 +245,82 @@ export function InnerActivityApp() @{
 			<ActivityPanel />
 		</ViewTransition>
 	</Activity>
+}
+
+let scopedCount: Tracked<number>;
+let scopedMode: Tracked<string>;
+export function runScoped(mode: string) {
+	scopedMode.value = mode;
+	return transition.run(() => {
+		scopedCount.value++;
+	});
+}
+function ScopedA() @{
+	<>
+		<style>
+			::view-transition-new(.notice) {
+				animation: reveal 170ms linear;
+			}
+			:global(::view-transition-new(.shared-recipe)) {
+				animation: reveal 130ms linear;
+			}
+			@keyframes reveal {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+		</style>
+		<ViewTransition name="scoped-a" update={scopedMode} onUpdate={record('scoped-a')}>
+			<p id="scoped-a">{scopedCount.value}</p>
+		</ViewTransition>
+	</>
+}
+function ScopedB() @{
+	let styles;
+	<>
+		<style ref={styles}>
+			::view-transition-new(.notice) {
+				animation: reveal 220ms linear;
+			}
+			@keyframes reveal {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+		</style>
+		<ViewTransition name="scoped-b" update={styles.notice} onUpdate={record('scoped-b')}>
+			<p>{scopedCount.value}</p>
+		</ViewTransition>
+	</>
+}
+function ScopedWildcard() @{
+	<>
+		<style>
+			::view-transition-new(*) {
+				animation-duration: 90ms;
+			}
+		</style>
+		<ViewTransition name="scoped-wildcard" update="auto" onUpdate={record('scoped-wildcard')}>
+			<p>{scopedCount.value}</p>
+		</ViewTransition>
+	</>
+}
+export function ScopedApp() @{
+	transition = createViewTransition();
+	scopedCount = track(0);
+	scopedMode = track('notice');
+	<>
+		<ScopedA />
+		<ScopedB />
+		<ScopedWildcard />
+		<ViewTransition name="scoped-global" update="shared-recipe" onUpdate={record('scoped-global')}>
+			<p>{scopedCount.value}</p>
+		</ViewTransition>
+	</>
 }

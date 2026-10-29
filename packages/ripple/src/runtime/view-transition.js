@@ -1,4 +1,4 @@
-import { valid_name, resolve_class } from './view-transition-style.js';
+import { valid_name, resolve_class, scope_class } from './view-transition-style.js';
 /** @import { Block, TryState } from '#client' */
 /** @import { ViewTransitionProps, ViewTransitionClass, ViewTransitionCallback, ViewTransitionInstance, ViewTransitionHandle } from '#public' */
 import { DEV } from 'esm-env';
@@ -277,10 +277,11 @@ function capture(doc, navigation = false) {
 
 /** @param {Snapshot} snapshot @param {Kind} kind @param {readonly string[]} types */
 function styling(snapshot, kind, types) {
-	return (
+	return scope_class(
 		resolve_class(/** @type {ViewTransitionClass} */ (snapshot.p[kind]), types) ??
-		resolve_class(/** @type {ViewTransitionClass} */ (snapshot.p.default), types) ??
-		'auto'
+			resolve_class(/** @type {ViewTransitionClass} */ (snapshot.p.default), types) ??
+			'auto',
+		/** @type {ViewTransitionProps & { $v?: string }} */ (snapshot.p).$v,
 	);
 }
 
@@ -577,11 +578,14 @@ export function createViewTransition() {
 						{ signal: abort.signal },
 					);
 					if (entry.q !== null) {
-						observation = observer.run(() => reveal_queued(entry), { signal: abort.signal });
+						const revealed = observer.run(() => reveal_queued(entry), { signal: abort.signal });
+						// A new observation supersedes the previous boolean result, but
+						// must not discard an updater/render failure from that first run.
+						observation = Promise.all([observation, revealed]).then(([, complete]) => complete);
 					}
 					var pending = /** @type {void | Promise<void>} */ (result);
 					if (pending && typeof pending.then === 'function') {
-						await wait(pending, abort.signal);
+						await wait(Promise.all([pending, observation]), abort.signal);
 						if (abort.signal.aborted) return;
 						observation = observer.run(() => {}, { signal: abort.signal });
 					}

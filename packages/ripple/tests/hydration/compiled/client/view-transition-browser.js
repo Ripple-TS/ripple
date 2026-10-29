@@ -336,8 +336,8 @@ function Gallery_render(__anchor, __block) {
 
 Gallery[_$_.$r] = Gallery_render;
 
-var root_16 = _$_.template_el('div', ['id', 'photo'], 'large photo');
-var root_15 = _$_.template(`<!><a id=next href=/document-a>Back to gallery`, 1, 2);
+var root_16 = _$_.template_el('div', ['id', 'photo', 'class', 'tsrx-53cebc47'], 'large photo');
+var root_15 = _$_.template(`<!><a id=next href=/document-a class=tsrx-53cebc47>Back to gallery`, 1, 2);
 
 function Detail_render(__anchor, __block) {
 	var fragment_2 = root_15();
@@ -345,12 +345,13 @@ function Detail_render(__anchor, __block) {
 
 	_$_.render_component(ViewTransition, node_6, {
 		name: "photo",
-		share: "share",
+		share: "local-photo",
 		children: _$_.tsrx_element((__anchor, __block) => {
 			var div_1 = root_16();
 
 			_$_.append(__anchor, div_1);
-		})
+		}),
+		$v: 'tsrx-53cebc47'
 	});
 
 	_$_.next();
@@ -440,6 +441,144 @@ function InnerActivityApp_render(__anchor, __block) {
 }
 
 InnerActivityApp[_$_.$r] = InnerActivityApp_render;
+
+var root_18 = _$_.template_el('p', ['id', 'scoped-a', 'class', 'tsrx-7a97b36f']);
+
+function render_4(__prev) {
+	var __a = scopedCount.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._a, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+function ScopedA_render(__anchor, __block) {
+	_$_.render_component(ViewTransition, __anchor, {
+		name: "scoped-a",
+		update: scopedMode,
+		onUpdate: _$_.with_scope(__block, () => record('scoped-a')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var p_6 = root_18();
+
+			_$_.render(render_4, { a: '', _a: p_6 });
+			_$_.append(__anchor, p_6);
+		}),
+		$v: 'tsrx-7a97b36f'
+	});
+}
+
+ScopedA[_$_.$r] = ScopedA_render;
+
+var root_19 = _$_.template_el('p', ['class', 'tsrx-c2268f10']);
+
+function render_5(__prev) {
+	var __a = scopedCount.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._a, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+function ScopedB_render(__anchor, __block) {
+	let styles = { v: void 0 };
+
+	styles.v = { '$class': 'tsrx-c2268f10', 'notice': 'tsrx-c2268f10 notice' };
+
+	_$_.render_component(ViewTransition, __anchor, {
+		name: "scoped-b",
+		update: styles.v.notice,
+		onUpdate: _$_.with_scope(__block, () => record('scoped-b')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var p_7 = root_19();
+
+			_$_.render(render_5, { a: '', _a: p_7 });
+			_$_.append(__anchor, p_7);
+		}),
+		$v: 'tsrx-c2268f10'
+	});
+}
+
+ScopedB[_$_.$r] = ScopedB_render;
+
+var root_20 = _$_.template_el('p', ['class', 'tsrx-074c3239']);
+
+function render_6(__prev) {
+	var __a = scopedCount.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._a, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+function ScopedWildcard_render(__anchor, __block) {
+	_$_.render_component(ViewTransition, __anchor, {
+		name: "scoped-wildcard",
+		update: "auto",
+		onUpdate: _$_.with_scope(__block, () => record('scoped-wildcard')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var p_8 = root_20();
+
+			_$_.render(render_6, { a: '', _a: p_8 });
+			_$_.append(__anchor, p_8);
+		}),
+		$v: 'tsrx-074c3239'
+	});
+}
+
+ScopedWildcard[_$_.$r] = ScopedWildcard_render;
+
+var root_22 = _$_.template_el('p');
+
+function render_7(__prev) {
+	var __a = scopedCount.value;
+
+	if (__prev.a !== __a) {
+		_$_.set_text_content(__prev._a, __a, __prev.a);
+		__prev.a = __a;
+	}
+}
+
+var root_21 = _$_.template(`<!><!><!><!>`, 1, 4);
+
+function ScopedApp_render(__anchor, __block) {
+	transition = _$_.with_scope(__block, createViewTransition);
+	scopedCount = _$_.track(0, __block, 'ia4wuv');
+	scopedMode = _$_.track('notice', __block, '1pn0k11');
+
+	var fragment_3 = root_21();
+	var node_7 = _$_.first_child_frag(fragment_3);
+
+	_$_.render_component(ScopedA, node_7, {});
+
+	var node_8 = _$_.hydrating ? _$_.hydrate_sibling() : node_7.nextSibling;
+
+	_$_.render_component(ScopedB, node_8, {});
+
+	var node_9 = _$_.hydrating ? _$_.hydrate_sibling() : node_8.nextSibling;
+
+	_$_.render_component(ScopedWildcard, node_9, {});
+
+	var node_10 = _$_.hydrating ? _$_.hydrate_sibling() : node_9.nextSibling;
+
+	_$_.render_component(ViewTransition, node_10, {
+		name: "scoped-global",
+		update: "shared-recipe",
+		onUpdate: _$_.with_scope(__block, () => record('scoped-global')),
+		children: _$_.tsrx_element((__anchor, __block) => {
+			var p_9 = root_22();
+
+			_$_.render(render_7, { a: '', _a: p_9 });
+			_$_.append(__anchor, p_9);
+		})
+	});
+
+	_$_.append(__anchor, fragment_3);
+}
+
+ScopedApp[_$_.$r] = ScopedApp_render;
 
 import {
 	ViewTransition,
@@ -549,6 +688,33 @@ export function ActivityApp() {
 
 export function InnerActivityApp() {
 	return _$_.tsrx_element(InnerActivityApp_render);
+}
+
+let scopedCount;
+let scopedMode;
+
+export function runScoped(mode) {
+	scopedMode.value = mode;
+
+	return transition.run(() => {
+		scopedCount.value++;
+	});
+}
+
+function ScopedA() {
+	return _$_.tsrx_element(ScopedA_render);
+}
+
+function ScopedB() {
+	return _$_.tsrx_element(ScopedB_render);
+}
+
+function ScopedWildcard() {
+	return _$_.tsrx_element(ScopedWildcard_render);
+}
+
+export function ScopedApp() {
+	return _$_.tsrx_element(ScopedApp_render);
 }
 
 _$_.delegate(['click']);

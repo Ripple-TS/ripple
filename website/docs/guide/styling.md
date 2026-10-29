@@ -379,7 +379,9 @@ function App() @{
 }
 ```
 
-Classes exposed by a class map come from **standalone** selectors in the block.
+Ordinary DOM classes exposed by a class map come from **standalone** selectors
+in the block. Ripple additionally exposes classes in ViewTransition
+pseudo-selector arguments (see [View transition selectors](#view-transition-selectors)).
 A class that only appears inside a compound, descendant, or combinator selector is
 not exported on the map, so `styles.nested` is undefined for a block whose only
 rule is `.wrapper .nested { … }`. To hand a child the block's element and
@@ -596,6 +598,21 @@ A bare `:global(.toast)` is a global stylesheet hidden inside a component: it
 matches anywhere on the page, and nothing on the matched element points back to
 the file that wrote it. Keep it for page-level elements, and prefer a `.css` file
 the page links for those.
+
+### View transition selectors
+
+Ripple scopes ViewTransition pseudo-selectors inside their arguments:
+`::view-transition-new(.notice)` becomes
+`::view-transition-new(.notice.tsrx-HASH)`. The boundary receives the matching
+native transition class. Use `:global(::view-transition-new(.notice))` for a
+page-wide recipe. Prefixing the selector with a component DOM wrapper cannot
+scope the document's snapshot tree.
+
+Transition classes are also exposed by assigned blocks and style refs, so
+`styles.notice` can be passed through component props. Local keyframes and global
+keyframes keep their usual behavior, independently of the selector's scope.
+See [View transitions](./view-transitions#local-and-global-transition-css) for
+wildcards, explicit names, dynamic values, and `auto`/`none` behavior.
 
 ### Global Keyframes
 
