@@ -104,16 +104,77 @@ export function effect(fn: (() => void) | (() => () => void)): void;
 export interface RenderObserver {
 	/** Flush an update and await visible async rendering and demand hydration in the captured subtree.
 	 * Hidden Activity work does not delay settlement; showing it makes its pending work relevant.
-	 * A newer run, disposal, or unmount settles the old run with false.
+	 * A newer run, an aborted signal, disposal, or unmount settles the old run with false.
 	 * Requests in other component subtrees do not delay a run. This observes rendering;
 	 * it does not roll back state or provide atomic concurrent DOM updates.
 	 */
-	run(update: () => void): Promise<boolean>;
+	run(update: () => void, options?: { signal?: AbortSignal }): Promise<boolean>;
 	dispose(): void;
 }
 
 /** Capture the current initialization scope. On the server run executes and returns false. */
 export function createRenderObserver(): RenderObserver;
+
+export type ViewTransitionClass = string | Record<string, string>;
+export interface ViewTransitionPseudoElement {
+	/** Animate every top-level element in this boundary. */
+	animate(
+		keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+		options?: number | KeyframeAnimationOptions,
+	): Animation[];
+	getAnimations(): Animation[];
+}
+export interface ViewTransitionInstance {
+	name: string;
+	names: readonly string[];
+	old: ViewTransitionPseudoElement;
+	new: ViewTransitionPseudoElement;
+	group: ViewTransitionPseudoElement;
+	imagePair: ViewTransitionPseudoElement;
+}
+export type ViewTransitionCallback = (
+	instance: ViewTransitionInstance,
+	types: readonly string[],
+) => void | (() => void);
+export interface ViewTransitionProps {
+	children?: Children;
+	/** Omit for a local automatic name. Explicit names also participate in opted-in document navigation. */
+	name?: string | Derived<string>;
+	default?: ViewTransitionClass | Derived<ViewTransitionClass>;
+	enter?: ViewTransitionClass | Derived<ViewTransitionClass>;
+	exit?: ViewTransitionClass | Derived<ViewTransitionClass>;
+	update?: ViewTransitionClass | Derived<ViewTransitionClass>;
+	share?: ViewTransitionClass | Derived<ViewTransitionClass>;
+	onEnter?: ViewTransitionCallback;
+	onExit?: ViewTransitionCallback;
+	onUpdate?: ViewTransitionCallback;
+	onShare?: ViewTransitionCallback;
+}
+/** A transparent animation boundary. Wrapped pending reveals animate automatically;
+ * initial mount and hydration do not. Component callbacks describe same-document transitions.
+ */
+export function ViewTransition(props: ViewTransitionProps): void;
+export interface ViewTransitionOptions {
+	types?: readonly string[];
+	/** Maximum snapshot wait, including async rendering and assets; default 500ms. */
+	timeout?: number;
+}
+export interface ViewTransitionHandle {
+	/** Visible rendering completed, or false on supersession, disposal, or timeout. */
+	rendered: Promise<boolean>;
+	/** Snapshots exist and callbacks ran; false if animation was skipped. */
+	ready: Promise<boolean>;
+	/** Animation and callback cleanup completed. Rejects on update/callback failure. */
+	finished: Promise<void>;
+	/** Skip animation while still applying the update. */
+	skipTransition(): void;
+}
+export interface ViewTransitionController {
+	run(update: () => void | Promise<void>, options?: ViewTransitionOptions): ViewTransitionHandle;
+	dispose(): void;
+}
+/** Capture the initialization scope whose visible async work transitions await. */
+export function createViewTransition(): ViewTransitionController;
 
 export interface RippleArrayStatics {
 	from: {

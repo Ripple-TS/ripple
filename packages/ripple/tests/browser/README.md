@@ -1,5 +1,10 @@
 # Activity task trace
 
+For ViewTransition's Chromium/Firefox/WebKit suite, isolated React reference,
+SSR-marker comparison, bundle sizes, hydration timings, and repeated-animation
+heap/lifetime measurements, see
+[the conformance inventory](../view-transition/README.md).
+
 Use Ripple's Playwright and Vite dev dependencies:
 
 ```bash

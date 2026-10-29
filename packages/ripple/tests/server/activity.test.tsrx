@@ -57,3 +57,12 @@ describe('Activity SSR', () => {
 		expect(body).not.toContain('text &lt;');
 	});
 });
+
+it('uses the compact rt marker for hidden top-level text', async () => {
+	function App() @{
+		<Activity mode="hidden">{'text < & -->'}</Activity>
+	}
+	const { body } = await render(App);
+	expect(body).toContain('<!--rt:');
+	expect(body).not.toContain('ripple-text:');
+});

@@ -1,0 +1,494 @@
+{
+  "date": "2026-10-29",
+  "description": "One local Playwright run; timings and heap deltas are descriptive, not thresholds. React reference: 19.3.0.",
+  "bundleBytes": {
+    "baseline": 16587,
+    "enabled": 32517,
+    "added": 15930,
+    "addedGzip": 4976,
+    "fixtureGzip": 28763
+  },
+  "browsers": [
+    {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 1.6,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 2.6,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2593.099999964237,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": true,
+        "ready": true,
+        "finished": true,
+        "hydrated": false,
+        "pseudos": [
+          "::view-transition-group(photo)",
+          "::view-transition-group(root)",
+          "::view-transition-new(root)",
+          "::view-transition-new(root)",
+          "::view-transition-old(root)",
+          "::view-transition-old(root)",
+          "::view-transition-new(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-old(photo)"
+        ],
+        "duration": "0.17s"
+      },
+      "browserDefault": "0.25s",
+      "scoped": [
+        {
+          "mode": "notice",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.17s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "auto",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.25s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "none",
+          "events": [
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        }
+      ],
+      "memory": {
+        "heapBefore": 2307884,
+        "heapAfter": 2343912,
+        "domBefore": {
+          "documents": 1,
+          "nodes": 53,
+          "jsEventListeners": 29
+        },
+        "domAfter": {
+          "documents": 1,
+          "nodes": 53,
+          "jsEventListeners": 29
+        }
+      }
+    },
+    {
+      "engine": "firefox",
+      "version": "155.0",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 2,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 3,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2611,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": false,
+        "ready": false,
+        "finished": false,
+        "hydrated": false,
+        "pseudos": [],
+        "duration": ""
+      },
+      "browserDefault": "0.25s",
+      "scoped": [
+        {
+          "mode": "notice",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.17s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "auto",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.25s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "none",
+          "events": [
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "version": "26.6",
+      "features": {
+        "native": true,
+        "classes": true,
+        "types": true
+      },
+      "hydration500": {
+        "plain": {
+          "medianMs": 2,
+          "domNodes": 2004
+        },
+        "wrapped": {
+          "medianMs": 3,
+          "domNodes": 2004
+        }
+      },
+      "lifetime": {
+        "elapsed": 2623,
+        "before": 17,
+        "after": 17,
+        "callbacks": 37,
+        "cleanups": 37
+      },
+      "referenceScenarios": ["update", "share", "exit", "enter"],
+      "automaticReveal": [
+        {
+          "kind": "reveal",
+          "name": "async-content",
+          "names": ["async-content"],
+          "types": [],
+          "duration": "0.1s"
+        }
+      ],
+      "activityNesting": [
+        {
+          "query": "?activity",
+          "events": ["exit", "enter"]
+        },
+        {
+          "query": "?activity-inner",
+          "events": ["exit", "enter"]
+        }
+      ],
+      "crossDocument": {
+        "supported": true,
+        "ready": true,
+        "finished": true,
+        "hydrated": false,
+        "pseudos": [
+          "::view-transition-group(root)",
+          "::view-transition-old(root)",
+          "::view-transition-old(root)",
+          "::view-transition-new(root)",
+          "::view-transition-new(root)",
+          "::view-transition-group(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-old(photo)",
+          "::view-transition-new(photo)"
+        ],
+        "duration": "0.17s"
+      },
+      "browserDefault": "0.25s",
+      "scoped": [
+        {
+          "mode": "notice",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.17s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "auto",
+          "events": [
+            {
+              "kind": "scoped-a",
+              "name": "scoped-a",
+              "names": ["scoped-a"],
+              "types": [],
+              "duration": "0.25s"
+            },
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        },
+        {
+          "mode": "none",
+          "events": [
+            {
+              "kind": "scoped-b",
+              "name": "scoped-b",
+              "names": ["scoped-b"],
+              "types": [],
+              "duration": "0.22s"
+            },
+            {
+              "kind": "scoped-wildcard",
+              "name": "scoped-wildcard",
+              "names": ["scoped-wildcard"],
+              "types": [],
+              "duration": "0.09s"
+            },
+            {
+              "kind": "scoped-global",
+              "name": "scoped-global",
+              "names": ["scoped-global"],
+              "types": [],
+              "duration": "0.13s"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,9 @@
+import {
+	renderCssResult,
+	renderStylesheets,
+	get_transition_scope,
+	transition_class_map,
+} from '../../view-transition-styles.js';
 /** @import * as AST from 'estree'; */
 /** @import * as ESTreeJSX from 'estree-jsx'; */
 /** @import { RawSourceMap } from 'source-map'; */
@@ -19,8 +25,6 @@ import {
 	escape,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
-	renderCssResult,
-	renderStylesheets,
 	buildStyleClassMap,
 	createStyleClassMapFromStylesheet,
 	getStyleElementStylesheet,
@@ -134,6 +138,7 @@ function build_style_class_map_expression(node) {
 	const style_map = stylesheet
 		? createStyleClassMapFromStylesheet(stylesheet, { applied })
 		: buildStyleClassMap(new Map(), null, { applied });
+	transition_class_map(style_map, stylesheet);
 	const own_hash = stylesheet?.hash ?? null;
 	/** @type {string[]} */
 	const class_hashes = [];
@@ -2848,6 +2853,15 @@ const visitors = {
 				props.push(children_prop);
 			}
 
+			const transition_scope = get_transition_scope(node, element_id, state.scope);
+			if (transition_scope)
+				props.push(
+					b.prop(
+						'init',
+						b.id('$v'),
+						/** @type {AST.Expression} */ (visit(transition_scope, state)),
+					),
+				);
 			if (node.metadata?.dynamicElement === true) {
 				// A dynamic tag (`<{expr}>`): the runtime helper receives the tag
 				// expression and the element's own props separately, and resolves

@@ -1,3 +1,8 @@
+import {
+	renderCssResult,
+	get_transition_scope,
+	transition_class_map,
+} from '../../view-transition-styles.js';
 // @ts-check
 
 /**
@@ -62,7 +67,6 @@ import {
 	SERVER_IDENTIFIER,
 	obfuscateIdentifier,
 	object,
-	renderCssResult,
 	buildStyleClassMap,
 	createStyleClassMapFromStylesheet,
 	getStyleElementStylesheet,
@@ -184,6 +188,7 @@ function build_style_class_map_expression(node, context) {
 	const class_map = stylesheet
 		? createStyleClassMapFromStylesheet(stylesheet, { applied })
 		: buildStyleClassMap(new Map(), null, { applied });
+	transition_class_map(class_map, stylesheet);
 	if (context.state.to_ts) {
 		add_type_only_style_anchor(node, context);
 	}
@@ -4917,6 +4922,15 @@ const visitors = {
 			// We're calling a component from within svg/mathml context
 			const is_with_ns = state.namespace !== DEFAULT_NAMESPACE;
 
+			const transition_scope = get_transition_scope(node, element_id, state.scope);
+			if (transition_scope)
+				props.push(
+					b.prop(
+						'init',
+						b.id('$v'),
+						/** @type {AST.Expression} */ (visit(transition_scope, state)),
+					),
+				);
 			const object_props = b.object(props);
 			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
 			// resolves the expression value (component function, tag string, or

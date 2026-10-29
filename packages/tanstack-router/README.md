@@ -143,3 +143,15 @@ Ripple `<ViewTransition>` is a separate feature in
 
 The render observer reports subtree settlement. It does not provide atomic
 concurrent DOM staging or roll back state updates when an updater throws.
+
+### Component view transitions
+
+Pass a controller created with Ripple's `createViewTransition()` to
+`<RouterProvider {router} {viewTransition} />`. It replaces core's native
+transition wrapper, so `defaultViewTransition` and per-navigation `viewTransition`
+options coordinate Ripple boundaries through a single native transition. `false`
+bypasses animation; type arrays/functions are preserved. Create the controller in
+a common ancestor of the routed content. Render acknowledgment remains separate
+from animation completion. See the
+[ViewTransition guide](https://ripple-ts.com/docs/guide/view-transitions) for CSS,
+async waiting, reduced-motion behavior, and direct state updates.
