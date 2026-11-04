@@ -16,6 +16,11 @@
       "import": "./src/index.js",
       "default": "./src/index.js"
     },
+    "./config": {
+      "types": "./types/config.d.ts",
+      "import": "./src/config.js",
+      "default": "./src/config.js"
+    },
     "./stylex": {
       "types": "./stylex/index.d.ts",
       "import": "./stylex/index.js",

@@ -33,21 +33,13 @@ import { create_client_entry_source, write_project_generated_file } from './proj
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
 import { get_route_entry_path } from './routes.js';
 
-export { RenderRoute, ServerRoute } from './routes.js';
+export { RenderRoute, ServerRoute, defineConfig } from './config.js';
 export {
 	getRippleConfigPath,
 	loadRippleConfig,
 	resolveRippleConfig,
 	rippleConfigExists,
 } from './load-config.js';
-
-/**
- * @param {RippleConfigOptions} options
- * @returns {RippleConfigOptions}
- */
-export function defineConfig(options) {
-	return options;
-}
 
 const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
