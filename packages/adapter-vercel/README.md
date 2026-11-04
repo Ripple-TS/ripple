@@ -16,7 +16,7 @@ pnpm add @ripple-ts/adapter-vercel
 ### ripple.config.ts
 
 ```typescript
-import { defineConfig } from '@ripple-ts/vite-plugin';
+import { defineConfig } from '@ripple-ts/vite-plugin/config';
 import { serve, runtime } from '@ripple-ts/adapter-vercel';
 import { routes } from './src/routes.ts';
 

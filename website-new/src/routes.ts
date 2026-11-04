@@ -1,4 +1,4 @@
-import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin';
+import { RenderRoute, ServerRoute } from '@ripple-ts/vite-plugin/config';
 
 export const routes = [
 	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),

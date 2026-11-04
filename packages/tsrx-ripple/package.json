@@ -5,6 +5,7 @@
   "author": "Dominic Gannaway",
   "version": "0.2.11",
   "type": "module",
+  "sideEffects": false,
   "scripts": {
     "generate:dom-setters": "node scripts/generate-dom-setters.js"
   },

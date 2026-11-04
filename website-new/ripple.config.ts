@@ -1,4 +1,4 @@
-import { defineConfig } from '@ripple-ts/vite-plugin';
+import { defineConfig } from '@ripple-ts/vite-plugin/config';
 import { serve, runtime } from '@ripple-ts/adapter-node';
 
 import { routes } from './src/routes.ts';

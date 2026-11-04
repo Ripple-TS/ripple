@@ -8,6 +8,13 @@ export default {
 };
 ```
 
+## Config helpers
+
+`ripple.config.ts` is loaded by the production server, so import `defineConfig`,
+`RenderRoute`, and `ServerRoute` from `@ripple-ts/vite-plugin/config`. That entry
+has no plugin, compiler, or dev-server imports; the main entry is for
+`vite.config`.
+
 ## Plugin and compiler options
 
 The options passed to `ripple()` configure the Vite integration. `rootBoundary`
@@ -245,7 +252,7 @@ export const transport: Transport = {
 
 ```ts
 // ripple.config.ts
-import { defineConfig } from '@ripple-ts/vite-plugin';
+import { defineConfig } from '@ripple-ts/vite-plugin/config';
 
 export default defineConfig({
   transport: ['transport', '/src/transport.ts'],

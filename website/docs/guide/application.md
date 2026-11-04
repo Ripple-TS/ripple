@@ -322,7 +322,7 @@ export const transport: Transport = {
 
 ```ts
 // ripple.config.ts
-import { defineConfig } from '@ripple-ts/vite-plugin';
+import { defineConfig } from '@ripple-ts/vite-plugin/config';
 
 export default defineConfig({
   transport: ['transport', '/src/transport.ts'],
@@ -369,7 +369,7 @@ const html = template
 With the Vite plugin, mark the render routes to prerender instead:
 
 ```ts
-import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin';
+import { defineConfig, RenderRoute } from '@ripple-ts/vite-plugin/config';
 
 export default defineConfig({
   router: {
