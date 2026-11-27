@@ -1,9 +1,9 @@
 /**
  * Shared RPC utilities for Ripple metaframework.
  *
- * These functions are platform-agnostic — they use only standard Web APIs
- * (Request, Response, Headers, URL) and receive platform-specific capabilities
- * (hashing, async context) from the adapter's runtime.
+ * These functions use standard Web APIs (Request, Response, Headers, URL) and
+ * receive platform-specific capabilities (hashing, async context) from the
+ * adapter's runtime.
  *
  * Used by both the Vite dev server and production server runtime.
  */
@@ -20,6 +20,7 @@
  */
 
 const RPC_PATH_PREFIX = '/_$_ripple_rpc_$_/';
+const IS_BUN = typeof process !== 'undefined' && process.versions?.bun !== undefined;
 
 // ============================================================================
 // Origin derivation
@@ -59,6 +60,51 @@ function has_scheme(url) {
 	return /^[a-z][a-z0-9+\-.]*:/i.test(url);
 }
 
+/**
+ * @param {Request} input
+ * @param {RequestInit} [init]
+ */
+function normalize_bun_request(input, init) {
+	let inherited_body = null;
+	let init_signal;
+	let read_signal = false;
+	// Forward other options with their original receiver, including inherited getters.
+	const options = {
+		__proto__:
+			init == null
+				? null
+				: new Proxy(Object(init), { get: (target, key) => Reflect.get(target, key) }),
+		get signal() {
+			if (!read_signal) {
+				init_signal = init?.signal;
+				read_signal = true;
+			}
+			return init_signal;
+		},
+		get body() {
+			const body = init?.body;
+			if (body !== undefined) return body;
+			const init_signal = this.signal;
+			const signal = init_signal === undefined ? input.signal : init_signal;
+			if (!signal?.aborted) return undefined;
+			inherited_body = input.body;
+			// Bun tees inherited bodies. An empty body lets Request validate the options
+			// while leaving the original stream available for cancellation.
+			return inherited_body === null ? undefined : new Uint8Array(0);
+		},
+	};
+	const request = new Request(input, options);
+	if (inherited_body !== null) {
+		if (request.method === 'GET' || request.method === 'HEAD') {
+			throw new TypeError('Request with GET/HEAD method cannot have body');
+		}
+		if (input.bodyUsed || /** @type {ReadableStream} */ (inherited_body).locked) {
+			throw new TypeError('Request body is already used or locked');
+		}
+	}
+	return { request, inherited_body };
+}
+
 /** @type {patch_global_fetch} */
 export function patch_global_fetch(async_context) {
 	// Guard: if fetch is already patched by Ripple, don't wrap it again.
@@ -83,7 +129,9 @@ export function patch_global_fetch(async_context) {
 		try {
 			const context = async_context.getStore();
 			if (context?.signal) {
-				const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+				const init_signal = init?.signal;
+				const signal =
+					init_signal === undefined && input instanceof Request ? input.signal : init_signal;
 				init = {
 					...init,
 					signal: signal ? AbortSignal.any([signal, context.signal]) : context.signal,
@@ -122,7 +170,27 @@ export function patch_global_fetch(async_context) {
 					}
 
 					if (resolved_origin === context.origin) {
-						const request = new Request(input, init);
+						let request;
+						let inherited_body = null;
+						if (
+							IS_BUN &&
+							input instanceof Request &&
+							(context.signal ? init?.signal?.aborted : init != null || input.signal.aborted)
+						) {
+							({ request, inherited_body } = normalize_bun_request(input, init));
+						} else {
+							request = new Request(input, init);
+						}
+						const { signal } = request;
+						if (signal.aborted) {
+							const { reason } = signal;
+							const body = inherited_body ?? request.body;
+							if (body !== null) {
+								// A caller's stream method and cancellation errors cannot replace the abort reason.
+								void ReadableStream.prototype.cancel.call(body, reason).catch(() => {});
+							}
+							return Promise.reject(reason);
+						}
 						return internal_handler(request);
 					}
 				}

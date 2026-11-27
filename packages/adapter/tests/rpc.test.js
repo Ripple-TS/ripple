@@ -5,7 +5,7 @@ describe('patch_global_fetch', () => {
 	/** @type {ReturnType<typeof patch_global_fetch> | null} */
 	let fetch_handle = null;
 	const network_fetch = vi.fn(async () => new Response('network'));
-	/** @type {{ origin: string } | undefined} */
+	/** @type {{ origin: string, signal?: AbortSignal } | undefined} */
 	let store;
 
 	beforeEach(() => {
@@ -104,6 +104,161 @@ describe('patch_global_fetch', () => {
 		expect(request.signal.aborted).toBe(false);
 		replacement_controller.abort();
 		expect(request.signal.aborted).toBe(true);
+		expect(network_fetch).not.toHaveBeenCalled();
+	});
+
+	it('rejects a pre-aborted same-origin POST with the default abort reason', async () => {
+		const handler = vi.fn(async () => new Response('handler'));
+		fetch_handle.set_handler(handler);
+		const signal = AbortSignal.abort();
+		const input = new Request('http://localhost:3000/api/items');
+
+		await expect(fetch(input, { method: 'POST', body: 'payload', signal })).rejects.toBe(
+			signal.reason,
+		);
+		expect(handler).not.toHaveBeenCalled();
+		expect(network_fetch).not.toHaveBeenCalled();
+	});
+
+	it('rejects with the abort reason inherited from a same-origin Request', async () => {
+		const handler = vi.fn(async () => new Response('handler'));
+		fetch_handle.set_handler(handler);
+		const input = new Request('http://localhost:3000/api/items', {
+			method: 'POST',
+			body: 'payload',
+			signal: AbortSignal.abort(null),
+		});
+
+		await expect(fetch(input)).rejects.toBeNull();
+		expect(handler).not.toHaveBeenCalled();
+		expect(network_fetch).not.toHaveBeenCalled();
+	});
+
+	it.each(['Request', 'init', 'context'])(
+		'cancels the original open upload when its %s signal is already aborted',
+		async (source) => {
+			const handler = vi.fn(async () => new Response('handler'));
+			fetch_handle.set_handler(handler);
+			const reason = new Error('upload aborted');
+			const signal = AbortSignal.abort(reason);
+			const cancel = vi.fn();
+			const body = new ReadableStream({ cancel }, { highWaterMark: 0 });
+			const input = new Request('http://localhost:3000/api/items', {
+				method: 'POST',
+				body,
+				duplex: 'half',
+				signal: source === 'Request' ? signal : undefined,
+			});
+			if (source === 'context') store.signal = signal;
+
+			const init = source === 'init' ? { signal } : undefined;
+			await expect(fetch(input, init)).rejects.toBe(reason);
+			expect(cancel).toHaveBeenCalledExactlyOnceWith(reason);
+			expect(body.locked).toBe(false);
+			expect(handler).not.toHaveBeenCalled();
+			expect(network_fetch).not.toHaveBeenCalled();
+		},
+	);
+
+	it('validates RequestInit and inherited body usability before canceling a pre-aborted upload', async () => {
+		const handler = vi.fn(async () => new Response('handler'));
+		fetch_handle.set_handler(handler);
+		const cancel = vi.fn();
+		const pull = vi.fn();
+		const body = new ReadableStream({ cancel, pull }, { highWaterMark: 0 });
+		const input = new Request('http://localhost:3000/api/items', {
+			method: 'POST',
+			body,
+			duplex: 'half',
+			signal: AbortSignal.abort(),
+		});
+		const header_error = new Error('invalid headers');
+		const init = Object.create({
+			get headers() {
+				expect(this).toBe(init);
+				throw header_error;
+			},
+		});
+		for (const method of ['GET', 'HEAD']) {
+			await expect(fetch(input, { method })).rejects.toThrow(TypeError);
+			expect(input.bodyUsed).toBe(false);
+			expect(body.locked).toBe(false);
+		}
+		const reader = body.getReader();
+		try {
+			await expect(fetch(input, init)).rejects.toBe(header_error);
+			await expect(fetch(input)).rejects.toThrow(TypeError);
+			expect(cancel).not.toHaveBeenCalled();
+			expect(pull).not.toHaveBeenCalled();
+			expect(handler).not.toHaveBeenCalled();
+			expect(network_fetch).not.toHaveBeenCalled();
+		} finally {
+			reader.releaseLock();
+		}
+	});
+
+	it('rejects a same-origin POST when its request context has already aborted', async () => {
+		const handler = vi.fn(async () => new Response('handler'));
+		fetch_handle.set_handler(handler);
+		const reason = new Error('request context aborted');
+		store = { origin: 'http://localhost:3000', signal: AbortSignal.abort(reason) };
+
+		await expect(
+			fetch('/api/items', {
+				method: 'POST',
+				body: 'payload',
+				signal: new AbortController().signal,
+			}),
+		).rejects.toBe(reason);
+		expect(handler).not.toHaveBeenCalled();
+		expect(network_fetch).not.toHaveBeenCalled();
+	});
+
+	it.each(['live', 'null'])(
+		'honors a %s init signal overriding an aborted Request under a live context',
+		async (override) => {
+			const context_controller = new AbortController();
+			store = { origin: 'http://localhost:3000', signal: context_controller.signal };
+			const input = new Request('http://localhost:3000/api/items', {
+				method: 'POST',
+				body: 'payload',
+				signal: AbortSignal.abort(),
+			});
+			const signal = override === 'live' ? new AbortController().signal : null;
+			const handler = vi.fn(async (request) => new Response(await request.text()));
+			fetch_handle.set_handler(handler);
+
+			const response = await fetch(input, { signal });
+
+			expect(await response.text()).toBe('payload');
+			expect(handler).toHaveBeenCalledTimes(1);
+			const request = handler.mock.calls[0][0];
+			expect(request.signal.aborted).toBe(false);
+			context_controller.abort();
+			expect(request.signal.reason).toBe(context_controller.signal.reason);
+			expect(network_fetch).not.toHaveBeenCalled();
+		},
+	);
+
+	it('cancels a pre-aborted POST body and preserves the abort reason if cancellation fails', async () => {
+		const handler = vi.fn(async () => new Response('handler'));
+		fetch_handle.set_handler(handler);
+		const reason = new Error('POST aborted');
+		const cancel = vi.fn(async () => {
+			throw new Error('body cancellation failed');
+		});
+		const body = new ReadableStream({ cancel });
+
+		await expect(
+			fetch('/api/items', {
+				method: 'POST',
+				body,
+				duplex: 'half',
+				signal: AbortSignal.abort(reason),
+			}),
+		).rejects.toBe(reason);
+		expect(cancel).toHaveBeenCalledExactlyOnceWith(reason);
+		expect(handler).not.toHaveBeenCalled();
 		expect(network_fetch).not.toHaveBeenCalled();
 	});
 
